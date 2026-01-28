@@ -129,6 +129,7 @@ export default function Onboarding() {
   const [otpCode, setOtpCode] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   const current = STEPS[step];
   const isFirst = step === 0;
@@ -143,6 +144,14 @@ export default function Onboarding() {
   useEffect(() => {
     inputRef.current?.focus();
   }, [step]);
+
+  // Cooldown timer for request new code
+  useEffect(() => {
+    if (cooldownSeconds > 0) {
+      const timer = setTimeout(() => setCooldownSeconds(s => s - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldownSeconds]);
 
   const handleSendOtp = async () => {
     const number = phone.trim();
@@ -160,6 +169,7 @@ export default function Onboarding() {
     }
     setOtpSent(true);
     setOtpCode("");
+    setCooldownSeconds(60); // Start 60 second cooldown
   };
 
   const handleVerify = async () => {
@@ -192,6 +202,7 @@ export default function Onboarding() {
   };
 
   const handleRequestNewCode = async () => {
+    if (cooldownSeconds > 0) return; // Prevent during cooldown
     setError(null);
     setOtpCode("");
     await handleSendOtp();
@@ -447,10 +458,14 @@ export default function Onboarding() {
                       <button
                         type="button"
                         onClick={() => void handleRequestNewCode()}
-                        disabled={verifying || sendingOtp}
+                        disabled={verifying || sendingOtp || cooldownSeconds > 0}
                         className={BTN_SECONDARY}
                       >
-                        {sendingOtp ? "Sending…" : "Request new code"}
+                        {sendingOtp 
+                          ? "Sending…" 
+                          : cooldownSeconds > 0 
+                            ? `Request new code (${cooldownSeconds}s)`
+                            : "Request new code"}
                       </button>
                       <button
                         type="submit"

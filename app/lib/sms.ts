@@ -15,6 +15,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
 const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
 const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID?.trim();
 const redisUrl = process.env.REDIS_URL?.trim();
+const redisPassword = process.env.REDIS_PASSWORD?.trim();
 
 // Redis client for distributed verification SID storage
 let redisClient: ReturnType<typeof createClient> | null = null;
@@ -26,11 +27,20 @@ async function getRedisClient() {
   }
   
   if (!redisClient) {
-    redisClient = createClient({ url: redisUrl });
-    redisClient.on("error", (err) => {
-      console.error("[sms] Redis client error:", err);
-    });
-    await redisClient.connect();
+    try {
+      redisClient = createClient({ 
+        url: redisUrl,
+        password: redisPassword || undefined // Only set if provided
+      });
+      redisClient.on("error", (err) => {
+        console.error("[sms] Redis client error:", err);
+      });
+      await redisClient.connect();
+    } catch (err) {
+      console.error("[sms] Failed to connect to Redis:", err);
+      redisClient = null;
+      return null;
+    }
   }
   
   return redisClient;
