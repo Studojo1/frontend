@@ -25,6 +25,13 @@ WORKDIR /src
 ENV PORT=3000
 COPY package.json bun.lockb ./
 COPY --from=production-dependencies-env /src/node_modules /src/node_modules
+# Install drizzle-kit, tsx, typescript globally, and dotenv locally (needed for drizzle.config.ts)
+RUN npm install -g drizzle-kit@^0.31.8 tsx typescript && \
+    cd /src && npm install dotenv --save
 COPY --from=build-env /src/build ./build
+# Copy drizzle config and schema files needed for migrations
+COPY --from=build-env /src/drizzle.config.ts ./
+COPY --from=build-env /src/auth-schema.ts ./
+COPY --from=build-env /src/drizzle ./drizzle
 EXPOSE 3000
 CMD ["npx", "react-router-serve", "./build/server/index.js"]

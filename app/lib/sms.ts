@@ -4,17 +4,37 @@
  * 
  * Uses Twilio Verify API which handles OTP generation, delivery, and verification.
  * This provides better global SMS delivery and built-in fraud protection.
+ * 
+ * Verification SIDs are stored in Redis for distributed access across multiple pods.
  */
 
 import twilio from "twilio";
+import { createClient } from "redis";
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
 const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
 const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID?.trim();
+const redisUrl = process.env.REDIS_URL?.trim();
 
-// In-memory store for verification SIDs (phone number -> verification SID)
-// In production, consider using Redis or database for distributed systems
-const verificationSidStore = new Map<string, string>();
+// Redis client for distributed verification SID storage
+let redisClient: ReturnType<typeof createClient> | null = null;
+
+// Initialize Redis client lazily
+async function getRedisClient() {
+  if (!redisUrl) {
+    return null;
+  }
+  
+  if (!redisClient) {
+    redisClient = createClient({ url: redisUrl });
+    redisClient.on("error", (err) => {
+      console.error("[sms] Redis client error:", err);
+    });
+    await redisClient.connect();
+  }
+  
+  return redisClient;
+}
 
 function isConfigured(): boolean {
   return !!(accountSid && authToken && verifyServiceSid);
@@ -42,18 +62,24 @@ export function sendOtpSms(to: string, code: string): void {
     return;
   }
 
-  const client = twilio(accountSid, authToken);
+  const twilioClient = twilio(accountSid, authToken);
 
   // Create verification using Verify API (this sends the code)
-  client.verify.v2
+  twilioClient.verify.v2
     .services(verifyServiceSid!)
     .verifications.create({
       to,
       channel: "sms",
     })
-    .then((verification) => {
-      // Store verification SID for later verification check
-      verificationSidStore.set(to, verification.sid);
+    .then(async (verification) => {
+      // Store verification SID in Redis for distributed access
+      const redis = await getRedisClient();
+      if (redis) {
+        // Store with 10 minute TTL (verification codes expire)
+        await redis.setEx(`verification:${to}`, 600, verification.sid);
+      } else {
+        console.warn("[sms] Redis not configured, verification SID not stored. Verification may fail in multi-pod deployments.");
+      }
       
       if (process.env.NODE_ENV !== "production") {
         console.log(`[sms] Verification created: ${verification.sid} for ${to}`);
@@ -65,17 +91,38 @@ export function sendOtpSms(to: string, code: string): void {
 }
 
 /**
- * Get the verification SID for a phone number.
+ * Get the verification SID for a phone number from Redis.
  * Used when verifying the OTP code.
  */
-export function getVerificationSid(phoneNumber: string): string | undefined {
-  return verificationSidStore.get(phoneNumber);
+export async function getVerificationSid(phoneNumber: string): Promise<string | undefined> {
+  const client = await getRedisClient();
+  if (!client) {
+    console.warn("[sms] Redis not configured, cannot retrieve verification SID");
+    return undefined;
+  }
+  
+  try {
+    const sid = await client.get(`verification:${phoneNumber}`);
+    return sid || undefined;
+  } catch (err) {
+    console.error("[sms] Failed to get verification SID from Redis:", err);
+    return undefined;
+  }
 }
 
 /**
- * Clear the verification SID for a phone number.
+ * Clear the verification SID for a phone number from Redis.
  * Call after successful verification or expiration.
  */
-export function clearVerificationSid(phoneNumber: string): void {
-  verificationSidStore.delete(phoneNumber);
+export async function clearVerificationSid(phoneNumber: string): Promise<void> {
+  const client = await getRedisClient();
+  if (!client) {
+    return;
+  }
+  
+  try {
+    await client.del(`verification:${phoneNumber}`);
+  } catch (err) {
+    console.error("[sms] Failed to clear verification SID from Redis:", err);
+  }
 }

@@ -72,8 +72,8 @@ export const auth = betterAuth({
           });
         }
 
-        // Get verification SID from our store
-        const verificationSid = getVerificationSid(phoneNumberValue);
+        // Get verification SID from Redis
+        const verificationSid = await getVerificationSid(phoneNumberValue);
         
         if (!verificationSid) {
           throw new APIError("BAD_REQUEST", {
@@ -86,14 +86,14 @@ export const auth = betterAuth({
 
         if (!result.valid) {
           // Clear verification SID on failure
-          clearVerificationSid(phoneNumberValue);
+          await clearVerificationSid(phoneNumberValue);
           throw new APIError("BAD_REQUEST", {
             message: result.error || "Invalid verification code",
           });
         }
 
         // Verification successful - clear the SID
-        clearVerificationSid(phoneNumberValue);
+        await clearVerificationSid(phoneNumberValue);
 
         // Get the current session if available
         const session = ctx.context?.session;

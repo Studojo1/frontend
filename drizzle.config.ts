@@ -1,7 +1,14 @@
 import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
 
-if (!process.env.DATABASE_URL) config({ path: ".env.local" });
+// Only load .env.local if DATABASE_URL is not already set (e.g., in Kubernetes)
+if (!process.env.DATABASE_URL) {
+  try {
+    config({ path: ".env.local" });
+  } catch (e) {
+    // Ignore if .env.local doesn't exist (e.g., in production/Kubernetes)
+  }
+}
 
 export default defineConfig({
   dialect: "postgresql",
