@@ -4,13 +4,18 @@ import { redirect } from "react-router";
 import { FiDownload, FiEdit, FiTrash2, FiPlus, FiFileText } from "react-icons/fi";
 import { Footer, Header } from "~/components";
 import { ImportResumeModal } from "~/components/resumes";
-import { getSessionFromRequest } from "~/lib/onboarding";
+import { getSessionFromRequest, getProfileStatus } from "~/lib/onboarding";
 import { toast } from "sonner";
 import type { Route } from "./+types/resumes";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) throw redirect("/auth");
+  
+  // Check if onboarding is complete
+  const { completed } = await getProfileStatus(session.user.id);
+  if (!completed) throw redirect("/onboarding");
+  
   return null;
 }
 
