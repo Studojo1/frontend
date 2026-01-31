@@ -11,15 +11,24 @@ import {
 } from "better-auth/plugins";
 import { passkey } from "@better-auth/passkey";
 import { eq } from "drizzle-orm";
-import { randomBytes } from "crypto";
 import * as schema from "../../auth-schema";
 import db from "./db";
 import { sendOtpSms, getVerificationSid, clearVerificationSid } from "./sms";
 import { verifyOtpCode } from "./verify";
 
 // Helper to generate IDs similar to better-auth (base64url encoded random bytes)
+// Uses crypto.getRandomValues for browser compatibility, falls back to Node.js crypto
 function generateId(): string {
-  return randomBytes(16).toString("base64url");
+  if (typeof window === "undefined") {
+    // Server-side: use Node.js crypto
+    const { randomBytes } = require("crypto");
+    return randomBytes(16).toString("base64url");
+  } else {
+    // Client-side: use Web Crypto API (shouldn't happen, but for safety)
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    return Buffer.from(array).toString("base64url");
+  }
 }
 
 const baseURL =
