@@ -17,17 +17,26 @@ import { sendOtpSms, getVerificationSid, clearVerificationSid } from "./sms";
 import { verifyOtpCode } from "./verify";
 
 // Helper to generate IDs similar to better-auth (base64url encoded random bytes)
-// Uses crypto.getRandomValues for browser compatibility, falls back to Node.js crypto
 function generateId(): string {
-  if (typeof window === "undefined") {
+  // This should only run server-side, but handle both cases for safety
+  if (typeof window === "undefined" && typeof require !== "undefined") {
     // Server-side: use Node.js crypto
-    const { randomBytes } = require("crypto");
-    return randomBytes(16).toString("base64url");
+    const crypto = require("crypto");
+    return crypto.randomBytes(16).toString("base64url");
   } else {
-    // Client-side: use Web Crypto API (shouldn't happen, but for safety)
+    // Browser fallback: use Web Crypto API and manual base64url encoding
     const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    return Buffer.from(array).toString("base64url");
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      crypto.getRandomValues(array);
+    } else {
+      // Fallback for very old browsers
+      for (let i = 0; i < 16; i++) {
+        array[i] = Math.floor(Math.random() * 256);
+      }
+    }
+    // Convert to base64url manually (browser-compatible)
+    const base64 = btoa(String.fromCharCode(...array));
+    return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
   }
 }
 
