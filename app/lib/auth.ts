@@ -136,8 +136,89 @@ export const auth = betterAuth({
         await clearVerificationSid(phoneNumberValue);
 
         // Get the current session if available
-        const session = ctx.context?.session;
+        let session = ctx.context?.session;
         let userId: string | undefined = session?.userId;
+
+        // If updatePhoneNumber is true, we need a session - try to get it manually if not in context
+        if (updatePhoneNumber) {
+          // If no session in context, try to retrieve it from headers
+          if (!session && ctx.headers) {
+            try {
+              // Convert headers to Headers object if needed
+              let headersObj: Headers;
+              if (typeof ctx.headers.get === "function") {
+                headersObj = ctx.headers as Headers;
+              } else {
+                // Convert plain object to Headers
+                headersObj = new Headers();
+                for (const [key, value] of Object.entries(ctx.headers)) {
+                  if (typeof value === "string") {
+                    headersObj.set(key, value);
+                  } else if (Array.isArray(value)) {
+                    value.forEach((v) => headersObj.append(key, String(v)));
+                  }
+                }
+              }
+              
+              // Try to get session from cookies
+              // better-auth stores session token in cookies, try common cookie name patterns
+              const cookieHeader = headersObj.get("cookie") || "";
+              
+              // Try different cookie name patterns (better-auth might use different names)
+              const cookiePatterns = [
+                /better-auth\.session_token=([^;]+)/,
+                /better-auth_session_token=([^;]+)/,
+                /session_token=([^;]+)/,
+              ];
+              
+              let sessionToken: string | null = null;
+              for (const pattern of cookiePatterns) {
+                const match = cookieHeader.match(pattern);
+                if (match) {
+                  sessionToken = decodeURIComponent(match[1].trim());
+                  break;
+                }
+              }
+              
+              if (sessionToken) {
+                const [sessionRecord] = await db
+                  .select()
+                  .from(schema.session)
+                  .where(eq(schema.session.token, sessionToken))
+                  .limit(1);
+                
+                if (sessionRecord && sessionRecord.expiresAt > new Date()) {
+                  // Session is valid, get the user
+                  const [userRecord] = await db
+                    .select()
+                    .from(schema.user)
+                    .where(eq(schema.user.id, sessionRecord.userId))
+                    .limit(1);
+                  
+                  if (userRecord) {
+                    userId = userRecord.id;
+                    session = {
+                      id: sessionRecord.id,
+                      userId: sessionRecord.userId,
+                      expiresAt: sessionRecord.expiresAt,
+                      token: sessionRecord.token,
+                    } as any;
+                  }
+                }
+              }
+            } catch (error) {
+              // If session retrieval fails, we'll handle it below
+              console.error("[auth] Failed to retrieve session from headers:", error);
+            }
+          }
+
+          // If still no session when updatePhoneNumber is true, throw error
+          if (!userId) {
+            throw new APIError("UNAUTHORIZED", {
+              message: "You must be logged in to add a phone number. Please sign in first.",
+            });
+          }
+        }
 
         // If updatePhoneNumber is true and we have a session, update the existing user
         if (updatePhoneNumber && userId) {
@@ -203,7 +284,14 @@ export const auth = betterAuth({
           });
         }
 
-        // Otherwise, find existing user by phone number
+        // If updatePhoneNumber was true but we didn't handle it above, something went wrong
+        if (updatePhoneNumber) {
+          throw new APIError("INTERNAL_SERVER_ERROR", {
+            message: "Failed to update phone number. Please try again.",
+          });
+        }
+
+        // Otherwise, find existing user by phone number (login flow)
         // We no longer allow creating new users with phone-only authentication
         // Users must sign up with email first, then can add phone number
         let user = await db
