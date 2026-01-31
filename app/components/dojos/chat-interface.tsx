@@ -18,6 +18,8 @@ import {
   verifyPayment,
   PaymentError,
 } from "~/lib/payments";
+import { trackEvent } from "~/lib/mixpanel";
+import { authClient } from "~/lib/auth-client";
 
 type Phase = "idle" | "questions" | "generating_outline" | "outline_ready" | "editing_outline" | "ready_for_payment" | "processing_payment" | "generating" | "polling" | "success" | "error";
 type Status = Phase; // Keep for backward compatibility
@@ -359,11 +361,21 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps = { onFirst
                   status: "sending",
                 });
                 
-                await verifyPayment(
+                const verifyResult = await verifyPayment(
                   orderId,
                   paymentId,
                   signature
                 );
+                
+                // Track purchase event
+                const session = authClient.getSession();
+                const amountInRupees = orderRes.amount / 100; // Convert paise to rupees
+                trackEvent("Purchase", {
+                  user_id: session?.user?.id,
+                  transaction_id: paymentId,
+                  revenue: amountInRupees,
+                  currency: "INR",
+                });
                 
                 updateMessage(paymentMsgId, {
                   content: "Payment verified! Starting assignment generation...",

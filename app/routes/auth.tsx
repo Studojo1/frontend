@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
+import { identifyUser, trackEvent } from "~/lib/mixpanel";
 import type { Route } from "./+types/auth";
 
 const floatY = [0, -24, -12, -30, 0];
@@ -153,7 +154,7 @@ export default function Auth() {
         setSubmitting(false);
         return;
       }
-      const { error: err } = await authClient.signUp.email(
+      const { error: err, data } = await authClient.signUp.email(
         {
           email,
           password,
@@ -169,9 +170,32 @@ export default function Auth() {
             ? "This password has been found in a data breach. Please choose a different password."
             : err.message ?? "Sign up failed";
         setError(msg);
+        // Track failed sign up
+        trackEvent("Sign Up", {
+          user_id: undefined,
+          email: email,
+          signup_method: "email",
+          success: false,
+        });
+      } else if (data?.user) {
+        // Track successful sign up
+        const urlParams = new URLSearchParams(window.location.search);
+        trackEvent("Sign Up", {
+          user_id: data.user.id,
+          email: data.user.email,
+          signup_method: "email",
+          utm_source: urlParams.get("utm_source") || undefined,
+          utm_medium: urlParams.get("utm_medium") || undefined,
+          utm_campaign: urlParams.get("utm_campaign") || undefined,
+        });
+        // Identify user
+        identifyUser(data.user.id, {
+          email: data.user.email,
+          name: data.user.name,
+        });
       }
     } else {
-      const { error: err } = await authClient.signIn.email(
+      const { error: err, data } = await authClient.signIn.email(
         {
           email,
           password,
@@ -180,7 +204,27 @@ export default function Auth() {
         },
         { onSuccess: () => navigate("/") },
       );
-      if (err) setError(err.message ?? "Sign in failed");
+      if (err) {
+        setError(err.message ?? "Sign in failed");
+        // Track failed sign in
+        trackEvent("Sign In", {
+          user_id: undefined,
+          login_method: "email",
+          success: false,
+        });
+      } else if (data?.user) {
+        // Track successful sign in
+        trackEvent("Sign In", {
+          user_id: data.user.id,
+          login_method: "email",
+          success: true,
+        });
+        // Identify user
+        identifyUser(data.user.id, {
+          email: data.user.email,
+          name: data.user.name,
+        });
+      }
     }
 
     setSubmitting(false);
@@ -188,6 +232,11 @@ export default function Auth() {
 
   const handleGoogleSignIn = () => {
     setError(null);
+    // Track Google sign in attempt
+    trackEvent("Sign In", {
+      login_method: "google",
+      success: undefined, // Will be updated on success/failure
+    });
     authClient.signIn.social({
       provider: "google",
       callbackURL: "/",
@@ -210,6 +259,19 @@ export default function Auth() {
         }
         setSubmitting(false);
       } else if (result.data) {
+        // Track successful passkey sign in
+        if (result.data.user) {
+          trackEvent("Sign In", {
+            user_id: result.data.user.id,
+            login_method: "passkey",
+            success: true,
+          });
+          // Identify user
+          identifyUser(result.data.user.id, {
+            email: result.data.user.email,
+            name: result.data.user.name,
+          });
+        }
         // Success - navigate will happen via onSuccess callback if provided
         navigate("/");
       }

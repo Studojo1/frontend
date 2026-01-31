@@ -5,10 +5,14 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "react-router";
 import { Toaster } from "sonner";
+import { useEffect } from "react";
 
 import type { Route } from "./+types/root";
+import { authClient } from "./lib/auth-client";
+import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -51,14 +55,69 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function MixpanelInit() {
+  const { data: session } = authClient.useSession();
+  const location = useLocation();
+
+  useEffect(() => {
+    initMixpanel();
+  }, []);
+
+  // Identify user when session is available
+  useEffect(() => {
+    if (session?.user) {
+      identifyUser(session.user.id, {
+        email: session.user.email,
+        name: session.user.name,
+      });
+    }
+  }, [session]);
+
+  // Track page views
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      trackEvent("Page View", {
+        page_url: window.location.href,
+        page_title: document.title,
+        user_id: session?.user?.id,
+      });
+    }
+  }, [location.pathname, session?.user?.id]);
+
+  return null;
+}
+
 export default function App() {
-  return <Outlet />;
+  return (
+    <>
+      <MixpanelInit />
+      <Outlet />
+    </>
+  );
+}
+
+function ErrorTracker({ errorType, errorMessage, errorCode }: { errorType: string; errorMessage: string; errorCode?: string }) {
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const session = authClient.getSession();
+      trackEvent("Error", {
+        error_type: errorType,
+        error_message: errorMessage,
+        error_code: errorCode,
+        page_url: window.location.href,
+        user_id: session?.user?.id,
+      });
+    }
+  }, [errorType, errorMessage, errorCode]);
+  return null;
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
+  let errorType = "unknown";
+  let errorCode: string | undefined;
 
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? "404" : "Error";
@@ -66,13 +125,17 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       error.status === 404
         ? "The requested page could not be found."
         : error.statusText || details;
+    errorType = "server";
+    errorCode = error.status.toString();
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
     stack = error.stack;
+    errorType = "application";
   }
 
   return (
     <main className="pt-16 p-4 container mx-auto">
+      <ErrorTracker errorType={errorType} errorMessage={details} errorCode={errorCode} />
       <h1>{message}</h1>
       <p>{details}</p>
       {stack && (

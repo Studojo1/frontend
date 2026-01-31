@@ -2,6 +2,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { PhoneInput } from "~/components/phone-input";
 import { createPaymentOrder, openRazorpayCheckout, verifyPayment } from "~/lib/payments";
+import { trackEvent } from "~/lib/mixpanel";
+import { authClient } from "~/lib/auth-client";
 
 interface CareersApplyFormData {
   name: string;
@@ -129,6 +131,15 @@ export function CareersApplyForm() {
             );
 
             if (verifyResult.status === "completed") {
+              // Track purchase event
+              const session = authClient.getSession();
+              const amountInRupees = amount / 100; // Convert paise to rupees
+              trackEvent("Purchase", {
+                user_id: session?.user?.id,
+                transaction_id: response.razorpay_payment_id,
+                revenue: amountInRupees,
+                currency: "INR",
+              });
               // Submit form data to API
               const apiResponse = await fetch("/api/careers/apply", {
                 method: "POST",
