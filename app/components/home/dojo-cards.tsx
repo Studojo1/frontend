@@ -1,6 +1,6 @@
 import { FiBookOpen, FiTarget } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
-import { LuUsersRound } from "react-icons/lu";
+import { LuUsersRound, LuGraduationCap, LuBriefcase } from "react-icons/lu";
 import { Link } from "react-router";
 
 type DojoCard = {
@@ -9,7 +9,7 @@ type DojoCard = {
   description: string;
   descriptionClass?: string;
   checklist: string[];
-  accent: "violet" | "emerald" | "yellow" | "amber";
+  accent: "violet" | "emerald" | "yellow" | "amber" | "pink";
   cta: string;
   ctaClass: string;
   href?: string;
@@ -46,6 +46,40 @@ const DOJOS: DojoCard[] = [
     ctaClass: "text-emerald-600",
     icon: <IoBriefcaseOutline />,
     href: "/dojos/careers",
+  },
+  {
+    id: "dissertation",
+    title: "Dissertation Dojo",
+    description:
+      "Get your dissertation done with AI + Human assistance. From research to final draft.",
+    descriptionClass: "text-pink-100",
+    checklist: [
+      "AI-powered research",
+      "Expert human review",
+      "Complete dissertation support",
+    ],
+    accent: "pink",
+    cta: "Get started",
+    ctaClass: "text-pink-600",
+    icon: <LuGraduationCap />,
+    href: "/dissertation",
+  },
+  {
+    id: "careers-opportunities",
+    title: "Careers",
+    description:
+      "Discover exclusive internship opportunities and get personalized career guidance.",
+    descriptionClass: "text-emerald-100",
+    checklist: [
+      "Personalized career roadmap",
+      "Exclusive internship listings",
+      "Priority mentor support",
+    ],
+    accent: "emerald",
+    cta: "Explore opportunities",
+    ctaClass: "text-emerald-600",
+    icon: <LuBriefcase />,
+    href: "/careers",
   },
   {
     id: "revision",
@@ -87,6 +121,7 @@ const accentBg: Record<DojoCard["accent"], string> = {
   emerald: "bg-emerald-500",
   yellow: "bg-yellow-500",
   amber: "bg-amber-500",
+  pink: "bg-pink-500",
 };
 
 const accentIconClass: Record<DojoCard["accent"], string> = {
@@ -94,6 +129,7 @@ const accentIconClass: Record<DojoCard["accent"], string> = {
   emerald: "text-emerald-500",
   yellow: "text-yellow-500",
   amber: "text-amber-500",
+  pink: "text-pink-500",
 };
 
 function CheckIcon({ className }: { className?: string }) {
