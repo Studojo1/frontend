@@ -4,7 +4,7 @@ import { redirect, useNavigate } from "react-router";
 import { Header } from "~/components";
 import { PhoneInput } from "~/components/phone-input";
 import { authClient } from "~/lib/auth-client";
-import { getProfileStatus, getSessionFromRequest } from "~/lib/onboarding";
+import { getProfileStatus, getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
 import type { Route } from "./+types/onboarding";
 
 const floatY = [0, -24, -12, -30, 0];
@@ -97,8 +97,13 @@ const BTN_SECONDARY =
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) throw redirect("/auth");
-  const { completed } = await getProfileStatus(session.user.id);
-  if (completed) throw redirect("/");
+  
+  // Check if onboarding is complete (both phone and profile)
+  const onboardingStatus = await requireOnboardingComplete(session.user.id);
+  if (onboardingStatus.complete) {
+    throw redirect("/");
+  }
+  
   return { steps: STEPS };
 }
 

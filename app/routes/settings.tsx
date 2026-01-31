@@ -1,9 +1,23 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { redirect, useNavigate } from "react-router";
 import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
 import type { Route } from "./+types/settings";
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSessionFromRequest(request);
+  if (!session) throw redirect("/auth");
+  
+  // Check if onboarding is complete (both phone and profile)
+  const onboardingStatus = await requireOnboardingComplete(session.user.id);
+  if (!onboardingStatus.complete) {
+    throw redirect("/onboarding");
+  }
+  
+  return null;
+}
 
 export function meta({}: Route.MetaArgs) {
   return [

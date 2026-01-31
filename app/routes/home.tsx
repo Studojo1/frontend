@@ -11,14 +11,16 @@ import {
   StepsSection,
   TestimonialsSection,
 } from "~/components";
-import { getProfileStatus, getSessionFromRequest } from "~/lib/onboarding";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
 import type { Route } from "./+types/home";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (session) {
-    const { completed } = await getProfileStatus(session.user.id);
-    if (!completed) throw redirect("/onboarding");
+    const onboardingStatus = await requireOnboardingComplete(session.user.id);
+    if (!onboardingStatus.complete) {
+      throw redirect("/onboarding");
+    }
   }
   return null;
 }

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { auth } from "~/lib/auth";
 import db from "./db";
-import { userProfile } from "../../auth-schema";
+import { userProfile, user } from "../../auth-schema";
 
 const MAX_LENGTH = 200;
 
@@ -43,6 +43,52 @@ export async function getProfileStatus(userId: string) {
           updatedAt: profile.updatedAt,
         }
       : null,
+  };
+}
+
+/**
+ * Check if user has verified phone number and completed profile
+ * Returns an object indicating what's missing
+ */
+export async function requireOnboardingComplete(userId: string) {
+  // Get user to check phone number
+  const [userRecord] = await db
+    .select({
+      phoneNumber: user.phoneNumber,
+      phoneNumberVerified: user.phoneNumberVerified,
+    })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+
+  if (!userRecord) {
+    return {
+      complete: false,
+      hasPhone: false,
+      hasProfile: false,
+      missing: ["phone", "profile"] as const,
+    };
+  }
+
+  // Check phone number
+  const hasPhone = !!(
+    userRecord.phoneNumber &&
+    userRecord.phoneNumberVerified
+  );
+
+  // Check profile
+  const profileStatus = await getProfileStatus(userId);
+  const hasProfile = profileStatus.completed;
+
+  const missing: Array<"phone" | "profile"> = [];
+  if (!hasPhone) missing.push("phone");
+  if (!hasProfile) missing.push("profile");
+
+  return {
+    complete: hasPhone && hasProfile,
+    hasPhone,
+    hasProfile,
+    missing: missing as readonly ("phone" | "profile")[],
   };
 }
 

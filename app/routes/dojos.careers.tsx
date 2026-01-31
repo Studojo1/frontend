@@ -2,14 +2,16 @@ import { motion } from "framer-motion";
 import { redirect } from "react-router";
 import { Footer, Header } from "~/components";
 import { CareersDojoPage } from "~/components/dojos/careers-dojo";
-import { getProfileStatus, getSessionFromRequest } from "~/lib/onboarding";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
 import type { Route } from "./+types/dojos.careers";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) throw redirect("/auth");
-  const { completed } = await getProfileStatus(session.user.id);
-  if (!completed) throw redirect("/onboarding");
+  const onboardingStatus = await requireOnboardingComplete(session.user.id);
+  if (!onboardingStatus.complete) {
+    throw redirect("/onboarding");
+  }
   return null;
 }
 
