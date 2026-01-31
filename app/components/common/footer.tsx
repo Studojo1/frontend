@@ -7,8 +7,8 @@ import { FaLinkedin } from "react-icons/fa6";
 
 const COMPANY_LINKS = [
   { to: "/about", label: "About Us" },
-  { to: "/blog", label: "Blog" },
-  { to: "/press-kit", label: "Press Kit" },
+  // { to: "/blog", label: "Blog" },
+  // { to: "/press-kit", label: "Press Kit" },
 ];
 
 const RESOURCE_LINKS = [
@@ -196,7 +196,7 @@ export function Footer() {
             </div>
 
             <div className="grid grid-cols-2 gap-8 md:gap-8">
-              <div>
+              {/* <div>
                 <h3 className="font-['Satoshi'] text-xs font-medium leading-4 text-neutral-900 md:text-base md:font-black md:leading-6">
                   About Us
                 </h3>
@@ -212,7 +212,7 @@ export function Footer() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </div> */}
               <div>
                 <h3 className="font-['Satoshi'] text-xs font-medium leading-4 text-neutral-900 md:text-base md:font-black md:leading-6">
                   Help Center
