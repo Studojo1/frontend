@@ -16,5 +16,8 @@ export default [
   route("assignments", "routes/assignments.tsx"),
   route("dojos/assignment", "routes/dojos.assignment.tsx"),
   route("dojos/careers", "routes/dojos.careers.tsx"),
+  route("privacy", "routes/privacy.tsx"),
+  route("terms", "routes/terms.tsx"),
+  route("refund-policy", "routes/refund-policy.tsx"),
   route(".well-known/*", "routes/well-known.$.tsx"),
 ] satisfies RouteConfig;

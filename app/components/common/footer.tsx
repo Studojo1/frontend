@@ -3,19 +3,17 @@ import { FiBookOpen, FiTarget, FiMail, FiMapPin } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { FaXTwitter, FaInstagram, FaWhatsapp } from "react-icons/fa6";
 import { SmoothLink } from "./smooth-link";
+import { FaLinkedin } from "react-icons/fa6";
 
 const COMPANY_LINKS = [
-  { to: "#", label: "About Us" },
-  { to: "#", label: "Careers" },
-  { to: "#", label: "Blog" },
-  { to: "#", label: "Press Kit" },
+  { to: "/about", label: "About Us" },
+  { to: "/blog", label: "Blog" },
+  { to: "/press-kit", label: "Press Kit" },
 ];
 
 const RESOURCE_LINKS = [
-  { to: "#", label: "Help Center" },
-  { to: "#", label: "Community" },
-  { to: "#", label: "Tutorials" },
-  { to: "#", label: "API Docs" },
+  { to: "mailto:admin@studojo.com", label: "Help Center" },
+  { to: "https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol?mode=gi_t", label: "Community" },
 ];
 
 const DOJO_LINKS = [
@@ -26,10 +24,10 @@ const DOJO_LINKS = [
 
 const SOCIAL_LINKS = [
   { 
-    href: "https://x.com/studojo", 
-    label: "Twitter", 
-    icon: <FaXTwitter />,
-    ariaLabel: "Follow us on Twitter"
+    href: "https://www.linkedin.com/company/studojo/", 
+    label: "LinkedIns", 
+    icon: <FaLinkedin />,
+    ariaLabel: "Follow us on LinkedIn"
   },
   { 
     href: "https://instagram.com/studojo", 
@@ -97,7 +95,7 @@ export function Footer() {
                   <FiMail />
                 </span>
                 <span className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-950 md:text-base md:leading-6">
-                  support@studojo.com
+                   admin@studojo.com
                 </span>
               </div>
               <div className="flex items-center gap-3">
@@ -263,17 +261,14 @@ export function Footer() {
             © 2025 Studojo. Crafted with ❤️ by students
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-            <Link to="#" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
+            <Link to="/privacy" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
               Privacy Policy
             </Link>
-            <Link to="#" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
+            <Link to="/terms" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
               Terms of Service
             </Link>
-            <Link to="#" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
-              Cookie Policy
-            </Link>
-            <Link to="#" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
-              Return Policy
+            <Link to="/refund-policy" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
+              Refund Policy
             </Link>
           </div>
         </div>
