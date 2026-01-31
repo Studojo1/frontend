@@ -2,7 +2,18 @@ import { authClient } from "./auth-client";
 
 export function getControlPlaneUrl(): string {
   const url = import.meta.env?.VITE_CONTROL_PLANE_URL;
-  return (typeof url === "string" && url) ? url : "http://localhost:8080";
+  if (typeof url === "string" && url) {
+    return url;
+  }
+  // In production, default to api.studojo.pro
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (hostname.includes("studojo.pro") || hostname.includes("studojo.com")) {
+      return "https://api.studojo.pro";
+    }
+  }
+  // Development fallback
+  return "http://localhost:8080";
 }
 
 export async function getToken(): Promise<string | null> {

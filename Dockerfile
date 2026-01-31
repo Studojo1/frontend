@@ -7,7 +7,7 @@ RUN bun install --frozen-lockfile --production
 
 FROM oven/bun:1 AS build-env
 WORKDIR /src
-ARG VITE_CONTROL_PLANE_URL=http://localhost:8080
+ARG VITE_CONTROL_PLANE_URL=https://api.studojo.pro
 ENV VITE_CONTROL_PLANE_URL=${VITE_CONTROL_PLANE_URL}
 COPY package.json bun.lockb ./
 RUN bun install --frozen-lockfile
