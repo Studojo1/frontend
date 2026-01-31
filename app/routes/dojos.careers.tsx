@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { redirect } from "react-router";
 import { Footer, Header } from "~/components";
 import { CareersDojoPage } from "~/components/dojos/careers-dojo";
-import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import type { Route } from "./+types/dojos.careers";
 
 export async function loader({ request }: Route.LoaderArgs) {

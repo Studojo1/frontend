@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { getSessionFromRequest } from "~/lib/onboarding";
+import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { resumes } from "../../auth-schema";
 import type { Route } from "./+types/api.resumes";

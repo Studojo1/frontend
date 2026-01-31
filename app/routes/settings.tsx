@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { redirect, useNavigate } from "react-router";
 import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
-import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import type { Route } from "./+types/settings";
 
 export async function loader({ request }: Route.LoaderArgs) {

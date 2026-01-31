@@ -1,4 +1,4 @@
-import { getSessionFromRequest } from "~/lib/onboarding";
+import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/api.resumes.parse";
 
 export async function action({ request }: Route.ActionArgs) {

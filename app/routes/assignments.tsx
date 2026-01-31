@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { redirect } from "react-router";
 import { FiDownload, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiLoader } from "react-icons/fi";
 import { Footer, Header } from "~/components";
-import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { getJobs, type JobResponse } from "~/lib/control-plane";
 import { toast } from "sonner";
 import type { Route } from "./+types/assignments";

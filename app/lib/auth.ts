@@ -17,27 +17,43 @@ import { sendOtpSms, getVerificationSid, clearVerificationSid } from "./sms";
 import { verifyOtpCode } from "./verify";
 
 // Helper to generate IDs similar to better-auth (base64url encoded random bytes)
+// Browser-compatible implementation that works in both server and client
 function generateId(): string {
-  // This should only run server-side, but handle both cases for safety
-  if (typeof window === "undefined" && typeof require !== "undefined") {
-    // Server-side: use Node.js crypto
-    const crypto = require("crypto");
-    return crypto.randomBytes(16).toString("base64url");
-  } else {
-    // Browser fallback: use Web Crypto API and manual base64url encoding
-    const array = new Uint8Array(16);
-    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-      crypto.getRandomValues(array);
-    } else {
-      // Fallback for very old browsers
+  // Always use browser-compatible approach to avoid bundling Node.js crypto
+  const array = new Uint8Array(16);
+  
+  // Use Web Crypto API if available (works in both browser and Node.js 15+)
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    crypto.getRandomValues(array);
+  } else if (typeof window === "undefined" && typeof require !== "undefined") {
+    // Server-side fallback: use Node.js crypto only if Web Crypto not available
+    try {
+      const nodeCrypto = require("crypto");
+      const randomBytes = nodeCrypto.randomBytes(16);
+      for (let i = 0; i < 16; i++) {
+        array[i] = randomBytes[i];
+      }
+    } catch {
+      // Fallback to Math.random if crypto not available
       for (let i = 0; i < 16; i++) {
         array[i] = Math.floor(Math.random() * 256);
       }
     }
-    // Convert to base64url manually (browser-compatible)
-    const base64 = btoa(String.fromCharCode(...array));
-    return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+  } else {
+    // Browser fallback: use Math.random (less secure but works)
+    for (let i = 0; i < 16; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
   }
+  
+  // Convert to base64url manually (browser-compatible, no Buffer needed)
+  // Convert Uint8Array to string for btoa
+  let binary = "";
+  for (let i = 0; i < array.length; i++) {
+    binary += String.fromCharCode(array[i]);
+  }
+  const base64 = btoa(binary);
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }
 
 const baseURL =
@@ -157,77 +173,20 @@ export const auth = betterAuth({
         let session = ctx.context?.session;
         let userId: string | undefined = session?.userId;
 
-        // If updatePhoneNumber is true, we need a session - try to get it manually if not in context
-        if (updatePhoneNumber) {
-          // If no session in context, try to retrieve it from headers
-          if (!session && ctx.headers) {
-            try {
-              // Convert headers to Headers object if needed
-              let headersObj: Headers;
-              if (typeof ctx.headers.get === "function") {
-                headersObj = ctx.headers as Headers;
-              } else {
-                // Convert plain object to Headers
-                headersObj = new Headers();
-                for (const [key, value] of Object.entries(ctx.headers)) {
-                  if (typeof value === "string") {
-                    headersObj.set(key, value);
-                  } else if (Array.isArray(value)) {
-                    value.forEach((v) => headersObj.append(key, String(v)));
-                  }
-                }
-              }
-              
-              // Try to get session from cookies
-              // better-auth stores session token in cookies, try common cookie name patterns
-              const cookieHeader = headersObj.get("cookie") || "";
-              
-              // Try different cookie name patterns (better-auth might use different names)
-              const cookiePatterns = [
-                /better-auth\.session_token=([^;]+)/,
-                /better-auth_session_token=([^;]+)/,
-                /session_token=([^;]+)/,
-              ];
-              
-              let sessionToken: string | null = null;
-              for (const pattern of cookiePatterns) {
-                const match = cookieHeader.match(pattern);
-                if (match) {
-                  sessionToken = decodeURIComponent(match[1].trim());
-                  break;
-                }
-              }
-              
-              if (sessionToken) {
-                const [sessionRecord] = await db
-                  .select()
-                  .from(schema.session)
-                  .where(eq(schema.session.token, sessionToken))
-                  .limit(1);
-                
-                if (sessionRecord && sessionRecord.expiresAt > new Date()) {
-                  // Session is valid, get the user
-                  const [userRecord] = await db
-                    .select()
-                    .from(schema.user)
-                    .where(eq(schema.user.id, sessionRecord.userId))
-                    .limit(1);
-                  
-                  if (userRecord) {
-                    userId = userRecord.id;
-                    session = {
-                      id: sessionRecord.id,
-                      userId: sessionRecord.userId,
-                      expiresAt: sessionRecord.expiresAt,
-                      token: sessionRecord.token,
-                    } as any;
-                  }
-                }
-              }
-            } catch (error) {
-              // If session retrieval fails, we'll handle it below
-              console.error("[auth] Failed to retrieve session from headers:", error);
+        // If updatePhoneNumber is true, we need a session - try to get it using better-auth's API
+        if (updatePhoneNumber && !userId) {
+          try {
+            // Use better-auth's getSession API to retrieve session from request
+            const sessionResult = await auth.api.getSession({
+              headers: ctx.headers as Headers,
+            });
+            
+            if (sessionResult?.user) {
+              userId = sessionResult.user.id;
+              session = sessionResult as any;
             }
+          } catch (error) {
+            console.error("[auth] Failed to retrieve session:", error);
           }
 
           // If still no session when updatePhoneNumber is true, throw error

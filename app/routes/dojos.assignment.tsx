@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { redirect } from "react-router";
 import { Footer, Header } from "~/components";
 import { AssignmentDojoPage } from "~/components/dojos/assignment-dojo";
-import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import type { Route } from "./+types/dojos.assignment";
 
 export async function loader({ request }: Route.LoaderArgs) {

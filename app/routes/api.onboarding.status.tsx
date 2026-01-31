@@ -1,4 +1,4 @@
-import { getProfileStatus, getSessionFromRequest } from "~/lib/onboarding";
+import { getProfileStatus, getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/api.onboarding.status";
 
 export async function loader({ request }: Route.LoaderArgs) {

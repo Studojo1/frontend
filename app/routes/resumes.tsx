@@ -4,7 +4,7 @@ import { redirect } from "react-router";
 import { FiDownload, FiEdit, FiTrash2, FiPlus, FiFileText } from "react-icons/fi";
 import { Footer, Header } from "~/components";
 import { ImportResumeModal } from "~/components/resumes";
-import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { toast } from "sonner";
 import type { Route } from "./+types/resumes";
 

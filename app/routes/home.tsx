@@ -11,7 +11,7 @@ import {
   StepsSection,
   TestimonialsSection,
 } from "~/components";
-import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import type { Route } from "./+types/home";
 
 export async function loader({ request }: Route.LoaderArgs) {

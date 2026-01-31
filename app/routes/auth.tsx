@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
@@ -85,27 +85,43 @@ export default function Auth() {
   const lastMethod = authClient.getLastUsedLoginMethod();
   const isLastGoogle = authClient.isLastUsedLoginMethod("google");
   const isLastEmail = authClient.isLastUsedLoginMethod("email");
+  const passkeyAttemptedRef = useRef(false);
 
   useEffect(() => {
     if (!isPending && session) navigate("/", { replace: true });
   }, [isPending, session, navigate]);
 
   useEffect(() => {
-    if (mode !== "signin") return;
+    // Only attempt passkey autoFill once per mount, and only in signin mode
+    if (mode !== "signin" || passkeyAttemptedRef.current) return;
+    
+    // Only run in browser
+    if (typeof window === "undefined") return;
+    
     const ok = typeof PublicKeyCredential !== "undefined" &&
       typeof PublicKeyCredential.isConditionalMediationAvailable === "function";
     if (!ok) return;
+    
+    passkeyAttemptedRef.current = true;
+    
     void PublicKeyCredential.isConditionalMediationAvailable().then((avail) => {
       if (avail) {
         void authClient.signIn.passkey({ autoFill: true }).then((result) => {
           if (result.error) {
-            // Only show error if it's not a user cancellation
+            // Only show error if it's not a user cancellation or webauthn input error
             const errorCode = (result.error as any).code;
             const errorMessage = result.error.message?.toLowerCase() ?? "";
-            if (errorCode !== "AUTH_CANCELLED" && errorMessage !== "auth cancelled" && errorMessage !== "registration cancelled") {
+            const isCancelled = errorCode === "AUTH_CANCELLED" || 
+                               errorMessage.includes("auth cancelled") || 
+                               errorMessage.includes("registration cancelled") ||
+                               errorMessage.includes("webauthn") ||
+                               errorMessage.includes("autocomplete");
+            if (!isCancelled) {
               setError(result.error.message ?? "Passkey authentication failed");
             }
           }
+        }).catch(() => {
+          // Silently catch errors to prevent infinite loops
         });
       }
     });

@@ -4,7 +4,7 @@ import { redirect, useNavigate } from "react-router";
 import { Header } from "~/components";
 import { PhoneInput } from "~/components/phone-input";
 import { authClient } from "~/lib/auth-client";
-import { getProfileStatus, getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding";
+import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import type { Route } from "./+types/onboarding";
 
 const floatY = [0, -24, -12, -30, 0];
@@ -233,6 +233,11 @@ export default function Onboarding() {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
+        // If profile already exists (409), just redirect to home
+        if (res.status === 409) {
+          navigate("/", { replace: true });
+          return;
+        }
         setError(data.error ?? "Something went wrong.");
         setSubmitting(false);
         return;

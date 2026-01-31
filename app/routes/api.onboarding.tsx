@@ -1,9 +1,5 @@
-import {
-  createProfile,
-  getProfileStatus,
-  getSessionFromRequest,
-  validateOnboardingBody,
-} from "~/lib/onboarding";
+import { validateOnboardingBody } from "~/lib/onboarding";
+import { createProfile, getProfileStatus, getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/api.onboarding";
 
 export async function action({ request }: Route.ActionArgs) {
