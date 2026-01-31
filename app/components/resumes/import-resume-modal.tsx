@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef } from "react";
-import { FiX, FiUpload, FiFileText } from "react-icons/fi";
+import { FiX, FiUpload } from "react-icons/fi";
 import { toast } from "sonner";
 
 type ImportResumeModalProps = {
@@ -9,13 +9,122 @@ type ImportResumeModalProps = {
   onImport: (resumeData: any) => void;
 };
 
+const floatY = [0, -24, -12, -30, 0];
+const floatX = [0, 12, -18, 8, 0];
+const floatRotate = [0, 6, -8, 4, 0];
+
+const PROCESSING_SHAPES = [
+  { className: "right-4 top-8 h-12 w-12 rounded-full bg-emerald-300", shadow: "4px_4px" as const, duration: 18, delay: 0 },
+  { className: "left-4 top-1/3 h-10 w-10 bg-emerald-500", shadow: "3px_3px" as const, rotate: 12, duration: 22, delay: 1 },
+  { className: "bottom-8 right-1/4 h-8 w-8 rounded-2xl bg-emerald-400", shadow: "3px_3px" as const, duration: 20, delay: 2 },
+  { className: "bottom-1/4 left-4 h-10 w-10 rounded-full bg-emerald-300", shadow: "4px_4px" as const, rotate: 45, duration: 24, delay: 0.5 },
+  { className: "top-1/2 right-1/3 h-8 w-8 bg-emerald-500", shadow: "3px_3px" as const, rotate: -12, duration: 19, delay: 1.5 },
+];
+
+function FloatShape({
+  className,
+  shadow,
+  rotate = 0,
+  duration,
+  delay,
+}: {
+  className: string;
+  shadow: "6px_6px" | "4px_4px" | "3px_3px";
+  rotate?: number;
+  duration: number;
+  delay: number;
+}) {
+  const shadowClass =
+    shadow === "6px_6px"
+      ? "shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+      : shadow === "4px_4px"
+        ? "shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+        : "shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]";
+
+  return (
+    <motion.div
+      className={`absolute rounded-2xl border-2 border-neutral-900 opacity-30 ${shadowClass} ${className}`}
+      aria-hidden
+      animate={{
+        y: floatY,
+        x: floatX,
+        rotate: rotate ? floatRotate.map((r) => rotate + r) : floatRotate,
+      }}
+      transition={{
+        repeat: Infinity,
+        repeatType: "reverse",
+        duration,
+        delay,
+      }}
+    />
+  );
+}
+
+function AnimatedUploadIcon() {
+  return (
+    <motion.div
+      animate={{
+        scale: [1, 1.2, 1],
+        rotate: [0, 180, 360],
+      }}
+      transition={{
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+    >
+      <FiUpload className="h-5 w-5" />
+    </motion.div>
+  );
+}
+
+function ProcessingIndicator() {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <motion.div
+        className="flex gap-1"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        {[0, 1, 2].map((i) => (
+          <motion.span
+            key={i}
+            className="h-2 w-2 rounded-full bg-emerald-500"
+            animate={{
+              scale: [1, 1.5, 1],
+              opacity: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              delay: i * 0.2,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+      </motion.div>
+      <motion.p
+        className="font-['Satoshi'] text-sm font-medium text-emerald-600"
+        animate={{
+          opacity: [0.7, 1, 0.7],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      >
+        Processing PDF with AI...
+      </motion.p>
+    </div>
+  );
+}
+
 export function ImportResumeModal({
   isOpen,
   onClose,
   onImport,
 }: ImportResumeModalProps) {
-  const [importMethod, setImportMethod] = useState<"pdf" | "json">("pdf");
-  const [jsonText, setJsonText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -23,43 +132,40 @@ export function ImportResumeModal({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate PDF file
+    if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
+      toast.error("Only PDF files are supported");
+      return;
+    }
+
     setIsProcessing(true);
     try {
-      if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-        // Upload PDF and parse with OpenAI
-        const formData = new FormData();
-        formData.append("file", file);
+      // Upload PDF and parse with OpenAI
+      const formData = new FormData();
+      formData.append("file", file);
 
-        toast.info("Uploading and parsing PDF with AI...");
-        const res = await fetch("/api/resumes/parse", {
-          method: "POST",
-          body: formData,
-        });
+      const res = await fetch("/api/resumes/parse", {
+        method: "POST",
+        body: formData,
+      });
 
-        if (!res.ok) {
-          let errorMessage = "Failed to parse PDF";
-          try {
-            const error = await res.json();
-            errorMessage = error.error || errorMessage;
-          } catch {
-            // If response isn't JSON, use status text
-            errorMessage = res.statusText || errorMessage;
-          }
-          throw new Error(errorMessage);
+      if (!res.ok) {
+        let errorMessage = "Failed to parse PDF";
+        try {
+          const error = await res.json();
+          errorMessage = error.error || errorMessage;
+        } catch {
+          // If response isn't JSON, use status text
+          errorMessage = res.statusText || errorMessage;
         }
-
-        const data = await res.json();
-        if (!data.resumeData) {
-          throw new Error("No resume data returned from server");
-        }
-        handleImport(data.resumeData);
-      } else if (file.type === "application/json" || file.name.endsWith(".json")) {
-        const text = await file.text();
-        const parsed = JSON.parse(text);
-        handleImport(parsed);
-      } else {
-        toast.error("Only PDF and JSON files are supported");
+        throw new Error(errorMessage);
       }
+
+      const data = await res.json();
+      if (!data.resumeData) {
+        throw new Error("No resume data returned from server");
+      }
+      handleImport(data.resumeData);
     } catch (error: any) {
       toast.error(error.message || "Failed to parse file");
       console.error("File parse error:", error);
@@ -88,25 +194,9 @@ export function ImportResumeModal({
       onImport(resumeData);
       toast.success("Resume imported successfully");
       onClose();
-      setJsonText("");
     } catch (error) {
       toast.error("Failed to import resume");
       console.error("Import error:", error);
-    }
-  };
-
-  const handleJsonImport = () => {
-    if (!jsonText.trim()) {
-      toast.error("Please enter or paste resume JSON");
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(jsonText);
-      handleImport(parsed);
-    } catch (error) {
-      toast.error("Invalid JSON. Please check your input.");
-      console.error("JSON parse error:", error);
     }
   };
 
@@ -149,128 +239,61 @@ export function ImportResumeModal({
               </div>
 
               {/* Content */}
-              <div className="p-6">
-                {/* Method Selection */}
-                <div className="mb-6 flex gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setImportMethod("pdf")}
-                    className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-['Satoshi'] text-sm font-medium leading-5 outline outline-2 outline-offset-[-2px] ${
-                      importMethod === "pdf"
-                        ? "bg-emerald-500 text-white outline-neutral-900"
-                        : "bg-white text-neutral-950 outline-black"
-                    }`}
-                  >
-                    <FiUpload className="h-4 w-4" />
-                    PDF Resume
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImportMethod("json")}
-                    className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-['Satoshi'] text-sm font-medium leading-5 outline outline-2 outline-offset-[-2px] ${
-                      importMethod === "json"
-                        ? "bg-emerald-500 text-white outline-neutral-900"
-                        : "bg-white text-neutral-950 outline-black"
-                    }`}
-                  >
-                    <FiFileText className="h-4 w-4" />
-                    JSON File
-                  </button>
-                </div>
-
-                {/* PDF Import */}
-                {importMethod === "pdf" && (
-                  <div className="flex flex-col gap-4">
-                    <div>
-                      <label className="mb-2 block font-['Satoshi'] text-xs font-medium uppercase leading-4 tracking-tight text-gray-600">
-                        Upload PDF Resume
-                      </label>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf,application/pdf"
-                        onChange={handleFileUpload}
-                        disabled={isProcessing}
-                        className="hidden"
-                        id="file-upload"
-                      />
-                      <label
-                        htmlFor="file-upload"
-                        className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-gray-50 py-8 font-['Satoshi'] text-sm font-medium leading-5 transition-colors ${
-                          isProcessing
-                            ? "border-gray-300 text-gray-400 cursor-not-allowed"
-                            : "border-gray-300 text-gray-600 hover:border-emerald-500 hover:bg-emerald-50"
-                        }`}
-                      >
-                        <FiUpload className="h-5 w-5" />
-                        {isProcessing
-                          ? "Processing PDF with AI..."
-                          : "Click to upload PDF resume"}
-                      </label>
-                      <p className="mt-2 text-center font-['Satoshi'] text-xs font-normal leading-4 text-gray-500">
-                        We'll use AI to extract and structure your resume data
-                      </p>
-                    </div>
+              <div className="relative p-6">
+                {/* Floating shapes during processing */}
+                {isProcessing && (
+                  <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none" aria-hidden="true">
+                    {PROCESSING_SHAPES.map((shape, i) => (
+                      <FloatShape key={i} {...shape} />
+                    ))}
                   </div>
                 )}
 
-                {/* JSON Import */}
-                {importMethod === "json" && (
-                  <div className="flex flex-col gap-4">
-                    <div>
-                      <label className="mb-2 block font-['Satoshi'] text-xs font-medium uppercase leading-4 tracking-tight text-gray-600">
-                        Upload JSON File
-                      </label>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".json,application/json"
-                        onChange={handleFileUpload}
-                        disabled={isProcessing}
-                        className="hidden"
-                        id="json-file-upload"
-                      />
-                      <label
-                        htmlFor="json-file-upload"
-                        className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-gray-50 py-8 font-['Satoshi'] text-sm font-medium leading-5 transition-colors ${
-                          isProcessing
-                            ? "border-gray-300 text-gray-400 cursor-not-allowed"
-                            : "border-gray-300 text-gray-600 hover:border-emerald-500 hover:bg-emerald-50"
-                        }`}
-                      >
-                        <FiUpload className="h-5 w-5" />
-                        {isProcessing ? "Processing..." : "Click to upload JSON file"}
-                      </label>
-                    </div>
-
-                    <div className="relative">
-                      <div className="absolute left-0 top-0 flex items-center gap-2 px-3 py-2">
-                        <span className="font-['Satoshi'] text-xs font-normal text-gray-500">
-                          OR
-                        </span>
-                      </div>
-                      <label className="mb-2 block font-['Satoshi'] text-xs font-medium uppercase leading-4 tracking-tight text-gray-600">
-                        Paste JSON
-                      </label>
-                      <textarea
-                        value={jsonText}
-                        onChange={(e) => setJsonText(e.target.value)}
-                        placeholder='{"title": "My Resume", "summary": "...", "contact_info": {...}}'
-                        rows={10}
-                        className="w-full resize-none rounded-lg border-2 border-gray-200 bg-white px-3 py-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-950 placeholder:text-gray-500 focus:border-emerald-500 focus:outline-none"
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleJsonImport}
-                      disabled={isProcessing || !jsonText.trim()}
-                      className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 font-['Clash_Display'] text-base font-medium leading-5 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] outline outline-2 outline-offset-[-2px] outline-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                {/* PDF Upload */}
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="mb-2 block font-['Satoshi'] text-xs font-medium uppercase leading-4 tracking-tight text-gray-600">
+                      Upload PDF Resume
+                    </label>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={handleFileUpload}
+                      disabled={isProcessing}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <motion.label
+                      htmlFor="file-upload"
+                      className={`relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-gray-50 py-8 font-['Satoshi'] text-sm font-medium leading-5 transition-colors ${
+                        isProcessing
+                          ? "border-emerald-500 bg-emerald-50 cursor-not-allowed"
+                          : "border-gray-300 text-gray-600 hover:border-emerald-500 hover:bg-emerald-50"
+                      }`}
+                      animate={isProcessing ? {
+                        scale: [1, 1.02, 1],
+                      } : {}}
+                      transition={{
+                        duration: 2,
+                        repeat: isProcessing ? Infinity : 0,
+                        ease: "easeInOut",
+                      }}
                     >
-                      Import JSON
-                    </button>
+                      {isProcessing ? (
+                        <ProcessingIndicator />
+                      ) : (
+                        <>
+                          <AnimatedUploadIcon />
+                          <span>Click to upload PDF resume</span>
+                        </>
+                      )}
+                    </motion.label>
+                    <p className="mt-2 text-center font-['Satoshi'] text-xs font-normal leading-4 text-gray-500">
+                      We'll use AI to extract and structure your resume data
+                    </p>
                   </div>
-                )}
+                </div>
               </div>
             </motion.div>
           </div>

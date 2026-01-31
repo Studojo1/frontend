@@ -187,6 +187,71 @@ export const resumesRelations = relations(resumes, ({ one }) => ({
   user: one(user, { fields: [resumes.userId], references: [user.id] }),
 }));
 
+// Dissertation submissions table
+export const dissertationSubmissions = pgTable(
+  "dissertation_submissions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phoneNumber: text("phone_number").notNull(),
+    dissertationTitle: text("dissertation_title").notNull(),
+    dataType: text("data_type").notNull(), // 'primary' or 'secondary'
+    currentStage: text("current_stage").notNull(),
+    additionalNotes: text("additional_notes"),
+    formData: jsonb("form_data"), // Store full form data as JSONB for flexibility
+    razorpayOrderId: text("razorpay_order_id"),
+    razorpayPaymentId: text("razorpay_payment_id"),
+    paymentStatus: text("payment_status").default("pending").notNull(), // 'pending', 'completed', 'failed', 'refunded'
+    amount: integer("amount").notNull(), // Amount in paise
+    status: text("status").default("submitted").notNull(), // 'submitted', 'in_progress', 'completed', 'cancelled'
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("dissertation_submissions_email_idx").on(table.email),
+    index("dissertation_submissions_phone_idx").on(table.phoneNumber),
+    index("dissertation_submissions_created_idx").on(table.createdAt),
+    index("dissertation_submissions_payment_status_idx").on(table.paymentStatus),
+  ],
+);
+
+// Career applications table
+export const careerApplications = pgTable(
+  "career_applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phoneNumber: text("phone_number").notNull(),
+    city: text("city").notNull(),
+    institutionName: text("institution_name").notNull(),
+    currentYear: text("current_year").notNull(), // '1st Year', '2nd Year', etc.
+    course: text("course").notNull(),
+    areasOfInterest: jsonb("areas_of_interest").notNull(), // Array of selected interests
+    formData: jsonb("form_data"), // Store full form data as JSONB for flexibility
+    razorpayOrderId: text("razorpay_order_id"),
+    razorpayPaymentId: text("razorpay_payment_id"),
+    paymentStatus: text("payment_status").default("pending").notNull(), // 'pending', 'completed', 'failed', 'refunded'
+    amount: integer("amount").notNull(), // Amount in paise
+    status: text("status").default("submitted").notNull(), // 'submitted', 'reviewed', 'contacted', 'rejected'
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("career_applications_email_idx").on(table.email),
+    index("career_applications_phone_idx").on(table.phoneNumber),
+    index("career_applications_created_idx").on(table.createdAt),
+    index("career_applications_payment_status_idx").on(table.paymentStatus),
+  ],
+);
+
 export const twoFactorRelations = relations(twoFactor, ({ one }) => ({
   user: one(user, { fields: [twoFactor.userId], references: [user.id] }),
 }));

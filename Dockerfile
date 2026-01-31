@@ -17,7 +17,10 @@ RUN bun run build
 # One-off stage: run auth migrations (user, session, etc.). Non-interactive; no push prompts.
 FROM build-env AS db-push
 WORKDIR /src
-CMD ["bun", "x", "drizzle-kit", "push"]
+# Install postgresql-client to run migrations
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+# Run migrations using psql in sorted order
+CMD ["sh", "-c", "for file in $(ls -1 drizzle/*.sql | sort); do echo \"Running migration: $file\"; psql $DATABASE_URL -f \"$file\" || exit 1; done"]
 
 # Run with Node: React Router server uses renderToPipeableStream etc.; Bun's react-dom/server stub lacks them.
 FROM node:20-bookworm-slim

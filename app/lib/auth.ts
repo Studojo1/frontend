@@ -54,11 +54,51 @@ export const auth = betterAuth({
     },
   }),
   baseURL,
-  trustedOrigins: [baseURL, "http://localhost:3000"],
+  trustedOrigins: [
+    baseURL,
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    // Allow admin panel to use the same auth
+    ...(process.env.ADMIN_PANEL_URL ? [process.env.ADMIN_PANEL_URL] : []),
+  ],
   secret: process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET,
+  
+  // Enable CORS for admin panel
+  cors: {
+    enabled: true,
+    origin: [
+      baseURL,
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:3001",
+    ],
+    credentials: true,
+  },
 
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      // Intercept phone number send OTP endpoint to check uniqueness
+      if (ctx.path === "/phone-number/send-otp") {
+        const phoneNumberValue = ctx.body?.phoneNumber as string | undefined;
+        
+        if (phoneNumberValue) {
+          // Check if phone number is already registered
+          const existingUser = await db
+            .select()
+            .from(schema.user)
+            .where(eq(schema.user.phoneNumber, phoneNumberValue))
+            .limit(1)
+            .then((users) => users[0]);
+
+          // If phone number exists and user is trying to sign up (not updating), warn them
+          // Note: We allow OTP to be sent even if phone exists, as they might be signing in
+          // The actual uniqueness check happens during verification/registration
+        }
+      }
+
       // Intercept phone number verification endpoint to use Twilio Verify API
       if (ctx.path === "/phone-number/verify") {
         const phoneNumberValue = ctx.body?.phoneNumber as string | undefined;
@@ -101,7 +141,22 @@ export const auth = betterAuth({
 
         // If updatePhoneNumber is true and we have a session, update the existing user
         if (updatePhoneNumber && userId) {
+          // Check if phone number is already taken by another user
+          const existingUserWithPhone = await db
+            .select()
+            .from(schema.user)
+            .where(eq(schema.user.phoneNumber, phoneNumberValue))
+            .limit(1)
+            .then((users) => users[0]);
+
+          if (existingUserWithPhone && existingUserWithPhone.id !== userId) {
+            throw new APIError("BAD_REQUEST", {
+              message: "This phone number is already registered to another account",
+            });
+          }
+
           // Update existing user's phone number
+          try {
           await db
             .update(schema.user)
             .set({
@@ -111,6 +166,15 @@ export const auth = betterAuth({
               updatedAt: new Date(),
             })
             .where(eq(schema.user.id, userId));
+          } catch (error: any) {
+            // Handle unique constraint violation
+            if (error?.code === "23505" && error?.constraint?.includes("phone_number")) {
+              throw new APIError("BAD_REQUEST", {
+                message: "This phone number is already registered to another account",
+              });
+            }
+            throw error;
+          }
 
           // Delete the verification record
           await db
@@ -139,7 +203,9 @@ export const auth = betterAuth({
           });
         }
 
-        // Otherwise, find or create user by phone number
+        // Otherwise, find existing user by phone number
+        // We no longer allow creating new users with phone-only authentication
+        // Users must sign up with email first, then can add phone number
         let user = await db
           .select()
           .from(schema.user)
@@ -148,61 +214,31 @@ export const auth = betterAuth({
           .then((users) => users[0]);
 
         if (!user) {
-          // Create new user with phone number
-          userId = generateId();
-          const userName = phoneNumberValue.replace(/\D/g, "").slice(-4) || "User";
-          
-          try {
-            [user] = await db
-              .insert(schema.user)
-              .values({
-                id: userId,
-                name: userName,
-                email: `${userId}@phone.studojo.local`, // Temporary email for phone-only users
-                emailVerified: false,
-                phoneNumber: phoneNumberValue,
-                phoneNumberVerified: true,
-                lastLoginMethod: "phone",
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              })
-              .returning();
-          } catch (error: any) {
-            // If email conflict, try again with different email
-            if (error?.code === "23505" && error?.constraint?.includes("email")) {
-              userId = generateId();
-              [user] = await db
-                .insert(schema.user)
-                .values({
-                  id: userId,
-                  name: userName,
-                  email: `${userId}@phone.studojo.local`,
-                  emailVerified: false,
-                  phoneNumber: phoneNumberValue,
-                  phoneNumberVerified: true,
-                  lastLoginMethod: "phone",
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
-                })
-                .returning();
-            } else {
-              throw error;
-            }
-          }
-        } else {
-          // Update existing user's verification status
-          await db
-            .update(schema.user)
-            .set({
-              phoneNumberVerified: true,
-              lastLoginMethod: "phone",
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.user.id, user.id));
-          
-          user.phoneNumberVerified = true;
-          user.lastLoginMethod = "phone";
+          // Phone number not found - user must sign up with email first
+          throw new APIError("BAD_REQUEST", {
+            message: "No account found with this phone number. Please sign up with email first, then add your phone number.",
+          });
         }
+
+        // Check if user has a valid email (not a placeholder)
+        if (user.email && user.email.endsWith("@phone.studojo.local")) {
+          throw new APIError("BAD_REQUEST", {
+            message: "Please sign up with email first, then add your phone number.",
+          });
+        }
+
+        // Update existing user's verification status
+        await db
+          .update(schema.user)
+          .set({
+            phoneNumberVerified: true,
+            lastLoginMethod: "phone",
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.user.id, user.id));
+        
+        user.phoneNumberVerified = true;
+        user.lastLoginMethod = "phone";
 
         // Delete the verification record
         await db

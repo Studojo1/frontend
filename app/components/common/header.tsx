@@ -46,7 +46,10 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex" aria-label="Main">
-          {NAV_LINKS.map((link) => {
+          {NAV_LINKS.filter((link) => {
+            // Always show non-hash links, only show hash links on home page
+            return !link.to.startsWith("#") || isHomePage;
+          }).map((link) => {
             const LinkComponent = link.to.startsWith("#") ? SmoothLink : Link;
             return (
               <LinkComponent
@@ -124,7 +127,7 @@ export function Header() {
                 </Link>
                 <Link
                   to="/auth?mode=signup"
-                  className={`flex h-12 flex-1 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-base font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] md:w-32 md:flex-none ${
+                  className={`flex h-12 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-sm font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] px-4 max-w-[120px] flex-shrink-0 md:w-32 md:text-base md:max-w-none ${
                     isHomePage ? "hidden md:flex" : ""
                   }`}
                 >
@@ -158,7 +161,10 @@ export function Header() {
           aria-label="Mobile menu"
         >
           <ul className="flex flex-col gap-2">
-            {NAV_LINKS.map(({ to, label }) => {
+            {NAV_LINKS.filter((link) => {
+              // Always show non-hash links, only show hash links on home page
+              return !link.to.startsWith("#") || isHomePage;
+            }).map(({ to, label }) => {
               const LinkComponent = to.startsWith("#") ? SmoothLink : Link;
               return (
                 <li key={label}>

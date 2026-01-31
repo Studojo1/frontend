@@ -15,6 +15,13 @@
       "when": 1769353708635,
       "tag": "0001_worried_shatterstar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769400000000,
+      "tag": "0002_dissertation_careers",
+      "breakpoints": true
     }
   ]
 }
