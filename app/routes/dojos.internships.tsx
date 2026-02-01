@@ -85,6 +85,17 @@ export default function InternshipsDojo() {
     });
   };
 
+  const stripHtml = (html: string) => {
+    if (typeof window === "undefined") {
+      // Server-side: simple regex-based stripping
+      return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+    }
+    // Client-side: use DOM
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
@@ -143,7 +154,7 @@ export default function InternshipsDojo() {
                   </div>
 
                   <p className="mb-4 line-clamp-3 font-['Satoshi'] text-sm text-gray-600">
-                    {internship.description}
+                    {stripHtml(internship.description)}
                   </p>
 
                   <div className="space-y-2 border-t-2 border-neutral-900 pt-4">

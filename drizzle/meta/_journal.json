@@ -22,6 +22,13 @@
       "when": 1769400000000,
       "tag": "0002_dissertation_careers",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1769935271509,
+      "tag": "0003_blue_enchantress",
+      "breakpoints": true
     }
   ]
 }
