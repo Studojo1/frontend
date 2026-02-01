@@ -1,5 +1,4 @@
 import { auth } from "~/lib/auth";
-import { withRateLimit } from "~/lib/ratelimit.server";
 import { addSecurityHeaders } from "~/lib/security-headers.server";
 import type { Route } from "./+types/api.auth.$";
 
