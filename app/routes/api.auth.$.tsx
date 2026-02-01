@@ -25,11 +25,20 @@ function addCorsHeaders(response: Response, origin: string | null): Response {
     headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
   
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+  // Clone response with new headers - need to handle body properly
+  // If response body is already consumed, we can't clone it
+  try {
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  } catch (error) {
+    // If body is already consumed, return response with headers modified
+    // This shouldn't happen in normal flow, but handle it gracefully
+    console.warn("Could not clone response body for CORS headers", error);
+    return response;
+  }
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
