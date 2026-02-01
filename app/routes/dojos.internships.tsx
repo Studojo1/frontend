@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
 import { Header, Footer } from "~/components";
-import { FiMapPin, FiClock, FiCalendar } from "react-icons/fi";
+import { FiMapPin, FiClock, FiCalendar, FiArrowRight } from "react-icons/fi";
+import { IoBriefcaseOutline } from "react-icons/io5";
 import type { Route } from "./+types/dojos.internships";
 
 interface Internship {
@@ -23,7 +24,7 @@ export function meta({}: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "Discover internship opportunities. Apply with your saved resume and kickstart your career.",
+        "Internship Dojo - Personalized internship help to land you the dream internship",
     },
   ];
 }
@@ -99,17 +100,67 @@ export default function InternshipsDojo() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <main className="mx-auto max-w-7xl px-4 py-12 md:px-8">
-        <header className="mb-12 text-center">
-          <h1 className="mb-4 font-['Clash_Display'] text-5xl font-bold text-neutral-900 md:text-6xl">
+      <main className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
+        {/* Hero Section - Simplified */}
+        <header className="mb-8 text-center md:mb-12">
+          <h1 className="mb-3 font-['Clash_Display'] text-4xl font-bold text-neutral-900 md:text-5xl">
             Internship Dojo
           </h1>
-          <p className="mx-auto max-w-2xl font-['Satoshi'] text-lg text-gray-600">
-            Discover internship opportunities and apply with your saved resume
+          <p className="mx-auto max-w-2xl font-['Satoshi'] text-base text-gray-600 md:text-lg">
+            Personalized internship help to land you the dream internship
           </p>
         </header>
 
-        <form onSubmit={handleSearch} className="mb-12">
+        {/* CTA Boxes - Resume Builder and Personalized Help */}
+        <div className="mb-8 grid grid-cols-1 gap-6 md:mb-12 md:grid-cols-2">
+          {/* Resume Builder CTA */}
+          <Link
+            to="/dojos/careers"
+            className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-emerald-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:p-8"
+          >
+            <div className="flex items-center gap-3">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border-2 border-neutral-900 bg-white">
+                <IoBriefcaseOutline className="h-6 w-6 text-emerald-600" />
+              </div>
+              <h2 className="font-['Clash_Display'] text-2xl font-medium leading-7 text-white md:text-3xl">
+                Build Resume
+              </h2>
+            </div>
+            <p className="font-['Satoshi'] text-base font-normal leading-6 text-white/90 md:text-lg">
+              Build ATS optimized resumes in minutes. Professional design, 100% free forever.
+            </p>
+            <div className="mt-auto inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-emerald-600 transition-transform group-hover:translate-x-[1px] group-hover:translate-y-[1px]">
+              <span>Get started</span>
+              <FiArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </div>
+          </Link>
+
+          {/* Personalized Help CTA */}
+          <Link
+            to="/careers"
+            className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-violet-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:p-8"
+          >
+            <h2 className="font-['Clash_Display'] text-2xl font-medium leading-7 text-white md:text-3xl">
+              Personalized Help
+            </h2>
+            <p className="font-['Satoshi'] text-base font-normal leading-6 text-white/90 md:text-lg">
+              Get personalized career guidance, exclusive internship listings, and priority mentor support.
+            </p>
+            <div className="mt-auto inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-violet-600 transition-transform group-hover:translate-x-[1px] group-hover:translate-y-[1px]">
+              <span>Get personalized help</span>
+              <FiArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </div>
+          </Link>
+        </div>
+
+        {/* Job Board Section - Integrated */}
+        <div className="mb-6">
+          <h2 className="mb-2 font-['Clash_Display'] text-2xl font-medium leading-7 text-neutral-900 md:text-3xl">
+            Browse Opportunities
+          </h2>
+        </div>
+
+        <form onSubmit={handleSearch} className="mb-8">
           <div className="mx-auto flex max-w-md gap-2">
             <input
               type="text"

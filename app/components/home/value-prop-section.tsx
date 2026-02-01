@@ -1,7 +1,7 @@
 import { Section } from "../common/section";
 
 const defaultText =
-  "Assignments, resumes, exam prep—all in one place. No tutorials needed. Just pick what you need and get it done.";
+  "Assignments, resumes, exam prep. One place. No tutorials needed. Just pick what you need and get it done.";
 
 type ValuePropSectionProps = {
   text?: string;

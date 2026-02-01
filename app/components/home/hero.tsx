@@ -20,7 +20,7 @@ export function Hero() {
             </h1>
           </div>
           <p className="font-['Satoshi'] text-base font-normal leading-7 text-neutral-700 text-center md:text-left md:text-lg md:max-w-[632px] lg:text-xl">
-            Assignments, resumes, exam prep—all in one place. No tutorials needed. Just pick what you need and get it done.
+            Assignments, resumes, exam prep. One place. No tutorials needed. Just pick what you need and get it done.
           </p>
           <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
             <Link

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLoaderData } from "react-router";
 import { BlogContent } from "~/components/blog/blog-content";
 import { Header, Footer } from "~/components";
@@ -5,6 +6,61 @@ import { FiClock, FiEye, FiCalendar } from "react-icons/fi";
 import type { Route } from "./+types/blog.$slug";
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
+
+function normalizeImageUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  
+  // If it's already a relative path starting with /api/images, return as is
+  if (url.startsWith("/api/images")) {
+    return url;
+  }
+  
+  // If it's an absolute URL, extract the path after the domain
+  try {
+    const urlObj = new URL(url);
+    // If it's from the same origin or a known CDN, use the pathname
+    if (urlObj.pathname.startsWith("/api/images")) {
+      return urlObj.pathname;
+    }
+    // If it contains blog-images in the path, construct the proper path
+    if (urlObj.pathname.includes("blog-images")) {
+      const pathMatch = urlObj.pathname.match(/\/api\/images\/blog-images\/.+/);
+      if (pathMatch) {
+        return pathMatch[0];
+      }
+      // Extract blog-images path from full URL
+      const blogImagesMatch = urlObj.pathname.match(/blog-images\/.+/);
+      if (blogImagesMatch) {
+        return `/api/images/${blogImagesMatch[0]}`;
+      }
+    }
+  } catch {
+    // If URL parsing fails, check if it's just a filename
+    // Check if it looks like a filename (starts with timestamp pattern or is just a filename)
+    // Pattern: timestamp-filename.ext or just filename.ext
+    const filenamePattern = /^(\d+-)?[^\/]+\.(png|jpg|jpeg|webp|gif)$/i;
+    if (filenamePattern.test(url) && !url.startsWith("/")) {
+      // It's just a filename, prepend the blog-images path
+      return `/api/images/blog-images/${url}`;
+    }
+    
+    // If it's already a relative path starting with /, return as is
+    if (url.startsWith("/")) {
+      return url;
+    }
+  }
+  
+  // Check if it's just a filename (not a URL and not starting with /)
+  // Pattern: timestamp-filename.ext or just filename.ext
+  const filenamePattern = /^(\d+-)?[^\/]+\.(png|jpg|jpeg|webp|gif)$/i;
+  if (filenamePattern.test(url) && !url.startsWith("/") && !url.includes("://")) {
+    // It's just a filename, prepend the blog-images path
+    return `/api/images/blog-images/${url}`;
+  }
+  
+  // Default: return as is (might be a relative path already)
+  return url;
+}
 
 export function meta({ data }: Route.MetaArgs) {
   if (!data?.post) {
@@ -32,7 +88,7 @@ export function meta({ data }: Route.MetaArgs) {
       ? [
           {
             property: "og:image",
-            content: post.seo_og_image || post.featured_image,
+            content: post.seo_og_image || normalizeImageUrl(post.featured_image) || post.featured_image,
           },
         ]
       : []),
@@ -139,6 +195,8 @@ export default function BlogPost({ data }: Route.ComponentProps) {
   // Try both methods - data prop and useLoaderData hook
   const loaderData = useLoaderData() as { post: BlogPost } | undefined;
   const post = (loaderData?.post || data?.post) as BlogPost | undefined;
+  const [imageError, setImageError] = useState(false);
+  const normalizedImageUrl = normalizeImageUrl(post?.featured_image);
 
   if (!post) {
     return (
@@ -153,13 +211,20 @@ export default function BlogPost({ data }: Route.ComponentProps) {
   return (
     <article className="min-h-screen bg-white">
       <Header />
-      {post.featured_image && (
+      {normalizedImageUrl && !imageError && (
         <div className="h-64 w-full md:h-96">
           <img
-            src={post.featured_image}
+            src={normalizedImageUrl}
             alt={post.title}
             className="h-full w-full object-cover"
+            onError={() => setImageError(true)}
+            loading="lazy"
           />
+        </div>
+      )}
+      {imageError && (
+        <div className="h-64 w-full md:h-96 bg-neutral-200 flex items-center justify-center">
+          <span className="font-['Satoshi'] text-base text-neutral-400">Image not available</span>
         </div>
       )}
 
