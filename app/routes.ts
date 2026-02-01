@@ -25,5 +25,9 @@ export default [
   route("privacy", "routes/privacy.tsx"),
   route("terms", "routes/terms.tsx"),
   route("refund-policy", "routes/refund-policy.tsx"),
+  route("blog/:slug", "routes/blog.$slug.tsx"),
+  route("blog", "routes/blog.tsx"),
+  route("api/blog/:slug", "routes/api.blog.$slug.tsx"),
+  route("api/blog", "routes/api.blog.tsx"),
   route(".well-known/*", "routes/well-known.$.tsx"),
 ] satisfies RouteConfig;

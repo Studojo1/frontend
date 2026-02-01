@@ -52,12 +52,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
   
   // Apply rate limiting to auth endpoints
-  return withRateLimit(request, async () => {
+  // Note: withRateLimit handles CORS for rate limit errors, but we still need CORS for successful responses
+  const rateLimitResult = await withRateLimit(request, async () => {
     const response = await auth.handler(request);
     const origin = request.headers.get("origin");
     const corsResponse = addCorsHeaders(response, origin);
     return addSecurityHeaders(corsResponse);
   });
+  
+  // If rate limit returned early (429), it already has CORS headers
+  // Otherwise, it's the actual response which we've already added CORS to
+  return rateLimitResult;
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -80,10 +85,15 @@ export async function action({ request }: Route.ActionArgs) {
   }
   
   // Apply rate limiting to auth endpoints
-  return withRateLimit(request, async () => {
+  // Note: withRateLimit handles CORS for rate limit errors, but we still need CORS for successful responses
+  const rateLimitResult = await withRateLimit(request, async () => {
     const response = await auth.handler(request);
     const origin = request.headers.get("origin");
     const corsResponse = addCorsHeaders(response, origin);
     return addSecurityHeaders(corsResponse);
   });
+  
+  // If rate limit returned early (429), it already has CORS headers
+  // Otherwise, it's the actual response which we've already added CORS to
+  return rateLimitResult;
 }

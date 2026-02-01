@@ -38,8 +38,9 @@ export interface RateLimitConfig {
 }
 
 // Default rate limit configurations
+// For internal software with continuous auth checks, auth limits are higher
 const RATE_LIMITS: Record<string, RateLimitConfig> = {
-  auth: { requests: 5, window: 60 }, // 5 requests per minute for auth
+  auth: { requests: 200, window: 60 }, // 200 requests per minute for auth (internal software with continuous checks)
   payment: { requests: 10, window: 60 }, // 10 requests per minute for payments
   admin: { requests: 30, window: 60 }, // 30 requests per minute for admin
   default: { requests: 100, window: 60 }, // 100 requests per minute for general endpoints
@@ -157,6 +158,32 @@ export async function withRateLimit<T>(
   }
 
   if (!result.allowed) {
+    // Get origin for CORS headers
+    const origin = request.headers.get("origin");
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      "X-RateLimit-Limit": RATE_LIMITS[getEndpointType(new URL(request.url).pathname)].requests.toString(),
+      "X-RateLimit-Remaining": "0",
+      "X-RateLimit-Reset": result.reset.toString(),
+      "Retry-After": RATE_LIMITS[getEndpointType(new URL(request.url).pathname)].window.toString(),
+    };
+    
+    // Add CORS headers even to rate limit errors
+    if (origin) {
+      // Check if origin is in allowed list (same logic as in api.auth.$.tsx)
+      const allowedOrigins = new Set([
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) || []),
+      ]);
+      if (allowedOrigins.has(origin)) {
+        headers["Access-Control-Allow-Origin"] = origin;
+        headers["Access-Control-Allow-Credentials"] = "true";
+      }
+    }
+    
     return new Response(
       JSON.stringify({
         error: {
@@ -166,13 +193,7 @@ export async function withRateLimit<T>(
       }),
       {
         status: 429,
-        headers: {
-          "Content-Type": "application/json",
-          "X-RateLimit-Limit": RATE_LIMITS[getEndpointType(new URL(request.url).pathname)].requests.toString(),
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": result.reset.toString(),
-          "Retry-After": RATE_LIMITS[getEndpointType(new URL(request.url).pathname)].window.toString(),
-        },
+        headers,
       }
     );
   }
