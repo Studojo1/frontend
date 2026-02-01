@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router";
 import { Header, Footer } from "~/components";
-import { FiMapPin, FiClock, FiDollarSign, FiCalendar } from "react-icons/fi";
+import { FiMapPin, FiClock, FiCalendar } from "react-icons/fi";
 import type { Route } from "./+types/dojos.internships";
 
 interface Internship {
@@ -167,7 +167,7 @@ export default function InternshipsDojo() {
                       <span>{internship.duration}</span>
                     </div>
                     <div className="flex items-center gap-2 font-['Satoshi'] text-sm text-gray-700">
-                      <FiDollarSign className="w-4 h-4" />
+                      <span className="text-lg">₹</span>
                       <span>{internship.stipend}</span>
                     </div>
                     {internship.application_deadline && (

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLoaderData, useNavigate } from "react-router";
 import { Header, Footer } from "~/components";
-import { FiMapPin, FiClock, FiDollarSign, FiCalendar } from "react-icons/fi";
+import { FiMapPin, FiClock, FiCalendar } from "react-icons/fi";
 import { authClient } from "~/lib/auth-client";
 import type { Route } from "./+types/internships.$slug";
 import { ApplicationFlow } from "~/components/internship/application-flow";
@@ -128,7 +128,7 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
               {internship.duration}
             </span>
             <span className="flex items-center gap-2">
-              <FiDollarSign className="w-4 h-4" />
+              <span className="text-lg">₹</span>
               {internship.stipend}
             </span>
             {formatDeadline(internship.application_deadline) && (
