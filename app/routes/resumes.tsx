@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { redirect } from "react-router";
 import { FiDownload, FiEdit, FiTrash2, FiPlus, FiFileText } from "react-icons/fi";
 import { Footer, Header } from "~/components";
-import { ImportResumeModal } from "~/components/resumes";
+import { ImportResumeModal, RenameResumeModal } from "~/components/resumes";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { toast } from "sonner";
 import type { Route } from "./+types/resumes";
@@ -43,6 +43,8 @@ export default function Resumes() {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loading, setLoading] = useState(true);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [resumeToRename, setResumeToRename] = useState<Resume | null>(null);
 
   useEffect(() => {
     loadResumes();
@@ -76,9 +78,121 @@ export default function Resumes() {
     }
   };
 
+  const handleRenameClick = (resume: Resume) => {
+    setResumeToRename(resume);
+    setRenameModalOpen(true);
+  };
+
+  const handleRename = async (newName: string) => {
+    if (!resumeToRename) return;
+
+    try {
+      const res = await fetch(`/api/resumes/${resumeToRename.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName }),
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to rename resume");
+      }
+      toast.success("Resume renamed successfully");
+      loadResumes();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to rename resume");
+      throw error;
+    }
+  };
+
+  const generateSmartResumeName = (resumeData: any, existingResumes: Resume[]): string => {
+    let baseName = "";
+
+    const contactName = resumeData.contact_info?.name?.trim();
+    const title = resumeData.title?.trim();
+    const workExps = resumeData.work_experiences || [];
+    const educations = resumeData.educations || [];
+
+    // Priority 1: current role : contact_info.name
+    if (contactName && workExps.length > 0) {
+      const currentRole = workExps[0]?.role?.trim();
+      if (currentRole) {
+        baseName = `${currentRole} : ${contactName}`;
+      }
+    }
+
+    // Priority 2: contact_info.name + company
+    if (!baseName && contactName && workExps.length > 0) {
+      const company = workExps[0]?.company?.trim();
+      if (company) {
+        baseName = `${company} : ${contactName}`;
+      }
+    }
+
+    // Priority 3: contact_info.name + degree
+    if (!baseName && contactName && educations.length > 0) {
+      const degree = educations[0]?.degree?.trim();
+      if (degree) {
+        baseName = `${degree} : ${contactName}`;
+      }
+    }
+
+    // Priority 4: contact_info.name alone
+    if (!baseName && contactName) {
+      baseName = contactName;
+    }
+
+    // Priority 5: title field
+    if (!baseName && title) {
+      baseName = title;
+    }
+
+    // Priority 6: Role + Company (if no name)
+    if (!baseName && workExps.length > 0) {
+      const role = workExps[0]?.role?.trim();
+      const company = workExps[0]?.company?.trim();
+      if (role && company) {
+        baseName = `${role} at ${company}`;
+      } else if (role) {
+        baseName = role;
+      } else if (company) {
+        baseName = company;
+      }
+    }
+
+    // Priority 7: Degree + Institution (if no name)
+    if (!baseName && educations.length > 0) {
+      const degree = educations[0]?.degree?.trim();
+      const institution = educations[0]?.institution?.trim();
+      if (degree && institution) {
+        baseName = `${degree} at ${institution}`;
+      } else if (degree) {
+        baseName = degree;
+      } else if (institution) {
+        baseName = institution;
+      }
+    }
+
+    // Priority 8: Fallback
+    if (!baseName) {
+      baseName = "Imported Resume";
+    }
+
+    // Check for duplicates and append number if needed
+    const existingNames = existingResumes.map((r) => r.name.toLowerCase().trim());
+    let finalName = baseName;
+    let counter = 2;
+
+    while (existingNames.includes(finalName.toLowerCase().trim())) {
+      finalName = `${baseName} (${counter})`;
+      counter++;
+    }
+
+    return finalName;
+  };
+
   const handleImport = async (resumeData: any) => {
     try {
-      const name = resumeData.title || resumeData.contact_info?.name || "Imported Resume";
+      const name = generateSmartResumeName(resumeData, resumes);
       const res = await fetch("/api/resumes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -209,9 +323,19 @@ export default function Resumes() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-['Clash_Display'] text-lg font-medium leading-7 text-neutral-950">
-                          {resume.name}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-['Clash_Display'] text-lg font-medium leading-7 text-neutral-950">
+                            {resume.name}
+                          </h3>
+                          <button
+                            type="button"
+                            onClick={() => handleRenameClick(resume)}
+                            className="flex items-center justify-center rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-emerald-600 transition-colors"
+                            title="Rename resume"
+                          >
+                            <FiEdit className="h-4 w-4" />
+                          </button>
+                        </div>
                         <p className="mt-1 font-['Satoshi'] text-xs font-normal leading-4 text-gray-500">
                           {new Date(resume.createdAt).toLocaleDateString()}
                         </p>
@@ -256,6 +380,18 @@ export default function Resumes() {
         onClose={() => setImportModalOpen(false)}
         onImport={handleImport}
       />
+
+      {resumeToRename && (
+        <RenameResumeModal
+          isOpen={renameModalOpen}
+          onClose={() => {
+            setRenameModalOpen(false);
+            setResumeToRename(null);
+          }}
+          currentName={resumeToRename.name}
+          onRename={handleRename}
+        />
+      )}
     </>
   );
 }

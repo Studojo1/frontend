@@ -68,6 +68,17 @@ export async function action({ request }: Route.ActionArgs) {
     // Use OpenAI to structure the resume data
     const resumeJson = await parseResumeWithOpenAI(pdfText, openaiApiKey);
 
+    // Generate professional summary if missing
+    if (!resumeJson.summary || resumeJson.summary.trim() === "") {
+      try {
+        const summary = await generateProfessionalSummary(resumeJson, openaiApiKey);
+        resumeJson.summary = summary;
+      } catch (error) {
+        // Log error but don't fail the import if summary generation fails
+        console.error("Failed to generate professional summary:", error);
+      }
+    }
+
     return new Response(
       JSON.stringify({ resumeData: resumeJson }),
       { status: 200, headers: { "Content-Type": "application/json" } }
@@ -207,4 +218,92 @@ Return ONLY valid JSON, no markdown, no code blocks.`,
     }
     throw new Error(`Failed to parse OpenAI response as JSON: ${error.message}`);
   }
+}
+
+async function generateProfessionalSummary(resumeData: any, apiKey: string): Promise<string> {
+  // Build context from resume data
+  const workExps = resumeData.work_experiences || [];
+  const educations = resumeData.educations || [];
+  const skills = resumeData.skills || [];
+  const projects = resumeData.projects || [];
+
+  let context = "Based on the following resume information, write a professional 2-3 sentence summary:\n\n";
+
+  if (workExps.length > 0) {
+    context += "Work Experience:\n";
+    workExps.slice(0, 3).forEach((exp: any) => {
+      context += `- ${exp.role || "Position"} at ${exp.company || "Company"}`;
+      if (exp.description) {
+        context += `: ${exp.description.substring(0, 200)}`;
+      }
+      context += "\n";
+    });
+  }
+
+  if (educations.length > 0) {
+    context += "\nEducation:\n";
+    educations.slice(0, 2).forEach((edu: any) => {
+      context += `- ${edu.degree || ""} ${edu.field_of_study ? `in ${edu.field_of_study}` : ""} from ${edu.institution || ""}\n`;
+    });
+  }
+
+  if (skills.length > 0) {
+    context += "\nKey Skills:\n";
+    const skillNames = skills.slice(0, 10).map((s: any) => s.name || s.category).filter(Boolean);
+    context += skillNames.join(", ") + "\n";
+  }
+
+  if (projects.length > 0) {
+    context += "\nNotable Projects:\n";
+    projects.slice(0, 2).forEach((proj: any) => {
+      context += `- ${proj.title || "Project"}`;
+      if (proj.description) {
+        context += `: ${proj.description.substring(0, 150)}`;
+      }
+      context += "\n";
+    });
+  }
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a professional resume writer. Write concise, impactful professional summaries (2-3 sentences) that highlight key qualifications, experience, and value proposition. Focus on achievements and expertise.",
+        },
+        {
+          role: "user",
+          content: context + "\n\nWrite a professional summary:",
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 200,
+    }),
+  });
+
+  if (!response.ok) {
+    let errorMessage = "OpenAI API error";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.error?.message || errorData.error || errorMessage;
+    } catch {
+      const errorText = await response.text();
+      errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+    }
+    throw new Error(`OpenAI API error: ${errorMessage}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices[0]?.message?.content;
+  if (!content) {
+    throw new Error("No content in OpenAI response for summary generation");
+  }
+
+  return content.trim();
 }
