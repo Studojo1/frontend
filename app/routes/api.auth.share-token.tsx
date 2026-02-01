@@ -24,15 +24,20 @@ export async function loader({ request }: Route.LoaderArgs) {
     });
   }
   
-  // Check if request is from admin panel (allow localhost:3001 or admin subdomain)
+  // Check if request is from admin panel (allow localhost:3001, admin, or maverick subdomain)
   const origin = request.headers.get("origin");
   const referer = request.headers.get("referer");
   const isAdminPanel = 
     origin?.includes(":3001") || 
+    origin?.includes(":3002") ||
     origin?.includes("admin") ||
+    origin?.includes("maverick") ||
     referer?.includes(":3001") ||
+    referer?.includes(":3002") ||
     referer?.includes("admin") ||
-    request.headers.get("user-agent")?.includes("admin");
+    referer?.includes("maverick") ||
+    request.headers.get("user-agent")?.includes("admin") ||
+    request.headers.get("user-agent")?.includes("maverick");
   
   if (!isAdminPanel) {
     return Response.json({ error: "Unauthorized origin" }, { 
