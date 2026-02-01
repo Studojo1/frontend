@@ -66,19 +66,19 @@ const DOJOS: DojoCard[] = [
   },
   {
     id: "humanizer",
-    title: "Humanizer and Formatter Dojo",
-    description: "Humanize AI Generated Outcomes.",
-    descriptionClass: "text-blue-100",
+    title: "Humanizer Dojo",
+    description: "Humanize AI-generated content while preserving structure. Untrackable and AI-busting.",
+    descriptionClass: "text-amber-100",
     checklist: [
-      "Untrackable",
-      "Against all AI Busters",
-      "Generate top tier content",
+      "Structure-preserving",
+      "AI detection proof",
+      "Verified output",
     ],
     accent: "amber",
-    cta: "Coming soon",
-    ctaClass: "text-blue-600",
+    cta: "Try it now",
+    ctaClass: "text-amber-600",
     icon: <LuUsersRound />,
-    comingSoon: true,
+    href: "/dojos/humanizer",
   },
 ];
 

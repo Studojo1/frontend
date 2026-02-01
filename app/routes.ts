@@ -18,6 +18,7 @@ export default [
   route("assignments", "routes/assignments.tsx"),
   route("dojos/assignment", "routes/dojos.assignment.tsx"),
   route("dojos/careers", "routes/dojos.careers.tsx"),
+  route("dojos/humanizer", "routes/dojos.humanizer.tsx"),
   route("dojos/internships", "routes/dojos.internships.tsx"),
   route("internships/:slug", "routes/internships.$slug.tsx"),
   route("api/internships", "routes/api.internships.tsx"),

@@ -1,4 +1,5 @@
 import { FiBookOpen, FiTarget, FiBriefcase, FiClock } from "react-icons/fi";
+import { LuUsersRound } from "react-icons/lu";
 import { Link } from "react-router";
 
 type DojoCard = {

@@ -93,8 +93,11 @@ export function AssignmentDojoPage() {
               </div>
             </Link>
 
-            {/* Humanizer & Formatter CTA (Coming Soon) */}
-            <div className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-amber-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] cursor-not-allowed opacity-90 md:p-8">
+            {/* Humanizer & Formatter CTA */}
+            <Link
+              to="/dojos/humanizer"
+              className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-amber-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:p-8"
+            >
               <div className="flex items-center gap-3">
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border-2 border-neutral-900 bg-white">
                   <LuUsersRound className="h-6 w-6 text-amber-600" />
@@ -106,10 +109,11 @@ export function AssignmentDojoPage() {
               <p className="font-['Satoshi'] text-base font-normal leading-6 text-white/90 md:text-lg">
                 Humanize AI Generated Outcomes. Untrackable and against all AI Busters.
               </p>
-              <div className="mt-auto inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-amber-600">
-                <span>Coming soon</span>
+              <div className="mt-auto inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-amber-600 transition-transform group-hover:translate-x-[1px] group-hover:translate-y-[1px]">
+                <span>Get started</span>
+                <FiArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

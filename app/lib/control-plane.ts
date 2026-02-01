@@ -333,3 +333,115 @@ export async function optimizeResumeJob(
   }
   return { res: data as SubmitResponse, status: res.status };
 }
+
+/** Humanizer job payload. */
+export interface HumanizerJobPayload {
+  file_data: string; // Base64 encoded DOCX file
+  original_filename: string;
+  word_count?: number;
+}
+
+/** Humanizer price calculation response. */
+export interface HumanizerPriceResponse {
+  word_count: number;
+  amount: number; // Amount in paise
+  amount_inr: number; // Amount in INR
+}
+
+/** Calculate humanizer price. */
+export async function calculateHumanizerPrice(
+  file: File
+): Promise<HumanizerPriceResponse> {
+  const token = await getToken();
+  if (!token) throw new ControlPlaneError("No token", 401);
+
+  // Read file as base64
+  const fileData = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.includes(",") ? result.split(",")[1] : result;
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const payload: HumanizerJobPayload = {
+    file_data: fileData,
+    original_filename: file.name,
+  };
+
+  const base = getControlPlaneUrl();
+  const res = await fetch(`${base}/v1/humanizer/calculate-price`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ payload }),
+  });
+
+  const data = (await res.json()) as HumanizerPriceResponse | ApiError;
+  if (!res.ok) {
+    const err = data as ApiError;
+    throw new ControlPlaneError(
+      err?.error?.message ?? "Price calculation failed",
+      res.status,
+      err
+    );
+  }
+  return data as HumanizerPriceResponse;
+}
+
+/** Submit humanizer job. */
+export async function submitHumanizerJob(
+  file: File,
+  paymentOrderId: string
+): Promise<SubmitResponse> {
+  const token = await getToken();
+  if (!token) throw new ControlPlaneError("No token", 401);
+
+  // Read file as base64
+  const fileData = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Remove data URL prefix if present
+      const base64 = result.includes(",") ? result.split(",")[1] : result;
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const payload: HumanizerJobPayload = {
+    file_data: fileData,
+    original_filename: file.name,
+  };
+
+  const base = getControlPlaneUrl();
+  const res = await fetch(`${base}/v1/jobs`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      type: "humanizer",
+      payload,
+      payment_order_id: paymentOrderId,
+    }),
+  });
+
+  const data = (await res.json()) as SubmitResponse | ApiError;
+  if (!res.ok) {
+    const err = data as ApiError;
+    throw new ControlPlaneError(
+      err?.error?.message ?? "Humanizer job submission failed",
+      res.status,
+      err
+    );
+  }
+  return data as SubmitResponse;
+}
