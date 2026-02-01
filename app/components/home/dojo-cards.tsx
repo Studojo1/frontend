@@ -1,4 +1,4 @@
-import { FiBookOpen, FiTarget } from "react-icons/fi";
+import { FiBookOpen, FiTarget, FiBriefcase } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { LuUsersRound, LuGraduationCap, LuBriefcase } from "react-icons/lu";
 import { Link } from "react-router";
@@ -46,6 +46,23 @@ const DOJOS: DojoCard[] = [
     ctaClass: "text-emerald-600",
     icon: <IoBriefcaseOutline />,
     href: "/dojos/careers",
+  },
+  {
+    id: "internships",
+    title: "Internship Dojo",
+    description:
+      "Discover exciting internship opportunities and kickstart your career journey.",
+    descriptionClass: "text-blue-100",
+    checklist: [
+      "Curated opportunities",
+      "Easy application process",
+      "Track your applications",
+    ],
+    accent: "violet",
+    cta: "Browse internships",
+    ctaClass: "text-violet-600",
+    icon: <FiBriefcase />,
+    href: "/dojos/internships",
   },
   {
     id: "dissertation",

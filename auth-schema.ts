@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -270,6 +270,132 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
+    references: [user.id],
+  }),
+}));
+
+// Internships table for storing internship listings
+export const internships = pgTable(
+  "internships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    companyName: text("company_name").notNull(),
+    description: text("description").notNull(),
+    requirements: text("requirements").notNull(),
+    location: text("location").notNull(),
+    duration: text("duration").notNull(),
+    stipend: text("stipend").notNull(),
+    applicationDeadline: timestamp("application_deadline"),
+    status: text("status").default("draft").notNull(), // 'draft', 'published', 'closed'
+    slug: text("slug").notNull().unique(),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+    viewCount: integer("view_count").default(0).notNull(),
+    clickCount: integer("click_count").default(0).notNull(),
+    applicationCount: integer("application_count").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("internships_slug_idx").on(table.slug),
+    index("internships_status_created_idx").on(table.status, table.createdAt),
+  ],
+);
+
+// Internship applications table
+export const internshipApplications = pgTable(
+  "internship_applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    internshipId: uuid("internship_id")
+      .notNull()
+      .references(() => internships.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    resumeId: uuid("resume_id")
+      .notNull()
+      .references(() => resumes.id, { onDelete: "restrict" }),
+    resumeSnapshot: jsonb("resume_snapshot").notNull(), // Locked resume data
+    status: text("status").default("pending").notNull(), // 'pending', 'shortlisted', 'rejected', 'forwarded', 'accepted', 'interview_scheduled', 'more_info_requested'
+    adminNotes: text("admin_notes"),
+    companyToken: text("company_token"), // Token for company access (if forwarded)
+    forwardedAt: timestamp("forwarded_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("internship_applications_internship_status_idx").on(
+      table.internshipId,
+      table.status,
+    ),
+    index("internship_applications_user_idx").on(table.userId),
+    unique().on(table.internshipId, table.userId), // One application per student per internship
+  ],
+);
+
+// Company tokens table for managing company access
+export const companyTokens = pgTable(
+  "company_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    token: text("token").notNull().unique(),
+    internshipId: uuid("internship_id")
+      .notNull()
+      .references(() => internships.id, { onDelete: "cascade" }),
+    applicationIds: jsonb("application_ids").notNull(), // Array of application IDs
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+    expiresAt: timestamp("expires_at"),
+    usedAt: timestamp("used_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("company_tokens_token_idx").on(table.token)],
+);
+
+// Relations
+export const internshipsRelations = relations(internships, ({ one, many }) => ({
+  creator: one(user, {
+    fields: [internships.createdBy],
+    references: [user.id],
+  }),
+  applications: many(internshipApplications),
+}));
+
+export const internshipApplicationsRelations = relations(
+  internshipApplications,
+  ({ one }) => ({
+    internship: one(internships, {
+      fields: [internshipApplications.internshipId],
+      references: [internships.id],
+    }),
+    user: one(user, {
+      fields: [internshipApplications.userId],
+      references: [user.id],
+    }),
+    resume: one(resumes, {
+      fields: [internshipApplications.resumeId],
+      references: [resumes.id],
+    }),
+  }),
+);
+
+export const companyTokensRelations = relations(companyTokens, ({ one }) => ({
+  internship: one(internships, {
+    fields: [companyTokens.internshipId],
+    references: [internships.id],
+  }),
+  creator: one(user, {
+    fields: [companyTokens.createdBy],
     references: [user.id],
   }),
 }));
