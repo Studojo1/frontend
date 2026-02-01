@@ -24,6 +24,7 @@ export default [
   route("api/internships/:slug", "routes/api.internships.$slug.tsx"),
   route("api/internships/:id/apply", "routes/api.internships.$id.apply.tsx"),
   route("api/internships/applications", "routes/api.internships.applications.tsx"),
+  route("my-applications", "routes/my-applications.tsx"),
   route("company/internships/:id", "routes/company/internships.$id.tsx"),
   route("api/company/internships/:id", "routes/api/company/internships.$id.tsx"),
   route("api/company/applications/:id/action", "routes/api/company/applications/$id.action.tsx"),
