@@ -38,9 +38,12 @@ export interface RateLimitConfig {
 }
 
 // Default rate limit configurations
-// For internal software with continuous auth checks, auth limits are higher
+// For internal software with continuous auth checks, auth rate limiting is disabled by default
+// Set DISABLE_AUTH_RATE_LIMIT=false to enable rate limiting for auth endpoints
+const DISABLE_AUTH_RATE_LIMIT = process.env.DISABLE_AUTH_RATE_LIMIT !== "false";
+
 const RATE_LIMITS: Record<string, RateLimitConfig> = {
-  auth: { requests: 200, window: 60 }, // 200 requests per minute for auth (internal software with continuous checks)
+  auth: { requests: 1000, window: 60 }, // Very high limit (effectively disabled for internal software)
   payment: { requests: 10, window: 60 }, // 10 requests per minute for payments
   admin: { requests: 30, window: 60 }, // 30 requests per minute for admin
   default: { requests: 100, window: 60 }, // 100 requests per minute for general endpoints
@@ -96,6 +99,12 @@ export async function checkRateLimit(
   }
 
   const endpointType = getEndpointType(path);
+  
+  // Skip rate limiting for auth endpoints if disabled (default for internal software)
+  if (endpointType === "auth" && DISABLE_AUTH_RATE_LIMIT) {
+    return null;
+  }
+  
   const config = RATE_LIMITS[endpointType];
   const identifier = getIdentifier(request, userId);
 
