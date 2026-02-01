@@ -96,10 +96,14 @@ export const auth = betterAuth({
     "http://127.0.0.1:3001",
     // Allow admin panel to use the same auth
     ...(process.env.ADMIN_PANEL_URL ? [process.env.ADMIN_PANEL_URL] : []),
+    // Add production origins from environment variable
+    ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) || []),
+    // Add maverick URL if specified
+    ...(process.env.MAVERICK_URL ? [process.env.MAVERICK_URL] : []),
   ],
   secret: process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET,
   
-  // Enable CORS for admin panel
+  // Enable CORS for admin panel and maverick
   cors: {
     enabled: true,
     origin: [
@@ -108,6 +112,10 @@ export const auth = betterAuth({
       "http://localhost:3001",
       "http://127.0.0.1:3000",
       "http://127.0.0.1:3001",
+      // Add production origins from environment variable
+      ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) || []),
+      // Add maverick URL if specified
+      ...(process.env.MAVERICK_URL ? [process.env.MAVERICK_URL] : []),
     ],
     credentials: true,
   },
