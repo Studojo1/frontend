@@ -3,7 +3,8 @@ import { FiUpload, FiDownload, FiFile, FiX, FiShield, FiCheckCircle, FiZap } fro
 import { LuUsersRound } from "react-icons/lu";
 import { toast } from "sonner";
 import {
-  submitHumanizerJob,
+  submitHumanizerJobWithURL,
+  uploadHumanizerFile,
   getJob,
   calculateHumanizerPrice,
   type JobResponse,
@@ -29,6 +30,10 @@ export function HumanizerDojoPage() {
   const [price, setPrice] = useState<number | null>(null);
   const [wordCount, setWordCount] = useState<number | null>(null);
   const [calculatingPrice, setCalculatingPrice] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [processingProgress, setProcessingProgress] = useState<number>(0);
+  const [currentSection, setCurrentSection] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -42,16 +47,50 @@ export function HumanizerDojoPage() {
       return;
     }
 
+    // Track time since last progress update
+    let lastProgressTime = Date.now();
+    let progressStuckTimeout: NodeJS.Timeout | null = null;
+
     const pollJob = async () => {
       try {
         const jobStatus = await getJob(jobId);
         setJob(jobStatus);
+
+        // Update progress from job status
+        if (jobStatus.progress !== undefined && jobStatus.progress !== null) {
+          setProcessingProgress(jobStatus.progress);
+          lastProgressTime = Date.now();
+          // Clear stuck timeout if progress updated
+          if (progressStuckTimeout) {
+            clearTimeout(progressStuckTimeout);
+            progressStuckTimeout = null;
+          }
+        } else {
+          // Progress is null/undefined - check if we've been stuck at 0 for >10 seconds
+          const timeSinceLastProgress = Date.now() - lastProgressTime;
+          if (processingProgress === 0 && timeSinceLastProgress > 10000 && !progressStuckTimeout) {
+            // Show "Starting..." message if progress is 0 for >10 seconds
+            setCurrentSection("Starting processing... (this may take a moment)");
+            progressStuckTimeout = setTimeout(() => {
+              // After another 10 seconds, show warning
+              setCurrentSection("Processing is taking longer than expected. Please wait...");
+            }, 10000);
+          }
+        }
+        
+        if (jobStatus.current_section) {
+          setCurrentSection(jobStatus.current_section);
+        }
 
         if (jobStatus.status === "COMPLETED") {
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
+          if (progressStuckTimeout) {
+            clearTimeout(progressStuckTimeout);
+          }
+          setProcessingProgress(100);
           const result = jobStatus.result as any;
           if (result?.download_url) {
             setDownloadUrl(result.download_url);
@@ -64,6 +103,9 @@ export function HumanizerDojoPage() {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
+          if (progressStuckTimeout) {
+            clearTimeout(progressStuckTimeout);
+          }
           setView("error");
           toast.error(jobStatus.error || "Humanization failed");
         }
@@ -73,16 +115,24 @@ export function HumanizerDojoPage() {
           toast.error("Please sign in again");
           setView("upload");
         }
+        // On error, don't update progress but continue polling
+        // Progress might be temporarily unavailable due to service restart
       }
     };
 
+    // Poll immediately, then every 2 seconds
+    pollJob();
     pollingIntervalRef.current = setInterval(pollJob, 2000);
+    
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
       }
+      if (progressStuckTimeout) {
+        clearTimeout(progressStuckTimeout);
+      }
     };
-  }, [jobId, view]);
+  }, [jobId, view, processingProgress]);
 
   const handleFileSelect = async (selectedFile: File) => {
     if (!selectedFile.name.endsWith(".docx")) {
@@ -132,6 +182,12 @@ export function HumanizerDojoPage() {
   };
 
   const handleSubmit = async () => {
+    // Idempotency: Prevent multiple submissions
+    if (isSubmitting) {
+      toast.info("Please wait, submission in progress...");
+      return;
+    }
+
     if (!file) {
       toast.error("Please select a file");
       return;
@@ -142,9 +198,22 @@ export function HumanizerDojoPage() {
       return;
     }
 
+    // Set submitting state immediately to prevent duplicate clicks
+    setIsSubmitting(true);
+
     try {
-      // Create payment order
-      const orderRes = await createPaymentOrder(price);
+      // Reset progress
+      setUploadProgress(0);
+      setProcessingProgress(0);
+      setCurrentSection(null);
+      
+      // Upload file BEFORE payment with progress tracking
+      const uploadResult = await uploadHumanizerFile(file, (progress) => {
+        setUploadProgress(progress);
+      });
+      
+      // Create payment order - pass job_type for humanizer to ensure proper pricing
+      const orderRes = await createPaymentOrder(price, "humanizer");
       
       // Open Razorpay checkout
       await openRazorpayCheckout({
@@ -163,27 +232,35 @@ export function HumanizerDojoPage() {
               response.razorpay_signature
             );
             
-            // Submit job
+            // Submit job with pre-uploaded file URL
             setView("processing");
-            const result = await submitHumanizerJob(file, response.razorpay_order_id);
+            const result = await submitHumanizerJobWithURL(
+              uploadResult.file_url,
+              file.name,
+              response.razorpay_order_id
+            );
             setJobId(result.job_id);
             toast.success("Payment verified! Humanization started...");
+            // Reset submitting state after successful submission
+            setIsSubmitting(false);
           } catch (error: any) {
-            console.error("Payment/job submission error:", error);
             setView("error");
+            setIsSubmitting(false);
             toast.error(error.message || "Payment verification or job submission failed");
           }
         },
         onDismiss: () => {
+          setIsSubmitting(false);
           toast.info("Payment cancelled");
         },
         onPaymentFailed: (response: any) => {
+          setIsSubmitting(false);
           toast.error("Payment failed. Please try again.");
         },
       });
     } catch (error: any) {
-      console.error("Submit error:", error);
       setView("error");
+      setIsSubmitting(false);
       toast.error(error.message || "Failed to start payment");
     }
   };
@@ -209,6 +286,9 @@ export function HumanizerDojoPage() {
     setPrice(null);
     setWordCount(null);
     setView("upload");
+    setIsSubmitting(false);
+    setUploadProgress(0);
+    setProcessingProgress(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -371,10 +451,24 @@ export function HumanizerDojoPage() {
                         </div>
                         <button
                           onClick={handleSubmit}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded-xl border-2 border-neutral-900 bg-amber-500 px-8 py-4 font-['Satoshi'] text-base font-medium leading-5 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                          disabled={isSubmitting}
+                          className={`w-full inline-flex items-center justify-center gap-2 rounded-xl border-2 border-neutral-900 px-8 py-4 font-['Satoshi'] text-base font-medium leading-5 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform ${
+                            isSubmitting
+                              ? "bg-amber-400 cursor-not-allowed opacity-75"
+                              : "bg-amber-500 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                          }`}
                         >
-                          <FiUpload className="h-5 w-5" />
-                          Pay & Humanize Document
+                          {isSubmitting ? (
+                            <>
+                              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <FiUpload className="h-5 w-5" />
+                              Pay & Humanize Document
+                            </>
+                          )}
                         </button>
                       </div>
                     ) : (
@@ -417,23 +511,65 @@ export function HumanizerDojoPage() {
             </div>
           )}
 
+          {/* Upload Progress (shown during upload) */}
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="mb-6 rounded-2xl border-2 border-neutral-900 bg-white px-6 py-4 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="font-['Satoshi'] text-base font-medium text-neutral-900">
+                    Uploading file...
+                  </p>
+                  <p className="font-['Satoshi'] text-sm text-neutral-600">
+                    {uploadProgress}%
+                  </p>
+                </div>
+                <div className="h-3 w-full overflow-hidden rounded-full bg-neutral-200">
+                  <div
+                    className="h-full bg-amber-500 transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {view === "processing" && (
             <div className="space-y-6 text-center">
-              <div className="rounded-2xl border-2 border-neutral-900 bg-white p-16 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-                <div className="mx-auto mb-6 h-20 w-20 animate-spin rounded-full border-4 border-amber-200 border-t-amber-600"></div>
-                <h2 className="mb-3 font-['Clash_Display'] text-2xl font-medium text-neutral-900">
-                  Processing your document...
-                </h2>
-                <p className="font-['Satoshi'] text-base text-neutral-600">
-                  This may take a few minutes. We're humanizing your content while preserving all structure.
-                </p>
-                {job && (
-                  <div className="mt-6 rounded-xl border-2 border-neutral-200 bg-neutral-50 p-4">
-                    <p className="font-['Satoshi'] text-sm font-medium text-neutral-700">
-                      Status: <span className="text-amber-600">{job.status}</span>
+              <div className="rounded-2xl border-2 border-neutral-900 bg-amber-500 px-6 py-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  <p className="font-['Satoshi'] text-base font-medium text-white">
+                    Processing...
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-2xl border-2 border-neutral-900 bg-white px-6 py-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="font-['Satoshi'] text-base font-medium text-neutral-900">
+                      Uploading file...
+                    </p>
+                    <p className="font-['Satoshi'] text-sm text-neutral-600">
+                      {processingProgress ?? 0}%
                     </p>
                   </div>
-                )}
+                  <div className="h-3 w-full overflow-hidden rounded-full bg-neutral-200">
+                    <div
+                      className="h-full bg-amber-500 transition-all duration-300"
+                      style={{ width: `${Math.max(processingProgress ?? 0, 0)}%` }}
+                    />
+                  </div>
+                  {currentSection && (
+                    <p className="font-['Satoshi'] text-xs text-neutral-500 text-center pt-1">
+                      {currentSection}
+                    </p>
+                  )}
+                  {processingProgress === 0 && !currentSection && (
+                    <p className="font-['Satoshi'] text-xs text-neutral-500 text-center pt-1">
+                      Initializing... Progress will update shortly
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           )}

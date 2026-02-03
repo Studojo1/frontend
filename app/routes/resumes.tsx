@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { redirect } from "react-router";
+import { redirect, useSearchParams } from "react-router";
 import { FiDownload, FiEdit, FiTrash2, FiPlus, FiFileText } from "react-icons/fi";
 import { Footer, Header } from "~/components";
-import { ImportResumeModal, RenameResumeModal } from "~/components/resumes";
+import { ImportResumeModal, RenameResumeModal, InternshipReturnCard } from "~/components/resumes";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { toast } from "sonner";
 import type { Route } from "./+types/resumes";
@@ -45,6 +45,7 @@ export default function Resumes() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [resumeToRename, setResumeToRename] = useState<Resume | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     loadResumes();
@@ -191,20 +192,33 @@ export default function Resumes() {
   };
 
   const handleImport = async (resumeData: any) => {
-    try {
-      const name = generateSmartResumeName(resumeData, resumes);
-      const res = await fetch("/api/resumes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, resumeData }),
-      });
-      if (!res.ok) throw new Error("Failed to save resume");
-      toast.success("Resume imported and saved");
-      loadResumes();
-    } catch (error) {
-      toast.error("Failed to import resume");
-      console.error(error);
+    const name = generateSmartResumeName(resumeData, resumes);
+    const res = await fetch("/api/resumes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, resumeData }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      let errorMessage = "Failed to save resume";
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.error || errorMessage;
+      } catch {
+        errorMessage = res.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
+    toast.success("Resume imported and saved");
+    loadResumes();
+    // Note: We no longer auto-redirect. The internship return card will be shown at the top.
+  };
+
+  const handleDismissReturnCard = () => {
+    // Remove returnTo from URL params
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("returnTo");
+    setSearchParams(newParams, { replace: true });
   };
 
   const handleDownload = async (resume: Resume) => {
@@ -263,6 +277,14 @@ export default function Resumes() {
       >
         <section className="w-full bg-white">
           <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-10 md:px-8 md:py-12">
+            {/* Internship Return Card */}
+            {searchParams.get("returnTo") && (
+              <InternshipReturnCard
+                returnTo={searchParams.get("returnTo")!}
+                onDismiss={handleDismissReturnCard}
+              />
+            )}
+
             {/* Header */}
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>

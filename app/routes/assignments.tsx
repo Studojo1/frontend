@@ -20,10 +20,10 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "My Assignments – Studojo" },
+    { title: "My Orders – Studojo" },
     {
       name: "description",
-      content: "View your assignment generation history and download completed assignments.",
+      content: "View your assignment generation and document humanization history and download completed orders.",
     },
   ];
 }
@@ -88,6 +88,8 @@ function getJobTypeLabel(type: string): string {
   switch (type) {
     case "assignment-gen":
       return "Assignment";
+    case "humanizer":
+      return "Document Humanization";
     case "outline-gen":
       return "Outline";
     case "outline-edit":
@@ -95,6 +97,25 @@ function getJobTypeLabel(type: string): string {
     default:
       return type;
   }
+}
+
+function getJobMetadata(job: JobResponse) {
+  const result = job.result as any;
+  if (job.type === "humanizer") {
+    return {
+      downloadUrl: result?.download_url,
+      stats: result ? {
+        processed: result.paragraphs_processed,
+        humanized: result.paragraphs_humanized,
+        reverted: result.paragraphs_reverted,
+      } : null,
+    };
+  }
+  // assignment-gen and other types
+  return {
+    downloadUrl: result?.download_url,
+    stats: null,
+  };
 }
 
 export default function Assignments() {
@@ -108,10 +129,11 @@ export default function Assignments() {
   const loadJobs = async () => {
     try {
       setLoading(true);
-      const data = await getJobs("assignment-gen", 50, 0);
+      // Fetch all job types (no type filter)
+      const data = await getJobs(undefined, 50, 0);
       setJobs(data);
     } catch (error: any) {
-      toast.error(error.message || "Failed to load assignments");
+      toast.error(error.message || "Failed to load orders");
       console.error(error);
     } finally {
       setLoading(false);
@@ -120,8 +142,8 @@ export default function Assignments() {
 
   const handleDownload = (job: JobResponse) => {
     try {
-      const result = job.result as any;
-      const downloadUrl = result?.download_url;
+      const metadata = getJobMetadata(job);
+      const downloadUrl = metadata.downloadUrl;
       
       if (!downloadUrl) {
         toast.error("Download URL not available");
@@ -130,13 +152,17 @@ export default function Assignments() {
 
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.download = `assignment-${job.job_id}.docx`;
+      // Use appropriate filename based on job type
+      const filename = job.type === "humanizer" 
+        ? `humanized-${job.job_id}.docx`
+        : `assignment-${job.job_id}.docx`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       toast.success("Download started!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to download assignment");
+      toast.error(error.message || "Failed to download");
       console.error(error);
     }
   };
@@ -154,10 +180,10 @@ export default function Assignments() {
             {/* Header */}
             <div className="mb-8">
               <h1 className="font-['Clash_Display'] text-3xl font-medium leading-tight tracking-tight text-neutral-950 md:text-4xl">
-                My Assignments
+                My Orders
               </h1>
               <p className="mt-2 font-['Satoshi'] text-sm font-normal leading-6 text-gray-600">
-                View your assignment generation history and download completed assignments
+                View your assignment generation and document humanization history and download completed orders
               </p>
             </div>
 
@@ -165,7 +191,7 @@ export default function Assignments() {
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="font-['Satoshi'] text-sm font-normal text-gray-600">
-                  Loading assignments...
+                  Loading orders...
                 </div>
               </div>
             ) : jobs.length === 0 ? (
@@ -175,25 +201,34 @@ export default function Assignments() {
                 </div>
                 <div className="text-center">
                   <h3 className="font-['Clash_Display'] text-xl font-medium leading-7 text-neutral-950">
-                    No assignments yet
+                    No orders yet
                   </h3>
                   <p className="mt-2 font-['Satoshi'] text-sm font-normal leading-5 text-gray-600">
-                    Generate your first assignment to see it here
+                    Generate your first assignment or humanize a document to see it here
                   </p>
                 </div>
-                <a
-                  href="/dojos/assignment"
-                  className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-violet-500 px-6 font-['Satoshi'] text-sm font-medium leading-5 text-white"
-                >
-                  Go to Assignment Dojo
-                </a>
+                <div className="flex gap-3">
+                  <a
+                    href="/dojos/assignment"
+                    className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-violet-500 px-6 font-['Satoshi'] text-sm font-medium leading-5 text-white"
+                  >
+                    Go to Assignment Dojo
+                  </a>
+                  <span
+                    className="flex h-11 cursor-not-allowed items-center justify-center gap-2 rounded-2xl bg-violet-500/50 px-6 font-['Satoshi'] text-sm font-medium leading-5 text-white/70 opacity-75"
+                    title="Coming soon"
+                  >
+                    Coming soon
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
                 {jobs.map((job) => {
-                  const result = job.result as any;
-                  const downloadUrl = result?.download_url;
+                  const metadata = getJobMetadata(job);
+                  const downloadUrl = metadata.downloadUrl;
                   const canDownload = job.status === "COMPLETED" && downloadUrl;
+                  const jobTypeLabel = getJobTypeLabel(job.type);
 
                   return (
                     <motion.div
@@ -205,13 +240,19 @@ export default function Assignments() {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="font-['Clash_Display'] text-lg font-medium leading-7 text-neutral-950">
-                            Assignment
+                            {jobTypeLabel}
                           </h3>
                           {getStatusBadge(job.status)}
                         </div>
                         <p className="font-['Satoshi'] text-xs font-normal leading-4 text-gray-500">
                           Created {formatDate(job.created_at)}
                         </p>
+                        {metadata.stats && job.status === "COMPLETED" && (
+                          <p className="mt-2 font-['Satoshi'] text-xs font-normal leading-4 text-gray-600">
+                            {metadata.stats.processed} paragraph{metadata.stats.processed !== 1 ? "s" : ""} processed, {metadata.stats.humanized} humanized
+                            {metadata.stats.reverted > 0 && `, ${metadata.stats.reverted} reverted`}
+                          </p>
+                        )}
                         {job.error && (
                           <p className="mt-2 font-['Satoshi'] text-xs font-normal leading-4 text-red-600">
                             Error: {job.error}

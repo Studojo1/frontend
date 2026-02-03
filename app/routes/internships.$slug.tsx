@@ -19,6 +19,8 @@ interface Internship {
   slug: string;
   view_count: number;
   application_count: number;
+  hasApplied?: boolean;
+  applicationId?: string;
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -86,6 +88,9 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
       navigate(`/auth?redirect=${encodeURIComponent(`/internships/${internship.slug}`)}`);
       return;
     }
+    if (internship.hasApplied) {
+      return; // Don't open application flow if already applied
+    }
     setShowApplicationFlow(true);
   };
 
@@ -102,6 +107,8 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
   const isDeadlinePassed = internship.application_deadline
     ? new Date(internship.application_deadline) < new Date()
     : false;
+  
+  const hasApplied = internship.hasApplied || false;
 
   return (
     <div className="min-h-screen bg-white">
@@ -163,18 +170,30 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
         </div>
 
         <div className="flex flex-col gap-4 sm:flex-row">
-          <button
-            onClick={handleApplyClick}
-            disabled={isDeadlinePassed}
-            className="flex-1 rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-3 font-['Satoshi'] font-bold text-white transition-colors hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isDeadlinePassed ? "Application Deadline Passed" : "Apply Now"}
-          </button>
+          {hasApplied ? (
+            <div className="flex-1 rounded-lg border-2 border-neutral-900 bg-green-50 px-6 py-3 text-center">
+              <p className="font-['Satoshi'] font-bold text-green-700">
+                ✓ Already Applied
+              </p>
+              <p className="mt-1 text-sm font-['Satoshi'] text-green-600">
+                Your application has been submitted successfully
+              </p>
+            </div>
+          ) : (
+            <button
+              onClick={handleApplyClick}
+              disabled={isDeadlinePassed}
+              className="flex-1 rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-3 font-['Satoshi'] font-bold text-white transition-colors hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeadlinePassed ? "Application Deadline Passed" : "Apply Now"}
+            </button>
+          )}
         </div>
 
-        {showApplicationFlow && (
+        {showApplicationFlow && !hasApplied && (
           <ApplicationFlow
             internshipId={internship.id}
+            internshipSlug={internship.slug}
             onClose={() => setShowApplicationFlow(false)}
             onSuccess={() => {
               setShowApplicationFlow(false);

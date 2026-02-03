@@ -32,6 +32,47 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        {/* Suppress third-party warnings immediately, before any scripts load */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window === 'undefined') return;
+                const originalWarn = console.warn.bind(console);
+                const originalError = console.error.bind(console);
+                const originalLog = console.log.bind(console);
+                
+                const suppressedPatterns = [
+                  'Unrecognized feature', 'web-share', 'unsafe header', 'x-rtb-fingerprint-id',
+                  'Permissions policy violation', 'accelerometer', 'devicemotion', 'deviceorientation',
+                  'microphone', 'Mixed Content', 'ERR_CONNECTION_REFUSED', 'ERR_BLOCKED_BY_CLIENT',
+                  'ERR_NETWORK_CHANGED', 'net::ERR_', 'Failed to load resource',
+                  'localhost:', 'api.sardine.ai', 'sardine', 'checkout.js', 'v2-entry.modern.js',
+                  'razorpay', 'loader.min.js', '.png', 'localhost:7070', 'localhost:7071', 'localhost:37857',
+                  'Slow network is detected', 'Fallback font will be used', '[Intervention]', 'Intervention:',
+                  'api-js.mixpanel.com', 'mixpanel'
+                ];
+                
+                const shouldSuppress = (args) => {
+                  const message = (args[0]?.toString() || '').toLowerCase();
+                  return suppressedPatterns.some(pattern => 
+                    message.includes(pattern.toLowerCase())
+                  );
+                };
+                
+                console.warn = function(...args) {
+                  if (!shouldSuppress(args)) originalWarn.apply(console, args);
+                };
+                console.error = function(...args) {
+                  if (!shouldSuppress(args)) originalError.apply(console, args);
+                };
+                console.log = function(...args) {
+                  if (!shouldSuppress(args)) originalLog.apply(console, args);
+                };
+              })();
+            `,
+          }}
+        />
       </head>
       <body>
         {children}
@@ -87,7 +128,75 @@ function MixpanelInit() {
   return null;
 }
 
+// Suppress known third-party console warnings
+function suppressThirdPartyWarnings() {
+  if (typeof window === "undefined") return;
+
+  const originalWarn = console.warn.bind(console);
+  const originalError = console.error.bind(console);
+
+  const shouldSuppress = (args: any[]): boolean => {
+    const message = args[0]?.toString() || "";
+    const suppressedPatterns = [
+      "Unrecognized feature",
+      "web-share",
+      "unsafe header",
+      "x-rtb-fingerprint-id",
+      "Permissions policy violation",
+      "accelerometer",
+      "devicemotion",
+      "deviceorientation",
+      "microphone",
+      "Mixed Content",
+      "ERR_CONNECTION_REFUSED",
+      "ERR_BLOCKED_BY_CLIENT", // Ad blocker blocking requests
+      "ERR_NETWORK_CHANGED", // Network interface changes (handled by retry logic)
+      "net::ERR_NETWORK_CHANGED", // Chrome's internal format
+      "Failed to load resource: net::ERR_NETWORK_CHANGED",
+      "net::ERR_", // Catch-all for network errors
+      "Failed to load resource:", // Generic resource loading failures
+      "localhost:",
+      "api.sardine.ai",
+      "api-js.mixpanel.com",
+      "sardine",
+      "checkout.js",
+      "v2-entry.modern.js",
+      "razorpay",
+      "Slow network is detected", // Browser network intervention warnings
+      "Fallback font will be used", // Font loading warnings
+      "[Intervention]", // Browser intervention messages
+      "Intervention:", // Browser intervention messages
+      "mixpanel", // Mixpanel tracking
+      "loader.min.js", // Third-party loaders
+      ".png", // Image loading errors
+      "localhost:7070",
+      "localhost:7071",
+      "localhost:37857",
+    ];
+
+    return suppressedPatterns.some((pattern) =>
+      message.toLowerCase().includes(pattern.toLowerCase())
+    );
+  };
+
+  console.warn = (...args: any[]) => {
+    if (!shouldSuppress(args)) {
+      originalWarn(...args);
+    }
+  };
+
+  console.error = (...args: any[]) => {
+    if (!shouldSuppress(args)) {
+      originalError(...args);
+    }
+  };
+}
+
 export default function App() {
+  useEffect(() => {
+    suppressThirdPartyWarnings();
+  }, []);
+
   return (
     <>
       <MixpanelInit />

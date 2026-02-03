@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { redirect } from "react-router";
 import { Footer, Header } from "~/components";
 import { HumanizerDojoPage } from "~/components/dojos/humanizer-dojo";
-import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
+import { ComingSoon } from "~/components/dojos/coming-soon";
+import { getSessionFromRequest, requireOnboardingComplete, checkAdminAccess } from "~/lib/onboarding.server";
 import type { Route } from "./+types/dojos.humanizer";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -12,7 +13,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!onboardingStatus.complete) {
     throw redirect("/onboarding");
   }
-  return null;
+  
+  // Check if user is admin
+  const isAdmin = await checkAdminAccess(request);
+  
+  return { isAdmin };
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -49,7 +54,9 @@ const sectionVariants = {
   },
 };
 
-export default function HumanizerDojoRoute() {
+export default function HumanizerDojoRoute({ data }: Route.ComponentProps) {
+  const isAdmin = data?.isAdmin ?? false;
+  
   return (
     <>
       <Header />
@@ -59,7 +66,7 @@ export default function HumanizerDojoRoute() {
         animate="visible"
       >
         <motion.div variants={sectionVariants}>
-          <HumanizerDojoPage />
+          {isAdmin ? <HumanizerDojoPage /> : <ComingSoon />}
         </motion.div>
         <motion.div variants={sectionVariants}>
           <Footer />

@@ -12,12 +12,14 @@ interface Resume {
 
 interface ApplicationFlowProps {
   internshipId: string;
+  internshipSlug?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
 
 export function ApplicationFlow({
   internshipId,
+  internshipSlug,
   onClose,
   onSuccess,
 }: ApplicationFlowProps) {
@@ -65,13 +67,24 @@ export function ApplicationFlow({
 
       if (!res.ok) {
         const error = await res.json();
+        
+        // Handle duplicate application (409 Conflict)
+        if (res.status === 409) {
+          toast.error(error.error || "You have already applied for this internship");
+          onClose(); // Close modal on duplicate application
+          return;
+        }
+        
         throw new Error(error.error || "Failed to submit application");
       }
 
       toast.success("Application submitted successfully!");
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || "Failed to submit application");
+      // Only show error if it's not a duplicate (which we already handled)
+      if (error.message && !error.message.includes("already applied")) {
+        toast.error(error.message || "Failed to submit application");
+      }
       console.error(error);
     } finally {
       setSubmitting(false);
@@ -100,7 +113,7 @@ export function ApplicationFlow({
               You don't have any resumes yet. Please create a resume first.
             </p>
             <a
-              href="/resumes"
+              href={internshipSlug ? `/resumes?returnTo=${encodeURIComponent(`/internships/${internshipSlug}`)}` : "/resumes"}
               className="inline-block rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-2 font-['Satoshi'] font-medium text-white transition-colors hover:bg-violet-700"
             >
               Create Resume

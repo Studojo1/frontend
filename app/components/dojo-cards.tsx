@@ -75,10 +75,10 @@ const DOJOS: DojoCard[] = [
       "Verified output",
     ],
     accent: "amber",
-    cta: "Try it now",
+    cta: "Coming soon",
     ctaClass: "text-amber-600",
     icon: <LuUsersRound />,
-    href: "/dojos/humanizer",
+    comingSoon: true,
   },
 ];
 

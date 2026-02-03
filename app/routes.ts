@@ -15,7 +15,7 @@ export default [
   route("onboarding", "routes/onboarding.tsx"),
   route("settings", "routes/settings.tsx"),
   route("resumes", "routes/resumes.tsx"),
-  route("assignments", "routes/assignments.tsx"),
+  route("orders", "routes/assignments.tsx"),
   route("dojos/assignment", "routes/dojos.assignment.tsx"),
   route("dojos/careers", "routes/dojos.careers.tsx"),
   route("dojos/humanizer", "routes/dojos.humanizer.tsx"),

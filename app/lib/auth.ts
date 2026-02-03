@@ -384,6 +384,18 @@ export const auth = betterAuth({
     },
     storeSessionInDatabase: true,
   },
+  
+  // Advanced cookie configuration for subdomain sharing
+  advanced: {
+    cookiePrefix: "better-auth",
+    // Set cookie domain to .studojo.com so cookies are accessible across all subdomains
+    // This allows admin.studojo.com and maverick.studojo.com to access cookies set by studojo.com
+    cookieOptions: baseURL.includes("studojo.com") ? {
+      domain: ".studojo.com",
+      sameSite: "lax",
+      secure: true,
+    } : undefined,
+  },
 
   emailAndPassword: {
     enabled: true,

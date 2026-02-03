@@ -99,3 +99,43 @@ export async function createProfile(
   return row!;
 }
 
+/**
+ * Check if user has admin role by calling control plane API
+ * Returns true if user is admin, false otherwise
+ */
+export async function checkAdminAccess(request: { headers: Headers }): Promise<boolean> {
+  try {
+    // Get session to verify user is authenticated
+    const session = await getSessionFromRequest(request);
+    if (!session?.user) {
+      return false;
+    }
+
+    // Get JWT token for control plane API
+    const authResponse = await auth.api.getAccessToken({
+      headers: request.headers,
+    });
+    
+    const token = (authResponse as any)?.token || (authResponse as any)?.accessToken || null;
+    if (!token) {
+      return false;
+    }
+
+    // Get control plane URL
+    const controlPlaneUrl = process.env.CONTROL_PLANE_URL || 
+      (process.env.NODE_ENV === "production" ? "https://api.studojo.pro" : "http://localhost:8080");
+
+    // Check admin access by calling admin API endpoint
+    const response = await fetch(`${controlPlaneUrl}/v1/admin/users?limit=1`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error("[checkAdminAccess] Error checking admin access:", error);
+    return false;
+  }
+}
+

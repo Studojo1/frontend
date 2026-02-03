@@ -1,6 +1,9 @@
 import type { Route } from "./+types/api.internships.$slug";
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
+import { getSessionFromRequest } from "~/lib/onboarding.server";
+import { eq, and } from "drizzle-orm";
+import { internshipApplications } from "../../auth-schema";
 
 // GET /api/internships/:slug - Get single internship (public)
 export async function loader({ params, request }: Route.LoaderArgs) {
@@ -49,6 +52,34 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       console.error("Failed to increment view count:", error);
     }
 
+    // Check if user has already applied (if authenticated)
+    let hasApplied = false;
+    let applicationId: string | null = null;
+    
+    try {
+      const session = await getSessionFromRequest(request);
+      if (session?.user?.id) {
+        const [existingApplication] = await db
+          .select()
+          .from(internshipApplications)
+          .where(
+            and(
+              eq(internshipApplications.internshipId, internship.id),
+              eq(internshipApplications.userId, session.user.id)
+            )
+          )
+          .limit(1);
+        
+        if (existingApplication) {
+          hasApplied = true;
+          applicationId = existingApplication.id;
+        }
+      }
+    } catch (error) {
+      // Don't fail the request if checking application status fails
+      console.error("Failed to check application status:", error);
+    }
+
     // Ensure all Date objects and other non-serializable data are properly converted
     const serializedInternship = {
       id: String(internship.id),
@@ -66,6 +97,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       application_count: Number(internship.application_count) || 0,
       created_at: internship.created_at ? new Date(internship.created_at).toISOString() : new Date().toISOString(),
       updated_at: internship.updated_at ? new Date(internship.updated_at).toISOString() : new Date().toISOString(),
+      hasApplied,
+      applicationId: applicationId || undefined,
     };
 
     return Response.json({ internship: serializedInternship });

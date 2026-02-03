@@ -34,39 +34,42 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
 
+  // Validate file size (max 10MB to prevent memory issues)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    return new Response(
+      JSON.stringify({ error: `File too large. Maximum size is ${maxSize / 1024 / 1024}MB` }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   try {
+    console.log(`[resume-parse] Starting PDF parse for file: ${file.name}, size: ${file.size} bytes`);
+    
     // Convert file to base64 for OpenAI vision API
+    console.log("[resume-parse] Converting file to buffer...");
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString("base64");
+    console.log(`[resume-parse] Buffer created, size: ${buffer.length} bytes`);
 
     const openaiApiKey = process.env.OPENAI_API_KEY;
     if (!openaiApiKey) {
+      console.error("[resume-parse] OpenAI API key not configured");
       return new Response(
         JSON.stringify({ error: "OpenAI API key not configured" }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Use OpenAI Vision API to extract text from PDF
-    // Note: OpenAI Vision API works with images, so we'll need to convert PDF pages to images
-    // For now, let's use a simpler approach: extract text using a library or use OpenAI's text extraction
-    
-    // Alternative: Use OpenAI's chat completion with file upload
-    // For PDFs, we can use the Assistants API or convert PDF to text first
-    
-    // Using OpenAI's chat completion with vision (for images) or text extraction
-    // Since we have the PDF, let's use a text extraction approach
-    
-    // For now, let's use OpenAI to parse the PDF content
-    // We'll need to extract text from PDF first, then send to OpenAI
-    
-    // Using OpenAI API to parse resume from PDF
-    // Convert PDF to text (we'll use a simple approach - in production, use pdf-parse or similar)
+    // Extract text from PDF
+    console.log("[resume-parse] Extracting text from PDF...");
     const pdfText = await extractTextFromPDF(buffer);
+    console.log(`[resume-parse] PDF text extracted, length: ${pdfText.length} characters`);
     
     // Use OpenAI to structure the resume data
+    console.log("[resume-parse] Parsing resume with OpenAI...");
     const resumeJson = await parseResumeWithOpenAI(pdfText, openaiApiKey);
+    console.log("[resume-parse] Resume parsed successfully");
 
     // Generate professional summary if missing
     if (!resumeJson.summary || resumeJson.summary.trim() === "") {
@@ -104,23 +107,33 @@ export async function action({ request }: Route.ActionArgs) {
 
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
+    console.log("[resume-parse] Importing pdf-parse library...");
     // Import pdf-parse dynamically
     const pdfParse = await import("pdf-parse");
+    console.log("[resume-parse] Parsing PDF buffer...");
     const data = await pdfParse.default(buffer);
+    console.log(`[resume-parse] PDF parsed, pages: ${data.numpages}, text length: ${data.text.length}`);
     return data.text;
   } catch (error: any) {
+    console.error("[resume-parse] PDF extraction error:", error);
     throw new Error(`PDF text extraction failed: ${error.message}`);
   }
 }
 
 async function parseResumeWithOpenAI(text: string, apiKey: string): Promise<any> {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  console.log(`[resume-parse] Calling OpenAI API with text length: ${text.length}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for OpenAI
+  
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
       model: "gpt-4o",
       messages: [
         {
@@ -185,38 +198,51 @@ Return ONLY valid JSON, no markdown, no code blocks.`,
       response_format: { type: "json_object" },
       temperature: 0.1,
     }),
-  });
+    });
+    
+    clearTimeout(timeoutId);
+    console.log(`[resume-parse] OpenAI API response status: ${response.status}`);
 
-  if (!response.ok) {
-    let errorMessage = "OpenAI API error";
+    if (!response.ok) {
+      let errorMessage = "OpenAI API error";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error?.message || errorData.error || errorMessage;
+      } catch {
+        const errorText = await response.text();
+        errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+      }
+      throw new Error(`OpenAI API error: ${errorMessage}`);
+    }
+
+    const data = await response.json();
+    console.log("[resume-parse] OpenAI response received");
+    const content = data.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("No content in OpenAI response. The model may have failed to generate a response.");
+    }
+
     try {
-      const errorData = await response.json();
-      errorMessage = errorData.error?.message || errorData.error || errorMessage;
-    } catch {
-      const errorText = await response.text();
-      errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+      const parsed = JSON.parse(content);
+      // Validate that we got a resume-like structure
+      if (!parsed.contact_info && !parsed.title && !parsed.summary) {
+        throw new Error("OpenAI returned invalid resume structure");
+      }
+      console.log("[resume-parse] Resume JSON parsed and validated");
+      return parsed;
+    } catch (error: any) {
+      if (error.message.includes("invalid resume structure")) {
+        throw error;
+      }
+      throw new Error(`Failed to parse OpenAI response as JSON: ${error.message}`);
     }
-    throw new Error(`OpenAI API error: ${errorMessage}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices[0]?.message?.content;
-  if (!content) {
-    throw new Error("No content in OpenAI response. The model may have failed to generate a response.");
-  }
-
-  try {
-    const parsed = JSON.parse(content);
-    // Validate that we got a resume-like structure
-    if (!parsed.contact_info && !parsed.title && !parsed.summary) {
-      throw new Error("OpenAI returned invalid resume structure");
-    }
-    return parsed;
   } catch (error: any) {
-    if (error.message.includes("invalid resume structure")) {
-      throw error;
+    clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      console.error("[resume-parse] OpenAI API request timed out");
+      throw new Error("OpenAI API request timed out after 2 minutes");
     }
-    throw new Error(`Failed to parse OpenAI response as JSON: ${error.message}`);
+    throw error;
   }
 }
 
@@ -264,46 +290,60 @@ async function generateProfessionalSummary(resumeData: any, apiKey: string): Pro
     });
   }
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: "You are a professional resume writer. Write concise, impactful professional summaries (2-3 sentences) that highlight key qualifications, experience, and value proposition. Focus on achievements and expertise.",
-        },
-        {
-          role: "user",
-          content: context + "\n\nWrite a professional summary:",
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 200,
-    }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout for summary
+  
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a professional resume writer. Write concise, impactful professional summaries (2-3 sentences) that highlight key qualifications, experience, and value proposition. Focus on achievements and expertise.",
+          },
+          {
+            role: "user",
+            content: context + "\n\nWrite a professional summary:",
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 200,
+      }),
+    });
+    
+    clearTimeout(timeoutId);
 
-  if (!response.ok) {
-    let errorMessage = "OpenAI API error";
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.error?.message || errorData.error || errorMessage;
-    } catch {
-      const errorText = await response.text();
-      errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+    if (!response.ok) {
+      let errorMessage = "OpenAI API error";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error?.message || errorData.error || errorMessage;
+      } catch {
+        const errorText = await response.text();
+        errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+      }
+      throw new Error(`OpenAI API error: ${errorMessage}`);
     }
-    throw new Error(`OpenAI API error: ${errorMessage}`);
-  }
 
-  const data = await response.json();
-  const content = data.choices[0]?.message?.content;
-  if (!content) {
-    throw new Error("No content in OpenAI response for summary generation");
-  }
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("No content in OpenAI response for summary generation");
+    }
 
-  return content.trim();
+    return content.trim();
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      throw new Error("Summary generation timed out after 1 minute");
+    }
+    throw error;
+  }
 }

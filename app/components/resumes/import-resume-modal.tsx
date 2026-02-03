@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef } from "react";
 import { FiX, FiUpload } from "react-icons/fi";
 import { toast } from "sonner";
+import { fetchWithRetry } from "~/lib/fetch-with-retry";
 
 type ImportResumeModalProps = {
   isOpen: boolean;
@@ -138,15 +139,26 @@ export function ImportResumeModal({
       return;
     }
 
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast.error(`File too large. Maximum size is ${maxSize / 1024 / 1024}MB`);
+      return;
+    }
+
     setIsProcessing(true);
     try {
       // Upload PDF and parse with OpenAI
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/resumes/parse", {
+      // Use fetchWithRetry with extended timeout and more retries for long-running PDF parsing
+      const res = await fetchWithRetry("/api/resumes/parse", {
         method: "POST",
         body: formData,
+        isUpload: true,
+        timeout: 10 * 60 * 1000, // 10 minutes for PDF parsing (increased from 5)
+        maxRetries: 5, // More retries for network instability
       });
 
       if (!res.ok) {
@@ -165,11 +177,15 @@ export function ImportResumeModal({
       if (!data.resumeData) {
         throw new Error("No resume data returned from server");
       }
-      handleImport(data.resumeData);
+      // handleImport is async, await it - it will manage processing state and close modal
+      await handleImport(data.resumeData);
+      // Reset file input on success
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to parse file");
       console.error("File parse error:", error);
-    } finally {
       setIsProcessing(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -177,25 +193,31 @@ export function ImportResumeModal({
     }
   };
 
-  const handleImport = (resumeData: any) => {
+  const handleImport = async (resumeData: any) => {
     // Basic validation
     if (!resumeData || typeof resumeData !== "object") {
       toast.error("Invalid resume data");
+      setIsProcessing(false);
       return;
     }
 
     // Validate required fields
     if (!resumeData.title && !resumeData.contact_info) {
       toast.error("Resume must have at least a title or contact_info");
+      setIsProcessing(false);
       return;
     }
 
     try {
-      onImport(resumeData);
-      toast.success("Resume imported successfully");
+      // Call the parent's async import handler and wait for it
+      await onImport(resumeData);
+      // Only close modal and reset processing if import succeeds
+      setIsProcessing(false);
       onClose();
-    } catch (error) {
-      toast.error("Failed to import resume");
+    } catch (error: any) {
+      // Show error toast and keep modal open
+      toast.error(error.message || "Failed to import resume");
+      setIsProcessing(false);
       console.error("Import error:", error);
     }
   };
