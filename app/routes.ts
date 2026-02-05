@@ -31,8 +31,6 @@ export default [
   route("api/company/applications/:id/action", "routes/api/company/applications/$id.action.tsx"),
   route("careers", "routes/careers.tsx"),
   route("api/careers/apply", "routes/api.careers.apply.tsx"),
-  route("dissertation", "routes/dissertation.tsx"),
-  route("api/dissertation", "routes/api.dissertation.tsx"),
   route("privacy", "routes/privacy.tsx"),
   route("terms", "routes/terms.tsx"),
   route("refund-policy", "routes/refund-policy.tsx"),

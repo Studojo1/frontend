@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
-import { FiBookOpen, FiArrowRight } from "react-icons/fi";
-import { LuGraduationCap, LuUsersRound } from "react-icons/lu";
+import { LuUsersRound } from "react-icons/lu";
 import { ChatInterface } from "./chat-interface";
 import { FeatureCards } from "./feature-cards";
 import { FloatingCardA, FloatingCardB } from "./floating-cards";
@@ -67,34 +65,12 @@ export function AssignmentDojoPage() {
         </section>
       )}
 
-      {/* CTA Boxes - Dissertation and Humanizer & Formatter */}
+      {/* CTA Box - Humanizer & Formatter */}
       <section className="w-full bg-white py-12 md:py-16">
         <div className="mx-auto max-w-[var(--section-max-width)] px-4 md:px-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Dissertation Package CTA */}
-            <Link
-              to="/dissertation"
-              className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-pink-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:p-8"
-            >
-              <div className="flex items-center gap-3">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border-2 border-neutral-900 bg-white">
-                  <LuGraduationCap className="h-6 w-6 text-pink-600" />
-                </div>
-                <h2 className="font-['Clash_Display'] text-2xl font-medium leading-7 text-white md:text-3xl">
-                  Dissertation Package
-                </h2>
-              </div>
-              <p className="font-['Satoshi'] text-base font-normal leading-6 text-white/90 md:text-lg">
-                Get your dissertation done with AI + Human assistance. From research to final draft.
-              </p>
-              <div className="mt-auto inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-pink-600 transition-transform group-hover:translate-x-[1px] group-hover:translate-y-[1px]">
-                <span>Get started</span>
-                <FiArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </Link>
-
+          <div className="flex justify-center">
             {/* Humanizer & Formatter CTA - Coming Soon */}
-            <div className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-amber-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] opacity-75 md:p-8">
+            <div className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-amber-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] opacity-75 md:p-8 max-w-md">
               <div className="flex items-center gap-3">
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl border-2 border-neutral-900 bg-white">
                   <LuUsersRound className="h-6 w-6 text-amber-600" />
