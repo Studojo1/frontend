@@ -228,12 +228,6 @@ export default function InternshipsDojo() {
                       </div>
                     )}
                   </div>
-
-                  <div className="mt-4">
-                    <span className="inline-block rounded-full bg-violet-100 px-3 py-1 text-xs font-['Satoshi'] font-medium text-violet-700">
-                      {internship.application_count} application{internship.application_count !== 1 ? "s" : ""}
-                    </span>
-                  </div>
                 </Link>
               ))}
             </div>

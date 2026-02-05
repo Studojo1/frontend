@@ -88,9 +88,29 @@ export default function Auth() {
   const isLastEmail = authClient.isLastUsedLoginMethod("email");
   const passkeyAttemptedRef = useRef(false);
 
+  // Get redirect URL from query params, validate it's same-origin, default to "/"
+  const getRedirectUrl = (): string => {
+    const redirectParam = searchParams.get("redirect");
+    if (!redirectParam) return "/";
+    
+    // Validate redirect URL is same-origin for security
+    try {
+      const redirectUrl = new URL(redirectParam, window.location.origin);
+      // Only allow same-origin redirects
+      if (redirectUrl.origin === window.location.origin) {
+        return redirectUrl.pathname + redirectUrl.search + redirectUrl.hash;
+      }
+    } catch {
+      // Invalid URL, default to "/"
+    }
+    return "/";
+  };
+
+  const redirectUrl = getRedirectUrl();
+
   useEffect(() => {
-    if (!isPending && session) navigate("/", { replace: true });
-  }, [isPending, session, navigate]);
+    if (!isPending && session) navigate(redirectUrl, { replace: true });
+  }, [isPending, session, navigate, redirectUrl]);
 
   useEffect(() => {
     // Only attempt passkey autoFill once per mount, and only in signin mode
@@ -159,9 +179,9 @@ export default function Auth() {
           email,
           password,
           name: email.split("@")[0] || "User",
-          callbackURL: "/",
+          callbackURL: redirectUrl,
         },
-        { onSuccess: () => navigate("/") },
+        { onSuccess: () => navigate(redirectUrl) },
       );
       if (err) {
         const code = (err as { code?: string }).code;
@@ -199,10 +219,10 @@ export default function Auth() {
         {
           email,
           password,
-          callbackURL: "/",
+          callbackURL: redirectUrl,
           rememberMe: remember,
         },
-        { onSuccess: () => navigate("/") },
+        { onSuccess: () => navigate(redirectUrl) },
       );
       if (err) {
         setError(err.message ?? "Sign in failed");
@@ -239,7 +259,7 @@ export default function Auth() {
     });
     authClient.signIn.social({
       provider: "google",
-      callbackURL: "/",
+      callbackURL: redirectUrl,
     });
   };
 
@@ -273,7 +293,7 @@ export default function Auth() {
           });
         }
         // Success - navigate will happen via onSuccess callback if provided
-        navigate("/");
+        navigate(redirectUrl);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Passkey authentication failed. Please try again.");

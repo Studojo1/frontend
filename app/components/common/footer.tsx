@@ -274,10 +274,10 @@ export function Footer() {
         </div>
       </div>
 
-      {/* Massive studojo text at bottom - hidden on mobile */}
-      <div className="relative hidden w-full items-center justify-center overflow-hidden pb-8 pt-16 md:flex">
+      {/* Massive studojo text at bottom */}
+      <div className="relative flex w-full items-center justify-center overflow-hidden px-2 pb-4 pt-8 md:px-0 md:pb-8 md:pt-16">
         <span
-          className="pointer-events-none select-none font-['Clash_Display'] text-[min(356px,40vw)] font-semibold leading-[0.6] tracking-tight text-purple-50"
+          className="pointer-events-none select-none whitespace-nowrap font-['Clash_Display'] font-semibold leading-[0.6] tracking-tight text-purple-50 text-[clamp(72px,22vw,180px)] md:text-[min(356px,40vw)]"
           aria-hidden
         >
           studojo
