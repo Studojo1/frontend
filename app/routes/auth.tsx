@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
 import { identifyUser, trackEvent } from "~/lib/mixpanel";

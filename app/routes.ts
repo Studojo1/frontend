@@ -11,6 +11,7 @@ export default [
   route("api/onboarding", "routes/api.onboarding.tsx"),
   route("api/newsletter", "routes/api.newsletter.tsx"),
   route("api/user/accept-terms", "routes/api.user.accept-terms.tsx"),
+  route("api/user/phone", "routes/api.user.phone.tsx"),
   route("api/resumes/parse", "routes/api.resumes.parse.tsx"),
   route("api/resumes/:id", "routes/api.resumes.$id.tsx"),
   route("api/resumes", "routes/api.resumes.tsx"),

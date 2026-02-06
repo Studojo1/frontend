@@ -37,11 +37,12 @@ export async function getProfileStatus(userId: string) {
 }
 
 /**
- * Check if user has verified phone number and completed profile
+ * Check if user has completed profile (phone is optional)
  * Returns an object indicating what's missing
+ * UX improvement: Phone verification is now optional to reduce friction
  */
 export async function requireOnboardingComplete(userId: string) {
-  // Get user to check phone number
+  // Get user to check phone number (optional)
   const [userRecord] = await db
     .select({
       phoneNumber: user.phoneNumber,
@@ -56,26 +57,27 @@ export async function requireOnboardingComplete(userId: string) {
       complete: false,
       hasPhone: false,
       hasProfile: false,
-      missing: ["phone", "profile"] as const,
+      missing: ["profile"] as const,
     };
   }
 
-  // Check phone number
+  // Check phone number (optional - for informational purposes only)
   const hasPhone = !!(
     userRecord.phoneNumber &&
     userRecord.phoneNumberVerified
   );
 
-  // Check profile
+  // Check profile (required)
   const profileStatus = await getProfileStatus(userId);
   const hasProfile = profileStatus.completed;
 
   const missing: Array<"phone" | "profile"> = [];
-  if (!hasPhone) missing.push("phone");
+  // Phone is optional, so don't add to missing
   if (!hasProfile) missing.push("profile");
 
+  // UX improvement: Only profile is required, phone is optional
   return {
-    complete: hasPhone && hasProfile,
+    complete: hasProfile, // Only require profile, phone is optional
     hasPhone,
     hasProfile,
     missing: missing as readonly ("phone" | "profile")[],
@@ -87,13 +89,15 @@ export async function createProfile(
   data: { fullName: string; college: string; yearOfStudy: string; course: string }
 ) {
   const id = crypto.randomUUID();
+  // UX improvement: Use default values for optional fields to satisfy database notNull constraint
+  // This allows users to skip optional fields without friction
   await db.insert(userProfile).values({
     id,
     userId,
     fullName: data.fullName,
-    college: data.college,
-    yearOfStudy: data.yearOfStudy,
-    course: data.course,
+    college: data.college || "Not specified",
+    yearOfStudy: data.yearOfStudy || "Not specified",
+    course: data.course || "Not specified",
   });
   const [row] = await db.select().from(userProfile).where(eq(userProfile.id, id)).limit(1);
   return row!;

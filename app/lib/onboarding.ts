@@ -15,6 +15,7 @@ export type OnboardingProfile = {
 };
 
 // Client-safe validation function (no database or auth dependencies)
+// Only fullName is required; college, yearOfStudy, and course are optional
 export function validateOnboardingBody(body: {
   fullName?: unknown;
   college?: unknown;
@@ -26,13 +27,13 @@ export function validateOnboardingBody(body: {
   const yearOfStudy = typeof body.yearOfStudy === "string" ? body.yearOfStudy.trim() : "";
   const course = typeof body.course === "string" ? body.course.trim() : "";
 
+  // Only fullName is required - UX improvement: reduce friction for first-time users
   if (!fullName) return { ok: false, error: "Full name is required." };
   if (fullName.length > MAX_LENGTH) return { ok: false, error: "Full name is too long." };
-  if (!college) return { ok: false, error: "College/University is required." };
+  
+  // Optional fields: validate length if provided, but allow empty strings
   if (college.length > MAX_LENGTH) return { ok: false, error: "College/University is too long." };
-  if (!yearOfStudy) return { ok: false, error: "Year of study is required." };
   if (yearOfStudy.length > MAX_LENGTH) return { ok: false, error: "Year of study is too long." };
-  if (!course) return { ok: false, error: "Course/Major is required." };
   if (course.length > MAX_LENGTH) return { ok: false, error: "Course/Major is too long." };
 
   return { ok: true, data: { fullName, college, yearOfStudy, course } };

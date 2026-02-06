@@ -1,10 +1,13 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { redirect, useNavigate } from "react-router";
+import { eq } from "drizzle-orm";
 import { Header } from "~/components";
 import { PhoneInput } from "~/components/phone-input";
 import { authClient } from "~/lib/auth-client";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
+import db from "~/lib/db";
+import { user } from "../../auth-schema";
 import type { Route } from "./+types/onboarding";
 
 const floatY = [0, -24, -12, -30, 0];
@@ -65,18 +68,6 @@ function FloatShape({
   );
 }
 
-const STEPS = [
-  { id: 0, label: "Phone", key: "phone" as const },
-  { id: 1, label: "Full Name", key: "fullName" as const },
-  { id: 2, label: "College / University Name", key: "college" as const },
-  { id: 3, label: "Year of Study", key: "yearOfStudy" as const },
-  { id: 4, label: "Course / Major", key: "course" as const },
-  { id: 5, label: "Newsletter", key: "newsletter" as const },
-] as const;
-
-const PROFILE_KEYS = ["fullName", "college", "yearOfStudy", "course"] as const;
-type ProfileKey = (typeof PROFILE_KEYS)[number];
-
 const YEAR_OPTIONS = [
   "First year",
   "Second year",
@@ -90,6 +81,7 @@ const YEAR_OPTIONS = [
 const INPUT_CLASS =
   "w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2";
 const LABEL_CLASS = "mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900";
+const LABEL_OPTIONAL_CLASS = "mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900";
 const BTN_PRIMARY =
   "rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none";
 const BTN_SECONDARY =
@@ -99,27 +91,46 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) throw redirect("/auth");
   
-  // Check if onboarding is complete (both phone and profile)
+  // Check if onboarding is complete (profile required, phone optional)
   const onboardingStatus = await requireOnboardingComplete(session.user.id);
   if (onboardingStatus.complete) {
     throw redirect("/");
   }
   
-  return { steps: STEPS, userEmail: session.user.email };
+  // Check if user signed in via Google OAuth (for auto-verifying phone)
+  const [userRecord] = await db
+    .select({
+      lastLoginMethod: user.lastLoginMethod,
+      phoneNumber: user.phoneNumber,
+      phoneNumberVerified: user.phoneNumberVerified,
+    })
+    .from(user)
+    .where(eq(user.id, session.user.id))
+    .limit(1);
+  
+  const isGoogleUser = userRecord?.lastLoginMethod === "google";
+  
+  return { 
+    userEmail: session.user.email,
+    userName: session.user.name || null, // Pre-fill name from Google OAuth if available
+    isGoogleUser, // If true, we can auto-verify phone number
+    hasPhone: !!(userRecord?.phoneNumber && userRecord?.phoneNumberVerified),
+  };
 }
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Complete your profile – Studojo" },
-    { name: "description", content: "A few details to get you started." },
+    { title: "Welcome to Studojo – Complete your profile" },
+    { name: "description", content: "Tell us a bit about yourself to personalize your experience." },
   ];
 }
 
 export default function Onboarding({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
+  // UX improvement: Simplified to 2 steps - basic info (step 0) and phone collection (step 1)
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<Record<ProfileKey, string>>({
-    fullName: "",
+  const [form, setForm] = useState({
+    fullName: loaderData.userName || "", // Pre-fill from Google OAuth
     college: "",
     yearOfStudy: "",
     course: "",
@@ -127,8 +138,10 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
   const [otherYearText, setOtherYearText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
+  // Phone collection state (required step, but verification method differs for Google users)
+  const hasPhone = loaderData.hasPhone || false;
   const [phone, setPhone] = useState("");
   const [countryCode, setCountryCode] = useState("+91"); // Default to India
   const [otpSent, setOtpSent] = useState(false);
@@ -138,23 +151,18 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const userEmail = loaderData.userEmail;
+  const userName = loaderData.userName;
+  const isGoogleUser = loaderData.isGoogleUser || false;
 
-  const current = STEPS[step];
-  const isFirst = step === 0;
-  const isLast = step === STEPS.length - 1;
-  const isPhoneStep = step === 0;
-  const isNewsletterStep = current.key === "newsletter";
-  const canNext = isPhoneStep
-    ? otpSent && !!otpCode.trim()
-    : isNewsletterStep
-      ? true // Newsletter step is optional, can always proceed
-      : current.key === "yearOfStudy"
-        ? !!form.yearOfStudy
-        : !!form[current.key as ProfileKey]?.trim();
+  // UX improvement: Only name is required, all other fields are optional
+  const canSubmit = !!form.fullName.trim();
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, [step]);
+    // Focus name input on mount if not pre-filled
+    if (!form.fullName && nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, []);
 
   // Cooldown timer for request new code
   useEffect(() => {
@@ -190,13 +198,16 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
     setError(null);
     setVerifying(true);
     const fullNumber = countryCode + number;
+    
+    // Verify OTP first
     const { error: err } = await authClient.phoneNumber.verify({
       phoneNumber: fullNumber,
       code,
       updatePhoneNumber: true,
     });
-    setVerifying(false);
+    
     if (err) {
+      setVerifying(false);
       const status = (err as { status?: number }).status;
       const msg =
         status === 403
@@ -205,11 +216,37 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
       setError(msg);
       return;
     }
-    setPhone("");
-    setOtpSent(false);
-    setOtpCode("");
-    setStep(1);
-    void authClient.getSession();
+    
+    // For Google users, mark as verified (Google has already verified their account)
+    // For others, phone is already verified via OTP
+    if (isGoogleUser) {
+      try {
+        // Silently mark as verified for Google users (don't tell user)
+        await fetch("/api/user/phone", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phoneNumber: fullNumber, verified: true }),
+          credentials: "include",
+        });
+      } catch (err) {
+        // Non-critical, phone is already verified via OTP
+        console.error("[onboarding] Failed to update verification status:", err);
+      }
+    }
+    
+    setVerifying(false);
+    // Phone verified successfully, submit profile
+    await handleSubmitProfile();
+  };
+
+  // Handle phone submission - send OTP for verification
+  // For Google users, we'll auto-verify after OTP (since Google verified their account)
+  const handlePhoneSubmit = async () => {
+    const number = phone.trim();
+    if (!number) return;
+    
+    // Always require OTP verification for security
+    await handleSendOtp();
   };
 
   const handleRequestNewCode = async () => {
@@ -219,51 +256,62 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
     await handleSendOtp();
   };
 
-  const goNext = async () => {
+  const handleSubmitProfile = async () => {
     setError(null);
-    if (isPhoneStep) {
+    setSubmitting(true);
+    const payload = { ...form, newsletterSubscribed };
+    if (form.yearOfStudy === "Other" && otherYearText.trim()) {
+      payload.yearOfStudy = otherYearText.trim();
+    }
+    const res = await fetch("/api/onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      credentials: "include",
+    });
+    const data = (await res.json()) as { error?: string };
+    if (!res.ok) {
+      // If profile already exists (409), just redirect to home
+      if (res.status === 409) {
+        navigate("/", { replace: true });
+        return;
+      }
+      setError(data.error ?? "Something went wrong.");
+      setSubmitting(false);
+      return;
+    }
+    navigate("/", { replace: true });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (step === 0) {
+      // Step 1: Basic info - move to phone step (or submit if already has phone)
+      if (hasPhone) {
+        // User already has phone, submit profile directly
+        await handleSubmitProfile();
+      } else {
+        // Need to collect phone
+        setStep(1);
+      }
+      return;
+    }
+    if (step === 1 && !otpSent) {
+      // Step 2: Phone collection - submit phone (auto-verify for Google, send OTP for others)
+      await handlePhoneSubmit();
+      return;
+    }
+    if (step === 1 && otpSent) {
+      // Step 2: Phone verification - verify OTP
       await handleVerify();
       return;
     }
-    if (isLast) {
-      // Last step - submit the form (newsletter step is the last step)
-      setSubmitting(true);
-      const payload = { ...form, newsletterSubscribed };
-      if (form.yearOfStudy === "Other" && otherYearText.trim()) {
-        payload.yearOfStudy = otherYearText.trim();
-      }
-      const res = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include",
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        // If profile already exists (409), just redirect to home
-        if (res.status === 409) {
-          navigate("/", { replace: true });
-          return;
-        }
-        setError(data.error ?? "Something went wrong.");
-        setSubmitting(false);
-        return;
-      }
-      navigate("/", { replace: true });
-      return;
-    }
-    setStep((s) => s + 1);
   };
 
-  const goBack = () => {
-    setError(null);
-    if (step === 1) {
-      setPhone("");
-      setOtpSent(false);
-      setOtpCode("");
-    }
-    setStep((s) => Math.max(0, s - 1));
-  };
+  // Generate friendly greeting based on user name
+  const greeting = userName 
+    ? `Hi, ${userName.split(' ')[0]}! 👋` // Use first name only for friendlier feel
+    : "Hi! 👋";
 
   return (
     <>
@@ -289,35 +337,26 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div className="relative rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+              {/* UX improvement: Simplified progress indicator - only 2 steps */}
               <div className="mb-6">
                 <span className="font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500">
-                  Step {step + 1} of {STEPS.length}
+                  Step {step + 1} of 2
                 </span>
                 <div
                   className="mt-2 flex gap-1"
                   role="progressbar"
                   aria-valuenow={step + 1}
                   aria-valuemin={1}
-                  aria-valuemax={STEPS.length}
+                  aria-valuemax={2}
                   aria-label="Progress"
                 >
-                  {STEPS.map((_, i) => (
-                    <div
-                      key={i}
-                      aria-current={i === step ? "step" : undefined}
-                      className={`h-1.5 flex-1 rounded-full ${
-                        i <= step ? "bg-neutral-900" : "bg-neutral-200"
-                      }`}
-                    />
-                  ))}
+                  <div className="h-1.5 flex-1 rounded-full bg-neutral-900" />
+                  <div className={`h-1.5 flex-1 rounded-full ${step === 1 ? "bg-neutral-900" : "bg-neutral-200"}`} />
                 </div>
               </div>
 
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (canNext) void goNext();
-                }}
+                onSubmit={handleSubmit}
                 className="space-y-6"
               >
                 {error && (
@@ -330,105 +369,76 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
                 )}
 
                 <AnimatePresence mode="wait">
-                  <motion.div
-                    key={step}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                  >
-                    <h1 className="mb-2 font-['Clash_Display'] text-xl font-medium tracking-tight text-neutral-900 md:text-2xl">
-                      {current.label}
-                    </h1>
-                    <p className="mb-4 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-600 md:text-base">
-                      {step === 0 && "We'll send a verification code to this number."}
-                      {step === 1 && "What should we call you?"}
-                      {step === 2 && "Where do you study?"}
-                      {step === 3 && "Which year are you in?"}
-                      {step === 4 && "What are you studying?"}
-                      {step === 5 && "Get weekly wisdom, tips, and exclusive student insights"}
-                    </p>
-
-                    {isPhoneStep ? (
-                      <div className="space-y-4">
-                        {!otpSent ? (
-                          <>
-                            <label htmlFor="phone" className={LABEL_CLASS}>
-                              Phone
-                            </label>
-                            <PhoneInput
-                              value={phone}
-                              onChange={setPhone}
-                              onCountryChange={setCountryCode}
-                              defaultCountry={countryCode}
-                              inputRef={inputRef as React.RefObject<HTMLInputElement>}
-                              className={INPUT_CLASS}
-                              placeholder="1234567890"
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-['Satoshi'] text-sm text-neutral-600">
-                              Code sent to {countryCode} {phone}
-                            </p>
-                            <label htmlFor="otp" className={LABEL_CLASS}>
-                              Verification code
-                            </label>
-                            <input
-                              ref={inputRef as React.RefObject<HTMLInputElement>}
-                              type="text"
-                              id="otp"
-                              inputMode="numeric"
-                              autoComplete="one-time-code"
-                              value={otpCode}
-                              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                              placeholder="123456"
-                              className={INPUT_CLASS}
-                            />
-                          </>
-                        )}
-                      </div>
-                    ) : isNewsletterStep ? (
-                      <div className="space-y-4">
-                        <div className="rounded-2xl border-2 border-neutral-900 bg-purple-50 p-6">
-                          <h3 className="mb-2 font-['Clash_Display'] text-xl font-medium leading-7 text-neutral-900">
-                            Join the Dojo
-                          </h3>
-                          <p className="mb-4 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
-                            Get weekly wisdom, tips, and exclusive student insights
-                          </p>
-                          {userEmail && (
-                            <p className="mb-4 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-600">
-                              We'll send updates to {userEmail}
-                            </p>
-                          )}
-                          <label className="flex items-start">
-                            <input
-                              type="checkbox"
-                              checked={newsletterSubscribed}
-                              onChange={(e) => setNewsletterSubscribed(e.target.checked)}
-                              className="mt-1 h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
-                            />
-                            <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
-                              Yes, subscribe me to the newsletter
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    ) : current.key === "yearOfStudy" ? (
+                  {step === 0 ? (
+                    // Step 1: Basic info form (single page with all fields)
+                    <motion.div
+                      key="basic-info"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="space-y-6"
+                    >
+                      {/* UX improvement: Friendly greeting and value proposition */}
                       <div>
-                        <label htmlFor="yearOfStudy" className={LABEL_CLASS}>
-                          Year of Study
+                        <h1 className="mb-2 font-['Clash_Display'] text-xl font-medium tracking-tight text-neutral-900 md:text-2xl">
+                          {greeting}
+                        </h1>
+                        <p className="mb-6 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-600 md:text-base">
+                          Tell us a bit about yourself to personalize your experience
+                        </p>
+                      </div>
+
+                      {/* Name field - required, pre-filled from Google */}
+                      <div>
+                        <label htmlFor="fullName" className={LABEL_CLASS}>
+                          Name
+                        </label>
+                        <input
+                          ref={nameInputRef}
+                          type="text"
+                          id="fullName"
+                          value={form.fullName}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, fullName: e.target.value }))
+                          }
+                          placeholder="Your name"
+                          className={INPUT_CLASS}
+                          required
+                          autoComplete="name"
+                        />
+                      </div>
+
+                      {/* College field - optional */}
+                      <div>
+                        <label htmlFor="college" className={LABEL_OPTIONAL_CLASS}>
+                          College / University <span className="text-neutral-400 font-normal">(optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="college"
+                          value={form.college}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, college: e.target.value }))
+                          }
+                          placeholder="e.g. MIT"
+                          className={INPUT_CLASS}
+                          autoComplete="organization"
+                        />
+                      </div>
+
+                      {/* Year of Study - optional */}
+                      <div>
+                        <label htmlFor="yearOfStudy" className={LABEL_OPTIONAL_CLASS}>
+                          Year of Study <span className="text-neutral-400 font-normal">(optional)</span>
                         </label>
                         <select
-                          ref={inputRef as React.RefObject<HTMLSelectElement>}
                           id="yearOfStudy"
                           value={form.yearOfStudy}
                           onChange={(e) =>
                             setForm((f) => ({ ...f, yearOfStudy: e.target.value }))
                           }
                           className={INPUT_CLASS}
-                          required
                         >
                           <option value="">Select…</option>
                           {YEAR_OPTIONS.map((opt) => (
@@ -447,58 +457,137 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
                           />
                         )}
                       </div>
-                    ) : (
+
+                      {/* Course field - optional */}
                       <div>
-                        <label htmlFor={current.key} className={LABEL_CLASS}>
-                          {current.label}
+                        <label htmlFor="course" className={LABEL_OPTIONAL_CLASS}>
+                          Course / Major <span className="text-neutral-400 font-normal">(optional)</span>
                         </label>
                         <input
-                          ref={inputRef as React.RefObject<HTMLInputElement>}
                           type="text"
-                          id={current.key}
-                          value={form[current.key as ProfileKey]}
+                          id="course"
+                          value={form.course}
                           onChange={(e) =>
-                            setForm((f) => ({ ...f, [current.key as ProfileKey]: e.target.value }))
+                            setForm((f) => ({ ...f, course: e.target.value }))
                           }
-                          placeholder={
-                            current.key === "fullName"
-                              ? "e.g. Jane Doe"
-                              : current.key === "college"
-                                ? "e.g. MIT"
-                                : "e.g. Computer Science"
-                          }
+                          placeholder="e.g. Computer Science"
                           className={INPUT_CLASS}
-                          required
-                          autoComplete={
-                            current.key === "fullName" ? "name" : "organization"
-                          }
+                          autoComplete="organization"
                         />
                       </div>
-                    )}
-                  </motion.div>
+
+                      {/* UX improvement: Newsletter checkbox inline, not separate step */}
+                      <div className="rounded-2xl border-2 border-neutral-900 bg-purple-50 p-4">
+                        <label className="flex items-start cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={newsletterSubscribed}
+                            onChange={(e) => setNewsletterSubscribed(e.target.checked)}
+                            className="mt-1 h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
+                          />
+                          <div className="ml-3">
+                            <span className="font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                              Subscribe to newsletter
+                            </span>
+                            <p className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-600 mt-0.5">
+                              Get weekly wisdom, tips, and exclusive student insights
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    // Step 2: Phone collection (required)
+                    <motion.div
+                      key="phone-collection"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <h1 className="mb-2 font-['Clash_Display'] text-xl font-medium tracking-tight text-neutral-900 md:text-2xl">
+                        Verify your phone number
+                      </h1>
+                      <p className="mb-4 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-600 md:text-base">
+                        We'll send a verification code to this number to keep your account secure.
+                      </p>
+
+                      {!otpSent ? (
+                        <div className="space-y-4">
+                          <label htmlFor="phone" className={LABEL_CLASS}>
+                            Phone
+                          </label>
+                          <PhoneInput
+                            value={phone}
+                            onChange={setPhone}
+                            onCountryChange={setCountryCode}
+                            defaultCountry={countryCode}
+                            className={INPUT_CLASS}
+                            placeholder="1234567890"
+                          />
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <p className="font-['Satoshi'] text-sm text-neutral-600">
+                            Code sent to {countryCode} {phone}
+                          </p>
+                          <label htmlFor="otp" className={LABEL_CLASS}>
+                            Verification code
+                          </label>
+                          <input
+                            type="text"
+                            id="otp"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            value={otpCode}
+                            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                            placeholder="123456"
+                            className={INPUT_CLASS}
+                          />
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
                 </AnimatePresence>
 
                 <div className="flex gap-3 pt-2">
-                  {!isFirst && (
+                  {step === 1 && (
                     <button
                       type="button"
-                      onClick={goBack}
-                      disabled={submitting || verifying}
+                      onClick={() => {
+                        setStep(0);
+                        setError(null);
+                        setPhone("");
+                        setOtpSent(false);
+                        setOtpCode("");
+                      }}
+                      disabled={submitting || verifying || sendingOtp}
                       className={BTN_SECONDARY}
                     >
                       Back
                     </button>
                   )}
-                  {isPhoneStep && !otpSent ? (
+                  
+                  {step === 0 ? (
+                    // Step 1: Basic info - continue to phone step
                     <button
-                      type="button"
-                      onClick={() => void handleSendOtp()}
-                      disabled={!phone.trim() || sendingOtp}
+                      type="submit"
+                      disabled={!canSubmit || submitting}
                       className={`${BTN_PRIMARY} w-full`}
+                    >
+                      Continue
+                    </button>
+                  ) : step === 1 && !otpSent ? (
+                    // Step 2: Phone collection - send OTP for verification
+                    <button
+                      type="submit"
+                      disabled={!phone.trim() || sendingOtp || verifying}
+                      className={`${BTN_PRIMARY} ${step === 1 ? "flex-1" : "w-full"}`}
                     >
                       {sendingOtp ? "Sending…" : "Send code"}
                     </button>
-                  ) : isPhoneStep && otpSent ? (
+                  ) : step === 1 && otpSent ? (
+                    // Step 2: Phone verification - verify OTP
                     <>
                       <button
                         type="button"
@@ -514,27 +603,13 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
                       </button>
                       <button
                         type="submit"
-                        disabled={!canNext || verifying}
+                        disabled={!otpCode.trim() || verifying}
                         className={`${BTN_PRIMARY} flex-1`}
                       >
-                        {verifying ? "Verifying…" : "Verify"}
+                        {verifying ? "Verifying…" : "Verify & Continue"}
                       </button>
                     </>
-                  ) : (
-                    <button
-                      type="submit"
-                      disabled={!canNext || submitting}
-                      className={`${BTN_PRIMARY} ${!isFirst ? "flex-1" : "w-full"}`}
-                    >
-                      {submitting
-                        ? "Saving…"
-                        : isLast
-                          ? "Complete"
-                          : isNewsletterStep
-                            ? "Continue"
-                            : "Continue"}
-                    </button>
-                  )}
+                  ) : null}
                 </div>
               </form>
             </div>
