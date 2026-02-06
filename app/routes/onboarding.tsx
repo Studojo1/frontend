@@ -71,6 +71,7 @@ const STEPS = [
   { id: 2, label: "College / University Name", key: "college" as const },
   { id: 3, label: "Year of Study", key: "yearOfStudy" as const },
   { id: 4, label: "Course / Major", key: "course" as const },
+  { id: 5, label: "Newsletter", key: "newsletter" as const },
 ] as const;
 
 const PROFILE_KEYS = ["fullName", "college", "yearOfStudy", "course"] as const;
@@ -104,7 +105,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw redirect("/");
   }
   
-  return { steps: STEPS };
+  return { steps: STEPS, userEmail: session.user.email };
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -114,7 +115,7 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export default function Onboarding() {
+export default function Onboarding({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<Record<ProfileKey, string>>({
@@ -135,16 +136,21 @@ export default function Onboarding() {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
+  const userEmail = loaderData.userEmail;
 
   const current = STEPS[step];
   const isFirst = step === 0;
   const isLast = step === STEPS.length - 1;
   const isPhoneStep = step === 0;
+  const isNewsletterStep = current.key === "newsletter";
   const canNext = isPhoneStep
     ? otpSent && !!otpCode.trim()
-    : current.key === "yearOfStudy"
-      ? !!form.yearOfStudy
-      : !!form[current.key as ProfileKey]?.trim();
+    : isNewsletterStep
+      ? true // Newsletter step is optional, can always proceed
+      : current.key === "yearOfStudy"
+        ? !!form.yearOfStudy
+        : !!form[current.key as ProfileKey]?.trim();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -220,8 +226,9 @@ export default function Onboarding() {
       return;
     }
     if (isLast) {
+      // Last step - submit the form (newsletter step is the last step)
       setSubmitting(true);
-      const payload = { ...form };
+      const payload = { ...form, newsletterSubscribed };
       if (form.yearOfStudy === "Other" && otherYearText.trim()) {
         payload.yearOfStudy = otherYearText.trim();
       }
@@ -339,6 +346,7 @@ export default function Onboarding() {
                       {step === 2 && "Where do you study?"}
                       {step === 3 && "Which year are you in?"}
                       {step === 4 && "What are you studying?"}
+                      {step === 5 && "Get weekly wisdom, tips, and exclusive student insights"}
                     </p>
 
                     {isPhoneStep ? (
@@ -379,6 +387,33 @@ export default function Onboarding() {
                             />
                           </>
                         )}
+                      </div>
+                    ) : isNewsletterStep ? (
+                      <div className="space-y-4">
+                        <div className="rounded-2xl border-2 border-neutral-900 bg-purple-50 p-6">
+                          <h3 className="mb-2 font-['Clash_Display'] text-xl font-medium leading-7 text-neutral-900">
+                            Join the Dojo
+                          </h3>
+                          <p className="mb-4 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
+                            Get weekly wisdom, tips, and exclusive student insights
+                          </p>
+                          {userEmail && (
+                            <p className="mb-4 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-600">
+                              We'll send updates to {userEmail}
+                            </p>
+                          )}
+                          <label className="flex items-start">
+                            <input
+                              type="checkbox"
+                              checked={newsletterSubscribed}
+                              onChange={(e) => setNewsletterSubscribed(e.target.checked)}
+                              className="mt-1 h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
+                            />
+                            <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
+                              Yes, subscribe me to the newsletter
+                            </span>
+                          </label>
+                        </div>
                       </div>
                     ) : current.key === "yearOfStudy" ? (
                       <div>
@@ -495,7 +530,9 @@ export default function Onboarding() {
                         ? "Saving…"
                         : isLast
                           ? "Complete"
-                          : "Continue"}
+                          : isNewsletterStep
+                            ? "Continue"
+                            : "Continue"}
                     </button>
                   )}
                 </div>

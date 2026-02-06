@@ -24,6 +24,9 @@ export const user = pgTable("user", {
   // Phone-number plugin
   phoneNumber: text("phone_number").unique(),
   phoneNumberVerified: boolean("phone_number_verified").default(false).notNull(),
+  // Terms & Privacy acceptance
+  termsAcceptedAt: timestamp("terms_accepted_at"),
+  privacyAcceptedAt: timestamp("privacy_accepted_at"),
 });
 
 export const session = pgTable(
@@ -156,6 +159,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   passkeys: many(passkey),
   profile: one(userProfile),
   resumes: many(resumes),
+  newsletterSubscription: one(newsletterSubscriptions),
 }));
 
 export const userProfileRelations = relations(userProfile, ({ one }) => ({
@@ -434,5 +438,29 @@ export const companyUsersRelations = relations(companyUsers, ({ one }) => ({
   company: one(companies, {
     fields: [companyUsers.companyId],
     references: [companies.id],
+  }),
+}));
+
+// Newsletter subscriptions table
+export const newsletterSubscriptions = pgTable(
+  "newsletter_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull().unique(),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    subscribedAt: timestamp("subscribed_at").defaultNow().notNull(),
+    unsubscribedAt: timestamp("unsubscribed_at"),
+    source: text("source"), // 'footer', 'onboarding', 'signup'
+  },
+  (table) => [
+    index("newsletter_subscriptions_email_idx").on(table.email),
+    index("newsletter_subscriptions_userId_idx").on(table.userId),
+  ],
+);
+
+export const newsletterSubscriptionsRelations = relations(newsletterSubscriptions, ({ one }) => ({
+  user: one(user, {
+    fields: [newsletterSubscriptions.userId],
+    references: [user.id],
   }),
 }));

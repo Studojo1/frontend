@@ -81,6 +81,8 @@ export default function Auth() {
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   const { data: session, isPending } = authClient.useSession();
   const lastMethod = authClient.getLastUsedLoginMethod();
@@ -171,6 +173,11 @@ export default function Auth() {
     if (mode === "signup") {
       if (password !== confirmPassword) {
         setError("Passwords don't match");
+        setSubmitting(false);
+        return;
+      }
+      if (!termsAccepted || !privacyAccepted) {
+        setError("Please accept the Terms & Conditions and Privacy Policy to continue");
         setSubmitting(false);
         return;
       }
@@ -482,6 +489,41 @@ export default function Auth() {
                     <a href="#" className="font-['Satoshi'] text-sm font-medium leading-5 text-purple-500 hover:text-purple-600">
                       Forgot password?
                     </a>
+                  </div>
+                )}
+
+                {mode === "signup" && (
+                  <div className="space-y-3">
+                    <label className="flex items-start">
+                      <input
+                        type="checkbox"
+                        checked={termsAccepted}
+                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
+                        required
+                      />
+                      <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
+                        I agree to the{" "}
+                        <Link to="/terms" className="font-medium text-purple-500 hover:text-purple-600 underline">
+                          Terms & Conditions
+                        </Link>
+                      </span>
+                    </label>
+                    <label className="flex items-start">
+                      <input
+                        type="checkbox"
+                        checked={privacyAccepted}
+                        onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
+                        required
+                      />
+                      <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
+                        I agree to the{" "}
+                        <Link to="/privacy" className="font-medium text-purple-500 hover:text-purple-600 underline">
+                          Privacy Policy
+                        </Link>
+                      </span>
+                    </label>
                   </div>
                 )}
 

@@ -1,5 +1,5 @@
 import { validateOnboardingBody } from "~/lib/onboarding";
-import { createProfile, getProfileStatus, getSessionFromRequest } from "~/lib/onboarding.server";
+import { createProfile, getProfileStatus, getSessionFromRequest, subscribeToNewsletter } from "~/lib/onboarding.server";
 import type { Route } from "./+types/api.onboarding";
 
 export async function action({ request }: Route.ActionArgs) {
@@ -40,6 +40,17 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
   const profile = await createProfile(session.user.id, validated.data);
+  
+  // Handle newsletter subscription if requested
+  const newsletterSubscribed = (body as { newsletterSubscribed?: boolean }).newsletterSubscribed;
+  if (newsletterSubscribed && session.user.email) {
+    try {
+      await subscribeToNewsletter(session.user.email, session.user.id, "onboarding");
+    } catch (error) {
+      // Non-critical error, log but don't fail the onboarding
+      console.error("[api.onboarding] Error subscribing to newsletter:", error);
+    }
+  }
   return new Response(
     JSON.stringify({
       profile: {

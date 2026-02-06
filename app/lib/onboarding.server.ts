@@ -4,7 +4,7 @@
 import { eq } from "drizzle-orm";
 import { auth } from "~/lib/auth";
 import db from "./db";
-import { userProfile, user } from "../../auth-schema";
+import { userProfile, user, newsletterSubscriptions } from "../../auth-schema";
 
 export async function getSessionFromRequest(request: { headers: Headers }) {
   return auth.api.getSession({
@@ -137,5 +137,86 @@ export async function checkAdminAccess(request: { headers: Headers }): Promise<b
     console.error("[checkAdminAccess] Error checking admin access:", error);
     return false;
   }
+}
+
+/**
+ * Subscribe an email to the newsletter
+ * Handles duplicate subscriptions gracefully by updating existing record if unsubscribed
+ */
+export async function subscribeToNewsletter(
+  email: string,
+  userId?: string,
+  source?: string
+) {
+  // Check if subscription already exists
+  const [existing] = await db
+    .select()
+    .from(newsletterSubscriptions)
+    .where(eq(newsletterSubscriptions.email, email))
+    .limit(1);
+
+  if (existing) {
+    // If already subscribed, return success
+    if (!existing.unsubscribedAt) {
+      // Update userId and source if provided and different
+      if (userId && existing.userId !== userId) {
+        await db
+          .update(newsletterSubscriptions)
+          .set({
+            userId,
+            source: source || existing.source,
+          })
+          .where(eq(newsletterSubscriptions.id, existing.id));
+      }
+      return { success: true, alreadySubscribed: true };
+    }
+    // If unsubscribed, resubscribe
+    await db
+      .update(newsletterSubscriptions)
+      .set({
+        userId: userId || existing.userId,
+        unsubscribedAt: null,
+        source: source || existing.source,
+      })
+      .where(eq(newsletterSubscriptions.id, existing.id));
+    return { success: true, resubscribed: true };
+  }
+
+  // Create new subscription
+  await db.insert(newsletterSubscriptions).values({
+    email,
+    userId: userId || null,
+    source: source || null,
+  });
+
+  return { success: true, newSubscription: true };
+}
+
+/**
+ * Unsubscribe an email from the newsletter
+ */
+export async function unsubscribeFromNewsletter(email: string) {
+  const [existing] = await db
+    .select()
+    .from(newsletterSubscriptions)
+    .where(eq(newsletterSubscriptions.email, email))
+    .limit(1);
+
+  if (!existing) {
+    return { success: false, error: "Email not found in newsletter subscriptions" };
+  }
+
+  if (existing.unsubscribedAt) {
+    return { success: true, alreadyUnsubscribed: true };
+  }
+
+  await db
+    .update(newsletterSubscriptions)
+    .set({
+      unsubscribedAt: new Date(),
+    })
+    .where(eq(newsletterSubscriptions.id, existing.id));
+
+  return { success: true };
 }
 

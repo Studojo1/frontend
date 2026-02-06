@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router";
 import { FiBookOpen, FiTarget, FiMail, FiMapPin } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
@@ -44,6 +45,38 @@ const SOCIAL_LINKS = [
 ];
 
 export function Footer() {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setMessage(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, source: "footer" }),
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: "success", text: data.message || "Successfully subscribed!" });
+        setEmail("");
+      } else {
+        setMessage({ type: "error", text: data.error || "Failed to subscribe. Please try again." });
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to subscribe. Please try again." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <footer
       id="resources"
@@ -73,20 +106,36 @@ export function Footer() {
               </p>
               <form
                 className="flex flex-col gap-3 md:flex-row"
-                onSubmit={(e) => e.preventDefault()}
+                onSubmit={handleSubmit}
               >
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="your.email@university.edu"
-                  className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-3 font-['Satoshi'] text-sm font-normal text-neutral-950/50 placeholder:text-neutral-950/50 focus:outline-none focus:ring-2 focus:ring-purple-500 md:rounded-2xl md:border-stone-600 md:bg-white/50 md:text-base md:text-neutral-900 md:placeholder:text-neutral-500"
+                  required
+                  disabled={loading}
+                  className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-3 font-['Satoshi'] text-sm font-normal text-neutral-950/50 placeholder:text-neutral-950/50 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60 md:rounded-2xl md:border-stone-600 md:bg-white/50 md:text-base md:text-neutral-900 md:placeholder:text-neutral-500"
                 />
                 <button
                   type="submit"
-                  className="h-12 rounded-lg bg-violet-500 font-['Satoshi'] text-sm font-medium leading-5 text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] outline outline-[1.58px] outline-offset-[-1.58px] outline-neutral-900 transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none md:h-12 md:w-24 md:rounded-2xl md:text-base md:leading-6 md:shadow-none md:outline-none md:hover:translate-x-[2px] md:hover:translate-y-[2px] md:active:translate-x-[4px] md:active:translate-y-[4px]"
+                  disabled={loading}
+                  className="h-12 rounded-lg bg-violet-500 font-['Satoshi'] text-sm font-medium leading-5 text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] outline outline-[1.58px] outline-offset-[-1.58px] outline-neutral-900 transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none md:h-12 md:w-24 md:rounded-2xl md:text-base md:leading-6 md:shadow-none md:outline-none md:hover:translate-x-[2px] md:hover:translate-y-[2px] md:active:translate-x-[4px] md:active:translate-y-[4px]"
                 >
-                  Join
+                  {loading ? "..." : "Join"}
                 </button>
               </form>
+              {message && (
+                <p
+                  className={`font-['Satoshi'] text-sm font-normal leading-5 ${
+                    message.type === "success"
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  {message.text}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-3">
