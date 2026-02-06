@@ -242,13 +242,59 @@ export const accountRelations = relations(account, ({ one }) => ({
   }),
 }));
 
+// Companies table
+export const companies = pgTable(
+  "companies",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    email: text("email"),
+    phone: text("phone"),
+    website: text("website"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("companies_name_idx").on(table.name),
+    index("companies_email_idx").on(table.email),
+  ],
+);
+
+// Company users table for partner panel authentication
+export const companyUsers = pgTable(
+  "company_users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    companyId: uuid("company_id")
+      .notNull()
+      .references(() => companies.id, { onDelete: "cascade" }),
+    email: text("email").notNull().unique(),
+    passwordHash: text("password_hash").notNull(),
+    name: text("name").notNull(),
+    role: text("role").default("viewer").notNull(), // 'admin', 'viewer'
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("company_users_company_id_idx").on(table.companyId),
+    index("company_users_email_idx").on(table.email),
+  ],
+);
+
 // Internships table for storing internship listings
 export const internships = pgTable(
   "internships",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     title: text("title").notNull(),
-    companyName: text("company_name").notNull(),
+    companyName: text("company_name").notNull(), // Keep for backward compatibility
+    companyId: uuid("company_id").references(() => companies.id, { onDelete: "restrict" }),
     description: text("description").notNull(),
     requirements: text("requirements").notNull(),
     location: text("location").notNull(),
@@ -272,6 +318,7 @@ export const internships = pgTable(
   (table) => [
     index("internships_slug_idx").on(table.slug),
     index("internships_status_created_idx").on(table.status, table.createdAt),
+    index("internships_company_id_idx").on(table.companyId),
   ],
 );
 
@@ -323,6 +370,7 @@ export const companyTokens = pgTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
+    partnerUserId: uuid("partner_user_id").references(() => companyUsers.id, { onDelete: "set null" }),
     expiresAt: timestamp("expires_at"),
     usedAt: timestamp("used_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -335,6 +383,10 @@ export const internshipsRelations = relations(internships, ({ one, many }) => ({
   creator: one(user, {
     fields: [internships.createdBy],
     references: [user.id],
+  }),
+  company: one(companies, {
+    fields: [internships.companyId],
+    references: [companies.id],
   }),
   applications: many(internshipApplications),
 }));
@@ -365,5 +417,22 @@ export const companyTokensRelations = relations(companyTokens, ({ one }) => ({
   creator: one(user, {
     fields: [companyTokens.createdBy],
     references: [user.id],
+  }),
+  partnerUser: one(companyUsers, {
+    fields: [companyTokens.partnerUserId],
+    references: [companyUsers.id],
+  }),
+}));
+
+// Relations for companies
+export const companiesRelations = relations(companies, ({ many }) => ({
+  users: many(companyUsers),
+  internships: many(internships),
+}));
+
+export const companyUsersRelations = relations(companyUsers, ({ one }) => ({
+  company: one(companies, {
+    fields: [companyUsers.companyId],
+    references: [companies.id],
   }),
 }));
