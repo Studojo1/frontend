@@ -160,6 +160,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
   profile: one(userProfile),
   resumes: many(resumes),
   newsletterSubscription: one(newsletterSubscriptions),
+  questionResponses: many(userQuestionResponses),
 }));
 
 export const userProfileRelations = relations(userProfile, ({ one }) => ({
@@ -404,6 +405,7 @@ export const internshipsRelations = relations(internships, ({ one, many }) => ({
     references: [companies.id],
   }),
   applications: many(internshipApplications),
+  questions: many(internshipQuestions),
 }));
 
 export const internshipApplicationsRelations = relations(
@@ -475,3 +477,129 @@ export const newsletterSubscriptionsRelations = relations(newsletterSubscription
     references: [user.id],
   }),
 }));
+
+// Question tags table for grouping similar questions
+export const questionTags = pgTable(
+  "question_tags",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tagName: text("tag_name").notNull().unique(),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("question_tags_tag_name_idx").on(table.tagName),
+  ],
+);
+
+// Internship questions table
+export const internshipQuestions = pgTable(
+  "internship_questions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    internshipId: uuid("internship_id")
+      .notNull()
+      .references(() => internships.id, { onDelete: "cascade" }),
+    questionText: text("question_text").notNull(),
+    questionType: text("question_type").notNull(), // 'text', 'textarea', 'multiple_choice', 'checkbox', 'file_upload', 'date', 'number', 'rating', 'yes_no'
+    options: jsonb("options"), // For multiple choice/checkbox options
+    required: boolean("required").default(false).notNull(),
+    order: integer("order").default(0).notNull(),
+    tagId: uuid("tag_id").references(() => questionTags.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("internship_questions_internship_id_idx").on(table.internshipId),
+    index("internship_questions_tag_id_idx").on(table.tagId),
+    index("internship_questions_order_idx").on(table.internshipId, table.order),
+  ],
+);
+
+// User question responses table
+export const userQuestionResponses = pgTable(
+  "user_question_responses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    questionId: uuid("question_id")
+      .notNull()
+      .references(() => internshipQuestions.id, { onDelete: "cascade" }),
+    response: jsonb("response").notNull(), // Flexible storage for different response types
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("user_question_responses_user_id_idx").on(table.userId),
+    index("user_question_responses_question_id_idx").on(table.questionId),
+    unique().on(table.userId, table.questionId), // One response per user per question
+  ],
+);
+
+// Question tag mappings table (many-to-many)
+export const questionTagMappings = pgTable(
+  "question_tag_mappings",
+  {
+    questionId: uuid("question_id")
+      .notNull()
+      .references(() => internshipQuestions.id, { onDelete: "cascade" }),
+    tagId: uuid("tag_id")
+      .notNull()
+      .references(() => questionTags.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    unique().on(table.questionId, table.tagId),
+    index("question_tag_mappings_question_id_idx").on(table.questionId),
+    index("question_tag_mappings_tag_id_idx").on(table.tagId),
+  ],
+);
+
+// Relations for questions
+export const internshipQuestionsRelations = relations(internshipQuestions, ({ one, many }) => ({
+  internship: one(internships, {
+    fields: [internshipQuestions.internshipId],
+    references: [internships.id],
+  }),
+  tag: one(questionTags, {
+    fields: [internshipQuestions.tagId],
+    references: [questionTags.id],
+  }),
+  responses: many(userQuestionResponses),
+  tagMappings: many(questionTagMappings),
+}));
+
+export const userQuestionResponsesRelations = relations(userQuestionResponses, ({ one }) => ({
+  user: one(user, {
+    fields: [userQuestionResponses.userId],
+    references: [user.id],
+  }),
+  question: one(internshipQuestions, {
+    fields: [userQuestionResponses.questionId],
+    references: [internshipQuestions.id],
+  }),
+}));
+
+export const questionTagsRelations = relations(questionTags, ({ many }) => ({
+  questions: many(internshipQuestions),
+  mappings: many(questionTagMappings),
+}));
+
+export const questionTagMappingsRelations = relations(questionTagMappings, ({ one }) => ({
+  question: one(internshipQuestions, {
+    fields: [questionTagMappings.questionId],
+    references: [internshipQuestions.id],
+  }),
+  tag: one(questionTags, {
+    fields: [questionTagMappings.tagId],
+    references: [questionTags.id],
+  }),
+}));
+

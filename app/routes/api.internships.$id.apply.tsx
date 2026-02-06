@@ -1,7 +1,7 @@
 import { eq, and } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
-import { internships, internshipApplications, resumes } from "../../auth-schema";
+import { internships, internshipApplications, resumes, internshipQuestions, userQuestionResponses } from "../../auth-schema";
 import type { Route } from "./+types/api.internships.$id.apply";
 
 // POST /api/internships/:id/apply - Submit application (authenticated)
@@ -33,7 +33,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     );
   }
 
-  const { resume_id } = body as { resume_id?: unknown };
+  const { resume_id, question_responses } = body as { resume_id?: unknown; question_responses?: Record<string, unknown> };
 
   if (!resume_id || typeof resume_id !== "string") {
     return new Response(
@@ -69,6 +69,35 @@ export async function action({ request, params }: Route.ActionArgs) {
       JSON.stringify({ error: "Application deadline has passed" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
+  }
+
+  // Validate required questions are answered
+  const requiredQuestions = await db
+    .select()
+    .from(internshipQuestions)
+    .where(and(
+      eq(internshipQuestions.internshipId, internshipId),
+      eq(internshipQuestions.required, true)
+    ));
+
+  if (requiredQuestions.length > 0) {
+    const answeredQuestionIds = question_responses ? Object.keys(question_responses) : [];
+    const missingRequired = requiredQuestions.filter(
+      (q) => !answeredQuestionIds.includes(q.id)
+    );
+
+    if (missingRequired.length > 0) {
+      return new Response(
+        JSON.stringify({
+          error: "Please answer all required questions",
+          missingQuestions: missingRequired.map((q) => ({
+            id: q.id,
+            questionText: q.questionText,
+          })),
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
   }
 
   // Validate resume exists and belongs to user
@@ -115,6 +144,60 @@ export async function action({ request, params }: Route.ActionArgs) {
       status: "pending",
     })
     .returning();
+
+  // Store question responses
+  if (question_responses && typeof question_responses === "object") {
+    const responseEntries = Object.entries(question_responses);
+    
+    for (const [questionId, response] of responseEntries) {
+      if (response !== null && response !== undefined && response !== "") {
+        // Check if question exists and belongs to this internship
+        const [question] = await db
+          .select()
+          .from(internshipQuestions)
+          .where(and(
+            eq(internshipQuestions.id, questionId),
+            eq(internshipQuestions.internshipId, internshipId)
+          ))
+          .limit(1);
+
+        if (question) {
+          // Check if response already exists
+          const [existingResponse] = await db
+            .select()
+            .from(userQuestionResponses)
+            .where(and(
+              eq(userQuestionResponses.userId, session.user.id),
+              eq(userQuestionResponses.questionId, questionId)
+            ))
+            .limit(1);
+
+          if (existingResponse) {
+            // Update existing response
+            await db
+              .update(userQuestionResponses)
+              .set({
+                response: response as any,
+                updatedAt: new Date(),
+              })
+              .where(and(
+                eq(userQuestionResponses.userId, session.user.id),
+                eq(userQuestionResponses.questionId, questionId)
+              ));
+          } else {
+            // Insert new response
+            await db
+              .insert(userQuestionResponses)
+              .values({
+                userId: session.user.id,
+                questionId: questionId,
+                response: response as any,
+              });
+          }
+        }
+      }
+    }
+  }
 
   // Increment application count
   await db

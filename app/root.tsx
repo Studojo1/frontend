@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
 import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
+import { ErrorPage } from "./components/error-page";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -114,14 +115,19 @@ function MixpanelInit() {
     }
   }, [session]);
 
-  // Track page views
+  // Track page views (with delay to ensure Mixpanel is initialized)
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // Small delay to ensure Mixpanel initialization completes
+      const timeoutId = setTimeout(() => {
       trackEvent("Page View", {
         page_url: window.location.href,
         page_title: document.title,
         user_id: session?.user?.id,
       });
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [location.pathname, session?.user?.id]);
 
@@ -227,12 +233,16 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let stack: string | undefined;
   let errorType = "unknown";
   let errorCode: string | undefined;
+  let statusCode: number | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
+    statusCode = error.status;
+    message = error.status === 404 ? "Page Not Found" : error.status === 500 ? "Server Error" : "Error";
     details =
       error.status === 404
-        ? "The requested page could not be found."
+        ? "The page you're looking for doesn't exist or has been moved."
+        : error.status === 500
+        ? "Something went wrong on our end. We're working to fix it!"
         : error.statusText || details;
     errorType = "server";
     errorCode = error.status.toString();
@@ -240,18 +250,18 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     details = error.message;
     stack = error.stack;
     errorType = "application";
+    message = "Application Error";
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
+    <>
       <ErrorTracker errorType={errorType} errorMessage={details} errorCode={errorCode} />
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
-      )}
-    </main>
+      <ErrorPage
+        statusCode={statusCode}
+        message={message}
+        details={details}
+        stack={stack}
+      />
+    </>
   );
 }
