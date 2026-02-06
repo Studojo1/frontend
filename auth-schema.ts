@@ -255,6 +255,16 @@ export const companies = pgTable(
     email: text("email"),
     phone: text("phone"),
     website: text("website"),
+    // Soft delete & lifecycle
+    isDeleted: boolean("is_deleted").notNull().default(false),
+    deletedAt: timestamp("deleted_at"),
+    // Branding & portal config
+    logoUrl: text("logo_url"),
+    brandColor: text("brand_color"),
+    supportEmail: text("support_email"),
+    portalTitle: text("portal_title"),
+    // Primary partner user (for login)
+    primaryUserId: uuid("primary_user_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -264,6 +274,7 @@ export const companies = pgTable(
   (table) => [
     index("companies_name_idx").on(table.name),
     index("companies_email_idx").on(table.email),
+    index("companies_is_deleted_name_idx").on(table.isDeleted, table.name),
   ],
 );
 
