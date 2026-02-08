@@ -53,19 +53,33 @@ export async function loader({ params }: Route.LoaderArgs) {
 
     // Check if blob exists
     let exists = await blobClient.exists();
+    console.log(`[api.images] Checking blob: container=${containerName}, blobName=${blobName}, exists=${exists}`);
     
-    // If not found, try with blog-images/ prefix (for old images)
+    // If not found, try with blog-images/ prefix (for old images that were stored with prefix)
     if (!exists && !blobName.startsWith("blog-images/")) {
       const oldBlobName = `blog-images/${blobName}`;
+      console.log(`[api.images] Trying legacy format: ${oldBlobName}`);
       blobClient = containerClient.getBlockBlobClient(oldBlobName);
       exists = await blobClient.exists();
       if (exists) {
+        console.log(`[api.images] Found blob with legacy format: ${oldBlobName}`);
         blobName = oldBlobName;
       }
     }
     
     if (!exists) {
       console.error(`[api.images] Blob not found: container=${containerName}, blobName=${blobName}, path=${path}`);
+      // List some blobs to help debug
+      try {
+        const blobs = [];
+        for await (const blob of containerClient.listBlobsFlat({ prefix: blobName.substring(0, 20) })) {
+          blobs.push(blob.name);
+          if (blobs.length >= 5) break;
+        }
+        console.error(`[api.images] Similar blobs found: ${blobs.join(", ")}`);
+      } catch (e) {
+        console.error(`[api.images] Error listing blobs:`, e);
+      }
       return Response.json({ error: "Image not found", details: `Container: ${containerName}, Blob: ${blobName}` }, { status: 404 });
     }
 
