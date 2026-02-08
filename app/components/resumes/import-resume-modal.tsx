@@ -285,9 +285,16 @@ export function ImportResumeModal({
                       disabled={isProcessing}
                       className="hidden"
                       id="file-upload"
+                      capture="environment"
                     />
                     <motion.label
                       htmlFor="file-upload"
+                      onClick={(e) => {
+                        if (!isProcessing && fileInputRef.current) {
+                          e.preventDefault();
+                          fileInputRef.current.click();
+                        }
+                      }}
                       className={`relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-gray-50 py-8 font-['Satoshi'] text-sm font-medium leading-5 transition-colors ${
                         isProcessing
                           ? "border-emerald-500 bg-emerald-50 cursor-not-allowed"

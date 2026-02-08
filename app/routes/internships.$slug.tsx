@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLoaderData, useNavigate } from "react-router";
 import { Header, Footer } from "~/components";
-import { FiMapPin, FiClock, FiCalendar } from "react-icons/fi";
+import { FiMapPin, FiClock, FiCalendar, FiArrowLeft } from "react-icons/fi";
 import { authClient } from "~/lib/auth-client";
 import type { Route } from "./+types/internships.$slug";
 import { ApplicationFlow } from "~/components/internship/application-flow";
@@ -115,7 +115,14 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
       <Header />
       <article className="mx-auto max-w-4xl px-4 py-12 md:px-8">
         <header className="mb-8">
-          <div className="mb-4">
+          <div className="mb-4 flex items-center gap-4">
+            <button
+              onClick={() => navigate("/dojos/internships")}
+              className="flex items-center gap-2 rounded-lg border-2 border-neutral-900 bg-white px-4 py-2 font-['Satoshi'] text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-100"
+            >
+              <FiArrowLeft className="h-4 w-4" />
+              Back to Internships
+            </button>
             <span className="inline-block rounded-full bg-violet-100 px-4 py-1.5 text-sm font-['Satoshi'] font-medium text-violet-700">
               {internship.company_name}
             </span>
