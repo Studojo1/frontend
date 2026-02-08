@@ -31,8 +31,8 @@ export async function loader({ params }: Route.LoaderArgs) {
 
     // Extract container and blob name from path
     // Path format: blog-images/filename.jpg
-    // The blob name in Azure is just the filename (without container prefix)
-    // However, old images might have been stored with blog-images/ prefix in the blob name
+    // The blob name in Azure should be just the filename (without container prefix)
+    // However, old images might have been stored with blog-images/ prefix in the blob name itself
     const parts = path.split("/");
     let containerName: string;
     let blobName: string;
@@ -49,42 +49,62 @@ export async function loader({ params }: Route.LoaderArgs) {
     }
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
-    let blobClient = containerClient.getBlockBlobClient(blobName);
-
-    // Check if blob exists
-    let exists = await blobClient.exists();
-    console.log(`[api.images] Checking blob: container=${containerName}, blobName=${blobName}, exists=${exists}`);
     
-    // If not found, try with blog-images/ prefix (for old images that were stored with prefix)
-    if (!exists && !blobName.startsWith("blog-images/")) {
-      const oldBlobName = `blog-images/${blobName}`;
-      console.log(`[api.images] Trying legacy format: ${oldBlobName}`);
-      blobClient = containerClient.getBlockBlobClient(oldBlobName);
-      exists = await blobClient.exists();
+    // Try multiple blob name variations to handle legacy uploads
+    const blobNameCandidates: string[] = [];
+    
+    // Candidate 1: Blob name without prefix (new format)
+    blobNameCandidates.push(blobName);
+    
+    // Candidate 2: Blob name with blog-images/ prefix (legacy format where prefix was included in blob name)
+    if (!blobName.startsWith("blog-images/")) {
+      blobNameCandidates.push(`blog-images/${blobName}`);
+    }
+    
+    // Candidate 3: If path already had blog-images/, try the full path as blob name (very old format)
+    if (path.startsWith("blog-images/")) {
+      blobNameCandidates.push(path);
+    }
+
+    let foundBlob = false;
+    let finalBlobName = "";
+    let finalBlobClient = containerClient.getBlockBlobClient(blobName);
+
+    // Try each candidate until we find one that exists
+    for (const candidateBlobName of blobNameCandidates) {
+      const candidateClient = containerClient.getBlockBlobClient(candidateBlobName);
+      const exists = await candidateClient.exists();
+      console.log(`[api.images] Checking blob: container=${containerName}, blobName=${candidateBlobName}, exists=${exists}`);
+      
       if (exists) {
-        console.log(`[api.images] Found blob with legacy format: ${oldBlobName}`);
-        blobName = oldBlobName;
+        foundBlob = true;
+        finalBlobName = candidateBlobName;
+        finalBlobClient = candidateClient;
+        console.log(`[api.images] Found blob: ${candidateBlobName}`);
+        break;
       }
     }
     
-    if (!exists) {
-      console.error(`[api.images] Blob not found: container=${containerName}, blobName=${blobName}, path=${path}`);
+    if (!foundBlob) {
+      console.error(`[api.images] Blob not found: container=${containerName}, path=${path}`);
+      console.error(`[api.images] Tried candidates: ${blobNameCandidates.join(", ")}`);
       // List some blobs to help debug
       try {
         const blobs = [];
-        for await (const blob of containerClient.listBlobsFlat({ prefix: blobName.substring(0, 20) })) {
+        const searchPrefix = blobName.substring(0, Math.min(20, blobName.length));
+        for await (const blob of containerClient.listBlobsFlat({ prefix: searchPrefix })) {
           blobs.push(blob.name);
-          if (blobs.length >= 5) break;
+          if (blobs.length >= 10) break;
         }
-        console.error(`[api.images] Similar blobs found: ${blobs.join(", ")}`);
+        console.error(`[api.images] Similar blobs found (prefix: ${searchPrefix}): ${blobs.join(", ")}`);
       } catch (e) {
         console.error(`[api.images] Error listing blobs:`, e);
       }
-      return Response.json({ error: "Image not found", details: `Container: ${containerName}, Blob: ${blobName}` }, { status: 404 });
+      return Response.json({ error: "Image not found", details: `Container: ${containerName}, Path: ${path}, Tried: ${blobNameCandidates.join(", ")}` }, { status: 404 });
     }
 
     // Download blob
-    const downloadResponse = await blobClient.download();
+    const downloadResponse = await finalBlobClient.download();
     if (!downloadResponse.readableStreamBody) {
       return Response.json({ error: "Failed to download image" }, { status: 500 });
     }
@@ -99,11 +119,11 @@ export async function loader({ params }: Route.LoaderArgs) {
     // Determine content type from blob properties or file extension
     const contentType =
       downloadResponse.contentType ||
-      (blobName.endsWith(".png")
+      (finalBlobName.endsWith(".png")
         ? "image/png"
-        : blobName.endsWith(".webp")
+        : finalBlobName.endsWith(".webp")
         ? "image/webp"
-        : blobName.endsWith(".gif")
+        : finalBlobName.endsWith(".gif")
         ? "image/gif"
         : "image/jpeg");
 
