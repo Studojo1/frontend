@@ -32,6 +32,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     // Extract container and blob name from path
     // Path format: blog-images/filename.jpg
     // The blob name in Azure is just the filename (without container prefix)
+    // However, old images might have been stored with blog-images/ prefix in the blob name
     const parts = path.split("/");
     let containerName: string;
     let blobName: string;
@@ -48,10 +49,21 @@ export async function loader({ params }: Route.LoaderArgs) {
     }
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
-    const blobClient = containerClient.getBlockBlobClient(blobName);
+    let blobClient = containerClient.getBlockBlobClient(blobName);
 
     // Check if blob exists
-    const exists = await blobClient.exists();
+    let exists = await blobClient.exists();
+    
+    // If not found, try with blog-images/ prefix (for old images)
+    if (!exists && !blobName.startsWith("blog-images/")) {
+      const oldBlobName = `blog-images/${blobName}`;
+      blobClient = containerClient.getBlockBlobClient(oldBlobName);
+      exists = await blobClient.exists();
+      if (exists) {
+        blobName = oldBlobName;
+      }
+    }
+    
     if (!exists) {
       console.error(`[api.images] Blob not found: container=${containerName}, blobName=${blobName}, path=${path}`);
       return Response.json({ error: "Image not found", details: `Container: ${containerName}, Blob: ${blobName}` }, { status: 404 });
