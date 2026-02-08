@@ -31,20 +31,20 @@ export async function loader({ params }: Route.LoaderArgs) {
 
     // Extract container and blob name from path
     // Path format: blog-images/filename.jpg
-    // The blob name in Azure includes the full path: blog-images/filename.jpg
+    // The blob name in Azure is just the filename (without container prefix)
     const parts = path.split("/");
     let containerName: string;
     let blobName: string;
     
     if (parts[0] === "blog-images" && parts.length > 1) {
       // Path is blog-images/filename.jpg
-      // Container is "blog-images", blob name is the full path "blog-images/filename.jpg"
+      // Container is "blog-images", blob name is just "filename.jpg" (relative to container)
       containerName = "blog-images";
-      blobName = path; // Use the full path as the blob name
+      blobName = parts.slice(1).join("/");
     } else {
       // Path is just filename.jpg - assume container is blog-images
       containerName = "blog-images";
-      blobName = `blog-images/${parts.join("/")}`;
+      blobName = parts.join("/");
     }
 
     const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -53,7 +53,8 @@ export async function loader({ params }: Route.LoaderArgs) {
     // Check if blob exists
     const exists = await blobClient.exists();
     if (!exists) {
-      return Response.json({ error: "Image not found" }, { status: 404 });
+      console.error(`[api.images] Blob not found: container=${containerName}, blobName=${blobName}, path=${path}`);
+      return Response.json({ error: "Image not found", details: `Container: ${containerName}, Blob: ${blobName}` }, { status: 404 });
     }
 
     // Download blob
