@@ -152,6 +152,48 @@ export const userProfile = pgTable(
   (table) => [index("user_profile_userId_idx").on(table.userId)],
 );
 
+// Email preferences table
+export const emailPreferences = pgTable(
+  "email_preferences",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => user.id, { onDelete: "cascade" }),
+    productEmails: boolean("product_emails").default(true).notNull(),
+    resumeEmails: boolean("resume_emails").default(true).notNull(),
+    internshipEmails: boolean("internship_emails").default(true).notNull(),
+    securityEmails: boolean("security_emails").default(true).notNull(), // Cannot be disabled
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("email_preferences_userId_idx").on(table.userId)],
+);
+
+// Password reset tokens table
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expiresAt: timestamp("expires_at").notNull(),
+    usedAt: timestamp("used_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("password_reset_tokens_userId_idx").on(table.userId),
+    index("password_reset_tokens_token_idx").on(table.token),
+    index("password_reset_tokens_expiresAt_idx").on(table.expiresAt),
+  ],
+);
+
 export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -161,10 +203,19 @@ export const userRelations = relations(user, ({ many, one }) => ({
   resumes: many(resumes),
   newsletterSubscription: one(newsletterSubscriptions),
   questionResponses: many(userQuestionResponses),
+  emailPreferences: one(emailPreferences),
 }));
 
 export const userProfileRelations = relations(userProfile, ({ one }) => ({
   user: one(user, { fields: [userProfile.userId], references: [user.id] }),
+}));
+
+export const emailPreferencesRelations = relations(emailPreferences, ({ one }) => ({
+  user: one(user, { fields: [emailPreferences.userId], references: [user.id] }),
+}));
+
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(user, { fields: [passwordResetTokens.userId], references: [user.id] }),
 }));
 
 // Resumes table for storing user resumes

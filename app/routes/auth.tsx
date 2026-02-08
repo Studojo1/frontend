@@ -188,7 +188,24 @@ export default function Auth() {
           name: email.split("@")[0] || "User",
           callbackURL: redirectUrl,
         },
-        { onSuccess: () => navigate(redirectUrl) },
+        { 
+          onSuccess: async () => {
+            // Publish signup event (non-blocking)
+            try {
+              if (data?.user) {
+                const { publishEmailEvent } = await import("~/lib/events");
+                await publishEmailEvent("event.user.signup", {
+                  user_id: data.user.id,
+                  email: data.user.email,
+                  name: data.user.name,
+                });
+              }
+            } catch (error) {
+              console.error("Failed to publish signup event:", error);
+            }
+            navigate(redirectUrl);
+          }
+        },
       );
       if (err) {
         const code = (err as { code?: string }).code;
@@ -486,9 +503,9 @@ export default function Auth() {
                       <input type="checkbox" name="remember" className="h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500" />
                       <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">Remember me</span>
                     </label>
-                    <a href="#" className="font-['Satoshi'] text-sm font-medium leading-5 text-purple-500 hover:text-purple-600">
+                    <Link to="/forgot-password" className="font-['Satoshi'] text-sm font-medium leading-5 text-purple-500 hover:text-purple-600">
                       Forgot password?
-                    </a>
+                    </Link>
                   </div>
                 )}
 

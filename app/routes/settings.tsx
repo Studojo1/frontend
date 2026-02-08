@@ -4,6 +4,8 @@ import { redirect, useNavigate } from "react-router";
 import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
+import { changePassword } from "~/lib/emailer";
+import { toast } from "sonner";
 import type { Route } from "./+types/settings";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -65,6 +67,14 @@ export default function Settings() {
   const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [generatingBackupCodes, setGeneratingBackupCodes] = useState(false);
   
+  // Password management state
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState<{
@@ -80,6 +90,58 @@ export default function Settings() {
   const lastLoginMethod = authClient.getLastUsedLoginMethod();
   const isOAuthUser = lastLoginMethod === "google" || lastLoginMethod === "oauth";
   const hasPasswordAccount = !isOAuthUser;
+
+  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPasswordError(null);
+
+    if (!session?.user?.id) {
+      setPasswordError("You must be logged in to change your password");
+      return;
+    }
+
+    if (hasPasswordAccount && !currentPassword) {
+      setPasswordError("Current password is required");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("New passwords don't match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      if (hasPasswordAccount) {
+        // Change existing password
+        await changePassword(session.user.id, currentPassword, newPassword);
+        toast.success("Password changed successfully!");
+      } else {
+        // For OAuth users, we need to use forgot password flow to create password
+        // Or we could add a separate endpoint for creating password without current password
+        // For now, redirect to forgot password
+        toast.info("Please use the 'Forgot Password' flow to create a password for your account");
+        setPasswordModalOpen(false);
+        return;
+      }
+      
+      setPasswordModalOpen(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch (err: any) {
+      setPasswordError(err.message || "Failed to change password");
+      toast.error(err.message || "Failed to change password");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
 
   const showConfirmModal = (config: {
     title: string;
@@ -504,6 +566,40 @@ export default function Settings() {
                 )}
               </div>
 
+              {/* Password Management Section */}
+              <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+                <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
+                  Password
+                </h2>
+                <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
+                  {hasPasswordAccount
+                    ? "Change your account password. You'll receive an email notification when your password is changed."
+                    : "Add a password to your account to enable email and password sign-in in addition to Google OAuth."}
+                </p>
+
+                {hasPasswordAccount ? (
+                  <button
+                    type="button"
+                    onClick={() => setPasswordModalOpen(true)}
+                    className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                  >
+                    Change Password
+                  </button>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="font-['Satoshi'] text-sm text-neutral-600">
+                      To add a password, use the "Forgot Password" flow. This will allow you to create a password that works alongside your Google sign-in.
+                    </p>
+                    <a
+                      href="/forgot-password"
+                      className="inline-block rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                    >
+                      Create Password
+                    </a>
+                  </div>
+                )}
+              </div>
+
               {/* Two-Factor Authentication Section */}
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
                 <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
@@ -736,6 +832,115 @@ export default function Settings() {
                 </div>
               </motion.div>
             </div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Password Change Modal */}
+      <AnimatePresence>
+        {passwordModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+              onClick={() => setPasswordModalOpen(false)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="relative w-full max-w-md rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
+                  Change Password
+                </h3>
+                
+                {passwordError && (
+                  <div className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-red-700">
+                    {passwordError}
+                  </div>
+                )}
+
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  {hasPasswordAccount && (
+                    <div>
+                      <label htmlFor="current-password" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                        Current Password
+                      </label>
+                      <input
+                        type="password"
+                        id="current-password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        required
+                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                        placeholder="Enter current password"
+                      />
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label htmlFor="new-password" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      id="new-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                      placeholder="At least 8 characters"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="confirm-new-password" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      id="confirm-new-password"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                      placeholder="Re-enter new password"
+                    />
+                  </div>
+
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPasswordModalOpen(false);
+                        setPasswordError(null);
+                        setCurrentPassword("");
+                        setNewPassword("");
+                        setConfirmNewPassword("");
+                      }}
+                      className="rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={changingPassword || !newPassword || !confirmNewPassword || (hasPasswordAccount && !currentPassword)}
+                      className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
+                    >
+                      {changingPassword ? "Changing..." : "Change Password"}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
           </>
         )}
       </AnimatePresence>

@@ -205,6 +205,22 @@ export async function action({ request, params }: Route.ActionArgs) {
     .set({ applicationCount: internship.applicationCount + 1 })
     .where(eq(internships.id, internshipId));
 
+  // Publish email event for internship application (non-blocking)
+  try {
+    const { publishEmailEvent } = await import("~/lib/events");
+    await publishEmailEvent("event.internship.applied", {
+      user_id: session.user.id,
+      internship_id: internshipId,
+      internship_title: internship.title,
+      company_name: internship.companyName,
+      resume_id: resume_id,
+      timestamp: newApplication.createdAt.toISOString(),
+    });
+  } catch (error) {
+    // Log but don't fail the request
+    console.error("Failed to publish internship application event:", error);
+  }
+
   return new Response(
     JSON.stringify({
       application: {
