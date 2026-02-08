@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Header } from "~/components";
+import { PasswordInput } from "~/components/password-input";
 import { authClient } from "~/lib/auth-client";
 import { identifyUser, trackEvent } from "~/lib/mixpanel";
 import type { Route } from "./+types/auth";
@@ -83,6 +84,8 @@ export default function Auth() {
   const [submitting, setSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const { data: session, isPending } = authClient.useSession();
   const lastMethod = authClient.getLastUsedLoginMethod();
@@ -166,12 +169,12 @@ export default function Auth() {
     const form = e.currentTarget;
     const formData = new FormData(form);
     const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const confirmPassword = formData.get("confirmPassword") as string | null;
+    const passwordValue = password || (formData.get("password") as string);
+    const confirmPasswordValue = confirmPassword || (formData.get("confirmPassword") as string | null);
     const remember = (form.querySelector<HTMLInputElement>("input[name=remember]")?.checked) ?? true;
 
     if (mode === "signup") {
-      if (password !== confirmPassword) {
+      if (passwordValue !== confirmPasswordValue) {
         setError("Passwords don't match");
         setSubmitting(false);
         return;
@@ -184,7 +187,7 @@ export default function Auth() {
       const { error: err, data } = await authClient.signUp.email(
         {
           email,
-          password,
+          password: passwordValue,
           name: email.split("@")[0] || "User",
           callbackURL: redirectUrl,
         },
@@ -242,7 +245,7 @@ export default function Auth() {
       const { error: err, data } = await authClient.signIn.email(
         {
           email,
-          password,
+          password: passwordValue,
           callbackURL: redirectUrl,
           rememberMe: remember,
         },
@@ -465,36 +468,29 @@ export default function Auth() {
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="password" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    required
-                    autoComplete={mode === "signin" ? "current-password webauthn" : "new-password"}
-                    className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                    placeholder="••••••••"
-                  />
-                </div>
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete={mode === "signin" ? "current-password webauthn" : "new-password"}
+                  placeholder="••••••••"
+                  showStrength={mode === "signup"}
+                  label="Password"
+                />
 
                 {mode === "signup" && (
-                  <div>
-                    <label htmlFor="confirmPassword" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
-                      Confirm Password
-                    </label>
-                    <input
-                      type="password"
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      required
-                      autoComplete="new-password"
-                      className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                      placeholder="••••••••"
-                    />
-                  </div>
+                  <PasswordInput
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    label="Confirm Password"
+                  />
                 )}
 
                 {mode === "signin" && (

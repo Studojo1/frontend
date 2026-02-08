@@ -77,7 +77,9 @@ export function PhoneInput({
     return COUNTRIES.find((c) => c.dialCode === defaultCountry) || COUNTRIES[0];
   });
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Extract country code from value if it starts with +
   useEffect(() => {
@@ -98,13 +100,28 @@ export function PhoneInput({
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setSearchQuery("");
       }
     };
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      // Focus search input when dropdown opens
+      setTimeout(() => searchInputRef.current?.focus(), 0);
       return () => document.removeEventListener("mousedown", handleClickOutside);
+    } else {
+      setSearchQuery("");
     }
   }, [isOpen]);
+
+  // Filter countries based on search query
+  const filteredCountries = searchQuery
+    ? COUNTRIES.filter(
+        (country) =>
+          country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          country.dialCode.includes(searchQuery) ||
+          country.code.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : COUNTRIES;
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
@@ -148,23 +165,44 @@ export function PhoneInput({
             </svg>
           </button>
           {isOpen && (
-            <div className="absolute left-0 top-full z-50 mt-1 max-h-64 w-64 overflow-y-auto rounded-xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-              {COUNTRIES.map((country) => (
-                <button
-                  key={country.code}
-                  type="button"
-                  onClick={() => handleCountrySelect(country)}
-                  className={`flex w-full items-center gap-3 px-4 py-2.5 font-['Satoshi'] text-sm hover:bg-purple-50 ${
-                    selectedCountry.code === country.code ? "bg-purple-100 font-medium" : ""
-                  }`}
-                >
-                  <span className="text-xl" aria-hidden>
-                    {country.flag}
-                  </span>
-                  <span className="flex-1 text-left">{country.name}</span>
-                  <span className="font-mono text-neutral-600">{country.dialCode}</span>
-                </button>
-              ))}
+            <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+              {/* Search input */}
+              <div className="sticky top-0 border-b-2 border-neutral-900 bg-white p-2">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search country..."
+                  className="w-full rounded-lg border-2 border-neutral-900 bg-white px-3 py-2 font-['Satoshi'] text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              {/* Country list */}
+              <div className="max-h-64 overflow-y-auto">
+                {filteredCountries.length > 0 ? (
+                  filteredCountries.map((country) => (
+                    <button
+                      key={country.code}
+                      type="button"
+                      onClick={() => handleCountrySelect(country)}
+                      className={`flex w-full items-center gap-3 px-4 py-2.5 font-['Satoshi'] text-sm hover:bg-purple-50 ${
+                        selectedCountry.code === country.code ? "bg-purple-100 font-medium" : ""
+                      }`}
+                    >
+                      <span className="text-xl" aria-hidden>
+                        {country.flag}
+                      </span>
+                      <span className="flex-1 text-left">{country.name}</span>
+                      <span className="font-mono text-neutral-600">{country.dialCode}</span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 font-['Satoshi'] text-sm text-neutral-500">
+                    No countries found
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

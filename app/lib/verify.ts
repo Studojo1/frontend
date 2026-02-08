@@ -42,17 +42,11 @@ export async function verifyOtpCode(
     };
   }
 
-  if (!verificationSid) {
-    return {
-      status: "failed",
-      valid: false,
-      error: "Verification SID not found. Please request a new code.",
-    };
-  }
-
   const client = twilio(accountSid, authToken);
 
   try {
+    // Twilio Verify API can verify without SID if the verification is still active
+    // This is useful when Redis is unavailable (local dev) or SID wasn't stored
     const verificationCheck = await client.verify.v2
       .services(verifyServiceSid!)
       .verificationChecks.create({
@@ -70,20 +64,36 @@ export async function verifyOtpCode(
     };
   } catch (err: any) {
     console.error("[verify] Failed to verify code:", err);
+    console.error("[verify] Error details:", { 
+      code: err.code, 
+      message: err.message, 
+      status: err.status,
+      phoneNumber,
+      hasSid: !!verificationSid 
+    });
     
     // Handle specific Twilio error codes
     if (err.code === 20404) {
       return {
         status: "failed",
         valid: false,
-        error: "Verification not found. Please request a new code.",
+        error: "Verification not found or expired. Please request a new code.",
+      };
+    }
+    
+    // Handle rate limiting
+    if (err.code === 20429 || err.status === 429) {
+      return {
+        status: "failed",
+        valid: false,
+        error: "Too many attempts. Please wait a moment and try again.",
       };
     }
 
     return {
       status: "failed",
       valid: false,
-      error: err.message || "Verification failed",
+      error: err.message || "Verification failed. Please check the code and try again.",
     };
   }
 }

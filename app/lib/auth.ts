@@ -154,17 +154,25 @@ export const auth = betterAuth({
           });
         }
 
-        // Get verification SID from Redis
-        const verificationSid = await getVerificationSid(phoneNumberValue);
+        // Get verification SID from Redis (or try direct verification if Redis unavailable)
+        let verificationSid = await getVerificationSid(phoneNumberValue);
         
+        // If Redis is unavailable (local dev), try direct verification without SID
+        // Twilio Verify API can verify without SID if the code is still valid
         if (!verificationSid) {
-          throw new APIError("BAD_REQUEST", {
-            message: "Verification not found. Please request a new code.",
-          });
+          console.warn("[auth] Verification SID not found in Redis, attempting direct verification without SID");
         }
 
-        // Verify using Twilio Verify API
+        // Verify using Twilio Verify API (works with or without SID)
         const result = await verifyOtpCode(phoneNumberValue, code, verificationSid);
+        
+        // Log verification result for debugging
+        console.log("[auth] Verification result:", { 
+          valid: result.valid, 
+          status: result.status, 
+          error: result.error,
+          hasSid: !!verificationSid 
+        });
 
         if (!result.valid) {
           // Clear verification SID on failure

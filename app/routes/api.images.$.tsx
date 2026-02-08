@@ -31,19 +31,20 @@ export async function loader({ params }: Route.LoaderArgs) {
 
     // Extract container and blob name from path
     // Path format: blog-images/filename.jpg
-    // The container is "blog-images" and the blob name is just the filename
+    // The blob name in Azure includes the full path: blog-images/filename.jpg
     const parts = path.split("/");
     let containerName: string;
     let blobName: string;
     
     if (parts[0] === "blog-images" && parts.length > 1) {
-      // Path is blog-images/filename.jpg - container is blog-images, blob is filename.jpg
+      // Path is blog-images/filename.jpg
+      // Container is "blog-images", blob name is the full path "blog-images/filename.jpg"
       containerName = "blog-images";
-      blobName = parts.slice(1).join("/");
+      blobName = path; // Use the full path as the blob name
     } else {
       // Path is just filename.jpg - assume container is blog-images
       containerName = "blog-images";
-      blobName = parts.join("/");
+      blobName = `blog-images/${parts.join("/")}`;
     }
 
     const containerClient = blobServiceClient.getContainerClient(containerName);

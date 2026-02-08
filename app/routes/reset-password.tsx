@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router";
 import { Header } from "~/components";
+import { PasswordInput } from "~/components/password-input";
 import { resetPassword } from "~/lib/emailer";
 import { toast } from "sonner";
 import type { Route } from "./+types/reset-password";
@@ -136,41 +137,30 @@ export default function ResetPassword() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="password" className={LABEL_CLASS}>
-                New Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
-                className={INPUT_CLASS}
-                disabled={submitting || !token}
-                minLength={8}
-              />
-            </div>
+            <PasswordInput
+              id="password"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 8 characters"
+              required
+              disabled={submitting || !token}
+              minLength={8}
+              showStrength={true}
+              label="New Password"
+            />
 
-            <div>
-              <label htmlFor="confirmPassword" className={LABEL_CLASS}>
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter your password"
-                className={INPUT_CLASS}
-                disabled={submitting || !token}
-                minLength={8}
-              />
-            </div>
+            <PasswordInput
+              id="confirmPassword"
+              name="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter your password"
+              required
+              disabled={submitting || !token}
+              minLength={8}
+              label="Confirm Password"
+            />
 
             <button
               type="submit"

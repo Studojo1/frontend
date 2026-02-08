@@ -71,7 +71,11 @@ export const account = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("account_userId_idx").on(table.userId)],
+  (table) => [
+    index("account_userId_idx").on(table.userId),
+    // Unique constraint: one account per user per provider (prevents duplicates)
+    unique().on(table.userId, table.providerId),
+  ],
 );
 
 export const verification = pgTable(

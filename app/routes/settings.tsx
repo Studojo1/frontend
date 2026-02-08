@@ -75,6 +75,23 @@ export default function Settings() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   
+  // Profile editing state
+  const [profileData, setProfileData] = useState<{
+    name: string;
+    fullName: string;
+    college: string;
+    yearOfStudy: string;
+    course: string;
+  } | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  
+  // Password account check state
+  const [hasPasswordAccount, setHasPasswordAccount] = useState<boolean | null>(null);
+  const [loadingPasswordCheck, setLoadingPasswordCheck] = useState(true);
+  
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState<{
@@ -85,11 +102,6 @@ export default function Settings() {
     onConfirm: () => void | Promise<void>;
     destructive?: boolean;
   } | null>(null);
-  
-  // Check if user signed in with OAuth (no password)
-  const lastLoginMethod = authClient.getLastUsedLoginMethod();
-  const isOAuthUser = lastLoginMethod === "google" || lastLoginMethod === "oauth";
-  const hasPasswordAccount = !isOAuthUser;
 
   const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -97,6 +109,11 @@ export default function Settings() {
 
     if (!session?.user?.id) {
       setPasswordError("You must be logged in to change your password");
+      return;
+    }
+
+    if (hasPasswordAccount === null) {
+      setPasswordError("Checking account status...");
       return;
     }
 
@@ -122,6 +139,8 @@ export default function Settings() {
         // Change existing password
         await changePassword(session.user.id, currentPassword, newPassword);
         toast.success("Password changed successfully!");
+        // Refresh password account check
+        await checkPasswordAccount();
       } else {
         // For OAuth users, we need to use forgot password flow to create password
         // Or we could add a separate endpoint for creating password without current password
@@ -187,6 +206,130 @@ export default function Settings() {
       setTwoFactorEnabled(session.user.twoFactorEnabled ?? false);
     }
   }, [session]);
+
+  // Load profile data and check password account
+  useEffect(() => {
+    if (!session) return;
+    loadProfile();
+    checkPasswordAccount();
+  }, [session]);
+
+  const loadProfile = async () => {
+    if (!session?.user?.id) return;
+    setLoadingProfile(true);
+    setProfileError(null);
+    try {
+      const response = await fetch("/api/user/profile", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to load profile");
+      }
+      const data = await response.json();
+      setProfileData({
+        name: data.user?.name || session.user.name || "",
+        fullName: data.profile?.fullName || "",
+        college: data.profile?.college || "",
+        yearOfStudy: data.profile?.yearOfStudy || "",
+        course: data.profile?.course || "",
+      });
+    } catch (err: any) {
+      setProfileError(err.message || "Failed to load profile");
+      // Set defaults if load fails
+      setProfileData({
+        name: session.user.name || "",
+        fullName: "",
+        college: "",
+        yearOfStudy: "",
+        course: "",
+      });
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const checkPasswordAccount = async () => {
+    if (!session?.user?.id) return;
+    setLoadingPasswordCheck(true);
+    try {
+      const response = await fetch("/api/user/has-password", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to check password account");
+      }
+      const data = await response.json();
+      setHasPasswordAccount(data.hasPassword || false);
+    } catch (err) {
+      console.error("Error checking password account:", err);
+      setHasPasswordAccount(false);
+    } finally {
+      setLoadingPasswordCheck(false);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!session?.user?.id || !profileData) return;
+    
+    setSavingProfile(true);
+    setProfileError(null);
+    setProfileSuccess(null);
+
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name: profileData.name.trim(),
+          fullName: profileData.fullName.trim(),
+          college: profileData.college.trim(),
+          yearOfStudy: profileData.yearOfStudy.trim(),
+          course: profileData.course.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to update profile");
+      }
+
+      const data = await response.json();
+      setProfileData({
+        name: data.user?.name || profileData.name,
+        fullName: data.profile?.fullName || profileData.fullName,
+        college: data.profile?.college || profileData.college,
+        yearOfStudy: data.profile?.yearOfStudy || profileData.yearOfStudy,
+        course: data.profile?.course || profileData.course,
+      });
+      setProfileSuccess("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
+      
+      // Refresh session to update user name in header
+      // Better Auth's useSession() hook should automatically update, but we'll force a refresh
+      try {
+        // Call getSession to update the session cache
+        await authClient.getSession();
+        // Dispatch a custom event to notify other components
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("session-updated"));
+        }
+        // Small delay to ensure the hook updates
+        setTimeout(async () => {
+          await authClient.getSession();
+        }, 100);
+      } catch (err) {
+        console.error("Error refreshing session:", err);
+        // If session refresh fails, still show success but user might need to refresh page
+      }
+    } catch (err: any) {
+      setProfileError(err.message || "Failed to update profile");
+      toast.error(err.message || "Failed to update profile");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   const loadPasskeys = async () => {
     if (!session) return;
@@ -306,6 +449,9 @@ export default function Settings() {
   const handleEnable2FA = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (!session) return;
+
+    // Check if user is OAuth-only (no password account)
+    const isOAuthUser = hasPasswordAccount === false;
 
     // For OAuth users, try to enable without password
     if (isOAuthUser) {
@@ -485,6 +631,119 @@ export default function Settings() {
             </h1>
 
             <div className="space-y-6">
+              {/* Profile Section */}
+              <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+                <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
+                  Profile
+                </h2>
+                <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
+                  Update your personal information and profile details.
+                </p>
+
+                {profileError && (
+                  <div
+                    className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-red-700"
+                    role="alert"
+                  >
+                    {profileError}
+                  </div>
+                )}
+
+                {profileSuccess && (
+                  <div
+                    className="mb-4 rounded-xl border-2 border-green-500 bg-green-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-green-700"
+                    role="alert"
+                  >
+                    {profileSuccess}
+                  </div>
+                )}
+
+                {loadingProfile ? (
+                  <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">Loading profile…</p>
+                ) : profileData ? (
+                  <form onSubmit={handleSaveProfile} className="space-y-4">
+                    <div>
+                      <label htmlFor="name" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        value={profileData.name}
+                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                        required
+                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                        placeholder="Your name"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="fullName" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        id="fullName"
+                        value={profileData.fullName}
+                        onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
+                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                        placeholder="Your full name"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="college" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                        College
+                      </label>
+                      <input
+                        type="text"
+                        id="college"
+                        value={profileData.college}
+                        onChange={(e) => setProfileData({ ...profileData, college: e.target.value })}
+                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                        placeholder="Your college or university"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="yearOfStudy" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                        Year of Study
+                      </label>
+                      <input
+                        type="text"
+                        id="yearOfStudy"
+                        value={profileData.yearOfStudy}
+                        onChange={(e) => setProfileData({ ...profileData, yearOfStudy: e.target.value })}
+                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                        placeholder="e.g., First Year, Second Year, etc."
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="course" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                        Course
+                      </label>
+                      <input
+                        type="text"
+                        id="course"
+                        value={profileData.course}
+                        onChange={(e) => setProfileData({ ...profileData, course: e.target.value })}
+                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                        placeholder="Your course or major"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={savingProfile}
+                      className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
+                    >
+                      {savingProfile ? "Saving…" : "Save Changes"}
+                    </button>
+                  </form>
+                ) : null}
+              </div>
+
               {/* Passkeys Section */}
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
                 <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
@@ -572,12 +831,16 @@ export default function Settings() {
                   Password
                 </h2>
                 <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
-                  {hasPasswordAccount
+                  {hasPasswordAccount === null
+                    ? "Checking account status..."
+                    : hasPasswordAccount
                     ? "Change your account password. You'll receive an email notification when your password is changed."
                     : "Add a password to your account to enable email and password sign-in in addition to Google OAuth."}
                 </p>
 
-                {hasPasswordAccount ? (
+                {hasPasswordAccount === null ? (
+                  <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">Loading…</p>
+                ) : hasPasswordAccount ? (
                   <button
                     type="button"
                     onClick={() => setPasswordModalOpen(true)}
@@ -629,13 +892,15 @@ export default function Settings() {
 
                 {!twoFactorEnabled && !twoFactorSetup ? (
                   <>
-                    {isOAuthUser ? (
+                    {loadingPasswordCheck ? (
+                      <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">Checking account status…</p>
+                    ) : hasPasswordAccount === false ? (
                       <div className="rounded-xl border-2 border-amber-500 bg-amber-50 px-4 py-3">
                         <p className="font-['Satoshi'] text-sm font-medium leading-5 text-amber-900">
-                          Two-factor authentication is not available for accounts signed in with Google OAuth.
+                          Two-factor authentication requires a password account.
                         </p>
                         <p className="mt-2 font-['Satoshi'] text-xs font-normal leading-4 text-amber-800">
-                          To enable 2FA, you'll need to create a password for your account by signing out and creating a new account with email and password, or contact support for assistance.
+                          To enable 2FA, you'll need to create a password for your account. You can do this by using the "Forgot Password" flow or by adding a password in the Password section below.
                         </p>
                       </div>
                     ) : (

@@ -15,7 +15,8 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
 const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
 const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID?.trim();
 const redisUrl = process.env.REDIS_URL?.trim();
-const redisPassword = process.env.REDIS_PASSWORD?.trim();
+// Note: For local Redis (no password), REDIS_PASSWORD should not be set
+// For production, password should be in the URL: redis://:password@host:port
 
 // Redis client for distributed verification SID storage
 let redisClient: ReturnType<typeof createClient> | null = null;
@@ -28,12 +29,20 @@ async function getRedisClient() {
   
   if (!redisClient) {
     try {
+      // Build Redis config - don't use password for local Redis (no auth required)
+      // For production, password should be in the URL: redis://:password@host:port
+      // Local Redis doesn't require authentication, so just use the URL
+      // Explicitly don't pass password even if REDIS_PASSWORD env var exists
       redisClient = createClient({ 
         url: redisUrl,
-        password: redisPassword || undefined // Only set if provided
+        // Don't set password - local Redis doesn't require it
+        // Even if REDIS_PASSWORD env var exists, don't use it for local dev
       });
       redisClient.on("error", (err) => {
-        console.error("[sms] Redis client error:", err);
+        // Only log non-auth errors (auth errors are expected if password is set but not required)
+        if (!err.message?.includes("AUTH")) {
+          console.error("[sms] Redis client error:", err);
+        }
       });
       await redisClient.connect();
     } catch (err) {

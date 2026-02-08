@@ -26,6 +26,24 @@ export function Header() {
   const isHomePage = location.pathname === "/";
   const { data: session, isPending } = authClient.useSession();
 
+  // Listen for session update events and refetch session
+  useEffect(() => {
+    const handleSessionUpdate = async () => {
+      // Refetch session when custom event is dispatched
+      // This will update the session cache and trigger a re-render
+      try {
+        await authClient.getSession();
+      } catch (err) {
+        console.error("Error refreshing session in header:", err);
+      }
+    };
+
+    window.addEventListener("session-updated", handleSessionUpdate);
+    return () => {
+      window.removeEventListener("session-updated", handleSessionUpdate);
+    };
+  }, []);
+
   const handleSignOut = () => {
     authClient.signOut({
       fetchOptions: {
