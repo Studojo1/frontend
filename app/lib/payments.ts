@@ -10,10 +10,8 @@ export function getControlPlaneUrl(): string {
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
-    if (hostname.includes("studojo.pro") || hostname.includes("studojo.com")) {
-      // Use the same TLD as the current hostname
-      const tld = hostname.includes("studojo.com") ? "studojo.com" : "studojo.pro";
-      return `${protocol}//api.${tld}`;
+    if (hostname.includes("studojo.com")) {
+      return `${protocol}//api.studojo.com`;
     }
   }
   // Development fallback

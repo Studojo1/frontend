@@ -66,10 +66,17 @@ export async function action({ request }: Route.ActionArgs) {
     const pdfText = await extractTextFromPDF(buffer);
     console.log(`[resume-parse] PDF text extracted, length: ${pdfText.length} characters`);
     
+    // Log PDF text preview for debugging
+    const textPreview = pdfText.substring(0, 500);
+    console.log(`[resume-parse] PDF text preview (first 500 chars):\n${textPreview}...`);
+    
     // Use OpenAI to structure the resume data
     console.log("[resume-parse] Parsing resume with OpenAI...");
     const resumeJson = await parseResumeWithOpenAI(pdfText, openaiApiKey);
     console.log("[resume-parse] Resume parsed successfully");
+    
+    // Validate parsed data completeness
+    validateParsedResume(resumeJson);
 
     // Generate professional summary if missing
     if (!resumeJson.summary || resumeJson.summary.trim() === "") {
@@ -138,65 +145,94 @@ async function parseResumeWithOpenAI(text: string, apiKey: string): Promise<any>
       messages: [
         {
           role: "system",
-          content: `You are a resume parser. Extract structured resume data from the provided text and return it as JSON matching this schema:
+          content: `You are an expert resume parser. Your task is to extract COMPLETE and COMPREHENSIVE structured resume data from the provided text. 
+
+CRITICAL INSTRUCTIONS:
+1. Extract ALL sections comprehensively - do not skip any information
+2. Extract ALL work experiences, ALL education entries, ALL projects, ALL skills, ALL achievements
+3. For LaTeX-generated PDFs, pay attention to section headers (EDUCATION, EXPERIENCE, PROJECTS, TECHNICAL SKILLS, ACHIEVEMENTS, etc.)
+4. Extract complete contact information including email, phone, website, LinkedIn, GitHub, location
+5. Handle bullet points and multi-line descriptions - preserve all content
+6. Extract dates in various formats (MMM YYYY, YYYY-MM, YYYY, etc.) and normalize them
+7. For current positions, set is_current: true and end_date can be empty or "Present"
+8. For skills, categorize them appropriately (Languages, Frameworks, DevOps, Tools, etc.)
+9. Achievements should be mapped to certifications section with issuer as "Award" or "Achievement"
+10. Extract ALL bullet points under each work experience, project, or education entry
+
+SCHEMA:
 {
-  "title": "string",
-  "summary": "string",
+  "title": "string (job title or professional title)",
+  "summary": "string (professional summary if present, otherwise empty)",
   "contact_info": {
-    "name": "string",
-    "email": "string",
-    "phone": "string",
-    "location": "string",
-    "linkedin": "string",
-    "website": "string"
+    "name": "string (full name)",
+    "email": "string (email address)",
+    "phone": "string (phone number)",
+    "location": "string (city, state/country)",
+    "linkedin": "string (LinkedIn URL or username)",
+    "website": "string (personal website or portfolio URL)"
   },
   "work_experiences": [{
-    "company": "string",
-    "role": "string",
-    "start_date": "string",
-    "end_date": "string",
-    "is_current": boolean,
-    "description": "string"
+    "company": "string (company name)",
+    "role": "string (job title/position)",
+    "start_date": "string (format: YYYY-MM or YYYY)",
+    "end_date": "string (format: YYYY-MM, YYYY, or empty if current)",
+    "is_current": boolean (true if currently working here),
+    "description": "string (ALL bullet points combined, preserve line breaks with \\n)"
   }],
   "educations": [{
-    "institution": "string",
-    "degree": "string",
-    "field_of_study": "string",
-    "start_date": "string",
-    "end_date": "string",
-    "is_current": boolean,
-    "description": "string"
+    "institution": "string (school/university name)",
+    "degree": "string (degree type: B.Tech, B.S., M.S., etc.)",
+    "field_of_study": "string (major/field of study)",
+    "start_date": "string (format: YYYY-MM or YYYY)",
+    "end_date": "string (format: YYYY-MM, YYYY, or empty if current)",
+    "is_current": boolean (true if currently enrolled),
+    "description": "string (GPA, honors, relevant coursework, etc.)"
   }],
   "skills": [{
-    "category": "string",
-    "name": "string",
-    "proficiency": "string"
+    "category": "string (Languages, Frameworks, DevOps, Tools, Specializations, etc.)",
+    "name": "string (individual skill name)",
+    "proficiency": "string (optional: Beginner, Intermediate, Advanced, Expert)"
   }],
   "projects": [{
-    "title": "string",
-    "url": "string",
-    "start_date": "string",
-    "end_date": "string",
-    "description": "string"
+    "title": "string (project name)",
+    "url": "string (GitHub URL, website URL, or empty)",
+    "start_date": "string (format: YYYY-MM or YYYY)",
+    "end_date": "string (format: YYYY-MM, YYYY, or empty if ongoing)",
+    "description": "string (ALL bullet points and details combined)"
   }],
   "certifications": [{
-    "name": "string",
-    "issuer": "string",
-    "issue_date": "string",
-    "expiry_date": "string",
-    "url": "string"
+    "name": "string (certification name or achievement title)",
+    "issuer": "string (issuing organization or 'Award' for achievements)",
+    "issue_date": "string (format: YYYY-MM or YYYY)",
+    "expiry_date": "string (empty if not applicable)",
+    "url": "string (certification URL or empty)"
   }]
 }
 
-Return ONLY valid JSON, no markdown, no code blocks.`,
+EXAMPLES:
+- Date formats: "Aug 2023", "2023-08", "2023", "Jan 2026 -- May 2026" → parse as "2023-08" to "2026-05"
+- Skills: "Languages: C++, Python, Go" → extract as separate skills with category "Languages"
+- Bullet points: Extract ALL bullets under each entry, combine with \\n separators
+- Contact info: Extract from header line, parse email, phone, URLs, location
+
+Return ONLY valid JSON matching the schema above. Extract EVERYTHING - completeness is critical.`,
         },
         {
           role: "user",
-          content: `Parse this resume text into the JSON schema:\n\n${text}`,
+          content: `Extract ALL resume data from this text comprehensively. Pay special attention to:
+- Contact information (email, phone, website, LinkedIn, GitHub, location)
+- ALL work experience entries with complete descriptions
+- ALL education entries
+- ALL projects with full details
+- ALL technical skills (categorized properly)
+- ALL achievements/awards
+
+Resume text:\n\n${text}`,
         },
       ],
       response_format: { type: "json_object" },
       temperature: 0.1,
+      max_tokens: 4000, // Increased for comprehensive extraction
     }),
     });
     
@@ -222,6 +258,10 @@ Return ONLY valid JSON, no markdown, no code blocks.`,
       throw new Error("No content in OpenAI response. The model may have failed to generate a response.");
     }
 
+    // Log OpenAI response preview for debugging
+    const responsePreview = content.substring(0, 500);
+    console.log(`[resume-parse] OpenAI response preview (first 500 chars):\n${responsePreview}...`);
+
     try {
       const parsed = JSON.parse(content);
       // Validate that we got a resume-like structure
@@ -229,6 +269,16 @@ Return ONLY valid JSON, no markdown, no code blocks.`,
         throw new Error("OpenAI returned invalid resume structure");
       }
       console.log("[resume-parse] Resume JSON parsed and validated");
+      
+      // Log extracted data summary
+      console.log(`[resume-parse] Extracted data summary:
+        - Contact info: ${parsed.contact_info ? 'Yes' : 'Missing'}
+        - Work experiences: ${parsed.work_experiences?.length || 0}
+        - Education entries: ${parsed.educations?.length || 0}
+        - Projects: ${parsed.projects?.length || 0}
+        - Skills: ${parsed.skills?.length || 0}
+        - Certifications/Achievements: ${parsed.certifications?.length || 0}`);
+      
       return parsed;
     } catch (error: any) {
       if (error.message.includes("invalid resume structure")) {
@@ -243,6 +293,39 @@ Return ONLY valid JSON, no markdown, no code blocks.`,
       throw new Error("OpenAI API request timed out after 2 minutes");
     }
     throw error;
+  }
+}
+
+function validateParsedResume(resumeData: any): void {
+  const warnings: string[] = [];
+  
+  // Check for missing critical sections
+  if (!resumeData.contact_info || !resumeData.contact_info.name) {
+    warnings.push("Missing contact information or name");
+  }
+  
+  if (!resumeData.work_experiences || resumeData.work_experiences.length === 0) {
+    warnings.push("No work experience entries found");
+  }
+  
+  if (!resumeData.educations || resumeData.educations.length === 0) {
+    warnings.push("No education entries found");
+  }
+  
+  // Check for incomplete contact info
+  if (resumeData.contact_info) {
+    const contact = resumeData.contact_info;
+    if (!contact.email && !contact.phone && !contact.linkedin && !contact.website) {
+      warnings.push("Contact info missing email, phone, LinkedIn, and website");
+    }
+  }
+  
+  // Log warnings if any
+  if (warnings.length > 0) {
+    console.warn("[resume-parse] Validation warnings:");
+    warnings.forEach(warning => console.warn(`  - ${warning}`));
+  } else {
+    console.log("[resume-parse] Validation passed - all critical sections present");
   }
 }
 

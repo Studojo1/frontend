@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { redirect, useSearchParams } from "react-router";
 import { FiDownload, FiEdit, FiTrash2, FiPlus, FiFileText } from "react-icons/fi";
-import { Footer, Header } from "~/components";
+import { Footer, Header, ConfirmModal } from "~/components";
 import { ImportResumeModal, RenameResumeModal, InternshipReturnCard } from "~/components/resumes";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { toast } from "sonner";
@@ -53,10 +53,46 @@ export default function Resumes() {
 
   const loadResumes = async () => {
     try {
-      const res = await fetch("/api/resumes");
-      if (!res.ok) throw new Error("Failed to load resumes");
-      const data = await res.json();
-      setResumes(data.resumes || []);
+      // Load from both v2 (drafts) and v1 (legacy resumes) APIs
+      const [v2Res, v1Res] = await Promise.all([
+        fetch("/api/v2/resumes").catch(() => null),
+        fetch("/api/resumes").catch(() => null),
+      ]);
+
+      const allResumes: Resume[] = [];
+
+      // Add v2 drafts (resume_drafts)
+      if (v2Res?.ok) {
+        const v2Data = await v2Res.json();
+        const drafts = (v2Data.drafts || []).map((draft: any) => ({
+            id: draft.id,
+            name: draft.name,
+            resumeData: draft.sections,
+            createdAt: draft.createdAt,
+            updatedAt: draft.updatedAt,
+        }));
+        allResumes.push(...drafts);
+      }
+
+      // Add v1 legacy resumes (resumes table)
+      if (v1Res?.ok) {
+        const v1Data = await v1Res.json();
+        const legacyResumes = (v1Data.resumes || []).map((resume: any) => ({
+          id: resume.id,
+          name: resume.name,
+          resumeData: resume.resumeData,
+          createdAt: resume.createdAt,
+          updatedAt: resume.updatedAt,
+        }));
+        allResumes.push(...legacyResumes);
+      }
+
+      // Sort by updatedAt descending
+      allResumes.sort((a, b) => 
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+
+      setResumes(allResumes);
     } catch (error) {
       toast.error("Failed to load resumes");
       console.error(error);
@@ -65,17 +101,36 @@ export default function Resumes() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this resume?")) return;
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
+  const handleDeleteClick = (id: string) => {
+    setResumeToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!resumeToDelete) return;
+
+    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/resumes/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete resume");
+      // Try v2 API first, fallback to v1
+      let res = await fetch(`/api/v2/resumes/${resumeToDelete}`, { method: "DELETE" });
+      if (!res.ok) {
+        // Fallback to legacy API
+        res = await fetch(`/api/resumes/${resumeToDelete}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Failed to delete resume");
+      }
       toast.success("Resume deleted successfully");
+      setDeleteModalOpen(false);
+      setResumeToDelete(null);
       loadResumes();
     } catch (error) {
       toast.error("Failed to delete resume");
       console.error(error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -193,10 +248,20 @@ export default function Resumes() {
 
   const handleImport = async (resumeData: any) => {
     const name = generateSmartResumeName(resumeData, resumes);
-    const res = await fetch("/api/resumes", {
+    
+    // Convert legacy resume format to sections format
+    const { convertLegacyResumeToSections } = await import("~/lib/resume-draft");
+    const sections = convertLegacyResumeToSections(resumeData);
+    
+    // Use v2 API to create draft
+    const res = await fetch("/api/v2/resumes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, resumeData }),
+      body: JSON.stringify({ 
+        name, 
+        sections,
+        templateId: "modern", // Default template
+      }),
     });
     if (!res.ok) {
       const errorText = await res.text();
@@ -264,7 +329,7 @@ export default function Resumes() {
 
   const handleUseForOptimization = (resume: Resume) => {
     // Navigate to careers dojo with this resume loaded
-    window.location.href = `/dojos/careers?resume=${resume.id}`;
+    window.location.href = `/resumes/${resume.id}/edit`;
   };
 
   return (
@@ -295,14 +360,24 @@ export default function Resumes() {
                   Manage your saved resumes and optimize them for job applications
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setImportModalOpen(true)}
-                className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-6 font-['Clash_Display'] text-base font-medium leading-5 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] outline outline-2 outline-offset-[-2px] outline-neutral-900"
-              >
-                <FiPlus className="h-5 w-5" />
-                Import Resume
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => window.location.href = "/resumes/new"}
+                  className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-6 font-['Clash_Display'] text-base font-medium leading-5 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] outline outline-2 outline-offset-[-2px] outline-neutral-900"
+                >
+                  <FiPlus className="h-5 w-5" />
+                  Create Resume
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImportModalOpen(true)}
+                  className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-6 font-['Clash_Display'] text-base font-medium leading-5 text-gray-700 border-2 border-gray-300 hover:bg-gray-50"
+                >
+                  <FiPlus className="h-5 w-5" />
+                  Import Resume
+                </button>
+              </div>
             </div>
 
             {/* Resumes List */}
@@ -381,7 +456,7 @@ export default function Resumes() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(resume.id)}
+                        onClick={() => handleDeleteClick(resume.id)}
                         className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 bg-white px-3 py-2 font-['Satoshi'] text-xs font-medium leading-4 text-red-600 hover:bg-red-50"
                       >
                         <FiTrash2 className="h-4 w-4" />
@@ -414,6 +489,21 @@ export default function Resumes() {
           onRename={handleRename}
         />
       )}
+
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setResumeToDelete(null);
+        }}
+        onConfirm={handleDelete}
+        title="Delete Resume"
+        message="Are you sure you want to delete this resume? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </>
   );
 }

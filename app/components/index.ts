@@ -4,6 +4,7 @@ export { Footer } from "./common/footer";
 export { Section } from "./common/section";
 export { StatCard } from "./common/stat-card";
 export { SmoothLink } from "./common/smooth-link";
+export { ConfirmModal } from "./confirm-modal";
 
 // Home page components
 export { Hero } from "./home/hero";

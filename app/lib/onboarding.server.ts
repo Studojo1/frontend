@@ -127,7 +127,7 @@ export async function checkAdminAccess(request: { headers: Headers }): Promise<b
 
     // Get control plane URL
     const controlPlaneUrl = process.env.CONTROL_PLANE_URL || 
-      (process.env.NODE_ENV === "production" ? "https://api.studojo.pro" : "http://localhost:8080");
+      (process.env.NODE_ENV === "production" ? "https://api.studojo.com" : "http://localhost:8080");
 
     // Check admin access by calling admin API endpoint
     const response = await fetch(`${controlPlaneUrl}/v1/admin/users?limit=1`, {

@@ -205,6 +205,8 @@ export const userRelations = relations(user, ({ many, one }) => ({
   passkeys: many(passkey),
   profile: one(userProfile),
   resumes: many(resumes),
+  resumeDrafts: many(resumeDrafts),
+  resumeVersions: many(resumeVersions),
   newsletterSubscription: one(newsletterSubscriptions),
   questionResponses: many(userQuestionResponses),
   emailPreferences: one(emailPreferences),
@@ -232,6 +234,8 @@ export const resumes = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     resumeData: jsonb("resume_data").notNull(),
+    version: integer("version").default(1).notNull(),
+    templateId: text("template_id").default("modern").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
@@ -243,8 +247,71 @@ export const resumes = pgTable(
   ],
 );
 
-export const resumesRelations = relations(resumes, ({ one }) => ({
+// Resume versions table for version history
+export const resumeVersions = pgTable(
+  "resume_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    resumeId: uuid("resume_id")
+      .notNull()
+      .references(() => resumes.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    resumeData: jsonb("resume_data").notNull(),
+    templateId: text("template_id"),
+    changeSummary: text("change_summary"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+  },
+  (table) => [
+    index("resume_versions_resume_id_idx").on(table.resumeId),
+    index("resume_versions_version_idx").on(table.resumeId, table.version),
+    index("resume_versions_created_at_idx").on(table.createdAt),
+    unique().on(table.resumeId, table.version),
+  ],
+);
+
+export const resumesRelations = relations(resumes, ({ one, many }) => ({
   user: one(user, { fields: [resumes.userId], references: [user.id] }),
+  versions: many(resumeVersions),
+}));
+
+export const resumeVersionsRelations = relations(resumeVersions, ({ one }) => ({
+  resume: one(resumes, { fields: [resumeVersions.resumeId], references: [resumes.id] }),
+  creator: one(user, { fields: [resumeVersions.createdBy], references: [user.id] }),
+}));
+
+// Resume Drafts v2: Section-based resume storage
+export const resumeDrafts = pgTable(
+  "resume_drafts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    templateId: text("template_id").default("modern").notNull(),
+    sections: jsonb("sections").notNull(), // Section-based structure
+    version: integer("version").default(1).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    isArchived: boolean("is_archived").default(false).notNull(),
+  },
+  (table) => [
+    index("resume_drafts_user_id_idx").on(table.userId),
+    index("resume_drafts_updated_at_idx").on(table.updatedAt),
+    index("resume_drafts_is_archived_idx").on(table.isArchived),
+  ],
+);
+
+export const resumeDraftsRelations = relations(resumeDrafts, ({ one, many }) => ({
+  user: one(user, { fields: [resumeDrafts.userId], references: [user.id] }),
+  template: one(resumeTemplates, { fields: [resumeDrafts.templateId], references: [resumeTemplates.id] }),
+  versions: many(resumeVersions),
 }));
 
 // Career applications table
@@ -655,6 +722,67 @@ export const questionTagMappingsRelations = relations(questionTagMappings, ({ on
   tag: one(questionTags, {
     fields: [questionTagMappings.tagId],
     references: [questionTags.id],
+  }),
+}));
+
+// Resume Templates table - proper database-backed template management
+export const resumeTemplates = pgTable(
+  "resume_templates",
+  {
+    id: text("id").primaryKey(), // e.g., "modern", "classic", "minimal"
+    version: text("version").default("1.0").notNull(),
+    name: text("name").notNull(),
+    description: text("description").notNull(),
+    category: text("category").notNull(), // "professional", "traditional", "ats-friendly", "executive", "creative"
+    latexFile: text("latex_file").notNull(), // Path to LaTeX template file
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("resume_templates_category_idx").on(table.category),
+    index("resume_templates_is_active_idx").on(table.isActive),
+  ],
+);
+
+export const resumeTemplatesRelations = relations(resumeTemplates, ({ many }) => ({
+  drafts: many(resumeDrafts),
+  examples: many(resumeExamples),
+}));
+
+// Resume Examples table for job-type-specific example resumes
+export const resumeExamples = pgTable(
+  "resume_examples",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    jobType: text("job_type").notNull(), // e.g., "software-engineer", "marketing-manager"
+    jobTypeLabel: text("job_type_label").notNull(), // e.g., "Software Engineer"
+    templateId: text("template_id").notNull().references(() => resumeTemplates.id),
+    name: text("name").notNull(), // e.g., "Software Engineer - Modern Template"
+    description: text("description"), // Brief description of the example
+    resumeData: jsonb("resume_data").notNull(), // Full resume sections JSON
+    previewUrl: text("preview_url"), // URL to preview image
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("resume_examples_job_type_idx").on(table.jobType),
+    index("resume_examples_template_id_idx").on(table.templateId),
+    index("resume_examples_is_active_idx").on(table.isActive),
+  ],
+);
+
+export const resumeExamplesRelations = relations(resumeExamples, ({ one }) => ({
+  template: one(resumeTemplates, {
+    fields: [resumeExamples.templateId],
+    references: [resumeTemplates.id],
   }),
 }));
 

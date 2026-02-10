@@ -9,9 +9,8 @@ export function getEmailerServiceUrl(): string {
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
-    if (hostname.includes("studojo.pro") || hostname.includes("studojo.com")) {
-      const tld = hostname.includes("studojo.com") ? "studojo.com" : "studojo.pro";
-      return `${protocol}//emailer.${tld}`;
+    if (hostname.includes("studojo.com")) {
+      return `${protocol}//emailer.studojo.com`;
     }
   }
   // Development fallback - use internal service (will need port-forwarding or proxy)

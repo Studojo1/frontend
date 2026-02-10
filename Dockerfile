@@ -7,7 +7,7 @@ RUN bun install --frozen-lockfile --production
 
 FROM oven/bun:1 AS build-env
 WORKDIR /src
-ARG VITE_CONTROL_PLANE_URL=https://api.studojo.pro
+ARG VITE_CONTROL_PLANE_URL=https://api.studojo.com
 ENV VITE_CONTROL_PLANE_URL=${VITE_CONTROL_PLANE_URL}
 COPY package.json bun.lockb ./
 RUN bun install --frozen-lockfile
@@ -26,15 +26,36 @@ CMD ["sh", "-c", "for file in $(ls -1 drizzle/*.sql | sort); do echo \"Running m
 FROM node:20-bookworm-slim
 WORKDIR /src
 ENV PORT=3000
-COPY package.json bun.lockb ./
-COPY --from=production-dependencies-env /src/node_modules /src/node_modules
-# Install drizzle-kit, tsx, typescript globally, and dotenv locally (needed for drizzle.config.ts)
-RUN npm install -g drizzle-kit@^0.31.8 tsx typescript && \
-    cd /src && npm install dotenv --save
+
+# Install system dependencies for canvas (native module)
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev \
+    librsvg2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
+COPY package.json ./
+
+# Install all production dependencies with npm (for Node.js compatibility)
+# Install canvas and pdfjs-dist explicitly for PDF to PNG conversion
+RUN npm install --production && \
+    npm install canvas pdfjs-dist
+
+# Install global tools needed for migrations and scripts
+RUN npm install -g drizzle-kit@^0.31.8 tsx typescript
+
+# Copy built assets from build stage
 COPY --from=build-env /src/build ./build
+
 # Copy drizzle config and schema files needed for migrations
 COPY --from=build-env /src/drizzle.config.ts ./
 COPY --from=build-env /src/auth-schema.ts ./
 COPY --from=build-env /src/drizzle ./drizzle
+
 EXPOSE 3000
 CMD ["npx", "react-router-serve", "./build/server/index.js"]

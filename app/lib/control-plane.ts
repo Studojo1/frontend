@@ -2,21 +2,52 @@ import { authClient } from "./auth-client";
 import { fetchWithRetry } from "./fetch-with-retry";
 
 export function getControlPlaneUrl(): string {
-  const url = import.meta.env?.VITE_CONTROL_PLANE_URL;
-  if (typeof url === "string" && url) {
-    return url;
+  // Check runtime env var for server-side (Remix server routes)
+  // This is needed because import.meta.env is build-time only
+  // In Docker Compose, server-side requests should use service name
+  if (typeof process !== "undefined" && process.env) {
+    // Check for explicit server-side URL first (for Docker Compose)
+    const serverUrl = process.env.CONTROL_PLANE_URL;
+    if (typeof serverUrl === "string" && serverUrl) {
+      // Debug logging (only in development)
+      if (process.env.NODE_ENV !== "production") {
+        console.debug("[getControlPlaneUrl] Using CONTROL_PLANE_URL:", serverUrl);
+      }
+      return serverUrl;
+    }
+    
+    // If we're server-side and VITE_CONTROL_PLANE_URL points to localhost,
+    // use the Docker service name instead
+    const viteUrl = process.env.VITE_CONTROL_PLANE_URL;
+    if (typeof viteUrl === "string" && viteUrl && viteUrl.includes("localhost")) {
+      // Replace localhost with service name for Docker Compose
+      return viteUrl.replace("localhost", "control-plane");
+    }
   }
-  // In production, dynamically determine API URL based on current hostname
+  
+  // Check build-time env var (works in both client and server)
+  const viteUrl = import.meta.env?.VITE_CONTROL_PLANE_URL;
+  if (typeof viteUrl === "string" && viteUrl) {
+    // If server-side and URL contains localhost, use service name
+    if (typeof window === "undefined" && viteUrl.includes("localhost")) {
+      return viteUrl.replace("localhost", "control-plane");
+    }
+    return viteUrl;
+  }
+  
+  // In production, dynamically determine API URL based on current hostname (client-side only)
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
-    if (hostname.includes("studojo.pro") || hostname.includes("studojo.com")) {
-      // Use the same TLD as the current hostname
-      const tld = hostname.includes("studojo.com") ? "studojo.com" : "studojo.pro";
-      return `${protocol}//api.${tld}`;
+    if (hostname.includes("studojo.com")) {
+      return `${protocol}//api.studojo.com`;
     }
   }
-  // Development fallback
+  
+  // Development fallback - use service name if server-side
+  if (typeof window === "undefined") {
+    return "http://control-plane:8080";
+  }
   return "http://localhost:8080";
 }
 
@@ -24,7 +55,7 @@ export function getControlPlaneUrl(): string {
 let tokenCache: { token: string; expires: number } | null = null;
 const TOKEN_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-export async function getToken(): Promise<string | null> {
+export async function getToken(requestHeaders?: Headers, requestUrl?: string): Promise<string | null> {
   // Check cache first
   if (tokenCache && tokenCache.expires > Date.now()) {
     return tokenCache.token;
@@ -33,7 +64,72 @@ export async function getToken(): Promise<string | null> {
   // Clear expired cache
   tokenCache = null;
 
-  // Get token with retry (Better Auth client now uses fetchWithRetry internally)
+  // If we have request headers (server-side), use Better Auth's server API
+  if (requestHeaders) {
+    try {
+      const { auth } = await import("~/lib/auth");
+      
+      // Try getAccessToken first
+      let token: string | null = null;
+      try {
+        // Better Auth's getAccessToken may require a body parameter
+        // Pass an empty object if needed, or just headers
+        const tokenResult = await auth.api.getAccessToken({
+          headers: requestHeaders,
+          body: {}, // Some versions require a body parameter
+        } as any);
+        token = (tokenResult as any)?.token || (tokenResult as any)?.accessToken || null;
+      } catch (e: any) {
+        // If body parameter causes issues, try without it
+        if (e?.body?.message?.includes("body")) {
+          try {
+            const tokenResult = await auth.api.getAccessToken({
+              headers: requestHeaders,
+            } as any);
+            token = (tokenResult as any)?.token || (tokenResult as any)?.accessToken || null;
+          } catch (e2) {
+            console.debug("Could not get token via getAccessToken (without body):", e2);
+          }
+        } else {
+          console.debug("Could not get token via getAccessToken:", e);
+        }
+      }
+      
+      // Fallback: call the token endpoint directly via auth handler
+      if (!token && requestUrl) {
+        try {
+          // Construct a request to the token endpoint with the same headers
+          const tokenUrl = new URL("/api/auth/token", requestUrl);
+          const tokenRequest = new Request(tokenUrl.toString(), {
+            method: "GET",
+            headers: requestHeaders,
+          });
+          
+          const tokenResponse = await auth.handler(tokenRequest);
+          if (tokenResponse && tokenResponse.ok) {
+            const tokenData = await tokenResponse.json();
+            token = tokenData?.token || tokenData?.accessToken || tokenData?.data?.token || null;
+          }
+        } catch (e) {
+          console.debug("Could not get token via handler:", e);
+        }
+      }
+      
+      if (token) {
+        // Cache the token
+        tokenCache = {
+          token,
+          expires: Date.now() + TOKEN_CACHE_TTL,
+        };
+        return token;
+      }
+    } catch (error: any) {
+      console.warn("Failed to get auth token (server-side):", error);
+      return null;
+    }
+  }
+
+  // Client-side: Get token with retry (Better Auth client now uses fetchWithRetry internally)
   try {
     const { data, error } = await authClient.token();
     if (error || !data?.token) return null;
@@ -366,6 +462,55 @@ export async function optimizeResumeJob(
     const err = data as ApiError;
     throw new ControlPlaneError(
       err?.error?.message ?? "Resume optimization failed",
+      res.status,
+      err
+    );
+  }
+  return { res: data as SubmitResponse, status: res.status };
+}
+
+/** Preview job payload. */
+export interface ResumePreviewPayload {
+  resume: any;
+  template_id?: string;
+}
+
+/** Submit resume preview job. */
+export async function submitPreviewJob(
+  payload: ResumePreviewPayload,
+  requestHeaders?: Headers,
+  requestUrl?: string
+): Promise<{
+  res: SubmitResponse;
+  status: number;
+}> {
+  const token = await getToken(requestHeaders, requestUrl);
+  if (!token) {
+    // Log warning instead of throwing to prevent spam
+    console.warn("[control-plane] No auth token available for preview job");
+    throw new ControlPlaneError("Authentication required. Please refresh the page.", 401);
+  }
+
+  const base = getControlPlaneUrl();
+  const res = await fetchWithRetry(`${base}/v1/jobs`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      type: "resume-preview",
+      payload,
+    }),
+    maxRetries: 3,
+    timeout: 30 * 1000,
+  });
+
+  const data = (await res.json()) as SubmitResponse | ApiError;
+  if (!res.ok) {
+    const err = data as ApiError;
+    throw new ControlPlaneError(
+      err?.error?.message ?? "Preview generation failed",
       res.status,
       err
     );

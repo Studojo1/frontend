@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
-import { resumes } from "../../auth-schema";
+import { resumes, resumeVersions } from "../../auth-schema";
 import type { Route } from "./+types/api.resumes.$id";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
@@ -105,9 +105,20 @@ export async function action({ params, request }: Route.ActionArgs) {
       );
     }
 
-    const { name, resumeData } = body as { name?: unknown; resumeData?: unknown };
+    const { name, resumeData, templateId, changeSummary } = body as {
+      name?: unknown;
+      resumeData?: unknown;
+      templateId?: unknown;
+      changeSummary?: unknown;
+    };
 
-    const updateData: { name?: string; resumeData?: any } = {};
+    const updateData: {
+      name?: string;
+      resumeData?: any;
+      templateId?: string;
+      version?: number;
+      updatedAt?: Date;
+    } = {};
     if (name !== undefined) {
       if (typeof name !== "string" || !name.trim()) {
         return new Response(
@@ -126,6 +137,43 @@ export async function action({ params, request }: Route.ActionArgs) {
       }
       updateData.resumeData = resumeData;
     }
+    if (templateId !== undefined) {
+      if (typeof templateId !== "string") {
+        return new Response(
+          JSON.stringify({ error: "templateId must be a string" }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      updateData.templateId = templateId;
+    }
+
+    // Get next version number if resumeData or templateId changed
+    if (resumeData !== undefined || templateId !== undefined) {
+      const [latestVersion] = await db
+        .select()
+        .from(resumeVersions)
+        .where(eq(resumeVersions.resumeId, id))
+        .orderBy(desc(resumeVersions.version))
+        .limit(1);
+
+      const nextVersion = (latestVersion?.version || existing.version) + 1;
+      updateData.version = nextVersion;
+      updateData.updatedAt = new Date();
+
+      // Create new version record
+      await db.insert(resumeVersions).values({
+        resumeId: id,
+        version: nextVersion,
+        resumeData: (resumeData as any) || existing.resumeData,
+        templateId: (templateId as string) || existing.templateId || "modern",
+        changeSummary:
+          (typeof changeSummary === "string" ? changeSummary : null) ||
+          "Updated",
+        createdBy: session.user.id,
+      });
+    } else {
+      updateData.updatedAt = new Date();
+    }
 
     const [updated] = await db
       .update(resumes)
@@ -140,6 +188,8 @@ export async function action({ params, request }: Route.ActionArgs) {
           userId: updated.userId,
           name: updated.name,
           resumeData: updated.resumeData,
+          version: updated.version,
+          templateId: updated.templateId,
           createdAt: updated.createdAt.toISOString(),
           updatedAt: updated.updatedAt.toISOString(),
         },

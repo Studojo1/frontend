@@ -1,10 +1,8 @@
-import { motion } from "framer-motion";
 import { redirect } from "react-router";
-import { Footer, Header } from "~/components";
-import { CareersDojoPage } from "~/components/dojos/careers-dojo";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import type { Route } from "./+types/dojos.careers";
 
+// Legacy route - redirect to new resume builder
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) throw redirect("/auth");
@@ -12,7 +10,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!onboardingStatus.complete) {
     throw redirect("/onboarding");
   }
-  return null;
+  
+  // Redirect to resume list page (new UX)
+  throw redirect("/resumes");
 }
 
 export function meta({}: Route.MetaArgs) {
