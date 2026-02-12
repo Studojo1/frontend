@@ -127,10 +127,11 @@ export function ImportResumeModal({
   onImport,
 }: ImportResumeModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // Unified file upload handler that accepts a File object
+  const handleFileUpload = async (file: File) => {
     if (!file) return;
 
     // Validate PDF file
@@ -193,6 +194,56 @@ export function ImportResumeModal({
     }
   };
 
+  // Handle file input change
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isProcessing) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging to false if we're actually leaving the drop zone
+    // Check if relatedTarget is not a child of the current target
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (
+      x < rect.left ||
+      x > rect.right ||
+      y < rect.top ||
+      y > rect.bottom
+    ) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (isProcessing) {
+      return;
+    }
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
   const handleImport = async (resumeData: any) => {
     // Basic validation
     if (!resumeData || typeof resumeData !== "object") {
@@ -235,20 +286,21 @@ export function ImportResumeModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 pointer-events-none" onClick={(e) => e.stopPropagation()}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl rounded-2xl bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] outline outline-2 outline-offset-[-2px] outline-black"
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-sm md:max-w-2xl rounded-2xl bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] outline outline-2 outline-offset-[-2px] outline-black pointer-events-auto"
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b-2 border-black px-6 py-4">
-                <h2 className="font-['Clash_Display'] text-2xl font-medium leading-8 tracking-tight text-neutral-950">
+              <div className="flex items-center justify-between border-b-2 border-black px-4 py-3 md:px-6 md:py-4">
+                <h2 className="font-['Clash_Display'] text-xl md:text-2xl font-medium leading-8 tracking-tight text-neutral-950">
                   Import Resume
                 </h2>
                 <button
@@ -261,7 +313,7 @@ export function ImportResumeModal({
               </div>
 
               {/* Content */}
-              <div className="relative p-6">
+              <div className="relative p-4 md:p-6">
                 {/* Floating shapes during processing */}
                 {isProcessing && (
                   <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none" aria-hidden="true">
@@ -281,27 +333,27 @@ export function ImportResumeModal({
                       ref={fileInputRef}
                       type="file"
                       accept=".pdf,application/pdf"
-                      onChange={handleFileUpload}
+                      onChange={handleFileInputChange}
                       disabled={isProcessing}
                       className="hidden"
                       id="file-upload"
                       capture="environment"
                     />
-                    <motion.label
-                      htmlFor="file-upload"
-                      onClick={(e) => {
-                        if (!isProcessing && fileInputRef.current) {
-                          e.preventDefault();
-                          fileInputRef.current.click();
-                        }
-                      }}
-                      className={`relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-gray-50 py-8 font-['Satoshi'] text-sm font-medium leading-5 transition-colors ${
+                    <motion.div
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed py-6 md:py-8 min-h-[120px] md:min-h-[140px] font-['Satoshi'] text-sm md:text-base font-medium leading-5 transition-colors ${
                         isProcessing
-                          ? "border-emerald-500 bg-emerald-50 cursor-not-allowed"
-                          : "border-gray-300 text-gray-600 hover:border-emerald-500 hover:bg-emerald-50"
+                          ? "border-emerald-500 bg-emerald-50 cursor-not-allowed pointer-events-none"
+                          : isDragging
+                            ? "border-emerald-500 bg-emerald-50 scale-105"
+                            : "border-gray-300 bg-gray-50 text-gray-600 hover:border-emerald-500 hover:bg-emerald-50"
                       }`}
                       animate={isProcessing ? {
                         scale: [1, 1.02, 1],
+                      } : isDragging ? {
+                        scale: 1.05,
                       } : {}}
                       transition={{
                         duration: 2,
@@ -312,12 +364,15 @@ export function ImportResumeModal({
                       {isProcessing ? (
                         <ProcessingIndicator />
                       ) : (
-                        <>
+                        <label
+                          htmlFor="file-upload"
+                          className="flex flex-col items-center justify-center gap-2 cursor-pointer w-full h-full"
+                        >
                           <AnimatedUploadIcon />
-                          <span>Click to upload PDF resume</span>
-                        </>
+                          <span className="text-center px-2">{isDragging ? "Drop your PDF here" : "Click to upload PDF resume"}</span>
+                        </label>
                       )}
-                    </motion.label>
+                    </motion.div>
                     <p className="mt-2 text-center font-['Satoshi'] text-xs font-normal leading-4 text-gray-500">
                       We'll use AI to extract and structure your resume data
                     </p>

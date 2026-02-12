@@ -47,12 +47,48 @@ export function ApplicationFlow({
 
   const loadResumes = async () => {
     try {
-      const res = await fetch("/api/resumes");
-      if (!res.ok) throw new Error("Failed to load resumes");
-      const data = await res.json();
-      setResumes(data.resumes || []);
-      if (data.resumes && data.resumes.length > 0) {
-        setSelectedResumeId(data.resumes[0].id);
+      // Load from both v2 (drafts) and v1 (legacy resumes) APIs
+      const [v2Res, v1Res] = await Promise.all([
+        fetch("/api/v2/resumes").catch(() => null),
+        fetch("/api/resumes").catch(() => null),
+      ]);
+
+      const allResumes: Resume[] = [];
+
+      // Add v2 drafts (resume_drafts)
+      if (v2Res?.ok) {
+        const v2Data = await v2Res.json();
+        const drafts = (v2Data.drafts || []).map((draft: any) => ({
+          id: draft.id,
+          name: draft.name,
+          resumeData: draft.sections,
+          createdAt: draft.createdAt,
+          updatedAt: draft.updatedAt,
+        }));
+        allResumes.push(...drafts);
+      }
+
+      // Add v1 legacy resumes (resumes table)
+      if (v1Res?.ok) {
+        const v1Data = await v1Res.json();
+        const legacyResumes = (v1Data.resumes || []).map((resume: any) => ({
+          id: resume.id,
+          name: resume.name,
+          resumeData: resume.resumeData,
+          createdAt: resume.createdAt,
+          updatedAt: resume.updatedAt,
+        }));
+        allResumes.push(...legacyResumes);
+      }
+
+      // Sort by updatedAt descending
+      allResumes.sort((a, b) => 
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+
+      setResumes(allResumes);
+      if (allResumes.length > 0) {
+        setSelectedResumeId(allResumes[0].id);
       }
     } catch (error) {
       toast.error("Failed to load resumes");
@@ -311,19 +347,22 @@ export function ApplicationFlow({
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-      />
+      {!importModalOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm"
+          onClick={onClose}
+          aria-hidden="true"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+        />
+      )}
       
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div 
-          className="relative w-full max-w-2xl rounded-lg border-2 border-neutral-900 bg-white p-6 shadow-lg pointer-events-auto"
-          onClick={(e) => e.stopPropagation()}
-        >
+      {!importModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div 
+            className="relative w-full max-w-2xl rounded-lg border-2 border-neutral-900 bg-white p-6 shadow-lg pointer-events-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
         <button
           onClick={onClose}
           className="absolute right-4 top-4 rounded p-2 text-gray-500 hover:bg-gray-100"
@@ -450,14 +489,15 @@ export function ApplicationFlow({
             </div>
           </form>
         )}
-      </div>
+          </div>
+        </div>
+      )}
       
       <ImportResumeModal
         isOpen={importModalOpen}
         onClose={() => setImportModalOpen(false)}
         onImport={handleResumeImport}
       />
-    </div>
     </>
   );
 }
