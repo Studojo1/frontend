@@ -1,20 +1,9 @@
 import { fetchWithRetry } from "./fetch-with-retry";
+import { getControlPlaneUrl, getToken } from "./control-plane";
 
+// Use control plane URL instead of direct emailer service URL
 export function getEmailerServiceUrl(): string {
-  const url = import.meta.env?.VITE_EMAILER_SERVICE_URL;
-  if (typeof url === "string" && url) {
-    return url;
-  }
-  // In production, use internal service URL
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    if (hostname.includes("studojo.com")) {
-      return `${protocol}//emailer.studojo.com`;
-    }
-  }
-  // Development fallback - use internal service (will need port-forwarding or proxy)
-  return "http://localhost:8087";
+  return getControlPlaneUrl();
 }
 
 export interface ForgotPasswordRequest {
@@ -58,7 +47,7 @@ export async function requestPasswordReset(email: string): Promise<{ message: st
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || "Failed to request password reset");
+    throw new Error(data.error?.message || data.error || "Failed to request password reset");
   }
   return data;
 }
@@ -77,17 +66,23 @@ export async function resetPassword(token: string, newPassword: string): Promise
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || "Failed to reset password");
+    throw new Error(data.error?.message || data.error || "Failed to reset password");
   }
   return data;
 }
 
 export async function changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{ message: string }> {
+  const token = await getToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+
   const base = getEmailerServiceUrl();
   const res = await fetchWithRetry(`${base}/v1/email/change-password`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ user_id: userId, current_password: currentPassword, new_password: newPassword }),
     maxRetries: 3,
@@ -96,17 +91,23 @@ export async function changePassword(userId: string, currentPassword: string, ne
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || "Failed to change password");
+    throw new Error(data.error?.message || data.error || "Failed to change password");
   }
   return data;
 }
 
 export async function getEmailPreferences(userId: string): Promise<EmailPreferences> {
+  const token = await getToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+
   const base = getEmailerServiceUrl();
   const res = await fetchWithRetry(`${base}/v1/email/preferences/${userId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     maxRetries: 3,
     timeout: 30 * 1000,
@@ -114,7 +115,7 @@ export async function getEmailPreferences(userId: string): Promise<EmailPreferen
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || "Failed to get email preferences");
+    throw new Error(data.error?.message || data.error || "Failed to get email preferences");
   }
   return data;
 }
@@ -123,11 +124,17 @@ export async function updateEmailPreferences(
   userId: string,
   preferences: EmailPreferencesUpdate
 ): Promise<EmailPreferences> {
+  const token = await getToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+
   const base = getEmailerServiceUrl();
   const res = await fetchWithRetry(`${base}/v1/email/preferences/${userId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(preferences),
     maxRetries: 3,
@@ -136,7 +143,7 @@ export async function updateEmailPreferences(
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || "Failed to update email preferences");
+    throw new Error(data.error?.message || data.error || "Failed to update email preferences");
   }
   return data;
 }
