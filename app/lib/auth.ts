@@ -103,7 +103,7 @@ export const auth = betterAuth({
   ],
   secret: process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET,
   
-  // Enable CORS for admin panel and maverick
+  // Enable CORS for admin panel, maverick, and dev panel
   cors: {
     enabled: true,
     origin: [
@@ -116,6 +116,8 @@ export const auth = betterAuth({
       ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) || []),
       // Add maverick URL if specified
       ...(process.env.MAVERICK_URL ? [process.env.MAVERICK_URL] : []),
+      // Explicitly add dev.studojo.com if not already in CORS_ORIGINS
+      ...(process.env.CORS_ORIGINS?.includes("dev.studojo.com") ? [] : ["https://dev.studojo.com"]),
     ],
     credentials: true,
   },
