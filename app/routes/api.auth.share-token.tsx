@@ -1,6 +1,18 @@
 import type { Route } from "./+types/api.auth.share-token";
 import { auth } from "~/lib/auth";
 
+// Allowed CORS origins for share-token endpoint
+const ALLOWED_ORIGINS = new Set([
+  "http://localhost:3001",
+  "http://localhost:3002",
+  "http://localhost:3004",
+  "http://127.0.0.1:3001",
+  "http://127.0.0.1:3002",
+  "http://127.0.0.1:3004",
+  // Add production origins from environment variable
+  ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) || []),
+]);
+
 /**
  * API endpoint to share authentication token with admin panel
  * This allows the admin panel to get a JWT token from the frontend's session
@@ -10,46 +22,31 @@ import { auth } from "~/lib/auth";
  * and if the user is authenticated in the frontend, we share the token.
  */
 export async function loader({ request }: Route.LoaderArgs) {
+  const origin = request.headers.get("origin");
+  
   // Handle OPTIONS preflight request
   if (request.method === "OPTIONS") {
-    const origin = request.headers.get("origin");
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": origin || "http://localhost:3001",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
-    });
+    const headers: HeadersInit = {
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    };
+    if (origin && ALLOWED_ORIGINS.has(origin)) {
+      headers["Access-Control-Allow-Origin"] = origin;
+    }
+    return new Response(null, { status: 204, headers });
   }
   
-  // Check if request is from admin panel, maverick, or dev-panel (allow localhost:3001, :3002, :3004, admin, maverick, or dev subdomain)
-  const origin = request.headers.get("origin");
-  const referer = request.headers.get("referer");
-  const isAdminPanel = 
-    origin?.includes(":3001") || 
-    origin?.includes(":3002") ||
-    origin?.includes(":3004") ||
-    origin?.includes("admin") ||
-    origin?.includes("maverick") ||
-    origin?.includes("dev") ||
-    referer?.includes(":3001") ||
-    referer?.includes(":3002") ||
-    referer?.includes(":3004") ||
-    referer?.includes("admin") ||
-    referer?.includes("maverick") ||
-    referer?.includes("dev") ||
-    request.headers.get("user-agent")?.includes("admin") ||
-    request.headers.get("user-agent")?.includes("maverick") ||
-    request.headers.get("user-agent")?.includes("dev-panel");
+  // Check if request is from allowed origin
+  const isAllowedOrigin = origin && ALLOWED_ORIGINS.has(origin);
   
-  if (!isAdminPanel) {
+  if (!isAllowedOrigin) {
     return Response.json({ error: "Unauthorized origin" }, { 
       status: 403,
-      headers: {
-        "Access-Control-Allow-Origin": origin || "*",
-      },
+      headers: origin && ALLOWED_ORIGINS.has(origin) ? {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Credentials": "true",
+      } : {},
     });
   }
 
@@ -108,15 +105,16 @@ export async function loader({ request }: Route.LoaderArgs) {
     }
 
     // Return token and user info
+    const headers: HeadersInit = {
+      "Access-Control-Allow-Credentials": "true",
+    };
+    if (origin && ALLOWED_ORIGINS.has(origin)) {
+      headers["Access-Control-Allow-Origin"] = origin;
+    }
     return Response.json({
       token: jwtToken,
       user: sessionResponse.user,
-    }, {
-      headers: {
-        "Access-Control-Allow-Origin": origin || "*",
-        "Access-Control-Allow-Credentials": "true",
-      },
-    });
+    }, { headers });
   } catch (error: any) {
     console.error("Error sharing token:", error);
     return Response.json({ error: "Internal server error" }, { status: 500 });
