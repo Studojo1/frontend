@@ -13,72 +13,111 @@ import { PDFPreview } from "~/components/resumes/pdf-preview";
 import { AIPanel } from "~/components/resumes/ai-panel";
 import { ExportDialog } from "~/components/resumes/export-dialog";
 import db from "~/lib/db";
-import { resumeDrafts } from "../../auth-schema";
-import { eq } from "drizzle-orm";
+import { resumeDrafts, resumes } from "../../auth-schema";
+import { eq, and } from "drizzle-orm";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-  const session = await getSessionFromRequest(request);
-  if (!session) throw redirect("/auth");
-  
-  const onboardingStatus = await requireOnboardingComplete(session.user.id);
-  if (!onboardingStatus.complete) {
-    throw redirect("/onboarding");
-  }
-
-  const origin = new URL(request.url).origin;
-  const cookieHeader = request.headers.get("Cookie") || "";
-
-  // Try loading draft first (v2 API)
-  let draftRes = await fetch(`${origin}/api/v2/resumes/${params.id}`, {
-    headers: { Cookie: cookieHeader },
-  });
-
-  if (draftRes.ok) {
-  const { draft } = await draftRes.json();
-  return { draft };
-  }
-
-  // If not found, try loading legacy resume (v1 API) and convert to draft
-  const legacyRes = await fetch(`${origin}/api/resumes/${params.id}`, {
-    headers: { Cookie: cookieHeader },
-  });
-
-  if (legacyRes.ok) {
-    const { resume } = await legacyRes.json();
-    // Convert legacy resume to sections format
-    const sections = convertLegacyResumeToSections(resume.resumeData);
+  try {
+    const session = await getSessionFromRequest(request);
+    if (!session) throw redirect("/auth");
     
-    // Check if draft already exists
+    const onboardingStatus = await requireOnboardingComplete(session.user.id);
+    if (!onboardingStatus.complete) {
+      throw redirect("/onboarding");
+    }
+
+    console.log(`[resumes.$id.edit] Loading resume ${params.id} for user ${session.user.id}`);
+
+    // Query database directly since we already have authenticated session
+    // This avoids auth issues with server-side fetch calls
     const [existingDraft] = await db
       .select()
       .from(resumeDrafts)
-      .where(eq(resumeDrafts.id, params.id))
+      .where(and(eq(resumeDrafts.id, params.id), eq(resumeDrafts.userId, session.user.id)))
       .limit(1);
-    
+
     if (existingDraft) {
+      console.log(`[resumes.$id.edit] Found draft for ${params.id}`);
       return { draft: existingDraft };
     }
-    
-    // Create draft from legacy resume
-    const [newDraft] = await db
-      .insert(resumeDrafts)
-      .values({
-        id: resume.id,
-        userId: resume.userId,
-        name: resume.name,
-        templateId: resume.templateId || "modern",
-        sections,
-        version: resume.version || 1,
-        createdAt: resume.createdAt,
-        updatedAt: resume.updatedAt,
-      })
-      .returning();
-    
-    return { draft: newDraft };
-  }
 
-  // Not found in either table
-  throw redirect("/resumes");
+    console.log(`[resumes.$id.edit] Draft not found, checking legacy resumes table`);
+
+    // If not found in drafts, check legacy resumes table
+    const [legacyResume] = await db
+      .select()
+      .from(resumes)
+      .where(and(eq(resumes.id, params.id), eq(resumes.userId, session.user.id)))
+      .limit(1);
+
+    // If not found in drafts, check legacy resumes table
+    if (legacyResume) {
+      console.log(`[resumes.$id.edit] Found legacy resume for ${params.id}, userId: ${legacyResume.userId}, session userId: ${session.user.id}`);
+      
+      // Ownership already verified in query with and(eq(resumes.userId, session.user.id))
+      // Convert legacy resume to sections format
+      const sections = convertLegacyResumeToSections(legacyResume.resumeData);
+      console.log(`[resumes.$id.edit] Converted to ${sections.length} sections`);
+      
+      // Check if draft already exists
+      const [existingDraft] = await db
+        .select()
+        .from(resumeDrafts)
+        .where(eq(resumeDrafts.id, params.id))
+        .limit(1);
+      
+      if (existingDraft) {
+        console.log(`[resumes.$id.edit] Draft already exists, returning it`);
+        return { draft: existingDraft };
+      }
+      
+      // Create draft from legacy resume
+      try {
+        const [newDraft] = await db
+          .insert(resumeDrafts)
+          .values({
+            id: legacyResume.id,
+            userId: legacyResume.userId,
+            name: legacyResume.name,
+            templateId: legacyResume.templateId || "modern",
+            sections,
+            version: legacyResume.version || 1,
+            createdAt: legacyResume.createdAt,
+            updatedAt: legacyResume.updatedAt,
+          })
+          .returning();
+        
+        console.log(`[resumes.$id.edit] Created new draft for ${params.id}`);
+        return { draft: newDraft };
+      } catch (error: any) {
+        console.error("[resumes.$id.edit] Error creating draft:", error);
+        // If insert fails (e.g., duplicate key), try to fetch existing draft
+        const [existingDraft] = await db
+          .select()
+          .from(resumeDrafts)
+          .where(eq(resumeDrafts.id, params.id))
+          .limit(1);
+        
+        if (existingDraft) {
+          console.log(`[resumes.$id.edit] Found existing draft after insert error`);
+          return { draft: existingDraft };
+        }
+        console.error(`[resumes.$id.edit] Failed to create draft and no existing draft found`);
+        throw redirect("/resumes");
+      }
+    }
+
+    console.error(`[resumes.$id.edit] Resume ${params.id} not found in any table, redirecting`);
+    // Not found in either table
+    throw redirect("/resumes");
+  } catch (error: any) {
+    // Re-throw redirects
+    if (error instanceof Response && error.status >= 300 && error.status < 400) {
+      throw error;
+    }
+    console.error(`[resumes.$id.edit] Unexpected error:`, error);
+    throw redirect("/resumes");
+  }
 }
 
 export default function ResumeEditorPage() {
@@ -100,42 +139,6 @@ export default function ResumeEditorPage() {
   const lastPreviewHashRef = useRef<string>("");
   const previewGenerationBlockedRef = useRef<boolean>(false);
 
-  const pollPreviewJob = useCallback(async (jobId: string) => {
-    const { getJob } = await import("~/lib/control-plane");
-    const maxAttempts = 30; // 60 seconds max
-    let attempts = 0;
-
-    const poll = async () => {
-      try {
-        const job = await getJob(jobId);
-        
-        if (job.status === "COMPLETED") {
-          const result = job.result as any;
-          if (result?.preview_url) {
-            // Use proxy endpoint to ensure PDF displays inline instead of downloading
-            const proxyUrl = `/api/v2/resumes/preview-proxy?url=${encodeURIComponent(result.preview_url)}`;
-            setPreviewUrl(proxyUrl);
-            setPreviewLoading(false);
-          } else {
-            throw new Error("Preview URL not found in result");
-          }
-        } else if (job.status === "FAILED") {
-          throw new Error(job.error || "Preview generation failed");
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          setTimeout(poll, 2000); // Poll every 2 seconds
-        } else {
-          throw new Error("Preview generation timeout");
-        }
-      } catch (error: any) {
-        console.error("Preview polling error:", error);
-        setPreviewLoading(false);
-        toast.error(error.message || "Preview generation failed");
-      }
-    };
-
-    poll();
-  }, []);
 
   const generatePreview = useCallback(async () => {
     if (!document) return;
@@ -170,10 +173,18 @@ export default function ResumeEditorPage() {
 
       // Reset block on success
       previewGenerationBlockedRef.current = false;
-      const { job_id } = await response.json();
       
-      // Poll for job completion
-      await pollPreviewJob(job_id);
+      // Get PDF blob directly (no job polling needed)
+      const pdfBlob = await response.blob();
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      
+      // Clean up previous blob URL if exists
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      
+      setPreviewUrl(blobUrl);
+      setPreviewLoading(false);
     } catch (error: any) {
       console.error("Error generating preview:", error);
       setPreviewLoading(false);
@@ -187,7 +198,7 @@ export default function ResumeEditorPage() {
       
       toast.error(error.message || "Failed to generate preview");
     }
-  }, [document, pollPreviewJob]);
+  }, [document, previewUrl]);
 
   const loadDraft = useCallback(async () => {
     try {
@@ -209,6 +220,15 @@ export default function ResumeEditorPage() {
   useEffect(() => {
     loadDraft();
   }, [loadDraft]);
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   // Auto-save on document changes
   useEffect(() => {

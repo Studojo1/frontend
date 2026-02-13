@@ -22,32 +22,19 @@ RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/ap
 # Run migrations using psql in sorted order
 CMD ["sh", "-c", "for file in $(ls -1 drizzle/*.sql | sort); do echo \"Running migration: $file\"; psql $DATABASE_URL -f \"$file\" || exit 1; done"]
 
-# Run with Node: React Router server uses renderToPipeableStream etc.; Bun's react-dom/server stub lacks them.
+# Final runtime stage
 FROM node:20-bookworm-slim
 WORKDIR /src
 ENV PORT=3000
 
-# Install system dependencies for canvas (native module)
-RUN apt-get update && \
-    apt-get install -y \
-    build-essential \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libjpeg-dev \
-    libgif-dev \
-    librsvg2-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy package files
+# Copy package files and install production dependencies
 COPY package.json ./
-
-# Install all production dependencies with npm (for Node.js compatibility)
-# Install canvas and pdfjs-dist explicitly for PDF to PNG conversion
 RUN npm install --production && \
-    npm install canvas pdfjs-dist
+    npm cache clean --force
 
-# Install global tools needed for migrations and scripts
-RUN npm install -g drizzle-kit@^0.31.8 tsx typescript
+# Install global tools needed for migrations and scripts (smaller footprint)
+RUN npm install -g drizzle-kit@^0.31.8 tsx typescript && \
+    npm cache clean --force
 
 # Copy built assets from build stage
 COPY --from=build-env /src/build ./build

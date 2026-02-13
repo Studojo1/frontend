@@ -24,20 +24,25 @@ export async function loader({ request }: Route.LoaderArgs) {
     });
   }
   
-  // Check if request is from admin panel (allow localhost:3001, admin, or maverick subdomain)
+  // Check if request is from admin panel, maverick, or dev-panel (allow localhost:3001, :3002, :3004, admin, maverick, or dev subdomain)
   const origin = request.headers.get("origin");
   const referer = request.headers.get("referer");
   const isAdminPanel = 
     origin?.includes(":3001") || 
     origin?.includes(":3002") ||
+    origin?.includes(":3004") ||
     origin?.includes("admin") ||
     origin?.includes("maverick") ||
+    origin?.includes("dev") ||
     referer?.includes(":3001") ||
     referer?.includes(":3002") ||
+    referer?.includes(":3004") ||
     referer?.includes("admin") ||
     referer?.includes("maverick") ||
+    referer?.includes("dev") ||
     request.headers.get("user-agent")?.includes("admin") ||
-    request.headers.get("user-agent")?.includes("maverick");
+    request.headers.get("user-agent")?.includes("maverick") ||
+    request.headers.get("user-agent")?.includes("dev-panel");
   
   if (!isAdminPanel) {
     return Response.json({ error: "Unauthorized origin" }, { 

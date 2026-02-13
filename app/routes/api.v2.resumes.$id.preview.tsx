@@ -1,19 +1,18 @@
 /**
  * PDF Preview API - Live PDF Streaming for Editing/Review
  * 
- * This endpoint submits a job to generate a PDF preview.
- * The job returns a PDF URL which is streamed directly to the browser.
- * No PNG conversion, no image fallbacks - PDF only.
+ * This endpoint calls resume-service directly to generate a PDF preview.
+ * Returns the PDF as a blob URL that can be displayed inline.
+ * Works like docker-compose - direct call, no job queue.
  */
 import { eq, and } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { resumeDrafts } from "../../auth-schema";
-import { submitPreviewJob } from "~/lib/control-plane";
 import { convertSectionsToLegacyResume } from "~/lib/resume-draft";
 import type { Route } from "./+types/api.v2.resumes.$id.preview";
 
-// POST /api/v2/resumes/:id/preview - Generate PDF preview (streams PDF, not PNG)
+// POST /api/v2/resumes/:id/preview - Generate PDF preview (streams PDF directly)
 export async function action({ params, request }: Route.ActionArgs) {
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
@@ -40,21 +39,63 @@ export async function action({ params, request }: Route.ActionArgs) {
 
   // Convert sections to legacy format for backend compatibility
   const legacyResume = convertSectionsToLegacyResume(draft.sections, templateId || draft.templateId);
+  
+  // Validate that resume has content
+  const hasContent = 
+    legacyResume.title ||
+    legacyResume.summary ||
+    (legacyResume.contact_info && (legacyResume.contact_info.name || legacyResume.contact_info.email)) ||
+    (legacyResume.work_experiences && legacyResume.work_experiences.length > 0) ||
+    (legacyResume.educations && legacyResume.educations.length > 0) ||
+    (legacyResume.skills && legacyResume.skills.length > 0) ||
+    (legacyResume.projects && legacyResume.projects.length > 0) ||
+    (legacyResume.certifications && legacyResume.certifications.length > 0);
+  
+  if (!hasContent) {
+    console.error("[api.v2.resumes.preview] Resume has no content");
+    return Response.json(
+      { error: "Resume is empty. Please add at least a name, email, or some content before generating a preview." },
+      { status: 400 }
+    );
+  }
 
+  // Get resume-service URL (works in both docker-compose and k8s)
+  const resumeServiceUrl = process.env.RESUME_SERVICE_URL || "http://resume-service:8086";
+  
   try {
-    // Submit preview job (using existing preview job type for now)
-    // Pass request headers and URL so server-side token fetching works with cookies
-    const { res } = await submitPreviewJob({
-      resume: legacyResume,
-      template_id: templateId || draft.templateId || "modern",
-    }, request.headers, request.url);
+    // Call resume-service directly (like docker-compose)
+    const previewResponse = await fetch(`${resumeServiceUrl}/preview`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        resume: legacyResume,
+        template_id: templateId || draft.templateId || "modern",
+      }),
+    });
 
-    return Response.json({
-      job_id: res.job_id,
-      status: res.status,
+    if (!previewResponse.ok) {
+      const errorText = await previewResponse.text().catch(() => "Unknown error");
+      console.error("[api.v2.resumes.preview] Resume service error:", previewResponse.status, errorText);
+      return Response.json(
+        { error: `Resume service returned ${previewResponse.status}: ${errorText}` },
+        { status: previewResponse.status }
+      );
+    }
+
+    // Get PDF blob
+    const pdfBlob = await previewResponse.blob();
+    
+    // Return PDF as blob with proper headers
+    return new Response(pdfBlob, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'inline; filename="resume-preview.pdf"',
+      },
     });
   } catch (error: any) {
-    console.error("[api.v2.resumes.preview] Error:", error);
+    console.error("[api.v2.resumes.preview] Error calling resume-service:", error);
     return Response.json(
       { error: error.message || "Failed to generate preview" },
       { status: 500 }

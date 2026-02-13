@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { ResumeRenderer } from "./resume-renderer";
 import { ResumeDocument } from "~/lib/resume-document";
 import type { Template } from "~/lib/template-store";
@@ -72,12 +72,14 @@ export function LiveResumeCanvas({
     loadTemplate();
   }, [templateId]);
 
-  // Create minimal document from contact info
-  const document = ResumeDocument.empty("temp-user", "Resume", templateId).addSection(
-    "contact",
-    { contact: contactInfo },
-    0
-  );
+  // Create minimal document from contact info - recreate when contactInfo or templateId changes
+  const document = useMemo(() => {
+    return ResumeDocument.empty("temp-user", "Resume", templateId).addSection(
+      "contact",
+      { contact: contactInfo },
+      0
+    );
+  }, [contactInfo, templateId]);
 
   if (!template) {
   return (

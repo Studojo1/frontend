@@ -219,20 +219,33 @@ export function AIPanel({ draftId, sections, onOptimizationComplete }: AIPanelPr
 
       const data = await response.json();
       
+      // Log response for debugging
+      console.log("[AIPanel] Quick suggestions response:", data);
+      
+      // Handle error response
+      if (data.error) {
+        console.error("[AIPanel] API returned error:", data.error);
+        toast.error(data.error || "Failed to get suggestions");
+        setSuggestions([]);
+        return;
+      }
+      
       // Parse and store suggestions
-      const parsedSuggestions: AISuggestion[] = (data.suggestions || []).map((s: any, idx: number) => ({
+      const suggestionsArray = Array.isArray(data.suggestions) ? data.suggestions : [];
+      const parsedSuggestions: AISuggestion[] = suggestionsArray.map((s: any, idx: number) => ({
         id: s.id || `suggestion-${Date.now()}-${idx}`,
         type: s.type || 'keyword',
-        message: s.message || s.text || '',
+        message: s.message || s.text || s.text || '',
         severity: s.severity || 'info',
-        suggestedValue: s.suggestedValue || s.suggested_value || s.value,
+        suggestedValue: s.suggestedValue || s.suggested_value || s.value || '',
         field: s.field,
       }));
       
+      console.log(`[AIPanel] Parsed ${parsedSuggestions.length} suggestions`);
       setSuggestions(parsedSuggestions);
       
       if (parsedSuggestions.length === 0) {
-        toast.info("No suggestions available at this time");
+        toast.info("No suggestions available at this time. Try adding more content to your resume.");
       } else {
         toast.success(`${parsedSuggestions.length} suggestion${parsedSuggestions.length === 1 ? '' : 's'} loaded`);
       }
@@ -270,14 +283,24 @@ export function AIPanel({ draftId, sections, onOptimizationComplete }: AIPanelPr
 
       const data = await response.json();
       
+      // Log response for debugging
+      console.log("[AIPanel] Job optimize response:", data);
+      
+      // Handle error response
+      if (data.error) {
+        console.error("[AIPanel] API returned error:", data.error);
+        toast.error(data.error || "Failed to optimize for job");
+        return;
+      }
+      
       // Parse and store suggestions if available
-      if (data.suggestions && Array.isArray(data.suggestions)) {
+      if (data.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
         const parsedSuggestions: AISuggestion[] = data.suggestions.map((s: any, idx: number) => ({
           id: s.id || `suggestion-${Date.now()}-${idx}`,
           type: s.type || 'keyword',
           message: s.message || s.text || '',
           severity: s.severity || 'info',
-          suggestedValue: s.suggestedValue || s.suggested_value || s.value,
+          suggestedValue: s.suggestedValue || s.suggested_value || s.value || '',
           field: s.field,
         }));
         setSuggestions(parsedSuggestions);
@@ -287,7 +310,7 @@ export function AIPanel({ draftId, sections, onOptimizationComplete }: AIPanelPr
         onOptimizationComplete(data.sections);
         toast.success("Resume optimized successfully");
       } else {
-        toast.success("Job optimization suggestions loaded");
+        toast.info("No specific suggestions available. Your resume may already be well-optimized for this job.");
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to optimize");
@@ -318,14 +341,24 @@ export function AIPanel({ draftId, sections, onOptimizationComplete }: AIPanelPr
 
       const data = await response.json();
       
+      // Log response for debugging
+      console.log("[AIPanel] Full optimize response:", data);
+      
+      // Handle error response
+      if (data.error) {
+        console.error("[AIPanel] API returned error:", data.error);
+        toast.error(data.error || "Failed to optimize resume");
+        return;
+      }
+      
       // Parse and store suggestions if available
-      if (data.suggestions && Array.isArray(data.suggestions)) {
+      if (data.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
         const parsedSuggestions: AISuggestion[] = data.suggestions.map((s: any, idx: number) => ({
           id: s.id || `suggestion-${Date.now()}-${idx}`,
           type: s.type || 'keyword',
           message: s.message || s.text || '',
           severity: s.severity || 'info',
-          suggestedValue: s.suggestedValue || s.suggested_value || s.value,
+          suggestedValue: s.suggestedValue || s.suggested_value || s.value || '',
           field: s.field,
         }));
         setSuggestions(parsedSuggestions);
@@ -335,7 +368,7 @@ export function AIPanel({ draftId, sections, onOptimizationComplete }: AIPanelPr
         onOptimizationComplete(data.sections);
         toast.success("Resume optimized successfully");
       } else {
-        toast.success("Full optimization suggestions loaded");
+        toast.info("No specific suggestions available. Your resume may already be well-optimized.");
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to optimize");

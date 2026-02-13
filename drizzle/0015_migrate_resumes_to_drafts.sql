@@ -21,18 +21,20 @@ SELECT
     COALESCE(r.template_id, 'modern') as template_id,
     -- Convert legacy resume_data JSON to sections format
     -- This is a simplified conversion - full conversion handled in application code
-    jsonb_build_array(
-        jsonb_build_object(
+    (
+        SELECT jsonb_agg(section)
+        FROM (
+            SELECT jsonb_build_object(
             'id', 'contact-' || r.id,
             'type', 'contact',
             'order', 0,
             'content', jsonb_build_object(
                 'contact', COALESCE(r.resume_data->'contact_info', '{}'::jsonb)
             )
-        ),
-        CASE 
-            WHEN r.resume_data->'summary' IS NOT NULL THEN
-                jsonb_build_object(
+            ) as section
+            WHERE TRUE
+            UNION ALL
+            SELECT jsonb_build_object(
                     'id', 'summary-' || r.id,
                     'type', 'summary',
                     'order', 1,
@@ -40,11 +42,9 @@ SELECT
                         'summary', r.resume_data->>'summary'
                     )
                 )
-            ELSE NULL
-        END,
-        CASE 
-            WHEN r.resume_data->'work_experiences' IS NOT NULL AND jsonb_array_length(r.resume_data->'work_experiences') > 0 THEN
-                jsonb_build_object(
+            WHERE r.resume_data->'summary' IS NOT NULL
+            UNION ALL
+            SELECT jsonb_build_object(
                     'id', 'experience-' || r.id,
                     'type', 'experience',
                     'order', 2,
@@ -52,11 +52,9 @@ SELECT
                         'experience', r.resume_data->'work_experiences'
                     )
                 )
-            ELSE NULL
-        END,
-        CASE 
-            WHEN r.resume_data->'educations' IS NOT NULL AND jsonb_array_length(r.resume_data->'educations') > 0 THEN
-                jsonb_build_object(
+            WHERE r.resume_data->'work_experiences' IS NOT NULL AND jsonb_array_length(r.resume_data->'work_experiences') > 0
+            UNION ALL
+            SELECT jsonb_build_object(
                     'id', 'education-' || r.id,
                     'type', 'education',
                     'order', 3,
@@ -64,11 +62,9 @@ SELECT
                         'education', r.resume_data->'educations'
                     )
                 )
-            ELSE NULL
-        END,
-        CASE 
-            WHEN r.resume_data->'skills' IS NOT NULL AND jsonb_array_length(r.resume_data->'skills') > 0 THEN
-                jsonb_build_object(
+            WHERE r.resume_data->'educations' IS NOT NULL AND jsonb_array_length(r.resume_data->'educations') > 0
+            UNION ALL
+            SELECT jsonb_build_object(
                     'id', 'skills-' || r.id,
                     'type', 'skills',
                     'order', 4,
@@ -76,11 +72,9 @@ SELECT
                         'skills', r.resume_data->'skills'
                     )
                 )
-            ELSE NULL
-        END,
-        CASE 
-            WHEN r.resume_data->'projects' IS NOT NULL AND jsonb_array_length(r.resume_data->'projects') > 0 THEN
-                jsonb_build_object(
+            WHERE r.resume_data->'skills' IS NOT NULL AND jsonb_array_length(r.resume_data->'skills') > 0
+            UNION ALL
+            SELECT jsonb_build_object(
                     'id', 'projects-' || r.id,
                     'type', 'projects',
                     'order', 5,
@@ -88,11 +82,9 @@ SELECT
                         'projects', r.resume_data->'projects'
                     )
                 )
-            ELSE NULL
-        END,
-        CASE 
-            WHEN r.resume_data->'certifications' IS NOT NULL AND jsonb_array_length(r.resume_data->'certifications') > 0 THEN
-                jsonb_build_object(
+            WHERE r.resume_data->'projects' IS NOT NULL AND jsonb_array_length(r.resume_data->'projects') > 0
+            UNION ALL
+            SELECT jsonb_build_object(
                     'id', 'certifications-' || r.id,
                     'type', 'certifications',
                     'order', 6,
@@ -100,9 +92,9 @@ SELECT
                         'certifications', r.resume_data->'certifications'
                     )
                 )
-            ELSE NULL
-        END
-    ) FILTER (WHERE value IS NOT NULL) as sections,
+            WHERE r.resume_data->'certifications' IS NOT NULL AND jsonb_array_length(r.resume_data->'certifications') > 0
+        ) sections
+    ) as sections,
     COALESCE(r.version, 1) as version,
     r.created_at,
     COALESCE(r.updated_at, r.created_at) as updated_at,

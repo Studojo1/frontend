@@ -55,19 +55,47 @@ export async function action({ params, request }: Route.ActionArgs) {
 
     const data = await response.json();
     
+    // Ensure suggestions array exists and is properly formatted
+    if (!data.suggestions) {
+      console.warn("[suggest] No suggestions array in response:", data);
+      return Response.json({ suggestions: [] });
+    }
+
+    // Ensure suggestions is an array
+    if (!Array.isArray(data.suggestions)) {
+      console.warn("[suggest] Suggestions is not an array:", typeof data.suggestions);
+      return Response.json({ suggestions: [] });
+    }
+    
     // Filter suggestions for the specific section if provided
-    if (section_id && data.suggestions) {
+    if (section_id && data.suggestions.length > 0) {
       data.suggestions = data.suggestions.map((s: any) => ({
         ...s,
-        id: `suggestion-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: s.id || `suggestion-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         field: section_id,
       }));
     }
 
-    return Response.json(data);
+    // Ensure all suggestions have required fields
+    const normalizedSuggestions = data.suggestions.map((s: any, idx: number) => ({
+      id: s.id || `suggestion-${Date.now()}-${idx}`,
+      type: s.type || 'keyword',
+      message: s.message || s.text || '',
+      severity: s.severity || 'info',
+      suggestedValue: s.suggestedValue || s.suggested_value || s.value,
+      field: s.field || section_id,
+    }));
+
+    console.log(`[suggest] Returning ${normalizedSuggestions.length} suggestions`);
+    return Response.json({ suggestions: normalizedSuggestions });
   } catch (error: any) {
+    console.error("[suggest] Error calling resume service:", error);
+    // Return empty suggestions array instead of error to prevent UI breakage
     return Response.json(
-      { error: error.message || "Failed to get suggestions" },
+      { 
+        suggestions: [],
+        error: error.message || "Failed to get suggestions" 
+      },
       { status: 500 }
     );
   }

@@ -17,9 +17,6 @@ export default defineConfig({
     rollupOptions: {
       external: [
         // Native modules that should not be bundled
-        "canvas",
-        "pdfjs-dist",
-        "pdfjs-dist/legacy/build/pdf.mjs",
       ],
     },
   },

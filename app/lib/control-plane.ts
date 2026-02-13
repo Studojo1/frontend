@@ -71,6 +71,8 @@ export async function getToken(requestHeaders?: Headers, requestUrl?: string): P
       
       // Try getAccessToken first
       let token: string | null = null;
+      let methodUsed: string | null = null;
+      
       try {
         // Better Auth's getAccessToken may require a body parameter
         // Pass an empty object if needed, or just headers
@@ -79,7 +81,17 @@ export async function getToken(requestHeaders?: Headers, requestUrl?: string): P
           body: {}, // Some versions require a body parameter
         } as any);
         token = (tokenResult as any)?.token || (tokenResult as any)?.accessToken || null;
+        if (token) {
+          methodUsed = "getAccessToken (with body)";
+        }
       } catch (e: any) {
+        // Log detailed error information
+        console.warn("[getToken] getAccessToken (with body) failed:", {
+          message: e?.message,
+          body: e?.body,
+          stack: e?.stack,
+        });
+        
         // If body parameter causes issues, try without it
         if (e?.body?.message?.includes("body")) {
           try {
@@ -87,11 +99,16 @@ export async function getToken(requestHeaders?: Headers, requestUrl?: string): P
               headers: requestHeaders,
             } as any);
             token = (tokenResult as any)?.token || (tokenResult as any)?.accessToken || null;
-          } catch (e2) {
-            console.debug("Could not get token via getAccessToken (without body):", e2);
+            if (token) {
+              methodUsed = "getAccessToken (without body)";
+            }
+          } catch (e2: any) {
+            console.warn("[getToken] getAccessToken (without body) failed:", {
+              message: e2?.message,
+              body: e2?.body,
+              stack: e2?.stack,
+            });
           }
-        } else {
-          console.debug("Could not get token via getAccessToken:", e);
         }
       }
       
@@ -109,22 +126,42 @@ export async function getToken(requestHeaders?: Headers, requestUrl?: string): P
           if (tokenResponse && tokenResponse.ok) {
             const tokenData = await tokenResponse.json();
             token = tokenData?.token || tokenData?.accessToken || tokenData?.data?.token || null;
+            if (token) {
+              methodUsed = "auth.handler (/api/auth/token)";
+            }
+          } else {
+            console.warn("[getToken] auth.handler returned non-OK response:", {
+              status: tokenResponse?.status,
+              statusText: tokenResponse?.statusText,
+            });
           }
-        } catch (e) {
-          console.debug("Could not get token via handler:", e);
+        } catch (e: any) {
+          console.warn("[getToken] auth.handler failed:", {
+            message: e?.message,
+            stack: e?.stack,
+          });
         }
       }
       
       if (token) {
+        // Log successful token retrieval
+        console.info(`[getToken] Successfully retrieved token using: ${methodUsed}`);
         // Cache the token
         tokenCache = {
           token,
           expires: Date.now() + TOKEN_CACHE_TTL,
         };
         return token;
+      } else {
+        // Log that all methods failed
+        console.warn("[getToken] All token retrieval methods failed. No token available.");
       }
     } catch (error: any) {
-      console.warn("Failed to get auth token (server-side):", error);
+      console.warn("[getToken] Failed to get auth token (server-side):", {
+        message: error?.message,
+        stack: error?.stack,
+        error: error,
+      });
       return null;
     }
   }
@@ -132,8 +169,16 @@ export async function getToken(requestHeaders?: Headers, requestUrl?: string): P
   // Client-side: Get token with retry (Better Auth client now uses fetchWithRetry internally)
   try {
     const { data, error } = await authClient.token();
-    if (error || !data?.token) return null;
+    if (error || !data?.token) {
+      console.warn("[getToken] Client-side token retrieval failed:", {
+        error: error,
+        hasData: !!data,
+        hasToken: !!data?.token,
+      });
+      return null;
+    }
     
+    console.info("[getToken] Successfully retrieved token using: authClient.token() (client-side)");
     // Cache the token
     tokenCache = {
       token: data.token,
@@ -144,7 +189,11 @@ export async function getToken(requestHeaders?: Headers, requestUrl?: string): P
   } catch (error: any) {
     // If it's a network error, the fetchWithRetry wrapper should have retried
     // But if it still fails after retries, return null
-    console.warn("Failed to get auth token:", error);
+    console.warn("[getToken] Failed to get auth token (client-side):", {
+      message: error?.message,
+      stack: error?.stack,
+      error: error,
+    });
     return null;
   }
 }
@@ -491,17 +540,88 @@ export async function submitPreviewJob(
     throw new ControlPlaneError("Authentication required. Please refresh the page.", 401);
   }
 
+  // Validate payload structure
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    console.error("[submitPreviewJob] Invalid payload type:", typeof payload, payload);
+    throw new ControlPlaneError("Invalid payload: payload must be a non-empty object", 400);
+  }
+  
+  if (!payload.resume || typeof payload.resume !== 'object' || Array.isArray(payload.resume)) {
+    console.error("[submitPreviewJob] Invalid resume in payload:", payload.resume);
+    throw new ControlPlaneError("Invalid payload: resume field is required and must be an object", 400);
+  }
+  
+  // Validate payload size - ensure it's not empty BEFORE serialization
+  const payloadString = JSON.stringify(payload);
+  if (payloadString.length < 10) {
+    console.error("[submitPreviewJob] Payload is too small:", payloadString);
+    throw new ControlPlaneError("Payload is empty or invalid", 400);
+  }
+  
+  // Verify payload is not null or undefined after stringification
+  if (payloadString === 'null' || payloadString === 'undefined' || payloadString === '{}') {
+    console.error("[submitPreviewJob] Payload serializes to invalid value:", payloadString);
+    throw new ControlPlaneError("Payload is empty or invalid", 400);
+  }
+  
   const base = getControlPlaneUrl();
+  // Create request body - payload will be serialized as nested JSON object
+  // This is correct for json.RawMessage which expects raw JSON bytes
+  const requestBody = {
+    type: "resume-preview",
+    payload, // This gets serialized as {"resume": {...}, "template_id": "..."}
+  };
+  
+  let bodyString: string;
+  try {
+    bodyString = JSON.stringify(requestBody);
+  } catch (error: any) {
+    console.error("[submitPreviewJob] JSON serialization failed:", error);
+    throw new ControlPlaneError(`Failed to serialize payload: ${error.message}`, 400);
+  }
+  
+  // Validate the serialized request body structure
+  if (bodyString.length < 50) {
+    console.error("[submitPreviewJob] Request body is too small:", bodyString);
+    throw new ControlPlaneError("Failed to create valid request body", 400);
+  }
+  
+  // Verify payload field exists and is not null in the serialized body
+  if (!bodyString.includes('"payload"') || bodyString.includes('"payload":null')) {
+    console.error("[submitPreviewJob] Request body missing or null payload:", bodyString.substring(0, 500));
+    throw new ControlPlaneError("Failed to create valid request body - payload is missing or null", 400);
+  }
+  
+  // Parse back to verify structure
+  try {
+    const parsed = JSON.parse(bodyString);
+    if (!parsed.payload || typeof parsed.payload !== 'object') {
+      console.error("[submitPreviewJob] Parsed request body has invalid payload:", parsed);
+      throw new ControlPlaneError("Payload structure is invalid after serialization", 400);
+    }
+  } catch (parseError: any) {
+    console.error("[submitPreviewJob] Failed to parse request body:", parseError);
+    throw new ControlPlaneError("Request body is not valid JSON", 400);
+  }
+  
+  // Debug logging - log full payload structure
+  console.log("[submitPreviewJob] Full request body:", bodyString);
+  console.log("[submitPreviewJob] Request body size:", bodyString.length, "bytes");
+  console.log("[submitPreviewJob] Payload size:", payloadString.length, "bytes");
+  console.log("[submitPreviewJob] Payload keys:", Object.keys(payload));
+  console.log("[submitPreviewJob] Resume keys:", payload.resume ? Object.keys(payload.resume) : "no resume");
+  console.log("[submitPreviewJob] Resume has content:", 
+    !!(payload.resume?.title || payload.resume?.summary || 
+       payload.resume?.contact_info || payload.resume?.work_experiences?.length ||
+       payload.resume?.educations?.length || payload.resume?.skills?.length));
+  
   const res = await fetchWithRetry(`${base}/v1/jobs`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      type: "resume-preview",
-      payload,
-    }),
+    body: bodyString,
     maxRetries: 3,
     timeout: 30 * 1000,
   });

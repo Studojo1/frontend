@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { redirect, useSearchParams } from "react-router";
-import { FiDownload, FiEdit, FiTrash2, FiPlus, FiFileText } from "react-icons/fi";
+import { FiDownload, FiEdit, FiTrash2, FiPlus, FiFileText, FiEye, FiX } from "react-icons/fi";
 import { Footer, Header, ConfirmModal } from "~/components";
 import { ImportResumeModal, RenameResumeModal, InternshipReturnCard } from "~/components/resumes";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
@@ -45,6 +45,10 @@ export default function Resumes() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [resumeToRename, setResumeToRename] = useState<Resume | null>(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [resumeToPreview, setResumeToPreview] = useState<Resume | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
@@ -115,20 +119,31 @@ export default function Resumes() {
 
     setIsDeleting(true);
     try {
-      // Try v2 API first, fallback to v1
+      // Try v2 API first (for resume_drafts)
       let res = await fetch(`/api/v2/resumes/${resumeToDelete}`, { method: "DELETE" });
-      if (!res.ok) {
-        // Fallback to legacy API
+      
+      // If v2 returns 404 (not found in drafts), try v1 API (for legacy resumes table)
+      if (res.status === 404) {
         res = await fetch(`/api/resumes/${resumeToDelete}`, { method: "DELETE" });
-        if (!res.ok) throw new Error("Failed to delete resume");
       }
+      
+      // If v2 returns 400 (invalid UUID format), also try v1 as fallback
+      if (res.status === 400) {
+        res = await fetch(`/api/resumes/${resumeToDelete}`, { method: "DELETE" });
+      }
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Failed to delete resume" }));
+        throw new Error(errorData.error || "Failed to delete resume");
+      }
+      
       toast.success("Resume deleted successfully");
       setDeleteModalOpen(false);
       setResumeToDelete(null);
       loadResumes();
-    } catch (error) {
-      toast.error("Failed to delete resume");
-      console.error(error);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete resume");
+      console.error("Delete error:", error);
     } finally {
       setIsDeleting(false);
     }
@@ -328,8 +343,52 @@ export default function Resumes() {
   };
 
   const handleUseForOptimization = (resume: Resume) => {
-    // Navigate to careers dojo with this resume loaded
+    // Navigate to editor - the loader will automatically migrate legacy resumes to drafts
     window.location.href = `/resumes/${resume.id}/edit`;
+  };
+
+  const handlePreviewClick = async (resume: Resume) => {
+    setResumeToPreview(resume);
+    setPreviewModalOpen(true);
+    setPreviewLoading(true);
+    setPreviewUrl(null);
+
+    try {
+      // Generate preview using v2 API
+      const response = await fetch(`/api/v2/resumes/${resume.id}/preview`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          templateId: "modern", // Default template, could be extracted from resume if available
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate preview");
+      }
+
+      // Get PDF blob directly
+      const pdfBlob = await response.blob();
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      setPreviewUrl(blobUrl);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate preview");
+      console.error("Preview generation error:", error);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleClosePreview = () => {
+    setPreviewModalOpen(false);
+    setResumeToPreview(null);
+    // Clean up blob URL
+    if (previewUrl && previewUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(null);
   };
 
   return (
@@ -449,8 +508,17 @@ export default function Resumes() {
                       </button>
                       <button
                         type="button"
+                        onClick={() => handlePreviewClick(resume)}
+                        className="flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 font-['Satoshi'] text-xs font-medium leading-4 text-neutral-950 hover:bg-gray-50"
+                        title="Preview resume"
+                      >
+                        <FiEye className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handleDownload(resume)}
                         className="flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 font-['Satoshi'] text-xs font-medium leading-4 text-neutral-950 hover:bg-gray-50"
+                        title="Download resume"
                       >
                         <FiDownload className="h-4 w-4" />
                       </button>
@@ -458,6 +526,7 @@ export default function Resumes() {
                         type="button"
                         onClick={() => handleDeleteClick(resume.id)}
                         className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 bg-white px-3 py-2 font-['Satoshi'] text-xs font-medium leading-4 text-red-600 hover:bg-red-50"
+                        title="Delete resume"
                       >
                         <FiTrash2 className="h-4 w-4" />
                       </button>
@@ -504,6 +573,64 @@ export default function Resumes() {
         variant="danger"
         isLoading={isDeleting}
       />
+
+      {/* Preview Modal */}
+      {previewModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="relative flex h-[90vh] w-full max-w-4xl flex-col rounded-lg bg-white shadow-xl">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <h2 className="font-['Clash_Display'] text-xl font-medium text-neutral-950">
+                {resumeToPreview?.name || "Resume Preview"}
+              </h2>
+              <button
+                onClick={handleClosePreview}
+                className="flex items-center justify-center rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                title="Close preview"
+              >
+                <FiX className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Preview Content */}
+            <div className="flex-1 overflow-auto bg-gray-100 p-6">
+              {previewLoading ? (
+                <div className="flex h-full items-center justify-center">
+                  <div className="text-center">
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
+                    <p className="mt-4 font-['Satoshi'] text-sm font-normal text-gray-600">
+                      Generating preview...
+                    </p>
+                  </div>
+                </div>
+              ) : previewUrl ? (
+                <div className="mx-auto flex h-full items-center justify-center">
+                  <iframe
+                    src={previewUrl}
+                    className="h-full w-full max-w-3xl border-0 shadow-lg"
+                    style={{ minHeight: "800px" }}
+                    title="Resume Preview"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <div className="text-center">
+                    <p className="font-['Satoshi'] text-sm font-normal text-gray-600">
+                      Failed to load preview
+                    </p>
+                    <button
+                      onClick={() => resumeToPreview && handlePreviewClick(resumeToPreview)}
+                      className="mt-4 rounded-lg bg-emerald-500 px-4 py-2 font-['Satoshi'] text-sm font-medium text-white hover:bg-emerald-600"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
