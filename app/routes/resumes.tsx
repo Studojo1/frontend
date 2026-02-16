@@ -236,19 +236,43 @@ export default function Resumes() {
       // Optimistically update the resume name in the state
       const finalName = updatedName || newName.trim();
       console.log(`[resumes] Updating state with name:`, finalName);
-      setResumes((prevResumes) =>
-        prevResumes.map((resume) =>
+      
+      // Update state optimistically - this will show immediately
+      setResumes((prevResumes) => {
+        const updated = prevResumes.map((resume) =>
           resume.id === resumeToRename.id
-            ? { ...resume, name: finalName }
+            ? { ...resume, name: finalName, updatedAt: new Date().toISOString() }
             : resume
-        )
-      );
+        );
+        console.log(`[resumes] Optimistic update complete, new state:`, updated.map(r => ({ id: r.id, name: r.name })));
+        return updated;
+      });
       
       toast.success("Resume renamed successfully");
-      // Reload to ensure we have the latest data from the server
-      console.log(`[resumes] Reloading resumes from server...`);
-      await loadResumes();
-      console.log(`[resumes] Resumes reloaded`);
+      
+      // Reload after a delay to ensure database transaction has committed
+      // But preserve the optimistic update if server data is stale
+      setTimeout(async () => {
+        console.log(`[resumes] Reloading resumes from server after delay...`);
+        const currentOptimisticName = finalName;
+        await loadResumes();
+        
+        // After reload, check if the server returned the correct name
+        setResumes((prevResumes) => {
+          const serverResume = prevResumes.find(r => r.id === resumeToRename.id);
+          if (serverResume && serverResume.name !== currentOptimisticName) {
+            console.warn(`[resumes] Server returned different name (${serverResume.name}) than expected (${currentOptimisticName}), keeping optimistic update`);
+            // Keep the optimistic update if server data is stale
+            return prevResumes.map((resume) =>
+              resume.id === resumeToRename.id
+                ? { ...resume, name: currentOptimisticName }
+                : resume
+            );
+          }
+          return prevResumes;
+        });
+        console.log(`[resumes] Resumes reloaded and verified`);
+      }, 1000);
     } catch (error: any) {
       console.error(`[resumes] Rename error:`, error);
       toast.error(error.message || "Failed to rename resume");
