@@ -188,7 +188,7 @@ export default function Resumes() {
         throw new Error(error.error || "Failed to rename resume");
       }
       toast.success("Resume renamed successfully");
-      loadResumes();
+      await loadResumes();
     } catch (error: any) {
       toast.error(error.message || "Failed to rename resume");
       throw error;

@@ -107,15 +107,31 @@ export async function action({ params, request }: Route.ActionArgs) {
   const nextVersion = (existing.version || 0) + 1;
 
   // Update draft
+  const updateData: {
+    name?: string;
+    sections?: any;
+    templateId?: string;
+    version: number;
+    updatedAt: Date;
+  } = {
+    version: nextVersion,
+    updatedAt: new Date(),
+  };
+
+  // Only update fields that are explicitly provided
+  if (name !== undefined) {
+    updateData.name = name;
+  }
+  if (sections !== undefined) {
+    updateData.sections = sections;
+  }
+  if (templateId !== undefined) {
+    updateData.templateId = templateId;
+  }
+
   const [updated] = await db
     .update(resumeDrafts)
-    .set({
-      name: name || existing.name,
-      sections: sections || existing.sections,
-      templateId: templateId || existing.templateId,
-      version: nextVersion,
-      updatedAt: new Date(),
-    })
+    .set(updateData)
     .where(eq(resumeDrafts.id, params.id))
     .returning();
 
