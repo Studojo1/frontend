@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { redirect, useSearchParams } from "react-router";
-import { FiDownload, FiEdit, FiTrash2, FiPlus, FiFileText, FiEye, FiX } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiPlus, FiFileText, FiEye, FiX } from "react-icons/fi";
 import { Footer, Header, ConfirmModal } from "~/components";
 import { ImportResumeModal, RenameResumeModal, InternshipReturnCard } from "~/components/resumes";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
@@ -158,13 +158,33 @@ export default function Resumes() {
     if (!resumeToRename) return;
 
     try {
-      const res = await fetch(`/api/resumes/${resumeToRename.id}`, {
+      // Try v2 API first (for resume_drafts)
+      let res = await fetch(`/api/v2/resumes/${resumeToRename.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName }),
       });
+      
+      // If v2 returns 404 (not found in drafts), try v1 API (for legacy resumes table)
+      if (res.status === 404) {
+        res = await fetch(`/api/resumes/${resumeToRename.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newName }),
+        });
+      }
+      
+      // If v2 returns 400 (invalid UUID format), also try v1 as fallback
+      if (res.status === 400) {
+        res = await fetch(`/api/resumes/${resumeToRename.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newName }),
+        });
+      }
+      
       if (!res.ok) {
-        const error = await res.json();
+        const error = await res.json().catch(() => ({ error: "Failed to rename resume" }));
         throw new Error(error.error || "Failed to rename resume");
       }
       toast.success("Resume renamed successfully");
@@ -299,47 +319,6 @@ export default function Resumes() {
     const newParams = new URLSearchParams(searchParams);
     newParams.delete("returnTo");
     setSearchParams(newParams, { replace: true });
-  };
-
-  const handleDownload = async (resume: Resume) => {
-    try {
-      toast.info("Generating resume package...");
-      const { submitResumeJob, getJob } = await import("~/lib/control-plane");
-      
-      // Submit job to generate package
-      const { res } = await submitResumeJob({
-        resume: resume.resumeData,
-      });
-      
-      // Poll for completion
-      const pollJob = async (jobId: string): Promise<string | null> => {
-        for (let i = 0; i < 30; i++) {
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          const job = await getJob(jobId);
-          if (job.status === "COMPLETED") {
-            const result = job.result as any;
-            return result?.download_url || null;
-          } else if (job.status === "FAILED") {
-            throw new Error(job.error || "Generation failed");
-          }
-        }
-        throw new Error("Generation timed out");
-      };
-      
-      const url = await pollJob(res.job_id);
-      if (url) {
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "resume-package.zip";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success("Download started!");
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to generate resume package");
-      console.error(error);
-    }
   };
 
   const handleUseForOptimization = (resume: Resume) => {
@@ -513,14 +492,6 @@ export default function Resumes() {
                         title="Preview resume"
                       >
                         <FiEye className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDownload(resume)}
-                        className="flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 font-['Satoshi'] text-xs font-medium leading-4 text-neutral-950 hover:bg-gray-50"
-                        title="Download resume"
-                      >
-                        <FiDownload className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
