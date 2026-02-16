@@ -96,6 +96,15 @@ export async function action({ params, request }: Route.ActionArgs) {
   const body = await request.json();
   const { name, sections, templateId, changeSummary } = body;
 
+  console.log(`[api.v2.resumes.$id] PUT request for draft ${params.id}`, {
+    hasName: name !== undefined,
+    nameValue: name,
+    hasSections: sections !== undefined,
+    hasTemplateId: templateId !== undefined,
+    existingName: existing.name,
+    existingVersion: existing.version,
+  });
+
   // Update draft
   const updateData: {
     name?: string;
@@ -110,28 +119,39 @@ export async function action({ params, request }: Route.ActionArgs) {
   // Only update fields that are explicitly provided
   if (name !== undefined) {
     if (typeof name !== "string" || !name.trim()) {
+      console.error(`[api.v2.resumes.$id] Invalid name provided:`, name);
       return Response.json({ error: "Name must be a non-empty string" }, { status: 400 });
     }
     updateData.name = name.trim();
+    console.log(`[api.v2.resumes.$id] Setting name to:`, updateData.name);
   }
   if (sections !== undefined) {
     updateData.sections = sections;
+    console.log(`[api.v2.resumes.$id] Updating sections`);
   }
   if (templateId !== undefined) {
     updateData.templateId = templateId;
+    console.log(`[api.v2.resumes.$id] Updating templateId to:`, templateId);
   }
 
   // Only increment version if sections or templateId changed, not for name-only updates
   if (sections !== undefined || templateId !== undefined) {
     const nextVersion = (existing.version || 0) + 1;
     updateData.version = nextVersion;
+    console.log(`[api.v2.resumes.$id] Incrementing version to:`, nextVersion);
   }
 
   // Ensure we have at least one field to update (besides updatedAt)
   const fieldsToUpdate = Object.keys(updateData).filter(key => key !== 'updatedAt');
   if (fieldsToUpdate.length === 0) {
+    console.error(`[api.v2.resumes.$id] No fields to update`);
     return Response.json({ error: "No fields to update" }, { status: 400 });
   }
+
+  console.log(`[api.v2.resumes.$id] Update data:`, {
+    fields: fieldsToUpdate,
+    updateData: { ...updateData, sections: updateData.sections ? '[sections data]' : undefined },
+  });
 
   const [updated] = await db
     .update(resumeDrafts)
@@ -140,8 +160,16 @@ export async function action({ params, request }: Route.ActionArgs) {
     .returning();
 
   if (!updated) {
+    console.error(`[api.v2.resumes.$id] Database update returned no rows`);
     return Response.json({ error: "Failed to update draft" }, { status: 500 });
   }
+
+  console.log(`[api.v2.resumes.$id] Update successful:`, {
+    id: updated.id,
+    name: updated.name,
+    version: updated.version,
+    updatedAt: updated.updatedAt,
+  });
 
   // Note: resume_versions table references resumes table, not resume_drafts
   // Drafts track their own version in the version column, so we skip creating version records

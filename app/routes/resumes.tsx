@@ -159,57 +159,82 @@ export default function Resumes() {
   const handleRename = async (newName: string) => {
     if (!resumeToRename) return;
 
+    console.log(`[resumes] Starting rename for resume ${resumeToRename.id}`, {
+      oldName: resumeToRename.name,
+      newName: newName.trim(),
+    });
+
     try {
       // Try v2 API first (for resume_drafts)
+      console.log(`[resumes] Attempting v2 API rename for ${resumeToRename.id}`);
       let res = await fetch(`/api/v2/resumes/${resumeToRename.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName }),
       });
       
+      console.log(`[resumes] v2 API response status:`, res.status);
+      
       // If v2 returns 404 (not found in drafts), try v1 API (for legacy resumes table)
       if (res.status === 404) {
+        console.log(`[resumes] v2 returned 404, trying v1 API`);
         res = await fetch(`/api/resumes/${resumeToRename.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newName }),
         });
+        console.log(`[resumes] v1 API response status:`, res.status);
       }
       
       // If v2 returns 400 (invalid UUID format), also try v1 as fallback
       if (res.status === 400) {
+        console.log(`[resumes] v2 returned 400, trying v1 API`);
         res = await fetch(`/api/resumes/${resumeToRename.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newName }),
         });
+        console.log(`[resumes] v1 API response status:`, res.status);
       }
       
       if (!res.ok) {
         const error = await res.json().catch(() => ({ error: "Failed to rename resume" }));
+        console.error(`[resumes] API error:`, error);
         throw new Error(error.error || "Failed to rename resume");
       }
       
       // Verify the response contains the updated name
       const responseData = await res.json();
+      console.log(`[resumes] API response data:`, {
+        hasDraft: !!responseData.draft,
+        hasResume: !!responseData.resume,
+        draftName: responseData.draft?.name,
+        resumeName: responseData.resume?.name,
+      });
+      
       const updatedName = responseData.draft?.name || responseData.resume?.name;
       if (updatedName && updatedName !== newName.trim()) {
-        console.warn("API returned different name than expected:", updatedName, "vs", newName.trim());
+        console.warn("[resumes] API returned different name than expected:", updatedName, "vs", newName.trim());
       }
       
       // Optimistically update the resume name in the state
+      const finalName = updatedName || newName.trim();
+      console.log(`[resumes] Updating state with name:`, finalName);
       setResumes((prevResumes) =>
         prevResumes.map((resume) =>
           resume.id === resumeToRename.id
-            ? { ...resume, name: updatedName || newName.trim() }
+            ? { ...resume, name: finalName }
             : resume
         )
       );
       
       toast.success("Resume renamed successfully");
       // Reload to ensure we have the latest data from the server
+      console.log(`[resumes] Reloading resumes from server...`);
       await loadResumes();
+      console.log(`[resumes] Resumes reloaded`);
     } catch (error: any) {
+      console.error(`[resumes] Rename error:`, error);
       toast.error(error.message || "Failed to rename resume");
       throw error;
     }
