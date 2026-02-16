@@ -58,9 +58,11 @@ export default function Resumes() {
   const loadResumes = async () => {
     try {
       // Load from both v2 (drafts) and v1 (legacy resumes) APIs
+      // Add cache-busting parameter to ensure fresh data
+      const cacheBuster = `?t=${Date.now()}`;
       const [v2Res, v1Res] = await Promise.all([
-        fetch("/api/v2/resumes").catch(() => null),
-        fetch("/api/resumes").catch(() => null),
+        fetch(`/api/v2/resumes${cacheBuster}`).catch(() => null),
+        fetch(`/api/resumes${cacheBuster}`).catch(() => null),
       ]);
 
       const allResumes: Resume[] = [];
@@ -187,7 +189,18 @@ export default function Resumes() {
         const error = await res.json().catch(() => ({ error: "Failed to rename resume" }));
         throw new Error(error.error || "Failed to rename resume");
       }
+      
+      // Optimistically update the resume name in the state
+      setResumes((prevResumes) =>
+        prevResumes.map((resume) =>
+          resume.id === resumeToRename.id
+            ? { ...resume, name: newName }
+            : resume
+        )
+      );
+      
       toast.success("Resume renamed successfully");
+      // Reload to ensure we have the latest data from the server
       await loadResumes();
     } catch (error: any) {
       toast.error(error.message || "Failed to rename resume");
