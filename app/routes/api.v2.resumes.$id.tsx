@@ -127,11 +127,21 @@ export async function action({ params, request }: Route.ActionArgs) {
     updateData.version = nextVersion;
   }
 
+  // Ensure we have at least one field to update (besides updatedAt)
+  const fieldsToUpdate = Object.keys(updateData).filter(key => key !== 'updatedAt');
+  if (fieldsToUpdate.length === 0) {
+    return Response.json({ error: "No fields to update" }, { status: 400 });
+  }
+
   const [updated] = await db
     .update(resumeDrafts)
     .set(updateData)
     .where(eq(resumeDrafts.id, params.id))
     .returning();
+
+  if (!updated) {
+    return Response.json({ error: "Failed to update draft" }, { status: 500 });
+  }
 
   // Note: resume_versions table references resumes table, not resume_drafts
   // Drafts track their own version in the version column, so we skip creating version records

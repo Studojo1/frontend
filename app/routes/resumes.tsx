@@ -190,11 +190,18 @@ export default function Resumes() {
         throw new Error(error.error || "Failed to rename resume");
       }
       
+      // Verify the response contains the updated name
+      const responseData = await res.json();
+      const updatedName = responseData.draft?.name || responseData.resume?.name;
+      if (updatedName && updatedName !== newName.trim()) {
+        console.warn("API returned different name than expected:", updatedName, "vs", newName.trim());
+      }
+      
       // Optimistically update the resume name in the state
       setResumes((prevResumes) =>
         prevResumes.map((resume) =>
           resume.id === resumeToRename.id
-            ? { ...resume, name: newName }
+            ? { ...resume, name: updatedName || newName.trim() }
             : resume
         )
       );
