@@ -60,26 +60,16 @@ export default function Resumes() {
       // Load from both v2 (drafts) and v1 (legacy resumes) APIs
       // Add cache-busting parameter to ensure fresh data
       const cacheBuster = `?t=${Date.now()}`;
-      console.log(`[resumes] Loading resumes with cache buster:`, cacheBuster);
       const [v2Res, v1Res] = await Promise.all([
         fetch(`/api/v2/resumes${cacheBuster}`).catch(() => null),
         fetch(`/api/resumes${cacheBuster}`).catch(() => null),
       ]);
-
-      console.log(`[resumes] API responses:`, {
-        v2Status: v2Res?.status,
-        v1Status: v1Res?.status,
-      });
 
       const allResumes: Resume[] = [];
 
       // Add v2 drafts (resume_drafts)
       if (v2Res?.ok) {
         const v2Data = await v2Res.json();
-        console.log(`[resumes] v2 data:`, {
-          draftCount: v2Data.drafts?.length || 0,
-          draftNames: v2Data.drafts?.map((d: any) => ({ id: d.id, name: d.name })) || [],
-        });
         const drafts = (v2Data.drafts || []).map((draft: any) => ({
             id: draft.id,
             name: draft.name,
@@ -87,16 +77,12 @@ export default function Resumes() {
             createdAt: draft.createdAt,
             updatedAt: draft.updatedAt,
         }));
-        console.log(`[resumes] Mapped drafts:`, drafts.map(d => ({ id: d.id, name: d.name })));
         allResumes.push(...drafts);
       }
 
       // Add v1 legacy resumes (resumes table)
       if (v1Res?.ok) {
         const v1Data = await v1Res.json();
-        console.log(`[resumes] v1 data:`, {
-          resumeCount: v1Data.resumes?.length || 0,
-        });
         const legacyResumes = (v1Data.resumes || []).map((resume: any) => ({
           id: resume.id,
           name: resume.name,
@@ -112,9 +98,7 @@ export default function Resumes() {
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       );
 
-      console.log(`[resumes] Final resumes array:`, allResumes.map(r => ({ id: r.id, name: r.name })));
       setResumes(allResumes);
-      console.log(`[resumes] State updated with ${allResumes.length} resumes`);
     } catch (error) {
       toast.error("Failed to load resumes");
       console.error("[resumes] Error loading resumes:", error);
@@ -175,85 +159,58 @@ export default function Resumes() {
   const handleRename = async (newName: string) => {
     if (!resumeToRename) return;
 
-    console.log(`[resumes] Starting rename for resume ${resumeToRename.id}`, {
-      oldName: resumeToRename.name,
-      newName: newName.trim(),
-    });
-
     try {
       // Try v2 API first (for resume_drafts)
-      console.log(`[resumes] Attempting v2 API rename for ${resumeToRename.id}`);
       let res = await fetch(`/api/v2/resumes/${resumeToRename.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName }),
       });
       
-      console.log(`[resumes] v2 API response status:`, res.status);
-      
       // If v2 returns 404 (not found in drafts), try v1 API (for legacy resumes table)
       if (res.status === 404) {
-        console.log(`[resumes] v2 returned 404, trying v1 API`);
         res = await fetch(`/api/resumes/${resumeToRename.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newName }),
         });
-        console.log(`[resumes] v1 API response status:`, res.status);
       }
       
       // If v2 returns 400 (invalid UUID format), also try v1 as fallback
       if (res.status === 400) {
-        console.log(`[resumes] v2 returned 400, trying v1 API`);
         res = await fetch(`/api/resumes/${resumeToRename.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newName }),
         });
-        console.log(`[resumes] v1 API response status:`, res.status);
       }
       
       if (!res.ok) {
         const error = await res.json().catch(() => ({ error: "Failed to rename resume" }));
-        console.error(`[resumes] API error:`, error);
         throw new Error(error.error || "Failed to rename resume");
       }
       
       // Verify the response contains the updated name
       const responseData = await res.json();
-      console.log(`[resumes] API response data:`, {
-        hasDraft: !!responseData.draft,
-        hasResume: !!responseData.resume,
-        draftName: responseData.draft?.name,
-        resumeName: responseData.resume?.name,
-      });
-      
       const updatedName = responseData.draft?.name || responseData.resume?.name;
-      if (updatedName && updatedName !== newName.trim()) {
-        console.warn("[resumes] API returned different name than expected:", updatedName, "vs", newName.trim());
-      }
       
       // Optimistically update the resume name in the state
       const finalName = updatedName || newName.trim();
-      console.log(`[resumes] Updating state with name:`, finalName);
       
       // Update state optimistically - this will show immediately
-      setResumes((prevResumes) => {
-        const updated = prevResumes.map((resume) =>
+      setResumes((prevResumes) =>
+        prevResumes.map((resume) =>
           resume.id === resumeToRename.id
             ? { ...resume, name: finalName, updatedAt: new Date().toISOString() }
             : resume
-        );
-        console.log(`[resumes] Optimistic update complete, new state:`, updated.map(r => ({ id: r.id, name: r.name })));
-        return updated;
-      });
+        )
+      );
       
       toast.success("Resume renamed successfully");
       
       // Reload after a delay to ensure database transaction has committed
       // But preserve the optimistic update if server data is stale
       setTimeout(async () => {
-        console.log(`[resumes] Reloading resumes from server after delay...`);
         const currentOptimisticName = finalName;
         await loadResumes();
         
@@ -261,7 +218,6 @@ export default function Resumes() {
         setResumes((prevResumes) => {
           const serverResume = prevResumes.find(r => r.id === resumeToRename.id);
           if (serverResume && serverResume.name !== currentOptimisticName) {
-            console.warn(`[resumes] Server returned different name (${serverResume.name}) than expected (${currentOptimisticName}), keeping optimistic update`);
             // Keep the optimistic update if server data is stale
             return prevResumes.map((resume) =>
               resume.id === resumeToRename.id
@@ -271,10 +227,8 @@ export default function Resumes() {
           }
           return prevResumes;
         });
-        console.log(`[resumes] Resumes reloaded and verified`);
       }, 1000);
     } catch (error: any) {
-      console.error(`[resumes] Rename error:`, error);
       toast.error(error.message || "Failed to rename resume");
       throw error;
     }
