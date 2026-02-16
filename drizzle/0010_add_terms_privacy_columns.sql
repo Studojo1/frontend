@@ -20,3 +20,4 @@ ALTER TABLE "user" ADD COLUMN "privacy_accepted_at" timestamp;
 
 
 
+
