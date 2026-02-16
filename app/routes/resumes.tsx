@@ -60,16 +60,26 @@ export default function Resumes() {
       // Load from both v2 (drafts) and v1 (legacy resumes) APIs
       // Add cache-busting parameter to ensure fresh data
       const cacheBuster = `?t=${Date.now()}`;
+      console.log(`[resumes] Loading resumes with cache buster:`, cacheBuster);
       const [v2Res, v1Res] = await Promise.all([
         fetch(`/api/v2/resumes${cacheBuster}`).catch(() => null),
         fetch(`/api/resumes${cacheBuster}`).catch(() => null),
       ]);
+
+      console.log(`[resumes] API responses:`, {
+        v2Status: v2Res?.status,
+        v1Status: v1Res?.status,
+      });
 
       const allResumes: Resume[] = [];
 
       // Add v2 drafts (resume_drafts)
       if (v2Res?.ok) {
         const v2Data = await v2Res.json();
+        console.log(`[resumes] v2 data:`, {
+          draftCount: v2Data.drafts?.length || 0,
+          draftNames: v2Data.drafts?.map((d: any) => ({ id: d.id, name: d.name })) || [],
+        });
         const drafts = (v2Data.drafts || []).map((draft: any) => ({
             id: draft.id,
             name: draft.name,
@@ -77,12 +87,16 @@ export default function Resumes() {
             createdAt: draft.createdAt,
             updatedAt: draft.updatedAt,
         }));
+        console.log(`[resumes] Mapped drafts:`, drafts.map(d => ({ id: d.id, name: d.name })));
         allResumes.push(...drafts);
       }
 
       // Add v1 legacy resumes (resumes table)
       if (v1Res?.ok) {
         const v1Data = await v1Res.json();
+        console.log(`[resumes] v1 data:`, {
+          resumeCount: v1Data.resumes?.length || 0,
+        });
         const legacyResumes = (v1Data.resumes || []).map((resume: any) => ({
           id: resume.id,
           name: resume.name,
@@ -98,10 +112,12 @@ export default function Resumes() {
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       );
 
+      console.log(`[resumes] Final resumes array:`, allResumes.map(r => ({ id: r.id, name: r.name })));
       setResumes(allResumes);
+      console.log(`[resumes] State updated with ${allResumes.length} resumes`);
     } catch (error) {
       toast.error("Failed to load resumes");
-      console.error(error);
+      console.error("[resumes] Error loading resumes:", error);
     } finally {
       setLoading(false);
     }
