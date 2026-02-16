@@ -96,37 +96,35 @@ export async function action({ params, request }: Route.ActionArgs) {
   const body = await request.json();
   const { name, sections, templateId, changeSummary } = body;
 
-  // Get next version number
-  const [latestVersion] = await db
-    .select()
-    .from(resumeVersions)
-    .where(eq(resumeVersions.resumeId, params.id))
-    .orderBy(desc(resumeVersions.version))
-    .limit(1);
-
-  const nextVersion = (existing.version || 0) + 1;
-
   // Update draft
   const updateData: {
     name?: string;
     sections?: any;
     templateId?: string;
-    version: number;
+    version?: number;
     updatedAt: Date;
   } = {
-    version: nextVersion,
     updatedAt: new Date(),
   };
 
   // Only update fields that are explicitly provided
   if (name !== undefined) {
-    updateData.name = name;
+    if (typeof name !== "string" || !name.trim()) {
+      return Response.json({ error: "Name must be a non-empty string" }, { status: 400 });
+    }
+    updateData.name = name.trim();
   }
   if (sections !== undefined) {
     updateData.sections = sections;
   }
   if (templateId !== undefined) {
     updateData.templateId = templateId;
+  }
+
+  // Only increment version if sections or templateId changed, not for name-only updates
+  if (sections !== undefined || templateId !== undefined) {
+    const nextVersion = (existing.version || 0) + 1;
+    updateData.version = nextVersion;
   }
 
   const [updated] = await db
