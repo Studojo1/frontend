@@ -160,42 +160,70 @@ export default function Resumes() {
     if (!resumeToRename) return;
 
     try {
+      let v2Res: Response | null = null;
+      let v1Res: Response | null = null;
+      let updatedName = newName.trim();
+
       // Try v2 API first (for resume_drafts)
-      let res = await fetch(`/api/v2/resumes/${resumeToRename.id}`, {
+      v2Res = await fetch(`/api/v2/resumes/${resumeToRename.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName }),
       });
       
-      // If v2 returns 404 (not found in drafts), try v1 API (for legacy resumes table)
-      if (res.status === 404) {
-        res = await fetch(`/api/resumes/${resumeToRename.id}`, {
+      // If v2 succeeds, also try v1 API to update legacy resume if it exists
+      if (v2Res.ok) {
+        const v2Data = await v2Res.json();
+        updatedName = v2Data.draft?.name || updatedName;
+        
+        // Also update v1 if the resume exists there (for legacy resumes)
+        v1Res = await fetch(`/api/resumes/${resumeToRename.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newName }),
         });
+        
+        // If v1 also succeeds, use its response
+        if (v1Res.ok) {
+          const v1Data = await v1Res.json();
+          updatedName = v1Data.resume?.name || updatedName;
+        }
+      } else if (v2Res.status === 404) {
+        // If v2 returns 404 (not found in drafts), try v1 API (for legacy resumes table)
+        v1Res = await fetch(`/api/resumes/${resumeToRename.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newName }),
+        });
+        
+        if (v1Res.ok) {
+          const v1Data = await v1Res.json();
+          updatedName = v1Data.resume?.name || updatedName;
+        }
       }
       
       // If v2 returns 400 (invalid UUID format), also try v1 as fallback
-      if (res.status === 400) {
-        res = await fetch(`/api/resumes/${resumeToRename.id}`, {
+      if (v2Res.status === 400) {
+        v1Res = await fetch(`/api/resumes/${resumeToRename.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newName }),
         });
+        
+        if (v1Res?.ok) {
+          const v1Data = await v1Res.json();
+          updatedName = v1Data.resume?.name || updatedName;
+        }
       }
       
-      if (!res.ok) {
-        const error = await res.json().catch(() => ({ error: "Failed to rename resume" }));
+      // Check if at least one update succeeded
+      if (!v2Res.ok && !v1Res?.ok) {
+        const error = await (v2Res.status !== 404 ? v2Res.json() : v1Res?.json()).catch(() => ({ error: "Failed to rename resume" }));
         throw new Error(error.error || "Failed to rename resume");
       }
       
-      // Verify the response contains the updated name
-      const responseData = await res.json();
-      const updatedName = responseData.draft?.name || responseData.resume?.name;
-      
       // Optimistically update the resume name in the state
-      const finalName = updatedName || newName.trim();
+      const finalName = updatedName;
       
       // Update state optimistically - this will show immediately
       setResumes((prevResumes) =>
@@ -209,25 +237,9 @@ export default function Resumes() {
       toast.success("Resume renamed successfully");
       
       // Reload after a delay to ensure database transaction has committed
-      // But preserve the optimistic update if server data is stale
       setTimeout(async () => {
-        const currentOptimisticName = finalName;
         await loadResumes();
-        
-        // After reload, check if the server returned the correct name
-        setResumes((prevResumes) => {
-          const serverResume = prevResumes.find(r => r.id === resumeToRename.id);
-          if (serverResume && serverResume.name !== currentOptimisticName) {
-            // Keep the optimistic update if server data is stale
-            return prevResumes.map((resume) =>
-              resume.id === resumeToRename.id
-                ? { ...resume, name: currentOptimisticName }
-                : resume
-            );
-          }
-          return prevResumes;
-        });
-      }, 1000);
+      }, 500);
     } catch (error: any) {
       toast.error(error.message || "Failed to rename resume");
       throw error;
