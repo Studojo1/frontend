@@ -100,6 +100,8 @@ export const auth = betterAuth({
     ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) || []),
     // Add maverick URL if specified
     ...(process.env.MAVERICK_URL ? [process.env.MAVERICK_URL] : []),
+    // API subdomain — needed for cross-origin cookie access from outreach and other services
+    "https://api.studojo.com",
   ],
   secret: process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET,
   
@@ -118,6 +120,8 @@ export const auth = betterAuth({
       ...(process.env.MAVERICK_URL ? [process.env.MAVERICK_URL] : []),
       // Explicitly add dev.studojo.com if not already in CORS_ORIGINS
       ...(process.env.CORS_ORIGINS?.includes("dev.studojo.com") ? [] : ["https://dev.studojo.com"]),
+      // API subdomain — needed for cross-origin requests from outreach and other services
+      "https://api.studojo.com",
     ],
     credentials: true,
   },
