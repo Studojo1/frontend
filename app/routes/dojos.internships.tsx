@@ -135,22 +135,22 @@ export default function InternshipsDojo() {
             </div>
           </Link>
 
-          {/* Personalized Help CTA */}
-          <Link
-            to="/careers"
+          {/* Opportunity Apply CTA */}
+          <a
+            href="/outreach"
             className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-violet-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:p-8"
           >
             <h2 className="font-['Clash_Display'] text-2xl font-medium leading-7 text-white md:text-3xl">
-              Personalized Help
+              Opportunity Apply
             </h2>
             <p className="font-['Satoshi'] text-base font-normal leading-6 text-white/90 md:text-lg">
-              Get personalized career guidance, exclusive internship listings, and priority mentor support.
+              Find hiring managers and launch personalized outreach campaigns powered by AI.
             </p>
             <div className="mt-auto inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-violet-600 transition-transform group-hover:translate-x-[1px] group-hover:translate-y-[1px]">
-              <span>Get personalized help</span>
+              <span>Start outreach</span>
               <FiArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </div>
-          </Link>
+          </a>
         </div>
 
         {/* Job Board Section - Integrated */}
