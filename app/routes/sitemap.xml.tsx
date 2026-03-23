@@ -1,0 +1,70 @@
+import db from "~/lib/db";
+import { sql } from "drizzle-orm";
+
+export async function loader() {
+  const baseUrl = "https://studojo.com";
+
+  // Static pages
+  const staticPages = [
+    { loc: "/", priority: "1.0", changefreq: "weekly" },
+    { loc: "/blog", priority: "0.8", changefreq: "daily" },
+    { loc: "/auth?mode=signup", priority: "0.7", changefreq: "monthly" },
+    { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
+    { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },
+    { loc: "/dojos/internships", priority: "0.7", changefreq: "weekly" },
+    { loc: "/careers", priority: "0.6", changefreq: "monthly" },
+    { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
+    { loc: "/terms", priority: "0.3", changefreq: "yearly" },
+    { loc: "/refund-policy", priority: "0.3", changefreq: "yearly" },
+  ];
+
+  // Dynamic blog posts
+  let blogPosts: Array<{ slug: string; updated_at: string | null; published_at: string | null }> = [];
+  try {
+    const result = await db.execute(
+      sql`SELECT slug, updated_at, published_at FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC`
+    );
+    blogPosts = result.rows as typeof blogPosts;
+  } catch (error) {
+    console.error("[sitemap.xml] Failed to fetch blog posts:", error);
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const urls = [
+    ...staticPages.map(
+      (page) => `
+  <url>
+    <loc>${baseUrl}${page.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
+  </url>`
+    ),
+    ...blogPosts.map((post) => {
+      const lastmod = post.updated_at
+        ? new Date(post.updated_at).toISOString().split("T")[0]
+        : post.published_at
+          ? new Date(post.published_at).toISOString().split("T")[0]
+          : today;
+      return `
+  <url>
+    <loc>${baseUrl}/blog/${encodeURIComponent(post.slug)}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+    }),
+  ];
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join("")}
+</urlset>`;
+
+  return new Response(sitemap, {
+    headers: {
+      "Content-Type": "application/xml",
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+    },
+  });
+}

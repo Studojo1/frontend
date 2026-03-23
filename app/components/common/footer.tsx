@@ -2,14 +2,13 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { FiBookOpen, FiTarget, FiMail, FiMapPin } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
-import { FaXTwitter, FaInstagram, FaWhatsapp } from "react-icons/fa6";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa6";
 import { SmoothLink } from "./smooth-link";
 import { FaLinkedin } from "react-icons/fa6";
 
 const COMPANY_LINKS = [
   { to: "/about", label: "About Us" },
-  // { to: "/blog", label: "Blog" },
-  // { to: "/press-kit", label: "Press Kit" },
+  { to: "/blog", label: "Blog" },
 ];
 
 const RESOURCE_LINKS = [
@@ -245,12 +244,12 @@ export function Footer() {
             </div>
 
             <div className="grid grid-cols-2 gap-8 md:gap-8">
-              {/* <div>
+              <div>
                 <h3 className="font-['Satoshi'] text-xs font-medium leading-4 text-neutral-900 md:text-base md:font-black md:leading-6">
-                  About Us
+                  Company
                 </h3>
                 <ul className="mt-3 flex flex-col gap-2 md:mt-4 md:gap-3" role="list">
-                  {COMPANY_LINKS.slice(1).map(({ to, label }) => (
+                  {COMPANY_LINKS.map(({ to, label }) => (
                     <li key={label}>
                       <Link
                         to={to}
@@ -261,7 +260,7 @@ export function Footer() {
                     </li>
                   ))}
                 </ul>
-              </div> */}
+              </div>
               <div>
                 <h3 className="font-['Satoshi'] text-xs font-medium leading-4 text-neutral-900 md:text-base md:font-black md:leading-6">
                   Help Center

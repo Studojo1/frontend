@@ -71,4 +71,6 @@ export default [
   route("api/blog", "routes/api.blog.tsx"),
   route("api/images/*", "routes/api.images.$.tsx"),
   route(".well-known/*", "routes/well-known.$.tsx"),
+  route("sitemap.xml", "routes/sitemap.xml.tsx"),
+  route("robots.txt", "routes/robots.txt.tsx"),
 ] satisfies RouteConfig;
