@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router";
 import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard } from "react-icons/fi";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 
 const FEATURES = [

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { FiSend } from "react-icons/fi";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { ChatInterface } from "~/components/outreach/ChatInterface";

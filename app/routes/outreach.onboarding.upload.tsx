@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { FiUpload, FiFileText, FiCheckCircle } from "react-icons/fi";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { useOutreachAuth } from "~/lib/outreach/hooks";

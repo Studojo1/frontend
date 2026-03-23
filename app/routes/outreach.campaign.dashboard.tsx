@@ -5,7 +5,7 @@ import {
   FiCheckCircle, FiXCircle, FiClock,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { MetricCard } from "~/components/outreach/MetricCard";
 import { useOutreachAuth } from "~/lib/outreach/hooks";

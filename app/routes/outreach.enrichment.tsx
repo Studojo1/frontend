@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { FiMail, FiCheckCircle, FiTag, FiCreditCard } from "react-icons/fi";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TierSelector } from "~/components/outreach/TierSelector";
 import { useOutreachAuth } from "~/lib/outreach/hooks";

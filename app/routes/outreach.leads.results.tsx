@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiArrowRight, FiArrowLeft, FiFilter, FiMail } from "react-icons/fi";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { FlashCard } from "~/components/outreach/FlashCard";
 import { useOutreachAuth } from "~/lib/outreach/hooks";

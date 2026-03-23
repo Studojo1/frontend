@@ -4,7 +4,7 @@ import {
   FiShield, FiClock, FiMail, FiZap, FiCheckCircle, FiEye, FiEdit2,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOrder } from "~/lib/outreach/hooks";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { FiMail, FiShield, FiEye, FiSend, FiCheckCircle } from "react-icons/fi";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOrder } from "~/lib/outreach/hooks";

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import {
   FiShield, FiCheckCircle, FiMail, FiZap, FiClock, FiSend, FiAlertCircle,
 } from "react-icons/fi";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";

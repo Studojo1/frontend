@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiUser, FiMapPin, FiBriefcase, FiTarget } from "react-icons/fi";
 import { BsBuilding } from "react-icons/bs";
-import { Header } from "~/components/header";
+import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
