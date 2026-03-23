@@ -10,15 +10,18 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ messages, children, loading }: ChatInterfaceProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages, loading]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-260px)] min-h-[480px] bg-white border-2 border-studojo-ink rounded-2xl overflow-hidden shadow-brutal">
-      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
         {messages.map((msg, i) => {
           const parts = msg.role === "assistant" ? msg.content.split("|||") : [msg.content];
 
@@ -69,7 +72,7 @@ export function ChatInterface({ messages, children, loading }: ChatInterfaceProp
           </div>
         )}
 
-        <div ref={bottomRef} />
+        <div />
       </div>
 
       {children && (
