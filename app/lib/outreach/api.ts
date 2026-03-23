@@ -1,9 +1,10 @@
-import { getControlPlaneUrl, getToken, ControlPlaneError } from "~/lib/control-plane";
+import { getToken, ControlPlaneError } from "~/lib/control-plane";
 import { fetchWithRetry } from "~/lib/fetch-with-retry";
 
 /**
  * Authenticated fetch wrapper for all outreach API calls.
- * Routes through the control-plane at /v1/outreach/*.
+ * Uses same-origin relative path /api/v1/outreach/* to avoid CORS.
+ * Ingress routes this to job-outreach-svc with rewrite to /api/v1/*.
  */
 export async function outreachFetch<T = unknown>(
   path: string,
@@ -12,8 +13,7 @@ export async function outreachFetch<T = unknown>(
   const token = await getToken();
   if (!token) throw new ControlPlaneError("Not authenticated", 401);
 
-  const base = getControlPlaneUrl();
-  const url = `${base}/v1/outreach${path}`;
+  const url = `/api/v1/outreach${path}`;
 
   const { maxRetries = 3, timeout = 30_000, ...fetchOpts } = options;
 

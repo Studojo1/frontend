@@ -6,8 +6,7 @@ import { Footer } from "~/components/common/footer";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
-import { outreachFetch } from "~/lib/outreach/api";
-import { getControlPlaneUrl, getToken, ControlPlaneError } from "~/lib/control-plane";
+import { getToken, ControlPlaneError } from "~/lib/control-plane";
 import { fetchWithRetry } from "~/lib/fetch-with-retry";
 import type { ResumePreview } from "~/lib/outreach/types";
 
@@ -50,8 +49,7 @@ export default function UploadPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const base = getControlPlaneUrl();
-      const res = await fetchWithRetry(`${base}/v1/outreach/candidate/upload`, {
+      const res = await fetchWithRetry(`/api/v1/outreach/candidate/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
