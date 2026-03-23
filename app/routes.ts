@@ -77,4 +77,7 @@ export default [
   // ── Outreach ──────────────────────────────────────────────────────
   route("outreach", "routes/outreach.tsx"),
   route("outreach/orders", "routes/outreach.orders.tsx"),
+  route("outreach/onboarding/upload", "routes/outreach.onboarding.upload.tsx"),
+  route("outreach/onboarding/chat", "routes/outreach.onboarding.chat.tsx"),
+  route("outreach/onboarding/profile", "routes/outreach.onboarding.profile.tsx"),
 ] satisfies RouteConfig;
