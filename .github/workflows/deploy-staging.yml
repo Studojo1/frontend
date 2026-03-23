@@ -45,6 +45,8 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }}
             ${{ env.REGISTRY }}/${{ env.APP_NAME }}:staging
+          build-args: |
+            VITE_CONTROL_PLANE_URL=https://api.studojo.pro
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache-staging
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache-staging,mode=max
 
