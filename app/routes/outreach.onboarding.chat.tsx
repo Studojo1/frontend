@@ -31,6 +31,7 @@ export default function ChatPage() {
     try {
       const response = await outreachFetch<AgentResponse>(`/candidate/${candidateId}/chat`, {
         method: "POST",
+        timeout: 60_000,
         body: JSON.stringify({
           message: content,
           chat_history: [...chatHistory, userMsg].map((m) => ({ role: m.role, content: m.content })),
@@ -46,6 +47,7 @@ export default function ChatPage() {
           setLoading(true);
           await outreachFetch(`/candidate/${candidateId}/generate-payload`, {
             method: "POST",
+            timeout: 120_000,
             body: JSON.stringify({
               message: "__generate__",
               chat_history: fullHistory.map((m) => ({ role: m.role, content: m.content })),
