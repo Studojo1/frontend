@@ -119,18 +119,22 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-screen flex flex-col overflow-hidden bg-white">
       <Header />
 
-      <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
-        <ProgressSteps steps={["Upload Resume", "AI Chat", "Your Profile"]} currentStep={2} />
+      <div className="flex-1 flex flex-col overflow-hidden mx-auto w-full max-w-3xl px-4 md:px-8">
+        <div className="pt-8 pb-2 flex-shrink-0">
+          <ProgressSteps steps={["Upload Resume", "AI Chat", "Your Profile"]} currentStep={2} />
+        </div>
 
-        <div className="mt-8">
+        <div className="flex-shrink-0 mt-4">
           <h1 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Career Intelligence Chat</h1>
-          <p className="text-sm text-studojo-muted font-satoshi mb-6">
+          <p className="text-sm text-studojo-muted font-satoshi mb-4">
             Our AI will ask you a few questions to understand your career goals.
           </p>
+        </div>
 
+        <div className="flex-1 overflow-hidden pb-4">
           <ChatInterface messages={chatHistory} loading={loading}>
             {currentResponse?.is_complete ? (
               <div className="text-center p-4">
@@ -167,8 +171,6 @@ export default function ChatPage() {
           </ChatInterface>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }
