@@ -18,7 +18,15 @@ export function addSecurityHeaders(response: Response): Response {
   // For now, use a permissive CSP that allows common resources
   headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://api.fontshare.com; style-src 'self' 'unsafe-inline' https://api.fontshare.com; font-src 'self' https://api.fontshare.com; img-src 'self' data: https:; connect-src 'self' https://api.mixpanel.com"
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://api.fontshare.com https://checkout.razorpay.com",
+      "style-src 'self' 'unsafe-inline' https://api.fontshare.com",
+      "font-src 'self' https://api.fontshare.com",
+      "img-src 'self' data: https:",
+      "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
+      "connect-src 'self' https://api.studojo.com https://api.studojo.pro https://api.mixpanel.com https://lumberjack-cx.razorpay.com https://api.razorpay.com",
+    ].join("; ")
   );
 
   return new Response(response.body, {
