@@ -80,4 +80,12 @@ export default [
   route("outreach/onboarding/upload", "routes/outreach.onboarding.upload.tsx"),
   route("outreach/onboarding/chat", "routes/outreach.onboarding.chat.tsx"),
   route("outreach/onboarding/profile", "routes/outreach.onboarding.profile.tsx"),
+  route("outreach/leads/discovery", "routes/outreach.leads.discovery.tsx"),
+  route("outreach/leads/results", "routes/outreach.leads.results.tsx"),
+  route("outreach/enrichment", "routes/outreach.enrichment.tsx"),
+  route("outreach/connect/gmail", "routes/outreach.connect.gmail.tsx"),
+  route("outreach/campaign/templates", "routes/outreach.campaign.templates.tsx"),
+  route("outreach/campaign/setup", "routes/outreach.campaign.setup.tsx"),
+  route("outreach/campaign/launching", "routes/outreach.campaign.launching.tsx"),
+  route("outreach/campaign/dashboard", "routes/outreach.campaign.dashboard.tsx"),
 ] satisfies RouteConfig;
