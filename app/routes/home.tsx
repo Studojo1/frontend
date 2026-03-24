@@ -76,20 +76,18 @@ function InternshipCTA() {
 
   return (
     <>
-      {/* In-page CTA — sits where the stats bar was */}
-      <section className="bg-purple-50 px-4 pb-14 pt-10 md:px-8 md:pb-16 md:pt-12">
-        <div
-          ref={anchorRef}
-          className="mx-auto flex max-w-[var(--section-max-width)] items-center justify-center"
+      {/* In-page CTA anchor — inside hero section, no separate element */}
+      <div
+        ref={anchorRef}
+        className="flex justify-center px-4 pb-14 pt-6 md:px-8 md:pb-16"
+      >
+        <Link
+          to="/outreach"
+          className="inline-flex h-16 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 px-14 font-['Satoshi'] text-lg font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:h-[72px] md:px-16 md:text-xl"
         >
-          <Link
-            to="/outreach"
-            className="inline-flex h-16 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 px-14 font-['Satoshi'] text-lg font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:h-[72px] md:px-16 md:text-xl"
-          >
-            Find your dream internship →
-          </Link>
-        </div>
-      </section>
+          Find your dream internship →
+        </Link>
+      </div>
 
       {/* Floating pill — slides in below header when in-page CTA scrolls out of view */}
       <AnimatePresence>
@@ -123,12 +121,11 @@ export default function Home() {
         initial="hidden"
         animate="visible"
       >
-        <div className="border-b border-neutral-900">
-          <motion.div variants={sectionVariants}>
-            <Hero />
-          </motion.div>
-          <InternshipCTA />
-        </div>
+        <motion.div variants={sectionVariants}>
+          <Hero>
+            <InternshipCTA />
+          </Hero>
+        </motion.div>
         <motion.div variants={sectionVariants}>
           <DojoCards />
         </motion.div>
