@@ -77,14 +77,14 @@ function InternshipCTA() {
   return (
     <>
       {/* In-page CTA — sits where the stats bar was */}
-      <section className="border-b border-neutral-900 bg-white px-4 py-10 md:px-8 md:py-14">
+      <section className="border-b border-neutral-900 bg-purple-50 px-4 pb-14 pt-10 md:px-8 md:pb-16 md:pt-12">
         <div
           ref={anchorRef}
           className="mx-auto flex max-w-[var(--section-max-width)] items-center justify-center"
         >
           <Link
             to="/outreach"
-            className="inline-flex h-14 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 px-10 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+            className="inline-flex h-16 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 px-14 font-['Satoshi'] text-lg font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:h-[72px] md:px-16 md:text-xl"
           >
             Find your dream internship →
           </Link>
