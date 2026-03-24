@@ -101,9 +101,11 @@ function InternshipPopup() {
             </button>
 
             <div className="flex flex-col gap-5">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-purple-300 text-2xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
-                🎯
-              </div>
+              <img
+                src="/favicon.png"
+                alt="Studojo"
+                className="h-14 w-14 rounded-2xl border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+              />
               <div className="flex flex-col gap-2">
                 <h2 className="font-['Clash_Display'] text-2xl font-medium leading-tight text-neutral-900">
                   Find your dream internship
@@ -119,12 +121,6 @@ function InternshipPopup() {
               >
                 Find internships →
               </Link>
-              <button
-                onClick={dismiss}
-                className="font-['Satoshi'] text-sm text-neutral-500 hover:text-neutral-700 underline"
-              >
-                Not now
-              </button>
             </div>
           </motion.div>
         </motion.div>
