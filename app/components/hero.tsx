@@ -7,7 +7,7 @@ const floatRotate = [0, 6, -8, 4, 0];
 
 export function Hero() {
   return (
-    <section className="overflow-hidden bg-purple-50">
+    <section className="bg-purple-50">
       <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col gap-12 px-4 pt-8 pb-8 md:px-8 md:py-20 md:flex-row md:items-center md:justify-between md:gap-16">
         <div className="flex max-w-3xl flex-col gap-5 md:gap-7">
           <div className="flex flex-col items-center gap-3 md:items-start md:gap-0">
