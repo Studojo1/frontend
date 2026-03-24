@@ -2,14 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { FiSend } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { ChatInterface } from "~/components/outreach/ChatInterface";
 import { MCQSelector } from "~/components/outreach/MCQSelector";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
-import { outreachFetch } from "~/lib/outreach/api";
+import { outreachFetch, outreachStreamFetch } from "~/lib/outreach/api";
 import type { ChatMessage, AgentResponse } from "~/lib/outreach/types";
+
+// Regex to extract partial message text while JSON is still streaming
+const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)"/;
 
 export default function ChatPage() {
   const navigate = useNavigate();
@@ -19,51 +21,122 @@ export default function ChatPage() {
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
   const [started, setStarted] = useState(false);
+  const [streamingText, setStreamingText] = useState<string | null>(null);
   const autoStarted = useRef(false);
 
+  /**
+   * Send a message via the hybrid SSE /chat/stream endpoint.
+   * Static questions (Q1–Q5) arrive as a single `complete` event immediately.
+   * LLM questions (Q6–Q7) stream token-by-token via `chunk` events before `complete`.
+   */
   const sendMessage = async (content: string) => {
     if (!candidateId) return;
 
     const userMsg: ChatMessage = { role: "user", content };
     addChatMessage(userMsg);
     setLoading(true);
+    setStreamingText(null);
+
+    const fullHistory = [...chatHistory, userMsg];
 
     try {
-      const response = await outreachFetch<AgentResponse>(`/candidate/${candidateId}/chat`, {
+      const res = await outreachStreamFetch(`/candidate/${candidateId}/chat/stream`, {
         method: "POST",
-        timeout: 60_000,
         body: JSON.stringify({
           message: content,
-          chat_history: [...chatHistory, userMsg].map((m) => ({ role: m.role, content: m.content })),
+          chat_history: fullHistory.map((m) => ({ role: m.role, content: m.content })),
         }),
       });
 
-      addChatMessage({ role: "assistant", content: response.message });
-      setCurrentResponse(response);
+      if (!res.ok || !res.body) {
+        throw new Error(`Stream request failed (${res.status})`);
+      }
 
-      if (response.is_complete) {
-        const fullHistory = [...chatHistory, userMsg, { role: "assistant" as const, content: response.message }];
-        try {
-          setLoading(true);
-          await outreachFetch(`/candidate/${candidateId}/generate-payload`, {
-            method: "POST",
-            timeout: 120_000,
-            body: JSON.stringify({
-              message: "__generate__",
-              chat_history: fullHistory.map((m) => ({ role: m.role, content: m.content })),
-            }),
-          });
-          await new Promise((r) => setTimeout(r, 1500));
-          setCurrentStep(3);
-          navigate("/outreach/onboarding/profile");
-        } catch {
-          addChatMessage({ role: "assistant", content: "Profile generation failed. Please try again." });
-          setLoading(false);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let accumulated = "";
+      let finalResponse: AgentResponse | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (!raw) continue;
+
+          let evt: { type: string; text?: string; message?: string; mcq?: any; text_input?: boolean; is_complete?: boolean; current_state?: string; questions_asked_so_far?: number };
+          try {
+            evt = JSON.parse(raw);
+          } catch {
+            continue;
+          }
+
+          if (evt.type === "chunk" && evt.text) {
+            accumulated += evt.text;
+            // Show partial message text while streaming
+            const match = PARTIAL_MSG_RE.exec(accumulated);
+            if (match) {
+              setStreamingText(match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"'));
+            }
+          } else if (evt.type === "complete") {
+            finalResponse = {
+              message: evt.message ?? "",
+              current_state: evt.current_state ?? "MCQ",
+              mcq: evt.mcq ?? null,
+              text_input: evt.text_input ?? false,
+              is_complete: evt.is_complete ?? false,
+              questions_asked_so_far: evt.questions_asked_so_far ?? 0,
+            } as AgentResponse;
+          } else if (evt.type === "error") {
+            throw new Error(evt.message ?? "Stream error");
+          }
         }
       }
-    } catch {
+
+      setStreamingText(null);
+
+      if (finalResponse) {
+        addChatMessage({ role: "assistant", content: finalResponse.message });
+        setCurrentResponse(finalResponse);
+
+        if (finalResponse.is_complete) {
+          const historyForPayload = [
+            ...fullHistory,
+            { role: "assistant" as const, content: finalResponse.message },
+          ];
+          try {
+            setLoading(true);
+            await outreachFetch(`/candidate/${candidateId}/generate-payload`, {
+              method: "POST",
+              timeout: 120_000,
+              body: JSON.stringify({
+                message: "__generate__",
+                chat_history: historyForPayload.map((m) => ({ role: m.role, content: m.content })),
+              }),
+            });
+            await new Promise((r) => setTimeout(r, 1500));
+            setCurrentStep(3);
+            navigate("/outreach/onboarding/profile");
+          } catch {
+            addChatMessage({ role: "assistant", content: "Profile generation failed. Please try again." });
+            setLoading(false);
+          }
+        } else {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    } catch (err: any) {
+      setStreamingText(null);
       addChatMessage({ role: "assistant", content: "Something went wrong. Please try again." });
-    } finally {
       setLoading(false);
     }
   };
@@ -71,16 +144,61 @@ export default function ChatPage() {
   const startChat = async () => {
     setStarted(true);
     setLoading(true);
+    setStreamingText(null);
+
     try {
-      const response = await outreachFetch<AgentResponse>(`/candidate/${candidateId}/chat`, {
+      const res = await outreachStreamFetch(`/candidate/${candidateId}/chat/stream`, {
         method: "POST",
         body: JSON.stringify({ message: "__start__", chat_history: [] }),
       });
-      addChatMessage({ role: "assistant", content: response.message });
-      setCurrentResponse(response);
+
+      if (!res.ok || !res.body) {
+        throw new Error(`Stream request failed (${res.status})`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let finalResponse: AgentResponse | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (!raw) continue;
+          try {
+            const evt = JSON.parse(raw);
+            if (evt.type === "complete") {
+              finalResponse = {
+                message: evt.message ?? "",
+                current_state: evt.current_state ?? "MCQ",
+                mcq: evt.mcq ?? null,
+                text_input: evt.text_input ?? false,
+                is_complete: evt.is_complete ?? false,
+                questions_asked_so_far: evt.questions_asked_so_far ?? 0,
+              } as AgentResponse;
+            }
+          } catch {
+            continue;
+          }
+        }
+      }
+
+      if (finalResponse) {
+        addChatMessage({ role: "assistant", content: finalResponse.message });
+        setCurrentResponse(finalResponse);
+      }
     } catch {
       addChatMessage({ role: "assistant", content: "Failed to start chat. Please refresh." });
     } finally {
+      setStreamingText(null);
       setLoading(false);
     }
   };
@@ -137,7 +255,7 @@ export default function ChatPage() {
         </div>
 
         <div className="flex-1 overflow-hidden pb-4">
-          <ChatInterface messages={chatHistory} loading={loading}>
+          <ChatInterface messages={chatHistory} loading={loading} streamingText={streamingText}>
             {currentResponse?.is_complete ? (
               <div className="text-center p-4">
                 <p className="text-sm text-studojo-green font-semibold font-satoshi">
@@ -156,9 +274,9 @@ export default function ChatPage() {
               <div className="flex gap-2">
                 <input
                   value={textInput}
-                  onChange={(e) => setTextInput(e.target.value)}
+                  onChange={(e: any) => setTextInput(e.target.value)}
                   placeholder="Type your answer..."
-                  onKeyDown={(e) => e.key === "Enter" && handleTextSubmit()}
+                  onKeyDown={(e: any) => e.key === "Enter" && handleTextSubmit()}
                   className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
                 />
                 <button
