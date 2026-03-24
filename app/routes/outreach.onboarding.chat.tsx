@@ -20,9 +20,9 @@ const Q1_STATIC: AgentResponse = {
   mcq: {
     question: "Which best describes you right now?",
     options: [
-      { label: "A", text: "Student — not graduating soon" },
-      { label: "B", text: "Student — graduating within 6 months" },
-      { label: "C", text: "Recent graduate (0–2 years exp.)" },
+      { label: "A", text: "Student, not graduating soon" },
+      { label: "B", text: "Student, graduating within 6 months" },
+      { label: "C", text: "Recent graduate (0-2 years exp.)" },
       { label: "D", text: "Experienced professional (3+ years)" },
       { label: "E", text: "Switching careers / exploring new fields" },
       { label: "F", text: "Other" },
