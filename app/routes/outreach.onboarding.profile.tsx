@@ -21,7 +21,7 @@ export default function ProfilePage() {
     if (authLoading || !candidateId) return;
 
     let retries = 0;
-    const maxRetries = 5;
+    const maxRetries = 3;
 
     const fetchProfile = () => {
       outreachFetch<{ parsed_json: any }>(`/candidate/${candidateId}/profile`)
