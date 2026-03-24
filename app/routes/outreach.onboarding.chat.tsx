@@ -138,15 +138,22 @@ export default function ChatPage() {
           ];
           try {
             setLoading(true);
+            // Kick off generation (returns immediately)
             await outreachFetch(`/candidate/${candidateId}/generate-payload`, {
               method: "POST",
-              timeout: 120_000,
               body: JSON.stringify({
                 message: "__generate__",
                 chat_history: historyForPayload.map((m) => ({ role: m.role, content: m.content })),
               }),
             });
-            await new Promise((r) => setTimeout(r, 1500));
+            // Poll until ready (max 90s, 2s interval)
+            for (let i = 0; i < 45; i++) {
+              await new Promise((r) => setTimeout(r, 2000));
+              const status = await outreachFetch<{ ready: boolean }>(
+                `/candidate/${candidateId}/profile-status`
+              );
+              if (status.ready) break;
+            }
             setCurrentStep(3);
             navigate("/outreach/onboarding/profile");
           } catch {
