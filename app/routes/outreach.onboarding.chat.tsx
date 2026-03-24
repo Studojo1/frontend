@@ -29,9 +29,9 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const response = await outreachFetch<AgentResponse>(`/candidate/${candidateId}/chat`, {
+      const response = await outreachFetch<AgentResponse>(`/candidate/${candidateId}/chat/v2`, {
         method: "POST",
-        timeout: 60_000,
+        timeout: 30_000,
         body: JSON.stringify({
           message: content,
           chat_history: [...chatHistory, userMsg].map((m) => ({ role: m.role, content: m.content })),
@@ -43,23 +43,19 @@ export default function ChatPage() {
 
       if (response.is_complete) {
         const fullHistory = [...chatHistory, userMsg, { role: "assistant" as const, content: response.message }];
-        try {
-          setLoading(true);
-          await outreachFetch(`/candidate/${candidateId}/generate-payload`, {
-            method: "POST",
-            timeout: 120_000,
-            body: JSON.stringify({
-              message: "__generate__",
-              chat_history: fullHistory.map((m) => ({ role: m.role, content: m.content })),
-            }),
-          });
-          await new Promise((r) => setTimeout(r, 1500));
-          setCurrentStep(3);
-          navigate("/outreach/onboarding/profile");
-        } catch {
-          addChatMessage({ role: "assistant", content: "Profile generation failed. Please try again." });
-          setLoading(false);
-        }
+        // Fire payload generation in background — profile page polls until ready
+        outreachFetch(`/candidate/${candidateId}/generate-payload`, {
+          method: "POST",
+          timeout: 120_000,
+          body: JSON.stringify({
+            message: "__generate__",
+            chat_history: fullHistory.map((m) => ({ role: m.role, content: m.content })),
+          }),
+        }).catch(() => {
+          // Silently handled — profile page will retry if payload isn't ready yet
+        });
+        setCurrentStep(3);
+        navigate("/outreach/onboarding/profile");
       }
     } catch {
       addChatMessage({ role: "assistant", content: "Something went wrong. Please try again." });
