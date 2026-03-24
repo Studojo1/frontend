@@ -12,7 +12,7 @@ import type { ChatMessage, AgentResponse } from "~/lib/outreach/types";
 
 /**
  * Q1 is served client-side immediately — zero network latency.
- * Options must match backend _build_effective_question_list keyword checks exactly.
+ * Options must match question_engine.py _Q1_CAREER_STAGE exactly.
  */
 const Q1_STATIC: AgentResponse = {
   message: "Let's map out your career goals! Which of these best describes where you are right now?",
