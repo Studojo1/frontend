@@ -77,7 +77,7 @@ function InternshipCTA() {
   return (
     <>
       {/* In-page CTA — sits where the stats bar was */}
-      <section className="border-b border-neutral-900 bg-purple-50 px-4 pb-14 pt-10 md:px-8 md:pb-16 md:pt-12">
+      <section className="bg-purple-50 px-4 pb-14 pt-10 md:px-8 md:pb-16 md:pt-12">
         <div
           ref={anchorRef}
           className="mx-auto flex max-w-[var(--section-max-width)] items-center justify-center"
@@ -123,10 +123,12 @@ export default function Home() {
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={sectionVariants}>
-          <Hero />
-        </motion.div>
-        <InternshipCTA />
+        <div className="border-b border-neutral-900">
+          <motion.div variants={sectionVariants}>
+            <Hero />
+          </motion.div>
+          <InternshipCTA />
+        </div>
         <motion.div variants={sectionVariants}>
           <DojoCards />
         </motion.div>
