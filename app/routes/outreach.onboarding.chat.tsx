@@ -121,6 +121,7 @@ export default function ChatPage() {
               text_input: evt.text_input ?? false,
               is_complete: evt.is_complete ?? false,
               questions_asked_so_far: evt.questions_asked_so_far ?? 0,
+              psychometric: evt.psychometric ?? null,
             } as AgentResponse;
           } else if (evt.type === "error") {
             throw new Error(evt.message ?? "Stream error");
@@ -135,16 +136,12 @@ export default function ChatPage() {
         setCurrentResponse(finalResponse);
 
         if (finalResponse.is_complete) {
-          // Show psychometric results if available
-          if (finalResponse.psychometric) {
-            setPsychResult(finalResponse.psychometric);
-          }
-
-          // Start payload generation in background immediately
           const historyForPayload = [
             ...fullHistory,
             { role: "assistant" as const, content: finalResponse.message },
           ];
+
+          // Start payload generation in background immediately
           outreachFetch(`/candidate/${candidateId}/generate-payload`, {
             method: "POST",
             body: JSON.stringify({
@@ -153,7 +150,28 @@ export default function ChatPage() {
             }),
           }).catch(() => {});
 
-          setLoading(false);
+          if (finalResponse.psychometric) {
+            // Show psychometric results card — user clicks Continue
+            setPsychResult(finalResponse.psychometric);
+            setLoading(false);
+          } else {
+            // No psychometric data — auto-poll and redirect
+            setLoading(true);
+            try {
+              for (let i = 0; i < 45; i++) {
+                await new Promise((r) => setTimeout(r, 2000));
+                const status = await outreachFetch<{ ready: boolean }>(
+                  `/candidate/${candidateId}/profile-status`
+                );
+                if (status.ready) break;
+              }
+              setCurrentStep(3);
+              navigate("/outreach/onboarding/profile");
+            } catch {
+              addChatMessage({ role: "assistant", content: "Profile generation failed. Please try again." });
+              setLoading(false);
+            }
+          }
         } else {
           setLoading(false);
         }
