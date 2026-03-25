@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { FiUser, FiMapPin, FiBriefcase, FiTarget } from "react-icons/fi";
+import { FiUser, FiMapPin, FiBriefcase, FiTarget, FiZap, FiTrendingUp, FiUsers } from "react-icons/fi";
 import { BsBuilding } from "react-icons/bs";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -68,6 +68,7 @@ export default function ProfilePage() {
   const personalInfo = parsed.personal_info || {};
   const preferences = parsed.preferences || {};
   const career = parsed.career_analysis || {};
+  const psych = (profile as any)?.psychometric || null;
 
   return (
     <div className="min-h-screen bg-white">
@@ -157,6 +158,65 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
+
+              {psych && (
+                <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <FiZap className="w-5 h-5 text-studojo-purple" />
+                    <h3 className="font-clash text-lg font-bold text-studojo-ink">Career DNA</h3>
+                    {psych.confidence_score != null && (
+                      <span className="ml-auto px-2.5 py-0.5 rounded-full text-xs font-satoshi font-semibold bg-studojo-green-bg text-studojo-green border border-studojo-green/30">
+                        {Math.round(psych.confidence_score)}% confidence
+                      </span>
+                    )}
+                  </div>
+                  {psych.traits?.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {psych.traits.map((t: string) => (
+                        <span key={t} className="px-3 py-1 rounded-xl text-sm font-satoshi font-semibold bg-studojo-purple-bg text-studojo-purple border border-studojo-purple/20">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {psych.dimension_scores && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {Object.entries(psych.dimension_scores as Record<string, number>)
+                        .sort(([, a], [, b]) => b - a)
+                        .map(([dim, score]) => {
+                          const colors: Record<string, string> = {
+                            analytical: "bg-studojo-purple",
+                            creative: "bg-studojo-orange",
+                            execution: "bg-studojo-green",
+                            social: "bg-studojo-pink",
+                          };
+                          const bgColors: Record<string, string> = {
+                            analytical: "bg-studojo-purple/15",
+                            creative: "bg-studojo-orange/15",
+                            execution: "bg-studojo-green/15",
+                            social: "bg-studojo-pink/15",
+                          };
+                          return (
+                            <div key={dim}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-xs font-satoshi font-semibold text-studojo-ink capitalize">{dim}</span>
+                                <span className="text-xs font-clash font-bold text-studojo-muted">{Math.round(score)}</span>
+                              </div>
+                              <div className={`h-2 rounded-full ${bgColors[dim] || "bg-gray-100"} overflow-hidden`}>
+                                <div className={`h-full rounded-full ${colors[dim] || "bg-gray-400"}`} style={{ width: `${Math.max(score, 4)}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                  {psych.reasoning && (
+                    <p className="text-xs text-studojo-muted font-satoshi mt-4 italic leading-relaxed">
+                      "{psych.reasoning}"
+                    </p>
+                  )}
+                </div>
+              )}
 
               {career.recommended_roles?.length > 0 && (
                 <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6">

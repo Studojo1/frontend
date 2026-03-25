@@ -5,10 +5,11 @@ import { Header } from "~/components/common/header";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { ChatInterface } from "~/components/outreach/ChatInterface";
 import { MCQSelector } from "~/components/outreach/MCQSelector";
+import { PsychometricResult } from "~/components/outreach/PsychometricResult";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch, outreachStreamFetch } from "~/lib/outreach/api";
-import type { ChatMessage, AgentResponse } from "~/lib/outreach/types";
+import type { ChatMessage, AgentResponse, PsychometricResult as PsychometricData } from "~/lib/outreach/types";
 
 /**
  * Q1 is served client-side immediately — zero network latency.
@@ -48,6 +49,8 @@ export default function ChatPage() {
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
   const [streamingText, setStreamingText] = useState<string | null>(null);
+  const [psychResult, setPsychResult] = useState<PsychometricData | null>(null);
+  const [profileGenerating, setProfileGenerating] = useState(false);
   const autoStarted = useRef(false);
 
   // Serve Q1 instantly on mount — no API call
@@ -132,34 +135,25 @@ export default function ChatPage() {
         setCurrentResponse(finalResponse);
 
         if (finalResponse.is_complete) {
+          // Show psychometric results if available
+          if (finalResponse.psychometric) {
+            setPsychResult(finalResponse.psychometric);
+          }
+
+          // Start payload generation in background immediately
           const historyForPayload = [
             ...fullHistory,
             { role: "assistant" as const, content: finalResponse.message },
           ];
-          try {
-            setLoading(true);
-            // Kick off generation (returns immediately)
-            await outreachFetch(`/candidate/${candidateId}/generate-payload`, {
-              method: "POST",
-              body: JSON.stringify({
-                message: "__generate__",
-                chat_history: historyForPayload.map((m) => ({ role: m.role, content: m.content })),
-              }),
-            });
-            // Poll until ready (max 90s, 2s interval)
-            for (let i = 0; i < 45; i++) {
-              await new Promise((r) => setTimeout(r, 2000));
-              const status = await outreachFetch<{ ready: boolean }>(
-                `/candidate/${candidateId}/profile-status`
-              );
-              if (status.ready) break;
-            }
-            setCurrentStep(3);
-            navigate("/outreach/onboarding/profile");
-          } catch {
-            addChatMessage({ role: "assistant", content: "Profile generation failed. Please try again." });
-            setLoading(false);
-          }
+          outreachFetch(`/candidate/${candidateId}/generate-payload`, {
+            method: "POST",
+            body: JSON.stringify({
+              message: "__generate__",
+              chat_history: historyForPayload.map((m) => ({ role: m.role, content: m.content })),
+            }),
+          }).catch(() => {});
+
+          setLoading(false);
         } else {
           setLoading(false);
         }
@@ -184,6 +178,25 @@ export default function ChatPage() {
     }
   };
 
+  const handleContinueAfterPsych = async () => {
+    if (!candidateId) return;
+    setProfileGenerating(true);
+    try {
+      // Poll until profile ready (payload gen already started in background)
+      for (let i = 0; i < 45; i++) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const status = await outreachFetch<{ ready: boolean }>(
+          `/candidate/${candidateId}/profile-status`
+        );
+        if (status.ready) break;
+      }
+      setCurrentStep(3);
+      navigate("/outreach/onboarding/profile");
+    } catch {
+      setProfileGenerating(false);
+    }
+  };
+
   if (!candidateId) {
     return (
       <div className="min-h-screen bg-white">
@@ -203,10 +216,18 @@ export default function ChatPage() {
 
   // Input area — hidden while LLM is streaming (streamingText !== null)
   const inputArea = streamingText !== null ? null
-    : currentResponse?.is_complete ? (
+    : psychResult ? (
+      <div className="max-h-[60vh] overflow-y-auto -mx-1 px-1 py-1">
+        <PsychometricResult
+          data={psychResult}
+          onContinue={handleContinueAfterPsych}
+          loading={profileGenerating}
+        />
+      </div>
+    ) : currentResponse?.is_complete ? (
       <div className="text-center p-4">
         <p className="text-sm text-studojo-green font-semibold font-satoshi">
-          Profile complete! Redirecting...
+          Profile complete! Generating...
         </p>
       </div>
     ) : currentResponse?.mcq ? (
