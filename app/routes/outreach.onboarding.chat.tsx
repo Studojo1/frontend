@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiSend } from "react-icons/fi";
+import { FiSend, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { ChatInterface } from "~/components/outreach/ChatInterface";
 import { MCQSelector } from "~/components/outreach/MCQSelector";
 import { PsychometricResult } from "~/components/outreach/PsychometricResult";
@@ -10,6 +9,9 @@ import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch, outreachStreamFetch } from "~/lib/outreach/api";
 import type { ChatMessage, AgentResponse, PsychometricResult as PsychometricData } from "~/lib/outreach/types";
+
+const STEPS = ["Upload Resume", "AI Chat", "Your Profile"];
+const TOTAL_QUESTIONS = 13;
 
 /**
  * Q1 is served client-side immediately — zero network latency.
@@ -115,6 +117,10 @@ export default function ChatPage() {
     }
   }, [candidateId]);
 
+  const questionsAsked = currentResponse?.questions_asked_so_far ?? 0;
+  const quizProgress = (questionsAsked / TOTAL_QUESTIONS) * 100;
+  const sidebarStep = (psychResult || currentResponse?.is_complete) ? 3 : 2;
+
   const sendMessage = async (content: string) => {
     if (!candidateId) return;
 
@@ -162,8 +168,6 @@ export default function ChatPage() {
 
           if (evt.type === "chunk" && typeof evt.text === "string") {
             accumulated += evt.text;
-            // Show blinking cursor immediately on first chunk (streamingText=""),
-            // then fill in progressive message text as the field builds up.
             const match = PARTIAL_MSG_RE.exec(accumulated);
             setStreamingText(match ? match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"') : "");
           } else if (evt.type === "complete") {
@@ -285,17 +289,9 @@ export default function ChatPage() {
     );
   }
 
-  // Input area — hidden while LLM is streaming (streamingText !== null)
+  // Input area for chat — hidden while streaming or when psychResult is shown as full panel
   const inputArea = streamingText !== null ? null
-    : psychResult ? (
-      <div className="max-h-[60vh] overflow-y-auto -mx-1 px-1 py-1">
-        <PsychometricResult
-          data={psychResult}
-          onContinue={handleContinueAfterPsych}
-          loading={profileGenerating}
-        />
-      </div>
-    ) : currentResponse?.is_complete ? (
+    : currentResponse?.is_complete ? (
       <CompletionRedirect candidateId={candidateId!} onReady={() => { setCurrentStep(3); navigate("/outreach/onboarding/profile"); }} />
     ) : currentResponse?.mcq ? (
       <MCQSelector
@@ -328,22 +324,115 @@ export default function ChatPage() {
     <div className="h-screen flex flex-col overflow-hidden bg-white">
       <Header />
 
-      <div className="flex-1 flex flex-col overflow-hidden mx-auto w-full max-w-3xl px-4 md:px-8">
-        <div className="pt-8 pb-2 flex-shrink-0">
-          <ProgressSteps steps={["Upload Resume", "AI Chat", "Your Profile"]} currentStep={2} />
-        </div>
+      <div className="flex-1 flex overflow-hidden">
+        {/* Desktop sidebar — vertical progress timeline */}
+        <aside className="hidden md:flex flex-col w-52 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 pl-6 pr-4 pt-10 flex-shrink-0">
+          {STEPS.map((step, i) => {
+            const num = i + 1;
+            const done = num < sidebarStep;
+            const active = num === sidebarStep;
+            const isLast = i === STEPS.length - 1;
+            return (
+              <div key={i} className="flex items-start gap-3">
+                <div className="flex flex-col items-center">
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 ${
+                      done
+                        ? "bg-studojo-green text-white border-studojo-green"
+                        : active
+                        ? "bg-studojo-purple text-white border-studojo-purple"
+                        : "bg-white text-studojo-muted border-studojo-ink/15"
+                    }`}
+                  >
+                    {done ? <FiCheck className="w-4 h-4" /> : num}
+                  </div>
+                  {!isLast && (
+                    <div className={`w-0.5 h-10 ${done ? "bg-studojo-green" : "bg-studojo-ink/10"}`} />
+                  )}
+                </div>
+                <div className="pt-1.5">
+                  <p
+                    className={`text-sm font-satoshi leading-tight ${
+                      active
+                        ? "text-studojo-ink font-semibold"
+                        : done
+                        ? "text-studojo-green font-medium"
+                        : "text-studojo-muted"
+                    }`}
+                  >
+                    {step}
+                  </p>
+                  {active && num === 2 && questionsAsked > 0 && (
+                    <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
+                      Question {questionsAsked} of {TOTAL_QUESTIONS}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </aside>
 
-        <div className="flex-shrink-0 mt-4">
-          <h1 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Career Intelligence Chat</h1>
-          <p className="text-sm text-studojo-muted font-satoshi mb-4">
-            Our AI will ask you a few questions to understand your career goals.
-          </p>
-        </div>
+        {/* Main content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {psychResult ? (
+            /* Full-panel psychometric result — replaces the chat view */
+            <div className="flex-1 overflow-y-auto">
+              <PsychometricResult
+                data={psychResult}
+                onContinue={handleContinueAfterPsych}
+                loading={profileGenerating}
+              />
+            </div>
+          ) : (
+            /* Chat view */
+            <>
+              {/* Mobile: compact progress dots + question count */}
+              <div className="md:hidden flex items-center justify-between px-4 pt-4 pb-1 flex-shrink-0">
+                <div className="flex items-center gap-1.5">
+                  {STEPS.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        i + 1 < sidebarStep
+                          ? "bg-studojo-green"
+                          : i + 1 === sidebarStep
+                          ? "bg-studojo-purple"
+                          : "bg-studojo-ink/15"
+                      }`}
+                    />
+                  ))}
+                </div>
+                {questionsAsked > 0 && (
+                  <span className="text-xs font-satoshi text-studojo-muted">
+                    {questionsAsked}/{TOTAL_QUESTIONS}
+                  </span>
+                )}
+              </div>
 
-        <div className="flex-1 overflow-hidden pb-4">
-          <ChatInterface messages={chatHistory} loading={loading} streamingText={streamingText}>
-            {inputArea}
-          </ChatInterface>
+              {/* Title */}
+              <div className="flex-shrink-0 px-6 pt-6 md:pt-8 pb-2">
+                <h1 className="font-clash text-xl md:text-2xl font-bold text-studojo-ink">
+                  Career Intelligence Chat
+                </h1>
+                <p className="text-sm text-studojo-muted font-satoshi mt-1">
+                  Our AI will ask you a few questions to understand your career goals.
+                </p>
+              </div>
+
+              {/* Chat container */}
+              <div className="flex-1 overflow-hidden px-4 md:px-6 pb-4">
+                <ChatInterface
+                  messages={chatHistory}
+                  loading={loading}
+                  streamingText={streamingText}
+                  quizProgress={quizProgress}
+                >
+                  {inputArea}
+                </ChatInterface>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
