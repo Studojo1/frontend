@@ -41,6 +41,59 @@ const Q1_STATIC: AgentResponse = {
  */
 const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)/;
 
+/**
+ * Fallback completion handler — auto-polls profile-status and redirects.
+ * Shows a button escape hatch if polling takes too long.
+ */
+function CompletionRedirect({ candidateId, onReady }: { candidateId: number; onReady: () => void }) {
+  const [polling, setPolling] = useState(true);
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+
+    (async () => {
+      try {
+        for (let i = 0; i < 45; i++) {
+          await new Promise((r) => setTimeout(r, 2000));
+          const status = await outreachFetch<{ ready: boolean }>(
+            `/candidate/${candidateId}/profile-status`
+          );
+          if (status.ready) {
+            onReady();
+            return;
+          }
+        }
+      } catch {}
+      setPolling(false);
+    })();
+  }, [candidateId, onReady]);
+
+  return (
+    <div className="text-center p-4 space-y-3">
+      {polling ? (
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-4 h-4 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-studojo-green font-semibold font-satoshi">
+            Generating your profile...
+          </p>
+        </div>
+      ) : (
+        <p className="text-sm text-studojo-muted font-satoshi">
+          Taking longer than expected.
+        </p>
+      )}
+      <button
+        onClick={onReady}
+        className="h-9 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+      >
+        Continue to Profile
+      </button>
+    </div>
+  );
+}
+
 export default function ChatPage() {
   const navigate = useNavigate();
   useOutreachAuth();
@@ -243,11 +296,7 @@ export default function ChatPage() {
         />
       </div>
     ) : currentResponse?.is_complete ? (
-      <div className="text-center p-4">
-        <p className="text-sm text-studojo-green font-semibold font-satoshi">
-          Profile complete! Generating...
-        </p>
-      </div>
+      <CompletionRedirect candidateId={candidateId!} onReady={() => { setCurrentStep(3); navigate("/outreach/onboarding/profile"); }} />
     ) : currentResponse?.mcq ? (
       <MCQSelector
         question={currentResponse.mcq.question}
