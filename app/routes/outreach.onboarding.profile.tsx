@@ -174,22 +174,26 @@ export default function ProfilePage() {
 
     (async () => {
       try {
-        // Poll profile-status — check immediately, then every 1s up to 20 attempts (~20s max)
-        for (let i = 0; i < 20; i++) {
+        // Poll the profile endpoint directly until LLM data is present (max 30s)
+        // profile-status only signals psychometric readiness, not full LLM profile
+        let lastData: any = null;
+        for (let i = 0; i < 30; i++) {
           if (i > 0) await new Promise((r) => setTimeout(r, 1000));
           if (cancelled) return;
           try {
-            const status = await outreachFetch<{ ready: boolean }>(
-              `/candidate/${candidateId}/profile-status`
-            );
-            if (status.ready) break;
+            const data = await outreachFetch<any>(`/candidate/${candidateId}/profile`);
+            lastData = data;
+            const parsed = data?.parsed_json;
+            // Full profile ready when LLM has populated summary or career analysis
+            if (parsed?.profile_summary || parsed?.career_analysis?.recommended_roles?.length) {
+              if (!cancelled) { setProfile(data); setLoading(false); }
+              return;
+            }
           } catch {}
         }
-        if (cancelled) return;
-        // Single full profile fetch once ready
-        const data = await outreachFetch<{ parsed_json: any }>(`/candidate/${candidateId}/profile`);
+        // Timeout — show whatever we have
         if (!cancelled) {
-          setProfile(data);
+          setProfile(lastData);
           setLoading(false);
         }
       } catch (err: any) {
