@@ -25,12 +25,6 @@ export function Hero({ children }: { children?: ReactNode }) {
           </p>
           <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
             <Link
-              to="/auth?mode=signup"
-              className="inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-purple-500 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-10"
-            >
-              Start for Free
-            </Link>
-            <Link
               to="/outreach"
               className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-10"
             >
