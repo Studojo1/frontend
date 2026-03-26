@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiClock } from "react-icons/fi";
-import { DodoPayments } from "dodopayments-checkout";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TierSelector } from "~/components/outreach/TierSelector";
@@ -48,12 +47,9 @@ export default function EnrichmentPage() {
   const [error, setError] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [dodoPolling, setDodoPolling] = useState(false);
-  const dodoInitialized = useRef(false);
-  const dodoSessionRef = useRef<string>("");
-  const dodoTierRef = useRef<number>(0);
-  const dodoHandledRef = useRef(false);
+  const dodoPopupRef = useRef<Window | null>(null);
 
-  // Fallback: poll verify-dodo when overlay closes without a definitive result
+  // Poll verify-dodo after popup payment
   const pollDodoVerify = async (sessionId: string, tier: number, attempt: number) => {
     if (attempt === 0) setDodoPolling(true);
     try {
@@ -63,6 +59,7 @@ export default function EnrichmentPage() {
       });
       if (res.status === "paid") {
         setDodoPolling(false);
+        try { dodoPopupRef.current?.close(); } catch {}
         setCredits(await outreachFetch("/payment/credits"));
         setPaying(false);
         handleEnrich(tier);
@@ -70,6 +67,7 @@ export default function EnrichmentPage() {
       }
       if (res.status === "failed") {
         setDodoPolling(false);
+        try { dodoPopupRef.current?.close(); } catch {}
         setError("Payment failed. Please try again.");
         setPaying(false);
         return;
@@ -216,55 +214,25 @@ export default function EnrichmentPage() {
         return;
       }
 
-      // Dodo Payments overlay checkout (international users)
+      // Dodo Payments popup checkout (international users)
       if (orderData.checkout_url) {
-        dodoSessionRef.current = orderData.session_id;
-        dodoTierRef.current = selectedTier;
-        dodoHandledRef.current = false;
+        const sessionId = orderData.session_id;
+        const tier = selectedTier;
 
-        if (!dodoInitialized.current) {
-          DodoPayments.Initialize({
-            mode: orderData.dodo_test_mode ? "test" : "live",
-            displayType: "overlay",
-            onEvent: async (event) => {
-              if (event.event_type === "checkout.status") {
-                const status = (event.data as any)?.status;
-                if (status === "succeeded" || status === "paid") {
-                  dodoHandledRef.current = true;
-                  DodoPayments.Checkout.close();
-                  try {
-                    await outreachFetch("/payment/verify-dodo", {
-                      method: "POST",
-                      body: JSON.stringify({ session_id: dodoSessionRef.current }),
-                    });
-                    setCredits(await outreachFetch("/payment/credits"));
-                    setPaying(false);
-                    handleEnrich(dodoTierRef.current);
-                  } catch (err: any) {
-                    setError(err?.body?.detail || err.message || "Payment verification failed");
-                    setPaying(false);
-                  }
-                } else if (status === "failed") {
-                  dodoHandledRef.current = true;
-                  DodoPayments.Checkout.close();
-                  setError("Payment failed. Please try again.");
-                  setPaying(false);
-                }
-              }
-              if (event.event_type === "checkout.closed" && !dodoHandledRef.current) {
-                // Overlay closed without success/fail — user may have paid via UPI/external.
-                // Poll backend to check if payment went through.
-                pollDodoVerify(dodoSessionRef.current, dodoTierRef.current, 0);
-              }
-            },
-          });
-          dodoInitialized.current = true;
-        }
+        // Open checkout in a centered popup window
+        const w = 500, h = 700;
+        const left = window.screenX + (window.outerWidth - w) / 2;
+        const top = window.screenY + (window.outerHeight - h) / 2;
+        const popup = window.open(
+          orderData.checkout_url,
+          "dodo_checkout",
+          `width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no`
+        );
+        dodoPopupRef.current = popup;
 
-        DodoPayments.Checkout.open({
-          checkoutUrl: orderData.checkout_url,
-          options: { manualRedirect: true },
-        });
+        // Show "Confirming Payment" and start polling immediately
+        setDodoPolling(true);
+        pollDodoVerify(sessionId, tier, 0);
         return;
       }
 
