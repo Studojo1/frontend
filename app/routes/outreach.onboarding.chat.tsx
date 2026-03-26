@@ -4,14 +4,14 @@ import { FiSend, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { ChatInterface } from "~/components/outreach/ChatInterface";
 import { MCQSelector } from "~/components/outreach/MCQSelector";
-import { PsychometricResult } from "~/components/outreach/PsychometricResult";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch, outreachStreamFetch } from "~/lib/outreach/api";
-import type { ChatMessage, AgentResponse, PsychometricResult as PsychometricData } from "~/lib/outreach/types";
+import type { ChatMessage, AgentResponse } from "~/lib/outreach/types";
 
 const STEPS = ["Upload Resume", "AI Chat", "Your Profile"];
 const TOTAL_QUESTIONS = 13;
+
 
 /**
  * Q1 is served client-side immediately — zero network latency.
@@ -43,73 +43,15 @@ const Q1_STATIC: AgentResponse = {
  */
 const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)/;
 
-/**
- * Fallback completion handler — auto-polls profile-status and redirects.
- * Shows a button escape hatch if polling takes too long.
- */
-function CompletionRedirect({ candidateId, onReady }: { candidateId: number; onReady: () => void }) {
-  const [polling, setPolling] = useState(true);
-  const started = useRef(false);
-
-  useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-
-    (async () => {
-      try {
-        for (let i = 0; i < 45; i++) {
-          await new Promise((r) => setTimeout(r, 2000));
-          const status = await outreachFetch<{ ready: boolean }>(
-            `/candidate/${candidateId}/profile-status`
-          );
-          if (status.ready) {
-            onReady();
-            return;
-          }
-        }
-      } catch {}
-      setPolling(false);
-    })();
-  }, [candidateId, onReady]);
-
-  return (
-    <div className="text-center p-4 space-y-3">
-      {polling ? (
-        <div className="flex items-center justify-center gap-2">
-          <div className="w-4 h-4 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-studojo-green font-semibold font-satoshi">
-            Generating your profile...
-          </p>
-        </div>
-      ) : (
-        <p className="text-sm text-studojo-muted font-satoshi">
-          Taking longer than expected.
-        </p>
-      )}
-      <button
-        onClick={onReady}
-        className="h-9 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-      >
-        Continue to Profile
-      </button>
-    </div>
-  );
-}
-
 export default function ChatPage() {
   const navigate = useNavigate();
   useOutreachAuth();
-  const { candidateId, chatHistory, addChatMessage, setCurrentStep } = useOutreachStore();
+  const { candidateId, chatHistory, addChatMessage, setCurrentStep, setPsychResult } = useOutreachStore();
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
   const [streamingText, setStreamingText] = useState<string | null>(null);
-  const [psychResult, setPsychResult] = useState<PsychometricData | null>(null);
-  const [profileGenerating, setProfileGenerating] = useState(false);
   const autoStarted = useRef(false);
-  // Pre-fetch: set to true once profile-status returns ready
-  const profileReady = useRef(false);
-  const prefetchStarted = useRef(false);
 
   // Serve Q1 instantly on mount — no API call
   useEffect(() => {
@@ -122,7 +64,7 @@ export default function ChatPage() {
 
   const questionsAsked = currentResponse?.questions_asked_so_far ?? 0;
   const quizProgress = (questionsAsked / TOTAL_QUESTIONS) * 100;
-  const sidebarStep = (psychResult || currentResponse?.is_complete) ? 3 : 2;
+  const sidebarStep = currentResponse?.is_complete ? 3 : 2;
 
   const sendMessage = async (content: string) => {
     if (!candidateId) return;
@@ -201,7 +143,12 @@ export default function ChatPage() {
             { role: "assistant" as const, content: finalResponse.message },
           ];
 
-          // Start payload generation in background immediately
+          // Store psychometric data so profile page can show it immediately
+          if (finalResponse.psychometric) {
+            setPsychResult(finalResponse.psychometric);
+          }
+
+          // Fire payload generation in background (LLM runs async 5–15s)
           outreachFetch(`/candidate/${candidateId}/generate-payload`, {
             method: "POST",
             body: JSON.stringify({
@@ -210,48 +157,9 @@ export default function ChatPage() {
             }),
           }).catch(() => {});
 
-          if (finalResponse.psychometric) {
-            // Show psychometric results card — user clicks Continue
-            setPsychResult(finalResponse.psychometric);
-            setLoading(false);
-
-            // Pre-fetch: start polling profile-status in the background
-            // so it's ready (or nearly ready) by the time user clicks Continue
-            if (!prefetchStarted.current && candidateId) {
-              prefetchStarted.current = true;
-              (async () => {
-                try {
-                  for (let i = 0; i < 45; i++) {
-                    await new Promise((r) => setTimeout(r, 2000));
-                    const status = await outreachFetch<{ ready: boolean }>(
-                      `/candidate/${candidateId}/profile-status`
-                    );
-                    if (status.ready) {
-                      profileReady.current = true;
-                      break;
-                    }
-                  }
-                } catch {}
-              })();
-            }
-          } else {
-            // No psychometric data — auto-poll and redirect
-            setLoading(true);
-            try {
-              for (let i = 0; i < 45; i++) {
-                await new Promise((r) => setTimeout(r, 2000));
-                const status = await outreachFetch<{ ready: boolean }>(
-                  `/candidate/${candidateId}/profile-status`
-                );
-                if (status.ready) break;
-              }
-              setCurrentStep(3);
-              navigate("/outreach/onboarding/profile");
-            } catch {
-              addChatMessage({ role: "assistant", content: "Profile generation failed. Please try again." });
-              setLoading(false);
-            }
-          }
+          // Navigate to profile immediately — profile page polls independently
+          setCurrentStep(3);
+          navigate("/outreach/onboarding/profile");
         } else {
           setLoading(false);
         }
@@ -276,33 +184,6 @@ export default function ChatPage() {
     }
   };
 
-  const handleContinueAfterPsych = async () => {
-    if (!candidateId) return;
-
-    // If pre-fetch already confirmed the profile is ready, navigate immediately
-    if (profileReady.current) {
-      setCurrentStep(3);
-      navigate("/outreach/onboarding/profile");
-      return;
-    }
-
-    setProfileGenerating(true);
-    try {
-      // Poll until profile ready (payload gen already started in background)
-      for (let i = 0; i < 45; i++) {
-        await new Promise((r) => setTimeout(r, 2000));
-        const status = await outreachFetch<{ ready: boolean }>(
-          `/candidate/${candidateId}/profile-status`
-        );
-        if (status.ready || profileReady.current) break;
-      }
-      setCurrentStep(3);
-      navigate("/outreach/onboarding/profile");
-    } catch {
-      setProfileGenerating(false);
-    }
-  };
-
   if (!candidateId) {
     return (
       <div className="min-h-screen bg-white">
@@ -320,11 +201,10 @@ export default function ChatPage() {
     );
   }
 
-  // Input area for chat — hidden while streaming or when psychResult is shown as full panel
+  // Input area for chat — hidden while streaming or loading
   const inputArea = streamingText !== null ? null
-    : currentResponse?.is_complete ? (
-      <CompletionRedirect candidateId={candidateId!} onReady={() => { setCurrentStep(3); navigate("/outreach/onboarding/profile"); }} />
-    ) : currentResponse?.mcq ? (
+    : currentResponse?.is_complete ? null
+    : currentResponse?.mcq ? (
       <MCQSelector
         question={currentResponse.mcq.question}
         options={currentResponse.mcq.options}
@@ -406,64 +286,50 @@ export default function ChatPage() {
 
         {/* Main content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {psychResult ? (
-            /* Full-panel psychometric result — replaces the chat view */
-            <div className="flex-1 overflow-y-auto">
-              <PsychometricResult
-                data={psychResult}
-                onContinue={handleContinueAfterPsych}
-                loading={profileGenerating}
-              />
+          {/* Mobile: compact progress dots + question count */}
+          <div className="md:hidden flex items-center justify-between px-4 pt-4 pb-1 flex-shrink-0">
+            <div className="flex items-center gap-1.5">
+              {STEPS.map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    i + 1 < sidebarStep
+                      ? "bg-studojo-green"
+                      : i + 1 === sidebarStep
+                      ? "bg-studojo-purple"
+                      : "bg-studojo-ink/15"
+                  }`}
+                />
+              ))}
             </div>
-          ) : (
-            /* Chat view */
-            <>
-              {/* Mobile: compact progress dots + question count */}
-              <div className="md:hidden flex items-center justify-between px-4 pt-4 pb-1 flex-shrink-0">
-                <div className="flex items-center gap-1.5">
-                  {STEPS.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        i + 1 < sidebarStep
-                          ? "bg-studojo-green"
-                          : i + 1 === sidebarStep
-                          ? "bg-studojo-purple"
-                          : "bg-studojo-ink/15"
-                      }`}
-                    />
-                  ))}
-                </div>
-                {questionsAsked > 0 && (
-                  <span className="text-xs font-satoshi text-studojo-muted">
-                    {questionsAsked}/{TOTAL_QUESTIONS}
-                  </span>
-                )}
-              </div>
+            {questionsAsked > 0 && (
+              <span className="text-xs font-satoshi text-studojo-muted">
+                {questionsAsked}/{TOTAL_QUESTIONS}
+              </span>
+            )}
+          </div>
 
-              {/* Title */}
-              <div className="flex-shrink-0 px-6 pt-6 md:pt-8 pb-2">
-                <h1 className="font-clash text-xl md:text-2xl font-bold text-studojo-ink">
-                  Career Intelligence Chat
-                </h1>
-                <p className="text-sm text-studojo-muted font-satoshi mt-1">
-                  Our AI will ask you a few questions to understand your career goals.
-                </p>
-              </div>
+          {/* Title */}
+          <div className="flex-shrink-0 px-6 pt-6 md:pt-8 pb-2">
+            <h1 className="font-clash text-xl md:text-2xl font-bold text-studojo-ink">
+              Career Intelligence Chat
+            </h1>
+            <p className="text-sm text-studojo-muted font-satoshi mt-1">
+              Our AI will ask you a few questions to understand your career goals.
+            </p>
+          </div>
 
-              {/* Chat container */}
-              <div className="flex-1 overflow-hidden px-4 md:px-6 pb-4">
-                <ChatInterface
-                  messages={chatHistory}
-                  loading={loading}
-                  streamingText={streamingText}
-                  quizProgress={quizProgress}
-                >
-                  {inputArea}
-                </ChatInterface>
-              </div>
-            </>
-          )}
+          {/* Chat container */}
+          <div className="flex-1 overflow-hidden px-4 md:px-6 pb-4">
+            <ChatInterface
+              messages={chatHistory}
+              loading={loading}
+              streamingText={streamingText}
+              quizProgress={quizProgress}
+            >
+              {inputArea}
+            </ChatInterface>
+          </div>
         </div>
       </div>
     </div>

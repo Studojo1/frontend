@@ -1,11 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ChatMessage, EmailTemplate } from "./types";
+import type { ChatMessage, EmailTemplate, PsychometricResult } from "./types";
 
 interface OutreachState {
   // Onboarding flow
   candidateId: number | null;
   setCandidateId: (id: number | null) => void;
+
+  // Psychometric result — session only, not persisted
+  psychResult: PsychometricResult | null;
+  setPsychResult: (r: PsychometricResult | null) => void;
 
   chatHistory: ChatMessage[];
   addChatMessage: (msg: ChatMessage) => void;
@@ -42,6 +46,9 @@ export const useOutreachStore = create<OutreachState>()(
     (set) => ({
       candidateId: null,
       setCandidateId: (candidateId) => set({ candidateId }),
+
+      psychResult: null,
+      setPsychResult: (psychResult) => set({ psychResult }),
 
       chatHistory: [],
       addChatMessage: (msg) =>
