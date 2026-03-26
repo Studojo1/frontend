@@ -198,6 +198,16 @@ export default function EnrichmentPage() {
 
     setPaying(true);
     setError("");
+
+    // Pre-open popup BEFORE async call so browser treats it as user-initiated
+    // (Chrome blocks popups after await). We'll set the URL once we have it.
+    const w = 500, h = 700;
+    const left = window.screenX + (window.outerWidth - w) / 2;
+    const top = window.screenY + (window.outerHeight - h) / 2;
+    const popup = window.open("about:blank", "dodo_checkout",
+      `width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no`
+    );
+
     try {
       const orderData = await outreachFetch<any>("/payment/create-order", {
         method: "POST",
@@ -205,6 +215,7 @@ export default function EnrichmentPage() {
       });
 
       if (orderData.free) {
+        try { popup?.close(); } catch {}
         setCredits((prev) => prev
           ? { ...prev, total_credits: prev.total_credits + orderData.credits_granted, available_credits: prev.available_credits + orderData.credits_granted }
           : { total_credits: orderData.credits_granted, used_credits: 0, available_credits: orderData.credits_granted }
@@ -219,15 +230,13 @@ export default function EnrichmentPage() {
         const sessionId = orderData.session_id;
         const tier = selectedTier;
 
-        // Open checkout in a centered popup window
-        const w = 500, h = 700;
-        const left = window.screenX + (window.outerWidth - w) / 2;
-        const top = window.screenY + (window.outerHeight - h) / 2;
-        const popup = window.open(
-          orderData.checkout_url,
-          "dodo_checkout",
-          `width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no`
-        );
+        if (popup && !popup.closed) {
+          popup.location.href = orderData.checkout_url;
+        } else {
+          // Popup was blocked — fall back to redirect
+          window.location.href = orderData.checkout_url;
+          return;
+        }
         dodoPopupRef.current = popup;
 
         // Show "Confirming Payment" and start polling immediately
@@ -235,6 +244,9 @@ export default function EnrichmentPage() {
         pollDodoVerify(sessionId, tier, 0);
         return;
       }
+
+      // Not Dodo — close the pre-opened popup (Razorpay uses its own modal)
+      try { popup?.close(); } catch {}
 
       // Razorpay modal checkout (India)
       const options = {
