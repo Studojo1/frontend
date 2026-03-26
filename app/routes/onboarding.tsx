@@ -310,8 +310,8 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
 
   // Generate friendly greeting based on user name
   const greeting = userName 
-    ? `Hi, ${userName.split(' ')[0]}! 👋` // Use first name only for friendlier feel
-    : "Hi! 👋";
+    ? `Hi, ${userName.split(' ')[0]}!` // Use first name only for friendlier feel
+    : "Hi!";
 
   return (
     <>

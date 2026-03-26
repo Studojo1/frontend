@@ -595,7 +595,7 @@ export function HumanizerDojoPage() {
                 </h2>
                 {paragraphsReverted > 0 && (
                   <p className="mt-2 font-['Satoshi'] text-sm text-amber-700">
-                    ⚠️ {paragraphsReverted} paragraph(s) were reverted to original content due to verification failures.
+                    {paragraphsReverted} paragraph(s) were reverted to original content due to verification failures.
                   </p>
                 )}
               </div>

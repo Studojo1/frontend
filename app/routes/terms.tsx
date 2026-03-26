@@ -90,7 +90,7 @@ export default function Terms() {
                     Service Uptime
                   </h3>
                   <p className="font-['Satoshi'] text-sm font-normal leading-6 text-neutral-700 md:text-base">
-                    We aim for <span className="font-medium text-neutral-900">99% uptime</span>! If something goes wrong, we'll let you know via email or platform alerts! 📧
+                    We aim for <span className="font-medium text-neutral-900">99% uptime</span>. If something goes wrong, we'll let you know via email or platform alerts.
                   </p>
                 </div>
               </div>
@@ -103,19 +103,16 @@ export default function Terms() {
               </h2>
               <div className="space-y-4">
                 <div className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-purple-50 p-6">
-                  <span className="text-4xl" aria-hidden>👑</span>
                   <p className="font-['Satoshi'] text-sm font-normal leading-6 text-neutral-700 md:text-base">
                     <span className="font-medium text-neutral-900">You own</span> all content generated using our AI tools!
                   </p>
                 </div>
                 <div className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-purple-50 p-6">
-                  <span className="text-4xl" aria-hidden>💼</span>
                   <p className="font-['Satoshi'] text-sm font-normal leading-6 text-neutral-700 md:text-base">
                     Use your generated content for <span className="font-medium text-neutral-900">commercial purposes</span> without any restrictions!
                   </p>
                 </div>
                 <div className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-purple-50 p-6">
-                  <span className="text-4xl" aria-hidden>📁</span>
                   <p className="font-['Satoshi'] text-sm font-normal leading-6 text-neutral-700 md:text-base">
                     We <span className="font-medium text-neutral-900">don't claim ownership</span> of your uploaded content. It's all yours!
                   </p>
@@ -131,7 +128,7 @@ export default function Terms() {
               <p className="font-['Satoshi'] text-base font-normal leading-7 text-white md:text-lg">
                 By using our platform, you agree to these terms and conditions.
                 <br />
-                <span className="font-medium">Let's create something amazing together! 🚀</span>
+                <span className="font-medium">Let's create something amazing together.</span>
               </p>
             </div>
           </div>

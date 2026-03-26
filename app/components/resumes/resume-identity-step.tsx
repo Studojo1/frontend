@@ -128,7 +128,7 @@ export function ResumeIdentityStep({
                   animate={{ opacity: 1 }}
                   className="text-center py-8"
                 >
-                  <div className="text-2xl mb-2">✨</div>
+                  <div className="w-8 h-0.5 bg-neutral-200 mx-auto mb-2" />
                   <p className="text-gray-600">Great! Let's continue...</p>
                 </motion.div>
               )}

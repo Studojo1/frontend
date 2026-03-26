@@ -306,7 +306,7 @@ export function Footer() {
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-gray-200 pt-6 md:mt-8 md:flex-row md:border-0 md:pt-0">
           <p className="text-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:flex md:items-center md:gap-2 md:text-lg md:leading-6 md:text-neutral-900">
-            © 2025 Studojo. Crafted with ❤️ by students
+            © 2025 Studojo. Crafted by students
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-8">
             <Link to="/privacy" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">

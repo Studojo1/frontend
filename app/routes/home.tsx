@@ -96,12 +96,12 @@ function InternshipPopup() {
               className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-900 bg-neutral-100 font-['Satoshi'] text-sm font-medium text-neutral-900 hover:bg-neutral-200"
               aria-label="Close"
             >
-              ✕
+              ×
             </button>
 
             <div className="flex flex-col gap-5">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-200 text-2xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
-                🎯
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-200 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-violet-700"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
               </div>
               <div className="flex flex-col gap-2">
                 <h2 className="font-['Clash_Display'] text-2xl font-medium leading-tight text-neutral-900">

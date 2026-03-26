@@ -13,10 +13,10 @@ import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 
 const DIM_META: Record<string, { color: string; bg: string; text: string; stroke: string; fill: string; label: string; icon: string }> = {
-  analytical: { color: "bg-studojo-purple", bg: "bg-studojo-purple/10", text: "text-studojo-purple", stroke: "#7c3aed", fill: "rgba(124,58,237,0.15)", label: "Analytical", icon: "🧠" },
-  creative:   { color: "bg-studojo-orange", bg: "bg-studojo-orange/10", text: "text-studojo-orange", stroke: "#ea580c", fill: "rgba(234,88,12,0.12)", label: "Creative",   icon: "🎨" },
-  execution:  { color: "bg-studojo-green",  bg: "bg-studojo-green/10",  text: "text-studojo-green",  stroke: "#16a34a", fill: "rgba(22,163,74,0.12)",  label: "Execution",  icon: "⚡" },
-  social:     { color: "bg-studojo-pink",   bg: "bg-studojo-pink/10",   text: "text-studojo-pink",   stroke: "#db2777", fill: "rgba(219,39,119,0.12)", label: "Social",     icon: "🤝" },
+  analytical: { color: "bg-studojo-purple", bg: "bg-studojo-purple/10", text: "text-studojo-purple", stroke: "#7c3aed", fill: "rgba(124,58,237,0.15)", label: "Analytical", icon: "" },
+  creative:   { color: "bg-studojo-orange", bg: "bg-studojo-orange/10", text: "text-studojo-orange", stroke: "#ea580c", fill: "rgba(234,88,12,0.12)", label: "Creative",   icon: "" },
+  execution:  { color: "bg-studojo-green",  bg: "bg-studojo-green/10",  text: "text-studojo-green",  stroke: "#16a34a", fill: "rgba(22,163,74,0.12)",  label: "Execution",  icon: "" },
+  social:     { color: "bg-studojo-pink",   bg: "bg-studojo-pink/10",   text: "text-studojo-pink",   stroke: "#db2777", fill: "rgba(219,39,119,0.12)", label: "Social",     icon: "" },
 };
 
 // Primary radar color (purple-to-pink blend)
