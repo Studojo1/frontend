@@ -107,6 +107,9 @@ export default function ChatPage() {
   const [psychResult, setPsychResult] = useState<PsychometricData | null>(null);
   const [profileGenerating, setProfileGenerating] = useState(false);
   const autoStarted = useRef(false);
+  // Pre-fetch: set to true once profile-status returns ready
+  const profileReady = useRef(false);
+  const prefetchStarted = useRef(false);
 
   // Serve Q1 instantly on mount — no API call
   useEffect(() => {
@@ -211,6 +214,26 @@ export default function ChatPage() {
             // Show psychometric results card — user clicks Continue
             setPsychResult(finalResponse.psychometric);
             setLoading(false);
+
+            // Pre-fetch: start polling profile-status in the background
+            // so it's ready (or nearly ready) by the time user clicks Continue
+            if (!prefetchStarted.current && candidateId) {
+              prefetchStarted.current = true;
+              (async () => {
+                try {
+                  for (let i = 0; i < 45; i++) {
+                    await new Promise((r) => setTimeout(r, 2000));
+                    const status = await outreachFetch<{ ready: boolean }>(
+                      `/candidate/${candidateId}/profile-status`
+                    );
+                    if (status.ready) {
+                      profileReady.current = true;
+                      break;
+                    }
+                  }
+                } catch {}
+              })();
+            }
           } else {
             // No psychometric data — auto-poll and redirect
             setLoading(true);
@@ -255,6 +278,14 @@ export default function ChatPage() {
 
   const handleContinueAfterPsych = async () => {
     if (!candidateId) return;
+
+    // If pre-fetch already confirmed the profile is ready, navigate immediately
+    if (profileReady.current) {
+      setCurrentStep(3);
+      navigate("/outreach/onboarding/profile");
+      return;
+    }
+
     setProfileGenerating(true);
     try {
       // Poll until profile ready (payload gen already started in background)
@@ -263,7 +294,7 @@ export default function ChatPage() {
         const status = await outreachFetch<{ ready: boolean }>(
           `/candidate/${candidateId}/profile-status`
         );
-        if (status.ready) break;
+        if (status.ready || profileReady.current) break;
       }
       setCurrentStep(3);
       navigate("/outreach/onboarding/profile");

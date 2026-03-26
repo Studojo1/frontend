@@ -1,16 +1,9 @@
 import { useEffect, useState } from "react";
 import { FiArrowRight } from "react-icons/fi";
 
-interface DimensionScores {
-  analytical: number;
-  creative: number;
-  execution: number;
-  social: number;
-}
-
 interface PsychometricData {
   top_strengths: string[];
-  dimension_scores: DimensionScores;
+  dimension_scores: Record<string, number>;
   traits: string[];
   recommended_roles: string[];
   reasoning: string;
@@ -23,16 +16,18 @@ interface Props {
   loading?: boolean;
 }
 
-const DIMS = [
-  { key: "analytical" as const, label: "Analytical", color: "text-studojo-purple", dot: "#8b5cf6" },
-  { key: "creative" as const, label: "Creative", color: "text-studojo-orange", dot: "#f97316" },
-  { key: "execution" as const, label: "Execution", color: "text-studojo-green", dot: "#10b981" },
-  { key: "social" as const, label: "Social", color: "text-studojo-pink", dot: "#ec4899" },
-];
+const DIM_META: Record<string, { label: string; dot: string; textColor: string }> = {
+  analytical:    { label: "Analytical",   dot: "#8b5cf6", textColor: "#8b5cf6" },
+  creative:      { label: "Creative",     dot: "#f97316", textColor: "#f97316" },
+  execution:     { label: "Execution",    dot: "#10b981", textColor: "#10b981" },
+  social:        { label: "Social",       dot: "#ec4899", textColor: "#ec4899" },
+  leadership:    { label: "Leadership",   dot: "#3b82f6", textColor: "#3b82f6" },
+  strategic:     { label: "Strategic",    dot: "#f59e0b", textColor: "#d97706" },
+  technical:     { label: "Technical",    dot: "#06b6d4", textColor: "#0891b2" },
+  communication: { label: "Comms",        dot: "#e11d48", textColor: "#e11d48" },
+};
 
-const ANGLES = [-90, 0, 90, 180];
-
-function RadarChart({ scores }: { scores: DimensionScores }) {
+function RadarChart({ scores }: { scores: Record<string, number> }) {
   const [t, setT] = useState(0);
 
   useEffect(() => {
@@ -48,114 +43,104 @@ function RadarChart({ scores }: { scores: DimensionScores }) {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const cx = 100, cy = 100, maxR = 65;
+  const dims = Object.keys(scores);
+  const N = dims.length;
+  const cx = 160, cy = 160, maxR = 90;
+  const labelR = maxR + 32;
+  const angles = dims.map((_, i) => -90 + (360 / N) * i);
+
   const toXY = (deg: number, r: number) => ({
     x: cx + r * Math.cos((deg * Math.PI) / 180),
     y: cy + r * Math.sin((deg * Math.PI) / 180),
   });
 
   const gridLevels = [25, 50, 75, 100];
-  const dataPoints = DIMS.map((d, i) =>
-    toXY(ANGLES[i], ((scores[d.key] * t) / 100) * maxR)
+
+  const dataPoints = dims.map((dim, i) =>
+    toXY(angles[i], ((scores[dim] * t) / 100) * maxR)
   );
 
   return (
-    <div className="relative mx-auto w-60 h-60">
-      <svg viewBox="0 0 200 200" className="absolute inset-5">
-        <defs>
-          <linearGradient id="radar-fill" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#ec4899" stopOpacity="0.12" />
-          </linearGradient>
-        </defs>
+    <svg viewBox="0 0 320 320" className="w-full max-w-sm mx-auto">
+      <defs>
+        <linearGradient id="radar-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.18" />
+        </linearGradient>
+      </defs>
 
-        {gridLevels.map((lv) => {
-          const pts = ANGLES.map((a) => toXY(a, (lv / 100) * maxR));
-          return (
-            <polygon
-              key={lv}
-              points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
-              fill="none"
-              stroke={lv === 100 ? "#d1d5db" : "#f0f0f0"}
-              strokeWidth={lv === 100 ? "1" : "0.5"}
-              strokeDasharray={lv < 100 ? "3,3" : "none"}
-            />
-          );
-        })}
-
-        {ANGLES.map((a, i) => {
-          const end = toXY(a, maxR);
-          return (
-            <line
-              key={DIMS[i].key}
-              x1={cx}
-              y1={cy}
-              x2={end.x}
-              y2={end.y}
-              stroke="#e5e7eb"
-              strokeWidth="0.5"
-            />
-          );
-        })}
-
-        <polygon
-          points={dataPoints.map((p) => `${p.x},${p.y}`).join(" ")}
-          fill="url(#radar-fill)"
-          stroke="rgba(139,92,246,0.6)"
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-
-        {dataPoints.map((p, i) => (
-          <circle
-            key={DIMS[i].key}
-            cx={p.x}
-            cy={p.y}
-            r="4"
-            fill="white"
-            stroke={DIMS[i].dot}
-            strokeWidth="2.5"
+      {/* Grid polygons */}
+      {gridLevels.map((lv) => {
+        const pts = angles.map((a) => toXY(a, (lv / 100) * maxR));
+        return (
+          <polygon
+            key={lv}
+            points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
+            fill="none"
+            stroke={lv === 100 ? "#d1d5db" : "#efefef"}
+            strokeWidth={lv === 100 ? "1" : "0.5"}
+            strokeDasharray={lv < 100 ? "3,3" : "none"}
           />
-        ))}
-      </svg>
+        );
+      })}
 
-      {/* Analytical — top */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 text-center">
-        <p className={`text-[11px] font-satoshi font-bold ${DIMS[0].color}`}>{DIMS[0].label}</p>
-        <p className="text-sm font-clash font-bold text-studojo-ink">
-          {Math.round(scores.analytical * t)}
-        </p>
-      </div>
-      {/* Creative — right */}
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 text-center">
-        <p className={`text-[11px] font-satoshi font-bold ${DIMS[1].color}`}>{DIMS[1].label}</p>
-        <p className="text-sm font-clash font-bold text-studojo-ink">
-          {Math.round(scores.creative * t)}
-        </p>
-      </div>
-      {/* Execution — bottom */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center">
-        <p className="text-sm font-clash font-bold text-studojo-ink">
-          {Math.round(scores.execution * t)}
-        </p>
-        <p className={`text-[11px] font-satoshi font-bold ${DIMS[2].color}`}>{DIMS[2].label}</p>
-      </div>
-      {/* Social — left */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 text-center">
-        <p className={`text-[11px] font-satoshi font-bold ${DIMS[3].color}`}>{DIMS[3].label}</p>
-        <p className="text-sm font-clash font-bold text-studojo-ink">
-          {Math.round(scores.social * t)}
-        </p>
-      </div>
-    </div>
+      {/* Axis lines */}
+      {angles.map((a, i) => {
+        const end = toXY(a, maxR);
+        return (
+          <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y}
+            stroke="#e5e7eb" strokeWidth="0.5" />
+        );
+      })}
+
+      {/* Data polygon */}
+      <polygon
+        points={dataPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+        fill="url(#radar-fill)"
+        stroke="rgba(139,92,246,0.55)"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+
+      {/* Data point dots */}
+      {dataPoints.map((p, i) => {
+        const meta = DIM_META[dims[i]];
+        return (
+          <circle key={i} cx={p.x} cy={p.y} r="4"
+            fill="white" stroke={meta?.dot ?? "#8b5cf6"} strokeWidth="2.5" />
+        );
+      })}
+
+      {/* Labels */}
+      {dims.map((dim, i) => {
+        const a = angles[i];
+        const lp = toXY(a, labelR);
+        const meta = DIM_META[dim] ?? { label: dim, dot: "#8b5cf6", textColor: "#8b5cf6" };
+        const score = Math.round(scores[dim] * t);
+        return (
+          <g key={dim}>
+            <text x={lp.x} y={lp.y - 7} textAnchor="middle"
+              fontSize="8.5" fontWeight="700" fill={meta.textColor}>
+              {meta.label.toUpperCase()}
+            </text>
+            <text x={lp.x} y={lp.y + 7} textAnchor="middle"
+              fontSize="11" fontWeight="700" fill="#111827">
+              {score}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
 export function PsychometricResult({ data, onContinue, loading }: Props) {
   const confidence = Math.round(data.confidence_score);
+  const scores = data.dimension_scores ?? {};
+  const dimEntries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-8 space-y-6 animate-fade-in">
+    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 animate-fade-in">
       {/* Header */}
       <div className="text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-studojo-green-bg border border-studojo-green/20 mb-3">
@@ -170,9 +155,53 @@ export function PsychometricResult({ data, onContinue, loading }: Props) {
         </p>
       </div>
 
-      {/* Radar chart */}
-      <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6">
-        <RadarChart scores={data.dimension_scores} />
+      {/* Radar + dimension breakdown side by side */}
+      <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          {/* Radar chart */}
+          <div className="w-full md:w-1/2 flex-shrink-0">
+            <RadarChart scores={scores} />
+          </div>
+
+          {/* Dimension bars */}
+          <div className="w-full md:w-1/2 space-y-3">
+            {dimEntries.map(([dim, score], i) => {
+              const meta = DIM_META[dim] ?? { label: dim, dot: "#8b5cf6", textColor: "#8b5cf6" };
+              const isTop = i < 2;
+              return (
+                <div key={dim}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ background: meta.dot }}
+                      />
+                      <span
+                        className={`text-xs font-satoshi font-semibold ${isTop ? "" : "text-studojo-muted"}`}
+                        style={isTop ? { color: meta.textColor } : undefined}
+                      >
+                        {meta.label}
+                      </span>
+                      {isTop && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold font-satoshi"
+                          style={{ background: `${meta.dot}18`, color: meta.textColor }}>
+                          Top
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs font-clash font-bold text-studojo-ink">{Math.round(score)}</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-studojo-ink/8 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${score}%`, background: meta.dot, opacity: isTop ? 1 : 0.45 }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Traits */}
@@ -200,7 +229,7 @@ export function PsychometricResult({ data, onContinue, loading }: Props) {
           <p className="text-[11px] font-satoshi font-semibold text-studojo-muted uppercase tracking-wider mb-3">
             Roles That Fit You
           </p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {data.recommended_roles.slice(0, 6).map((role, i) => (
               <div
                 key={role}
