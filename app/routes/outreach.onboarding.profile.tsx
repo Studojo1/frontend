@@ -174,9 +174,9 @@ export default function ProfilePage() {
 
     (async () => {
       try {
-        // Poll profile-status every 1s up to 30 attempts (~30s)
+        // Poll profile-status — check immediately, then every 1s up to 30 attempts
         for (let i = 0; i < 30; i++) {
-          await new Promise((r) => setTimeout(r, 1000));
+          if (i > 0) await new Promise((r) => setTimeout(r, 1000));
           if (cancelled) return;
           try {
             const status = await outreachFetch<{ ready: boolean }>(
@@ -269,54 +269,61 @@ export default function ProfilePage() {
         ) : (
           <div className="mt-5 space-y-4 animate-fade-in">
 
-            {/* ── Hero card ──────────────────────────────────────────────────── */}
-            {!loading && (
-              <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
-                <div className="h-1.5 bg-gradient-to-r from-studojo-purple via-studojo-pink to-studojo-orange" />
-                <div className="p-5">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-studojo-purple to-studojo-pink flex items-center justify-center flex-shrink-0 border-2 border-studojo-ink">
-                      <span className="text-white font-clash font-bold text-base">{initials}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      {name && <h1 className="font-clash text-lg font-bold text-studojo-ink truncate">{name}</h1>}
-                      {parsed.profile_summary && (
-                        <p className="text-sm text-studojo-muted font-satoshi mt-0.5 leading-relaxed line-clamp-2">
-                          {parsed.profile_summary}
-                        </p>
-                      )}
-                    </div>
+            {/* ── Hero card — always visible, skeletons while loading ──────── */}
+            <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
+              <div className="h-1.5 bg-gradient-to-r from-studojo-purple via-studojo-pink to-studojo-orange" />
+              <div className="p-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-studojo-purple to-studojo-pink flex items-center justify-center flex-shrink-0 border-2 border-studojo-ink">
+                    <span className="text-white font-clash font-bold text-base">{initials || "✦"}</span>
                   </div>
-
-                  <div className="flex items-center gap-2 mt-3 flex-wrap">
-                    {preferences.locations?.length > 0 && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-muted">
-                        <FiMapPin className="w-3 h-3" />
-                        {preferences.locations.slice(0, 2).join(", ")}
-                      </span>
-                    )}
-                    {preferences.industry_interests?.length > 0 && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-muted">
-                        <BsBuilding className="w-3 h-3" />
-                        {preferences.industry_interests.slice(0, 2).join(", ")}
-                      </span>
-                    )}
-                    {topDim && DIM_META[topDim] && (
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-satoshi font-semibold ${DIM_META[topDim].bg} ${DIM_META[topDim].text}`}>
-                        <FiStar className="w-3 h-3" />
-                        {DIM_META[topDim].label} dominant
-                      </span>
-                    )}
-                    {psych?.confidence_score != null && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-green/10 text-xs font-satoshi font-semibold text-studojo-green border border-studojo-green/20">
-                        <FiAward className="w-3 h-3" />
-                        {Math.round(psych.confidence_score)}% match confidence
-                      </span>
-                    )}
+                  <div className="flex-1 min-w-0">
+                    {name ? (
+                      <h1 className="font-clash text-lg font-bold text-studojo-ink truncate">{name}</h1>
+                    ) : loading ? (
+                      <div className="h-5 w-40 rounded-full bg-studojo-ink/8 animate-pulse mt-0.5" />
+                    ) : null}
+                    {parsed.profile_summary ? (
+                      <p className="text-sm text-studojo-muted font-satoshi mt-0.5 leading-relaxed line-clamp-2">
+                        {parsed.profile_summary}
+                      </p>
+                    ) : loading ? (
+                      <div className="h-3 w-64 rounded-full bg-studojo-ink/6 animate-pulse mt-2" />
+                    ) : null}
                   </div>
                 </div>
+
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  {preferences.locations?.length > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-muted">
+                      <FiMapPin className="w-3 h-3" />
+                      {preferences.locations.slice(0, 2).join(", ")}
+                    </span>
+                  )}
+                  {preferences.industry_interests?.length > 0 && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-muted">
+                      <BsBuilding className="w-3 h-3" />
+                      {preferences.industry_interests.slice(0, 2).join(", ")}
+                    </span>
+                  )}
+                  {topDim && DIM_META[topDim] && (
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-satoshi font-semibold ${DIM_META[topDim].bg} ${DIM_META[topDim].text}`}>
+                      <FiStar className="w-3 h-3" />
+                      {DIM_META[topDim].label} dominant
+                    </span>
+                  )}
+                  {psych?.confidence_score != null && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-green/10 text-xs font-satoshi font-semibold text-studojo-green border border-studojo-green/20">
+                      <FiAward className="w-3 h-3" />
+                      {Math.round(psych.confidence_score)}% match confidence
+                    </span>
+                  )}
+                  {loading && !topDim && (
+                    <div className="h-6 w-28 rounded-lg bg-studojo-ink/6 animate-pulse" />
+                  )}
+                </div>
               </div>
-            )}
+            </div>
 
             {/* ── Career DNA — radar + all 8 dimension bars ──────────────────── */}
             {Object.keys(dimScores).length >= 3 && (
@@ -477,27 +484,25 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* ── Sticky bottom CTA ──────────────────────────────────────────────────── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-sm border-t-2 border-studojo-ink/10 px-4 py-3 md:px-8">
-        <div className="mx-auto max-w-3xl">
-          <button
-            onClick={() => navigate("/outreach/leads/discovery")}
-            disabled={loading}
-            className="w-full h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Finalising your profile...
-              </>
-            ) : (
-              <>
-                Find Decision Makers
-                <FiArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
-        </div>
+      {/* ── Floating CTA pill ──────────────────────────────────────────────────── */}
+      <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none">
+        <button
+          onClick={() => navigate("/outreach/leads/discovery")}
+          disabled={loading}
+          className="pointer-events-auto h-13 px-8 py-3.5 rounded-full bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-70 disabled:pointer-events-none flex items-center gap-2.5"
+        >
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Finalising your profile...
+            </>
+          ) : (
+            <>
+              Find Decision Makers
+              <FiArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </button>
       </div>
 
       <Footer />
