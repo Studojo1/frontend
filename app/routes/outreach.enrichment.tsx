@@ -174,6 +174,8 @@ export default function EnrichmentPage() {
       // External checkout (Dodo Payments for international users)
       if (orderData.checkout_url) {
         localStorage.setItem("dodo_pending_tier", String(selectedTier));
+        localStorage.setItem("dodo_session_id", orderData.session_id);
+        localStorage.setItem("dodo_pending_job_type", "outreach");
         window.location.href = orderData.checkout_url;
         return;
       }

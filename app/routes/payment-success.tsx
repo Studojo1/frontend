@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "@remix-run/react";
 import { verifyDodoPayment } from "~/lib/payments";
+import { outreachFetch } from "~/lib/outreach/api";
 import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const sessionId = searchParams.get("session_id");
+  const sessionId = searchParams.get("session_id") || localStorage.getItem("dodo_session_id");
+  const jobType = localStorage.getItem("dodo_pending_job_type");
 
   const [status, setStatus] = useState<"polling" | "paid" | "failed" | "error">("polling");
   const [error, setError] = useState("");
@@ -20,7 +22,13 @@ export default function PaymentSuccess() {
       }
 
       try {
-        const res = await verifyDodoPayment(sessionId);
+        // Use outreach API for outreach payments, control-plane for others
+        const res = jobType === "outreach"
+          ? await outreachFetch<{ status: string }>("/payment/verify-dodo", {
+              method: "POST",
+              body: JSON.stringify({ session_id: sessionId }),
+            })
+          : await verifyDodoPayment(sessionId);
 
         if (res.status === "paid") {
           setStatus("paid");
@@ -62,8 +70,12 @@ export default function PaymentSuccess() {
     localStorage.removeItem("dodo_pending_file_url");
     localStorage.removeItem("dodo_pending_file_name");
     localStorage.removeItem("dodo_pending_career_form");
+    localStorage.removeItem("dodo_session_id");
+    localStorage.removeItem("dodo_pending_tier");
 
-    if (jobType === "humanizer") {
+    if (jobType === "outreach") {
+      navigate("/outreach/enrichment");
+    } else if (jobType === "humanizer") {
       navigate("/dojos/humanizer");
     } else if (jobType === "career") {
       navigate("/careers");
