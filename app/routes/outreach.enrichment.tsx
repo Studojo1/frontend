@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiMail, FiCheckCircle, FiTag, FiCreditCard } from "react-icons/fi";
+import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiClock } from "react-icons/fi";
 import { DodoPayments } from "dodopayments-checkout";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -47,9 +47,50 @@ export default function EnrichmentPage() {
   const [result, setResult] = useState<{ enriched: number; failed: number } | null>(null);
   const [error, setError] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [dodoPolling, setDodoPolling] = useState(false);
   const dodoInitialized = useRef(false);
   const dodoSessionRef = useRef<string>("");
   const dodoTierRef = useRef<number>(0);
+  const dodoHandledRef = useRef(false);
+
+  // Fallback: poll verify-dodo when overlay closes without a definitive result
+  const pollDodoVerify = async (sessionId: string, tier: number, attempt: number) => {
+    if (attempt === 0) setDodoPolling(true);
+    try {
+      const res = await outreachFetch<{ status: string }>("/payment/verify-dodo", {
+        method: "POST",
+        body: JSON.stringify({ session_id: sessionId }),
+      });
+      if (res.status === "paid") {
+        setDodoPolling(false);
+        setCredits(await outreachFetch("/payment/credits"));
+        setPaying(false);
+        handleEnrich(tier);
+        return;
+      }
+      if (res.status === "failed") {
+        setDodoPolling(false);
+        setError("Payment failed. Please try again.");
+        setPaying(false);
+        return;
+      }
+      // Still pending — retry up to 20 times (60s)
+      if (attempt < 20) {
+        setTimeout(() => pollDodoVerify(sessionId, tier, attempt + 1), 3000);
+      } else {
+        setDodoPolling(false);
+        setError("Payment confirmation timed out. If you were charged, credits will be added automatically.");
+        setPaying(false);
+      }
+    } catch {
+      if (attempt < 3) {
+        setTimeout(() => pollDodoVerify(sessionId, tier, attempt + 1), 3000);
+      } else {
+        setDodoPolling(false);
+        setPaying(false);
+      }
+    }
+  };
 
   // Load Razorpay script
   useEffect(() => {
@@ -179,18 +220,17 @@ export default function EnrichmentPage() {
       if (orderData.checkout_url) {
         dodoSessionRef.current = orderData.session_id;
         dodoTierRef.current = selectedTier;
+        dodoHandledRef.current = false;
 
         if (!dodoInitialized.current) {
           DodoPayments.Initialize({
             mode: orderData.dodo_test_mode ? "test" : "live",
             displayType: "overlay",
             onEvent: async (event) => {
-              if (event.event_type === "checkout.closed") {
-                setPaying(false);
-              }
               if (event.event_type === "checkout.status") {
                 const status = (event.data as any)?.status;
                 if (status === "succeeded" || status === "paid") {
+                  dodoHandledRef.current = true;
                   DodoPayments.Checkout.close();
                   try {
                     await outreachFetch("/payment/verify-dodo", {
@@ -205,10 +245,16 @@ export default function EnrichmentPage() {
                     setPaying(false);
                   }
                 } else if (status === "failed") {
+                  dodoHandledRef.current = true;
                   DodoPayments.Checkout.close();
                   setError("Payment failed. Please try again.");
                   setPaying(false);
                 }
+              }
+              if (event.event_type === "checkout.closed" && !dodoHandledRef.current) {
+                // Overlay closed without success/fail — user may have paid via UPI/external.
+                // Poll backend to check if payment went through.
+                pollDodoVerify(dodoSessionRef.current, dodoTierRef.current, 0);
               }
             },
           });
@@ -317,7 +363,16 @@ export default function EnrichmentPage() {
           </div>
         )}
 
-        {result ? (
+        {dodoPolling ? (
+          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center">
+            <div className="w-12 h-12 rounded-full bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center mx-auto mb-6">
+              <FiClock className="w-6 h-6 text-studojo-purple" />
+            </div>
+            <h2 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Confirming Payment</h2>
+            <p className="text-sm text-studojo-muted font-satoshi mb-6">Please wait while we confirm your payment...</p>
+            <div className="w-6 h-6 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin mx-auto" />
+          </div>
+        ) : result ? (
           <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center animate-fade-in">
             <div className="w-12 h-12 rounded-full bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center mx-auto mb-6">
               <FiCheckCircle className="w-6 h-6 text-studojo-green" />
