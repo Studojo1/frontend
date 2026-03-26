@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  FiUser, FiMapPin, FiBriefcase, FiTarget, FiZap,
-  FiArrowRight, FiAward, FiStar,
+  FiMapPin, FiBriefcase, FiTarget, FiZap,
+  FiArrowRight, FiAward, FiStar, FiCheck, FiUser,
 } from "react-icons/fi";
 import { BsBuilding } from "react-icons/bs";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
-import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
+
+const STEPS = ["Upload Resume", "AI Chat", "Your Profile"];
 
 // ── Dimension metadata — all 8 dims ──────────────────────────────────────────
 
@@ -245,11 +245,45 @@ export default function ProfilePage() {
   const topDim = dimEntries[0]?.[0];
 
   return (
-    <div className="min-h-screen bg-studojo-surface-muted/50">
+    <div className="h-screen flex flex-col overflow-hidden bg-studojo-surface-muted/50">
       <Header />
 
-      <div className="mx-auto max-w-3xl px-4 py-5 md:px-8 pb-28">
-        <ProgressSteps steps={["Upload Resume", "AI Chat", "Your Profile"]} currentStep={3} />
+      <div className="flex-1 flex overflow-hidden">
+
+        {/* ── Persistent sidebar — same as chat page ── */}
+        <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center pt-12 flex-shrink-0">
+          {STEPS.map((step, i) => {
+            const num = i + 1;
+            const done = true; // all steps done on profile page
+            const isLast = i === STEPS.length - 1;
+            return (
+              <div key={i} className="flex flex-col items-center w-full">
+                <div className="flex items-center gap-3 px-6 w-full">
+                  <div className="flex flex-col items-center flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 bg-studojo-green text-white border-studojo-green transition-all duration-300">
+                      {num < 3 ? <FiCheck className="w-4 h-4" /> : <span className="text-xs font-clash font-bold">3</span>}
+                    </div>
+                    {!isLast && <div className="w-0.5 h-10 bg-studojo-green" />}
+                  </div>
+                  <div className="pt-1">
+                    <p className={`text-sm font-satoshi leading-tight ${num === 3 ? "text-studojo-ink font-semibold" : "text-studojo-green font-medium"}`}>
+                      {step}
+                    </p>
+                    {num === 3 && (
+                      <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
+                        {loading ? "Building..." : "Ready"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </aside>
+
+        {/* ── Main scrollable content ── */}
+        <div className="flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-2xl px-4 py-5 md:px-8 pb-28">
 
         {loading && !psych ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -275,7 +309,11 @@ export default function ProfilePage() {
               <div className="p-5">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-studojo-purple to-studojo-pink flex items-center justify-center flex-shrink-0 border-2 border-studojo-ink">
-                    <span className="text-white font-clash font-bold text-base">{initials || "✦"}</span>
+                    {initials ? (
+                      <span className="text-white font-clash font-bold text-base">{initials}</span>
+                    ) : (
+                      <FiUser className="w-5 h-5 text-white" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     {name ? (
@@ -482,14 +520,17 @@ export default function ProfilePage() {
 
           </div>
         )}
-      </div>
+        </div>{/* end max-w-2xl */}
+        </div>{/* end main scrollable */}
+
+      </div>{/* end flex-1 flex */}
 
       {/* ── Floating CTA pill ──────────────────────────────────────────────────── */}
       <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none">
         <button
           onClick={() => navigate("/outreach/leads/discovery")}
           disabled={loading}
-          className="pointer-events-auto h-13 px-8 py-3.5 rounded-full bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-70 disabled:pointer-events-none flex items-center gap-2.5"
+          className="pointer-events-auto px-8 py-3.5 rounded-full bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-70 disabled:pointer-events-none flex items-center gap-2.5"
         >
           {loading ? (
             <>
@@ -504,8 +545,6 @@ export default function ProfilePage() {
           )}
         </button>
       </div>
-
-      <Footer />
     </div>
   );
 }
