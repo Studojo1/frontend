@@ -16,26 +16,31 @@ interface Props {
   loading?: boolean;
 }
 
-const DIM_META: Record<string, { label: string; chartLabel: string; dot: string; textColor: string }> = {
-  analytical:    { label: "Analytical",   chartLabel: "ANALYT",  dot: "#8b5cf6", textColor: "#8b5cf6" },
-  creative:      { label: "Creative",     chartLabel: "CREATIVE",dot: "#f97316", textColor: "#f97316" },
-  execution:     { label: "Execution",    chartLabel: "EXEC",    dot: "#10b981", textColor: "#10b981" },
-  social:        { label: "Social",       chartLabel: "SOCIAL",  dot: "#ec4899", textColor: "#ec4899" },
-  leadership:    { label: "Leadership",   chartLabel: "LEAD",    dot: "#3b82f6", textColor: "#3b82f6" },
-  strategic:     { label: "Strategic",    chartLabel: "STRAT",   dot: "#f59e0b", textColor: "#d97706" },
-  technical:     { label: "Technical",    chartLabel: "TECH",    dot: "#06b6d4", textColor: "#0891b2" },
-  communication: { label: "Comms",        chartLabel: "COMMS",   dot: "#e11d48", textColor: "#e11d48" },
+// label   = shown in the right-side bar list
+// abbr    = short label used inside the SVG chart (max 6 chars to prevent clipping)
+const DIM_META: Record<string, { label: string; abbr: string; dot: string; color: string }> = {
+  analytical:    { label: "Analytical",  abbr: "ANLYT", dot: "#8b5cf6", color: "#8b5cf6" },
+  creative:      { label: "Creative",    abbr: "CREAT", dot: "#f97316", color: "#f97316" },
+  execution:     { label: "Execution",   abbr: "EXEC",  dot: "#10b981", color: "#10b981" },
+  social:        { label: "Social",      abbr: "SOCIAL",dot: "#ec4899", color: "#ec4899" },
+  leadership:    { label: "Leadership",  abbr: "LEAD",  dot: "#3b82f6", color: "#3b82f6" },
+  strategic:     { label: "Strategic",   abbr: "STRAT", dot: "#f59e0b", color: "#d97706" },
+  technical:     { label: "Technical",   abbr: "TECH",  dot: "#06b6d4", color: "#0891b2" },
+  communication: { label: "Comms",       abbr: "COMMS", dot: "#e11d48", color: "#e11d48" },
 };
+
+// ─── Radar chart ────────────────────────────────────────────────────────────
 
 function RadarChart({ scores }: { scores: Record<string, number> }) {
   const [t, setT] = useState(0);
 
   useEffect(() => {
     const start = performance.now();
-    const dur = 1400;
+    const dur = 1500;
     let raf = 0;
     const tick = (now: number) => {
       const p = Math.min((now - start) / dur, 1);
+      // Ease-out cubic
       setT(1 - Math.pow(1 - p, 3));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
@@ -45,145 +50,186 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
 
   const dims = Object.keys(scores);
   const N = dims.length;
-  // Extra horizontal padding to prevent label clipping
-  const cx = 230, cy = 215, maxR = 130;
-  const labelR = maxR + 50;
-  const angles = dims.map((_, i) => -90 + (360 / N) * i);
+
+  // ── geometry ──────────────────────────────────────────────────────────────
+  // Wide viewBox (600×460) so labels on the left/right never clip.
+  // cx pushed slightly right so vertical stack isn't lopsided.
+  const VW = 600, VH = 460;
+  const cx = VW / 2, cy = VH / 2;
+  const maxR = 145;
+  // Labels sit 56px beyond the polygon edge.
+  // Dynamic text-anchor (end/middle/start) based on horizontal position
+  // ensures text always grows away from center.
+  const labelGap = 56;
+
+  const angle = (i: number) => -90 + (360 / N) * i;
 
   const toXY = (deg: number, r: number) => ({
     x: cx + r * Math.cos((deg * Math.PI) / 180),
     y: cy + r * Math.sin((deg * Math.PI) / 180),
   });
 
-  // Max-relative scaling: top dimension fills 90% of radius,
-  // everything else scales from a 15% floor. This makes the polygon
-  // actually fill the chart and show meaningful shape regardless of
-  // absolute score values.
+  // ── display scaling ───────────────────────────────────────────────────────
+  // The chart shows RELATIVE strength, not absolute percentage.
+  // Top scorer = 90% of maxR; floor = 35% so weak dims are still visible.
   const maxScore = Math.max(...dims.map((d) => scores[d]), 1);
-  const FLOOR = maxR * 0.15;
-  const CEIL  = maxR * 0.90;
-  const getR  = (score: number) => FLOOR + (score / maxScore) * (CEIL - FLOOR);
+  const FLOOR_R = maxR * 0.35;
+  const CEIL_R  = maxR * 0.92;
+  const dispR   = (score: number) =>
+    FLOOR_R + (score / maxScore) * (CEIL_R - FLOOR_R);
 
-  const gridFractions = [0.25, 0.5, 0.75, 1.0];
+  // ── grid ──────────────────────────────────────────────────────────────────
+  const gridLevels = [0.25, 0.50, 0.75, 1.00];
+  const gridColors = ["#e8e4ff", "#d4caf9", "#bfaff3", "#a78bfa"];
 
+  // ── data polygon ──────────────────────────────────────────────────────────
   const dataPoints = dims.map((dim, i) =>
-    toXY(angles[i], getR(scores[dim]) * t)
+    toXY(angle(i), dispR(scores[dim]) * t)
   );
   const dataPoly = dataPoints.map((p) => `${p.x},${p.y}`).join(" ");
 
   return (
-    <svg viewBox="0 0 460 430" className="w-full max-w-md mx-auto">
+    <svg
+      viewBox={`0 0 ${VW} ${VH}`}
+      className="w-full"
+      style={{ maxWidth: "100%", display: "block" }}
+    >
       <defs>
-        <linearGradient id="radar-fill" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.42" />
-          <stop offset="100%" stopColor="#db2777" stopOpacity="0.30" />
+        {/* Data fill gradient */}
+        <linearGradient id="rf" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stopColor="#7c3aed" stopOpacity="0.50" />
+          <stop offset="100%" stopColor="#db2777" stopOpacity="0.35" />
         </linearGradient>
-        <radialGradient id="radar-bg" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#ede9fe" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+
+        {/* Soft background */}
+        <radialGradient id="rbg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#ede9fe" stopOpacity="0.65" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0"    />
         </radialGradient>
-        <filter id="dot-shadow" x="-60%" y="-60%" width="220%" height="220%">
-          <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.25" />
+
+        {/* Drop shadow for dots */}
+        <filter id="ds" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="1" stdDeviation="2.5" floodOpacity="0.22" />
         </filter>
-        <filter id="poly-glow" x="-15%" y="-15%" width="130%" height="130%">
-          <feGaussianBlur stdDeviation="4" result="blur" />
+
+        {/* Glow behind polygon stroke */}
+        <filter id="pg" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="5" result="b" />
           <feMerge>
-            <feMergeNode in="blur" />
+            <feMergeNode in="b" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
       </defs>
 
-      {/* Background wash */}
-      <circle cx={cx} cy={cy} r={maxR + 12} fill="url(#radar-bg)" />
+      {/* Background radial wash */}
+      <circle cx={cx} cy={cy} r={maxR + 15} fill="url(#rbg)" />
 
-      {/* Innermost fill ring */}
-      {(() => {
-        const pts = angles.map((a) => toXY(a, gridFractions[0] * maxR));
-        return (
-          <polygon
-            points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
-            fill="rgba(139,92,246,0.07)"
-            stroke="none"
-          />
-        );
-      })()}
+      {/* Innermost tinted fill */}
+      <polygon
+        points={dims.map((_, i) => {
+          const p = toXY(angle(i), gridLevels[0] * maxR);
+          return `${p.x},${p.y}`;
+        }).join(" ")}
+        fill="rgba(124,58,237,0.06)"
+        stroke="none"
+      />
 
-      {/* Grid polygons */}
-      {gridFractions.map((fr, gi) => {
-        const pts = angles.map((a) => toXY(a, fr * maxR));
-        const strokeColors = ["#e0d9ff", "#d0c4fd", "#bfaefa", "#a78bfa"];
+      {/* Grid rings */}
+      {gridLevels.map((fr, gi) => (
+        <polygon
+          key={fr}
+          points={dims.map((_, i) => {
+            const p = toXY(angle(i), fr * maxR);
+            return `${p.x},${p.y}`;
+          }).join(" ")}
+          fill="none"
+          stroke={gridColors[gi]}
+          strokeWidth={gi === 3 ? "1.8" : "1"}
+          strokeDasharray={gi < 3 ? "6,4" : undefined}
+        />
+      ))}
+
+      {/* Axis spokes — each coloured by dimension */}
+      {dims.map((dim, i) => {
+        const end = toXY(angle(i), maxR);
         return (
-          <polygon
-            key={fr}
-            points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
-            fill="none"
-            stroke={strokeColors[gi]}
-            strokeWidth={gi === 3 ? "1.5" : "1"}
-            strokeDasharray={gi < 3 ? "5,4" : undefined}
+          <line
+            key={`spoke-${i}`}
+            x1={cx} y1={cy} x2={end.x} y2={end.y}
+            stroke={DIM_META[dim]?.dot ?? "#a78bfa"}
+            strokeWidth="1"
+            strokeOpacity="0.30"
           />
         );
       })}
 
-      {/* Per-dimension colored axis lines */}
-      {angles.map((a, i) => {
-        const end = toXY(a, maxR);
-        const meta = DIM_META[dims[i]];
-        return (
-          <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y}
-            stroke={meta?.dot ?? "#a78bfa"} strokeWidth="1" strokeOpacity="0.25" />
-        );
-      })}
-
-      {/* Data polygon — glow */}
+      {/* Data polygon — glow halo */}
       <polygon
         points={dataPoly}
         fill="none"
         stroke="#7c3aed"
-        strokeWidth="8"
+        strokeWidth="10"
         strokeLinejoin="round"
-        opacity="0.12"
-        filter="url(#poly-glow)"
+        opacity="0.10"
+        filter="url(#pg)"
       />
 
-      {/* Data polygon — main */}
+      {/* Data polygon — main filled shape */}
       <polygon
         points={dataPoly}
-        fill="url(#radar-fill)"
+        fill="url(#rf)"
         stroke="#6d28d9"
-        strokeWidth="2.5"
+        strokeWidth="2.8"
         strokeLinejoin="round"
       />
 
-      {/* Data point dots */}
+      {/* Dots at each vertex */}
       {dataPoints.map((p, i) => {
-        const meta = DIM_META[dims[i]];
-        const color = meta?.dot ?? "#8b5cf6";
+        const c = DIM_META[dims[i]]?.dot ?? "#8b5cf6";
         return (
-          <g key={i} filter="url(#dot-shadow)">
-            <circle cx={p.x} cy={p.y} r="8" fill={color} opacity="0.15" />
-            <circle cx={p.x} cy={p.y} r="5.5" fill="white" stroke={color} strokeWidth="2.5" />
+          <g key={`dot-${i}`} filter="url(#ds)">
+            {/* Outer coloured halo */}
+            <circle cx={p.x} cy={p.y} r="9"   fill={c} opacity="0.18" />
+            {/* Main white-filled dot */}
+            <circle cx={p.x} cy={p.y} r="5.5" fill="white" stroke={c} strokeWidth="2.8" />
           </g>
         );
       })}
 
-      {/* Labels */}
+      {/* Labels — abbreviated to prevent clipping; anchor direction based on position */}
       {dims.map((dim, i) => {
-        const a = angles[i];
-        const lp = toXY(a, labelR);
-        const meta = DIM_META[dim] ?? { label: dim, chartLabel: dim, dot: "#8b5cf6", textColor: "#8b5cf6" };
+        const deg = angle(i);
+        const lp  = toXY(deg, maxR + labelGap);
+        const meta = DIM_META[dim] ?? { label: dim, abbr: dim.slice(0, 5).toUpperCase(), dot: "#8b5cf6", color: "#8b5cf6" };
         const score = Math.round(scores[dim] * t);
-        // Anchor based on horizontal position
-        const anchor = lp.x < cx - 10 ? "end" : lp.x > cx + 10 ? "start" : "middle";
+
+        // Determine text-anchor so labels always grow away from center
+        const EPS = 18; // px threshold for "near vertical axis"
+        const anchor =
+          lp.x < cx - EPS ? "end" :
+          lp.x > cx + EPS ? "start" :
+          "middle";
+
         return (
-          <g key={dim}>
-            <text x={lp.x} y={lp.y - 8} textAnchor={anchor}
-              fontSize="10" fontWeight="800" fill={meta.textColor}
-              style={{ letterSpacing: "0.6px" }}>
-              {meta.chartLabel}
+          <g key={`lbl-${dim}`}>
+            <text
+              x={lp.x} y={lp.y - 9}
+              textAnchor={anchor}
+              fontSize="11"
+              fontWeight="800"
+              fill={meta.color}
+              style={{ letterSpacing: "0.8px" }}
+            >
+              {meta.abbr}
             </text>
-            <text x={lp.x} y={lp.y + 7} textAnchor={anchor}
-              fontSize="14" fontWeight="700" fill="#0f172a">
+            <text
+              x={lp.x} y={lp.y + 9}
+              textAnchor={anchor}
+              fontSize="16"
+              fontWeight="700"
+              fill="#0f172a"
+            >
               {score}
             </text>
           </g>
@@ -192,6 +238,8 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
     </svg>
   );
 }
+
+// ─── Main component ──────────────────────────────────────────────────────────
 
 export function PsychometricResult({ data, onContinue, loading }: Props) {
   const confidence = Math.round(data.confidence_score);
@@ -214,18 +262,19 @@ export function PsychometricResult({ data, onContinue, loading }: Props) {
         </p>
       </div>
 
-      {/* Radar + dimension breakdown side by side */}
+      {/* Radar + dimension bars */}
       <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
         <div className="flex flex-col md:flex-row items-center gap-6">
-          {/* Radar chart */}
-          <div className="w-full md:w-1/2 flex-shrink-0">
+
+          {/* Radar chart — takes more horizontal space */}
+          <div className="w-full md:w-[55%] flex-shrink-0">
             <RadarChart scores={scores} />
           </div>
 
           {/* Dimension bars */}
-          <div className="w-full md:w-1/2 space-y-3">
+          <div className="w-full md:w-[45%] space-y-3">
             {dimEntries.map(([dim, score], i) => {
-              const meta = DIM_META[dim] ?? { label: dim, dot: "#8b5cf6", textColor: "#8b5cf6" };
+              const meta = DIM_META[dim] ?? { label: dim, abbr: dim, dot: "#8b5cf6", color: "#8b5cf6" };
               const isTop = i < 2;
               return (
                 <div key={dim}>
@@ -237,23 +286,31 @@ export function PsychometricResult({ data, onContinue, loading }: Props) {
                       />
                       <span
                         className={`text-xs font-satoshi font-semibold ${isTop ? "" : "text-studojo-muted"}`}
-                        style={isTop ? { color: meta.textColor } : undefined}
+                        style={isTop ? { color: meta.color } : undefined}
                       >
                         {meta.label}
                       </span>
                       {isTop && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold font-satoshi"
-                          style={{ background: `${meta.dot}18`, color: meta.textColor }}>
+                        <span
+                          className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold font-satoshi"
+                          style={{ background: `${meta.dot}18`, color: meta.color }}
+                        >
                           Top
                         </span>
                       )}
                     </div>
-                    <span className="text-xs font-clash font-bold text-studojo-ink">{Math.round(score)}</span>
+                    <span className="text-xs font-clash font-bold text-studojo-ink">
+                      {Math.round(score)}
+                    </span>
                   </div>
                   <div className="w-full h-1.5 bg-studojo-ink/8 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${score}%`, background: meta.dot, opacity: isTop ? 1 : 0.45 }}
+                      style={{
+                        width: `${score}%`,
+                        background: meta.dot,
+                        opacity: isTop ? 1 : 0.45,
+                      }}
                     />
                   </div>
                 </div>
@@ -263,7 +320,7 @@ export function PsychometricResult({ data, onContinue, loading }: Props) {
         </div>
       </div>
 
-      {/* Traits */}
+      {/* Working style traits */}
       {data.traits?.length > 0 && (
         <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
           <p className="text-[11px] font-satoshi font-semibold text-studojo-muted uppercase tracking-wider mb-3">
