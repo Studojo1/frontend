@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { SmoothLink } from "~/components";
+import type { ReactNode } from "react";
 
 const floatY = [0, -24, -12, -30, 0];
 const floatX = [0, 12, -18, 8, 0];
 const floatRotate = [0, 6, -8, 4, 0];
 
-export function Hero() {
+export function Hero({ children }: { children?: ReactNode }) {
   return (
     <section className="overflow-hidden border-b border-neutral-900 bg-purple-50">
       <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col gap-12 px-4 pt-8 pb-8 md:px-8 md:py-20 md:flex-row md:items-center md:justify-between md:gap-16">
@@ -28,6 +29,12 @@ export function Hero() {
               className="inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-purple-500 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-10"
             >
               Start for Free
+            </Link>
+            <Link
+              to="/outreach"
+              className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-10"
+            >
+              AI Outreach Tool ✦
             </Link>
             <SmoothLink
               to="#dojos"
@@ -86,6 +93,7 @@ export function Hero() {
           />
         </div>
       </div>
+      {children}
     </section>
   );
 }

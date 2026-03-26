@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
   CTABanner,
@@ -59,56 +59,76 @@ const sectionVariants = {
   },
 };
 
-function InternshipCTA() {
-  const anchorRef = useRef<HTMLDivElement>(null);
-  const [floating, setFloating] = useState(false);
+function InternshipPopup() {
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const el = anchorRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setFloating(!entry.isIntersecting),
-      { threshold: 0 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
+    if (sessionStorage.getItem("outreach-popup-dismissed")) return;
+    const t = setTimeout(() => setVisible(true), 800);
+    return () => clearTimeout(t);
   }, []);
 
-  return (
-    <>
-      {/* In-page CTA anchor — inside hero section, no separate element */}
-      <div
-        ref={anchorRef}
-        className="flex justify-center px-4 pb-14 pt-6 md:px-8 md:pb-16"
-      >
-        <Link
-          to="/outreach"
-          className="inline-flex h-16 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 px-14 font-['Satoshi'] text-lg font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:h-[72px] md:px-16 md:text-xl"
-        >
-          Find your dream internship →
-        </Link>
-      </div>
+  function dismiss() {
+    sessionStorage.setItem("outreach-popup-dismissed", "1");
+    setVisible(false);
+  }
 
-      {/* Floating pill — slides in below header when in-page CTA scrolls out of view */}
-      <AnimatePresence>
-        {floating && (
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/50 px-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={dismiss}
+        >
           <motion.div
-            className="fixed top-[68px] md:top-[96px] left-1/2 z-40 -translate-x-1/2"
-            initial={{ y: -48, opacity: 0 }}
-            animate={{ y: 8, opacity: 1 }}
-            exit={{ y: -48, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 320, damping: 30 }}
+            className="relative w-full max-w-md rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+            initial={{ scale: 0.92, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.92, opacity: 0, y: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <Link
-              to="/outreach"
-              className="flex items-center gap-2 rounded-full border-2 border-neutral-900 bg-violet-500 px-6 py-2.5 font-['Satoshi'] text-sm font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] whitespace-nowrap"
+            <button
+              onClick={dismiss}
+              className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-900 bg-neutral-100 font-['Satoshi'] text-sm font-medium text-neutral-900 hover:bg-neutral-200"
+              aria-label="Close"
             >
-              ✦ Find your dream internship →
-            </Link>
+              ✕
+            </button>
+
+            <div className="flex flex-col gap-5">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-200 text-2xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
+                🎯
+              </div>
+              <div className="flex flex-col gap-2">
+                <h2 className="font-['Clash_Display'] text-2xl font-medium leading-tight text-neutral-900">
+                  Find your dream internship
+                </h2>
+                <p className="font-['Satoshi'] text-base text-neutral-600">
+                  AI finds the right roles, writes your outreach, and gets you in front of real hiring managers. No job boards.
+                </p>
+              </div>
+              <Link
+                to="/outreach"
+                onClick={dismiss}
+                className="inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+              >
+                Try the Outreach Tool →
+              </Link>
+              <button
+                onClick={dismiss}
+                className="font-['Satoshi'] text-sm text-neutral-500 hover:text-neutral-700 underline"
+              >
+                Not now
+              </button>
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -116,15 +136,14 @@ export default function Home() {
   return (
     <>
       <Header />
+      <InternshipPopup />
       <motion.main
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         <motion.div variants={sectionVariants}>
-          <Hero>
-            <InternshipCTA />
-          </Hero>
+          <Hero />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <DojoCards />
