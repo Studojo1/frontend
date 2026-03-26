@@ -16,17 +16,16 @@ interface Props {
   loading?: boolean;
 }
 
-// label   = shown in the right-side bar list
-// abbr    = short label used inside the SVG chart (max 6 chars to prevent clipping)
-const DIM_META: Record<string, { label: string; abbr: string; dot: string; color: string }> = {
-  analytical:    { label: "Analytical",  abbr: "ANLYT", dot: "#8b5cf6", color: "#8b5cf6" },
-  creative:      { label: "Creative",    abbr: "CREAT", dot: "#f97316", color: "#f97316" },
-  execution:     { label: "Execution",   abbr: "EXEC",  dot: "#10b981", color: "#10b981" },
-  social:        { label: "Social",      abbr: "SOCIAL",dot: "#ec4899", color: "#ec4899" },
-  leadership:    { label: "Leadership",  abbr: "LEAD",  dot: "#3b82f6", color: "#3b82f6" },
-  strategic:     { label: "Strategic",   abbr: "STRAT", dot: "#f59e0b", color: "#d97706" },
-  technical:     { label: "Technical",   abbr: "TECH",  dot: "#06b6d4", color: "#0891b2" },
-  communication: { label: "Comms",       abbr: "COMMS", dot: "#e11d48", color: "#e11d48" },
+// label = bar list name, chart = radar label (full quality name, proper case)
+const DIM_META: Record<string, { label: string; chart: string; dot: string; color: string }> = {
+  analytical:    { label: "Analytical",    chart: "Analytical",    dot: "#8b5cf6", color: "#8b5cf6" },
+  creative:      { label: "Creative",      chart: "Creative",      dot: "#f97316", color: "#f97316" },
+  execution:     { label: "Execution",     chart: "Execution",     dot: "#10b981", color: "#10b981" },
+  social:        { label: "Social",        chart: "Social",        dot: "#ec4899", color: "#ec4899" },
+  leadership:    { label: "Leadership",    chart: "Leadership",    dot: "#3b82f6", color: "#3b82f6" },
+  strategic:     { label: "Strategic",     chart: "Strategic",     dot: "#f59e0b", color: "#d97706" },
+  technical:     { label: "Technical",     chart: "Technical",     dot: "#06b6d4", color: "#0891b2" },
+  communication: { label: "Communication", chart: "Communication", dot: "#e11d48", color: "#e11d48" },
 };
 
 // ─── Radar chart ────────────────────────────────────────────────────────────
@@ -201,7 +200,7 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
       {dims.map((dim, i) => {
         const deg = angle(i);
         const lp  = toXY(deg, maxR + labelGap);
-        const meta = DIM_META[dim] ?? { label: dim, abbr: dim.slice(0, 5).toUpperCase(), dot: "#8b5cf6", color: "#8b5cf6" };
+        const meta = DIM_META[dim] ?? { label: dim, chart: dim, dot: "#8b5cf6", color: "#8b5cf6" };
         const score = Math.round(scores[dim] * t);
 
         // Determine text-anchor so labels always grow away from center
@@ -216,12 +215,12 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
             <text
               x={lp.x} y={lp.y - 9}
               textAnchor={anchor}
-              fontSize="11"
-              fontWeight="800"
+              fontSize="11.5"
+              fontWeight="700"
               fill={meta.color}
-              style={{ letterSpacing: "0.8px" }}
+              style={{ letterSpacing: "0.3px" }}
             >
-              {meta.abbr}
+              {meta.chart}
             </text>
             <text
               x={lp.x} y={lp.y + 9}
@@ -274,7 +273,7 @@ export function PsychometricResult({ data, onContinue, loading }: Props) {
           {/* Dimension bars */}
           <div className="w-full md:w-[45%] space-y-3">
             {dimEntries.map(([dim, score], i) => {
-              const meta = DIM_META[dim] ?? { label: dim, abbr: dim, dot: "#8b5cf6", color: "#8b5cf6" };
+              const meta = DIM_META[dim] ?? { label: dim, chart: dim, dot: "#8b5cf6", color: "#8b5cf6" };
               const isTop = i < 2;
               return (
                 <div key={dim}>
