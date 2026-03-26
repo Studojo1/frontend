@@ -174,8 +174,8 @@ export default function ProfilePage() {
 
     (async () => {
       try {
-        // Poll profile-status — check immediately, then every 1s up to 30 attempts
-        for (let i = 0; i < 30; i++) {
+        // Poll profile-status — check immediately, then every 1s up to 20 attempts (~20s max)
+        for (let i = 0; i < 20; i++) {
           if (i > 0) await new Promise((r) => setTimeout(r, 1000));
           if (cancelled) return;
           try {
@@ -230,7 +230,7 @@ export default function ProfilePage() {
   const name = personalInfo.name || personalInfo.full_name || "";
   const initials = name
     ? name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
-    : "?";
+    : "";
 
   // All 8 dimensions, sorted by score
   const DIM_ORDER = ["analytical", "creative", "execution", "social", "leadership", "strategic", "technical", "communication"];
@@ -254,22 +254,28 @@ export default function ProfilePage() {
         <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center pt-12 flex-shrink-0">
           {STEPS.map((step, i) => {
             const num = i + 1;
-            const done = true; // all steps done on profile page
+            const active = num === 3;
+            const done = num < 3;
             const isLast = i === STEPS.length - 1;
             return (
               <div key={i} className="flex flex-col items-center w-full">
                 <div className="flex items-center gap-3 px-6 w-full">
                   <div className="flex flex-col items-center flex-shrink-0">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 bg-studojo-green text-white border-studojo-green transition-all duration-300">
-                      {num < 3 ? <FiCheck className="w-4 h-4" /> : <span className="text-xs font-clash font-bold">3</span>}
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 ${
+                      active ? "bg-studojo-purple text-white border-studojo-purple"
+                             : "bg-studojo-green text-white border-studojo-green"
+                    }`}>
+                      {done ? <FiCheck className="w-4 h-4" /> : num}
                     </div>
-                    {!isLast && <div className="w-0.5 h-10 bg-studojo-green" />}
+                    {!isLast && <div className={`w-0.5 h-10 ${done ? "bg-studojo-green" : "bg-studojo-ink/10"}`} />}
                   </div>
                   <div className="pt-1">
-                    <p className={`text-sm font-satoshi leading-tight ${num === 3 ? "text-studojo-ink font-semibold" : "text-studojo-green font-medium"}`}>
+                    <p className={`text-sm font-satoshi leading-tight ${
+                      active ? "text-studojo-ink font-semibold" : "text-studojo-green font-medium"
+                    }`}>
                       {step}
                     </p>
-                    {num === 3 && (
+                    {active && (
                       <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
                         {loading ? "Building..." : "Ready"}
                       </p>
@@ -529,20 +535,11 @@ export default function ProfilePage() {
       <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none">
         <button
           onClick={() => navigate("/outreach/leads/discovery")}
-          disabled={loading}
-          className="pointer-events-auto px-8 py-3.5 rounded-full bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-70 disabled:pointer-events-none flex items-center gap-2.5"
+          className="pointer-events-auto px-8 py-3.5 rounded-full bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none flex items-center gap-2.5"
         >
-          {loading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Finalising your profile...
-            </>
-          ) : (
-            <>
-              Find Decision Makers
-              <FiArrowRight className="w-4 h-4" />
-            </>
-          )}
+          {loading && <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />}
+          Find Decision Makers
+          {!loading && <FiArrowRight className="w-4 h-4" />}
         </button>
       </div>
     </div>
