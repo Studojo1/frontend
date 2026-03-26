@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams, useNavigate } from "@remix-run/react";
+import { useSearchParams, useNavigate } from "react-router";
 import { verifyDodoPayment } from "~/lib/payments";
 import { outreachFetch } from "~/lib/outreach/api";
 import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
