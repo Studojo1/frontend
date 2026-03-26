@@ -28,6 +28,22 @@ interface CouponResult {
 }
 
 export default function EnrichmentPage() {
+  // If rendered inside the Dodo modal iframe after payment redirect, show minimal UI
+  const isInIframe = typeof window !== "undefined" && window.self !== window.top;
+  if (isInIframe) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-center p-8">
+          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+          </div>
+          <h2 className="text-lg font-bold text-gray-900 mb-1">Payment Complete</h2>
+          <p className="text-sm text-gray-500">This window will close automatically...</p>
+        </div>
+      </div>
+    );
+  }
+
   const navigate = useNavigate();
   const { user, loading: authLoading } = useOutreachAuth();
   const { candidateId, selectedTier, setSelectedTier, orderId } = useOutreachStore();
