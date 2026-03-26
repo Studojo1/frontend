@@ -338,38 +338,6 @@ export function PsychometricResult({ data, onContinue, loading }: Props) {
         </div>
       )}
 
-      {/* Recommended roles */}
-      {data.recommended_roles?.length > 0 && (
-        <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
-          <p className="text-[11px] font-satoshi font-semibold text-studojo-muted uppercase tracking-wider mb-3">
-            Roles That Fit You
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {data.recommended_roles.slice(0, 6).map((role, i) => (
-              <div
-                key={role}
-                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-studojo-surface-muted border border-studojo-ink/10"
-              >
-                <span
-                  className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-clash font-bold flex-shrink-0 ${
-                    i === 0
-                      ? "bg-studojo-green text-white"
-                      : i < 3
-                      ? "bg-studojo-purple/10 text-studojo-purple"
-                      : "bg-studojo-ink/5 text-studojo-muted"
-                  }`}
-                >
-                  {i + 1}
-                </span>
-                <span className="text-sm font-satoshi font-medium text-studojo-ink leading-tight">
-                  {role}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Reasoning */}
       {data.reasoning && (
         <div className="rounded-xl border border-studojo-ink/10 bg-studojo-purple-bg/40 px-5 py-4">

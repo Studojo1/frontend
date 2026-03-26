@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   FiUser, FiMapPin, FiBriefcase, FiTarget, FiZap,
-  FiArrowRight, FiAward, FiTrendingUp, FiStar,
+  FiArrowRight, FiAward, FiStar,
 } from "react-icons/fi";
 import { BsBuilding } from "react-icons/bs";
 import { Header } from "~/components/common/header";
@@ -12,142 +12,152 @@ import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 
-const DIM_META: Record<string, { color: string; bg: string; text: string; stroke: string; fill: string; label: string; icon: string }> = {
-  analytical: { color: "bg-studojo-purple", bg: "bg-studojo-purple/10", text: "text-studojo-purple", stroke: "#7c3aed", fill: "rgba(124,58,237,0.15)", label: "Analytical", icon: "" },
-  creative:   { color: "bg-studojo-orange", bg: "bg-studojo-orange/10", text: "text-studojo-orange", stroke: "#ea580c", fill: "rgba(234,88,12,0.12)", label: "Creative",   icon: "" },
-  execution:  { color: "bg-studojo-green",  bg: "bg-studojo-green/10",  text: "text-studojo-green",  stroke: "#16a34a", fill: "rgba(22,163,74,0.12)",  label: "Execution",  icon: "" },
-  social:     { color: "bg-studojo-pink",   bg: "bg-studojo-pink/10",   text: "text-studojo-pink",   stroke: "#db2777", fill: "rgba(219,39,119,0.12)", label: "Social",     icon: "" },
+// ── Dimension metadata — all 8 dims ──────────────────────────────────────────
+
+const DIM_META: Record<string, {
+  label: string; chart: string;
+  color: string; bg: string; text: string;
+  dot: string;
+  desc: string;
+}> = {
+  analytical:    { label: "Analytical",    chart: "Analytical",    dot: "#8b5cf6", color: "bg-[#8b5cf6]", bg: "bg-[#8b5cf6]/10", text: "text-[#8b5cf6]",  desc: "Data-driven thinking, problem-solving, logical reasoning" },
+  creative:      { label: "Creative",      chart: "Creative",      dot: "#f97316", color: "bg-[#f97316]", bg: "bg-[#f97316]/10", text: "text-[#f97316]",  desc: "Ideation, innovation, design thinking, originality" },
+  execution:     { label: "Execution",     chart: "Execution",     dot: "#10b981", color: "bg-[#10b981]", bg: "bg-[#10b981]/10", text: "text-[#10b981]",  desc: "Getting things done, reliability, follow-through" },
+  social:        { label: "Social",        chart: "Social",        dot: "#ec4899", color: "bg-[#ec4899]", bg: "bg-[#ec4899]/10", text: "text-[#ec4899]",  desc: "Communication, teamwork, relationship-building" },
+  leadership:    { label: "Leadership",    chart: "Leadership",    dot: "#3b82f6", color: "bg-[#3b82f6]", bg: "bg-[#3b82f6]/10", text: "text-[#3b82f6]",  desc: "Guiding teams, decision-making, inspiring others" },
+  strategic:     { label: "Strategic",     chart: "Strategic",     dot: "#f59e0b", color: "bg-[#f59e0b]", bg: "bg-[#f59e0b]/10", text: "text-[#d97706]",  desc: "Long-term planning, vision, business acumen" },
+  technical:     { label: "Technical",     chart: "Technical",     dot: "#06b6d4", color: "bg-[#06b6d4]", bg: "bg-[#06b6d4]/10", text: "text-[#0891b2]",  desc: "Engineering, coding, system design, technical depth" },
+  communication: { label: "Communication", chart: "Communication", dot: "#e11d48", color: "bg-[#e11d48]", bg: "bg-[#e11d48]/10", text: "text-[#e11d48]",  desc: "Writing, presenting, storytelling, articulation" },
 };
 
-// Primary radar color (purple-to-pink blend)
-const RADAR_STROKE = "#7c3aed";
-const RADAR_FILL = "rgba(124,58,237,0.12)";
+// ── Animated radar chart (same as Career DNA step) ───────────────────────────
 
-interface RadarChartProps {
-  scores: Record<string, number>;
-  size?: number;
-}
+function RadarChart({ scores }: { scores: Record<string, number> }) {
+  const [t, setT] = useState(0);
 
-function RadarChart({ scores, size = 220 }: RadarChartProps) {
-  const entries = Object.entries(scores);
-  const n = entries.length;
-  if (n < 3) return null;
+  useEffect(() => {
+    const start = performance.now();
+    const dur = 1500;
+    let raf = 0;
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / dur, 1);
+      setT(1 - Math.pow(1 - p, 3));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
-  const cx = size / 2;
-  const cy = size / 2;
-  const maxR = size * 0.36;
-  const labelR = size * 0.47;
-  const gridLevels = [25, 50, 75, 100];
+  const dims = Object.keys(scores);
+  const N = dims.length;
+  if (N < 3) return null;
 
-  const angleFor = (i: number) => (i * 2 * Math.PI) / n - Math.PI / 2;
+  const VW = 600, VH = 460;
+  const cx = VW / 2, cy = VH / 2;
+  const maxR = 145;
+  const labelGap = 56;
 
-  const gridPolygon = (pct: number) =>
-    entries
-      .map((_, i) => {
-        const a = angleFor(i);
-        const r = (pct / 100) * maxR;
-        return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
-      })
-      .join(" ");
-
-  const dataPoints = entries.map(([, score], i) => {
-    const a = angleFor(i);
-    const r = (Math.max(score, 3) / 100) * maxR;
-    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  const angle = (i: number) => -90 + (360 / N) * i;
+  const toXY = (deg: number, r: number) => ({
+    x: cx + r * Math.cos((deg * Math.PI) / 180),
+    y: cy + r * Math.sin((deg * Math.PI) / 180),
   });
 
+  const maxScore = Math.max(...dims.map((d) => scores[d]), 1);
+  const FLOOR_R = maxR * 0.35;
+  const CEIL_R  = maxR * 0.92;
+  const dispR   = (score: number) => FLOOR_R + (score / maxScore) * (CEIL_R - FLOOR_R);
+
+  const gridLevels = [0.25, 0.50, 0.75, 1.00];
+  const gridColors = ["#e8e4ff", "#d4caf9", "#bfaff3", "#a78bfa"];
+
+  const dataPoints = dims.map((dim, i) => toXY(angle(i), dispR(scores[dim]) * t));
+  const dataPoly = dataPoints.map((p) => `${p.x},${p.y}`).join(" ");
+
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      className="overflow-visible"
-    >
-      {/* Grid rings */}
-      {gridLevels.map((lvl) => (
-        <polygon
-          key={lvl}
-          points={gridPolygon(lvl)}
-          fill="none"
-          stroke="#e5e7eb"
-          strokeWidth="1"
-          strokeDasharray={lvl < 100 ? "3 3" : "none"}
+    <svg viewBox={`0 0 ${VW} ${VH}`} className="w-full" style={{ display: "block" }}>
+      <defs>
+        <linearGradient id="prf-rf" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stopColor="#7c3aed" stopOpacity="0.50" />
+          <stop offset="100%" stopColor="#db2777" stopOpacity="0.35" />
+        </linearGradient>
+        <radialGradient id="prf-rbg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#ede9fe" stopOpacity="0.65" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0"    />
+        </radialGradient>
+        <filter id="prf-ds" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="1" stdDeviation="2.5" floodOpacity="0.22" />
+        </filter>
+        <filter id="prf-pg" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="5" result="b" />
+          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+
+      <circle cx={cx} cy={cy} r={maxR + 15} fill="url(#prf-rbg)" />
+
+      <polygon
+        points={dims.map((_, i) => { const p = toXY(angle(i), gridLevels[0] * maxR); return `${p.x},${p.y}`; }).join(" ")}
+        fill="rgba(124,58,237,0.06)" stroke="none"
+      />
+
+      {gridLevels.map((fr, gi) => (
+        <polygon key={fr}
+          points={dims.map((_, i) => { const p = toXY(angle(i), fr * maxR); return `${p.x},${p.y}`; }).join(" ")}
+          fill="none" stroke={gridColors[gi]}
+          strokeWidth={gi === 3 ? "1.8" : "1"}
+          strokeDasharray={gi < 3 ? "6,4" : undefined}
         />
       ))}
 
-      {/* Axis lines */}
-      {entries.map(([, ], i) => {
-        const a = angleFor(i);
-        return (
-          <line
-            key={i}
-            x1={cx}
-            y1={cy}
-            x2={cx + maxR * Math.cos(a)}
-            y2={cy + maxR * Math.sin(a)}
-            stroke="#d1d5db"
-            strokeWidth="1"
-          />
-        );
+      {dims.map((dim, i) => {
+        const end = toXY(angle(i), maxR);
+        return <line key={`sp-${i}`} x1={cx} y1={cy} x2={end.x} y2={end.y}
+          stroke={DIM_META[dim]?.dot ?? "#a78bfa"} strokeWidth="1" strokeOpacity="0.30" />;
       })}
 
-      {/* Filled data polygon */}
-      <polygon
-        points={dataPoints.map((p) => `${p.x},${p.y}`).join(" ")}
-        fill={RADAR_FILL}
-        stroke={RADAR_STROKE}
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-      />
+      <polygon points={dataPoly} fill="none" stroke="#7c3aed" strokeWidth="10"
+        strokeLinejoin="round" opacity="0.10" filter="url(#prf-pg)" />
 
-      {/* Data point dots */}
-      {dataPoints.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="5" fill={RADAR_STROKE} stroke="white" strokeWidth="2" />
-      ))}
+      <polygon points={dataPoly} fill="url(#prf-rf)" stroke="#6d28d9"
+        strokeWidth="2.8" strokeLinejoin="round" />
 
-      {/* Labels */}
-      {entries.map(([dim, score], i) => {
-        const a = angleFor(i);
-        const lx = cx + labelR * Math.cos(a);
-        const ly = cy + labelR * Math.sin(a);
-        const meta = DIM_META[dim];
-        const icon = meta?.icon || "•";
-        const label = meta?.label || dim;
+      {dataPoints.map((p, i) => {
+        const c = DIM_META[dims[i]]?.dot ?? "#8b5cf6";
         return (
-          <g key={i}>
-            <text
-              x={lx}
-              y={ly - 7}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="11"
-              fontWeight="600"
-              fill="#1a1a2e"
-              fontFamily="'Clash Display', sans-serif"
-            >
-              {icon} {label}
-            </text>
-            <text
-              x={lx}
-              y={ly + 8}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="12"
-              fontWeight="700"
-              fill={meta?.stroke || RADAR_STROKE}
-              fontFamily="'Clash Display', sans-serif"
-            >
-              {Math.round(score)}
-            </text>
+          <g key={`dot-${i}`} filter="url(#prf-ds)">
+            <circle cx={p.x} cy={p.y} r="9"   fill={c} opacity="0.18" />
+            <circle cx={p.x} cy={p.y} r="5.5" fill="white" stroke={c} strokeWidth="2.8" />
           </g>
         );
       })}
 
-      {/* Center dot */}
-      <circle cx={cx} cy={cy} r="3" fill="#d1d5db" />
+      {dims.map((dim, i) => {
+        const deg = angle(i);
+        const lp  = toXY(deg, maxR + labelGap);
+        const meta = DIM_META[dim] ?? { chart: dim, dot: "#8b5cf6", text: "text-[#8b5cf6]" };
+        const score = Math.round(scores[dim] * t);
+        const EPS = 18;
+        const anchor = lp.x < cx - EPS ? "end" : lp.x > cx + EPS ? "start" : "middle";
+        return (
+          <g key={`lbl-${dim}`}>
+            <text x={lp.x} y={lp.y - 9} textAnchor={anchor}
+              fontSize="11.5" fontWeight="700" fill={DIM_META[dim]?.dot ?? "#8b5cf6"}
+              style={{ letterSpacing: "0.3px" }}>
+              {meta.chart}
+            </text>
+            <text x={lp.x} y={lp.y + 9} textAnchor={anchor}
+              fontSize="16" fontWeight="700" fill="#0f172a">
+              {score}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -215,15 +225,15 @@ export default function ProfilePage() {
     ? name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
     : "?";
 
-  // Ordered dimension scores for consistent display
+  // All 8 dimensions, sorted by score
+  const DIM_ORDER = ["analytical", "creative", "execution", "social", "leadership", "strategic", "technical", "communication"];
   const dimScores: Record<string, number> = psych?.dimension_scores
     ? Object.fromEntries(
-        ["analytical", "creative", "execution", "social"]
+        DIM_ORDER
           .filter((k) => psych.dimension_scores[k] != null)
           .map((k) => [k, psych.dimension_scores[k]])
       )
     : {};
-
   const dimEntries = Object.entries(dimScores).sort(([, a], [, b]) => b - a);
   const topDim = dimEntries[0]?.[0];
 
@@ -252,7 +262,7 @@ export default function ProfilePage() {
         ) : (
           <div className="mt-5 space-y-4 animate-fade-in">
 
-            {/* ── Hero card ──────────────────────────────────────────── */}
+            {/* ── Hero card ──────────────────────────────────────────────────── */}
             <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
               <div className="h-1.5 bg-gradient-to-r from-studojo-purple via-studojo-pink to-studojo-orange" />
               <div className="p-5">
@@ -270,7 +280,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Quick stat chips */}
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
                   {preferences.locations?.length > 0 && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-muted">
@@ -284,10 +293,10 @@ export default function ProfilePage() {
                       {preferences.industry_interests.slice(0, 2).join(", ")}
                     </span>
                   )}
-                  {topDim && (
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-satoshi font-semibold ${DIM_META[topDim]?.bg} ${DIM_META[topDim]?.text}`}>
+                  {topDim && DIM_META[topDim] && (
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-satoshi font-semibold ${DIM_META[topDim].bg} ${DIM_META[topDim].text}`}>
                       <FiStar className="w-3 h-3" />
-                      {DIM_META[topDim]?.label} dominant
+                      {DIM_META[topDim].label} dominant
                     </span>
                   )}
                   {psych?.confidence_score != null && (
@@ -300,7 +309,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* ── Career DNA (full-width, radar chart) ───────────────── */}
+            {/* ── Career DNA — radar + all 8 dimension bars ──────────────────── */}
             {Object.keys(dimScores).length >= 3 && (
               <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
                 <div className="p-5 pb-3 border-b border-studojo-ink/8">
@@ -310,81 +319,82 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">Career DNA</h3>
-                      <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Psychometric profile from your responses</p>
+                      <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Your psychometric profile</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-5">
-                  <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-                    {/* Radar chart */}
-                    <div className="flex-shrink-0 flex items-center justify-center">
-                      <RadarChart scores={dimScores} size={240} />
-                    </div>
+                  {/* Radar chart — full width */}
+                  <RadarChart scores={dimScores} />
 
-                    {/* Dimension breakdown */}
-                    <div className="flex-1 w-full space-y-3">
-                      {dimEntries.map(([dim, score]) => {
-                        const meta = DIM_META[dim] || DIM_META.analytical;
-                        const pct = Math.max(score, 2);
-                        const descriptions: Record<string, string> = {
-                          analytical: "Data-driven thinking, problem-solving, logical reasoning",
-                          creative: "Ideation, innovation, design thinking, originality",
-                          execution: "Getting things done, reliability, follow-through",
-                          social: "Communication, teamwork, leadership, relationship-building",
-                        };
-                        return (
-                          <div key={dim}>
-                            <div className="flex items-center justify-between mb-1.5">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm">{meta.icon}</span>
-                                <span className="text-sm font-satoshi font-semibold text-studojo-ink capitalize">{meta.label}</span>
-                                {dim === topDim && (
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-satoshi font-bold ${meta.bg} ${meta.text}`}>
-                                    Top trait
-                                  </span>
-                                )}
-                              </div>
-                              <span className={`text-base font-clash font-bold ${meta.text}`}>{Math.round(score)}</span>
-                            </div>
-                            <div className={`h-2.5 rounded-full ${meta.bg} overflow-hidden`}>
-                              <div
-                                className={`h-full rounded-full ${meta.color} transition-all duration-700`}
-                                style={{ width: `${pct}%` }}
+                  {/* Dimension bars */}
+                  <div className="mt-4 space-y-3">
+                    {dimEntries.map(([dim, score]) => {
+                      const meta = DIM_META[dim];
+                      if (!meta) return null;
+                      return (
+                        <div key={dim}>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                style={{ background: meta.dot }}
                               />
-                            </div>
-                            <p className="text-[11px] text-studojo-muted font-satoshi mt-1">{descriptions[dim] || ""}</p>
-                          </div>
-                        );
-                      })}
-
-                      {/* Trait badges */}
-                      {psych?.traits?.length > 0 && (
-                        <div className="pt-2 border-t border-studojo-ink/8">
-                          <p className="text-[11px] text-studojo-muted font-satoshi font-semibold uppercase tracking-wide mb-2">Identified traits</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {psych.traits.map((t: string) => (
-                              <span key={t} className="px-2 py-0.5 rounded-md text-[11px] font-satoshi font-semibold bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/15">
-                                {t}
+                              <span className={`text-sm font-satoshi font-semibold ${meta.text}`}>
+                                {meta.label}
                               </span>
-                            ))}
+                              {dim === topDim && (
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-satoshi font-bold ${meta.bg} ${meta.text}`}>
+                                  Top trait
+                                </span>
+                              )}
+                            </div>
+                            <span className={`text-base font-clash font-bold ${meta.text}`}>
+                              {Math.round(score)}
+                            </span>
                           </div>
+                          <div className={`h-2 rounded-full ${meta.bg} overflow-hidden`}>
+                            <div
+                              className={`h-full rounded-full ${meta.color} transition-all duration-700`}
+                              style={{ width: `${Math.max(score, 2)}%` }}
+                            />
+                          </div>
+                          <p className="text-[11px] text-studojo-muted font-satoshi mt-1">{meta.desc}</p>
                         </div>
-                      )}
-
-                      {/* Reasoning */}
-                      {psych?.reasoning && (
-                        <div className="pt-2 border-t border-studojo-ink/8">
-                          <p className="text-[12px] font-satoshi text-studojo-muted leading-relaxed italic">"{psych.reasoning}"</p>
-                        </div>
-                      )}
-                    </div>
+                      );
+                    })}
                   </div>
+
+                  {/* Trait badges */}
+                  {psych?.traits?.length > 0 && (
+                    <div className="mt-4 pt-3 border-t border-studojo-ink/8">
+                      <p className="text-[11px] text-studojo-muted font-satoshi font-semibold uppercase tracking-wide mb-2">
+                        Identified traits
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {psych.traits.map((t: string) => (
+                          <span key={t} className="px-2.5 py-1 rounded-lg text-xs font-satoshi font-semibold bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/15">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reasoning */}
+                  {psych?.reasoning && (
+                    <div className="mt-3 pt-3 border-t border-studojo-ink/8">
+                      <p className="text-[12px] font-satoshi text-studojo-muted leading-relaxed italic">
+                        "{psych.reasoning}"
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* ── Skills ─────────────────────────────────────────────── */}
+            {/* ── Skills ─────────────────────────────────────────────────────── */}
             {skills.length > 0 && (
               <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
                 <div className="flex items-center justify-between mb-3">
@@ -420,7 +430,7 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* ── Recommended Roles ──────────────────────────────────── */}
+            {/* ── Recommended Roles ──────────────────────────────────────────── */}
             {career.recommended_roles?.length > 0 && (
               <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
                 <div className="p-5 pb-3 border-b border-studojo-ink/8">
@@ -430,7 +440,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">Recommended Roles</h3>
-                      <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Based on your skills and career DNA</p>
+                      <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Based on your skills and Career DNA</p>
                     </div>
                   </div>
                 </div>
@@ -469,7 +479,7 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* ── CTA ────────────────────────────────────────────────── */}
+            {/* ── CTA ────────────────────────────────────────────────────────── */}
             <div className="pb-4">
               <button
                 onClick={() => navigate("/outreach/leads/discovery")}
@@ -479,6 +489,7 @@ export default function ProfilePage() {
                 <FiArrowRight className="w-4 h-4" />
               </button>
             </div>
+
           </div>
         )}
       </div>
