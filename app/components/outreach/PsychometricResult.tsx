@@ -32,7 +32,7 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
 
   useEffect(() => {
     const start = performance.now();
-    const dur = 1200;
+    const dur = 1400;
     let raf = 0;
     const tick = (now: number) => {
       const p = Math.min((now - start) / dur, 1);
@@ -45,8 +45,8 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
 
   const dims = Object.keys(scores);
   const N = dims.length;
-  const cx = 160, cy = 160, maxR = 90;
-  const labelR = maxR + 32;
+  const cx = 200, cy = 200, maxR = 130;
+  const labelR = maxR + 48;
   const angles = dims.map((_, i) => -90 + (360 / N) * i);
 
   const toXY = (deg: number, r: number) => ({
@@ -60,14 +60,34 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
     toXY(angles[i], ((scores[dim] * t) / 100) * maxR)
   );
 
+  const dataPoly = dataPoints.map((p) => `${p.x},${p.y}`).join(" ");
+
   return (
-    <svg viewBox="0 0 320 320" className="w-full max-w-sm mx-auto">
+    <svg viewBox="0 0 400 400" className="w-full max-w-sm mx-auto">
       <defs>
+        {/* Filled area gradient */}
         <linearGradient id="radar-fill" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#ec4899" stopOpacity="0.18" />
+          <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.38" />
+          <stop offset="100%" stopColor="#db2777" stopOpacity="0.28" />
         </linearGradient>
+        {/* Background wash */}
+        <radialGradient id="radar-bg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#f5f3ff" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+        </radialGradient>
+        {/* Dot glow filter */}
+        <filter id="dot-shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodOpacity="0.3" />
+        </filter>
+        {/* Polygon glow */}
+        <filter id="poly-glow" x="-10%" y="-10%" width="120%" height="120%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
       </defs>
+
+      {/* Soft background wash */}
+      <circle cx={cx} cy={cy} r={maxR + 10} fill="url(#radar-bg)" />
 
       {/* Grid polygons */}
       {gridLevels.map((lv) => {
@@ -76,10 +96,10 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
           <polygon
             key={lv}
             points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
-            fill="none"
-            stroke={lv === 100 ? "#d1d5db" : "#efefef"}
-            strokeWidth={lv === 100 ? "1" : "0.5"}
-            strokeDasharray={lv < 100 ? "3,3" : "none"}
+            fill={lv === 25 ? "rgba(139,92,246,0.04)" : "none"}
+            stroke={lv === 100 ? "#c4b5fd" : lv === 75 ? "#ddd6fe" : "#ede9fe"}
+            strokeWidth={lv === 100 ? "1.5" : "1"}
+            strokeDasharray={lv < 100 ? "5,4" : undefined}
           />
         );
       })}
@@ -89,25 +109,41 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
         const end = toXY(a, maxR);
         return (
           <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y}
-            stroke="#e5e7eb" strokeWidth="0.5" />
+            stroke="#ddd6fe" strokeWidth="1" />
         );
       })}
 
-      {/* Data polygon */}
+      {/* Data polygon — glow layer */}
       <polygon
-        points={dataPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+        points={dataPoly}
+        fill="none"
+        stroke="#7c3aed"
+        strokeWidth="6"
+        strokeLinejoin="round"
+        opacity="0.15"
+        filter="url(#poly-glow)"
+      />
+
+      {/* Data polygon — main */}
+      <polygon
+        points={dataPoly}
         fill="url(#radar-fill)"
-        stroke="rgba(139,92,246,0.55)"
-        strokeWidth="2"
+        stroke="#7c3aed"
+        strokeWidth="2.5"
         strokeLinejoin="round"
       />
 
       {/* Data point dots */}
       {dataPoints.map((p, i) => {
         const meta = DIM_META[dims[i]];
+        const color = meta?.dot ?? "#8b5cf6";
         return (
-          <circle key={i} cx={p.x} cy={p.y} r="4"
-            fill="white" stroke={meta?.dot ?? "#8b5cf6"} strokeWidth="2.5" />
+          <g key={i} filter="url(#dot-shadow)">
+            {/* Outer ring */}
+            <circle cx={p.x} cy={p.y} r="7" fill={color} opacity="0.18" />
+            {/* Main dot */}
+            <circle cx={p.x} cy={p.y} r="5" fill="white" stroke={color} strokeWidth="2.5" />
+          </g>
         );
       })}
 
@@ -119,12 +155,13 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
         const score = Math.round(scores[dim] * t);
         return (
           <g key={dim}>
-            <text x={lp.x} y={lp.y - 7} textAnchor="middle"
-              fontSize="8.5" fontWeight="700" fill={meta.textColor}>
+            <text x={lp.x} y={lp.y - 9} textAnchor="middle"
+              fontSize="10" fontWeight="800" fill={meta.textColor}
+              style={{ letterSpacing: "0.5px" }}>
               {meta.label.toUpperCase()}
             </text>
-            <text x={lp.x} y={lp.y + 7} textAnchor="middle"
-              fontSize="11" fontWeight="700" fill="#111827">
+            <text x={lp.x} y={lp.y + 8} textAnchor="middle"
+              fontSize="15" fontWeight="700" fill="#0f172a">
               {score}
             </text>
           </g>
