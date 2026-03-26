@@ -39,9 +39,10 @@ interface CampaignEmail {
   id: number;
   lead_name: string;
   lead_company: string;
-  to_email: string;
-  subject: string;
+  to_email: string | null;
+  subject: string | null;
   status: string;
+  enrichment_status?: string;
   scheduled_at: string | null;
   sent_at: string | null;
 }
@@ -359,6 +360,8 @@ export default function DashboardPage() {
   const campaignSent = metrics?.emails_sent || 0;
   const campaignFailed = metrics?.emails_failed || 0;
   const campaignToSend = metrics?.emails_queued || 0;
+  const campaignPendingEnrichment = (metrics as any)?.emails_pending_enrichment || 0;
+  const campaignEnriched = (metrics as any)?.emails_enriched || 0;
 
   return (
     <div className="min-h-screen bg-white">
@@ -399,10 +402,33 @@ export default function DashboardPage() {
 
             {/* Summary Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <MetricCard label="To Send" value={campaignToSend} icon={<FiClock className="w-5 h-5" />} />
+              <MetricCard label="To Send" value={campaignToSend + campaignPendingEnrichment} icon={<FiClock className="w-5 h-5" />} />
               <MetricCard label="Sent" value={campaignSent} icon={<FiSend className="w-5 h-5" />} trend={campaignSent > 0 ? "up" : undefined} trendValue={`${campaignTotal} total`} />
               <MetricCard label="Failed" value={campaignFailed} icon={<FiAlertCircle className="w-5 h-5" />} />
             </div>
+
+            {/* Enrichment Progress (JIT) */}
+            {campaignPendingEnrichment > 0 && (
+              <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-50 border-2 border-studojo-ink/20 flex items-center justify-center">
+                      <FiUsers className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold font-satoshi text-studojo-ink">Enrichment Progress</p>
+                      <p className="text-xs text-studojo-muted font-satoshi">Leads are enriched automatically before each email is sent</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    {campaignEnriched}/{campaignTotal} enriched
+                  </span>
+                </div>
+                <div className="mt-3 w-full h-2 bg-studojo-surface-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${campaignTotal > 0 ? (campaignEnriched / campaignTotal) * 100 : 0}%` }} />
+                </div>
+              </div>
+            )}
 
             {/* Progress Bar */}
             {campaignTotal > 0 && (

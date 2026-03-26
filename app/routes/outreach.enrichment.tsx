@@ -57,9 +57,6 @@ export default function EnrichmentPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [paying, setPaying] = useState(false);
-  const [enriching, setEnriching] = useState(false);
-  const [enrichProgress, setEnrichProgress] = useState({ enriched: 0, failed: 0, total: 0, progress: "" });
-  const [result, setResult] = useState<{ enriched: number; failed: number } | null>(null);
   const [error, setError] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [dodoCheckoutUrl, setDodoCheckoutUrl] = useState<string | null>(null);
@@ -72,6 +69,16 @@ export default function EnrichmentPage() {
     dodoPollingRef.current = false;
   };
 
+  // After payment succeeds, advance order and navigate to campaign setup
+  const onPaymentSuccess = async () => {
+    try {
+      setCredits(await outreachFetch("/payment/credits"));
+    } catch {}
+    // JIT: skip enrichment, go directly to Gmail connect / campaign setup
+    updateOrder({ status: "campaign_setup", log_entry: `Payment completed for ${selectedTier} credits (JIT enrichment)` });
+    navigate("/outreach/connect/gmail");
+  };
+
   // Poll verify-dodo while modal is open
   const pollDodoVerify = async (attempt: number) => {
     if (!dodoPollingRef.current) return;
@@ -82,9 +89,8 @@ export default function EnrichmentPage() {
       });
       if (res.status === "paid") {
         closeDodoModal();
-        setCredits(await outreachFetch("/payment/credits"));
         setPaying(false);
-        handleEnrich(dodoTierRef.current);
+        onPaymentSuccess();
         return;
       }
       if (res.status === "failed") {
@@ -132,34 +138,6 @@ export default function EnrichmentPage() {
     loadData();
   }, []);
 
-  const pollEnrichmentJob = async (jobId: string, total: number) => {
-    const poll = async () => {
-      try {
-        const data = await outreachFetch<any>(`/enrichment/${jobId}/status`);
-        setEnrichProgress({ enriched: data.enriched, failed: data.failed, total, progress: data.progress });
-
-        if (data.status === "completed") {
-          setResult({ enriched: data.enriched, failed: data.failed });
-          setEnriching(false);
-          updateOrder({ status: "enrichment_complete", log_entry: `Enriched ${data.enriched} leads` });
-          try { setCredits(await outreachFetch("/payment/credits")); } catch {}
-          return;
-        }
-        if (data.status === "failed") {
-          setError(data.error || "Enrichment failed");
-          setEnriching(false);
-          try { setCredits(await outreachFetch("/payment/credits")); } catch {}
-          return;
-        }
-        setTimeout(poll, 3000);
-      } catch {
-        setError("Lost connection to enrichment job");
-        setEnriching(false);
-      }
-    };
-    setTimeout(poll, 2000);
-  };
-
   const validateCoupon = async () => {
     if (!couponCode.trim()) return;
     setCouponLoading(true);
@@ -178,34 +156,12 @@ export default function EnrichmentPage() {
     }
   };
 
-  const handleEnrich = async (limit: number) => {
-    if (!candidateId) return;
-    setEnriching(true);
-    setEnrichProgress({ enriched: 0, failed: 0, total: limit, progress: "Starting enrichment..." });
-    setError("");
-    try {
-      const data = await outreachFetch<any>("/enrichment/enrich", {
-        method: "POST",
-        body: JSON.stringify({ candidate_id: candidateId, limit, order_id: orderId }),
-      });
-      if (data.job_id) {
-        pollEnrichmentJob(data.job_id, data.total || limit);
-      } else {
-        setResult({ enriched: data.enriched, failed: data.failed });
-        setEnriching(false);
-        updateOrder({ status: "enrichment_complete", log_entry: `Enriched ${data.enriched} leads` });
-      }
-    } catch (err: any) {
-      setError(err?.body?.detail || err.message || "Enrichment failed");
-      setEnriching(false);
-    }
-  };
-
-  const handlePayAndEnrich = async () => {
+  const handlePayAndContinue = async () => {
     if (!candidateId) return;
 
+    // If user already has enough credits, skip payment
     if (credits && credits.available_credits >= selectedTier) {
-      handleEnrich(selectedTier);
+      onPaymentSuccess();
       return;
     }
 
@@ -223,7 +179,7 @@ export default function EnrichmentPage() {
           : { total_credits: orderData.credits_granted, used_credits: 0, available_credits: orderData.credits_granted }
         );
         setPaying(false);
-        handleEnrich(selectedTier);
+        onPaymentSuccess();
         return;
       }
 
@@ -255,9 +211,8 @@ export default function EnrichmentPage() {
                 razorpay_signature: response.razorpay_signature,
               }),
             });
-            setCredits(await outreachFetch("/payment/credits"));
             setPaying(false);
-            handleEnrich(selectedTier);
+            onPaymentSuccess();
           } catch (err: any) {
             setError(err?.body?.detail || err.message || "Payment verification failed");
             setPaying(false);
@@ -311,8 +266,8 @@ export default function EnrichmentPage() {
           <div className="w-14 h-14 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center mx-auto text-studojo-purple mb-6">
             <FiMail className="w-7 h-7" />
           </div>
-          <h1 className="font-clash text-2xl font-bold text-studojo-ink">Email Enrichment</h1>
-          <p className="text-sm text-studojo-muted mt-2 font-satoshi">Choose how many leads to enrich with verified email addresses.</p>
+          <h1 className="font-clash text-2xl font-bold text-studojo-ink">Email Outreach Credits</h1>
+          <p className="text-sm text-studojo-muted mt-2 font-satoshi">Choose how many leads to reach out to. Emails are enriched and personalized automatically.</p>
         </div>
 
         {credits && credits.total_credits > 0 && (
@@ -332,132 +287,79 @@ export default function EnrichmentPage() {
           </div>
         )}
 
-        {result ? (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center animate-fade-in">
-            <div className="w-12 h-12 rounded-full bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center mx-auto mb-6">
-              <FiCheckCircle className="w-6 h-6 text-studojo-green" />
-            </div>
-            <h2 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Enrichment Complete</h2>
-            <p className="text-base text-studojo-muted font-satoshi">
-              <span className="text-studojo-green font-bold">{result.enriched}</span> emails verified
-              {result.failed > 0 && <span className="text-studojo-muted"> ({result.failed} not found)</span>}
-            </p>
-            <button
-              onClick={() => navigate("/outreach/connect/gmail")}
-              className="mt-8 h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-            >
-              Connect Gmail to Send Emails
-            </button>
-          </div>
-        ) : enriching ? (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8">
-            <div className="text-center mb-6">
-              <p className="text-base text-studojo-ink font-bold font-satoshi">Enriching leads...</p>
-              <p className="text-sm text-studojo-muted font-satoshi mt-1">{enrichProgress.progress}</p>
-            </div>
-            <div className="max-w-md mx-auto space-y-6">
-              <div>
-                <div className="flex justify-between text-xs text-studojo-muted font-satoshi mb-2">
-                  <span>{enrichProgress.enriched} enriched{enrichProgress.failed > 0 ? `, ${enrichProgress.failed} failed` : ""}</span>
-                  <span>{enrichProgress.total} total</span>
-                </div>
-                <div className="h-3 rounded-full bg-studojo-surface-muted border-2 border-studojo-ink/20 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-studojo-purple transition-all duration-500"
-                    style={{ width: `${enrichProgress.total > 0 ? ((enrichProgress.enriched + enrichProgress.failed) / enrichProgress.total) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg text-center">
-                  <p className="text-2xl font-bold font-clash text-studojo-green">{enrichProgress.enriched}</p>
-                  <p className="text-xs text-studojo-muted font-satoshi mt-1">Emails Found</p>
-                </div>
-                <div className="p-4 rounded-2xl border-2 border-studojo-ink/30 bg-white text-center">
-                  <p className="text-2xl font-bold font-clash text-studojo-muted">{enrichProgress.failed}</p>
-                  <p className="text-xs text-studojo-muted font-satoshi mt-1">Not Found</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-5 h-5 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm text-studojo-muted font-satoshi">This may take a few minutes for large batches</span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <TierSelector
-              selected={selectedTier}
-              onSelect={(tier) => { setSelectedTier(tier); setCouponResult(null); setCouponError(""); }}
-              pricing={pricing}
-            />
+        <TierSelector
+          selected={selectedTier}
+          onSelect={(tier) => { setSelectedTier(tier); setCouponResult(null); setCouponError(""); }}
+          pricing={pricing}
+        />
 
-            {!hasEnoughCredits && (
-              <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6 mt-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <FiTag className="w-5 h-5 text-studojo-purple" />
-                  <h3 className="font-clash text-base font-bold text-studojo-ink">Have a coupon?</h3>
-                </div>
-                <div className="flex gap-3">
-                  <input
-                    value={couponCode}
-                    onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); setCouponError(""); }}
-                    placeholder="Enter coupon code"
-                    className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
-                  />
-                  <button
-                    onClick={validateCoupon}
-                    disabled={couponLoading}
-                    className="h-10 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50"
-                  >
-                    {couponLoading ? "..." : "Apply"}
-                  </button>
-                </div>
-                {couponError && <p className="text-red-600 text-xs mt-2 font-satoshi">{couponError}</p>}
-                {couponResult?.valid && (
-                  <div className="mt-3 p-3 bg-studojo-green-bg rounded-xl border-2 border-studojo-ink/20">
-                    <p className="text-sm text-studojo-green font-bold font-satoshi">
-                      {couponResult.discount_type === "percent"
-                        ? `${couponResult.discount_value}% off`
-                        : `${currency === "INR" ? "₹" : "$"}${(couponResult.discount_value / 100).toFixed(0)} off`}
-                      {couponResult.distributor && <span className="text-studojo-muted font-normal"> via {couponResult.distributor}</span>}
-                    </p>
-                    <p className="text-xs text-studojo-muted font-satoshi mt-1">
-                      <span className="line-through">{currency === "INR" ? "₹" : "$"}{(couponResult.original_amount / 100).toFixed(0)}</span>
-                      {" → "}
-                      <span className="text-studojo-green font-bold">{currency === "INR" ? "₹" : "$"}{(couponResult.discounted_amount / 100).toFixed(0)}</span>
-                    </p>
-                  </div>
-                )}
+        {!hasEnoughCredits && (
+          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6 mt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <FiTag className="w-5 h-5 text-studojo-purple" />
+              <h3 className="font-clash text-base font-bold text-studojo-ink">Have a coupon?</h3>
+            </div>
+            <div className="flex gap-3">
+              <input
+                value={couponCode}
+                onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); setCouponError(""); }}
+                placeholder="Enter coupon code"
+                className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+              />
+              <button
+                onClick={validateCoupon}
+                disabled={couponLoading}
+                className="h-10 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50"
+              >
+                {couponLoading ? "..." : "Apply"}
+              </button>
+            </div>
+            {couponError && <p className="text-red-600 text-xs mt-2 font-satoshi">{couponError}</p>}
+            {couponResult?.valid && (
+              <div className="mt-3 p-3 bg-studojo-green-bg rounded-xl border-2 border-studojo-ink/20">
+                <p className="text-sm text-studojo-green font-bold font-satoshi">
+                  {couponResult.discount_type === "percent"
+                    ? `${couponResult.discount_value}% off`
+                    : `${currency === "INR" ? "₹" : "$"}${(couponResult.discount_value / 100).toFixed(0)} off`}
+                  {couponResult.distributor && <span className="text-studojo-muted font-normal"> via {couponResult.distributor}</span>}
+                </p>
+                <p className="text-xs text-studojo-muted font-satoshi mt-1">
+                  <span className="line-through">{currency === "INR" ? "₹" : "$"}{(couponResult.original_amount / 100).toFixed(0)}</span>
+                  {" → "}
+                  <span className="text-studojo-green font-bold">{currency === "INR" ? "₹" : "$"}{(couponResult.discounted_amount / 100).toFixed(0)}</span>
+                </p>
               </div>
             )}
-
-            {error && <p className="text-red-600 text-sm text-center mt-6 font-satoshi">{error}</p>}
-
-            <div className="flex flex-col items-center gap-3 mt-10">
-              {hasEnoughCredits ? (
-                <button
-                  onClick={() => handleEnrich(selectedTier)}
-                  className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
-                >
-                  Enrich {selectedTier} Leads (Use Credits)
-                </button>
-              ) : (
-                <button
-                  onClick={handlePayAndEnrich}
-                  disabled={paying}
-                  className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  <FiCreditCard className="w-5 h-5 mr-2" /> {paying ? "Processing..." : `Pay ${displayPrice} & Enrich ${selectedTier} Leads`}
-                </button>
-              )}
-            </div>
-          </>
+          </div>
         )}
+
+        {error && <p className="text-red-600 text-sm text-center mt-6 font-satoshi">{error}</p>}
+
+        <div className="flex flex-col items-center gap-3 mt-10">
+          {hasEnoughCredits ? (
+            <button
+              onClick={() => onPaymentSuccess()}
+              className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+            >
+              Continue with {selectedTier} Credits
+            </button>
+          ) : (
+            <button
+              onClick={handlePayAndContinue}
+              disabled={paying}
+              className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <FiCreditCard className="w-5 h-5 mr-2" /> {paying ? "Processing..." : `Pay ${displayPrice} & Continue`}
+            </button>
+          )}
+          <p className="text-xs text-studojo-muted font-satoshi text-center max-w-md">
+            Leads will be automatically enriched and personalized emails will be generated as your campaign runs.
+          </p>
+        </div>
       </div>
       <Footer />
 
-      {/* Dodo Payments checkout modal — mirrors Razorpay's on-page modal */}
+      {/* Dodo Payments checkout modal */}
       {dodoCheckoutUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/60" onClick={() => { closeDodoModal(); setPaying(false); }} />
