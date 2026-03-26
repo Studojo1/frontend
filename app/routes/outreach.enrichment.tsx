@@ -62,15 +62,12 @@ export default function EnrichmentPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const locale = navigator.language || "en-US";
-        const detectedCurrency = locale.toLowerCase().includes("in") ? "INR" : "USD";
-        setCurrency(detectedCurrency);
-
         const [pricingData, creditsData] = await Promise.all([
-          outreachFetch<{ tiers: TierPricing[] }>(`/payment/pricing?currency=${detectedCurrency}`),
+          outreachFetch<{ tiers: TierPricing[]; currency: string }>("/payment/pricing"),
           outreachFetch<{ total_credits: number; used_credits: number; available_credits: number }>("/payment/credits"),
         ]);
         setPricing(pricingData.tiers || []);
+        if (pricingData.currency) setCurrency(pricingData.currency);
         setCredits(creditsData);
       } catch {
         // fallback tiers
@@ -174,6 +171,14 @@ export default function EnrichmentPage() {
         return;
       }
 
+      // External checkout (Dodo Payments for international users)
+      if (orderData.checkout_url) {
+        localStorage.setItem("dodo_pending_tier", String(selectedTier));
+        window.location.href = orderData.checkout_url;
+        return;
+      }
+
+      // Razorpay modal checkout (India)
       const options = {
         key: orderData.key_id,
         amount: orderData.amount,
