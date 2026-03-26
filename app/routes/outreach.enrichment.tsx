@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiClock } from "react-icons/fi";
+import { FiMail, FiCheckCircle, FiTag, FiCreditCard } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TierSelector } from "~/components/outreach/TierSelector";
@@ -46,46 +46,43 @@ export default function EnrichmentPage() {
   const [result, setResult] = useState<{ enriched: number; failed: number } | null>(null);
   const [error, setError] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
-  const [dodoPolling, setDodoPolling] = useState(false);
-  const dodoPopupRef = useRef<Window | null>(null);
+  const [dodoCheckoutUrl, setDodoCheckoutUrl] = useState<string | null>(null);
+  const dodoSessionRef = useRef<string>("");
+  const dodoTierRef = useRef<number>(0);
+  const dodoPollingRef = useRef(false);
 
-  // Poll verify-dodo after popup payment
-  const pollDodoVerify = async (sessionId: string, tier: number, attempt: number) => {
-    if (attempt === 0) setDodoPolling(true);
+  const closeDodoModal = () => {
+    setDodoCheckoutUrl(null);
+    dodoPollingRef.current = false;
+  };
+
+  // Poll verify-dodo while modal is open
+  const pollDodoVerify = async (attempt: number) => {
+    if (!dodoPollingRef.current) return;
     try {
       const res = await outreachFetch<{ status: string }>("/payment/verify-dodo", {
         method: "POST",
-        body: JSON.stringify({ session_id: sessionId }),
+        body: JSON.stringify({ session_id: dodoSessionRef.current }),
       });
       if (res.status === "paid") {
-        setDodoPolling(false);
-        try { dodoPopupRef.current?.close(); } catch {}
+        closeDodoModal();
         setCredits(await outreachFetch("/payment/credits"));
         setPaying(false);
-        handleEnrich(tier);
+        handleEnrich(dodoTierRef.current);
         return;
       }
       if (res.status === "failed") {
-        setDodoPolling(false);
-        try { dodoPopupRef.current?.close(); } catch {}
+        closeDodoModal();
         setError("Payment failed. Please try again.");
         setPaying(false);
         return;
       }
-      // Still pending — retry up to 20 times (60s)
-      if (attempt < 20) {
-        setTimeout(() => pollDodoVerify(sessionId, tier, attempt + 1), 3000);
-      } else {
-        setDodoPolling(false);
-        setError("Payment confirmation timed out. If you were charged, credits will be added automatically.");
-        setPaying(false);
+      if (attempt < 60 && dodoPollingRef.current) {
+        setTimeout(() => pollDodoVerify(attempt + 1), 3000);
       }
     } catch {
-      if (attempt < 3) {
-        setTimeout(() => pollDodoVerify(sessionId, tier, attempt + 1), 3000);
-      } else {
-        setDodoPolling(false);
-        setPaying(false);
+      if (attempt < 60 && dodoPollingRef.current) {
+        setTimeout(() => pollDodoVerify(attempt + 1), 5000);
       }
     }
   };
@@ -198,16 +195,6 @@ export default function EnrichmentPage() {
 
     setPaying(true);
     setError("");
-
-    // Pre-open popup BEFORE async call so browser treats it as user-initiated
-    // (Chrome blocks popups after await). We'll set the URL once we have it.
-    const w = 500, h = 700;
-    const left = window.screenX + (window.outerWidth - w) / 2;
-    const top = window.screenY + (window.outerHeight - h) / 2;
-    const popup = window.open("about:blank", "dodo_checkout",
-      `width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no`
-    );
-
     try {
       const orderData = await outreachFetch<any>("/payment/create-order", {
         method: "POST",
@@ -215,7 +202,6 @@ export default function EnrichmentPage() {
       });
 
       if (orderData.free) {
-        try { popup?.close(); } catch {}
         setCredits((prev) => prev
           ? { ...prev, total_credits: prev.total_credits + orderData.credits_granted, available_credits: prev.available_credits + orderData.credits_granted }
           : { total_credits: orderData.credits_granted, used_credits: 0, available_credits: orderData.credits_granted }
@@ -225,28 +211,15 @@ export default function EnrichmentPage() {
         return;
       }
 
-      // Dodo Payments popup checkout (international users)
+      // Dodo Payments modal checkout (international users)
       if (orderData.checkout_url) {
-        const sessionId = orderData.session_id;
-        const tier = selectedTier;
-
-        if (popup && !popup.closed) {
-          popup.location.href = orderData.checkout_url;
-        } else {
-          // Popup was blocked — fall back to redirect
-          window.location.href = orderData.checkout_url;
-          return;
-        }
-        dodoPopupRef.current = popup;
-
-        // Show "Confirming Payment" and start polling immediately
-        setDodoPolling(true);
-        pollDodoVerify(sessionId, tier, 0);
+        dodoSessionRef.current = orderData.session_id;
+        dodoTierRef.current = selectedTier;
+        dodoPollingRef.current = true;
+        setDodoCheckoutUrl(orderData.checkout_url);
+        pollDodoVerify(0);
         return;
       }
-
-      // Not Dodo — close the pre-opened popup (Razorpay uses its own modal)
-      try { popup?.close(); } catch {}
 
       // Razorpay modal checkout (India)
       const options = {
@@ -343,16 +316,7 @@ export default function EnrichmentPage() {
           </div>
         )}
 
-        {dodoPolling ? (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center">
-            <div className="w-12 h-12 rounded-full bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center mx-auto mb-6">
-              <FiClock className="w-6 h-6 text-studojo-purple" />
-            </div>
-            <h2 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Confirming Payment</h2>
-            <p className="text-sm text-studojo-muted font-satoshi mb-6">Please wait while we confirm your payment...</p>
-            <div className="w-6 h-6 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin mx-auto" />
-          </div>
-        ) : result ? (
+        {result ? (
           <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center animate-fade-in">
             <div className="w-12 h-12 rounded-full bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center mx-auto mb-6">
               <FiCheckCircle className="w-6 h-6 text-studojo-green" />
@@ -476,6 +440,26 @@ export default function EnrichmentPage() {
         )}
       </div>
       <Footer />
+
+      {/* Dodo Payments checkout modal — mirrors Razorpay's on-page modal */}
+      {dodoCheckoutUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={() => { closeDodoModal(); setPaying(false); }} />
+          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden" style={{ width: "min(480px, 95vw)", height: "min(640px, 90vh)" }}>
+            <button
+              onClick={() => { closeDodoModal(); setPaying(false); }}
+              className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold"
+            >
+              &times;
+            </button>
+            <iframe
+              src={dodoCheckoutUrl}
+              className="w-full h-full border-0"
+              allow="payment"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
