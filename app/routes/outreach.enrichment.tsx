@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router";
-import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiClock } from "react-icons/fi";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
+import { FiMail, FiCheckCircle, FiTag, FiCreditCard } from "react-icons/fi";
+import { DodoPayments } from "dodopayments-checkout";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TierSelector } from "~/components/outreach/TierSelector";
@@ -46,65 +47,9 @@ export default function EnrichmentPage() {
   const [result, setResult] = useState<{ enriched: number; failed: number } | null>(null);
   const [error, setError] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [dodoVerifying, setDodoVerifying] = useState(false);
-  const [dodoStatus, setDodoStatus] = useState<"polling" | "paid" | "failed" | null>(null);
-
-  // Handle Dodo payment return (redirect back from Dodo checkout)
-  const pollDodoPayment = useCallback(async (sessionId: string, attempts: number) => {
-    try {
-      const res = await outreachFetch<{ status: string }>("/payment/verify-dodo", {
-        method: "POST",
-        body: JSON.stringify({ session_id: sessionId }),
-      });
-      if (res.status === "paid") {
-        setDodoStatus("paid");
-        localStorage.removeItem("dodo_session_id");
-        localStorage.removeItem("dodo_pending_tier");
-        // Refresh credits then start enrichment
-        try {
-          const creditsData = await outreachFetch<any>("/payment/credits");
-          setCredits(creditsData);
-        } catch {}
-        const tier = Number(localStorage.getItem("dodo_pending_tier")) || selectedTier;
-        handleEnrich(tier);
-        return;
-      }
-      if (res.status === "failed") {
-        setDodoStatus("failed");
-        setError("Payment failed. Please try again.");
-        return;
-      }
-      // Still pending
-      if (attempts < 30) {
-        setTimeout(() => pollDodoPayment(sessionId, attempts + 1), 3000);
-      } else {
-        setError("Payment confirmation timed out. If you were charged, credits will be added automatically.");
-        setDodoStatus("failed");
-      }
-    } catch {
-      if (attempts < 5) {
-        setTimeout(() => pollDodoPayment(sessionId, attempts + 1), 3000);
-      } else {
-        setError("Failed to verify payment. Please contact support if you were charged.");
-        setDodoStatus("failed");
-      }
-    }
-  }, [selectedTier]);
-
-  useEffect(() => {
-    if (searchParams.get("dodo_return") === "1") {
-      const sessionId = localStorage.getItem("dodo_session_id");
-      if (sessionId) {
-        setDodoVerifying(true);
-        setDodoStatus("polling");
-        // Clean up URL
-        searchParams.delete("dodo_return");
-        setSearchParams(searchParams, { replace: true });
-        pollDodoPayment(sessionId, 0);
-      }
-    }
-  }, []);
+  const dodoInitialized = useRef(false);
+  const dodoSessionRef = useRef<string>("");
+  const dodoTierRef = useRef<number>(0);
 
   // Load Razorpay script
   useEffect(() => {
@@ -230,12 +175,50 @@ export default function EnrichmentPage() {
         return;
       }
 
-      // External checkout (Dodo Payments for international users)
+      // Dodo Payments overlay checkout (international users)
       if (orderData.checkout_url) {
-        localStorage.setItem("dodo_pending_tier", String(selectedTier));
-        localStorage.setItem("dodo_session_id", orderData.session_id);
-        localStorage.setItem("dodo_pending_job_type", "outreach");
-        window.location.href = orderData.checkout_url;
+        dodoSessionRef.current = orderData.session_id;
+        dodoTierRef.current = selectedTier;
+
+        if (!dodoInitialized.current) {
+          DodoPayments.Initialize({
+            mode: orderData.dodo_test_mode ? "test" : "live",
+            displayType: "overlay",
+            onEvent: async (event) => {
+              if (event.event_type === "checkout.closed") {
+                setPaying(false);
+              }
+              if (event.event_type === "checkout.status") {
+                const status = (event.data as any)?.status;
+                if (status === "succeeded" || status === "paid") {
+                  DodoPayments.Checkout.close();
+                  try {
+                    await outreachFetch("/payment/verify-dodo", {
+                      method: "POST",
+                      body: JSON.stringify({ session_id: dodoSessionRef.current }),
+                    });
+                    setCredits(await outreachFetch("/payment/credits"));
+                    setPaying(false);
+                    handleEnrich(dodoTierRef.current);
+                  } catch (err: any) {
+                    setError(err?.body?.detail || err.message || "Payment verification failed");
+                    setPaying(false);
+                  }
+                } else if (status === "failed") {
+                  DodoPayments.Checkout.close();
+                  setError("Payment failed. Please try again.");
+                  setPaying(false);
+                }
+              }
+            },
+          });
+          dodoInitialized.current = true;
+        }
+
+        DodoPayments.Checkout.open({
+          checkoutUrl: orderData.checkout_url,
+          options: { manualRedirect: true },
+        });
         return;
       }
 
@@ -334,16 +317,7 @@ export default function EnrichmentPage() {
           </div>
         )}
 
-        {dodoVerifying && dodoStatus === "polling" ? (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center">
-            <div className="w-12 h-12 rounded-full bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center mx-auto mb-6">
-              <FiClock className="w-6 h-6 text-studojo-purple" />
-            </div>
-            <h2 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Confirming Payment</h2>
-            <p className="text-sm text-studojo-muted font-satoshi mb-6">Please wait while we confirm your payment...</p>
-            <div className="w-6 h-6 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin mx-auto" />
-          </div>
-        ) : result ? (
+        {result ? (
           <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center animate-fade-in">
             <div className="w-12 h-12 rounded-full bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center mx-auto mb-6">
               <FiCheckCircle className="w-6 h-6 text-studojo-green" />
