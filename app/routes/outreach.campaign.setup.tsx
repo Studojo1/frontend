@@ -53,10 +53,14 @@ export default function CampaignSetupPage() {
         const data = await outreachFetch<{ subject: string; body: string; lead_name: string; company: string }>("/campaign/preview-email", {
           method: "POST",
           body: JSON.stringify({ candidate_id: candidateId, selected_styles: selectedStyles.length > 0 ? selectedStyles : ["value_prop"] }),
+          maxRetries: 0,
+          timeout: 15000,
         });
         setPreviewEmail(data);
       } catch {
-        if (selectedTemplate) setPreviewEmail({ subject: selectedTemplate.subject, body: selectedTemplate.body, lead_name: "Sample Lead", company: "Example Company" });
+        // Don't fall back to raw template — it shows literal {name}/{company} placeholders.
+        // Leave previewEmail null so we show the neutral fallback message below.
+        setPreviewEmail(null);
       } finally {
         setPreviewLoading(false);
       }
