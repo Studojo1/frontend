@@ -18,6 +18,8 @@ export default function GmailConnectPage() {
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState("");
   const [handled, setHandled] = useState(false);
+  const [needsReauth, setNeedsReauth] = useState(false);
+  const [connectedEmail, setConnectedEmail] = useState("");
 
   useEffect(() => {
     if (handled) return;
@@ -49,10 +51,15 @@ export default function GmailConnectPage() {
     } else if (emailAccountId && !connected) {
       setHandled(true);
       setConnecting(true);
-      outreachFetch<{ email_account_id?: number }>("/gmail/oauth/account")
+      outreachFetch<{ email_account_id?: number; email_address?: string; token_valid?: boolean }>("/gmail/oauth/account")
         .then((data) => {
           if (data?.email_account_id) {
-            setConnected(true);
+            if (data.token_valid === false) {
+              setNeedsReauth(true);
+              setConnectedEmail(data.email_address || "");
+            } else {
+              setConnected(true);
+            }
           }
         })
         .catch(() => {
@@ -95,7 +102,26 @@ export default function GmailConnectPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
-        {connected ? (
+        {needsReauth ? (
+          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center animate-fade-in">
+            <div className="w-16 h-16 rounded-full bg-amber-50 border-2 border-studojo-ink flex items-center justify-center mx-auto mb-6">
+              <FiShield className="w-8 h-8 text-amber-600" />
+            </div>
+            <h1 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Gmail Access Expired</h1>
+            <p className="text-base text-studojo-muted mb-2 font-satoshi">
+              Your connection to <span className="font-bold text-studojo-ink">{connectedEmail}</span> has been revoked or expired.
+            </p>
+            <p className="text-sm text-studojo-muted mb-8 font-satoshi">
+              Please re-authorize to continue sending emails.
+            </p>
+            <button
+              onClick={handleConnect}
+              className="w-full h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+            >
+              Re-authorize Gmail
+            </button>
+          </div>
+        ) : connected ? (
           <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center animate-fade-in">
             <div className="w-16 h-16 rounded-full bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center mx-auto mb-6">
               <FiCheckCircle className="w-8 h-8 text-studojo-green" />
