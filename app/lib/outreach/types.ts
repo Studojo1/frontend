@@ -104,9 +104,16 @@ export interface CampaignMetrics {
   status: string;
   emails_total: number;
   emails_queued: number;
+  emails_pending_enrichment?: number;
+  emails_enriched?: number;
+  emails_enrichment_skipped?: number;
   emails_sent: number;
   emails_failed: number;
   emails_replied: number;
+  emails_bounced: number;
+  emails_positive: number;
+  emails_negative: number;
+  emails_neutral: number;
   reply_rate: number;
 }
 
