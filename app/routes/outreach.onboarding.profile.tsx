@@ -174,17 +174,15 @@ export default function ProfilePage() {
 
     (async () => {
       try {
-        // Poll the profile endpoint directly until LLM data is present (max 30s)
-        // profile-status only signals psychometric readiness, not full LLM profile
+        // Poll every 2s up to 45 attempts (90s) — LLM payload takes 15-30s
         let lastData: any = null;
-        for (let i = 0; i < 30; i++) {
-          if (i > 0) await new Promise((r) => setTimeout(r, 1000));
+        for (let i = 0; i < 45; i++) {
+          if (i > 0) await new Promise((r) => setTimeout(r, 2000));
           if (cancelled) return;
           try {
             const data = await outreachFetch<any>(`/candidate/${candidateId}/profile`);
             lastData = data;
             const parsed = data?.parsed_json;
-            // Full profile ready when LLM has populated summary or career analysis
             if (parsed?.profile_summary || parsed?.career_analysis) {
               if (!cancelled) { setProfile(data); setLoading(false); }
               return;
@@ -192,10 +190,7 @@ export default function ProfilePage() {
           } catch {}
         }
         // Timeout — show whatever we have
-        if (!cancelled) {
-          setProfile(lastData);
-          setLoading(false);
-        }
+        if (!cancelled) { setProfile(lastData); setLoading(false); }
       } catch (err: any) {
         if (!cancelled) {
           setError(err?.body?.detail || err.message || "Failed to load profile");
@@ -536,7 +531,7 @@ export default function ProfilePage() {
       </div>{/* end flex-1 flex */}
 
       {/* ── Floating CTA pill ──────────────────────────────────────────────────── */}
-      <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none">
+      <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none md:pl-56">
         <button
           onClick={() => navigate("/outreach/leads/discovery")}
           className="pointer-events-auto px-8 py-3.5 rounded-full bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none flex items-center gap-2.5"

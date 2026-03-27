@@ -39,9 +39,9 @@ export default function DiscoveryPage() {
       setTimeout(() => {
         counterRef.current = setInterval(() => {
           setLeadCount((c) => {
-            // Starts slow, accelerates through stage 3, slows near realistic cap
-            const base = c < 1000 ? 18 : c < 3000 ? 12 : 6;
-            const increment = Math.floor(Math.random() * base) + Math.floor(base / 2);
+            if (c >= 500) { clearInterval(counterRef.current); return 500; }
+            const remaining = 500 - c;
+            const increment = Math.min(Math.floor(Math.random() * 15) + 8, remaining);
             return c + increment;
           });
         }, 300);

@@ -237,53 +237,51 @@ export default function ChatPage() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop sidebar — vertical progress timeline */}
-        <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center pt-12 flex-shrink-0">
-          {STEPS.map((step, i) => {
-            const num = i + 1;
-            const done = num < sidebarStep;
-            const active = num === sidebarStep;
-            const isLast = i === STEPS.length - 1;
-            return (
-              <div key={i} className="flex flex-col items-center w-full">
-                <div className="flex items-center gap-3 px-6 w-full">
-                  <div className="flex flex-col items-center flex-shrink-0">
-                    <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 ${
-                        done
-                          ? "bg-studojo-green text-white border-studojo-green"
-                          : active
-                          ? "bg-studojo-purple text-white border-studojo-purple"
-                          : "bg-white text-studojo-muted border-studojo-ink/15"
-                      }`}
-                    >
-                      {done ? <FiCheck className="w-4 h-4" /> : num}
+        <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center justify-center flex-shrink-0">
+          <div className="flex flex-col items-start gap-0">
+            {STEPS.map((step, i) => {
+              const num = i + 1;
+              const done = num < sidebarStep;
+              const active = num === sidebarStep;
+              const isLast = i === STEPS.length - 1;
+              return (
+                <div key={i} className="flex flex-col items-start">
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 ${
+                          done
+                            ? "bg-studojo-green text-white border-studojo-green"
+                            : active
+                            ? "bg-studojo-purple text-white border-studojo-purple"
+                            : "bg-white text-studojo-muted border-studojo-ink/15"
+                        }`}
+                      >
+                        {done ? <FiCheck className="w-4 h-4" /> : num}
+                      </div>
+                      {!isLast && (
+                        <div className={`w-0.5 h-10 ${done ? "bg-studojo-green" : "bg-studojo-ink/10"}`} />
+                      )}
                     </div>
-                    {!isLast && (
-                      <div className={`w-0.5 h-10 ${done ? "bg-studojo-green" : "bg-studojo-ink/10"}`} />
-                    )}
-                  </div>
-                  <div className="pt-1">
-                    <p
-                      className={`text-sm font-satoshi leading-tight ${
-                        active
-                          ? "text-studojo-ink font-semibold"
-                          : done
-                          ? "text-studojo-green font-medium"
-                          : "text-studojo-muted"
-                      }`}
-                    >
-                      {step}
-                    </p>
-                    {active && num === 2 && questionsAsked > 0 && (
-                      <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
-                        Q {questionsAsked}/{TOTAL_QUESTIONS}
+                    <div>
+                      <p className={`text-sm font-satoshi leading-tight ${
+                        active ? "text-studojo-ink font-semibold"
+                              : done ? "text-studojo-green font-medium"
+                              : "text-studojo-muted"
+                      }`}>
+                        {step}
                       </p>
-                    )}
+                      {active && num === 2 && questionsAsked > 0 && (
+                        <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
+                          Q {questionsAsked}/{TOTAL_QUESTIONS}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </aside>
 
         {/* Main content */}
