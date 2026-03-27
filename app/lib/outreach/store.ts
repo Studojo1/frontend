@@ -11,6 +11,10 @@ interface OutreachState {
   psychResult: PsychometricResult | null;
   setPsychResult: (r: PsychometricResult | null) => void;
 
+  // Profile data — cached from loading page so profile page renders instantly
+  profileData: any | null;
+  setProfileData: (data: any | null) => void;
+
   chatHistory: ChatMessage[];
   addChatMessage: (msg: ChatMessage) => void;
   clearChatHistory: () => void;
@@ -49,6 +53,9 @@ export const useOutreachStore = create<OutreachState>()(
 
       psychResult: null,
       setPsychResult: (psychResult) => set({ psychResult }),
+
+      profileData: null,
+      setProfileData: (profileData) => set({ profileData }),
 
       chatHistory: [],
       addChatMessage: (msg) =>

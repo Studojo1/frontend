@@ -30,7 +30,7 @@ const STEPS = [
 export default function OnboardingLoadingPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
-  const { candidateId, setCurrentStep } = useOutreachStore();
+  const { candidateId, setCurrentStep, setProfileData } = useOutreachStore();
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [fadeIn, setFadeIn] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
@@ -68,6 +68,7 @@ export default function OnboardingLoadingPage() {
           const data = await outreachFetch<any>(`/candidate/${candidateId}/profile`);
           const parsed = data?.parsed_json;
           if (parsed?.profile_summary || parsed?.career_analysis) {
+            setProfileData(data); // cache so profile page renders instantly
             setCurrentStep(3);
             navigate("/outreach/onboarding/profile");
             return;
