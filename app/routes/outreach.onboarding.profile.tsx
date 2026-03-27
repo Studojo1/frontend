@@ -185,7 +185,7 @@ export default function ProfilePage() {
             lastData = data;
             const parsed = data?.parsed_json;
             // Full profile ready when LLM has populated summary or career analysis
-            if (parsed?.profile_summary || parsed?.career_analysis?.recommended_roles?.length) {
+            if (parsed?.profile_summary || parsed?.career_analysis) {
               if (!cancelled) { setProfile(data); setLoading(false); }
               return;
             }

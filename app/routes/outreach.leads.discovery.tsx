@@ -34,18 +34,19 @@ export default function DiscoveryPage() {
       timers.push(setTimeout(() => setCurrentStage(i + 1), elapsed));
     });
 
-    // Simulate lead counter during stage 3 (searching)
+    // Start counter at stage 2 (Mapping roles) — ramps up across stages 2-4
     timers.push(
       setTimeout(() => {
         counterRef.current = setInterval(() => {
           setLeadCount((c) => {
-            const increment = Math.floor(Math.random() * 8) + 3;
-            return Math.min(c + increment, 500);
+            // Starts slow, accelerates through stage 3, slows near realistic cap
+            const base = c < 1000 ? 18 : c < 3000 ? 12 : 6;
+            const increment = Math.floor(Math.random() * base) + Math.floor(base / 2);
+            return c + increment;
           });
-        }, 400);
-      }, 5500)
+        }, 300);
+      }, 2000)
     );
-    timers.push(setTimeout(() => clearInterval(counterRef.current), 13000));
 
     outreachFetch("/discovery/search", {
       method: "POST",
@@ -145,7 +146,7 @@ export default function DiscoveryPage() {
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-studojo-purple-bg border border-studojo-purple/20 mb-8 animate-fade-in">
                 <FiUsers className="w-4 h-4 text-studojo-purple" />
                 <span className="font-clash text-lg font-bold text-studojo-purple">{leadCount}</span>
-                <span className="text-xs font-satoshi text-studojo-muted">profiles scanned</span>
+                <span className="text-xs font-satoshi text-studojo-muted">professionals scanned</span>
               </div>
             )}
 
