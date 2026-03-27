@@ -157,9 +157,8 @@ export default function ChatPage() {
             }),
           }).catch(() => {});
 
-          // Navigate to profile immediately — profile page polls independently
-          setCurrentStep(3);
-          navigate("/outreach/onboarding/profile");
+          // Navigate to loading page — it polls until profile is ready, then goes to profile
+          navigate("/outreach/onboarding/loading");
         } else {
           setLoading(false);
         }
@@ -238,7 +237,7 @@ export default function ChatPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop sidebar — vertical progress timeline */}
         <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center justify-center flex-shrink-0">
-          <div className="flex flex-col items-start gap-0">
+          <div className="flex flex-col" style={{ alignItems: "flex-start" }}>
             {STEPS.map((step, i) => {
               const num = i + 1;
               const done = num < sidebarStep;

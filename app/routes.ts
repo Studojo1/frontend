@@ -79,6 +79,7 @@ export default [
   route("outreach/orders", "routes/outreach.orders.tsx"),
   route("outreach/onboarding/upload", "routes/outreach.onboarding.upload.tsx"),
   route("outreach/onboarding/chat", "routes/outreach.onboarding.chat.tsx"),
+  route("outreach/onboarding/loading", "routes/outreach.onboarding.loading.tsx"),
   route("outreach/onboarding/profile", "routes/outreach.onboarding.profile.tsx"),
   route("outreach/leads/discovery", "routes/outreach.leads.discovery.tsx"),
   route("outreach/leads/results", "routes/outreach.leads.results.tsx"),

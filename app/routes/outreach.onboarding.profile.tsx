@@ -172,32 +172,18 @@ export default function ProfilePage() {
 
     let cancelled = false;
 
-    (async () => {
-      try {
-        // Poll every 2s up to 45 attempts (90s) — LLM payload takes 15-30s
-        let lastData: any = null;
-        for (let i = 0; i < 45; i++) {
-          if (i > 0) await new Promise((r) => setTimeout(r, 2000));
-          if (cancelled) return;
-          try {
-            const data = await outreachFetch<any>(`/candidate/${candidateId}/profile`);
-            lastData = data;
-            const parsed = data?.parsed_json;
-            if (parsed?.profile_summary || parsed?.career_analysis) {
-              if (!cancelled) { setProfile(data); setLoading(false); }
-              return;
-            }
-          } catch {}
-        }
-        // Timeout — show whatever we have
-        if (!cancelled) { setProfile(lastData); setLoading(false); }
-      } catch (err: any) {
+    // Profile page is only reached from the loading page once data is confirmed ready
+    // Single fetch — no polling needed
+    outreachFetch<any>(`/candidate/${candidateId}/profile`)
+      .then((data) => {
+        if (!cancelled) { setProfile(data); setLoading(false); }
+      })
+      .catch((err) => {
         if (!cancelled) {
           setError(err?.body?.detail || err.message || "Failed to load profile");
           setLoading(false);
         }
-      }
-    })();
+      });
 
     return () => { cancelled = true; };
   }, [candidateId, authLoading]);
@@ -250,15 +236,16 @@ export default function ProfilePage() {
       <div className="flex-1 flex overflow-hidden">
 
         {/* ── Persistent sidebar — same as chat page ── */}
-        <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center pt-12 flex-shrink-0">
+        <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center justify-center flex-shrink-0">
+          <div className="flex flex-col" style={{ alignItems: "flex-start" }}>
           {STEPS.map((step, i) => {
             const num = i + 1;
             const active = num === 3;
             const done = num < 3;
             const isLast = i === STEPS.length - 1;
             return (
-              <div key={i} className="flex flex-col items-center w-full">
-                <div className="flex items-center gap-3 px-6 w-full">
+              <div key={i} className="flex flex-col">
+                <div className="flex items-center gap-3">
                   <div className="flex flex-col items-center flex-shrink-0">
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 ${
                       active ? "bg-studojo-purple text-white border-studojo-purple"
@@ -284,6 +271,7 @@ export default function ProfilePage() {
               </div>
             );
           })}
+          </div>
         </aside>
 
         {/* ── Main scrollable content ── */}
