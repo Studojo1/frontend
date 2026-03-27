@@ -160,6 +160,7 @@ export default function DashboardPage() {
   const [showTestModal, setShowTestModal] = useState(false);
   const [testRecipients, setTestRecipients] = useState<TestRecipient[]>([{ first_name: "", company: "", email: "" }]);
   const [sendingTest, setSendingTest] = useState(false);
+  const [testError, setTestError] = useState("");
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initialLoaded = useRef(false);
@@ -282,6 +283,7 @@ export default function DashboardPage() {
     if (validRecipients.length === 0) return;
 
     setSendingTest(true);
+    setTestError("");
     try {
       await outreachFetch(`/campaign/${campaignId}/send-test-emails`, {
         method: "POST",
@@ -289,9 +291,10 @@ export default function DashboardPage() {
       });
       setShowTestModal(false);
       setTestRecipients([{ first_name: "", company: "", email: "" }]);
+      setTestError("");
       fetchCampaignData();
     } catch (err: any) {
-      setError(err?.body?.detail || "Failed to schedule test emails");
+      setTestError(err?.body?.detail || "Failed to schedule test emails");
     } finally {
       setSendingTest(false);
     }
@@ -510,9 +513,9 @@ export default function DashboardPage() {
                     <FiPlay className="w-4 h-4 mr-2" /> Resume
                   </button>
                 )}
-                {metrics.status === "running" && (
+                {["running", "completed", "paused"].includes(metrics.status) && (
                   <button
-                    onClick={() => setShowTestModal(true)}
+                    onClick={() => { setTestError(""); setShowTestModal(true); }}
                     className="h-9 px-4 rounded-xl border-2 border-studojo-ink bg-white text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
                   >
                     <FiMail className="w-4 h-4 mr-2" /> Send Test Emails
@@ -862,6 +865,12 @@ export default function DashboardPage() {
               <p className="text-sm text-studojo-muted font-satoshi mb-5">
                 Send test emails to your own addresses. They go through the exact same pipeline as real campaign emails — sent in ~2 minutes. Reply to test reply detection and sentiment analysis.
               </p>
+
+              {testError && (
+                <div className="rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 mb-4">
+                  <p className="text-sm text-red-600 font-satoshi">{testError}</p>
+                </div>
+              )}
 
               <div className="space-y-3 mb-4">
                 {testRecipients.map((recipient, i) => (

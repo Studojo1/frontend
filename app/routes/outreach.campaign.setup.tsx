@@ -23,7 +23,7 @@ interface TestEmail {
 export default function CampaignSetupPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
-  const { candidateId, emailAccountId, selectedTemplate, selectedStyles } = useOutreachStore();
+  const { candidateId, setCandidateId, emailAccountId, setEmailAccountId, setCampaignId, selectedTemplate, selectedStyles } = useOutreachStore();
   const { updateOrder } = useOrder();
   const [campaignName, setCampaignName] = useState("My Outreach Campaign");
   const [launching, setLaunching] = useState(false);
@@ -43,6 +43,21 @@ export default function CampaignSetupPage() {
     { icon: <FiZap className="w-4 h-4" />, label: "Gap between emails", value: "40-90 minutes (randomized)" },
     { icon: <FiShield className="w-4 h-4" />, label: "First email", value: "Within 3 minutes of launch" },
   ];
+
+  // Auto-recover candidateId from active order if store is empty
+  useEffect(() => {
+    if (candidateId) return; // Already have it
+    outreachFetch<{ order: { id: number; candidate_id?: number; campaign_id?: number; email_account_id?: number } | null }>("/orders/active")
+      .then((data) => {
+        const order = data?.order;
+        if (order) {
+          if (order.candidate_id) setCandidateId(order.candidate_id);
+          if (order.campaign_id) setCampaignId(order.campaign_id);
+          if (order.email_account_id) setEmailAccountId(order.email_account_id);
+        }
+      })
+      .catch(() => {});
+  }, [candidateId]);
 
   useEffect(() => {
     if (!candidateId) return;
