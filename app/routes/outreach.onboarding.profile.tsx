@@ -438,42 +438,94 @@ export default function ProfilePage() {
                       <FiBriefcase className="w-3.5 h-3.5 text-studojo-green" />
                     </div>
                     <div>
-                      <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">Recommended Roles</h3>
-                      <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Based on your skills and Career DNA</p>
+                      <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">Roles That Fit You</h3>
+                      <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Matched from your resume, skills and career goals</p>
                     </div>
                   </div>
                 </div>
-                <div className="divide-y divide-studojo-ink/6">
-                  {career.recommended_roles.map((role: any, i: number) => (
-                    <div key={i} className="flex items-center gap-3 px-5 py-3 hover:bg-studojo-surface-muted/50 transition-colors">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-[11px] font-clash font-bold ${
-                        i === 0 ? "bg-studojo-green text-white" : i < 3 ? "bg-studojo-purple/10 text-studojo-purple" : "bg-studojo-ink/5 text-studojo-muted"
-                      }`}>
-                        {i + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-satoshi font-semibold text-studojo-ink truncate">{role.title}</p>
-                        {role.reasoning && (
-                          <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5 line-clamp-1">{role.reasoning}</p>
+
+                <div className="p-4 space-y-3">
+                  {career.recommended_roles.map((role: any, i: number) => {
+                    const score = Math.round((role.fit_score ?? 0.75) * 100);
+                    const isBest = i === 0;
+                    const isStrong = score >= 85;
+                    const scoreColor = isBest ? "text-studojo-green" : isStrong ? "text-studojo-purple" : "text-studojo-muted";
+                    const scoreBg = isBest ? "bg-studojo-green" : isStrong ? "bg-studojo-purple" : "bg-studojo-ink/30";
+                    const matchingSkills: string[] = role.matching_skills ?? [];
+
+                    return (
+                      <div
+                        key={i}
+                        className={`rounded-xl p-4 border transition-all duration-200 ${
+                          isBest
+                            ? "border-studojo-green/30 bg-studojo-green/4"
+                            : "border-studojo-ink/8 bg-studojo-surface-muted/30 hover:bg-studojo-surface-muted/60"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-clash text-sm font-bold text-studojo-ink">{role.title}</p>
+                              {isBest && (
+                                <span className="px-1.5 py-0.5 rounded-md bg-studojo-green text-white text-[10px] font-satoshi font-bold uppercase tracking-wide flex-shrink-0">
+                                  Best match
+                                </span>
+                              )}
+                              {role.seniority && (
+                                <span className="px-1.5 py-0.5 rounded-md bg-studojo-surface-muted text-studojo-muted text-[10px] font-satoshi capitalize flex-shrink-0">
+                                  {role.seniority}
+                                </span>
+                              )}
+                            </div>
+                            {role.reasoning && (
+                              <p className="text-[11px] text-studojo-muted font-satoshi mt-1 leading-relaxed">{role.reasoning}</p>
+                            )}
+                          </div>
+
+                          {/* Score ring */}
+                          <div className="flex-shrink-0 flex flex-col items-center gap-0.5">
+                            <div className="relative w-10 h-10">
+                              <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
+                                <circle cx="20" cy="20" r="16" fill="none" stroke="#f1f5f9" strokeWidth="3.5" />
+                                <circle
+                                  cx="20" cy="20" r="16"
+                                  fill="none"
+                                  stroke={isBest ? "#10b981" : isStrong ? "#8b5cf6" : "#94a3b8"}
+                                  strokeWidth="3.5"
+                                  strokeLinecap="round"
+                                  strokeDasharray={`${2 * Math.PI * 16}`}
+                                  strokeDashoffset={`${2 * Math.PI * 16 * (1 - score / 100)}`}
+                                  className="transition-all duration-700"
+                                />
+                              </svg>
+                              <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-clash font-bold ${scoreColor}`}>
+                                {score}
+                              </span>
+                            </div>
+                            <span className="text-[9px] text-studojo-muted font-satoshi">fit</span>
+                          </div>
+                        </div>
+
+                        {/* Matching skills */}
+                        {matchingSkills.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2.5">
+                            {matchingSkills.map((skill: string) => (
+                              <span
+                                key={skill}
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-satoshi font-medium ${
+                                  isBest
+                                    ? "bg-studojo-green/12 text-studojo-green border border-studojo-green/20"
+                                    : "bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/15"
+                                }`}
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
-                      {role.fit_score != null && (
-                        <div className="flex-shrink-0 flex items-center gap-2">
-                          <div className="w-16 h-1.5 rounded-full bg-studojo-surface-muted overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${role.fit_score >= 0.9 ? "bg-studojo-green" : "bg-studojo-purple"}`}
-                              style={{ width: `${Math.round(role.fit_score * 100)}%` }}
-                            />
-                          </div>
-                          <span className={`font-clash text-sm font-bold ${
-                            role.fit_score >= 0.9 ? "text-studojo-green" : role.fit_score >= 0.8 ? "text-studojo-purple" : "text-studojo-muted"
-                          }`}>
-                            {Math.round(role.fit_score * 100)}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

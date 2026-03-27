@@ -10,21 +10,21 @@ const QUOTES = [
   { text: "Your network is your net worth.", author: "Porter Gale" },
   { text: "Work on things that matter. We'll find the people who make that possible.", author: "Studojo" },
   { text: "Success usually comes to those who are too busy to be looking for it.", author: "Henry David Thoreau" },
-  { text: "Mapping your skills, personality and goals to the roles that actually fit you.", author: "Studojo" },
   { text: "Opportunities don't happen. You create them.", author: "Chris Grosser" },
   { text: "Most outreach fails because it's generic. Yours won't be.", author: "Studojo" },
   { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-  { text: "You answered 13 questions. We're turning that into your competitive edge.", author: "Studojo" },
   { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
   { text: "Identifying the decision makers most likely to respond to someone like you.", author: "Studojo" },
   { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { text: "Your answers just became your competitive edge.", author: "Studojo" },
+  { text: "The people who get hired aren't always the most qualified. They're the most visible to the right people.", author: "Studojo" },
 ];
 
 const STEPS = [
-  "Analysing your responses",
-  "Building your Career DNA",
-  "Matching you to roles",
-  "Finalising your profile",
+  { label: "Reading your answers", icon: "📋" },
+  { label: "Building your Career DNA", icon: "🧬" },
+  { label: "Matching you to roles", icon: "🎯" },
+  { label: "Profile ready", icon: "✓" },
 ];
 
 export default function OnboardingLoadingPage() {
@@ -34,29 +34,33 @@ export default function OnboardingLoadingPage() {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [fadeIn, setFadeIn] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
+  const [stepsComplete, setStepsComplete] = useState(false);
   const pollingRef = useRef(false);
 
-  // Rotate quotes with fade every 4s
+  // Rotate quotes every 5s
   useEffect(() => {
     const interval = setInterval(() => {
       setFadeIn(false);
       setTimeout(() => {
         setQuoteIndex((i) => (i + 1) % QUOTES.length);
         setFadeIn(true);
-      }, 350);
-    }, 4000);
+      }, 300);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // Advance step label every ~5s to show progress
+  // Steps advance quickly — processing is fast now
   useEffect(() => {
-    const timers = STEPS.map((_, i) =>
-      setTimeout(() => setStepIndex(i), i * 5000)
-    );
+    const timers = [
+      setTimeout(() => setStepIndex(1), 400),
+      setTimeout(() => setStepIndex(2), 900),
+      setTimeout(() => setStepIndex(3), 1500),
+      setTimeout(() => setStepsComplete(true), 2000),
+    ];
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Poll profile until LLM data is ready
+  // Poll until profile data is ready
   useEffect(() => {
     if (authLoading || !candidateId || pollingRef.current) return;
     pollingRef.current = true;
@@ -68,14 +72,13 @@ export default function OnboardingLoadingPage() {
           const data = await outreachFetch<any>(`/candidate/${candidateId}/profile`);
           const parsed = data?.parsed_json;
           if (parsed?.profile_summary || parsed?.career_analysis) {
-            setProfileData(data); // cache so profile page renders instantly
+            setProfileData(data);
             setCurrentStep(3);
             navigate("/outreach/onboarding/profile");
             return;
           }
         } catch {}
       }
-      // Timeout — navigate anyway
       setCurrentStep(3);
       navigate("/outreach/onboarding/profile");
     })();
@@ -92,50 +95,81 @@ export default function OnboardingLoadingPage() {
         {/* Animated orb */}
         <div className="relative mb-8 flex items-center justify-center">
           <div className="absolute w-32 h-32 rounded-full bg-studojo-purple/8 animate-ping" style={{ animationDuration: "2.5s" }} />
-          <div className="absolute w-24 h-24 rounded-full bg-studojo-purple/10 animate-ping" style={{ animationDuration: "2s", animationDelay: "0.4s" }} />
-          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-studojo-purple via-[#a855f7] to-studojo-pink flex items-center justify-center shadow-[0_8px_32px_rgba(139,92,246,0.4)]">
-            <svg className="animate-spin w-8 h-8" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.15)" strokeWidth="2.5"/>
-              <path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-            </svg>
+          <div className="absolute w-24 h-24 rounded-full bg-studojo-purple/10 animate-ping" style={{ animationDuration: "2s", animationDelay: "0.5s" }} />
+          <div className={`relative w-20 h-20 rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(139,92,246,0.4)] transition-all duration-500 ${
+            stepsComplete
+              ? "bg-studojo-green"
+              : "bg-gradient-to-br from-studojo-purple via-[#a855f7] to-studojo-pink"
+          }`}>
+            {stepsComplete ? (
+              <svg className="w-9 h-9" viewBox="0 0 24 24" fill="none">
+                <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            ) : (
+              <svg className="animate-spin w-8 h-8" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.15)" strokeWidth="2.5"/>
+                <path d="M12 2a10 10 0 0 1 10 10" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            )}
           </div>
         </div>
 
-        {/* Step label */}
-        <div className="mb-1 h-8 flex items-center justify-center">
-          <p className="text-sm font-satoshi font-semibold text-studojo-purple uppercase tracking-wider">
-            {STEPS[stepIndex]}
-          </p>
-        </div>
-
+        {/* Heading */}
         <h1 className="font-clash text-2xl sm:text-3xl font-bold text-studojo-ink mb-1">
-          Building your profile
+          {stepsComplete ? "Profile built" : "Building your profile"}
         </h1>
         <p className="text-sm text-studojo-muted font-satoshi mb-8 max-w-xs">
-          Usually takes 15–20 seconds. Good things take a moment.
+          {stepsComplete ? "Loading your results…" : "Analysing your answers and resume."}
         </p>
 
-        {/* Progress bar */}
-        <div className="w-full max-w-xs mb-8">
-          <div className="h-1.5 rounded-full bg-studojo-surface-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-studojo-purple to-studojo-pink transition-all duration-[3000ms] ease-out"
-              style={{ width: `${Math.min((stepIndex + 1) * 25, 90)}%` }}
-            />
-          </div>
-          <div className="flex justify-between mt-1.5">
-            {STEPS.map((s, i) => (
-              <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors duration-500 ${i <= stepIndex ? "bg-studojo-purple" : "bg-studojo-ink/15"}`} />
-            ))}
-          </div>
+        {/* Step checklist */}
+        <div className="w-full max-w-xs mb-8 text-left space-y-2">
+          {STEPS.map((step, i) => {
+            const done = i < stepIndex;
+            const active = i === stepIndex && !stepsComplete;
+            const complete = stepsComplete && i === STEPS.length - 1;
+            return (
+              <div
+                key={i}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 ${
+                  done || complete
+                    ? "bg-studojo-green/8 border border-studojo-green/20"
+                    : active
+                    ? "bg-studojo-purple/8 border border-studojo-purple/20"
+                    : "bg-studojo-surface-muted/50 border border-transparent"
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                  done || complete ? "bg-studojo-green" : active ? "bg-studojo-purple" : "bg-studojo-ink/10"
+                }`}>
+                  {done || complete ? (
+                    <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : active ? (
+                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  ) : (
+                    <div className="w-1.5 h-1.5 rounded-full bg-studojo-ink/20" />
+                  )}
+                </div>
+                <span className={`text-sm font-satoshi transition-colors duration-300 ${
+                  done || complete ? "text-studojo-green font-medium"
+                  : active ? "text-studojo-purple font-semibold"
+                  : "text-studojo-muted"
+                }`}>
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
 
         {/* Quote card */}
         <div
-          className="max-w-sm w-full transition-opacity duration-350"
+          className="max-w-sm w-full transition-opacity duration-300"
           style={{ opacity: fadeIn ? 1 : 0 }}
         >
-          <div className="rounded-2xl bg-studojo-surface-muted/70 border border-studojo-ink/8 px-6 py-5">
+          <div className="rounded-2xl bg-studojo-surface-muted/60 border border-studojo-ink/8 px-6 py-5">
             <p className="text-sm sm:text-base font-satoshi text-studojo-ink leading-relaxed">
               "{quote.text}"
             </p>
@@ -145,7 +179,6 @@ export default function OnboardingLoadingPage() {
           </div>
         </div>
 
-        {/* Subtle skip — only after 45s */}
         <SkipButton onSkip={() => { setCurrentStep(3); navigate("/outreach/onboarding/profile"); }} />
       </div>
     </div>
@@ -155,7 +188,7 @@ export default function OnboardingLoadingPage() {
 function SkipButton({ onSkip }: { onSkip: () => void }) {
   const [show, setShow] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setShow(true), 45000);
+    const t = setTimeout(() => setShow(true), 10000);
     return () => clearTimeout(t);
   }, []);
   if (!show) return null;
