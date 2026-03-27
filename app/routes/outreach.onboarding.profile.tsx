@@ -161,19 +161,18 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { loading: authLoading } = useOutreachAuth();
+  useOutreachAuth();
   const { candidateId, psychResult: storedPsych } = useOutreachStore();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (authLoading || !candidateId) return;
+    if (!candidateId) return;
 
     let cancelled = false;
 
-    // Profile page is only reached from the loading page once data is confirmed ready
-    // Single fetch — no polling needed
+    // Fetch immediately — auth token already set by loading page
     outreachFetch<any>(`/candidate/${candidateId}/profile`)
       .then((data) => {
         if (!cancelled) { setProfile(data); setLoading(false); }
@@ -186,7 +185,7 @@ export default function ProfilePage() {
       });
 
     return () => { cancelled = true; };
-  }, [candidateId, authLoading]);
+  }, [candidateId]);
 
   if (!candidateId) {
     return (

@@ -29,8 +29,10 @@ export default function DiscoveryPage() {
   const [currentStage, setCurrentStage] = useState(0);
   const [error, setError] = useState("");
   const [leadCount, setLeadCount] = useState(0);
-  const [cardsVisible, setCardsVisible] = useState(false);
   const counterRef = useRef<ReturnType<typeof setInterval>>();
+
+  // Cards visible as soon as we reach stage 3 (Finding decision makers)
+  const cardsVisible = currentStage >= 2;
 
   useEffect(() => {
     if (authLoading || !candidateId) return;
@@ -55,9 +57,6 @@ export default function DiscoveryPage() {
         }, 300);
       }, 2000)
     );
-
-    // Show preview cards at stage 3 (Finding decision makers)
-    timers.push(setTimeout(() => setCardsVisible(true), 5000));
 
     outreachFetch("/discovery/search", {
       method: "POST",
