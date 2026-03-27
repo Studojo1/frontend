@@ -48,6 +48,7 @@ export default [
   route("dojos/careers", "routes/dojos.careers.tsx"),
   route("dojos/humanizer", "routes/dojos.humanizer.tsx"),
   route("dojos/internships", "routes/dojos.internships.tsx"),
+  route("dojos/ai-risk", "routes/dojos.ai-risk.tsx"),
   route("internships/:slug", "routes/internships.$slug.tsx"),
   route("api/internships", "routes/api.internships.tsx"),
   route("api/internships/applications", "routes/api.internships.applications.tsx"),
