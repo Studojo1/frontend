@@ -30,6 +30,7 @@ export default function CampaignSetupPage() {
   const [error, setError] = useState("");
   const [previewEmail, setPreviewEmail] = useState<{ subject: string; body: string; lead_name: string; company: string } | null>(null);
   const [previewLoading, setPreviewLoading] = useState(true);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Test launch state
   const [testEmails, setTestEmails] = useState<TestEmail[]>([]);
@@ -44,42 +45,32 @@ export default function CampaignSetupPage() {
     { icon: <FiShield className="w-4 h-4" />, label: "First email", value: "Within 3 minutes of launch" },
   ];
 
-  // Auto-recover candidateId from active order if store is empty
-  useEffect(() => {
-    if (candidateId) return; // Already have it
-    outreachFetch<{ order: { id: number; candidate_id?: number; campaign_id?: number; email_account_id?: number } | null }>("/orders/active")
-      .then((data) => {
-        const order = data?.order;
-        if (order) {
-          if (order.candidate_id) setCandidateId(order.candidate_id);
-          if (order.campaign_id) setCampaignId(order.campaign_id);
-          if (order.email_account_id) setEmailAccountId(order.email_account_id);
-        }
-      })
-      .catch(() => {});
-  }, [candidateId]);
+  // candidateId recovery is handled by useOutreachAuth hook — no duplicate needed here
+
+  const fetchPreview = async () => {
+    if (!candidateId) return;
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const data = await outreachFetch<{ subject: string; body: string; lead_name: string; company: string }>("/campaign/preview-email", {
+        method: "POST",
+        body: JSON.stringify({ candidate_id: candidateId, selected_styles: selectedStyles.length > 0 ? selectedStyles : ["value_prop"] }),
+        maxRetries: 0,
+        timeout: 15000,
+      });
+      setPreviewEmail(data);
+    } catch (err: any) {
+      setPreviewEmail(null);
+      const detail = err?.body?.detail || err?.message || "Preview generation failed";
+      setPreviewError(detail);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!candidateId) return;
     updateOrder({ status: "campaign_setup", log_entry: "Entered campaign setup" });
-    const fetchPreview = async () => {
-      setPreviewLoading(true);
-      try {
-        const data = await outreachFetch<{ subject: string; body: string; lead_name: string; company: string }>("/campaign/preview-email", {
-          method: "POST",
-          body: JSON.stringify({ candidate_id: candidateId, selected_styles: selectedStyles.length > 0 ? selectedStyles : ["value_prop"] }),
-          maxRetries: 0,
-          timeout: 15000,
-        });
-        setPreviewEmail(data);
-      } catch {
-        // Don't fall back to raw template — it shows literal {name}/{company} placeholders.
-        // Leave previewEmail null so we show the neutral fallback message below.
-        setPreviewEmail(null);
-      } finally {
-        setPreviewLoading(false);
-      }
-    };
     fetchPreview();
   }, [candidateId]);
 
@@ -216,7 +207,15 @@ export default function CampaignSetupPage() {
               </div>
             ) : (
               <div className="bg-studojo-surface-muted rounded-xl p-6 text-center">
-                <p className="text-sm text-studojo-muted font-satoshi">Email preview will be generated when the campaign starts.</p>
+                <p className="text-sm text-studojo-muted font-satoshi mb-2">
+                  {previewError || "Email preview could not be generated."}
+                </p>
+                <button
+                  onClick={fetchPreview}
+                  className="text-sm font-satoshi font-medium text-studojo-purple hover:underline"
+                >
+                  Retry
+                </button>
               </div>
             )}
           </div>
