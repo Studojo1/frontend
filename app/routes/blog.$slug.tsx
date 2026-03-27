@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLoaderData } from "react-router";
 import { BlogContent } from "~/components/blog/blog-content";
+import { BlogCtaBar } from "~/components/blog/blog-cta-bar";
 import { Header, Footer } from "~/components";
 import { FiClock, FiEye, FiCalendar } from "react-icons/fi";
 import type { Route } from "./+types/blog.$slug";
@@ -8,6 +9,42 @@ import db from "~/lib/db";
 import { sql } from "drizzle-orm";
 
 const BASE_URL = "https://studojo.com";
+
+/**
+ * Split blog HTML at the first </h2> that appears after the 25% mark,
+ * falling back to the 3rd </p>, falling back to the 40% character position.
+ * Returns [firstHalf, secondHalf]. secondHalf is empty string for short posts.
+ */
+function splitAtMidpoint(html: string): [string, string] {
+  if (!html || html.length < 600) return [html, ""];
+
+  const quarterMark = Math.floor(html.length * 0.25);
+
+  // Prefer splitting after a heading
+  const h2re = /<\/h2>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = h2re.exec(html)) !== null) {
+    if (m.index > quarterMark) {
+      const idx = m.index + m[0].length;
+      return [html.slice(0, idx), html.slice(idx)];
+    }
+  }
+
+  // Fallback: 3rd </p>
+  const pre = /<\/p>/gi;
+  let count = 0;
+  while ((m = pre.exec(html)) !== null) {
+    count++;
+    if (count === 3) {
+      const idx = m.index + m[0].length;
+      return [html.slice(0, idx), html.slice(idx)];
+    }
+  }
+
+  // Final fallback: 40% character split
+  const splitIdx = Math.floor(html.length * 0.4);
+  return [html.slice(0, splitIdx), html.slice(splitIdx)];
+}
 
 function normalizeImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
@@ -316,9 +353,20 @@ export default function BlogPost({ data }: Route.ComponentProps) {
           )}
         </header>
 
-        <div className="mt-8">
-          <BlogContent content={post.content} />
-        </div>
+        {/* Blog content split with mid-article CTA */}
+        {(() => {
+          const [part1, part2] = splitAtMidpoint(post.content);
+          return (
+            <div className="mt-8">
+              <BlogContent content={part1} />
+              {part2 && <BlogCtaBar variant="inline" />}
+              {part2 && <BlogContent content={part2} />}
+            </div>
+          );
+        })()}
+
+        {/* End-of-article CTA */}
+        <BlogCtaBar variant="end" />
 
         {post.tags && post.tags.length > 0 && (
           <div className="mt-12 border-t-2 border-neutral-900 pt-8">
