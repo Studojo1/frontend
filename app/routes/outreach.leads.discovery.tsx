@@ -15,12 +15,27 @@ const stages = [
   { icon: FiBarChart2, label: "Scoring & ranking leads", duration: 4000 },
 ];
 
-const PREVIEW_LEADS = [
-  { initials: "SV", name: "Sarah V.", title: "Head of Talent", company: "Growth Co.", location: "London", color: "bg-studojo-purple" },
-  { initials: "MK", name: "Mihail K.", title: "Founder & CEO", company: "TechScale", location: "Singapore", color: "bg-studojo-pink" },
-  { initials: "RP", name: "Riya P.", title: "VP People", company: "Fintech Hub", location: "Bangalore", color: "bg-emerald-500" },
-  { initials: "JL", name: "James L.", title: "Hiring Manager", company: "Venture Labs", location: "New York", color: "bg-amber-500" },
+const PREVIEW_POOL = [
+  { initials: "AR", name: "Arjun R.", title: "Engineering Manager", company: "Razorpay", location: "Bangalore", color: "bg-studojo-purple" },
+  { initials: "SK", name: "Shreya K.", title: "Product Director", company: "Meesho", location: "Bangalore", color: "bg-studojo-pink" },
+  { initials: "NP", name: "Nikhil P.", title: "Head of Engineering", company: "CRED", location: "Bangalore", color: "bg-emerald-500" },
+  { initials: "AM", name: "Aditya M.", title: "CTO", company: "Licious", location: "Bangalore", color: "bg-amber-500" },
+  { initials: "RS", name: "Rohan S.", title: "VP Engineering", company: "PhonePe", location: "Bangalore", color: "bg-blue-500" },
+  { initials: "PT", name: "Priya T.", title: "Founding Engineer", company: "Sarvam AI", location: "Bangalore", color: "bg-rose-500" },
+  { initials: "DL", name: "David L.", title: "Head of Product", company: "Stripe", location: "San Francisco", color: "bg-indigo-500" },
+  { initials: "JW", name: "Jamie W.", title: "Engineering Lead", company: "Vercel", location: "Remote", color: "bg-studojo-purple" },
+  { initials: "MC", name: "Maya C.", title: "VP Engineering", company: "Deel", location: "New York", color: "bg-teal-500" },
+  { initials: "RK", name: "Raj K.", title: "Director of Engineering", company: "Zepto", location: "Mumbai", color: "bg-orange-500" },
+  { initials: "SB", name: "Siddharth B.", title: "Co-founder & CTO", company: "Krutrim", location: "Bangalore", color: "bg-studojo-pink" },
+  { initials: "LN", name: "Lena N.", title: "Principal Engineer", company: "Figma", location: "London", color: "bg-emerald-500" },
+  { initials: "VM", name: "Varun M.", title: "Head of Data", company: "Groww", location: "Bangalore", color: "bg-violet-500" },
+  { initials: "TH", name: "Tanya H.", title: "Engineering Manager", company: "Notion", location: "Remote", color: "bg-amber-500" },
+  { initials: "AS", name: "Aryan S.", title: "Director of Product", company: "Slice", location: "Bangalore", color: "bg-blue-500" },
+  { initials: "KP", name: "Kiran P.", title: "Founding Engineer", company: "Ola Krutrim", location: "Bangalore", color: "bg-rose-500" },
 ];
+
+// Pick a pseudo-random offset so each render starts at a different point in the pool
+const _startOffset = Math.floor(Math.random() * PREVIEW_POOL.length);
 
 export default function DiscoveryPage() {
   const navigate = useNavigate();
@@ -29,10 +44,15 @@ export default function DiscoveryPage() {
   const [currentStage, setCurrentStage] = useState(0);
   const [error, setError] = useState("");
   const [leadCount, setLeadCount] = useState(0);
+  const [previewOffset, setPreviewOffset] = useState(_startOffset);
   const counterRef = useRef<ReturnType<typeof setInterval>>();
+  const cycleRef = useRef<ReturnType<typeof setInterval>>();
 
   // Cards visible as soon as we reach stage 3 (Finding decision makers)
   const cardsVisible = currentStage >= 2;
+
+  // Derive the 4 preview leads from the current offset
+  const previewLeads = Array.from({ length: 4 }, (_, i) => PREVIEW_POOL[(previewOffset + i) % PREVIEW_POOL.length]);
 
   useEffect(() => {
     if (authLoading || !candidateId) return;
@@ -70,9 +90,18 @@ export default function DiscoveryPage() {
         setError(err?.body?.detail || err.message || "Lead discovery failed");
       });
 
+    // Cycle preview leads every 2.5s once cards are visible
+    const cycleStart = setTimeout(() => {
+      cycleRef.current = setInterval(() => {
+        setPreviewOffset((o) => (o + 4) % PREVIEW_POOL.length);
+      }, 2500);
+    }, stages[0].duration + stages[1].duration); // start after stage 2
+    timers.push(cycleStart);
+
     return () => {
       timers.forEach(clearTimeout);
       clearInterval(counterRef.current);
+      clearInterval(cycleRef.current);
     };
   }, [candidateId, authLoading, navigate]);
 
@@ -181,7 +210,7 @@ export default function DiscoveryPage() {
 
             {/* Lead preview cards */}
             <div className="grid grid-cols-2 gap-3">
-              {PREVIEW_LEADS.map((lead, i) => (
+              {previewLeads.map((lead, i) => (
                 <div
                   key={i}
                   className={`rounded-xl border border-studojo-ink/10 bg-white p-3 sm:p-4 text-left transition-all duration-700 ${

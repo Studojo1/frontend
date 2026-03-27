@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiMapPin, FiBriefcase, FiExternalLink } from "react-icons/fi";
 import { BsBuilding } from "react-icons/bs";
 import { ScoreGauge } from "./ScoreGauge";
@@ -10,13 +10,19 @@ interface FlashCardProps {
 
 export function FlashCard({ lead }: FlashCardProps) {
   const [flipped, setFlipped] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    setIsTouch(window.matchMedia("(hover: none)").matches);
+  }, []);
 
   return (
     <div
       className="cursor-pointer"
       style={{ perspective: "1000px", height: "260px" }}
-      onMouseEnter={() => setFlipped(true)}
-      onMouseLeave={() => setFlipped(false)}
+      onMouseEnter={() => !isTouch && setFlipped(true)}
+      onMouseLeave={() => !isTouch && setFlipped(false)}
+      onClick={() => isTouch && setFlipped((f) => !f)}
     >
       <div
         className="relative w-full h-full transition-transform duration-500 ease-in-out"
@@ -67,7 +73,7 @@ export function FlashCard({ lead }: FlashCardProps) {
             >
               {lead.email_verified ? "Verified" : lead.status}
             </span>
-            <span className="text-[10px] text-studojo-muted font-satoshi">Hover to flip</span>
+            <span className="text-[10px] text-studojo-muted font-satoshi">{isTouch ? "Tap to flip" : "Hover to flip"}</span>
           </div>
         </div>
 
