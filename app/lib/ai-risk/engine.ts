@@ -1,5 +1,5 @@
 /**
- * AI Job Risk Engine — deterministic, zero API calls.
+ * AI Job Risk Engine, deterministic, zero API calls.
  * Data sourced from: Oxford/Frey & Osborne automation probabilities,
  * McKinsey Global Institute, Goldman Sachs (2023), WEF Future of Jobs.
  */
@@ -49,10 +49,10 @@ export function getRiskLevel(pct: number): RiskLevel {
 export function getVerdict(title: string, pct: number, years: number): string {
   const t = title;
   if (years >= 99) return `${t}s are one of the few roles AI will actively create more demand for, not replace.`;
-  if (pct >= 75) return `${t}s are in AI's crosshairs — the window to pivot is closing fast.`;
+  if (pct >= 75) return `${t}s are in AI's crosshairs, the window to pivot is closing fast.`;
   if (pct >= 50) return `AI is already doing large parts of what ${t}s do. Adaptation is urgent.`;
   if (pct >= 25) return `AI will reshape the ${t} role significantly, but won't eliminate it.`;
-  return `The ${t} role is remarkably resilient — AI will assist here, not replace.`;
+  return `The ${t} role is remarkably resilient, AI will assist here, not replace.`;
 }
 
 // ── Job database ───────────────────────────────────────────────────────────
@@ -78,21 +78,21 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "RPA Developer",
-        why: "You already understand the workflows — now learn to build the bots that automate them.",
+        why: "You already understand the workflows, now learn to build the bots that automate them.",
         skills: ["UiPath", "Automation Anywhere", "Python basics", "Process mapping"],
         timeline: "3–6 months",
         difficulty: 2,
       },
       {
         role: "Data Analyst",
-        why: "Move from inputting data to interpreting it — a skill AI can assist but not replace.",
+        why: "Move from inputting data to interpreting it, a skill AI can assist but not replace.",
         skills: ["Excel/Google Sheets", "SQL basics", "Power BI or Tableau", "Data storytelling"],
         timeline: "4–8 months",
         difficulty: 2,
       },
       {
         role: "Operations Coordinator",
-        why: "Your process knowledge is valuable — coordinate the humans and tools instead of doing manual work.",
+        why: "Your process knowledge is valuable, coordinate the humans and tools instead of doing manual work.",
         skills: ["Project management basics", "Notion or Airtable", "Stakeholder communication"],
         timeline: "2–4 months",
         difficulty: 1,
@@ -118,7 +118,7 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Account Executive (B2B)",
-        why: "Move upmarket — enterprise deals require human relationship-building that AI can't replicate.",
+        why: "Move upmarket, enterprise deals require human relationship-building that AI can't replicate.",
         skills: ["Consultative selling", "Salesforce CRM", "Negotiation", "LinkedIn Sales Navigator"],
         timeline: "3–6 months",
         difficulty: 2,
@@ -132,7 +132,7 @@ export const JOB_DATA: JobRisk[] = [
       },
       {
         role: "Customer Success Manager",
-        why: "Retaining existing customers needs empathy and relationship skills — harder for AI to replicate.",
+        why: "Retaining existing customers needs empathy and relationship skills, harder for AI to replicate.",
         skills: ["Relationship management", "HubSpot or Gainsight", "Communication", "Problem-solving"],
         timeline: "2–4 months",
         difficulty: 1,
@@ -149,7 +149,7 @@ export const JOB_DATA: JobRisk[] = [
     timeline_years: 3,
     risk_drivers: [
       "GPT-4 class models resolve 70%+ of tier-1 support tickets without human involvement",
-      "Sentiment analysis lets AI escalate exactly the right cases — reducing the role of human triage",
+      "Sentiment analysis lets AI escalate exactly the right cases, reducing the role of human triage",
       "Self-service AI portals have cut inbound volumes by 40–60% at large SaaS companies",
       "Cost pressure: AI handles ~$0.10/interaction vs $5–15 for a human agent",
     ],
@@ -188,7 +188,7 @@ export const JOB_DATA: JobRisk[] = [
     risk_pct: 82,
     timeline_years: 4,
     risk_drivers: [
-      "Automated checkout is now standard — Walmart, Amazon, and Tesco have deployed at massive scale",
+      "Automated checkout is now standard, Walmart, Amazon, and Tesco have deployed at massive scale",
       "Computer vision systems handle loss prevention better than human observation",
       "Mobile payment and scan-and-go eliminate the checkout interaction entirely",
       "Labour costs make automation ROI-positive within 18 months at most retail scales",
@@ -241,21 +241,21 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Tax Strategist / Advisor",
-        why: "Move from compliance to strategy — advising on tax planning that AI can't personalise.",
+        why: "Move from compliance to strategy, advising on tax planning that AI can't personalise.",
         skills: ["Advanced tax planning", "Business structures", "Financial planning basics", "Client advisory skills"],
         timeline: "6–12 months",
         difficulty: 2,
       },
       {
         role: "Financial Planner",
-        why: "Tax knowledge is a core part of holistic financial planning — a human-led service.",
+        why: "Tax knowledge is a core part of holistic financial planning, a human-led service.",
         skills: ["Financial planning certification (CFP)", "Investment basics", "Retirement planning", "Client communication"],
         timeline: "6–12 months",
         difficulty: 2,
       },
       {
         role: "Bookkeeper → Controller",
-        why: "Manage the broader financial picture for small businesses — more AI-proof than pure tax filing.",
+        why: "Manage the broader financial picture for small businesses, more AI-proof than pure tax filing.",
         skills: ["QuickBooks or Xero", "Management accounts", "Cash flow forecasting", "Financial reporting"],
         timeline: "4–8 months",
         difficulty: 2,
@@ -284,21 +284,21 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Management Accountant",
-        why: "Move from recording transactions to analysing them — AI handles the former, not the latter.",
+        why: "Move from recording transactions to analysing them, AI handles the former, not the latter.",
         skills: ["Management accounting (CIMA)", "Financial modelling", "Excel/Power BI", "Business partnering"],
         timeline: "6–12 months",
         difficulty: 2,
       },
       {
         role: "Finance Systems Administrator",
-        why: "Someone has to configure and maintain the AI accounting tools — your domain knowledge is perfect.",
+        why: "Someone has to configure and maintain the AI accounting tools, your domain knowledge is perfect.",
         skills: ["QuickBooks/Xero admin", "System integrations", "Data migration", "User training"],
         timeline: "3–6 months",
         difficulty: 2,
       },
       {
         role: "Virtual CFO (for SMEs)",
-        why: "Small businesses will always need human financial guidance — package your knowledge as advisory.",
+        why: "Small businesses will always need human financial guidance, package your knowledge as advisory.",
         skills: ["Cash flow management", "Financial strategy", "Budgeting", "Investor-ready reporting"],
         timeline: "6–18 months",
         difficulty: 3,
@@ -324,21 +324,21 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Commercial Relationship Manager",
-        why: "Business banking is far more relationship-driven — your credit knowledge is a genuine edge.",
+        why: "Business banking is far more relationship-driven, your credit knowledge is a genuine edge.",
         skills: ["Business finance analysis", "Relationship management", "Commercial credit", "Stakeholder negotiation"],
         timeline: "4–8 months",
         difficulty: 2,
       },
       {
         role: "Credit Risk Analyst",
-        why: "Oversee the AI models — validate, challenge, and improve automated credit decisions.",
+        why: "Oversee the AI models, validate, challenge, and improve automated credit decisions.",
         skills: ["Credit modelling", "SQL/Python basics", "Statistical analysis", "Risk frameworks"],
         timeline: "5–9 months",
         difficulty: 3,
       },
       {
         role: "Mortgage Broker (Independent)",
-        why: "Independent brokers add value through market knowledge and advocacy — AI can't replicate that.",
+        why: "Independent brokers add value through market knowledge and advocacy, AI can't replicate that.",
         skills: ["Whole-of-market knowledge", "Client advisory", "CeMAP or equivalent", "Business development"],
         timeline: "6–12 months",
         difficulty: 2,
@@ -370,7 +370,7 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "CFO / Finance Director",
-        why: "Strategic leadership of finance will always need a human — your technical base is perfect.",
+        why: "Strategic leadership of finance will always need a human, your technical base is perfect.",
         skills: ["Financial strategy", "Board communication", "M&A basics", "Leadership"],
         timeline: "2–5 years (progressive)",
         difficulty: 3,
@@ -418,7 +418,7 @@ export const JOB_DATA: JobRisk[] = [
       },
       {
         role: "Compliance Officer",
-        why: "Regulatory compliance needs human judgement, not just document review — your legal base is ideal.",
+        why: "Regulatory compliance needs human judgement, not just document review, your legal base is ideal.",
         skills: ["Regulatory frameworks", "Risk assessment", "Policy writing", "Stakeholder management"],
         timeline: "4–8 months",
         difficulty: 2,
@@ -442,7 +442,7 @@ export const JOB_DATA: JobRisk[] = [
     timeline_years: 3,
     risk_drivers: [
       "GPT-4 produces publication-ready first drafts in seconds at a fraction of the cost",
-      "SEO content at scale is already dominated by AI — MediaMath, Jasper, and hundreds of others",
+      "SEO content at scale is already dominated by AI, MediaMath, Jasper, and hundreds of others",
       "Commodity content (product descriptions, press releases, standard articles) is fully automated",
       "The price of generic content has collapsed to near zero, squeezing entry-level writers out",
     ],
@@ -450,12 +450,12 @@ export const JOB_DATA: JobRisk[] = [
       "Original reporting, investigative journalism, and content requiring lived experience",
       "Brand voice and editorial strategy that shapes a company's identity",
       "Long-form narrative and storytelling that builds genuine audience connection",
-      "Content that requires accountability — bylined thought leadership, sensitive topics",
+      "Content that requires accountability, bylined thought leadership, sensitive topics",
     ],
     pivots: [
       {
         role: "Content Strategist",
-        why: "Move from production to strategy — deciding what to create, for whom, and why. AI can't do this.",
+        why: "Move from production to strategy, deciding what to create, for whom, and why. AI can't do this.",
         skills: ["Content strategy frameworks", "Audience research", "Analytics (GA4)", "Editorial planning"],
         timeline: "3–6 months",
         difficulty: 2,
@@ -492,14 +492,14 @@ export const JOB_DATA: JobRisk[] = [
     ],
     human_edges: [
       "Literary translation requiring cultural adaptation, wordplay, and emotional nuance",
-      "Legal and medical translation where errors carry liability — still requires certified humans",
+      "Legal and medical translation where errors carry liability, still requires certified humans",
       "Simultaneous interpretation in high-stakes live settings requiring presence and adaptability",
       "Localisation strategy that goes beyond word-for-word to cultural relevance",
     ],
     pivots: [
       {
         role: "Localisation Manager",
-        why: "Oversee the AI translation workflow and ensure cultural accuracy — human judgement required.",
+        why: "Oversee the AI translation workflow and ensure cultural accuracy, human judgement required.",
         skills: ["Translation management systems", "Cultural consulting", "Project management", "AI post-editing"],
         timeline: "3–6 months",
         difficulty: 2,
@@ -550,7 +550,7 @@ export const JOB_DATA: JobRisk[] = [
       },
       {
         role: "Data Scientist (Finance)",
-        why: "Build the models instead of being replaced by them — Python and ML skills open this path.",
+        why: "Build the models instead of being replaced by them, Python and ML skills open this path.",
         skills: ["Python (pandas, numpy)", "Machine learning", "Financial modelling", "SQL"],
         timeline: "6–12 months",
         difficulty: 3,
@@ -580,14 +580,14 @@ export const JOB_DATA: JobRisk[] = [
     ],
     human_edges: [
       "Brand strategy, visual identity creation, and design thinking for complex problems",
-      "Art direction — curating, directing, and having a point of view that shapes culture",
+      "Art direction, curating, directing, and having a point of view that shapes culture",
       "Motion, spatial, and environmental design requiring physical and spatial intelligence",
       "Client relationships where trust, interpretation, and iteration matter",
     ],
     pivots: [
       {
         role: "Brand Strategist",
-        why: "The thinking behind great design — positioning, identity, narrative — can't be prompted.",
+        why: "The thinking behind great design, positioning, identity, narrative, can't be prompted.",
         skills: ["Brand strategy", "Competitive positioning", "Workshop facilitation", "Presentation skills"],
         timeline: "6–12 months",
         difficulty: 2,
@@ -634,7 +634,7 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "AI Engineer / LLM Integrator",
-        why: "The fastest-growing engineering role right now — your coding skills are directly transferable.",
+        why: "The fastest-growing engineering role right now, your coding skills are directly transferable.",
         skills: ["LangChain or LlamaIndex", "Prompt engineering", "Vector databases", "API integration"],
         timeline: "2–4 months",
         difficulty: 1,
@@ -648,7 +648,7 @@ export const JOB_DATA: JobRisk[] = [
       },
       {
         role: "Technical Product Manager",
-        why: "Bridge the gap between engineering and business — a role where technical depth plus product sense wins.",
+        why: "Bridge the gap between engineering and business, a role where technical depth plus product sense wins.",
         skills: ["Product strategy", "User research", "Prioritisation frameworks", "Stakeholder alignment"],
         timeline: "6–12 months",
         difficulty: 2,
@@ -670,7 +670,7 @@ export const JOB_DATA: JobRisk[] = [
       "Standard ML use cases (churn, fraud, recommendations) are now off-the-shelf solutions",
     ],
     human_edges: [
-      "Problem framing — deciding which data problems are worth solving and how to measure success",
+      "Problem framing, deciding which data problems are worth solving and how to measure success",
       "Communicating complex findings to non-technical stakeholders who need to make decisions",
       "Designing novel experiments and building the right intuition about causality vs correlation",
       "Domain expertise that shapes what the models should actually be optimising for",
@@ -685,14 +685,14 @@ export const JOB_DATA: JobRisk[] = [
       },
       {
         role: "ML Engineer",
-        why: "Move from model building to model deployment — productionising AI is a distinct and growing skill.",
+        why: "Move from model building to model deployment, productionising AI is a distinct and growing skill.",
         skills: ["MLOps (MLflow, Kubeflow)", "Docker/Kubernetes", "Cloud platforms (AWS/GCP)", "CI/CD for ML"],
         timeline: "4–8 months",
         difficulty: 2,
       },
       {
         role: "Decision Intelligence Lead",
-        why: "Helping organisations make better decisions using data — a uniquely human-AI hybrid role.",
+        why: "Helping organisations make better decisions using data, a uniquely human-AI hybrid role.",
         skills: ["Decision frameworks", "Causal inference", "Executive communication", "Strategy consulting basics"],
         timeline: "6–12 months",
         difficulty: 3,
@@ -711,11 +711,11 @@ export const JOB_DATA: JobRisk[] = [
     risk_drivers: [
       "AI generates ad copy, email campaigns, and social content at scale with minimal human input",
       "Programmatic advertising has automated media buying and optimisation entirely",
-      "Personalisation at scale — something that previously needed large teams — is now AI-native",
+      "Personalisation at scale, something that previously needed large teams, is now AI-native",
       "Performance marketing analytics and A/B testing is increasingly automated end-to-end",
     ],
     human_edges: [
-      "Brand strategy and positioning — deciding who you are and what you stand for",
+      "Brand strategy and positioning, deciding who you are and what you stand for",
       "Creative direction and campaign concepting that requires cultural intuition",
       "Building relationships with media, creators, and partners",
       "Navigating brand crises and sensitive communications requiring human judgment",
@@ -723,7 +723,7 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Brand Strategist",
-        why: "The 'why' behind marketing — positioning, narrative, audience insight — is a deeply human skill.",
+        why: "The 'why' behind marketing, positioning, narrative, audience insight, is a deeply human skill.",
         skills: ["Brand positioning", "Consumer insights", "Competitive analysis", "Creative briefing"],
         timeline: "4–8 months",
         difficulty: 2,
@@ -759,7 +759,7 @@ export const JOB_DATA: JobRisk[] = [
       "LLMs draft job descriptions, offer letters, and performance review frameworks instantly",
     ],
     human_edges: [
-      "Navigating complex employee relations — grievances, terminations, sensitive disputes",
+      "Navigating complex employee relations, grievances, terminations, sensitive disputes",
       "Organisational design and culture shaping that requires deep contextual understanding",
       "Leadership coaching and development conversations",
       "Judgment calls on fairness, equity, and edge cases that AI can't make accountably",
@@ -803,15 +803,15 @@ export const JOB_DATA: JobRisk[] = [
       "Data analytics copilots let PMs get insights without needing analysts on their team",
     ],
     human_edges: [
-      "Stakeholder alignment and navigating organisational politics — pure human territory",
+      "Stakeholder alignment and navigating organisational politics, pure human territory",
       "Building the conviction and vision that inspires engineering teams to do their best work",
       "Customer empathy and the judgment to know which problems are worth solving",
-      "Making irreversible bets under uncertainty — AI can inform but not be held accountable",
+      "Making irreversible bets under uncertainty, AI can inform but not be held accountable",
     ],
     pivots: [
       {
         role: "Founder / Entrepreneur",
-        why: "PM skills — problem identification, prioritisation, user empathy — are the exact skills for building companies.",
+        why: "PM skills, problem identification, prioritisation, user empathy, are the exact skills for building companies.",
         skills: ["Business model design", "Fundraising basics", "GTM strategy", "Leadership"],
         timeline: "Variable",
         difficulty: 3,
@@ -841,7 +841,7 @@ export const JOB_DATA: JobRisk[] = [
       "AI already writes earnings reports, sports scores, and weather summaries for major outlets",
       "LLMs synthesise press releases, research, and sources into first drafts faster than any reporter",
       "Newsroom economics are forcing outlets to replace junior writers with AI tools",
-      "Personalised news curation is AI-native — reducing the need for volume content production",
+      "Personalised news curation is AI-native, reducing the need for volume content production",
     ],
     human_edges: [
       "Investigative journalism: source relationships, document analysis, and moral courage",
@@ -852,14 +852,14 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Investigative Reporter",
-        why: "The kind of journalism AI can't do — sources, documents, legal risk, moral accountability.",
+        why: "The kind of journalism AI can't do, sources, documents, legal risk, moral accountability.",
         skills: ["FOI/FOIA requests", "Data journalism", "Source protection", "Long-form narrative"],
         timeline: "1–2 years",
         difficulty: 3,
       },
       {
         role: "Content Strategist",
-        why: "Editorial judgment about what to publish, for whom, and why — a human skill AI can't replace.",
+        why: "Editorial judgment about what to publish, for whom, and why, a human skill AI can't replace.",
         skills: ["Audience research", "SEO strategy", "Editorial calendars", "Content analytics"],
         timeline: "3–6 months",
         difficulty: 2,
@@ -888,7 +888,7 @@ export const JOB_DATA: JobRisk[] = [
       "LLMs can generate wireframes and user flows from product requirements",
     ],
     human_edges: [
-      "Deep user empathy — understanding emotional context, accessibility, and lived experience",
+      "Deep user empathy, understanding emotional context, accessibility, and lived experience",
       "Design critique and the aesthetic judgment that separates good from great",
       "Facilitating design sprints and cross-functional alignment sessions",
       "Designing for edge cases, vulnerable users, and novel contexts with no prior data",
@@ -933,7 +933,7 @@ export const JOB_DATA: JobRisk[] = [
       "Administrative burden (notes, care plans, progress tracking) is increasingly automated",
     ],
     human_edges: [
-      "Therapeutic alliance — the human relationship that is the evidence-based mechanism of change",
+      "Therapeutic alliance, the human relationship that is the evidence-based mechanism of change",
       "Trauma-informed care and managing acute crises requiring presence, intuition, and accountability",
       "Clinical diagnosis requiring holistic assessment of the whole person",
       "Ethical responsibility and professional accountability that AI cannot carry",
@@ -941,7 +941,7 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Digital Mental Health Specialist",
-        why: "Design and validate AI mental health tools — your clinical expertise is essential for this.",
+        why: "Design and validate AI mental health tools, your clinical expertise is essential for this.",
         skills: ["Digital health platforms", "Clinical evaluation", "User research", "Healthcare UX"],
         timeline: "4–8 months",
         difficulty: 2,
@@ -977,7 +977,7 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Nurse Informaticist",
-        why: "Bridge clinical expertise with health IT — a role in massive demand as hospitals digitise.",
+        why: "Bridge clinical expertise with health IT, a role in massive demand as hospitals digitise.",
         skills: ["EHR systems (Epic, Cerner)", "Health data standards (HL7, FHIR)", "Clinical informatics", "Project management"],
         timeline: "6–12 months",
         difficulty: 2,
@@ -1014,7 +1014,7 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Instructional Designer",
-        why: "Design the learning experiences for AI tools and online platforms — pedagogy is your edge.",
+        why: "Design the learning experiences for AI tools and online platforms, pedagogy is your edge.",
         skills: ["E-learning design (Articulate, Rise)", "Learning science", "LMS platforms", "UX for learning"],
         timeline: "3–6 months",
         difficulty: 1,
@@ -1076,7 +1076,7 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Clinical AI Lead",
-        why: "Lead the adoption of AI diagnostic tools in your specialty — you're the domain expert they need.",
+        why: "Lead the adoption of AI diagnostic tools in your specialty, you're the domain expert they need.",
         skills: ["AI in healthcare", "Clinical governance", "Health informatics", "Change management"],
         timeline: "4–8 months",
         difficulty: 2,
@@ -1092,14 +1092,14 @@ export const JOB_DATA: JobRisk[] = [
     risk_pct: 8,
     timeline_years: 99,
     risk_drivers: [
-      "AI lowers the cost of building — founders can now do in days what took teams months",
+      "AI lowers the cost of building, founders can now do in days what took teams months",
       "Competitor companies can also use AI, raising the baseline of what it takes to compete",
     ],
     human_edges: [
-      "Vision, conviction, and the willingness to take personal risk — the core of entrepreneurship",
+      "Vision, conviction, and the willingness to take personal risk, the core of entrepreneurship",
       "Fundraising, which is ultimately a human trust and relationship game",
       "Building and leading teams through uncertainty, setbacks, and rapid change",
-      "Identifying genuinely new problems worth solving — the most human of activities",
+      "Identifying genuinely new problems worth solving, the most human of activities",
     ],
     pivots: [
       {
@@ -1132,7 +1132,7 @@ export const JOB_DATA: JobRisk[] = [
       "Junior creative roles (the traditional path to CD) are being cut, shrinking the talent pipeline",
     ],
     human_edges: [
-      "Taste — the irreducible human capacity to know what resonates and what doesn't",
+      "Taste, the irreducible human capacity to know what resonates and what doesn't",
       "Cultural relevance and the ability to read the room on what a moment demands",
       "Leading and inspiring creative teams, cultivating talent, and setting a vision",
       "Client relationships built on trust in your judgment, not just your output",
@@ -1162,22 +1162,22 @@ export const JOB_DATA: JobRisk[] = [
       "Clients are becoming more sophisticated and questioning the value of expensive generalist advice",
     ],
     human_edges: [
-      "Political navigation inside client organisations — understanding who really holds power",
-      "Change management — getting organisations to actually implement recommendations",
+      "Political navigation inside client organisations, understanding who really holds power",
+      "Change management, getting organisations to actually implement recommendations",
       "Building the trusted advisor relationship that gets you invited back for the next engagement",
       "Novel problem framing where there is no prior playbook",
     ],
     pivots: [
       {
         role: "Strategy Director (In-house)",
-        why: "Move from advice to accountability — internal strategy roles are harder to automate.",
+        why: "Move from advice to accountability, internal strategy roles are harder to automate.",
         skills: ["Corporate strategy", "M&A analysis", "Board-level communication", "Decision frameworks"],
         timeline: "6–12 months",
         difficulty: 2,
       },
       {
         role: "Transformation Lead",
-        why: "Executing change — not just diagnosing it — is the most human, most valuable part of consulting.",
+        why: "Executing change, not just diagnosing it, is the most human, most valuable part of consulting.",
         skills: ["Change management (Prosci)", "Programme leadership", "Stakeholder engagement", "Agile delivery"],
         timeline: "4–8 months",
         difficulty: 2,
@@ -1198,7 +1198,7 @@ export const JOB_DATA: JobRisk[] = [
       "Automated vulnerability scanning reduces the manual effort in security testing",
     ],
     human_edges: [
-      "Adversarial thinking — imagining attack vectors that no training data has covered yet",
+      "Adversarial thinking, imagining attack vectors that no training data has covered yet",
       "Incident response requiring real-time judgment under pressure",
       "Social engineering awareness and human-in-the-loop security decisions",
       "Security strategy and risk communication to boards and executives",
@@ -1219,27 +1219,27 @@ export const JOB_DATA: JobRisk[] = [
     risk_pct: 22,
     timeline_years: 10,
     risk_drivers: [
-      "Industrial food production is increasingly automated — robotic arms, smart ovens, portioning systems",
+      "Industrial food production is increasingly automated, robotic arms, smart ovens, portioning systems",
       "AI recipe generation and nutritional optimisation is replacing menu development for mass-market food",
       "Ghost kitchens and delivery-only brands are mechanising high-volume production",
     ],
     human_edges: [
       "Creative cuisine, plating, and the artistry of fine dining that is about experience, not just food",
       "Adapting in real-time to ingredient quality, customer preferences, and kitchen chaos",
-      "The hospitality dimension — reading a room, storytelling through food, building a following",
-      "Ownership and entrepreneurship — running a restaurant is a human business through and through",
+      "The hospitality dimension, reading a room, storytelling through food, building a following",
+      "Ownership and entrepreneurship, running a restaurant is a human business through and through",
     ],
     pivots: [
       {
         role: "Food Entrepreneur",
-        why: "Build your own brand — a product line, supper club, or food content channel. Your craft is the moat.",
+        why: "Build your own brand, a product line, supper club, or food content channel. Your craft is the moat.",
         skills: ["Food product development", "Brand building", "Food safety", "Social media for food"],
         timeline: "6–18 months",
         difficulty: 2,
       },
       {
         role: "Culinary Educator",
-        why: "Teaching cooking — in person, online, or corporate — is a human skill that scales well.",
+        why: "Teaching cooking, in person, online, or corporate, is a human skill that scales well.",
         skills: ["Curriculum design", "Online course creation", "Video production basics", "Brand development"],
         timeline: "3–6 months",
         difficulty: 1,
@@ -1260,10 +1260,10 @@ export const JOB_DATA: JobRisk[] = [
       "AutoML is automating some of the more routine model training tasks",
     ],
     human_edges: [
-      "Research intuition — knowing which experiments are worth running and why",
+      "Research intuition, knowing which experiments are worth running and why",
       "System design for novel AI architectures that don't yet have templates",
-      "Aligning AI systems with human values — a problem that requires being human",
-      "The field is growing faster than it's being automated — net job creation, not destruction",
+      "Aligning AI systems with human values, a problem that requires being human",
+      "The field is growing faster than it's being automated, net job creation, not destruction",
     ],
     pivots: [
       {
@@ -1275,7 +1275,7 @@ export const JOB_DATA: JobRisk[] = [
       },
       {
         role: "AI Product Manager",
-        why: "Define what AI products should do — a role that will always need a human to own the vision.",
+        why: "Define what AI products should do, a role that will always need a human to own the vision.",
         skills: ["LLM capabilities and limitations", "Product strategy", "Evaluation design", "Stakeholder management"],
         timeline: "6–12 months",
         difficulty: 2,
@@ -1294,13 +1294,13 @@ export const JOB_DATA: JobRisk[] = [
     human_edges: [
       "Physical installation in unpredictable environments that robots cannot yet navigate",
       "Fault diagnosis requiring tactile feedback, visual inspection, and contextual judgment",
-      "Licensed work carrying legal liability — regulatory frameworks require qualified humans",
+      "Licensed work carrying legal liability, regulatory frameworks require qualified humans",
       "Emergency repairs under time pressure in dangerous conditions",
     ],
     pivots: [
       {
         role: "Renewable Energy Technician",
-        why: "Solar, wind, and EV charging infrastructure is booming — your electrical skills are perfectly transferable.",
+        why: "Solar, wind, and EV charging infrastructure is booming, your electrical skills are perfectly transferable.",
         skills: ["Solar PV installation", "Battery storage systems", "EV charging infrastructure", "Smart home systems"],
         timeline: "3–6 months",
         difficulty: 1,
@@ -1322,15 +1322,15 @@ export const JOB_DATA: JobRisk[] = [
       "Discount brokerages using AI are competing with full-service agents on price",
     ],
     human_edges: [
-      "Negotiation — the human dynamics of a property transaction require skilled advocacy",
+      "Negotiation, the human dynamics of a property transaction require skilled advocacy",
       "Local market knowledge and the network of relationships that find off-market deals",
-      "Emotional guidance through major life decisions — buying a home is not a rational process",
+      "Emotional guidance through major life decisions, buying a home is not a rational process",
       "Commercial property deals with complex structuring requirements",
     ],
     pivots: [
       {
         role: "Property Developer",
-        why: "Identify, acquire, and develop property rather than transact it — a higher-value, more AI-proof role.",
+        why: "Identify, acquire, and develop property rather than transact it, a higher-value, more AI-proof role.",
         skills: ["Property development finance", "Planning and permitting", "Project management", "Investment appraisal"],
         timeline: "1–3 years",
         difficulty: 3,
@@ -1356,7 +1356,7 @@ export const JOB_DATA: JobRisk[] = [
       "Medicines reconciliation and discharge summaries are increasingly AI-generated",
     ],
     human_edges: [
-      "Clinical pharmacy — optimising complex medication regimens for individual patients",
+      "Clinical pharmacy, optimising complex medication regimens for individual patients",
       "Medication counselling and patient education requiring empathy and communication",
       "Identifying rare interactions and edge cases that fall outside algorithmic rules",
       "Accountability and professional judgment in high-stakes clinical decisions",
@@ -1364,14 +1364,14 @@ export const JOB_DATA: JobRisk[] = [
     pivots: [
       {
         role: "Clinical Pharmacist Specialist",
-        why: "Move towards clinical practice and patient care — the human end of pharmacy that AI can't automate.",
+        why: "Move towards clinical practice and patient care, the human end of pharmacy that AI can't automate.",
         skills: ["Clinical therapeutics", "Independent prescribing", "Patient consultation", "Ward-based pharmacy"],
         timeline: "1–2 years",
         difficulty: 2,
       },
       {
         role: "Pharmacy Informatics Specialist",
-        why: "Configure and govern AI dispensing systems — your domain knowledge is irreplaceable.",
+        why: "Configure and govern AI dispensing systems, your domain knowledge is irreplaceable.",
         skills: ["Pharmacy systems (JAC, Ascribe)", "Clinical informatics", "Data analysis", "Change management"],
         timeline: "4–8 months",
         difficulty: 2,

@@ -12,7 +12,7 @@ import type { AnalysisResult } from "~/lib/ai-risk/engine";
 
 export function meta() {
   return [
-    { title: "Will AI Replace Your Job? — Studojo" },
+    { title: "Will AI Replace Your Job? | Studojo" },
     {
       name: "description",
       content:
@@ -187,7 +187,7 @@ export default function AIRiskPage() {
               Will AI replace<br />your job?
             </h1>
             <p className="text-base sm:text-lg font-satoshi text-studojo-muted mb-8 max-w-md mx-auto">
-              Get your risk score, timeline, and a full career roadmap — in seconds.
+              Get your risk score, timeline, and a full career roadmap. In seconds.
             </p>
 
             {/* Input */}
@@ -329,7 +329,7 @@ export default function AIRiskPage() {
                 <h3 className="font-clash text-xl font-bold text-studojo-ink">Your career roadmap</h3>
               </div>
               <p className="text-sm font-satoshi text-studojo-muted mb-5">
-                Roles to move into — ranked by how quickly you can get there.
+                Roles to move into, ranked by how quickly you can get there.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {result.pivots.map((pivot, i) => (

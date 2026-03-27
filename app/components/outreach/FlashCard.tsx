@@ -20,13 +20,13 @@ function buildContactReason(lead: Lead): string {
   if (/\b(founder|co-founder|ceo|cto|cfo|coo|chief)\b/.test(tl)) {
     authorityLine = `As ${company ? `${company}'s` : "a"} founder or C-suite exec, they own every key hire personally.`;
   } else if (/\bvp\b|vice president/.test(tl)) {
-    authorityLine = `VPs carry direct budget and headcount authority — no committee needed to say yes.`;
+    authorityLine = `VPs carry direct budget and headcount authority. No committee needed to say yes.`;
   } else if (/\bdirector\b/.test(tl)) {
     authorityLine = `Directors own their team's roadmap and can approve talent without going up the chain.`;
   } else if (/\bhead of\b/.test(tl)) {
     authorityLine = `Heads of departments set their own priorities and hire directly into their teams.`;
   } else if (/\bmanager\b/.test(tl)) {
-    authorityLine = `Managers are closest to the actual work — they know exactly what their team is missing and can act fast.`;
+    authorityLine = `Managers are closest to the actual work. They know exactly what their team is missing and can act fast.`;
   } else if (/\b(lead|principal|staff)\b/.test(tl)) {
     authorityLine = `Tech leads and principals often drive or heavily influence hiring decisions for their squad.`;
   } else {
@@ -52,7 +52,7 @@ function buildContactReason(lead: Lead): string {
   const senScore = score?.seniority_relevance ?? 0;
   let actionLine: string;
   if (senScore >= 9) {
-    actionLine = `Reach out now — this is the seniority sweet spot where you get a real conversation.`;
+    actionLine = `Reach out now. This is the seniority sweet spot where you get a real conversation.`;
   } else if (lead.email_verified) {
     actionLine = `Their email is verified, so you can reach them directly without guesswork.`;
   } else {

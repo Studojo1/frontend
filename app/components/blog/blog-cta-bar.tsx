@@ -14,7 +14,7 @@ export function BlogCtaBar({ variant = "inline" }: BlogCtaBarProps) {
           Ready to land your next role?
         </p>
         <p className="font-['Satoshi'] text-white/80 text-sm mb-6 max-w-sm mx-auto">
-          Studojo Outreach finds the hiring managers at companies where you'd thrive — and handles the introduction for you.
+          Studojo Outreach finds the hiring managers at companies where you'd thrive and handles the introduction for you.
         </p>
         <a
           href={OUTREACH_URL}
@@ -33,7 +33,7 @@ export function BlogCtaBar({ variant = "inline" }: BlogCtaBarProps) {
           Land your next role, faster.
         </p>
         <p className="font-['Satoshi'] text-studojo-muted text-sm">
-          Find and contact the right hiring managers — without the cold email guesswork.
+          Find and contact the right hiring managers, without the cold email guesswork.
         </p>
       </div>
       <a
@@ -50,4 +50,4 @@ export function BlogCtaBar({ variant = "inline" }: BlogCtaBarProps) {
  * Inline HTML version of the CTA — injected into dangerouslySetInnerHTML content
  * when a writer places [studojo-cta] in the blog via Maverick.
  */
-export const CTA_INLINE_HTML = `<div data-studojo-cta="rendered" style="margin:2rem 0;padding:1.25rem 1.5rem;background:rgba(139,92,246,0.07);border-radius:0.75rem;border:2px solid #191a23;display:flex;flex-wrap:wrap;align-items:center;gap:1rem;font-family:'Satoshi',sans-serif;"><div style="flex:1;min-width:0;"><p style="font-family:'Clash Display',sans-serif;font-size:1rem;font-weight:700;color:#191a23;margin:0 0 0.25rem 0;">Land your next role, faster.</p><p style="font-size:0.875rem;color:#64748b;margin:0;">Find and contact the right hiring managers — without the cold email guesswork.</p></div><a href="https://studojo.com/outreach" style="flex-shrink:0;display:inline-flex;align-items:center;gap:0.375rem;height:2.5rem;padding:0 1.25rem;border-radius:0.625rem;background:#8b5cf6;color:#fff;font-weight:600;font-size:0.875rem;text-decoration:none;border:2px solid #191a23;box-shadow:2px 2px 0 #191a23;white-space:nowrap;" onmouseover="this.style.transform='translate(2px,2px)';this.style.boxShadow='none'" onmouseout="this.style.transform='';this.style.boxShadow='2px 2px 0 #191a23'">Try for free →</a></div>`;
+export const CTA_INLINE_HTML = `<div data-studojo-cta="rendered" style="margin:2rem 0;padding:1.25rem 1.5rem;background:rgba(139,92,246,0.07);border-radius:0.75rem;border:2px solid #191a23;display:flex;flex-wrap:wrap;align-items:center;gap:1rem;font-family:'Satoshi',sans-serif;"><div style="flex:1;min-width:0;"><p style="font-family:'Clash Display',sans-serif;font-size:1rem;font-weight:700;color:#191a23;margin:0 0 0.25rem 0;">Land your next role, faster.</p><p style="font-size:0.875rem;color:#64748b;margin:0;">Find and contact the right hiring managers, without the cold email guesswork.</p></div><a href="https://studojo.com/outreach" style="flex-shrink:0;display:inline-flex;align-items:center;gap:0.375rem;height:2.5rem;padding:0 1.25rem;border-radius:0.625rem;background:#8b5cf6;color:#fff;font-weight:600;font-size:0.875rem;text-decoration:none;border:2px solid #191a23;box-shadow:2px 2px 0 #191a23;white-space:nowrap;" onmouseover="this.style.transform='translate(2px,2px)';this.style.boxShadow='none'" onmouseout="this.style.transform='';this.style.boxShadow='2px 2px 0 #191a23'">Try for free →</a></div>`;

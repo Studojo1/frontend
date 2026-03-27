@@ -174,7 +174,7 @@ export default function OnboardingLoadingPage() {
               "{quote.text}"
             </p>
             <p className="text-xs font-satoshi text-studojo-purple font-semibold mt-3 uppercase tracking-wide">
-              — {quote.author}
+              {quote.author}
             </p>
           </div>
         </div>
