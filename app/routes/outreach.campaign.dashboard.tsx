@@ -116,6 +116,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const initialLoaded = useRef(false);
 
   // On mount: check for test job or campaign
   useEffect(() => {
@@ -175,8 +176,13 @@ export default function DashboardPage() {
       ]);
       setMetrics(metricsData);
       setEmails(emailsData.emails || []);
+      setError("");
+      initialLoaded.current = true;
     } catch (err: any) {
-      setError(err?.body?.detail || "Failed to load campaign data");
+      // Only show error on initial load — poll failures are silent so the dashboard stays visible.
+      if (!initialLoaded.current) {
+        setError(err?.body?.detail || "Failed to load campaign data");
+      }
     }
   }, [campaignId, testJobId]);
 
