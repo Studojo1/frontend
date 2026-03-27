@@ -55,7 +55,7 @@ export default function CampaignLaunchingPage() {
             candidate_id: candidateId,
             email_account_id: emailAccountId,
             name: campaignName || "My Outreach Campaign",
-            selected_styles: selectedStyles?.length > 0 ? selectedStyles : undefined,
+            selected_styles: selectedStyles?.length > 0 ? selectedStyles : ["value_prop"],
             lead_limit: selectedTier || undefined,
             ...((!selectedStyles || selectedStyles.length === 0) && selectedTemplate && {
               template_id: selectedTemplate.id,
