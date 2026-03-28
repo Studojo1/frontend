@@ -1,22 +1,84 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiMapPin, FiBriefcase, FiExternalLink } from "react-icons/fi";
 import { BsBuilding } from "react-icons/bs";
 import { ScoreGauge } from "./ScoreGauge";
-import type { Lead } from "~/lib/outreach/types";
+import type { Lead, LeadScore } from "~/lib/outreach/types";
 
 interface FlashCardProps {
   lead: Lead;
 }
 
+function buildContactReason(lead: Lead): string {
+  const title = lead.title || "";
+  const company = lead.company || "";
+  const industry = lead.industry || "";
+  const tl = title.toLowerCase();
+  const score = lead.score;
+
+  // ── 1. Authority line — what their role means for hiring power ──────────
+  let authorityLine: string;
+  if (/\b(founder|co-founder|ceo|cto|cfo|coo|chief)\b/.test(tl)) {
+    authorityLine = `As ${company ? `${company}'s` : "a"} founder or C-suite exec, they own every key hire personally.`;
+  } else if (/\bvp\b|vice president/.test(tl)) {
+    authorityLine = `VPs carry direct budget and headcount authority. No committee needed to say yes.`;
+  } else if (/\bdirector\b/.test(tl)) {
+    authorityLine = `Directors own their team's roadmap and can approve talent without going up the chain.`;
+  } else if (/\bhead of\b/.test(tl)) {
+    authorityLine = `Heads of departments set their own priorities and hire directly into their teams.`;
+  } else if (/\bmanager\b/.test(tl)) {
+    authorityLine = `Managers are closest to the actual work. They know exactly what their team is missing and can act fast.`;
+  } else if (/\b(lead|principal|staff)\b/.test(tl)) {
+    authorityLine = `Tech leads and principals often drive or heavily influence hiring decisions for their squad.`;
+  } else {
+    authorityLine = `Their position puts them close to the decision-making on new hires.`;
+  }
+
+  // ── 2. Fit line — why this company / industry matches ───────────────────
+  let fitLine: string;
+  const titleScore = score?.title_relevance ?? 0;
+  const industryScore = score?.industry_relevance ?? 0;
+
+  if (titleScore >= 28 && company) {
+    fitLine = `Their title maps directly to the kind of work you do, making ${company} a strong target.`;
+  } else if (industryScore >= 12 && industry) {
+    fitLine = `${industry} is squarely in your target space, so this outreach will feel relevant, not random.`;
+  } else if (company) {
+    fitLine = `${company} is the type of organisation where your background would stand out.`;
+  } else {
+    fitLine = `The overlap between their focus area and your background makes the conversation a natural one.`;
+  }
+
+  // ── 3. Action line — why now / what to do ───────────────────────────────
+  const senScore = score?.seniority_relevance ?? 0;
+  let actionLine: string;
+  if (senScore >= 9) {
+    actionLine = `Reach out now. This is the seniority sweet spot where you get a real conversation.`;
+  } else if (lead.email_verified) {
+    actionLine = `Their email is verified, so you can reach them directly without guesswork.`;
+  } else {
+    actionLine = `A short personalised note referencing their work is all it takes to get noticed.`;
+  }
+
+  return `${authorityLine} ${fitLine} ${actionLine}`;
+}
+
 export function FlashCard({ lead }: FlashCardProps) {
   const [flipped, setFlipped] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    setIsTouch(window.matchMedia("(hover: none)").matches);
+  }, []);
+
+  const reason = buildContactReason(lead);
 
   return (
     <div
       className="cursor-pointer"
       style={{ perspective: "1000px", height: "260px" }}
-      onMouseEnter={() => setFlipped(true)}
-      onMouseLeave={() => setFlipped(false)}
+      onMouseEnter={() => !isTouch && setFlipped(true)}
+      onMouseLeave={() => !isTouch && setFlipped(false)}
+      onClick={() => isTouch && setFlipped((f) => !f)}
     >
       <div
         className="relative w-full h-full transition-transform duration-500 ease-in-out"
@@ -67,61 +129,48 @@ export function FlashCard({ lead }: FlashCardProps) {
             >
               {lead.email_verified ? "Verified" : lead.status}
             </span>
-            <span className="text-[10px] text-studojo-muted font-satoshi">Hover to flip</span>
+            <span className="text-[10px] text-studojo-muted font-satoshi">{isTouch ? "Tap to flip" : "Hover to flip"}</span>
           </div>
         </div>
 
-        {/* Back */}
+        {/* Back — "Why contact them" write-up */}
         <div
           className="absolute inset-0 bg-white border-2 border-studojo-purple rounded-2xl shadow-brutal px-4 py-3 flex flex-col justify-between"
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
-          <div>
-            <h4 className="text-sm font-bold text-studojo-purple mb-2 font-satoshi">Score Breakdown</h4>
-            {lead.score ? (
-              <div className="space-y-1.5">
-                <ScoreBar label="Title" value={lead.score.title_relevance} max={35} />
-                <ScoreBar label="Dept" value={lead.score.department_relevance} max={20} />
-                <ScoreBar label="Industry" value={lead.score.industry_relevance} max={15} />
-                <ScoreBar label="Seniority" value={lead.score.seniority_relevance} max={10} />
-                <ScoreBar label="Location" value={lead.score.location_relevance} max={10} />
-              </div>
+          <div className="flex-1 min-h-0">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-studojo-purple" />
+              <h4 className="text-[11px] font-bold text-studojo-purple uppercase tracking-wide font-satoshi">
+                Why contact them
+              </h4>
+            </div>
+            <p className="text-xs font-satoshi text-studojo-ink leading-relaxed line-clamp-[7]">
+              {reason}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-studojo-ink/8">
+            {lead.linkedin_url ? (
+              <a
+                href={lead.linkedin_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-studojo-purple text-xs hover:underline font-satoshi font-medium"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FiExternalLink className="w-3 h-3" /> View on LinkedIn
+              </a>
             ) : (
-              <p className="text-xs text-studojo-muted font-satoshi">No score data</p>
+              <span />
             )}
-            {lead.score?.explanation && (
-              <p className="text-xs text-studojo-muted font-satoshi mt-2 line-clamp-2">{lead.score.explanation}</p>
+            {lead.score && (
+              <span className="text-[10px] font-satoshi text-studojo-muted">
+                Match score: <span className="font-bold text-studojo-ink">{Math.round(lead.score.overall)}</span>
+              </span>
             )}
           </div>
-          {lead.linkedin_url && (
-            <a
-              href={lead.linkedin_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-studojo-purple text-xs hover:underline mt-2 font-satoshi"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <FiExternalLink className="w-3 h-3" /> LinkedIn
-            </a>
-          )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function ScoreBar({ label, value, max }: { label: string; value: number; max: number }) {
-  const pct = Math.min((value / max) * 100, 100);
-  return (
-    <div>
-      <div className="flex justify-between text-xs mb-0.5 font-satoshi">
-        <span className="text-studojo-muted">{label}</span>
-        <span className="text-studojo-ink font-bold">
-          {value}/{max}
-        </span>
-      </div>
-      <div className="w-full h-1.5 bg-gray-100 rounded-full">
-        <div className="h-full bg-studojo-purple rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

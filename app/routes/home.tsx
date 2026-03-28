@@ -8,7 +8,6 @@ import {
   Header,
   Hero,
   PricingSection,
-  StatsSection,
   StepsSection,
   TestimonialsSection,
 } from "~/components";
@@ -64,13 +63,13 @@ function InternshipPopup() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem("internship-popup-dismissed")) return;
+    if (sessionStorage.getItem("outreach-popup-dismissed")) return;
     const t = setTimeout(() => setVisible(true), 800);
     return () => clearTimeout(t);
   }, []);
 
   function dismiss() {
-    sessionStorage.setItem("internship-popup-dismissed", "1");
+    sessionStorage.setItem("outreach-popup-dismissed", "1");
     setVisible(false);
   }
 
@@ -86,41 +85,45 @@ function InternshipPopup() {
         >
           <motion.div
             className="relative w-full max-w-md rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            initial={{ scale: 0.92, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            exit={{ scale: 0.92, opacity: 0, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            onClick={(e: { stopPropagation: () => void }) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={dismiss}
               className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-900 bg-neutral-100 font-['Satoshi'] text-sm font-medium text-neutral-900 hover:bg-neutral-200"
               aria-label="Close"
             >
-              ✕
+              ×
             </button>
 
             <div className="flex flex-col gap-5">
-              <img
-                src="/favicon.png"
-                alt="Studojo"
-                className="h-14 w-14 rounded-2xl border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
-              />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-200 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
+                <img src="/favicon.png" alt="Studojo" width="32" height="32" />
+              </div>
               <div className="flex flex-col gap-2">
                 <h2 className="font-['Clash_Display'] text-2xl font-medium leading-tight text-neutral-900">
                   Find your dream internship
                 </h2>
                 <p className="font-['Satoshi'] text-base text-neutral-600">
-                  Let AI find the right roles, write your outreach, and get you in front of real hiring managers.
+                  AI finds the right roles, writes your outreach, and gets you in front of real hiring managers. No job boards.
                 </p>
               </div>
               <Link
                 to="/outreach"
                 onClick={dismiss}
-                className="inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-purple-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                className="inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
               >
-                Find internships →
+                Try the Outreach Tool →
               </Link>
+              <button
+                onClick={dismiss}
+                className="font-['Satoshi'] text-sm text-neutral-500 hover:text-neutral-700 underline"
+              >
+                Not now
+              </button>
             </div>
           </motion.div>
         </motion.div>
@@ -132,8 +135,8 @@ function InternshipPopup() {
 export default function Home() {
   return (
     <>
-      <InternshipPopup />
       <Header />
+      <InternshipPopup />
       <motion.main
         variants={containerVariants}
         initial="hidden"
@@ -141,9 +144,6 @@ export default function Home() {
       >
         <motion.div variants={sectionVariants}>
           <Hero />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <StatsSection />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <DojoCards />

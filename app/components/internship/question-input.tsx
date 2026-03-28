@@ -222,7 +222,7 @@ export function QuestionInput({ question, value, onChange, autofilled = false }:
       {renderInput()}
       {autofilled && (
         <p className="font-['Satoshi'] text-xs text-yellow-600">
-          ✓ Previously answered similar question
+          Previously answered similar question
         </p>
       )}
     </div>

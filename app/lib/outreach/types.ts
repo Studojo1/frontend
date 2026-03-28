@@ -25,6 +25,20 @@ export interface MCQQuestion {
   allow_multiple: boolean;
 }
 
+export interface PsychometricResult {
+  top_strengths: string[];
+  dimension_scores: {
+    analytical: number;
+    creative: number;
+    execution: number;
+    social: number;
+  };
+  traits: string[];
+  recommended_roles: string[];
+  reasoning: string;
+  confidence_score: number;
+}
+
 export interface AgentResponse {
   message: string;
   current_state: string;
@@ -32,6 +46,7 @@ export interface AgentResponse {
   text_input: boolean;
   is_complete: boolean;
   questions_asked_so_far: number;
+  psychometric?: PsychometricResult | null;
 }
 
 export interface ChatMessage {
@@ -89,9 +104,16 @@ export interface CampaignMetrics {
   status: string;
   emails_total: number;
   emails_queued: number;
+  emails_pending_enrichment?: number;
+  emails_enriched?: number;
+  emails_enrichment_skipped?: number;
   emails_sent: number;
   emails_failed: number;
   emails_replied: number;
+  emails_bounced: number;
+  emails_positive: number;
+  emails_negative: number;
+  emails_neutral: number;
   reply_rate: number;
 }
 

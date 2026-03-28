@@ -69,7 +69,7 @@ function isConfigured(): boolean {
 export function sendOtpSms(to: string, code: string): void {
   // Always log in dev environments for testing (even if Twilio is not configured)
   if (process.env.NODE_ENV !== "production") {
-    console.log(`[sms] 📱 Creating verification for ${to} (code will be sent by Twilio)`);
+    console.log(`[sms] Creating verification for ${to} (code will be sent by Twilio)`);
   }
 
   if (!isConfigured()) {

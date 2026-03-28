@@ -103,24 +103,33 @@ export function CareersApplyForm() {
     try {
       // Create payment order
       const amount = 99900; // ₹999 in paise
-      const { order_id, key_id } = await createPaymentOrder(amount);
+      const orderRes = await createPaymentOrder(amount);
 
       // Store form data temporarily (we'll save it after payment verification)
       const submissionData = {
         ...formData,
         fullPhoneNumber: formData.countryCode + formData.phoneNumber,
-        paymentOrderId: order_id,
+        paymentOrderId: orderRes.order_id || orderRes.session_id || "",
       };
 
-      // Open Razorpay checkout
+      // ── Dodo Payments (international) — redirect to checkout ──
+      if (orderRes.provider === "dodo" && orderRes.checkout_url) {
+        // Store form data so payment-success page can resume submission
+        localStorage.setItem("dodo_pending_job_type", "career");
+        localStorage.setItem("dodo_pending_career_form", JSON.stringify(submissionData));
+        window.location.href = orderRes.checkout_url;
+        return;
+      }
+
+      // ── Razorpay (India) — modal checkout ──
       setPaymentProcessing(true);
       await openRazorpayCheckout({
-        key: key_id,
-        amount,
+        key: orderRes.key_id!,
+        amount: orderRes.amount || amount,
         currency: "INR",
         name: "Studojo",
         description: "Career Application Registration",
-        order_id: order_id,
+        order_id: orderRes.order_id,
         handler: async (response) => {
           try {
             // Verify payment

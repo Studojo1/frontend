@@ -180,7 +180,7 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
           {hasApplied ? (
             <div className="flex-1 rounded-lg border-2 border-neutral-900 bg-green-50 px-6 py-3 text-center">
               <p className="font-['Satoshi'] font-bold text-green-700">
-                ✓ Already Applied
+                Already Applied
               </p>
               <p className="mt-1 text-sm font-['Satoshi'] text-green-600">
                 Your application has been submitted successfully

@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 
 const floatY = [0, -24, -12, -30, 0];
 const floatX = [0, 12, -18, 8, 0];
 const floatRotate = [0, 6, -8, 4, 0];
 
-export function Hero() {
+export function Hero({ children }: { children?: ReactNode }) {
   return (
-    <section className="overflow-hidden border-b border-neutral-900 bg-purple-50">
+    <section className="border-b border-neutral-900 bg-purple-50">
       <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col gap-12 px-4 pt-8 pb-8 md:px-8 md:py-20 md:flex-row md:items-center md:justify-between md:gap-16">
         <div className="flex max-w-3xl flex-col gap-5 md:gap-7">
           <div className="flex flex-col items-center gap-3 md:items-start md:gap-0">
@@ -85,6 +86,7 @@ export function Hero() {
           />
         </div>
       </div>
+      {children}
     </section>
   );
 }

@@ -51,8 +51,8 @@ export async function loader() {
   <url>
     <loc>${baseUrl}/blog/${encodeURIComponent(post.slug)}</loc>
     <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>`;
     }),
   ];

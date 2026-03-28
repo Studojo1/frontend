@@ -214,11 +214,21 @@ export function HumanizerDojoPage() {
       
       // Create payment order - pass job_type for humanizer to ensure proper pricing
       const orderRes = await createPaymentOrder(price, "humanizer");
-      
-      // Open Razorpay checkout
+
+      // ── Dodo Payments (international) — redirect to checkout ──
+      if (orderRes.provider === "dodo" && orderRes.checkout_url) {
+        // Store context so payment-success page can resume
+        localStorage.setItem("dodo_pending_job_type", "humanizer");
+        localStorage.setItem("dodo_pending_file_url", uploadResult.file_url);
+        localStorage.setItem("dodo_pending_file_name", file.name);
+        window.location.href = orderRes.checkout_url;
+        return;
+      }
+
+      // ── Razorpay (India) — modal checkout ──
       await openRazorpayCheckout({
-        key: orderRes.key_id,
-        amount: orderRes.amount,
+        key: orderRes.key_id!,
+        amount: orderRes.amount!,
         currency: "INR",
         name: "Studojo",
         description: "Document Humanization",
@@ -231,7 +241,7 @@ export function HumanizerDojoPage() {
               response.razorpay_payment_id,
               response.razorpay_signature
             );
-            
+
             // Submit job with pre-uploaded file URL
             setView("processing");
             const result = await submitHumanizerJobWithURL(
@@ -585,7 +595,7 @@ export function HumanizerDojoPage() {
                 </h2>
                 {paragraphsReverted > 0 && (
                   <p className="mt-2 font-['Satoshi'] text-sm text-amber-700">
-                    ⚠️ {paragraphsReverted} paragraph(s) were reverted to original content due to verification failures.
+                    {paragraphsReverted} paragraph(s) were reverted to original content due to verification failures.
                   </p>
                 )}
               </div>

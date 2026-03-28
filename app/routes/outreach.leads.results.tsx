@@ -45,32 +45,32 @@ export default function ResultsPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-8 md:px-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+      <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-6 md:px-8">
+        <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between sm:mb-6">
           <div>
-            <h1 className="font-clash text-2xl font-bold text-studojo-ink">Lead Results</h1>
-            <p className="text-sm text-studojo-muted font-satoshi mt-1">
-              {leads.length} decision makers found. Hover cards to see scoring details.
+            <h1 className="font-clash text-xl sm:text-2xl font-bold text-studojo-ink">Lead Results</h1>
+            <p className="text-sm text-studojo-muted font-satoshi mt-0.5">
+              {leads.length} decision makers found. Tap cards to see scoring details.
             </p>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={() => navigate("/outreach/enrichment")}
-              className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
-            >
-              <FiMail className="w-4 h-4 mr-1.5" /> Enrich Leads
-            </button>
-            <div className="flex items-center gap-2">
-              <FiFilter className="w-4 h-4 text-studojo-muted" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-1 sm:flex-none">
+              <FiFilter className="w-4 h-4 text-studojo-muted flex-shrink-0" />
               <select
                 value={sortBy}
                 onChange={(e) => { setSortBy(e.target.value as "score" | "name"); setPage(1); }}
-                className="text-sm border-2 border-studojo-ink/20 rounded-xl px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-studojo-purple font-satoshi"
+                className="flex-1 sm:flex-none text-sm border-2 border-studojo-ink/20 rounded-xl px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-studojo-purple font-satoshi"
               >
                 <option value="score">Highest Score</option>
                 <option value="name">Name (A-Z)</option>
               </select>
             </div>
+            <button
+              onClick={() => navigate("/outreach/enrichment")}
+              className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
+            >
+              <FiMail className="w-4 h-4 mr-1.5" /> Enrich Leads
+            </button>
           </div>
         </div>
 
@@ -84,7 +84,7 @@ export default function ResultsPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {paginated.map((lead) => (
                 <FlashCard key={lead.id} lead={lead} />
               ))}

@@ -11,17 +11,17 @@ import { outreachFetch } from "~/lib/outreach/api";
 
 const stages = [
   { icon: FiShield, label: "Validating campaign configuration", duration: 1500 },
-  { icon: FiCheckCircle, label: "Checking enriched leads", duration: 2000 },
-  { icon: FiMail, label: "Generating personalized emails", duration: 5000 },
+  { icon: FiCheckCircle, label: "Preparing leads for outreach", duration: 2000 },
+  { icon: FiMail, label: "Setting up email pipeline", duration: 3000 },
   { icon: FiClock, label: "Scheduling send times", duration: 2000 },
-  { icon: FiZap, label: "Building send queue", duration: 1500 },
+  { icon: FiZap, label: "Starting enrichment engine", duration: 1500 },
   { icon: FiSend, label: "Campaign ready", duration: 1000 },
 ];
 
 export default function CampaignLaunchingPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
-  const { candidateId, emailAccountId, setCampaignId } = useOutreachStore();
+  const { candidateId, emailAccountId, setCampaignId, selectedTier } = useOutreachStore();
   const [currentStage, setCurrentStage] = useState(0);
   const [error, setError] = useState("");
   const launched = useRef(false);
@@ -55,7 +55,8 @@ export default function CampaignLaunchingPage() {
             candidate_id: candidateId,
             email_account_id: emailAccountId,
             name: campaignName || "My Outreach Campaign",
-            selected_styles: selectedStyles?.length > 0 ? selectedStyles : undefined,
+            selected_styles: selectedStyles?.length > 0 ? selectedStyles : ["value_prop"],
+            lead_limit: selectedTier || undefined,
             ...((!selectedStyles || selectedStyles.length === 0) && selectedTemplate && {
               template_id: selectedTemplate.id,
               subject_template: selectedTemplate.subject,
@@ -68,7 +69,7 @@ export default function CampaignLaunchingPage() {
         setCampaignId(newCampaignId);
 
         if (createData.queued_messages === 0) {
-          setError("No leads with verified emails found. Please run lead discovery first.");
+          setError("No leads found. Please run lead discovery first.");
           return;
         }
 

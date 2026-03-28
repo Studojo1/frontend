@@ -1,96 +1,73 @@
+import { CTA_INLINE_HTML } from "./blog-cta-bar";
+
 interface BlogContentProps {
   content: string;
 }
 
 function normalizeImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
-  
-  // If it's already a relative path starting with /api/images, return as is
-  if (url.startsWith("/api/images")) {
-    return url;
-  }
-  
-  // If it's an absolute URL, extract the path after the domain
+  if (url.startsWith("/api/images")) return url;
   try {
     const urlObj = new URL(url);
-    // If it's from the same origin or a known CDN, use the pathname
-    if (urlObj.pathname.startsWith("/api/images")) {
-      return urlObj.pathname;
-    }
-    // If it contains blog-images in the path, construct the proper path
+    if (urlObj.pathname.startsWith("/api/images")) return urlObj.pathname;
     if (urlObj.pathname.includes("blog-images")) {
       const pathMatch = urlObj.pathname.match(/\/api\/images\/blog-images\/.+/);
-      if (pathMatch) {
-        return pathMatch[0];
-      }
-      // Extract blog-images path from full URL
+      if (pathMatch) return pathMatch[0];
       const blogImagesMatch = urlObj.pathname.match(/blog-images\/.+/);
-      if (blogImagesMatch) {
-        return `/api/images/${blogImagesMatch[0]}`;
-      }
+      if (blogImagesMatch) return `/api/images/${blogImagesMatch[0]}`;
     }
   } catch {
-    // If URL parsing fails, check if it's just a filename
-    // Pattern: timestamp-filename.ext or just filename.ext
     const filenamePattern = /^(\d+-)?[^\/]+\.(png|jpg|jpeg|webp|gif)$/i;
-    if (filenamePattern.test(url) && !url.startsWith("/")) {
-      // It's just a filename, prepend the blog-images path
-      return `/api/images/blog-images/${url}`;
-    }
-    
-    // If it's already a relative path starting with /, return as is
-    if (url.startsWith("/")) {
-      return url;
-    }
+    if (filenamePattern.test(url) && !url.startsWith("/")) return `/api/images/blog-images/${url}`;
+    if (url.startsWith("/")) return url;
   }
-  
-  // Check if it's just a filename (not a URL and not starting with /)
-  // Pattern: timestamp-filename.ext or just filename.ext
   const filenamePattern = /^(\d+-)?[^\/]+\.(png|jpg|jpeg|webp|gif)$/i;
-  if (filenamePattern.test(url) && !url.startsWith("/") && !url.includes("://")) {
-    // It's just a filename, prepend the blog-images path
-    return `/api/images/blog-images/${url}`;
-  }
-  
-  // Default: return as is (might be a relative path already)
+  if (filenamePattern.test(url) && !url.startsWith("/") && !url.includes("://")) return `/api/images/blog-images/${url}`;
   return url;
 }
 
 function processBlogContentHtml(html: string): string {
   if (!html) return html;
-  
-  // Find all img tags with src attributes
-  // Pattern matches various formats:
-  // <img src="filename.png">
-  // <img src='filename.png'>
-  // <img src=filename.png>
-  // <img alt="..." src="filename.png">
-  // Handles attributes before and after src, with or without quotes
-  // More robust pattern that handles quoted and unquoted src values
-  return html.replace(/<img([^>]*?)src\s*=\s*((["'])([^"']+)\3|([^\s>]+))([^>]*?)>/gi, (match, beforeSrc, fullSrcAttr, quote, quotedValue, unquotedValue, afterSrc) => {
-    // Extract the actual src value (either from quoted or unquoted)
-    const srcValue = quotedValue || unquotedValue;
-    const quoteChar = quote || '"';
-    
-    if (!srcValue) return match;
-    
-    // Normalize the image URL
-    const normalizedSrc = normalizeImageUrl(srcValue);
-    
-    // If the URL was normalized, replace it in the tag
-    if (normalizedSrc && normalizedSrc !== srcValue) {
-      // Reconstruct the img tag with the normalized src
-      return `<img${beforeSrc}src=${quoteChar}${normalizedSrc}${quoteChar}${afterSrc}>`;
+
+  // 1. Fix legacy job.studojo.com links → studojo.com/outreach
+  let processed = html.replace(
+    /https?:\/\/job\.studojo\.com[^\s"'>]*/gi,
+    "https://studojo.com/outreach"
+  );
+
+  // 2. Also fix any href that points to job.studojo.com (in case protocol-relative or other formats)
+  processed = processed.replace(
+    /(href\s*=\s*["'])https?:\/\/job\.studojo\.com[^\s"']*(["'])/gi,
+    "$1https://studojo.com/outreach$2"
+  );
+
+  // 3. Replace manually-inserted CTA placeholders (from Maverick editor)
+  //    Matches: <div data-studojo-cta="outreach">...</div> (possibly with inner content)
+  processed = processed.replace(
+    /<div[^>]*data-studojo-cta="outreach"[^>]*>[\s\S]*?<\/div>/gi,
+    CTA_INLINE_HTML
+  );
+
+  // 4. Fix image URLs
+  processed = processed.replace(
+    /<img([^>]*?)src\s*=\s*((["'])([^"']+)\3|([^\s>]+))([^>]*?)>/gi,
+    (match, beforeSrc, fullSrcAttr, quote, quotedValue, unquotedValue, afterSrc) => {
+      const srcValue = quotedValue || unquotedValue;
+      const quoteChar = quote || '"';
+      if (!srcValue) return match;
+      const normalizedSrc = normalizeImageUrl(srcValue);
+      if (normalizedSrc && normalizedSrc !== srcValue) {
+        return `<img${beforeSrc}src=${quoteChar}${normalizedSrc}${quoteChar}${afterSrc}>`;
+      }
+      return match;
     }
-    
-    // Return original if no change needed
-    return match;
-  });
+  );
+
+  return processed;
 }
 
 export function BlogContent({ content }: BlogContentProps) {
   const processedContent = processBlogContentHtml(content);
-  
   return (
     <div
       className="blog-content"
@@ -98,4 +75,3 @@ export function BlogContent({ content }: BlogContentProps) {
     />
   );
 }
-

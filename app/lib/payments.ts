@@ -30,11 +30,20 @@ export interface CreateOrderRequest {
   job_type?: string; // Optional job type (e.g., "humanizer")
 }
 
-/** Payment order creation response. */
+/** Payment order creation response (supports both Razorpay and Dodo). */
 export interface CreateOrderResponse {
-  order_id: string;
-  amount: number;
-  key_id: string;
+  provider: string;      // "razorpay" or "dodo"
+  order_id?: string;     // Razorpay order ID
+  amount?: number;       // Razorpay amount in paise
+  key_id?: string;       // Razorpay key ID
+  checkout_url?: string; // Dodo checkout URL
+  session_id?: string;   // Dodo session ID
+}
+
+/** Dodo payment verification response. */
+export interface DodoVerifyResponse {
+  status: string; // "paid", "pending", "failed"
+  payment_id?: string;
 }
 
 /** Payment verification request. */
@@ -142,6 +151,94 @@ export async function verifyPayment(
     );
   }
   return data as VerifyPaymentResponse;
+}
+
+/** Verify Dodo payment status (frontend polls after redirect). */
+export async function verifyDodoPayment(
+  sessionId: string
+): Promise<DodoVerifyResponse> {
+  const token = await getToken();
+  if (!token) throw new PaymentError("No token", 401);
+
+  const base = getControlPlaneUrl();
+  const res = await fetchWithRetry(`${base}/v1/payments/verify-dodo`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ session_id: sessionId }),
+    maxRetries: 3,
+    timeout: 30 * 1000,
+  });
+
+  const data = (await res.json()) as DodoVerifyResponse | ApiError;
+  if (!res.ok) {
+    const err = data as ApiError;
+    throw new PaymentError(
+      err?.error?.message ?? "Dodo payment verification failed",
+      res.status,
+      err
+    );
+  }
+  return data as DodoVerifyResponse;
+}
+
+/**
+ * Unified payment handler — opens Razorpay modal or redirects to Dodo checkout.
+ * Returns a payment_id on success (Razorpay), or redirects (Dodo).
+ */
+export async function openPayment(opts: {
+  amount: number;
+  jobType?: string;
+  description?: string;
+  userName?: string;
+  userEmail?: string;
+  onSuccess: (paymentId: string) => void;
+  onFailure: (error: string) => void;
+  onDismiss?: () => void;
+}): Promise<void> {
+  const order = await createPaymentOrder(opts.amount, opts.jobType);
+
+  if (order.provider === "dodo" && order.checkout_url) {
+    // Store context for payment-success page
+    localStorage.setItem("dodo_pending_job_type", opts.jobType || "");
+    window.location.href = order.checkout_url;
+    return;
+  }
+
+  // Razorpay flow
+  if (!order.order_id || !order.key_id) {
+    throw new PaymentError("Invalid Razorpay order response", 500);
+  }
+
+  await openRazorpayCheckout({
+    key: order.key_id,
+    amount: order.amount || opts.amount,
+    currency: "INR",
+    description: opts.description || "Payment",
+    order_id: order.order_id,
+    handler: async (response) => {
+      try {
+        const verified = await verifyPayment(
+          response.razorpay_order_id,
+          response.razorpay_payment_id,
+          response.razorpay_signature
+        );
+        opts.onSuccess(verified.payment_id);
+      } catch (err: any) {
+        opts.onFailure(err.message || "Payment verification failed");
+      }
+    },
+    prefill: {
+      name: opts.userName,
+      email: opts.userEmail,
+    },
+    onDismiss: opts.onDismiss,
+    onPaymentFailed: (response: any) => {
+      opts.onFailure(response?.error?.description || "Payment failed");
+    },
+  });
 }
 
 /** Load Razorpay script dynamically. */
