@@ -513,6 +513,14 @@ export default function DashboardPage() {
                     <FiPlay className="w-4 h-4 mr-2" /> Resume
                   </button>
                 )}
+                {metrics.status === "completed" && (
+                  <button
+                    onClick={() => handleTransition("running")}
+                    className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+                  >
+                    <FiPlay className="w-4 h-4 mr-2" /> Resume Campaign
+                  </button>
+                )}
                 {["running", "completed", "paused"].includes(metrics.status) && (
                   <button
                     onClick={() => { setTestError(""); setShowTestModal(true); }}

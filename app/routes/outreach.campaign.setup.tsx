@@ -55,7 +55,7 @@ export default function CampaignSetupPage() {
       const data = await outreachFetch<{ subject: string; body: string; lead_name: string; company: string }>("/campaign/preview-email", {
         method: "POST",
         body: JSON.stringify({ candidate_id: candidateId, selected_styles: selectedStyles.length > 0 ? selectedStyles : ["value_prop"] }),
-        maxRetries: 0,
+        maxRetries: 1,
         timeout: 15000,
       });
       setPreviewEmail(data);
