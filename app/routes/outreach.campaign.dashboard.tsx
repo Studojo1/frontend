@@ -4,7 +4,7 @@ import {
   FiSend, FiAlertCircle, FiBarChart2, FiPause, FiPlay, FiUsers,
   FiCheckCircle, FiXCircle, FiClock, FiMessageCircle, FiX,
   FiArrowRight, FiThumbsUp, FiThumbsDown, FiMinus,
-  FiPlus, FiTrash2, FiMail,
+  FiPlus, FiTrash2, FiMail, FiRefreshCw,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
@@ -140,7 +140,7 @@ function StatusBadge({ status, sentiment }: { status: string; sentiment?: string
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
-  const { campaignId, setCampaignId } = useOutreachStore();
+  const { campaignId, setCampaignId, emailAccountId } = useOutreachStore();
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   // Test mode state
@@ -161,6 +161,10 @@ export default function DashboardPage() {
   const [testRecipients, setTestRecipients] = useState<TestRecipient[]>([{ first_name: "", company: "", email: "" }]);
   const [sendingTest, setSendingTest] = useState(false);
   const [testError, setTestError] = useState("");
+
+  // Gmail re-auth state
+  const [showReauthBanner, setShowReauthBanner] = useState(false);
+  const [reauthLoading, setReauthLoading] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initialLoaded = useRef(false);
@@ -238,6 +242,42 @@ export default function DashboardPage() {
     const interval = setInterval(fetchCampaignData, 10000);
     return () => clearInterval(interval);
   }, [campaignId, testJobId, fetchCampaignData]);
+
+  // Check if Gmail re-auth is needed (for reply tracking scope)
+  useEffect(() => {
+    if (!campaignId || !emailAccountId) return;
+    const dismissed = localStorage.getItem(`reauth_banner_dismissed_${emailAccountId}`);
+    if (dismissed) return;
+
+    outreachFetch<{ email_account_id?: number; email_address?: string; token_valid?: boolean; scopes?: string[] }>(
+      `/gmail/oauth/account?email_account_id=${emailAccountId}`
+    ).then((data) => {
+      // Show banner if account exists but we can't confirm gmail.readonly scope
+      // The backend doesn't expose scopes, so show banner unless user has dismissed it
+      if (data?.token_valid) {
+        setShowReauthBanner(true);
+      }
+    }).catch(() => {});
+  }, [campaignId, emailAccountId]);
+
+  const handleReauth = async () => {
+    setReauthLoading(true);
+    try {
+      const data = await outreachFetch<{ url: string }>("/gmail/oauth/connect-url");
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      setReauthLoading(false);
+    }
+  };
+
+  const dismissReauthBanner = () => {
+    if (emailAccountId) {
+      localStorage.setItem(`reauth_banner_dismissed_${emailAccountId}`, "true");
+    }
+    setShowReauthBanner(false);
+  };
 
   const handleTransition = async (status: string) => {
     if (!campaignId) return;
@@ -531,6 +571,42 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
+
+            {/* Gmail Re-Auth Banner */}
+            {showReauthBanner && (
+              <div className="rounded-2xl border-2 border-studojo-purple/30 bg-studojo-purple-bg p-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-studojo-purple/10 border-2 border-studojo-purple/20 flex items-center justify-center flex-shrink-0">
+                    <FiMessageCircle className="w-4 h-4 text-studojo-purple" />
+                  </div>
+                  <p className="text-sm font-satoshi text-studojo-ink">
+                    <span className="font-bold">Reply tracking is now available!</span>{" "}
+                    Reconnect your Gmail to see who replies to your outreach emails.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={handleReauth}
+                    disabled={reauthLoading}
+                    className="h-8 px-4 rounded-lg bg-studojo-purple text-white text-xs font-satoshi font-medium border border-studojo-ink shadow-brutal transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:opacity-50 inline-flex items-center"
+                  >
+                    {reauthLoading ? (
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1.5" />
+                    ) : (
+                      <FiRefreshCw className="w-3 h-3 mr-1.5" />
+                    )}
+                    Reconnect Gmail
+                  </button>
+                  <button
+                    onClick={dismissReauthBanner}
+                    className="w-7 h-7 rounded-lg hover:bg-studojo-purple/10 flex items-center justify-center transition-colors"
+                    title="Dismiss"
+                  >
+                    <FiX className="w-4 h-4 text-studojo-muted" />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Summary Stats — 5 cards */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
