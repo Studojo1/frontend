@@ -103,6 +103,31 @@ export async function createProfile(
   return row!;
 }
 
+export async function updateProfile(
+  userId: string,
+  data: Partial<{ fullName: string; college: string; yearOfStudy: string; course: string }>
+) {
+  const updates: Record<string, string> = {};
+  if (data.fullName?.trim()) updates.fullName = data.fullName.trim();
+  if (data.college?.trim()) updates.college = data.college.trim();
+  if (data.yearOfStudy?.trim()) updates.yearOfStudy = data.yearOfStudy.trim();
+  if (data.course?.trim()) updates.course = data.course.trim();
+
+  if (Object.keys(updates).length === 0) return null;
+
+  await db
+    .update(userProfile)
+    .set(updates)
+    .where(eq(userProfile.userId, userId));
+
+  const [row] = await db
+    .select()
+    .from(userProfile)
+    .where(eq(userProfile.userId, userId))
+    .limit(1);
+  return row ?? null;
+}
+
 /**
  * Check if user has admin role by calling control plane API
  * Returns true if user is admin, false otherwise
