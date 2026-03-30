@@ -1,11 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { redirect, useNavigate } from "react-router";
-import { eq } from "drizzle-orm";
 import { Header } from "~/components";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
-import db from "~/lib/db";
-import { user } from "../../auth-schema";
 import type { Route } from "./+types/onboarding";
 
 const floatY = [0, -24, -12, -30, 0];
