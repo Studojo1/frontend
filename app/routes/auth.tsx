@@ -65,13 +65,26 @@ function FloatShape({
   );
 }
 
+const BASE_URL = "https://studojo.com";
+
 export function meta({}: Route.MetaArgs) {
+  const title = "Sign In – Studojo";
+  const description =
+    "Sign in or create your free Studojo account. Access AI resume builder, internship discovery, and direct outreach tools.";
   return [
-    { title: "Sign In – Studojo" },
-    {
-      name: "description",
-      content: "Sign in or create your Studojo account to get started.",
-    },
+    { title },
+    { name: "description", content: description },
+    { tagName: "link", rel: "canonical", href: `${BASE_URL}/auth` },
+    { property: "og:type", content: "website" },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:url", content: `${BASE_URL}/auth` },
+    { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: `${BASE_URL}/og-default.png` },
+    { name: "twitter:card", content: "summary" },
+    { name: "twitter:site", content: "@studojo" },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
   ];
 }
 

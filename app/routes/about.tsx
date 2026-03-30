@@ -6,13 +6,26 @@ import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
 import type { Route } from "./+types/about";
 
+const BASE_URL = "https://studojo.com";
+
 export function meta({}: Route.MetaArgs) {
+  const title = "About – Studojo";
+  const description =
+    "Built for students who want to work on things that matter. Learn about Studojo, our products, and who we serve.";
   return [
-    { title: "About – Studojo" },
-    {
-      name: "description",
-      content: "Built for students who want to work on things that matter. Learn about Studojo, our products, and who we serve.",
-    },
+    { title },
+    { name: "description", content: description },
+    { tagName: "link", rel: "canonical", href: `${BASE_URL}/about` },
+    { property: "og:type", content: "website" },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:url", content: `${BASE_URL}/about` },
+    { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: `${BASE_URL}/og-default.png` },
+    { name: "twitter:card", content: "summary" },
+    { name: "twitter:site", content: "@studojo" },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
   ];
 }
 

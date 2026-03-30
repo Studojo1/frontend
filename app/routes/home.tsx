@@ -25,14 +25,29 @@ export async function loader({ request }: Route.LoaderArgs) {
   return null;
 }
 
+const BASE_URL = "https://studojo.com";
+
 export function meta({}: Route.MetaArgs) {
+  const title = "Studojo – Work on things that matter";
+  const description =
+    "AI-powered career tools for students. Build ATS resumes, discover internships, and reach hiring managers directly with personalised outreach.";
   return [
-    { title: "Studojo – Student life made simple" },
-    {
-      name: "description",
-      content:
-        "Assignments, projects, exam prep—all in one place. Work smarter, not harder.",
-    },
+    { title },
+    { name: "description", content: description },
+    { tagName: "link", rel: "canonical", href: BASE_URL },
+    { property: "og:type", content: "website" },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:url", content: BASE_URL },
+    { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: `${BASE_URL}/og-default.png` },
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:site", content: "@studojo" },
+    { name: "twitter:title", content: title },
+    { name: "twitter:description", content: description },
+    { name: "twitter:image", content: `${BASE_URL}/og-default.png` },
   ];
 }
 
@@ -132,10 +147,32 @@ function InternshipPopup() {
   );
 }
 
+const ORGANIZATION_JSONLD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Studojo",
+  url: "https://studojo.com",
+  logo: "https://studojo.com/favicon.png",
+  description: "AI-powered career tools for students. Resumes, internships, and direct outreach to hiring managers.",
+  sameAs: [
+    "https://linkedin.com/company/studojo",
+    "https://instagram.com/studojo",
+  ],
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Bangalore",
+    addressCountry: "IN",
+  },
+});
+
 export default function Home() {
   return (
     <>
       <Header />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: ORGANIZATION_JSONLD }}
+      />
       <InternshipPopup />
       <motion.main
         variants={containerVariants}

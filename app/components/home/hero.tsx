@@ -14,9 +14,9 @@ export function Hero({ children }: { children?: ReactNode }) {
         <div className="flex max-w-3xl flex-col gap-5 md:gap-7">
           <div className="flex flex-col items-center gap-3 md:items-start md:gap-0">
             <h1 className="font-['Clash_Display'] text-4xl font-medium leading-10 tracking-tight text-neutral-900 text-center md:text-left md:text-5xl lg:text-6xl">
-              Student life made{" "}
+              Work on things that{" "}
               <span className="inline-flex rounded-2xl border-2 border-neutral-900 border-solid bg-purple-300 px-3 py-1 font-['Satoshi'] text-xl font-medium leading-8 tracking-tight text-neutral-900 md:text-3xl lg:text-4xl">
-                simple
+                matter
               </span>
             </h1>
           </div>
