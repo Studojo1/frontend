@@ -12,7 +12,7 @@ const COMPANY_LINKS = [
 ];
 
 const RESOURCE_LINKS = [
-  { to: "mailto:admin@studojo.com", label: "Help Center" },
+  { to: "/contact", label: "Help Center" },
   { to: "https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol?mode=gi_t", label: "Community" },
 ];
 

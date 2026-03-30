@@ -67,6 +67,8 @@ export default [
   route("about", "routes/about.tsx"),
   route("terms", "routes/terms.tsx"),
   route("refund-policy", "routes/refund-policy.tsx"),
+  route("contact", "routes/contact.tsx"),
+  route("api/contact", "routes/api.contact.tsx"),
   route("blog/:slug", "routes/blog.$slug.tsx"),
   route("blog", "routes/blog.tsx"),
   route("api/blog/:slug", "routes/api.blog.$slug.tsx"),
