@@ -1,13 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { redirect, useNavigate } from "react-router";
-import { eq } from "drizzle-orm";
 import { Header } from "~/components";
-import { PhoneInput } from "~/components/phone-input";
-import { authClient } from "~/lib/auth-client";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
-import db from "~/lib/db";
-import { user } from "../../auth-schema";
 import type { Route } from "./+types/onboarding";
 
 const floatY = [0, -24, -12, -30, 0];
@@ -68,6 +63,8 @@ function FloatShape({
   );
 }
 
+const TOTAL_STEPS = 4;
+
 const YEAR_OPTIONS = [
   "First year",
   "Second year",
@@ -75,46 +72,29 @@ const YEAR_OPTIONS = [
   "Fourth year",
   "Final year",
   "Postgraduate",
+  "Graduated",
+  "Working professional",
   "Other",
 ];
 
 const INPUT_CLASS =
   "w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2";
-const LABEL_CLASS = "mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900";
-const LABEL_OPTIONAL_CLASS = "mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900";
 const BTN_PRIMARY =
   "rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none";
-const BTN_SECONDARY =
-  "rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none";
+const BTN_SKIP =
+  "rounded-2xl border-2 border-neutral-200 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-neutral-400 transition-colors hover:border-neutral-300 hover:text-neutral-500";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) throw redirect("/auth");
-  
-  // Check if onboarding is complete (profile required, phone optional)
+
   const onboardingStatus = await requireOnboardingComplete(session.user.id);
   if (onboardingStatus.complete) {
     throw redirect("/");
   }
-  
-  // Check if user signed in via Google OAuth (for auto-verifying phone)
-  const [userRecord] = await db
-    .select({
-      lastLoginMethod: user.lastLoginMethod,
-      phoneNumber: user.phoneNumber,
-      phoneNumberVerified: user.phoneNumberVerified,
-    })
-    .from(user)
-    .where(eq(user.id, session.user.id))
-    .limit(1);
-  
-  const isGoogleUser = userRecord?.lastLoginMethod === "google";
-  
-  return { 
-    userEmail: session.user.email,
-    userName: session.user.name || null, // Pre-fill name from Google OAuth if available
-    isGoogleUser, // If true, we can auto-verify phone number
-    hasPhone: !!(userRecord?.phoneNumber && userRecord?.phoneNumberVerified),
+
+  return {
+    userName: session.user.name || null,
   };
 }
 
@@ -127,191 +107,134 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Onboarding({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
-  // UX improvement: Simplified to 2 steps - basic info (step 0) and phone collection (step 1)
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState({
-    fullName: loaderData.userName || "", // Pre-fill from Google OAuth
-    college: "",
-    yearOfStudy: "",
-    course: "",
-  });
-  const [otherYearText, setOtherYearText] = useState("");
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
+  const [fullName, setFullName] = useState(loaderData.userName || "");
+  const [college, setCollege] = useState("");
+  const [yearOfStudy, setYearOfStudy] = useState("");
+  const [course, setCourse] = useState("");
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const nameInputRef = useRef<HTMLInputElement>(null);
-
-  // Phone collection state (required step, but verification method differs for Google users)
-  const hasPhone = loaderData.hasPhone || false;
-  const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState("+91"); // Default to India
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [cooldownSeconds, setCooldownSeconds] = useState(0);
-  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
-  const userEmail = loaderData.userEmail;
-  const userName = loaderData.userName;
-  const isGoogleUser = loaderData.isGoogleUser || false;
-
-  // UX improvement: Only name is required, all other fields are optional
-  const canSubmit = !!form.fullName.trim();
+  const [profileCreated, setProfileCreated] = useState(false);
+  const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
 
   useEffect(() => {
-    // Focus name input on mount if not pre-filled
-    if (!form.fullName && nameInputRef.current) {
-      nameInputRef.current.focus();
-    }
-  }, []);
+    // Focus the input when slide changes
+    setTimeout(() => inputRef.current?.focus(), 350);
+  }, [step]);
 
-  // Cooldown timer for request new code
-  useEffect(() => {
-    if (cooldownSeconds > 0) {
-      const timer = setTimeout(() => setCooldownSeconds(s => s - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [cooldownSeconds]);
+  const greeting = loaderData.userName
+    ? `Hi, ${loaderData.userName.split(" ")[0]}!`
+    : "Hi there!";
 
-  const handleSendOtp = async () => {
-    const number = phone.trim();
-    if (!number) return;
+  const goForward = () => {
+    setDirection(1);
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
     setError(null);
-    setSendingOtp(true);
-    const fullNumber = countryCode + number;
-    const { error: err } = await authClient.phoneNumber.sendOtp({
-      phoneNumber: fullNumber,
-    });
-    setSendingOtp(false);
-    if (err) {
-      setError(err.message ?? "Failed to send code.");
-      return;
-    }
-    setOtpSent(true);
-    setOtpCode("");
-    setCooldownSeconds(60); // Start 60 second cooldown
   };
 
-  const handleVerify = async () => {
-    const number = phone.trim();
-    const code = otpCode.trim();
-    if (!number || !code) return;
+  const goBack = () => {
+    setDirection(-1);
+    setStep((s) => Math.max(s - 1, 0));
     setError(null);
-    setVerifying(true);
-    const fullNumber = countryCode + number;
-    
-    // Verify OTP first
-    const { error: err } = await authClient.phoneNumber.verify({
-      phoneNumber: fullNumber,
-      code,
-      updatePhoneNumber: true,
-    });
-    
-    if (err) {
-      setVerifying(false);
-      const status = (err as { status?: number }).status;
-      const msg =
-        status === 403
-          ? "Too many attempts. Request a new code."
-          : err.message ?? "Verification failed.";
-      setError(msg);
-      return;
-    }
-    
-    // For Google users, mark as verified (Google has already verified their account)
-    // For others, phone is already verified via OTP
-    if (isGoogleUser) {
-      try {
-        // Silently mark as verified for Google users (don't tell user)
-        await fetch("/api/user/phone", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phoneNumber: fullNumber, verified: true }),
-          credentials: "include",
-        });
-      } catch (err) {
-        // Non-critical, phone is already verified via OTP
-        console.error("[onboarding] Failed to update verification status:", err);
-      }
-    }
-    
-    setVerifying(false);
-    // Phone verified successfully, submit profile
-    await handleSubmitProfile();
   };
 
-  // Handle phone submission - send OTP for verification
-  // For Google users, we'll auto-verify after OTP (since Google verified their account)
-  const handlePhoneSubmit = async () => {
-    const number = phone.trim();
-    if (!number) return;
-    
-    // Always require OTP verification for security
-    await handleSendOtp();
-  };
-
-  const handleRequestNewCode = async () => {
-    if (cooldownSeconds > 0) return; // Prevent during cooldown
-    setError(null);
-    setOtpCode("");
-    await handleSendOtp();
-  };
-
-  const handleSubmitProfile = async () => {
+  const createProfileWithName = async () => {
     setError(null);
     setSubmitting(true);
-    const payload = { ...form, newsletterSubscribed };
-    if (form.yearOfStudy === "Other" && otherYearText.trim()) {
-      payload.yearOfStudy = otherYearText.trim();
-    }
-    const res = await fetch("/api/onboarding", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      credentials: "include",
-    });
-    const data = (await res.json()) as { error?: string };
-    if (!res.ok) {
-      // If profile already exists (409), just redirect to home
-      if (res.status === 409) {
-        navigate("/", { replace: true });
+    try {
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullName, college: "", yearOfStudy: "", course: "" }),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        if (res.status === 409) {
+          // Profile already exists, that's fine
+          setProfileCreated(true);
+          goForward();
+          return;
+        }
+        setError(data.error ?? "Something went wrong.");
         return;
       }
-      setError(data.error ?? "Something went wrong.");
+      setProfileCreated(true);
+      goForward();
+    } catch {
+      setError("Connection error. Please try again.");
+    } finally {
       setSubmitting(false);
-      return;
     }
-    navigate("/", { replace: true });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const updateField = async (field: string, value: string) => {
+    if (!value.trim()) return;
+    try {
+      await fetch("/api/onboarding", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+        credentials: "include",
+      });
+    } catch {
+      // Non-critical — field update failed but profile exists
+    }
+  };
+
+  const handleNext = async () => {
     if (step === 0) {
-      // Step 1: Basic info - move to phone step (or submit if already has phone)
-      if (hasPhone) {
-        // User already has phone, submit profile directly
-        await handleSubmitProfile();
-      } else {
-        // Need to collect phone
-        setStep(1);
+      if (!fullName.trim()) {
+        setError("Please enter your name");
+        return;
       }
-      return;
-    }
-    if (step === 1 && !otpSent) {
-      // Step 2: Phone collection - submit phone (auto-verify for Google, send OTP for others)
-      await handlePhoneSubmit();
-      return;
-    }
-    if (step === 1 && otpSent) {
-      // Step 2: Phone verification - verify OTP
-      await handleVerify();
-      return;
+      await createProfileWithName();
+    } else if (step === 1) {
+      if (college.trim()) await updateField("college", college);
+      goForward();
+    } else if (step === 2) {
+      if (yearOfStudy) await updateField("yearOfStudy", yearOfStudy);
+      goForward();
+    } else if (step === 3) {
+      setSubmitting(true);
+      if (course.trim()) await updateField("course", course);
+      if (newsletterSubscribed) {
+        try {
+          await fetch("/api/onboarding", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ newsletterSubscribed: true }),
+            credentials: "include",
+          });
+        } catch {}
+      }
+      navigate("/", { replace: true });
     }
   };
 
-  // Generate friendly greeting based on user name
-  const greeting = userName 
-    ? `Hi, ${userName.split(' ')[0]}!` // Use first name only for friendlier feel
-    : "Hi!";
+  const handleSkip = async () => {
+    if (step === 3) {
+      // Last step — finish
+      navigate("/", { replace: true });
+    } else {
+      goForward();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !submitting) {
+      e.preventDefault();
+      handleNext();
+    }
+  };
+
+  const slideVariants = {
+    enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 60 : -60 }),
+    center: { opacity: 1, x: 0 },
+    exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -60 : 60 }),
+  };
 
   return (
     <>
@@ -337,147 +260,168 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div className="relative rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
-              {/* UX improvement: Simplified progress indicator - only 2 steps */}
+              {/* Progress bar */}
               <div className="mb-6">
                 <span className="font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500">
-                  Step {step + 1} of 2
+                  Step {step + 1} of {TOTAL_STEPS}
                 </span>
                 <div
                   className="mt-2 flex gap-1"
                   role="progressbar"
                   aria-valuenow={step + 1}
                   aria-valuemin={1}
-                  aria-valuemax={2}
+                  aria-valuemax={TOTAL_STEPS}
                   aria-label="Progress"
                 >
-                  <div className="h-1.5 flex-1 rounded-full bg-neutral-900" />
-                  <div className={`h-1.5 flex-1 rounded-full ${step === 1 ? "bg-neutral-900" : "bg-neutral-200"}`} />
+                  {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                        i <= step ? "bg-neutral-900" : "bg-neutral-200"
+                      }`}
+                    />
+                  ))}
                 </div>
               </div>
 
-              <form
-                onSubmit={handleSubmit}
-                className="space-y-6"
-              >
-                {error && (
-                  <div
-                    className="rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-red-700"
-                    role="alert"
-                  >
-                    {error}
-                  </div>
-                )}
+              {error && (
+                <div
+                  className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-red-700"
+                  role="alert"
+                >
+                  {error}
+                </div>
+              )}
 
-                <AnimatePresence mode="wait">
-                  {step === 0 ? (
-                    // Step 1: Basic info form (single page with all fields)
+              <div className="min-h-[200px]" onKeyDown={handleKeyDown}>
+                <AnimatePresence mode="wait" custom={direction}>
+                  {step === 0 && (
                     <motion.div
-                      key="basic-info"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
+                      key="name"
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
                       transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="space-y-6"
+                      className="space-y-5"
                     >
-                      {/* UX improvement: Friendly greeting and value proposition */}
                       <div>
                         <h1 className="mb-2 font-['Clash_Display'] text-xl font-medium tracking-tight text-neutral-900 md:text-2xl">
-                          {greeting}
+                          {greeting} What should we call you?
                         </h1>
-                        <p className="mb-6 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-600 md:text-base">
-                          Tell us a bit about yourself to personalize your experience
+                        <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
+                          So we can personalize your experience
                         </p>
                       </div>
+                      <input
+                        ref={inputRef as React.RefObject<HTMLInputElement>}
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Your name"
+                        className={INPUT_CLASS}
+                        autoComplete="name"
+                        autoFocus
+                      />
+                    </motion.div>
+                  )}
 
-                      {/* Name field - required, pre-filled from Google */}
+                  {step === 1 && (
+                    <motion.div
+                      key="college"
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="space-y-5"
+                    >
                       <div>
-                        <label htmlFor="fullName" className={LABEL_CLASS}>
-                          Name
-                        </label>
-                        <input
-                          ref={nameInputRef}
-                          type="text"
-                          id="fullName"
-                          value={form.fullName}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, fullName: e.target.value }))
-                          }
-                          placeholder="Your name"
-                          className={INPUT_CLASS}
-                          required
-                          autoComplete="name"
-                        />
+                        <h1 className="mb-2 font-['Clash_Display'] text-xl font-medium tracking-tight text-neutral-900 md:text-2xl">
+                          Where do you study?
+                        </h1>
+                        <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
+                          We'll show you opportunities at your university
+                        </p>
                       </div>
+                      <input
+                        ref={inputRef as React.RefObject<HTMLInputElement>}
+                        type="text"
+                        value={college}
+                        onChange={(e) => setCollege(e.target.value)}
+                        placeholder="e.g. MIT, IIT Delhi, Oxford"
+                        className={INPUT_CLASS}
+                        autoComplete="organization"
+                      />
+                    </motion.div>
+                  )}
 
-                      {/* College field - optional */}
+                  {step === 2 && (
+                    <motion.div
+                      key="year"
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="space-y-5"
+                    >
                       <div>
-                        <label htmlFor="college" className={LABEL_OPTIONAL_CLASS}>
-                          College / University <span className="text-neutral-400 font-normal">(optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="college"
-                          value={form.college}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, college: e.target.value }))
-                          }
-                          placeholder="e.g. MIT"
-                          className={INPUT_CLASS}
-                          autoComplete="organization"
-                        />
+                        <h1 className="mb-2 font-['Clash_Display'] text-xl font-medium tracking-tight text-neutral-900 md:text-2xl">
+                          What year are you in?
+                        </h1>
+                        <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
+                          We'll tailor content to your academic stage
+                        </p>
                       </div>
+                      <select
+                        ref={inputRef as React.RefObject<HTMLSelectElement>}
+                        value={yearOfStudy}
+                        onChange={(e) => setYearOfStudy(e.target.value)}
+                        className={INPUT_CLASS}
+                      >
+                        <option value="">Select your year...</option>
+                        {YEAR_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    </motion.div>
+                  )}
 
-                      {/* Year of Study - optional */}
+                  {step === 3 && (
+                    <motion.div
+                      key="course"
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="space-y-5"
+                    >
                       <div>
-                        <label htmlFor="yearOfStudy" className={LABEL_OPTIONAL_CLASS}>
-                          Year of Study <span className="text-neutral-400 font-normal">(optional)</span>
-                        </label>
-                        <select
-                          id="yearOfStudy"
-                          value={form.yearOfStudy}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, yearOfStudy: e.target.value }))
-                          }
-                          className={INPUT_CLASS}
-                        >
-                          <option value="">Select…</option>
-                          {YEAR_OPTIONS.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                        {form.yearOfStudy === "Other" && (
-                          <input
-                            type="text"
-                            placeholder="Specify (optional)"
-                            className={`mt-3 ${INPUT_CLASS}`}
-                            value={otherYearText}
-                            onChange={(e) => setOtherYearText(e.target.value)}
-                          />
-                        )}
+                        <h1 className="mb-2 font-['Clash_Display'] text-xl font-medium tracking-tight text-neutral-900 md:text-2xl">
+                          What are you studying?
+                        </h1>
+                        <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
+                          We'll recommend tools relevant to your field
+                        </p>
                       </div>
-
-                      {/* Course field - optional */}
-                      <div>
-                        <label htmlFor="course" className={LABEL_OPTIONAL_CLASS}>
-                          Course / Major <span className="text-neutral-400 font-normal">(optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          id="course"
-                          value={form.course}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, course: e.target.value }))
-                          }
-                          placeholder="e.g. Computer Science"
-                          className={INPUT_CLASS}
-                          autoComplete="organization"
-                        />
-                      </div>
-
-                      {/* UX improvement: Newsletter checkbox inline, not separate step */}
-                      <div className="rounded-2xl border-2 border-neutral-900 bg-purple-50 p-4">
+                      <input
+                        ref={inputRef as React.RefObject<HTMLInputElement>}
+                        type="text"
+                        value={course}
+                        onChange={(e) => setCourse(e.target.value)}
+                        placeholder="e.g. Computer Science, Business, Medicine"
+                        className={INPUT_CLASS}
+                        autoComplete="organization"
+                      />
+                      <div className="rounded-2xl border-2 border-neutral-200 bg-purple-50 p-4">
                         <label className="flex items-start cursor-pointer">
                           <input
                             type="checkbox"
@@ -489,129 +433,54 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
                             <span className="font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
                               Subscribe to newsletter
                             </span>
-                            <p className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-600 mt-0.5">
-                              Get weekly wisdom, tips, and exclusive student insights
+                            <p className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-500 mt-0.5">
+                              Weekly tips, opportunities, and student insights
                             </p>
                           </div>
                         </label>
                       </div>
                     </motion.div>
-                  ) : (
-                    // Step 2: Phone collection (required)
-                    <motion.div
-                      key="phone-collection"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                    >
-                      <h1 className="mb-2 font-['Clash_Display'] text-xl font-medium tracking-tight text-neutral-900 md:text-2xl">
-                        Verify your phone number
-                      </h1>
-                      <p className="mb-4 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-600 md:text-base">
-                        We'll send a verification code to this number to keep your account secure.
-                      </p>
-
-                      {!otpSent ? (
-                        <div className="space-y-4">
-                          <label htmlFor="phone" className={LABEL_CLASS}>
-                            Phone
-                          </label>
-                          <PhoneInput
-                            value={phone}
-                            onChange={setPhone}
-                            onCountryChange={setCountryCode}
-                            defaultCountry={countryCode}
-                            className={INPUT_CLASS}
-                            placeholder="1234567890"
-                          />
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <p className="font-['Satoshi'] text-sm text-neutral-600">
-                            Code sent to {countryCode} {phone}
-                          </p>
-                          <label htmlFor="otp" className={LABEL_CLASS}>
-                            Verification code
-                          </label>
-                          <input
-                            type="text"
-                            id="otp"
-                            inputMode="numeric"
-                            autoComplete="one-time-code"
-                            value={otpCode}
-                            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                            placeholder="123456"
-                            className={INPUT_CLASS}
-                          />
-                        </div>
-                      )}
-                    </motion.div>
                   )}
                 </AnimatePresence>
+              </div>
 
-                <div className="flex gap-3 pt-2">
-                  {step === 1 && (
+              {/* Buttons */}
+              <div className="mt-6 flex items-center gap-3">
+                {step > 0 && (
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    disabled={submitting}
+                    className="rounded-2xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-sm font-medium leading-6 text-neutral-700 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                  >
+                    ←
+                  </button>
+                )}
+                <div className="flex flex-1 gap-3 justify-end">
+                  {step > 0 && (
                     <button
                       type="button"
-                      onClick={() => {
-                        setStep(0);
-                        setError(null);
-                        setPhone("");
-                        setOtpSent(false);
-                        setOtpCode("");
-                      }}
-                      disabled={submitting || verifying || sendingOtp}
-                      className={BTN_SECONDARY}
+                      onClick={handleSkip}
+                      disabled={submitting}
+                      className={BTN_SKIP}
                     >
-                      Back
+                      Skip
                     </button>
                   )}
-                  
-                  {step === 0 ? (
-                    // Step 1: Basic info - continue to phone step
-                    <button
-                      type="submit"
-                      disabled={!canSubmit || submitting}
-                      className={`${BTN_PRIMARY} w-full`}
-                    >
-                      Continue
-                    </button>
-                  ) : step === 1 && !otpSent ? (
-                    // Step 2: Phone collection - send OTP for verification
-                    <button
-                      type="submit"
-                      disabled={!phone.trim() || sendingOtp || verifying}
-                      className={`${BTN_PRIMARY} ${step === 1 ? "flex-1" : "w-full"}`}
-                    >
-                      {sendingOtp ? "Sending…" : "Send code"}
-                    </button>
-                  ) : step === 1 && otpSent ? (
-                    // Step 2: Phone verification - verify OTP
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => void handleRequestNewCode()}
-                        disabled={verifying || sendingOtp || cooldownSeconds > 0}
-                        className={BTN_SECONDARY}
-                      >
-                        {sendingOtp 
-                          ? "Sending…" 
-                          : cooldownSeconds > 0 
-                            ? `Request new code (${cooldownSeconds}s)`
-                            : "Request new code"}
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={!otpCode.trim() || verifying}
-                        className={`${BTN_PRIMARY} flex-1`}
-                      >
-                        {verifying ? "Verifying…" : "Verify & Continue"}
-                      </button>
-                    </>
-                  ) : null}
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={submitting || (step === 0 && !fullName.trim())}
+                    className={`${BTN_PRIMARY} flex-1`}
+                  >
+                    {submitting
+                      ? "Please wait…"
+                      : step === TOTAL_STEPS - 1
+                        ? "Get Started"
+                        : "Next →"}
+                  </button>
                 </div>
-              </form>
+              </div>
             </div>
           </motion.div>
         </div>

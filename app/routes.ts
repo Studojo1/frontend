@@ -64,6 +64,7 @@ export default [
   route("careers", "routes/careers.tsx"),
   route("api/careers/apply", "routes/api.careers.apply.tsx"),
   route("privacy", "routes/privacy.tsx"),
+  route("about", "routes/about.tsx"),
   route("terms", "routes/terms.tsx"),
   route("refund-policy", "routes/refund-policy.tsx"),
   route("blog/:slug", "routes/blog.$slug.tsx"),
