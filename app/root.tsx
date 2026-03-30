@@ -15,6 +15,7 @@ import { authClient } from "./lib/auth-client";
 import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
 import { capturePostHog, identifyPostHogUser, initPostHog } from "./lib/posthog";
 import { ErrorPage } from "./components/error-page";
+import { ChatWidget } from "./components/chat-widget";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -52,7 +53,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   'localhost:', 'api.sardine.ai', 'sardine', 'checkout.js', 'v2-entry.modern.js',
                   'razorpay', 'loader.min.js', '.png', 'localhost:7070', 'localhost:7071', 'localhost:37857',
                   'Slow network is detected', 'Fallback font will be used', '[Intervention]', 'Intervention:',
-                  'api-js.mixpanel.com', 'mixpanel', 'tawk'
+                  'api-js.mixpanel.com', 'mixpanel'
                 ];
                 
                 const shouldSuppress = (args) => {
@@ -91,22 +92,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             },
           }}
         />
-        {/* Tawk.to live chat */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-              (function(){
-                var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-                s1.async=true;
-                s1.src='https://embed.tawk.to/69caf0dfa553521c36a64137/1jl0bpqpt';
-                s1.charset='UTF-8';
-                s1.setAttribute('crossorigin','*');
-                s0.parentNode.insertBefore(s1,s0);
-              })();
-            `,
-          }}
-        />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -134,18 +119,6 @@ function MixpanelInit() {
         email: session.user.email,
         name: session.user.name,
       });
-      // Pass user identity to Tawk.to
-      if (typeof window !== "undefined") {
-        const w = window as any;
-        w.Tawk_API = w.Tawk_API || {};
-        w.Tawk_API.onLoad = function () {
-          w.Tawk_API.setAttributes({
-            name: session.user.name || "",
-            email: session.user.email || "",
-            id: session.user.id,
-          });
-        };
-      }
     }
   }, [session]);
 
@@ -211,7 +184,6 @@ function suppressThirdPartyWarnings() {
       "[Intervention]", // Browser intervention messages
       "Intervention:", // Browser intervention messages
       "mixpanel", // Mixpanel tracking
-      "tawk", // Tawk.to live chat
       "loader.min.js", // Third-party loaders
       ".png", // Image loading errors
       "localhost:7070",
@@ -246,6 +218,7 @@ export default function App() {
     <>
       <MixpanelInit />
       <Outlet />
+      <ChatWidget />
     </>
   );
 }
