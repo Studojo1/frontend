@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { to: "/outreach", label: "Outreach" },
   { to: "#dojos", label: "Dojos" },
   { to: "#reviews", label: "Reviews" },
+  { to: "/about", label: "About" },
 ] as const;
 
 const USER_LINKS = [

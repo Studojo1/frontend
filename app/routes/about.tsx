@@ -97,7 +97,7 @@ const PRINCIPLES = [
   {
     number: "03",
     heading: "We editorialize.",
-    body: "A role at a climate startup is different from a role at a bank. We'll tell you which one might actually teach you something. We don't just surface data — we have opinions.",
+    body: "A role at a climate startup is different from a role at a bank. We'll tell you which one might actually teach you something. We don't just surface data. We have opinions.",
     bg: "bg-amber-500",
   },
 ];
@@ -125,15 +125,16 @@ export default function About() {
       <main className="min-h-screen bg-white">
 
         {/* Hero */}
-        <section className="relative overflow-hidden border-b border-neutral-900 bg-violet-500 py-20 md:py-32">
+        <section className="relative w-full overflow-hidden border-b border-neutral-900 bg-violet-500 py-12 md:py-16">
           <motion.div
+            className="w-full"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            <Section width="narrow" className="text-center">
+            <Section width="narrow" className="mx-auto text-center">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border-2 border-white/40 bg-white/20 px-4 py-2">
-                <span className="font-['Satoshi'] text-sm font-medium text-white">Bengaluru, India — serving students globally</span>
+                <span className="font-['Satoshi'] text-sm font-medium text-white">Bengaluru, India. Serving students globally.</span>
               </div>
               <h1 className="font-['Clash_Display'] text-4xl font-medium leading-tight text-white md:text-6xl lg:text-7xl">
                 Built for students<br />
@@ -183,18 +184,13 @@ export default function About() {
                 <p className="font-['Satoshi'] text-base leading-7 text-neutral-700 md:text-lg">
                   We flipped that. Research-grade tools, AI that understands your context, and outreach infrastructure that was previously only available to paid recruiters.
                 </p>
-                <div className="rounded-2xl border-2 border-neutral-900 bg-neutral-50 p-4 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-                  <p className="font-['Satoshi'] text-sm text-neutral-600">
-                    Operated by <span className="font-semibold text-neutral-900">Synovate People Solutions Private Limited</span>, registered in Bengaluru, Karnataka, India.
-                  </p>
-                </div>
               </motion.div>
             </motion.div>
           </Section>
         </section>
 
-        {/* How We Think — Principles */}
-        <section className="border-b border-neutral-900 bg-neutral-950 py-16 md:py-24">
+        {/* How We Think - Principles */}
+        <section className="border-b border-neutral-900 bg-violet-600 py-16 md:py-24">
           <Section width="default">
             <motion.div
               variants={containerVariants}
@@ -203,7 +199,7 @@ export default function About() {
               viewport={{ once: true }}
             >
               <motion.div variants={itemVariants} className="mb-12 text-center">
-                <p className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-400">How we think</p>
+                <p className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-200">How we think</p>
                 <h2 className="font-['Clash_Display'] text-3xl font-medium text-white md:text-4xl lg:text-5xl">
                   Three things we never compromise on.
                 </h2>
@@ -333,9 +329,10 @@ export default function About() {
         </section>
 
         {/* Tagline section */}
-        <section className="border-b border-neutral-900 bg-neutral-950 py-20 md:py-32">
-          <Section width="narrow" className="text-center">
+        <section className="border-b border-neutral-900 bg-neutral-900 py-16 md:py-24">
+          <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-4 text-center md:px-8">
             <motion.div
+              className="w-full"
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -350,7 +347,7 @@ export default function About() {
                 This is not motivational fluff. It is a filter. Is this role going to teach you something real? Will this experience make a difference to someone? Will you be proud of what you worked on? That is the standard we hold our products to. We think students should hold their opportunities to it too.
               </p>
             </motion.div>
-          </Section>
+          </div>
         </section>
 
         {/* CTA */}
