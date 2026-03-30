@@ -3,26 +3,14 @@ import { Footer, Header } from "~/components";
 import { CareersApplyForm } from "~/components/careers/apply-form";
 import type { Route } from "./+types/apply";
 
-const BASE_URL = "https://studojo.com";
-
 export function meta({}: Route.MetaArgs) {
-  const title = "Careers – Studojo";
-  const description =
-    "Join the Studojo team. We're building the career platform students deserve. Share your details and we'll match you with the right opportunities.";
   return [
-    { title },
-    { name: "description", content: description },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/careers` },
-    { property: "og:type", content: "website" },
-    { property: "og:title", content: title },
-    { property: "og:description", content: description },
-    { property: "og:url", content: `${BASE_URL}/careers` },
-    { property: "og:site_name", content: "Studojo" },
-    { property: "og:image", content: `${BASE_URL}/og-default.png` },
-    { name: "twitter:card", content: "summary" },
-    { name: "twitter:site", content: "@studojo" },
-    { name: "twitter:title", content: title },
-    { name: "twitter:description", content: description },
+    { title: "Careers Apply – Studojo" },
+    {
+      name: "description",
+      content:
+        "Share your details so we can curate the best opportunities for your profile.",
+    },
   ];
 }
 

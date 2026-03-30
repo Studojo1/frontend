@@ -18,27 +18,14 @@ interface Internship {
   application_count: number;
 }
 
-const BASE_URL = "https://studojo.com";
-
 export function meta({}: Route.MetaArgs) {
-  const title = "Internship Dojo – Studojo";
-  const description =
-    "Browse internships worldwide. AI-powered outreach sends personalised emails to hiring managers from your Gmail. Students get callbacks within 48 hours.";
   return [
-    { title },
-    { name: "description", content: description },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/dojos/internships` },
-    { property: "og:type", content: "website" },
-    { property: "og:title", content: title },
-    { property: "og:description", content: description },
-    { property: "og:url", content: `${BASE_URL}/dojos/internships` },
-    { property: "og:site_name", content: "Studojo" },
-    { property: "og:image", content: `${BASE_URL}/og-default.png` },
-    { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:site", content: "@studojo" },
-    { name: "twitter:title", content: title },
-    { name: "twitter:description", content: description },
-    { name: "twitter:image", content: `${BASE_URL}/og-default.png` },
+    { title: "Internship Dojo – Studojo" },
+    {
+      name: "description",
+      content:
+        "Internship Dojo - Personalized internship help to land you the dream internship",
+    },
   ];
 }
 

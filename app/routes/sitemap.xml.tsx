@@ -8,11 +8,10 @@ export async function loader() {
   const staticPages = [
     { loc: "/", priority: "1.0", changefreq: "weekly" },
     { loc: "/blog", priority: "0.8", changefreq: "daily" },
-    { loc: "/about", priority: "0.7", changefreq: "monthly" },
     { loc: "/auth?mode=signup", priority: "0.7", changefreq: "monthly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
+    { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },
     { loc: "/dojos/internships", priority: "0.7", changefreq: "weekly" },
-    { loc: "/dojos/ai-risk", priority: "0.7", changefreq: "monthly" },
     { loc: "/careers", priority: "0.6", changefreq: "monthly" },
     { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
     { loc: "/terms", priority: "0.3", changefreq: "yearly" },

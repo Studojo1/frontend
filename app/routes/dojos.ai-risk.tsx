@@ -10,27 +10,14 @@ import { Footer } from "~/components/common/footer";
 import { analyseJob, getRiskLevel } from "~/lib/ai-risk/engine";
 import type { AnalysisResult } from "~/lib/ai-risk/engine";
 
-const BASE_URL = "https://studojo.com";
-
 export function meta() {
-  const title = "Will AI Replace Your Job? | Studojo";
-  const description =
-    "Find out if AI will replace your job, when, and exactly what career moves to make to stay ahead. Free AI job risk assessment.";
   return [
-    { title },
-    { name: "description", content: description },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/dojos/ai-risk` },
-    { property: "og:type", content: "website" },
-    { property: "og:title", content: title },
-    { property: "og:description", content: description },
-    { property: "og:url", content: `${BASE_URL}/dojos/ai-risk` },
-    { property: "og:site_name", content: "Studojo" },
-    { property: "og:image", content: `${BASE_URL}/og-default.png` },
-    { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:site", content: "@studojo" },
-    { name: "twitter:title", content: title },
-    { name: "twitter:description", content: description },
-    { name: "twitter:image", content: `${BASE_URL}/og-default.png` },
+    { title: "Will AI Replace Your Job? | Studojo" },
+    {
+      name: "description",
+      content:
+        "Find out if AI will replace your job, when, and exactly what career moves to make to stay ahead.",
+    },
   ];
 }
 

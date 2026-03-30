@@ -5,8 +5,10 @@ import type { Route } from "./+types/privacy";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Privacy Policy – Studojo" },
-    { name: "description", content: "How Studojo collects, uses, and protects your personal data." },
-    { tagName: "link", rel: "canonical", href: "https://studojo.com/privacy" },
+    {
+      name: "description",
+      content: "How Studojo collects, uses, and protects your personal data.",
+    },
   ];
 }
 

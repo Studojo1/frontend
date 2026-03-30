@@ -6,8 +6,10 @@ import type { Route } from "./+types/refund-policy";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Refund Policy – Studojo" },
-    { name: "description", content: "Studojo's refund policy – please read before making a purchase." },
-    { tagName: "link", rel: "canonical", href: "https://studojo.com/refund-policy" },
+    {
+      name: "description",
+      content: "Studojo's refund policy – please read before making a purchase.",
+    },
   ];
 }
 

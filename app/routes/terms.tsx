@@ -5,8 +5,10 @@ import type { Route } from "./+types/terms";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Terms of Service – Studojo" },
-    { name: "description", content: "Terms of Service for Studojo – please read carefully before using our platform." },
-    { tagName: "link", rel: "canonical", href: "https://studojo.com/terms" },
+    {
+      name: "description",
+      content: "Terms of Service for Studojo – please read carefully before using our platform.",
+    },
   ];
 }
 
