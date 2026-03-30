@@ -125,7 +125,7 @@ export default function About() {
       <main className="min-h-screen bg-white">
 
         {/* Hero */}
-        <section className="relative w-full overflow-hidden border-b border-neutral-900 bg-violet-500 py-20 md:py-32">
+        <section className="relative w-full overflow-hidden border-b border-neutral-900 bg-violet-500 py-12 md:py-16">
           <motion.div
             className="w-full"
             initial={{ opacity: 0, y: 30 }}
@@ -190,7 +190,7 @@ export default function About() {
         </section>
 
         {/* How We Think - Principles */}
-        <section className="border-b border-neutral-900 bg-neutral-900 py-16 md:py-24">
+        <section className="border-b border-neutral-900 bg-violet-600 py-16 md:py-24">
           <Section width="default">
             <motion.div
               variants={containerVariants}
@@ -199,7 +199,7 @@ export default function About() {
               viewport={{ once: true }}
             >
               <motion.div variants={itemVariants} className="mb-12 text-center">
-                <p className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-400">How we think</p>
+                <p className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-200">How we think</p>
                 <h2 className="font-['Clash_Display'] text-3xl font-medium text-white md:text-4xl lg:text-5xl">
                   Three things we never compromise on.
                 </h2>
@@ -329,7 +329,7 @@ export default function About() {
         </section>
 
         {/* Tagline section */}
-        <section className="border-b border-neutral-900 bg-neutral-900 py-20 md:py-32">
+        <section className="border-b border-neutral-900 bg-neutral-900 py-16 md:py-24">
           <Section width="narrow" className="text-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
