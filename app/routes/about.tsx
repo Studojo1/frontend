@@ -330,8 +330,9 @@ export default function About() {
 
         {/* Tagline section */}
         <section className="border-b border-neutral-900 bg-neutral-900 py-16 md:py-24">
-          <Section width="narrow" className="text-center">
+          <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-4 text-center md:px-8">
             <motion.div
+              className="w-full"
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -346,7 +347,7 @@ export default function About() {
                 This is not motivational fluff. It is a filter. Is this role going to teach you something real? Will this experience make a difference to someone? Will you be proud of what you worked on? That is the standard we hold our products to. We think students should hold their opportunities to it too.
               </p>
             </motion.div>
-          </Section>
+          </div>
         </section>
 
         {/* CTA */}
