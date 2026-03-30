@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { to: "#dojos", label: "Dojos" },
   { to: "#pricing", label: "Pricing" },
   { to: "#reviews", label: "Reviews" },
+  { to: "/about", label: "About" },
 ] as const;
 
 export function Header() {

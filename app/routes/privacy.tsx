@@ -65,13 +65,13 @@ export default function Privacy() {
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Gmail OAuth Data</p>
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    When you connect your Gmail account for outreach, we store an access token that allows us to send emails on your behalf. We do not read, store, or process the contents of your inbox or any emails other than those sent through our platform.
+                    When you connect your Gmail account for outreach, we store OAuth tokens that allow us to both send emails and read email threads on your behalf. We access full email threads associated with your outreach campaigns in order to track replies, monitor campaign responses, and display your email history within the outreach dashboard. We do not access emails unrelated to your outreach campaigns.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Payment Data</p>
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    Payment transactions are processed by Razorpay. We store only a record of your payment status, amount, and credits granted. We do not store your card details.
+                    Payment transactions are processed by Razorpay and Dodo Payments. We store only a record of your payment status, amount, and credits granted. We do not store your card details.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -89,16 +89,50 @@ export default function Privacy() {
               </div>
             </div>
 
-            {/* 3. How We Use Your Data */}
+            {/* 3. How We Use Gmail Access */}
             <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
               <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
-                3. How We Use Your Data
+                3. How We Use Gmail Access
+              </h2>
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Scopes We Request</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    When you connect Gmail, we request two OAuth scopes: <span className="font-semibold">gmail.send</span> (to send outreach emails on your behalf) and <span className="font-semibold">gmail.readonly</span> (to read email threads related to your campaigns).
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Why We Read Email Threads</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    We read full email threads associated with your outreach campaigns to track whether hiring managers have replied, surface those replies in your outreach dashboard, and give you a complete view of each conversation. This is core to how the platform works. Without read access, we cannot show you reply tracking or conversation history.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">What We Do Not Access</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    We never access emails that are unrelated to your outreach campaigns. We do not read personal emails, inbox messages from friends or family, newsletters, or any other correspondence outside of campaign threads.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Token Security and Revocation</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    Your Gmail OAuth tokens are encrypted at rest. You can revoke access at any time via your Google account security settings at myaccount.google.com/permissions. Revoking access will disconnect your Gmail from the platform and stop any active campaigns.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. How We Use Your Data */}
+            <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+              <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
+                4. How We Use Your Data
               </h2>
               <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                 <ul className="list-disc space-y-2 pl-5 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
                   <li>To provide, operate, and improve the Studojo platform and its services</li>
                   <li>To generate resumes, email drafts, and other career documents on your behalf</li>
                   <li>To identify relevant hiring contacts and execute outreach campaigns via your connected Gmail</li>
+                  <li>To read and display email thread replies within the outreach dashboard</li>
                   <li>To process payments and manage your credit balance</li>
                   <li>To send you transactional communications about your account and orders</li>
                   <li>To detect, prevent, and respond to fraud, abuse, or security incidents</li>
@@ -108,15 +142,48 @@ export default function Privacy() {
               </div>
             </div>
 
-            {/* 4. Third-Party Data Sources */}
+            {/* 5. Legal Basis for Processing */}
             <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
               <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
-                4. Third-Party Contact Data
+                5. Legal Basis for Processing
+              </h2>
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Contract Performance</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    Most processing is necessary to deliver the services you have signed up for. This includes generating your resume, running your outreach campaign, processing payments, and managing your account.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Legitimate Interests</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    We process certain data based on our legitimate interest in operating and improving the platform, preventing fraud and abuse, ensuring platform security, and understanding how users interact with our services.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Consent</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    Where we rely on consent (such as connecting your Gmail account), you may withdraw that consent at any time without affecting the lawfulness of processing that occurred before withdrawal.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Legal Obligation</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    We process and retain certain data as required under applicable law, including Indian IT Act obligations, financial record-keeping requirements, and responses to valid legal requests.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 6. Third-Party Contact Data */}
+            <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+              <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
+                6. Third-Party Contact Data
               </h2>
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    The outreach service surfaces contact information about third parties (hiring managers, founders, and recruiters) sourced from third-party professional databases including Apollo.io. This data relates to individuals in their professional capacity and is sourced from publicly available information.
+                    The outreach service surfaces contact information about third parties (hiring managers, founders, and recruiters) sourced from third-party professional data providers and professional contact databases. This data relates to individuals in their professional capacity and is sourced from publicly available information.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -132,10 +199,37 @@ export default function Privacy() {
               </div>
             </div>
 
-            {/* 5. Data Sharing */}
+            {/* 7. AI and Automated Processing */}
             <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
               <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
-                5. Data Sharing and Third Parties
+                7. AI and Automated Processing
+              </h2>
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Resume Parsing</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    When you upload a resume, it is processed using Azure OpenAI to extract structured data about your experience, education, and skills. This data is then used to power the outreach and resume-building features.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Email Personalisation</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    AI is used to generate personalised outreach email drafts based on your profile and the contact data surfaced by the platform. You review and approve these before they are sent.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">No Automated Decisions That Affect You Legally</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    We do not make automated decisions about you that produce legal effects or similarly significant impacts. AI on our platform assists you in creating content and discovering opportunities; it does not determine eligibility, creditworthiness, or any other consequential outcome about you.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 8. Data Sharing */}
+            <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+              <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
+                8. Data Sharing and Third Parties
               </h2>
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -147,9 +241,10 @@ export default function Privacy() {
                   <p className="mb-2 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">We work with a limited number of trusted service providers who process data on our behalf:</p>
                   <ul className="list-disc space-y-1 pl-5 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
                     <li><span className="font-semibold text-neutral-900">Microsoft Azure</span> - cloud hosting and AI services (resume parsing)</li>
-                    <li><span className="font-semibold text-neutral-900">Apollo.io</span> - professional contact data for outreach</li>
+                    <li><span className="font-semibold text-neutral-900">Third-party professional data providers</span> - professional contact data for outreach</li>
                     <li><span className="font-semibold text-neutral-900">Razorpay</span> - payment processing</li>
-                    <li><span className="font-semibold text-neutral-900">Google</span> - Gmail OAuth for email sending</li>
+                    <li><span className="font-semibold text-neutral-900">Dodo Payments</span> - payment processing</li>
+                    <li><span className="font-semibold text-neutral-900">Google</span> - Gmail OAuth for email sending and thread reading</li>
                     <li><span className="font-semibold text-neutral-900">Sentry</span> - error monitoring and diagnostics</li>
                   </ul>
                 </div>
@@ -161,10 +256,62 @@ export default function Privacy() {
               </div>
             </div>
 
-            {/* 6. Data Storage and Security */}
+            {/* 9. International Data Transfers */}
             <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
               <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
-                6. Data Storage and Security
+                9. International Data Transfers
+              </h2>
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    Your data is hosted on Microsoft Azure infrastructure in South Asia and European regions. We have chosen these regions to keep data geographically close to our primary user base while meeting applicable data residency expectations.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    Some of our service providers, including Google, are based in the United States. Where data is transferred to US-based processors, we rely on standard contractual clauses and the providers' applicable data processing agreements to ensure an adequate level of protection for your personal data.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 10. Data Retention */}
+            <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+              <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
+                10. Data Retention
+              </h2>
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Active Account Data</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    Account data, resume data, and campaign data are retained for as long as your account is active.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Email Thread Data</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    Email thread data associated with your campaigns is retained for 2 years after the campaign ends, after which it is deleted.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Payment Records</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    Payment records are retained for 7 years to comply with financial and legal record-keeping obligations.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Resume Data After Account Deletion</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    When you delete your account, resume data is deleted within 90 days. Payment records are retained for the statutory period regardless of account status.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 11. Data Storage and Security */}
+            <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+              <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
+                11. Data Storage and Security
               </h2>
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -177,18 +324,13 @@ export default function Privacy() {
                     While we take reasonable steps to protect your data, no internet transmission or electronic storage system is completely secure. You use the platform at your own risk, and we cannot guarantee absolute security of your information.
                   </p>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
-                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    We retain your personal data for as long as your account is active or as needed to provide services. You may request deletion of your account and associated data at any time by contacting admin@studojo.com.
-                  </p>
-                </div>
               </div>
             </div>
 
-            {/* 7. Cookies */}
+            {/* 12. Cookies */}
             <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
               <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
-                7. Cookies
+                12. Cookies
               </h2>
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -204,10 +346,10 @@ export default function Privacy() {
               </div>
             </div>
 
-            {/* 8. Your Rights */}
+            {/* 13. Your Rights */}
             <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
               <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
-                8. Your Rights
+                13. Your Rights
               </h2>
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -217,7 +359,7 @@ export default function Privacy() {
                     <li>Correct inaccurate or incomplete data</li>
                     <li>Request deletion of your data</li>
                     <li>Object to or restrict processing of your data</li>
-                    <li>Withdraw consent for Gmail access at any time via Google account settings</li>
+                    <li>Withdraw consent for Gmail access at any time via Google account settings at myaccount.google.com/permissions</li>
                     <li>Lodge a complaint with your relevant data protection authority</li>
                   </ul>
                 </div>
@@ -229,10 +371,10 @@ export default function Privacy() {
               </div>
             </div>
 
-            {/* 9. Children */}
+            {/* 14. Children */}
             <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
               <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
-                9. Children's Privacy
+                14. Children's Privacy
               </h2>
               <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                 <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
@@ -241,10 +383,10 @@ export default function Privacy() {
               </div>
             </div>
 
-            {/* 10. Changes */}
+            {/* 15. Changes */}
             <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
               <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
-                10. Changes to This Policy
+                15. Changes to This Policy
               </h2>
               <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                 <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
