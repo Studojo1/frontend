@@ -7,6 +7,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   server: { port: 3000 },
+  ssr: {
+    noExternal: ["posthog-js"],
+  },
   resolve: {
     alias: {
       // Virtual server-build loads /app/routes/*; ensure it resolves to ./app (Docker root /app)
