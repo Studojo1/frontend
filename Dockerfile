@@ -9,6 +9,8 @@ FROM oven/bun:1 AS build-env
 WORKDIR /src
 ARG VITE_CONTROL_PLANE_URL=https://api.studojo.com
 ENV VITE_CONTROL_PLANE_URL=${VITE_CONTROL_PLANE_URL}
+ARG VITE_PUBLIC_POSTHOG_KEY=""
+ENV VITE_PUBLIC_POSTHOG_KEY=${VITE_PUBLIC_POSTHOG_KEY}
 COPY package.json bun.lockb ./
 RUN bun install --frozen-lockfile
 COPY . .

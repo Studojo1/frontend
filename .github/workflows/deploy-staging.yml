@@ -47,6 +47,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.APP_NAME }}:staging
           build-args: |
             VITE_CONTROL_PLANE_URL=https://api.studojo.pro
+            VITE_PUBLIC_POSTHOG_KEY=${{ secrets.POSTHOG_KEY }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache-staging
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache-staging,mode=max
 

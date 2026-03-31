@@ -13,7 +13,9 @@ import { useEffect } from "react";
 import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
 import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
+import { capturePostHog, identifyPostHogUser, initPostHog } from "./lib/posthog";
 import { ErrorPage } from "./components/error-page";
+import { ChatWidget } from "./components/chat-widget";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -103,12 +105,17 @@ function MixpanelInit() {
 
   useEffect(() => {
     initMixpanel();
+    initPostHog();
   }, []);
 
   // Identify user when session is available
   useEffect(() => {
     if (session?.user) {
       identifyUser(session.user.id, {
+        email: session.user.email,
+        name: session.user.name,
+      });
+      identifyPostHogUser(session.user.id, {
         email: session.user.email,
         name: session.user.name,
       });
@@ -125,8 +132,12 @@ function MixpanelInit() {
         page_title: document.title,
         user_id: session?.user?.id,
       });
+        capturePostHog("$pageview", {
+          $current_url: window.location.href,
+          page_title: document.title,
+        });
       }, 100);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [location.pathname, session?.user?.id]);
@@ -207,6 +218,7 @@ export default function App() {
     <>
       <MixpanelInit />
       <Outlet />
+      <ChatWidget />
     </>
   );
 }
