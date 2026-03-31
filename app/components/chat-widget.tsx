@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "react-router";
 
 interface ChatMessage {
@@ -9,8 +9,12 @@ interface ChatMessage {
 
 const WELCOME_MESSAGE: ChatMessage = {
   role: "assistant",
-  content: "Hey! I'm Studojo's support assistant. Ask me anything about our products, your account, billing, or anything else.",
+  content: "Hey! I'm here to help with anything Studojo related. What's up?",
 };
+
+function generateSessionId() {
+  return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -19,6 +23,7 @@ export function ChatWidget() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sessionId = useMemo(() => generateSessionId(), []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -45,7 +50,7 @@ export function ChatWidget() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, history }),
+        body: JSON.stringify({ message: trimmed, history, sessionId }),
       });
 
       const data = await res.json();

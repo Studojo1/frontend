@@ -1,5 +1,6 @@
 import { matchIntent, NLP_CONFIDENCE_THRESHOLD } from "~/lib/chat/matcher";
 import { generateLLMResponse } from "~/lib/chat/llm.server";
+import { logChatInteraction } from "~/lib/chat/logger.server";
 import type { Route } from "./+types/api.chat";
 
 export async function action({ request }: Route.ActionArgs) {
@@ -14,9 +15,10 @@ export async function action({ request }: Route.ActionArgs) {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { message, history } = body as {
+  const { message, history, sessionId } = body as {
     message?: string;
     history?: { role: "user" | "assistant"; content: string }[];
+    sessionId?: string;
   };
 
   if (!message || typeof message !== "string" || message.trim().length === 0) {
@@ -24,8 +26,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const trimmed = message.trim();
+  const sid = sessionId || "anonymous";
 
-  // Cap message length
   if (trimmed.length > 500) {
     return Response.json({ error: "Message too long (max 500 characters)" }, { status: 400 });
   }
@@ -34,8 +36,20 @@ export async function action({ request }: Route.ActionArgs) {
   const match = matchIntent(trimmed);
 
   if (match.intent && match.confidence >= NLP_CONFIDENCE_THRESHOLD) {
+    const reply = match.intent.response;
+
+    // Log async, don't block response
+    logChatInteraction({
+      sessionId: sid,
+      userMessage: trimmed,
+      botResponse: reply,
+      source: "nlp",
+      confidence: match.confidence,
+      intentId: match.intent.id,
+    });
+
     return Response.json({
-      reply: match.intent.response,
+      reply,
       links: match.intent.links || [],
       source: "nlp",
       confidence: match.confidence,
@@ -45,6 +59,15 @@ export async function action({ request }: Route.ActionArgs) {
   // Phase 2: LLM fallback
   try {
     const llmReply = await generateLLMResponse(trimmed, history || []);
+
+    logChatInteraction({
+      sessionId: sid,
+      userMessage: trimmed,
+      botResponse: llmReply,
+      source: "llm",
+      confidence: match.confidence,
+    });
+
     return Response.json({
       reply: llmReply,
       links: [],
@@ -53,11 +76,21 @@ export async function action({ request }: Route.ActionArgs) {
     });
   } catch (error) {
     console.error("[api.chat] LLM fallback failed:", error);
-    // Phase 3: Escalation
+
+    const escalationReply =
+      "Hmm, I'm not able to answer that right now. You can reach the team at admin@studojo.com or use our contact form and they'll get back to you within 24 hours.";
+
+    logChatInteraction({
+      sessionId: sid,
+      userMessage: trimmed,
+      botResponse: escalationReply,
+      source: "escalation",
+      confidence: 0,
+    });
+
     return Response.json({
-      reply:
-        "I'm not able to answer that right now. You can reach the team at admin@studojo.com or use our contact form — we typically respond within 24 hours.",
-      links: [{ label: "Contact Form", url: "/contact" }],
+      reply: escalationReply,
+      links: [{ label: "Contact form", url: "/contact" }],
       source: "escalation",
       confidence: 0,
     });

@@ -70,6 +70,7 @@ export default [
   route("contact", "routes/contact.tsx"),
   route("api/contact", "routes/api.contact.tsx"),
   route("api/chat", "routes/api.chat.tsx"),
+  route("api/admin/chat-logs", "routes/api.admin.chat-logs.tsx"),
   route("blog/:slug", "routes/blog.$slug.tsx"),
   route("blog", "routes/blog.tsx"),
   route("api/blog/:slug", "routes/api.blog.$slug.tsx"),
