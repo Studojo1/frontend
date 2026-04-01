@@ -3,7 +3,6 @@ import { createAuthMiddleware, APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import {
   admin,
-  haveIBeenPwned,
   jwt,
   lastLoginMethod,
   phoneNumber,
@@ -435,6 +434,7 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
+    minPasswordLength: 6,
   },
   socialProviders: {
     google: {
@@ -444,10 +444,6 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    haveIBeenPwned({
-      customPasswordCompromisedMessage:
-        "This password has been found in a data breach. Please choose a different password.",
-    }),
     lastLoginMethod({ storeInDatabase: true }),
     jwt(),
     admin(adminUserIds.length > 0 ? { adminUserIds } : {}),
