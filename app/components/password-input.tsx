@@ -145,7 +145,7 @@ export function PasswordInput({
             </span>
           </div>
           <div className="mt-1 text-xs font-['Satoshi'] text-neutral-500">
-            {strength === "weak" && "You can use this — adding numbers or symbols makes it stronger"}
+            {strength === "weak" && "You can use this. Adding numbers or symbols makes it stronger"}
             {strength === "fair" && "Decent password. Adding numbers or symbols helps"}
             {strength === "good" && "Good password!"}
             {strength === "strong" && "Excellent password strength!"}
