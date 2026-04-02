@@ -87,7 +87,7 @@ export function ChatWidget() {
       {/* Chat bubble */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+        className="fixed bottom-6 left-6 z-50 flex h-14 w-14 items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
         aria-label={open ? "Close chat" : "Open chat"}
       >
         {open ? (
@@ -104,7 +104,7 @@ export function ChatWidget() {
 
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl border-2 border-neutral-900 bg-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] max-[400px]:bottom-0 max-[400px]:right-0 max-[400px]:h-full max-[400px]:w-full max-[400px]:rounded-none max-[400px]:shadow-none">
+        <div className="fixed bottom-24 left-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl border-2 border-neutral-900 bg-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] max-[400px]:bottom-0 max-[400px]:left-0 max-[400px]:h-full max-[400px]:w-full max-[400px]:rounded-none max-[400px]:shadow-none">
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-neutral-900 bg-violet-500 px-4 py-3">
             <div className="flex items-center gap-3">
