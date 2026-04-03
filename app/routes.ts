@@ -78,6 +78,7 @@ export default [
   route("reports/sales-india-2026", "routes/reports.sales-india-2026.tsx"),
   route("reports/cs-india-2026", "routes/reports.cs-india-2026.tsx"),
   route("api/ai-risk/suggest", "routes/api.ai-risk.suggest.tsx"),
+  route("api/ai-risk/parse-resume", "routes/api.ai-risk.parse-resume.tsx"),
   route("api/report-requests", "routes/api.report-requests.tsx"),
   route("api/report-requests/:id/status", "routes/api.report-requests.$id.status.tsx"),
   route("admin/report-requests", "routes/admin.report-requests.tsx"),

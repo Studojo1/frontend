@@ -308,29 +308,20 @@ export default function AIRiskPage() {
     setResumeError("");
     try {
       const formData = new FormData();
-      formData.append("file", file); // endpoint expects "file" field
-      const res = await fetch("/api/resumes/parse", { method: "POST", body: formData });
+      formData.append("file", file);
+      const res = await fetch("/api/ai-risk/parse-resume", { method: "POST", body: formData });
+      const data = await res.json().catch(() => ({}));
 
-      if (res.status === 401) {
-        throw new Error("Sign in to use resume upload, or enter your job title manually.");
+      if (!res.ok) {
+        throw new Error(data.error || "Could not read that file. Please upload a PDF or enter your title manually.");
       }
-      if (res.status === 400) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Could not read that file. Please upload a PDF.");
-      }
-      if (!res.ok) throw new Error("Failed to parse resume. Please enter your job title manually.");
 
-      const data = await res.json();
-      const role =
-        data.work_experiences?.[0]?.role ||
-        data.current_role ||
-        data.resumeData?.work_experiences?.[0]?.role ||
-        "";
+      const role = data.job_title || "";
       if (!role) throw new Error("Could not find a job title in your resume. Please enter it manually.");
       setExtractedTitle(role);
       setResumeState("extracted");
     } catch (err: any) {
-      setResumeError(err.message || "Failed to parse resume. Please enter your job title manually.");
+      setResumeError(err.message || "Failed to read resume. Please enter your job title manually.");
       setResumeState("error");
     }
   };
@@ -457,12 +448,7 @@ export default function AIRiskPage() {
                     {resumeError && (
                       <div className="mb-4 text-sm font-satoshi text-red-600 bg-red-50 rounded-xl border border-red-200 p-3 text-left">
                         {resumeError}
-                        <div className="mt-2 flex gap-3">
-                          <button onClick={() => setMode("job")} className="text-xs underline">Enter job title manually</button>
-                          {resumeError.includes("Sign in") && (
-                            <a href="/auth" className="text-xs underline">Sign in</a>
-                          )}
-                        </div>
+                        <button onClick={() => setMode("job")} className="mt-2 text-xs underline block">Enter job title manually instead</button>
                       </div>
                     )}
                     <p className="text-xs font-satoshi text-studojo-muted">We will extract your current job title automatically</p>
