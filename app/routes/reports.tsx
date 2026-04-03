@@ -18,6 +18,18 @@ export function meta() {
 
 const REPORTS = [
   {
+    slug: "sales-india-2026",
+    title: "Sales in India: What Freshers Actually Face",
+    subtitle: "Q1 2026",
+    excerpt:
+      "28,600+ entry-level openings. A ₹12 LPA ceiling that almost nobody in their first year reaches. And the one skill gap — CRM fluency — that ends 60% of sales interviews before they start.",
+    category: "Sales",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-emerald-500",
+    badge: "New",
+  },
+  {
     slug: "finance-india-2026",
     title: "Finance in India: What Graduates Actually Face",
     subtitle: "Q1 2026",
@@ -27,7 +39,7 @@ const REPORTS = [
     date: "April 2026",
     findings: 8,
     color: "bg-violet-500",
-    badge: "New",
+    badge: "",
   },
 ];
 
