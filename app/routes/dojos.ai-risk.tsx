@@ -83,11 +83,11 @@ function RiskGauge({ pct, animated, level }: { pct: number; animated: boolean; l
   const offset = animated ? circumference * (1 - pct / 100) : circumference;
   const color = RISK_CONFIG[level].arc;
   return (
-    <svg viewBox="0 0 200 110" className="w-full max-w-[280px] mx-auto">
+    <svg viewBox="0 0 200 120" className="w-full max-w-[280px] mx-auto">
       <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke="#f1f5f9" strokeWidth="12" strokeLinecap="round" />
       <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} style={{ transition: animated ? "stroke-dashoffset 1.6s cubic-bezier(0.4,0,0.2,1)" : "none" }} />
       <text x={cx} y={cy - 10} textAnchor="middle" fontSize="32" fontWeight="800" fill={color} fontFamily="'Clash Display', sans-serif">{pct}%</text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fontSize="11" fill="#94a3b8" fontFamily="'Satoshi', sans-serif">replacement risk</text>
+      <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fill="#64748b" fontFamily="'Satoshi', sans-serif">replacement risk</text>
     </svg>
   );
 }
@@ -267,7 +267,9 @@ export default function AIRiskPage() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const fetchEnhancedPivots = async (res: AnalysisResult) => {
+  // Only call LLM suggest for truly unknown roles (low confidence from engine).
+  // For known roles (high/medium confidence), engine pivots are always more specific.
+  const fetchLLMPivots = async (res: AnalysisResult) => {
     setPivotsLoading(true);
     try {
       const resp = await fetch("/api/ai-risk/suggest", {
@@ -283,10 +285,9 @@ export default function AIRiskPage() {
       });
       if (!resp.ok) throw new Error("LLM unavailable");
       const data = await resp.json();
-      if (data.pivots && data.pivots.length > 0) {
+      if (data.pivots && data.pivots.length >= 2) {
         setEnhancedPivots(data.pivots);
       } else {
-        // LLM returned nothing useful, use engine data
         setEnhancedPivots(enginePivotsToEnhanced(res.pivots, res.risk_pct));
       }
     } catch {
@@ -316,14 +317,24 @@ export default function AIRiskPage() {
       setAnalyzing(false);
       setTimeout(() => setGaugeAnimated(true), 80);
       window.scrollTo({ top: 0, behavior: "smooth" });
-      if (suggested_pivots && suggested_pivots.length > 0) {
-        // LLM already generated contextual pivots as part of analysis — use immediately
+
+      if (res.confidence === "high" || res.confidence === "medium") {
+        // Engine knows this role — its curated pivots are better than a small LLM's guess.
+        // Use engine pivots immediately; no LLM call needed.
+        if (res.pivots && res.pivots.length > 0) {
+          setEnhancedPivots(enginePivotsToEnhanced(res.pivots, res.risk_pct));
+          setPivotsLoading(false);
+        } else {
+          // Engine matched but has no pivots (shouldn't happen) — fall to LLM
+          fetchLLMPivots(res);
+        }
+      } else if (suggested_pivots && suggested_pivots.length > 0) {
+        // LLM already generated contextual pivots as part of the low-confidence analysis
         setEnhancedPivots(suggested_pivots);
-        // Still kick off suggest for potentially better pivots, silently swap if better
-        fetchEnhancedPivots(res);
+        setPivotsLoading(false);
       } else {
-        // Known role from engine — fetch LLM pivots async
-        fetchEnhancedPivots(res);
+        // Unknown role, no pre-generated pivots — ask LLM
+        fetchLLMPivots(res);
       }
     } catch {
       setAnalyzing(false);

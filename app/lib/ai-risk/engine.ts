@@ -4,6 +4,8 @@
  * McKinsey Global Institute, Goldman Sachs (2023), WEF Future of Jobs.
  */
 
+import { lookupOntology } from "./ontology";
+
 export interface Pivot {
   role: string;
   why: string;
@@ -2470,6 +2472,24 @@ export function analyseJob(input: string): AnalysisResult {
       human_edges: job.human_edges,
       pivots: job.pivots,
       confidence,
+    };
+  }
+
+  // Tier 3: sector ontology lookup (200+ roles mapped to sector risk profiles)
+  const norm = normalise(input);
+  const ontologyHit = lookupOntology(norm) ?? lookupOntology(input.toLowerCase().trim());
+  if (ontologyHit) {
+    return {
+      job_input: input,
+      matched_title: ontologyHit.title,
+      risk_pct: ontologyHit.risk_pct,
+      timeline_years: ontologyHit.timeline_years,
+      risk_level: ontologyHit.risk_level,
+      verdict: getVerdict(ontologyHit.title, ontologyHit.risk_pct, ontologyHit.timeline_years),
+      risk_drivers: ontologyHit.risk_drivers,
+      human_edges: ontologyHit.human_edges,
+      pivots: ontologyHit.pivots,
+      confidence: "medium" as const,
     };
   }
 
