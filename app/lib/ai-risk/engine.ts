@@ -989,6 +989,13 @@ export const JOB_DATA: JobRisk[] = [
         timeline: "3-6 months",
         difficulty: 2,
       },
+      {
+        role: "Nursing Informatics Specialist",
+        why: "Configure clinical workflows and AI-assisted documentation in EHR systems using your bedside knowledge.",
+        skills: ["EHR configuration", "Clinical workflow analysis", "User training", "Data governance"],
+        timeline: "6-10 months",
+        difficulty: 2,
+      },
     ],
   },
   {
@@ -1026,6 +1033,13 @@ export const JOB_DATA: JobRisk[] = [
         timeline: "3-5 months",
         difficulty: 1,
       },
+      {
+        role: "Corporate Learning and Development Specialist",
+        why: "Design and deliver training programmes inside organisations, your facilitation skills transfer directly.",
+        skills: ["Needs analysis", "Workshop facilitation", "LMS administration", "Training effectiveness measurement"],
+        timeline: "3-6 months",
+        difficulty: 1,
+      },
     ],
   },
   {
@@ -1051,6 +1065,20 @@ export const JOB_DATA: JobRisk[] = [
         skills: ["Policy analysis", "Stakeholder consultation", "Report writing", "Evidence synthesis"],
         timeline: "4-8 months",
         difficulty: 2,
+      },
+      {
+        role: "Nonprofit Program Manager",
+        why: "Lead service delivery for charities and NGOs, where your case management expertise transfers directly.",
+        skills: ["Program design", "Grant reporting", "Volunteer management", "Impact measurement"],
+        timeline: "3-6 months",
+        difficulty: 1,
+      },
+      {
+        role: "Community Development Officer",
+        why: "Design and run community programmes at local authority or housing association level.",
+        skills: ["Community engagement", "Funding bids", "Partnership development", "Safeguarding"],
+        timeline: "2-4 months",
+        difficulty: 1,
       },
     ],
   },
@@ -1211,6 +1239,20 @@ export const JOB_DATA: JobRisk[] = [
         timeline: "4-8 months",
         difficulty: 2,
       },
+      {
+        role: "Security Consultant",
+        why: "Advise enterprises on security posture and strategy, your breadth of threat knowledge commands premium fees.",
+        skills: ["Risk assessment", "Security frameworks (ISO 27001, NIST)", "Client advisory", "Report writing"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "GRC Analyst",
+        why: "Governance, risk, and compliance is growing as regulators mandate AI and cyber accountability.",
+        skills: ["Risk management frameworks", "Compliance auditing", "Policy writing", "Regulatory mapping"],
+        timeline: "3-5 months",
+        difficulty: 1,
+      },
     ],
   },
   {
@@ -1305,6 +1347,20 @@ export const JOB_DATA: JobRisk[] = [
         timeline: "3-6 months",
         difficulty: 1,
       },
+      {
+        role: "Smart Grid Technician",
+        why: "Install and maintain smart meters, grid sensors, and home energy management systems.",
+        skills: ["Smart metering (SMETS2)", "Grid automation", "PLC programming basics", "Network protocols"],
+        timeline: "2-4 months",
+        difficulty: 1,
+      },
+      {
+        role: "EV Infrastructure Installer",
+        why: "EV charging rollout is creating a structural shortage of qualified electricians with EV training.",
+        skills: ["EV charger installation (Mode 2/3/4)", "Load balancing", "OZEV certification", "Network-connected chargers"],
+        timeline: "1-3 months",
+        difficulty: 1,
+      },
     ],
   },
   {
@@ -1378,6 +1434,862 @@ export const JOB_DATA: JobRisk[] = [
       },
     ],
   },
+  {
+    title: "Insurance Underwriter",
+    aliases: [
+      "underwriter", "insurance underwriting", "risk underwriter", "commercial underwriter",
+      "personal lines underwriter", "reinsurance underwriter",
+    ],
+    risk_pct: 74,
+    timeline_years: 5,
+    risk_drivers: [
+      "AI pricing engines from Lemonade, Root, and Tractable automate standard policy underwriting end-to-end",
+      "ML models process thousands of risk signals in milliseconds, replacing manual file review for personal lines",
+      "Automated straight-through processing now handles 70-80% of SME commercial policies at major carriers",
+      "LLMs draft policy wordings and endorsements, eliminating much of the technical writing workload",
+    ],
+    human_edges: [
+      "Complex bespoke risks (major infrastructure, novel industries) where no historical data exists",
+      "Relationship underwriting with brokers on large commercial accounts where trust drives placement",
+      "Judgment calls on ambiguous risk factors that fall outside model training data",
+    ],
+    pivots: [
+      {
+        role: "Insurance Product Manager",
+        why: "Design new insurance products and pricing models, using your underwriting expertise to define what AI should price.",
+        skills: ["Product development", "Actuarial basics", "Regulatory filing", "Market analysis"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Specialty Lines Underwriter",
+        why: "Move into complex specialty risks (cyber, D&O, marine, aviation) where AI coverage is still thin.",
+        skills: ["Specialty risk assessment", "Manuscript wordings", "Reinsurance structures", "Broker relationships"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "InsurTech Solutions Consultant",
+        why: "Help insurers implement and govern AI underwriting platforms using your domain credibility.",
+        skills: ["AI underwriting platforms", "Change management", "Process mapping", "Vendor evaluation"],
+        timeline: "4-6 months",
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    title: "Mortgage Broker",
+    aliases: [
+      "mortgage advisor", "mortgage consultant", "home loan specialist", "lending advisor",
+      "mortgage originator", "loan broker",
+    ],
+    risk_pct: 70,
+    timeline_years: 5,
+    risk_drivers: [
+      "Digital lenders (Rocket Mortgage, Better.com, Habito) automate application, affordability, and offer in under an hour",
+      "AI credit decisioning engines replace manual file review for standard residential mortgages",
+      "Open banking feeds give lenders real-time affordability data, removing the broker as data aggregator",
+      "Price comparison platforms commoditise product selection, one of the broker's core value-adds",
+    ],
+    human_edges: [
+      "Complex cases (self-employed, adverse credit, non-standard properties) that automated systems decline",
+      "Negotiating bespoke terms with specialist lenders for high-net-worth or unusual borrowers",
+      "Emotional guidance through the anxiety of a first home purchase or remortgage under financial pressure",
+    ],
+    pivots: [
+      {
+        role: "Specialist Mortgage Advisor",
+        why: "Focus on complex cases (expats, contractors, portfolio landlords) that digital lenders consistently reject.",
+        skills: ["Complex income assessment", "Specialist lender panel", "Regulatory knowledge", "Case packaging"],
+        timeline: "3-6 months",
+        difficulty: 1,
+      },
+      {
+        role: "Financial Planner",
+        why: "Expand from mortgage advice into holistic wealth planning, where relationships and trust remain paramount.",
+        skills: ["Financial planning", "Investment basics", "Pension planning", "CII/CFP qualification"],
+        timeline: "9-18 months",
+        difficulty: 3,
+      },
+      {
+        role: "PropTech Business Development Manager",
+        why: "Digital mortgage platforms need people who understand both the product and the broker market.",
+        skills: ["B2B sales", "Fintech product knowledge", "CRM systems", "Partnership development"],
+        timeline: "3-5 months",
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    title: "Investment Banker",
+    aliases: [
+      "investment banking analyst", "ib analyst", "m&a analyst", "capital markets analyst",
+      "ib associate", "investment banking associate", "corporate finance analyst",
+    ],
+    risk_pct: 65,
+    timeline_years: 6,
+    risk_drivers: [
+      "AI tools (Palantir, Bloomberg AI, Goldman's internal LLMs) automate pitchbook creation, comps analysis, and CIM drafting",
+      "LLMs can run precedent transaction searches and public company comparable analyses in seconds",
+      "AI deal screening tools flag acquisition targets and flag regulatory issues before analysts begin work",
+      "Automated financial modelling tools reduce the 80-hour weeks of model-building that define analyst life",
+    ],
+    human_edges: [
+      "Client relationship management and the trust required to advise on transformational M&A decisions",
+      "Creative deal structuring for complex cross-border transactions with regulatory and political dimensions",
+      "Judgment in live negotiations where speed, read of the room, and improvisation are essential",
+    ],
+    pivots: [
+      {
+        role: "Private Equity Associate",
+        why: "Move to the buy side where deal judgment, not model production, is the core skill rewarded.",
+        skills: ["LBO modelling", "Due diligence", "Portfolio company management", "Investment thesis writing"],
+        timeline: "3-6 months",
+        difficulty: 2,
+      },
+      {
+        role: "Corporate Development Manager",
+        why: "Run M&A strategy in-house at a corporate, where your banking toolkit is rare and highly valued.",
+        skills: ["Internal M&A process", "Stakeholder management", "Integration planning", "Financial modelling"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "Venture Capital Investor",
+        why: "Source and evaluate early-stage deals using the financial rigour of banking with a creative, founder-facing lens.",
+        skills: ["Venture deal structuring", "Startup valuation", "Founder relationship building", "Portfolio monitoring"],
+        timeline: "6-18 months",
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    title: "Procurement Manager",
+    aliases: [
+      "procurement specialist", "purchasing manager", "supply manager", "sourcing manager",
+      "category manager", "strategic sourcing", "procurement officer",
+    ],
+    risk_pct: 58,
+    timeline_years: 6,
+    risk_drivers: [
+      "AI-powered sourcing platforms (Jaggaer, Coupa, Zycus) automate supplier discovery and RFQ processes",
+      "ML contract analysis tools extract obligations, risks, and pricing benchmarks faster than manual review",
+      "Automated purchase order processing and three-way matching eliminate transactional procurement work",
+      "AI negotiation preparation tools generate counter-offers and scenario models in real time",
+    ],
+    human_edges: [
+      "Strategic supplier relationships that require years of trust-building and personal accountability",
+      "Negotiating complex, high-value contracts with significant legal and reputational risk",
+      "Cross-functional influence within the business to align procurement strategy with commercial goals",
+    ],
+    pivots: [
+      {
+        role: "Supply Chain Strategy Consultant",
+        why: "Advise companies on supply chain resilience and nearshoring - a post-pandemic growth area.",
+        skills: ["Supply chain risk analysis", "Network design", "Consulting frameworks", "Stakeholder management"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Procurement Technology Manager",
+        why: "Own the implementation and optimisation of AI procurement platforms using your domain credibility.",
+        skills: ["Procure-to-pay platforms (Coupa, SAP Ariba)", "Change management", "Process design", "Data analysis"],
+        timeline: "3-6 months",
+        difficulty: 1,
+      },
+      {
+        role: "ESG Supply Chain Manager",
+        why: "Sustainability and ethical sourcing auditing is growing faster than AI can handle it, requiring human judgment.",
+        skills: ["ESG reporting standards", "Supplier auditing", "Carbon accounting", "Responsible sourcing"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "Compliance Officer",
+    aliases: [
+      "compliance manager", "regulatory compliance", "compliance analyst", "compliance specialist",
+      "chief compliance officer", "cco", "aml officer", "kyc analyst", "financial crime analyst",
+    ],
+    risk_pct: 55,
+    timeline_years: 6,
+    risk_drivers: [
+      "AI transaction monitoring tools (NICE Actimize, Feedzai) automate AML alert generation and initial investigation",
+      "LLMs can read regulatory updates, map them to policy gaps, and draft updated control documentation",
+      "Automated KYC and identity verification platforms handle customer onboarding with minimal human input",
+      "Regulatory change management tools track 700+ global regulatory bodies and auto-flag relevant updates",
+    ],
+    human_edges: [
+      "Judgment on novel regulatory interpretations where the right answer is genuinely uncertain",
+      "Accountability to regulators, enforcement conversations require a licensed, named human officer",
+      "Culture and conduct risk, influencing behaviour across the business requires human relationships",
+    ],
+    pivots: [
+      {
+        role: "RegTech Implementation Lead",
+        why: "Deploy and govern AI compliance platforms, your domain knowledge makes you the bridge between tech and regulation.",
+        skills: ["RegTech platforms", "Process automation", "Regulatory mapping", "Project management"],
+        timeline: "3-6 months",
+        difficulty: 1,
+      },
+      {
+        role: "Financial Crime Investigator",
+        why: "Complex financial crime cases require investigative judgment and evidence chains that AI cannot build alone.",
+        skills: ["Investigation methodology", "OSINT", "SAR writing", "Law enforcement liaison"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "Risk and Compliance Consultant",
+        why: "Advise regulated firms on compliance frameworks as a consultant, where your expertise commands premium day rates.",
+        skills: ["Risk frameworks (FCA, SEC, MAS)", "Control design", "Client advisory", "Report writing"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "Supply Chain Manager",
+    aliases: [
+      "logistics manager", "supply chain analyst", "operations and logistics", "demand planner",
+      "inventory manager", "distribution manager", "fulfillment manager",
+    ],
+    risk_pct: 50,
+    timeline_years: 7,
+    risk_drivers: [
+      "AI demand forecasting tools (o9 Solutions, Blue Yonder) cut planning cycle time from weeks to hours",
+      "Autonomous warehouses (Amazon Robotics, Ocado) eliminate manual picking and sorting at scale",
+      "Route optimisation AI reduces the need for human logistics planning in last-mile delivery",
+      "LLMs automate supplier communications, purchase orders, and exception reports",
+    ],
+    human_edges: [
+      "Managing supplier relationships through disruption and geopolitical risk, where trust is irreplaceable",
+      "Cross-functional leadership during crises (pandemics, port strikes) requiring real-time human judgment",
+      "Designing resilient network strategies that balance cost, speed, and risk in ways models underestimate",
+    ],
+    pivots: [
+      {
+        role: "Supply Chain Resilience Manager",
+        why: "Companies are paying premium salaries for people who can build supply chains that survive disruption.",
+        skills: ["Risk mapping", "Nearshoring strategy", "Business continuity planning", "Supplier diversification"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "Supply Chain Technology Lead",
+        why: "Implement and govern AI planning and execution platforms, your operational expertise is the critical ingredient.",
+        skills: ["ERP systems (SAP, Oracle)", "Supply chain platforms", "Change management", "Data analytics"],
+        timeline: "4-6 months",
+        difficulty: 1,
+      },
+      {
+        role: "Sustainable Logistics Manager",
+        why: "Scope 3 emissions reporting and green logistics are creating specialist roles faster than talent pipelines can fill.",
+        skills: ["Carbon footprint modelling", "Green logistics", "ESG reporting", "Carrier sustainability metrics"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "Business Analyst",
+    aliases: [
+      "ba", "business systems analyst", "requirements analyst", "process analyst",
+      "functional analyst", "it business analyst", "digital business analyst",
+    ],
+    risk_pct: 48,
+    timeline_years: 7,
+    risk_drivers: [
+      "LLMs can generate user stories, acceptance criteria, and process flow diagrams from rough briefs",
+      "Process mining tools (Celonis, UiPath Process Mining) automatically discover and document AS-IS processes",
+      "AI requirements tools reduce the time to draft BRDs and functional specifications dramatically",
+      "No-code platforms enable business users to build solutions themselves, removing the BA as intermediary",
+    ],
+    human_edges: [
+      "Stakeholder facilitation, uncovering the real problem beneath the stated requirement through skilled questioning",
+      "Navigating organisational politics and aligning competing priorities across departments",
+      "Judgment on trade-offs between cost, scope, and time that require business context AI doesn't have",
+    ],
+    pivots: [
+      {
+        role: "Product Owner",
+        why: "Own the product backlog and vision in an agile team, a direct evolution that uses your requirements skills.",
+        skills: ["Agile/Scrum", "Backlog prioritisation", "Stakeholder management", "Product roadmapping"],
+        timeline: "3-6 months",
+        difficulty: 1,
+      },
+      {
+        role: "Process Improvement Consultant",
+        why: "Redesign business processes using AI and automation tools, your process expertise is the foundation.",
+        skills: ["Lean / Six Sigma", "Process automation (RPA)", "Change management", "Value stream mapping"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "Data Analyst",
+        why: "Extend your analytical skills into data, using SQL and BI tools to answer the business questions you currently define.",
+        skills: ["SQL", "Power BI / Tableau", "Data modelling", "Statistical analysis"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "Scrum Master",
+    aliases: [
+      "agile coach", "agile scrum master", "scrum coach", "delivery manager", "agile delivery lead",
+      "agile project manager",
+    ],
+    risk_pct: 44,
+    timeline_years: 7,
+    risk_drivers: [
+      "AI sprint planning tools (Linear AI, Jira's AI features) automate backlog prioritisation and sprint ceremonies",
+      "Async-first and AI-augmented teams reduce the overhead of facilitation, shrinking the Scrum Master role",
+      "LLMs generate retrospective summaries, impediment logs, and velocity reports automatically",
+      "Some organisations are removing the dedicated Scrum Master role and distributing its duties to the team",
+    ],
+    human_edges: [
+      "Coaching team dynamics, psychological safety, and interpersonal conflicts that no AI can facilitate",
+      "Organisational change management when scaling agile practices across resistant business units",
+      "Detecting subtle team health issues (burnout, disengagement, hidden impediments) through observation",
+    ],
+    pivots: [
+      {
+        role: "Agile Transformation Coach",
+        why: "Scale agile practices across enterprises, a senior consulting role that cannot be automated.",
+        skills: ["Organisational change management", "SAFe / LeSS frameworks", "Executive coaching", "Training design"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Engineering Manager",
+        why: "Move into people leadership of engineering teams, combining your facilitation skills with technical accountability.",
+        skills: ["People management", "Technical roadmapping", "Performance management", "Engineering metrics"],
+        timeline: "6-18 months",
+        difficulty: 3,
+      },
+      {
+        role: "Product Operations Manager",
+        why: "Run the operational systems and tooling that make product teams more effective.",
+        skills: ["Product tooling (Jira, Notion, Linear)", "Process design", "Analytics", "Cross-team coordination"],
+        timeline: "3-6 months",
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    title: "Solutions Engineer",
+    aliases: [
+      "sales engineer", "pre-sales engineer", "solutions architect", "technical sales engineer",
+      "pre-sales consultant", "technical account manager", "solutions consultant",
+    ],
+    risk_pct: 42,
+    timeline_years: 7,
+    risk_drivers: [
+      "AI demo personalisation tools auto-configure product demos to prospect needs from CRM data",
+      "LLMs draft RFP responses, security questionnaires, and technical proposals at speed",
+      "Product-led growth and self-serve trials are reducing the need for SE involvement in SMB sales",
+      "AI discovery tools analyse prospect calls and suggest technical objection handling automatically",
+    ],
+    human_edges: [
+      "Technical credibility in front of enterprise architects and CTOs who evaluate the human as much as the product",
+      "Reading complex stakeholder dynamics during a live proof-of-concept to rescue a deal",
+      "Designing bespoke integration architectures for enterprise deals that require deep product knowledge",
+    ],
+    pivots: [
+      {
+        role: "Technical Product Manager",
+        why: "Your depth across customer problems and product capabilities is exactly what technical PMs need.",
+        skills: ["Product strategy", "API and integration design", "Roadmap prioritisation", "Customer research"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Customer Success Engineer",
+        why: "Own post-sale technical relationships, ensuring customers get value and expanding accounts.",
+        skills: ["Implementation consulting", "Technical training", "SLA management", "Upsell identification"],
+        timeline: "2-4 months",
+        difficulty: 1,
+      },
+      {
+        role: "AI Solutions Architect",
+        why: "Specialise in designing AI integrations and deployments for enterprise customers - a fast-growing role.",
+        skills: ["LLM integration patterns", "Cloud architecture (AWS, Azure, GCP)", "API design", "Enterprise AI governance"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "Project Manager",
+    aliases: [
+      "pm", "program manager", "programme manager", "project lead", "project coordinator",
+      "delivery lead", "it project manager", "pmo manager", "project management officer",
+    ],
+    risk_pct: 40,
+    timeline_years: 7,
+    risk_drivers: [
+      "AI project management tools (Microsoft Copilot for Project, Motion, Asana AI) automate scheduling, resource allocation, and status reports",
+      "LLMs generate project plans, risk registers, and stakeholder updates from brief inputs",
+      "Automated dependency tracking and critical path analysis removes much of the manual planning overhead",
+      "Generative AI creates slide decks, RAG reports, and steering committee packs in minutes",
+    ],
+    human_edges: [
+      "Stakeholder management and negotiation when projects encounter conflict, scope creep, or budget overruns",
+      "Leadership accountability, the ability to make a call under uncertainty and stand behind it",
+      "Political navigation across organisational boundaries where relationships are the real dependency",
+    ],
+    pivots: [
+      {
+        role: "Programme Director",
+        why: "Move from managing projects to leading complex programmes where senior leadership and strategy dominate.",
+        skills: ["Programme governance", "Benefits realisation", "Executive stakeholder management", "Portfolio prioritisation"],
+        timeline: "1-2 years",
+        difficulty: 3,
+      },
+      {
+        role: "AI Transformation Lead",
+        why: "Lead organisations through AI adoption programmes - projects that require a skilled human at the helm.",
+        skills: ["Change management", "AI adoption frameworks", "Executive communication", "Risk management"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "Product Manager",
+        why: "Move from delivery to product ownership, using your cross-functional coordination skills in a higher-value role.",
+        skills: ["Product discovery", "Backlog management", "User research", "Go-to-market planning"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "Brand Manager",
+    aliases: [
+      "brand strategist", "brand marketing manager", "senior brand manager", "brand director",
+      "brand development manager",
+    ],
+    risk_pct: 38,
+    timeline_years: 8,
+    risk_drivers: [
+      "Generative AI produces brand campaign concepts, ad copy, and creative briefs faster than agency processes",
+      "AI image and video generation (Midjourney, Sora) reduces reliance on expensive creative production",
+      "AI-powered consumer insight tools analyse social sentiment and brand health in real time without research agencies",
+      "Programmatic advertising automation has removed much of the media planning and buying workload",
+    ],
+    human_edges: [
+      "Brand judgment, the cultural intuition for what is on-brand, on-trend, and what will land vs fall flat",
+      "Creative leadership and the ability to brief, inspire, and evaluate human creative talent",
+      "Long-term brand stewardship across market conditions, leadership changes, and crises",
+    ],
+    pivots: [
+      {
+        role: "Chief Marketing Officer",
+        why: "Brand leadership is the path to CMO, where strategy, culture, and business acumen combine.",
+        skills: ["Marketing strategy", "P&L ownership", "Agency management", "Board communication"],
+        timeline: "2-5 years",
+        difficulty: 3,
+      },
+      {
+        role: "Brand Consultant",
+        why: "Advise multiple brands as an independent consultant, where your judgment commands fees that can't be automated.",
+        skills: ["Brand architecture", "Positioning strategy", "Workshop facilitation", "Client management"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Content Strategy Director",
+        why: "Own the editorial and content vision that AI tools execute - the strategy layer above the generation layer.",
+        skills: ["Content strategy", "Editorial leadership", "SEO and distribution", "Brand voice design"],
+        timeline: "4-8 months",
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    title: "DevOps Engineer",
+    aliases: [
+      "devops", "platform engineer", "site reliability engineer", "sre", "infrastructure engineer",
+      "cloud engineer", "devsecops engineer", "build and release engineer",
+    ],
+    risk_pct: 35,
+    timeline_years: 8,
+    risk_drivers: [
+      "AI-powered infrastructure-as-code tools (GitHub Copilot, Terraform AI) generate Kubernetes configs and CI/CD pipelines",
+      "AIOps platforms automate incident triage, root cause analysis, and remediation for common failure modes",
+      "Serverless and managed cloud platforms are abstracting away much of the infrastructure management work",
+      "LLMs write runbooks, postmortem reports, and architecture documentation",
+    ],
+    human_edges: [
+      "System architecture decisions that balance security, cost, performance, and team capability",
+      "Incident command during complex multi-system failures where judgment and communication are critical",
+      "Designing the engineering culture and standards that enable teams to ship safely",
+    ],
+    pivots: [
+      {
+        role: "Platform Engineering Lead",
+        why: "Build the internal developer platform that abstracts infrastructure for product teams.",
+        skills: ["Internal developer platforms (Backstage)", "Golden paths", "Developer experience", "Platform product thinking"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Cloud Security Architect",
+        why: "Secure cloud-native architectures - a specialisation where the threat surface grows faster than the talent pool.",
+        skills: ["Cloud security (AWS/Azure/GCP)", "Zero trust architecture", "IAM design", "Compliance frameworks"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "AI Infrastructure Engineer",
+        why: "Build and operate the GPU clusters, vector databases, and MLOps pipelines that AI applications run on.",
+        skills: ["GPU cluster management", "Vector databases", "ML pipeline tooling", "Distributed systems"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "UX Researcher",
+    aliases: [
+      "user researcher", "ux research", "user experience researcher", "design researcher",
+      "product researcher", "consumer insights researcher", "human factors researcher",
+    ],
+    risk_pct: 28,
+    timeline_years: 9,
+    risk_drivers: [
+      "AI survey tools (Qualtrics AI, Maze AI) analyse qualitative responses and surface themes without manual coding",
+      "Automated usability testing platforms run moderated sessions and generate insight reports",
+      "LLMs can synthesise large volumes of user feedback, support tickets, and reviews into insight summaries",
+    ],
+    human_edges: [
+      "Conducting nuanced interviews where empathy and skilled follow-up questioning reveal the real user need",
+      "Observational fieldwork and contextual inquiry in environments that can't be replicated online",
+      "Translating messy, contradictory human behaviour into design principles that resonate with product teams",
+    ],
+    pivots: [
+      {
+        role: "Mixed Methods Research Lead",
+        why: "Combine qualitative depth with quantitative rigour - the synthesis layer that AI tools can't yet replicate.",
+        skills: ["Quantitative research methods", "Survey design", "Statistical analysis", "Research operations"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "Research Operations Manager",
+        why: "Build and run the systems, tools, and participant panels that enable research at scale.",
+        skills: ["Research tooling (Dovetail, Userleap)", "Participant recruitment", "Research governance", "Process design"],
+        timeline: "3-5 months",
+        difficulty: 1,
+      },
+      {
+        role: "Customer Insights Manager",
+        why: "Own VoC programmes and customer understanding for a product or marketing organisation.",
+        skills: ["Customer journey mapping", "NPS and CX analytics", "Stakeholder storytelling", "Insight activation"],
+        timeline: "4-6 months",
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    title: "MLOps Engineer",
+    aliases: [
+      "ml ops", "mlops", "machine learning operations", "ml platform engineer",
+      "ai platform engineer", "model deployment engineer",
+    ],
+    risk_pct: 25,
+    timeline_years: 10,
+    risk_drivers: [
+      "Managed ML platforms (SageMaker, Vertex AI) are automating pipeline orchestration and model serving",
+      "LLMs can generate infrastructure-as-code for standard ML deployment patterns",
+      "AutoML platforms reduce the custom engineering required for model training and evaluation",
+    ],
+    human_edges: [
+      "Designing reliable, cost-effective ML systems that operate at enterprise scale and meet SLA requirements",
+      "Debugging complex failures across the model-data-infrastructure stack that automated tools miss",
+      "Governance and accountability for production AI systems in regulated or high-stakes environments",
+    ],
+    pivots: [
+      {
+        role: "AI Platform Architect",
+        why: "Design the enterprise-wide AI infrastructure strategy, a senior role with deep leverage.",
+        skills: ["ML system design", "Cloud architecture", "LLMOps", "AI governance frameworks"],
+        timeline: "9-18 months",
+        difficulty: 3,
+      },
+      {
+        role: "AI Product Manager",
+        why: "Own AI product strategy using your understanding of what models can actually do in production.",
+        skills: ["Product management", "LLM capabilities", "Evaluation design", "Stakeholder communication"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Data Engineering Lead",
+        why: "Data pipelines underpin every ML system - a growing role as the data layer becomes the competitive moat.",
+        skills: ["Data pipeline design (Airflow, dbt)", "Data warehousing", "Streaming (Kafka)", "Data quality"],
+        timeline: "3-6 months",
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    title: "Enterprise Architect",
+    aliases: [
+      "ea", "solution architect", "technical architect", "chief architect",
+      "it architect", "systems architect", "digital architect",
+    ],
+    risk_pct: 22,
+    timeline_years: 10,
+    risk_drivers: [
+      "LLMs generate architecture diagrams, decision records, and technology assessments from high-level briefs",
+      "AI-assisted design tools (AWS Application Composer, Structurizr AI) automate architecture documentation",
+      "Low-code platforms reduce the bespoke architecture work required for standard business applications",
+    ],
+    human_edges: [
+      "Strategic technology decisions that carry 5-10 year consequences and require organisational political judgment",
+      "Navigating vendor relationships, contract negotiations, and the commercial dynamics of enterprise technology",
+      "Translating ambiguous business strategy into coherent technology direction across competing priorities",
+    ],
+    pivots: [
+      {
+        role: "CTO",
+        why: "Enterprise architecture is the direct pathway to technology leadership at the C-suite level.",
+        skills: ["Technology strategy", "P&L management", "Engineering leadership", "Board communication"],
+        timeline: "2-5 years",
+        difficulty: 3,
+      },
+      {
+        role: "Technology Strategy Consultant",
+        why: "Advise boards and CEOs on technology strategy, using your architectural expertise at the highest level.",
+        skills: ["Strategic consulting", "Digital transformation", "Business case development", "Executive communication"],
+        timeline: "9-18 months",
+        difficulty: 3,
+      },
+      {
+        role: "AI Governance Architect",
+        why: "Design the AI architecture standards and governance frameworks that regulated organisations need urgently.",
+        skills: ["AI governance", "Model risk management", "Responsible AI frameworks", "Regulatory compliance"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "Venture Capital Analyst",
+    aliases: [
+      "vc analyst", "venture analyst", "startup investor", "venture capital associate",
+      "vc associate", "early stage investor", "seed investor",
+    ],
+    risk_pct: 60,
+    timeline_years: 6,
+    risk_drivers: [
+      "AI deal flow tools (Affinity AI, Harmonic) scan thousands of startups and auto-score against investment theses",
+      "LLMs generate market maps, competitive analyses, and investment memos from data inputs",
+      "Automated due diligence platforms cross-reference cap tables, patent filings, and team backgrounds instantly",
+      "Data-driven VC models are demonstrating that algorithm-led deal selection outperforms discretionary analyst calls in early stages",
+    ],
+    human_edges: [
+      "Founder relationship building and the trust required to win allocation in competitive rounds",
+      "Pattern recognition on pre-traction teams where no data exists yet, only judgment",
+      "Portfolio support and the human value-add that keeps top founders loyal to a firm",
+    ],
+    pivots: [
+      {
+        role: "Startup Operator",
+        why: "Bring your pattern recognition on what great companies look like to an operating role inside one.",
+        skills: ["Startup strategy", "Go-to-market", "Fundraising", "Hiring and team building"],
+        timeline: "3-6 months",
+        difficulty: 2,
+      },
+      {
+        role: "Corporate Venture Capital Manager",
+        why: "Run strategic investment programmes inside large corporates, where relationships and political navigation matter more than models.",
+        skills: ["Corporate venture", "Strategic partnerships", "Investment committee management", "Portfolio monitoring"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "Chief of Staff at a Startup",
+        why: "Leverage your cross-functional pattern recognition and founder exposure to run strategy at a high-growth company.",
+        skills: ["Executive operations", "Strategic planning", "Cross-functional project management", "Data analysis"],
+        timeline: "2-4 months",
+        difficulty: 1,
+      },
+    ],
+  },
+  {
+    title: "Risk Manager",
+    aliases: [
+      "risk analyst", "enterprise risk manager", "operational risk manager", "financial risk analyst",
+      "chief risk officer", "cro", "risk and controls manager", "credit risk analyst",
+    ],
+    risk_pct: 45,
+    timeline_years: 7,
+    risk_drivers: [
+      "AI risk modelling platforms automate credit scoring, market risk VaR calculations, and operational risk heat maps",
+      "Real-time risk dashboards replace manual risk reporting cycles that previously required analyst time",
+      "ML models identify fraud, market anomalies, and counterparty risk signals faster and more accurately than humans",
+      "LLMs synthesise risk committee papers, regulatory reports, and board packs from underlying data",
+    ],
+    human_edges: [
+      "Judgment on novel, unmodelled risks (geopolitical shocks, pandemic scenarios, AI-specific risks) with no precedent",
+      "Board and executive communication of risk in a way that drives decisions, not just reports",
+      "Accountability and professional liability for risk frameworks in regulated industries",
+    ],
+    pivots: [
+      {
+        role: "Chief Risk Officer",
+        why: "Senior risk leadership is the natural progression, where accountability and judgment are permanently human.",
+        skills: ["Enterprise risk governance", "Board advisory", "Regulatory relationship management", "Strategic risk thinking"],
+        timeline: "2-4 years",
+        difficulty: 3,
+      },
+      {
+        role: "AI Risk Specialist",
+        why: "Evaluate and govern the risks posed by AI systems - one of the fastest growing risk disciplines.",
+        skills: ["AI governance frameworks", "Model risk management (SR 11-7)", "AI bias assessment", "Explainability tools"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "Climate Risk Analyst",
+        why: "Physical and transition climate risk is becoming mandatory disclosure - a specialist area with a talent shortage.",
+        skills: ["TCFD framework", "Physical risk modelling", "Scenario analysis", "ESG data platforms"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "Operations Manager",
+    aliases: [
+      "ops manager", "head of operations", "business operations manager", "operational manager",
+      "operations director", "general manager", "country manager",
+    ],
+    risk_pct: 38,
+    timeline_years: 8,
+    risk_drivers: [
+      "AI scheduling, workforce management, and capacity planning tools reduce manual operations overhead significantly",
+      "Automated KPI dashboards and anomaly detection replace manual reporting cycles",
+      "Process automation (RPA, workflow AI) is eliminating repetitive operational tasks that managers previously supervised",
+      "LLMs generate operational reports, SOP documentation, and performance reviews",
+    ],
+    human_edges: [
+      "Leading people through change, uncertainty, and performance challenges that require empathy and authority",
+      "Judgment in ambiguous situations where operating procedures don't provide the answer",
+      "Building the cross-functional relationships that make organisations work despite structural friction",
+    ],
+    pivots: [
+      {
+        role: "AI Operations Lead",
+        why: "Own the AI automation programme within an operations function, combining domain expertise with technology implementation.",
+        skills: ["Process automation", "RPA platforms (UiPath, Automation Anywhere)", "Change management", "Operational metrics"],
+        timeline: "4-8 months",
+        difficulty: 1,
+      },
+      {
+        role: "Strategy and Operations Manager",
+        why: "Combine operational rigour with strategic analysis in a BizOps or StratOps role at a high-growth company.",
+        skills: ["Strategic analysis", "SQL and data tools", "OKR frameworks", "Cross-functional leadership"],
+        timeline: "4-8 months",
+        difficulty: 2,
+      },
+      {
+        role: "Chief Operating Officer",
+        why: "Operations leadership is the path to COO, where people management and strategic execution are permanently human.",
+        skills: ["P&L management", "Organisational design", "Board reporting", "M&A integration"],
+        timeline: "2-5 years",
+        difficulty: 3,
+      },
+    ],
+  },
+  {
+    title: "Actuary",
+    aliases: [
+      "actuarial analyst", "actuarial consultant", "qualified actuary", "actuarial associate",
+      "pricing actuary", "reserving actuary", "pensions actuary",
+    ],
+    risk_pct: 68,
+    timeline_years: 5,
+    risk_drivers: [
+      "ML models are outperforming classical actuarial methods for personal lines pricing and claims prediction",
+      "AI platforms automate the reserving, IBNR calculations, and capital modelling that juniors currently build in Excel",
+      "Generative AI produces actuarial reports, regulatory submissions, and board presentations",
+      "Insurtech pricing teams using gradient boosting and neural nets are forcing traditional actuaries to justify their GLMs",
+    ],
+    human_edges: [
+      "Professional accountability, actuarial sign-off on reserves and capital carries personal and legal liability",
+      "Explaining model assumptions and uncertainty ranges to regulators and boards in terms they accept",
+      "Judgment on model limitations and the scenarios where historical data cannot be trusted",
+    ],
+    pivots: [
+      {
+        role: "AI Pricing Specialist",
+        why: "Build and govern the ML pricing models that are replacing classical actuarial methods.",
+        skills: ["Gradient boosting (XGBoost, LightGBM)", "Python for actuarial science", "Model validation", "Pricing strategy"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Insurance Data Scientist",
+        why: "Apply your statistical rigour to building ML models for claims, fraud, and customer lifetime value.",
+        skills: ["Python or R", "Machine learning", "Feature engineering", "Model deployment"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Climate Risk Actuary",
+        why: "Model the physical and transition risks from climate change - a growing specialism with a structural talent gap.",
+        skills: ["Catastrophe modelling", "TCFD frameworks", "Climate scenario analysis", "ESG reporting"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+    ],
+  },
+  {
+    title: "Fundraiser",
+    aliases: [
+      "development officer", "major gifts officer", "fundraising manager", "philanthropy manager",
+      "corporate partnerships manager", "grant writer", "annual fund manager", "donor relations officer",
+    ],
+    risk_pct: 30,
+    timeline_years: 9,
+    risk_drivers: [
+      "AI donor prospect research tools (DonorSearch AI, iWave) score and rank prospects automatically",
+      "LLMs write grant applications, case statements, and stewardship reports at speed",
+      "Automated email sequences and digital fundraising platforms reduce the need for personal outreach at small gift levels",
+    ],
+    human_edges: [
+      "Major donor relationships built over years that are fundamentally personal and cannot be proxied",
+      "In-person stewardship and the emotional resonance required to secure seven-figure gifts",
+      "Community trust in the fundraiser as a mission-aligned person, not just a representative of the organisation",
+    ],
+    pivots: [
+      {
+        role: "Major Gifts Director",
+        why: "Move entirely to high-value relationship fundraising where personal trust is the only thing that matters.",
+        skills: ["Major gift cultivation", "Planned giving", "Prospect research", "Donor stewardship"],
+        timeline: "6-12 months",
+        difficulty: 2,
+      },
+      {
+        role: "Impact Investment Analyst",
+        why: "Apply your mission-driven storytelling and stakeholder skills in the growing impact investing sector.",
+        skills: ["Impact measurement (IRIS+)", "Financial modelling basics", "ESG frameworks", "Stakeholder reporting"],
+        timeline: "9-18 months",
+        difficulty: 3,
+      },
+      {
+        role: "Partnership Development Manager",
+        why: "Build corporate and foundation partnerships for nonprofits or mission-driven businesses.",
+        skills: ["Corporate CSR landscape", "Partnership proposal writing", "Sponsorship activation", "CRM management"],
+        timeline: "3-6 months",
+        difficulty: 1,
+      },
+    ],
+  },
 ];
 
 // ── Matching logic ─────────────────────────────────────────────────────────
@@ -1386,17 +2298,17 @@ function normalise(s: string): string {
   return s
     .toLowerCase()
     .trim()
-    .replace(/\b(senior|junior|associate|principal|lead|chief|head|director|vp|vice president|manager|specialist|executive|officer|analyst|coordinator|assistant|intern)\b/g, "")
+    .replace(/\b(senior|junior|associate|principal|chief|director|vp|vice president|manager|specialist|executive|officer|coordinator|assistant|intern)\b/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function wordOverlap(a: string, b: string): number {
+function wordOverlap(a: string, b: string): { score: number; shared: number } {
   const wa = new Set(a.split(/\s+/).filter((w) => w.length > 2));
   const wb = new Set(b.split(/\s+/).filter((w) => w.length > 2));
   let count = 0;
   wa.forEach((w) => { if (wb.has(w)) count++; });
-  return count / Math.max(wa.size, wb.size, 1);
+  return { score: count / Math.max(wa.size, wb.size, 1), shared: count };
 }
 
 function findMatch(input: string): { job: JobRisk; confidence: "high" | "medium" | "low" } | null {
@@ -1431,8 +2343,8 @@ function findMatch(input: string): { job: JobRisk; confidence: "high" | "medium"
   for (const job of JOB_DATA) {
     const candidates = [job.title, ...job.aliases];
     for (const c of candidates) {
-      const score = wordOverlap(norm, normalise(c));
-      if (score >= 0.4 && (!best || score > best.score)) {
+      const { score, shared } = wordOverlap(norm, normalise(c));
+      if (score >= 0.5 && shared >= 2 && (!best || score > best.score)) {
         best = { job, score };
       }
     }
