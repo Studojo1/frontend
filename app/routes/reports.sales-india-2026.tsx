@@ -6,7 +6,7 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Fresher Sales in India: What You're Actually Getting Into — Studojo Report 2026" },
+    { title: "Fresher Sales in India: What You're Actually Getting Into | Studojo Report 2026" },
     {
       name: "description",
       content:
@@ -55,8 +55,8 @@ function initCharts() {
     data: {
       labels: ["FMCG\n(MBA/MT)", "SaaS SDR\n(B2B Tech)", "FMCG\n(Graduate TSO)", "D2C Brands", "Edtech\n(post-2024)", "Insurance\n/ BFSI", "Real Estate\n(brokerage)"],
       datasets: [
-        { label: "Base salary range — low (LPA)", data: [6, 4.5, 3.5, 3, 2.5, 2.5, 1.2], backgroundColor: VIOLET3, borderRadius: 4, borderWidth: 0 },
-        { label: "Base salary range — high (LPA)", data: [12, 7.5, 5.5, 5, 4, 4.8, 3.6], backgroundColor: VIOLET, borderRadius: 4, borderWidth: 0 },
+        { label: "Base salary: low (LPA)", data: [6, 4.5, 3.5, 3, 2.5, 2.5, 1.2], backgroundColor: VIOLET3, borderRadius: 4, borderWidth: 0 },
+        { label: "Base salary: high (LPA)", data: [12, 7.5, 5.5, 5, 4, 4.8, 3.6], backgroundColor: VIOLET, borderRadius: 4, borderWidth: 0 },
       ],
     },
     options: {
@@ -72,26 +72,28 @@ function initCharts() {
     },
   });
 
-  // Chart 2: Role growth
+  // Chart 2: Role growth — YoY % only, coloured by direction
   make("roleChart", {
     type: "bar",
     data: {
-      labels: ["Inside Sales / SDR", "Business Dev Associate", "Field Sales / Territory", "Channel Sales", "Insurance Agent", "Real Estate Sales", "Edtech Sales", "Retail Sales"],
-      datasets: [
-        { label: "Current open roles (index)", data: [100, 85, 90, 45, 70, 55, 30, 60], backgroundColor: VIOLET, borderRadius: 4, yAxisID: "y" },
-        { label: "YoY growth (%)", data: [38, 31, 5, 18, 2, 12, -25, 8], backgroundColor: ORANGE, borderRadius: 4, yAxisID: "y1" },
-      ],
+      labels: ["Inside Sales / SDR", "Business Dev Associate", "Channel Sales", "Real Estate Sales", "Retail Sales", "Field Sales / Territory", "Insurance Agent", "Edtech Sales"],
+      datasets: [{
+        label: "YoY growth (%)",
+        data: [38, 31, 18, 12, 8, 5, 2, -25],
+        backgroundColor: [GREEN, GREEN, GREEN2, GREEN2, GREEN2, ORANGE, ORANGE, RED],
+        borderRadius: 4,
+        borderWidth: 0,
+      }],
     },
     options: {
       responsive: true, maintainAspectRatio: false, indexAxis: "y",
       plugins: {
-        legend: { position: "top", labels: { font: { size: 12 }, boxWidth: 14, padding: 20 } },
-        tooltip: { mode: "index", intersect: false },
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx: any) => ` YoY growth: ${ctx.raw > 0 ? "+" : ""}${ctx.raw}%` } },
       },
       scales: {
-        x: { grid, border: { dash: [4, 4] }, ticks: { font: { size: 11 }, color: MUTED } },
+        x: { grid, border: { dash: [4, 4] }, ticks: { font: { size: 11 }, color: MUTED, callback: (v: any) => v + "%" } },
         y: { grid: { display: false }, ticks: { font: { size: 11 }, color: INK } },
-        y1: { display: false },
       },
     },
   });
@@ -252,14 +254,14 @@ export default function SalesIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 01</span>
               <h2 className="rpt-h2">Sales hiring is booming. Bengaluru is pulling ahead of Mumbai.</h2>
-              <p className="rpt-lead">Sales and Business Development hiring grew 23% year-on-year in 2025 — one of the fastest-growing functional categories in white-collar India. There are 28,600+ active sales openings right now. The city distribution will surprise you.</p>
+              <p className="rpt-lead">Sales and Business Development hiring grew 23% year-on-year in 2025, one of the fastest-growing functional categories in white-collar India. There are 28,600+ active sales openings right now. The city distribution will surprise you.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c4">
               <div className="rpt-stat"><div className="rpt-val rpt-v">28,600+</div><div className="rpt-lbl">Active sales openings (Foundit.in, April 2026)</div><span className="rpt-delta rpt-du">+23% YoY</span></div>
               <div className="rpt-stat"><div className="rpt-val">53%</div><div className="rpt-lbl">Of planned hiring in tier-1 cities</div><span className="rpt-delta rpt-dn">Tier-2 cities at 32%, rising fast</span></div>
               <div className="rpt-stat"><div className="rpt-val rpt-g">3,544</div><div className="rpt-lbl">Sales vacancies in Bengaluru alone</div><span className="rpt-delta rpt-du">+23% city growth rate</span></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">40%</div><div className="rpt-lbl">India hiring intent — 2nd highest globally across 42 countries</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">40%</div><div className="rpt-lbl">India hiring intent: 2nd highest globally across 42 countries</div></div>
             </div>
 
             <div className="rpt-card">
@@ -289,16 +291,16 @@ export default function SalesIndiaReport() {
             </blockquote>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Fresher year-1 base salary range by sector (LPA) — low to high</div>
+              <div className="rpt-card-label">Fresher year-1 base salary range by sector (LPA): low to high</div>
               <div className="rpt-chart-wrap" style={{ height: 320 }}><canvas id="salaryChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The chart shows the range — not the average — because within each sector, what you earn depends heavily on the specific company, your college, and whether you negotiated. <strong>SaaS SDR roles sit in an interesting middle band</strong>: base is lower than FMCG management trainee programs, but the total comp picture changes entirely once you factor in variable pay and the speed of progression to Account Executive.</p>
+            <p className="rpt-prose">The chart shows the range (not the average) because within each sector, what you earn depends heavily on the specific company, your college, and whether you negotiated. <strong>SaaS SDR roles sit in an interesting middle band</strong>: base is lower than FMCG management trainee programs, but the total comp picture changes entirely once you factor in variable pay and the speed of progression to Account Executive.</p>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-v">4.39 LPA</div><div className="rpt-lbl">Median SDR salary, under 1 year experience (PayScale India, 2026)</div></div>
               <div className="rpt-stat"><div className="rpt-val">2.04 LPA</div><div className="rpt-lbl">Median general sales executive fresher (all sectors, PayScale)</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-g">7.06 LPA</div><div className="rpt-lbl">Median SDR salary across all experience levels — where you can be in 2-3 years</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-g">7.06 LPA</div><div className="rpt-lbl">Median SDR salary across all experience levels: where you can be in 2-3 years</div></div>
             </div>
 
             <div className="rpt-callout rpt-co">
@@ -332,7 +334,7 @@ export default function SalesIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 360 }}><canvas id="roleChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">Inside sales and SDR/BDA roles are growing at 38% and 31% respectively. These are driven by India's B2B SaaS market, which is projected to reach $37 billion to $50 billion by 2030 — and every SaaS company needs an outbound sales motion to grow. Field sales, while still the highest-volume category by headcount, is growing at just 5%. The roles still exist, they are just not expanding.</p>
+            <p className="rpt-prose">Inside sales and SDR/BDA roles are growing at 38% and 31% respectively. These are driven by India's B2B SaaS market, which is projected to reach $37 billion to $50 billion by 2030. Every SaaS company needs an outbound sales motion to grow. Field sales, while still the highest-volume category by headcount, is growing at just 5%. The roles still exist, they are just not expanding.</p>
 
             <div className="rpt-pill-row">
               {["Inside Sales / SDR", "Business Dev Associate", "Channel Sales"].map(p => <span key={p} className="rpt-pill rpt-pg">{p}</span>)}
@@ -406,7 +408,7 @@ export default function SalesIndiaReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">The preparation split</div>
-              <p>FMCG companies run structured campus drives from tier-2 and tier-3 colleges. If you are not from a metro campus, FMCG is your most accessible high-quality fresher path. SaaS companies rarely do campus hiring — they post JDs and filter on demonstrated skills. That means your portfolio (a cold email you wrote, a mock discovery call you recorded, a CRM you set up) matters more than your college.</p>
+              <p>FMCG companies run structured campus drives from tier-2 and tier-3 colleges. If you are not from a metro campus, FMCG is your most accessible high-quality fresher path. SaaS companies rarely do campus hiring. They post JDs and filter on demonstrated skills. That means your portfolio (a cold email you wrote, a mock discovery call you recorded, a CRM you set up) matters more than your college.</p>
             </div>
             <p className="rpt-source">Source: Company career pages, Naukri hiring data, Internshala fresher listings, April 2026</p>
           </div>
@@ -424,12 +426,12 @@ export default function SalesIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="skillChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">Communication is universal — 94% of JDs mention it and it is the top reason freshers get rejected when it is absent. But the CRM gap is the structural problem. Salesforce appears in 56.7% of sales JDs. Zoho CRM dominates the SMB and startup market. HubSpot is the standard for D2C and funded startups. <strong>Most freshers have never opened any of these tools before their first interview.</strong> That is a gap you can close in a weekend.</p>
+            <p className="rpt-prose">Communication is universal: 94% of JDs mention it and it is the top reason freshers get rejected when it is absent. But the CRM gap is the structural problem. Salesforce appears in 56.7% of sales JDs. Zoho CRM dominates the SMB and startup market. HubSpot is the standard for D2C and funded startups. <strong>Most freshers have never opened any of these tools before their first interview.</strong> That is a gap you can close in a weekend.</p>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-v">56.7%</div><div className="rpt-lbl">Of sales JDs mention Salesforce specifically (LinkedIn data)</div></div>
               <div className="rpt-stat"><div className="rpt-val">70,990+</div><div className="rpt-lbl">Salesforce fresher job listings on Jooble India alone</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">Zoho</div><div className="rpt-lbl">Most widely used CRM in India's SMB sector — dominant in startup and D2C JDs</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">Zoho</div><div className="rpt-lbl">Most widely used CRM in India's SMB sector: dominant in startup and D2C JDs</div></div>
             </div>
 
             <div className="rpt-callout rpt-co">
@@ -455,7 +457,7 @@ export default function SalesIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 06</span>
               <h2 className="rpt-h2">Only 43.5% of business graduates are employable in sales. It is getting worse.</h2>
-              <p className="rpt-lead">The Mercer-Mettl Graduate Skill Index 2026 puts business and sales graduate employability at 43.5% — down from 48.3% in 2023. Less than 1 in 4 freshers across all domains have job-ready skills. Here is where the gaps actually are.</p>
+              <p className="rpt-lead">The Mercer-Mettl Graduate Skill Index 2026 puts business and sales graduate employability at 43.5%, down from 48.3% in 2023. Less than 1 in 4 freshers across all domains have job-ready skills. Here is where the gaps actually are.</p>
             </div>
 
             <div className="rpt-card">
@@ -510,25 +512,25 @@ export default function SalesIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 07</span>
               <h2 className="rpt-h2">Variable pay is the story in sales. The gap between sectors is wider than the base salary gap.</h2>
-              <p className="rpt-lead">Every sales role has a variable component. But what that means in practice — how it is calculated, when it pays out, and how realistic the "at target" number is — varies enormously. Most freshers do not ask the right questions before joining.</p>
+              <p className="rpt-lead">Every sales role has a variable component. But what that means in practice (how it is calculated, when it pays out, and how realistic the "at target" number is) varies enormously. Most freshers do not ask the right questions before joining.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Base + variable at target — year-1 fresher (LPA)</div>
+              <div className="rpt-card-label">Base + variable at target: year-1 fresher (LPA)</div>
               <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="variableChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The chart shows realistic "at target" variable, not the ceiling. In SaaS SDR roles, hitting target in year one is achievable — metrics are clear (calls made, meetings booked), and managers are incentivised to coach you to hit them. <strong>Insurance and real estate have the widest variable range</strong>: the ceiling is high but year-one reality for most freshers is well below the "at target" number.</p>
+            <p className="rpt-prose">The chart shows realistic "at target" variable, not the ceiling. In SaaS SDR roles, hitting target in year one is achievable: metrics are clear (calls made, meetings booked), and managers are incentivised to coach you to hit them. <strong>Insurance and real estate have the widest variable range</strong>: the ceiling is high but year-one reality for most freshers is well below the "at target" number.</p>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-v">28%</div><div className="rpt-lbl">LIC first-year commission rate (cut from 35% in October 2024 regulatory change)</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">70/30</div><div className="rpt-lbl">Standard SaaS SDR pay split — 70% base, 30% variable at target</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">70/30</div><div className="rpt-lbl">Standard SaaS SDR pay split: 70% base, 30% variable at target</div></div>
               <div className="rpt-stat"><div className="rpt-val">0-3</div><div className="rpt-lbl">Typical number of real estate deals a fresher closes in year one</div></div>
             </div>
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The questions to ask before you accept</div>
-              <p>Before signing any sales offer: (1) What % of last year's freshers hit their variable target? (2) When does the variable clock start — day 1 or after a ramp period? (3) Is the variable capped? (4) What happens to variable if the company misses its overall target? These four questions separate good variable structures from ones that look good on paper but never pay out.</p>
+              <p>Before signing any sales offer: (1) What % of last year's freshers hit their variable target? (2) When does the variable clock start: day 1 or after a ramp period? (3) Is the variable capped? (4) What happens to variable if the company misses its overall target? These four questions separate good variable structures from ones that look good on paper but never pay out.</p>
             </div>
             <p className="rpt-source">Source: Business Standard (LIC commission cut), PayScale SDR data, eBharat insurance commission report, April 2026</p>
           </div>
@@ -538,11 +540,11 @@ export default function SalesIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 08</span>
               <h2 className="rpt-h2">SDR path vs FMCG path: same starting point, very different year 5.</h2>
-              <p className="rpt-lead">Both paths are legitimate. Both lead to serious careers. But they diverge sharply by year three — in salary, in skillset, in geography, and in exit options. Here is the full comparison so you can choose with your eyes open.</p>
+              <p className="rpt-lead">Both paths are legitimate. Both lead to serious careers. But they diverge sharply by year three: in salary, in skillset, in geography, and in exit options. Here is the full comparison so you can choose with your eyes open.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Total compensation trajectory — SaaS SDR path vs FMCG TSO path (LPA, median)</div>
+              <div className="rpt-card-label">Total compensation trajectory: SaaS SDR path vs FMCG TSO path (LPA, median)</div>
               <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="trajectoryChart"></canvas></div>
             </div>
 
@@ -552,10 +554,10 @@ export default function SalesIndiaReport() {
                 <div className="rpt-card" style={{ padding: 20 }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {[
-                      ["Year 1", "SDR — 4.5 to 7.5 LPA", "Bengaluru / Pune / Hyderabad"],
-                      ["Year 2", "Senior SDR / AE — 8 to 12 LPA", "Metro cities, some remote"],
-                      ["Year 3", "Account Executive — 12 to 18 LPA", "Metro / remote"],
-                      ["Year 5", "Sr AE / Sales Manager — 20 to 30 LPA", "Metro / global companies"],
+                      ["Year 1", "SDR: 4.5 to 7.5 LPA", "Bengaluru / Pune / Hyderabad"],
+                      ["Year 2", "Senior SDR / AE: 8 to 12 LPA", "Metro cities, some remote"],
+                      ["Year 3", "Account Executive: 12 to 18 LPA", "Metro / remote"],
+                      ["Year 5", "Sr AE / Sales Manager: 20 to 30 LPA", "Metro / global companies"],
                     ].map(([yr, role, loc]) => (
                       <div key={yr as string} style={{ borderLeft: "3px solid #8b5cf6", paddingLeft: 12 }}>
                         <div style={{ fontSize: 10, fontWeight: 700, color: "#8b5cf6", textTransform: "uppercase", letterSpacing: 1 }}>{yr}</div>
@@ -564,7 +566,7 @@ export default function SalesIndiaReport() {
                       </div>
                     ))}
                   </div>
-                  <div className="rpt-mini-total" style={{ background: "#faf5fe", border: "1px solid #dab2ff", marginTop: 14 }}>
+                  <div className="rpt-mini-total" style={{ background: "#faf5fe", border: "1px solid #dab2ff" }}>
                     <div className="rpt-mini-total-label" style={{ color: "#8b5cf6" }}>Pros</div>
                     <div style={{ fontSize: 12, color: "#525252", marginTop: 4, lineHeight: 1.6 }}>Faster salary growth · Global skill portability · Measurable metrics · Remote-friendly · Exit to founder / GTM roles</div>
                   </div>
@@ -575,10 +577,10 @@ export default function SalesIndiaReport() {
                 <div className="rpt-card" style={{ padding: 20 }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {[
-                      ["Year 1", "TSO / Sales Executive — 3.5 to 5.5 LPA", "All India, including tier-2/3"],
-                      ["Year 2", "Senior TSO / Team Lead — 5.5 to 8 LPA", "Territory-based"],
-                      ["Year 3", "Area Sales Manager — 8 to 12 LPA", "Region-based"],
-                      ["Year 5", "Regional Sales Manager — 14 to 18 LPA", "Pan-India mobility"],
+                      ["Year 1", "TSO / Sales Executive: 3.5 to 5.5 LPA", "All India, including tier-2/3"],
+                      ["Year 2", "Senior TSO / Team Lead: 5.5 to 8 LPA", "Territory-based"],
+                      ["Year 3", "Area Sales Manager: 8 to 12 LPA", "Region-based"],
+                      ["Year 5", "Regional Sales Manager: 14 to 18 LPA", "Pan-India mobility"],
                     ].map(([yr, role, loc]) => (
                       <div key={yr as string} style={{ borderLeft: "3px solid #10b981", paddingLeft: 12 }}>
                         <div style={{ fontSize: 10, fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: 1 }}>{yr}</div>
@@ -587,7 +589,7 @@ export default function SalesIndiaReport() {
                       </div>
                     ))}
                   </div>
-                  <div className="rpt-mini-total" style={{ background: "#d0fae4", border: "1px solid #10b981", marginTop: 14 }}>
+                  <div className="rpt-mini-total" style={{ background: "#d0fae4", border: "1px solid #10b981" }}>
                     <div className="rpt-mini-total-label" style={{ color: "#065f46" }}>Pros</div>
                     <div style={{ fontSize: 12, color: "#525252", marginTop: 4, lineHeight: 1.6 }}>Clear promotion ladder · Campus recruitment accessible · Works from tier-2/3 cities · Stable variable pay · Brand name on resume</div>
                   </div>
@@ -595,7 +597,7 @@ export default function SalesIndiaReport() {
               </div>
             </div>
 
-            <p className="rpt-prose" style={{ marginTop: 24 }}>The SaaS path has higher salary acceleration and better global portability. The FMCG path is more structurally accessible — it recruits from tier-2 colleges, works in every Indian city, and has a clearly defined ladder. Neither is the wrong choice. <strong>The wrong choice is picking one without knowing what you are signing up for in years two and three.</strong></p>
+            <p className="rpt-prose" style={{ marginTop: 24 }}>The SaaS path has higher salary acceleration and better global portability. The FMCG path is more structurally accessible: it recruits from tier-2 colleges, works in every Indian city, and has a clearly defined ladder. Neither is the wrong choice. <strong>The wrong choice is picking one without knowing what you are signing up for in years two and three.</strong></p>
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">Which path is right for you</div>
@@ -682,7 +684,7 @@ const rptCSS = `
   .rpt-bar-value small { display:block; font-size:10px; color:#737373; font-weight:400; }
   .rpt-two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   .rpt-col-head { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#737373; margin-bottom:12px; }
-  .rpt-mini-total { border-radius:10px; }
+  .rpt-mini-total { border-radius:10px; padding:14px 16px; margin-top:14px; }
   .rpt-mini-total-label { font-size:11px; font-weight:700; }
   .rpt-mini-total-val { font-family:'Clash Display',sans-serif; font-size:22px; font-weight:700; }
   .rpt-mini-total-sub { font-size:12px; color:#737373; margin-top:2px; }
