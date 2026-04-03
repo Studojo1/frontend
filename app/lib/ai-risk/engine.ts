@@ -1448,17 +1448,31 @@ function inferFromKeywords(input: string): AnalysisResult {
   let timeline_years = 6;
   let cluster = "general";
 
+  // Primary clusters (engine-matched roles never reach here; these are fallback only)
   if (/sales|insurance|broker|agent/.test(s)) { risk_pct = 60; timeline_years = 5; cluster = "sales"; }
-  else if (/engineer|developer|tech|software|code|programmer/.test(s)) { risk_pct = 42; timeline_years = 8; cluster = "tech"; }
-  else if (/doctor|medical|health|care|nurse|clinical|hospital/.test(s)) { risk_pct = 18; timeline_years = 12; cluster = "health"; }
-  else if (/legal|law|solicitor|barrister|compliance/.test(s)) { risk_pct = 58; timeline_years = 5; cluster = "legal"; }
-  else if (/creative|design|art|illustrat/.test(s)) { risk_pct = 35; timeline_years = 8; cluster = "creative"; }
-  else if (/teach|school|education|professor|academic/.test(s)) { risk_pct = 20; timeline_years = 10; cluster = "education"; }
-  else if (/market|brand|digital|growth|content/.test(s)) { risk_pct = 40; timeline_years = 7; cluster = "marketing"; }
-  else if (/data|analytics|analysis|research/.test(s)) { risk_pct = 42; timeline_years = 7; cluster = "data"; }
-  else if (/finance|accounting|audit|tax/.test(s)) { risk_pct = 65; timeline_years = 5; cluster = "finance"; }
-  else if (/manag|direct|lead|vp|chief|head/.test(s)) { risk_pct = 32; timeline_years = 8; cluster = "leadership"; }
-  else if (/trade|plumb|electric|construct|mechanic|hvac/.test(s)) { risk_pct = 14; timeline_years = 14; cluster = "trades"; }
+  else if (/engineer|developer|software|code|programmer/.test(s)) { risk_pct = 42; timeline_years = 8; cluster = "tech"; }
+  else if (/doctor|medical|nurse|clinical|hospital|physio|dentist|surgeon|pharmacist/.test(s)) { risk_pct = 18; timeline_years = 12; cluster = "health"; }
+  else if (/legal|law|solicitor|barrister|compliance|paralegal|attorney/.test(s)) { risk_pct = 58; timeline_years = 5; cluster = "legal"; }
+  else if (/creative|design|art|illustrat|graphic|ux|ui|motion/.test(s)) { risk_pct = 35; timeline_years = 8; cluster = "creative"; }
+  else if (/teach|school|education|professor|academic|tutor|instructor/.test(s)) { risk_pct = 20; timeline_years = 10; cluster = "education"; }
+  else if (/market|brand|digital|growth|content|campaign|seo|sem/.test(s)) { risk_pct = 40; timeline_years = 7; cluster = "marketing"; }
+  else if (/data|analytics|analysis|research|scientist|statistician/.test(s)) { risk_pct = 42; timeline_years = 7; cluster = "data"; }
+  else if (/financ|accounting|audit|tax|bookkeep|payroll|actuar/.test(s)) { risk_pct = 65; timeline_years = 5; cluster = "finance"; }
+  else if (/manag|direct|lead|vp|chief|head|president|founder|entrepreneur/.test(s)) { risk_pct = 32; timeline_years = 8; cluster = "leadership"; }
+  else if (/trade|plumb|electric|construct|mechanic|hvac|weld|carpenter/.test(s)) { risk_pct = 14; timeline_years = 14; cluster = "trades"; }
+  // Extended fallback clusters — used when LLM is unavailable
+  else if (/police|officer|detective|law enforce|security guard|bodyguard|sheriff|constable|patrol/.test(s)) { risk_pct = 22; timeline_years = 12; cluster = "trades"; }
+  else if (/chef|cook|culinary|bartend|waiter|waitress|barista|restaurant|baker|pastry|hospitality|catering/.test(s)) { risk_pct = 20; timeline_years = 12; cluster = "trades"; }
+  else if (/actor|actress|performer|musician|singer|dancer|comedian|entertainer|model|streamer|podcaster/.test(s)) { risk_pct = 28; timeline_years = 10; cluster = "creative"; }
+  else if (/pilot|cabin crew|flight attendant|air traffic|sailor|captain|logistics|supply chain|warehouse|driver|trucker|delivery/.test(s)) { risk_pct = 38; timeline_years = 8; cluster = "general"; }
+  else if (/social work|counsell|psycholog|therapist|welfare|nonprofit|ngo|charity|humanitarian/.test(s)) { risk_pct = 16; timeline_years = 12; cluster = "health"; }
+  else if (/real estate|property|estate agent|mortgage|leasing|realt/.test(s)) { risk_pct = 55; timeline_years = 6; cluster = "sales"; }
+  else if (/\bhr\b|human resource|people ops|recruiter|talent|headhunter/.test(s)) { risk_pct = 50; timeline_years = 6; cluster = "leadership"; }
+  else if (/product manager|product owner|program manager|scrum|agile/.test(s)) { risk_pct = 38; timeline_years = 7; cluster = "leadership"; }
+  else if (/invest|hedge fund|asset manag|wealth|portfolio|equity|trader/.test(s)) { risk_pct = 55; timeline_years = 6; cluster = "finance"; }
+  else if (/journalist|reporter|editor|press|media|public relation/.test(s)) { risk_pct = 45; timeline_years = 7; cluster = "creative"; }
+  else if (/civil serv|government|public sector|policy|diplomat|military|army|navy|air force/.test(s)) { risk_pct = 30; timeline_years = 10; cluster = "leadership"; }
+  else if (/stripper|exotic|escort|adult entertain|onlyfans|sex work/.test(s)) { risk_pct = 15; timeline_years = 15; cluster = "trades"; }
 
   const title = input.trim() || "This role";
   const level = getRiskLevel(risk_pct);
