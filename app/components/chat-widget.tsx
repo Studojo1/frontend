@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "react-router";
 
 interface ChatMessage {
@@ -24,35 +24,6 @@ export function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const sessionId = useMemo(() => generateSessionId(), []);
-
-  // Drag state — null means use default CSS bottom-left position
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const dragging = useRef(false);
-  const dragOffset = useRef({ x: 0, y: 0 });
-  const didDrag = useRef(false); // distinguish click from drag
-
-  const onPointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    // Only drag on primary button, not on touch scroll
-    if (e.button !== 0 && e.pointerType === "mouse") return;
-    dragging.current = true;
-    didDrag.current = false;
-    const rect = e.currentTarget.getBoundingClientRect();
-    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    e.currentTarget.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  }, []);
-
-  const onPointerMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!dragging.current) return;
-    didDrag.current = true;
-    const x = Math.max(0, Math.min(window.innerWidth - 56, e.clientX - dragOffset.current.x));
-    const y = Math.max(0, Math.min(window.innerHeight - 56, e.clientY - dragOffset.current.y));
-    setPos({ x, y });
-  }, []);
-
-  const onPointerUp = useCallback(() => {
-    dragging.current = false;
-  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -113,14 +84,10 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Chat bubble — draggable */}
+      {/* Chat bubble */}
       <button
-        onClick={() => { if (!didDrag.current) setOpen(!open); }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        style={pos ? { left: pos.x, top: pos.y, bottom: "auto", right: "auto" } : undefined}
-        className="fixed bottom-6 left-6 z-50 flex h-14 w-14 cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing"
+        onClick={() => setOpen(!open)}
+        className="fixed bottom-6 left-6 z-50 flex h-14 w-14 items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
         aria-label={open ? "Close chat" : "Open chat"}
       >
         {open ? (
@@ -135,24 +102,9 @@ export function ChatWidget() {
         )}
       </button>
 
-      {/* Chat window — anchors above/beside the bubble */}
-      {open && (() => {
-        // Position window above the bubble, keeping it on screen
-        let winStyle: React.CSSProperties = {};
-        if (pos) {
-          const winW = 360;
-          const winH = 480;
-          const gap = 12;
-          // Prefer above; if too close to top, go below
-          const top = pos.y - winH - gap < 0 ? pos.y + 56 + gap : pos.y - winH - gap;
-          // Prefer same left; clamp to viewport
-          const left = Math.max(8, Math.min(window.innerWidth - winW - 8, pos.x));
-          winStyle = { top, left, bottom: "auto", right: "auto" };
-        }
-        return (
-        <div
-          style={pos ? winStyle : undefined}
-          className="fixed bottom-24 left-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl border-2 border-neutral-900 bg-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] max-[400px]:bottom-0 max-[400px]:left-0 max-[400px]:h-full max-[400px]:w-full max-[400px]:rounded-none max-[400px]:shadow-none">
+      {/* Chat window */}
+      {open && (
+        <div className="fixed bottom-24 left-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl border-2 border-neutral-900 bg-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] max-[400px]:bottom-0 max-[400px]:left-0 max-[400px]:h-full max-[400px]:w-full max-[400px]:rounded-none max-[400px]:shadow-none">
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-neutral-900 bg-violet-500 px-4 py-3">
             <div className="flex items-center gap-3">
@@ -256,8 +208,7 @@ export function ChatWidget() {
             </p>
           </div>
         </div>
-        );
-      })()}
+      )}
     </>
   );
 }
