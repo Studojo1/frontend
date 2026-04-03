@@ -2,9 +2,9 @@
 import { useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
 import {
-  FiArrowRight, FiRefreshCw, FiAlertTriangle, FiShield,
-  FiClock, FiTrendingUp, FiUpload, FiType,
-  FiCheckCircle, FiTarget, FiZap, FiBook, FiUser,
+  FiArrowRight, FiRefreshCw,
+  FiClock, FiUpload, FiType,
+  FiCheckCircle, FiZap, FiUser,
   FiSearch, FiFileText, FiChevronRight,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
@@ -107,46 +107,61 @@ function DifficultyDots({ level }: { level: 1 | 2 | 3 }) {
   );
 }
 
-function PivotCard({ pivot, showCTA = false }: { pivot: EnhancedPivot; showCTA?: boolean }) {
+function PivotCard({ pivot, index, currentRisk, showCTA = false }: { pivot: EnhancedPivot; index: number; currentRisk: number; showCTA?: boolean }) {
   const navigate = useNavigate();
+  const riskColor = pivot.risk_pct >= 60 ? "#ef4444" : pivot.risk_pct >= 35 ? "#f97316" : "#10b981";
+  const riskBg = pivot.risk_pct >= 60 ? "#fef2f2" : pivot.risk_pct >= 35 ? "#fff7ed" : "#f0fdf4";
+  const saved = currentRisk - pivot.risk_pct;
+  const stepColors = ["bg-studojo-purple", "bg-blue-500", "bg-emerald-500"];
+
   return (
-    <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5 flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-2">
-        <h4 className="font-clash text-base font-bold text-studojo-ink leading-snug">{pivot.role}</h4>
-        {pivot.risk_pct > 0 && (
-          <span
-            className="flex-shrink-0 text-[10px] font-satoshi font-bold px-2 py-0.5 rounded-full"
-            style={{
-              color: pivot.risk_pct >= 60 ? "#ef4444" : pivot.risk_pct >= 35 ? "#f97316" : "#10b981",
-              background: pivot.risk_pct >= 60 ? "#fef2f2" : pivot.risk_pct >= 35 ? "#fff7ed" : "#f0fdf4",
-            }}
-          >
-            {pivot.risk_pct}% AI risk
-          </span>
-        )}
-      </div>
-      <p className="text-xs font-satoshi text-studojo-muted leading-relaxed">{pivot.why}</p>
-      <div className="flex flex-wrap gap-1.5">
-        {pivot.skills.map((s) => (
-          <span key={s} className="px-2 py-0.5 rounded-md text-[11px] font-satoshi font-medium bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/20">{s}</span>
-        ))}
-      </div>
-      <div className="flex items-center justify-between pt-2 border-t border-studojo-ink/8">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-studojo-muted">
-            <FiClock className="w-3.5 h-3.5" />
-            <span className="text-xs font-satoshi">{pivot.timeline}</span>
+    <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
+      {/* top accent strip */}
+      <div className={`h-1 w-full ${stepColors[index] || "bg-studojo-purple"}`} />
+      <div className="p-5">
+        <div className="flex gap-4">
+          {/* Step number */}
+          <div className={`w-8 h-8 rounded-xl ${stepColors[index] || "bg-studojo-purple"} flex items-center justify-center flex-shrink-0`}>
+            <span className="text-white font-clash font-bold text-sm">{index + 1}</span>
           </div>
-          <DifficultyDots level={pivot.difficulty} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-1.5">
+              <h4 className="font-clash text-base font-bold text-studojo-ink leading-snug">{pivot.role}</h4>
+              {pivot.risk_pct > 0 && (
+                <span className="flex-shrink-0 text-[10px] font-satoshi font-bold px-2 py-0.5 rounded-full" style={{ color: riskColor, background: riskBg }}>
+                  {pivot.risk_pct}% risk
+                </span>
+              )}
+            </div>
+            {saved > 0 && (
+              <p className="text-[11px] font-satoshi font-semibold text-emerald-600 mb-2">
+                {saved}% lower risk than your current role
+              </p>
+            )}
+            <p className="text-xs font-satoshi text-studojo-muted leading-relaxed mb-3">{pivot.why}</p>
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {pivot.skills.map((s) => (
+                <span key={s} className="px-2 py-0.5 rounded-md text-[11px] font-satoshi font-medium bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/20">{s}</span>
+              ))}
+            </div>
+            <div className="flex items-center justify-between pt-3 border-t border-studojo-ink/8">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-satoshi text-studojo-muted flex items-center gap-1.5">
+                  <FiClock className="w-3 h-3" /> {pivot.timeline}
+                </span>
+                <DifficultyDots level={pivot.difficulty} />
+              </div>
+              {showCTA && (
+                <button
+                  onClick={() => navigate("/outreach")}
+                  className="flex items-center gap-1 text-xs font-satoshi font-semibold text-studojo-purple hover:underline"
+                >
+                  Find openings <FiChevronRight className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-        {showCTA && (
-          <button
-            onClick={() => navigate("/outreach")}
-            className="flex items-center gap-1 text-xs font-satoshi font-semibold text-studojo-purple hover:underline"
-          >
-            Find openings <FiChevronRight className="w-3 h-3" />
-          </button>
-        )}
       </div>
     </div>
   );
@@ -605,15 +620,28 @@ export default function AIRiskPage() {
                 </div>
               </div>
 
+              {/* ── TOP CTA ── */}
+              <div className="mb-6 rounded-2xl border-2 border-studojo-ink bg-studojo-ink p-4 flex items-center justify-between gap-4 flex-wrap">
+                <div className="min-w-0">
+                  <p className="font-clash text-base font-bold text-white leading-snug">
+                    {displayPivots?.[0]?.role
+                      ? `Ready to pivot to ${displayPivots[0].role}?`
+                      : "Ready to make your move?"}
+                  </p>
+                  <p className="text-xs font-satoshi text-white/60 mt-0.5">We find the exact hiring managers. Not job board noise.</p>
+                </div>
+                <button
+                  onClick={() => navigate("/outreach/onboarding/upload")}
+                  className="flex-shrink-0 flex items-center gap-2 h-10 px-5 rounded-xl bg-studojo-purple text-white font-satoshi font-semibold text-sm border-2 border-white/20 hover:bg-studojo-purple/90 transition-all"
+                >
+                  Find openings <FiArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+
               {/* ── RISK / EDGES ── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0">
-                      <FiAlertTriangle className="w-4 h-4 text-red-500" />
-                    </div>
-                    <h3 className="font-clash text-sm font-bold text-studojo-ink">Why AI is coming for this</h3>
-                  </div>
+                  <h3 className="font-clash text-sm font-bold text-studojo-ink mb-4">Why AI is coming for this</h3>
                   <ul className="space-y-2.5">
                     {result.risk_drivers.map((d, i) => (
                       <li key={i} className="flex gap-2.5 text-xs font-satoshi text-studojo-muted leading-relaxed">
@@ -624,12 +652,7 @@ export default function AIRiskPage() {
                   </ul>
                 </div>
                 <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
-                      <FiShield className="w-4 h-4 text-emerald-500" />
-                    </div>
-                    <h3 className="font-clash text-sm font-bold text-studojo-ink">Your human edge</h3>
-                  </div>
+                  <h3 className="font-clash text-sm font-bold text-studojo-ink mb-4">Your human edge</h3>
                   <ul className="space-y-2.5">
                     {result.human_edges.map((e, i) => (
                       <li key={i} className="flex gap-2.5 text-xs font-satoshi text-studojo-muted leading-relaxed">
@@ -643,20 +666,14 @@ export default function AIRiskPage() {
 
               {/* ── TIMELINE ── */}
               <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <FiClock className="w-5 h-5 text-studojo-purple" />
-                  <h3 className="font-clash text-xl font-bold text-studojo-ink">What happens next</h3>
-                </div>
+                <h3 className="font-clash text-xl font-bold text-studojo-ink mb-4">What happens next</h3>
                 <div className="space-y-3">
                   {timelineInsights.map(({ year, insight }, i) => (
                     <div key={i} className="rounded-xl border-2 border-studojo-ink/15 bg-white p-4 flex gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-studojo-purple/8 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <FiClock className="w-4 h-4 text-studojo-purple" />
+                      <div className="flex-shrink-0 mt-0.5">
+                        <span className="inline-block text-xs font-satoshi font-bold text-studojo-purple uppercase tracking-wider whitespace-nowrap bg-studojo-purple/8 px-2 py-1 rounded-lg">{year}</span>
                       </div>
-                      <div>
-                        <div className="text-xs font-satoshi font-bold text-studojo-purple uppercase tracking-wider mb-1">{year}</div>
-                        <p className="text-xs font-satoshi text-studojo-muted leading-relaxed">{insight}</p>
-                      </div>
+                      <p className="text-xs font-satoshi text-studojo-muted leading-relaxed">{insight}</p>
                     </div>
                   ))}
                 </div>
@@ -664,24 +681,21 @@ export default function AIRiskPage() {
 
               {/* ── CAREER PIVOT ROADMAP ── */}
               <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <FiTrendingUp className="w-5 h-5 text-studojo-purple" />
-                    <h3 className="font-clash text-xl font-bold text-studojo-ink">Your career pivot roadmap</h3>
-                  </div>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-clash text-xl font-bold text-studojo-ink">Your pivot roadmap</h3>
                   {pivotsLoading && (
                     <span className="text-xs font-satoshi text-studojo-muted flex items-center gap-1.5">
                       <span className="w-3 h-3 border-2 border-studojo-purple/30 border-t-studojo-purple rounded-full animate-spin inline-block" />
-                      Generating...
+                      Finding best pivots...
                     </span>
                   )}
                 </div>
                 <p className="text-sm font-satoshi text-studojo-muted mb-5">{cfg.pivotIntro}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   {pivotsLoading && !displayPivots
                     ? [0, 1, 2].map((i) => <PivotSkeleton key={i} />)
                     : (displayPivots ?? []).map((pivot, i) => (
-                        <PivotCard key={i} pivot={pivot} showCTA={true} />
+                        <PivotCard key={i} pivot={pivot} index={i} currentRisk={result.risk_pct} showCTA={true} />
                       ))}
                 </div>
               </div>
@@ -689,10 +703,7 @@ export default function AIRiskPage() {
               {/* ── COMPARISON BAR ── */}
               {displayPivots && displayPivots.length > 0 && (
                 <div className="mb-6 rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <FiTarget className="w-5 h-5 text-studojo-purple" />
-                    <h3 className="font-clash text-base font-bold text-studojo-ink">Risk comparison: now vs after pivoting</h3>
-                  </div>
+                  <h3 className="font-clash text-base font-bold text-studojo-ink mb-4">Risk comparison: now vs after pivoting</h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -729,12 +740,7 @@ export default function AIRiskPage() {
 
               {/* ── UPSKILLING ── */}
               <div className="mb-6 rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center flex-shrink-0">
-                    <FiBook className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <h3 className="font-clash text-base font-bold text-studojo-ink">Skills to add right now</h3>
-                </div>
+                <h3 className="font-clash text-base font-bold text-studojo-ink mb-4">Skills to add right now</h3>
                 {stayRelevant.length > 0 && (
                   <div className="mb-4">
                     <p className="text-xs font-satoshi font-semibold text-studojo-muted uppercase tracking-wider mb-2">Stay relevant in your current role</p>
@@ -769,32 +775,25 @@ export default function AIRiskPage() {
 
               {/* ── MID-PAGE OUTREACH CTA ── */}
               <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-ink shadow-brutal p-6 mb-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-studojo-purple flex items-center justify-center flex-shrink-0">
-                    <FiTarget className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-clash text-lg font-bold text-white mb-1">
-                      Find {displayPivots?.[0]?.role || "your pivot role"} openings right now
-                    </h4>
-                    <p className="text-sm font-satoshi text-white/70 mb-4">
-                      We search 50,000+ companies and surface the exact hiring managers for your pivot. Not job board noise.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <button
-                        onClick={() => navigate("/outreach")}
-                        className="flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-studojo-purple text-white font-satoshi font-semibold text-sm border-2 border-white/20 transition-all hover:bg-studojo-purple/90"
-                      >
-                        Browse open roles <FiArrowRight className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => navigate("/outreach/onboarding/upload")}
-                        className="flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-white/10 text-white font-satoshi font-semibold text-sm border-2 border-white/20 transition-all hover:bg-white/20"
-                      >
-                        Upload resume, get leads
-                      </button>
-                    </div>
-                  </div>
+                <h4 className="font-clash text-lg font-bold text-white mb-1">
+                  Find {displayPivots?.[0]?.role || "your pivot role"} openings right now
+                </h4>
+                <p className="text-sm font-satoshi text-white/70 mb-4">
+                  We search 50,000+ companies and surface the exact hiring managers for your pivot. Not job board noise.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={() => navigate("/outreach")}
+                    className="flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-studojo-purple text-white font-satoshi font-semibold text-sm border-2 border-white/20 transition-all hover:bg-studojo-purple/90"
+                  >
+                    Browse open roles <FiArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => navigate("/outreach/onboarding/upload")}
+                    className="flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-white/10 text-white font-satoshi font-semibold text-sm border-2 border-white/20 transition-all hover:bg-white/20"
+                  >
+                    Upload resume, get leads
+                  </button>
                 </div>
               </div>
 
