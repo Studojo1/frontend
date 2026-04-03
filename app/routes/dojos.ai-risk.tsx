@@ -9,7 +9,6 @@ import {
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
-import { analyseJob } from "~/lib/ai-risk/engine";
 import type { AnalysisResult } from "~/lib/ai-risk/engine";
 
 export function meta() {
@@ -289,14 +288,22 @@ export default function AIRiskPage() {
     setResult(null);
     setEnhancedPivots(null);
     setGaugeAnimated(false);
-    await new Promise((r) => setTimeout(r, 1000));
-    const res = analyseJob(title.trim());
-    setResult(res);
-    setAnalyzing(false);
-    setTimeout(() => setGaugeAnimated(true), 80);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    // Kick off LLM enhancement in background
-    fetchEnhancedPivots(res);
+    try {
+      const resp = await fetch("/api/ai-risk/analyse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job_title: title.trim() }),
+      });
+      if (!resp.ok) throw new Error("Analysis failed");
+      const res: AnalysisResult = await resp.json();
+      setResult(res);
+      setAnalyzing(false);
+      setTimeout(() => setGaugeAnimated(true), 80);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      fetchEnhancedPivots(res);
+    } catch {
+      setAnalyzing(false);
+    }
   };
 
   const handleJobAnalyse = (value?: string) => {
