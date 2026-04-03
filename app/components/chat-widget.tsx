@@ -119,7 +119,7 @@ export function ChatWidget() {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        style={pos ? { left: pos.x, top: pos.y, bottom: "auto", right: "auto" } : undefined}
+        style={{ ...(pos ? { left: pos.x, top: pos.y, bottom: "auto", right: "auto" } : {}), touchAction: "none" }}
         className="fixed bottom-6 left-6 z-50 flex h-14 w-14 cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing"
         aria-label={open ? "Close chat" : "Open chat"}
       >

@@ -22,7 +22,7 @@ const REPORTS = [
     title: "Sales in India: What Freshers Actually Face",
     subtitle: "Q1 2026",
     excerpt:
-      "28,600+ entry-level openings. A ₹12 LPA ceiling that almost nobody in their first year reaches. And the one skill gap — CRM fluency — that ends 60% of sales interviews before they start.",
+      "28,600+ entry-level openings. A ₹12 LPA ceiling that almost nobody in their first year reaches. And the one skill gap (CRM fluency) that ends 60% of sales interviews before they start.",
     category: "Sales",
     date: "April 2026",
     findings: 8,
