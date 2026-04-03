@@ -295,12 +295,21 @@ export default function AIRiskPage() {
         body: JSON.stringify({ job_title: title.trim() }),
       });
       if (!resp.ok) throw new Error("Analysis failed");
-      const res: AnalysisResult = await resp.json();
+      const data = await resp.json();
+      const { suggested_pivots, ...res } = data as AnalysisResult & { suggested_pivots: EnhancedPivot[] | null };
       setResult(res);
       setAnalyzing(false);
       setTimeout(() => setGaugeAnimated(true), 80);
       window.scrollTo({ top: 0, behavior: "smooth" });
-      fetchEnhancedPivots(res);
+      if (suggested_pivots && suggested_pivots.length > 0) {
+        // LLM already generated contextual pivots as part of analysis — use immediately
+        setEnhancedPivots(suggested_pivots);
+        // Still kick off suggest for potentially better pivots, silently swap if better
+        fetchEnhancedPivots(res);
+      } else {
+        // Known role from engine — fetch LLM pivots async
+        fetchEnhancedPivots(res);
+      }
     } catch {
       setAnalyzing(false);
     }
