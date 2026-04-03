@@ -1450,17 +1450,34 @@ function inferFromKeywords(input: string): AnalysisResult {
 
   if (/sales|insurance|broker|agent/.test(s)) { risk_pct = 60; timeline_years = 5; cluster = "sales"; }
   else if (/engineer|developer|tech|software|code|programmer/.test(s)) { risk_pct = 42; timeline_years = 8; cluster = "tech"; }
-  else if (/doctor|medical|health|care|nurse|clinical|hospital/.test(s)) { risk_pct = 18; timeline_years = 12; cluster = "health"; }
-  else if (/legal|law|solicitor|barrister|compliance/.test(s)) { risk_pct = 58; timeline_years = 5; cluster = "legal"; }
-  else if (/creative|design|art|illustrat/.test(s)) { risk_pct = 35; timeline_years = 8; cluster = "creative"; }
-  else if (/teach|school|education|professor|academic/.test(s)) { risk_pct = 20; timeline_years = 10; cluster = "education"; }
-  else if (/market|brand|digital|growth|content/.test(s)) { risk_pct = 40; timeline_years = 7; cluster = "marketing"; }
-  else if (/data|analytics|analysis|research/.test(s)) { risk_pct = 42; timeline_years = 7; cluster = "data"; }
-  else if (/finance|accounting|audit|tax/.test(s)) { risk_pct = 65; timeline_years = 5; cluster = "finance"; }
-  else if (/manag|direct|lead|vp|chief|head/.test(s)) { risk_pct = 32; timeline_years = 8; cluster = "leadership"; }
-  else if (/trade|plumb|electric|construct|mechanic|hvac/.test(s)) { risk_pct = 14; timeline_years = 14; cluster = "trades"; }
+  else if (/doctor|medical|health|care|nurse|clinical|hospital|physio|dentist|pharmacist|radiolog|surgeon|therapist/.test(s)) { risk_pct = 18; timeline_years = 12; cluster = "health"; }
+  else if (/legal|law|solicitor|barrister|compliance|paralegal|attorney/.test(s)) { risk_pct = 58; timeline_years = 5; cluster = "legal"; }
+  else if (/creative|design|art|illustrat|graphic|ux|ui|motion|animation/.test(s)) { risk_pct = 35; timeline_years = 8; cluster = "creative"; }
+  else if (/teach|school|education|professor|academic|tutor|instructor|trainer/.test(s)) { risk_pct = 20; timeline_years = 10; cluster = "education"; }
+  else if (/market|brand|digital|growth|content|campaign|seo|sem|social media|influencer|community/.test(s)) { risk_pct = 40; timeline_years = 7; cluster = "marketing"; }
+  else if (/data|analytics|analysis|research|scientist|statistician|quant/.test(s)) { risk_pct = 42; timeline_years = 7; cluster = "data"; }
+  else if (/financ|accounting|audit|tax|bookkeep|payroll|controller|actuar/.test(s)) { risk_pct = 65; timeline_years = 5; cluster = "finance"; }
+  else if (/manag|direct|lead|vp|chief|head|president|founder|entrepreneur/.test(s)) { risk_pct = 32; timeline_years = 8; cluster = "leadership"; }
+  else if (/trade|plumb|electric|construct|mechanic|hvac|weld|carpenter|mason|roofer/.test(s)) { risk_pct = 14; timeline_years = 14; cluster = "trades"; }
+  else if (/police|officer|detective|law enforce|security guard|bodyguard|sheriff|constable|border|immigration agent|probation/.test(s)) { risk_pct = 22; timeline_years = 12; cluster = "law_enforcement"; }
+  else if (/chef|cook|culinary|bartend|waiter|waitress|barista|restaurant|kitchen|baker|pastry|sommelier|hospitality|catering/.test(s)) { risk_pct = 20; timeline_years = 12; cluster = "hospitality"; }
+  else if (/actor|actress|performer|musician|singer|dancer|comedian|entertainer|artist|model|influencer|content creator|streamer|podcaster/.test(s)) { risk_pct = 28; timeline_years = 10; cluster = "entertainment"; }
+  else if (/pilot|cabin crew|flight attendant|air traffic|marine|sailor|captain|logistics|supply chain|warehouse|driver|trucker|delivery/.test(s)) { risk_pct = 38; timeline_years = 8; cluster = "transport"; }
+  else if (/social work|counsell|psycholog|therapist|welfare|casework|nonprofit|ngo|charity|humanitarian/.test(s)) { risk_pct = 16; timeline_years = 12; cluster = "social"; }
+  else if (/real estate|property|estate agent|mortgage|leasing|realt/.test(s)) { risk_pct = 55; timeline_years = 6; cluster = "real_estate"; }
+  else if (/hr|human resource|people ops|recruiter|talent|headhunter/.test(s)) { risk_pct = 50; timeline_years = 6; cluster = "hr"; }
+  else if (/product manager|product owner|scrum|agile|program manager/.test(s)) { risk_pct = 38; timeline_years = 7; cluster = "product"; }
+  else if (/invest|banking|hedge|asset manag|wealth|portfolio|equity|trader/.test(s)) { risk_pct = 55; timeline_years = 6; cluster = "investment"; }
+  else if (/public relation|pr manager|communication|media relation|press|spokesperson|journalist|reporter|editor/.test(s)) { risk_pct = 45; timeline_years = 7; cluster = "media"; }
+  else if (/civil serv|government|public sector|policy|diplomat|politician|military|army|navy|air force/.test(s)) { risk_pct = 30; timeline_years = 10; cluster = "government"; }
+  else if (/adult|exotic|stripper|escort|sex work|adult entertainer|onlyfans/.test(s)) { risk_pct = 25; timeline_years = 10; cluster = "entertainment"; }
 
-  const title = input.trim() || "This role";
+  // Title-case the input for display (e.g. "gtm manager" -> "Gtm Manager" -> handled by expansion earlier)
+  const rawTitle = input.trim() || "This role";
+  const title = rawTitle
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
   const level = getRiskLevel(risk_pct);
 
   const riskMap: Record<string, string[]> = {
@@ -1475,6 +1492,17 @@ function inferFromKeywords(input: string): AnalysisResult {
     finance: ["AI handles data gathering, modelling, and report generation", "Automated compliance and reconciliation tools are widespread"],
     leadership: ["AI handles information synthesis and routine communication", "Some planning and reporting work is automated"],
     trades: ["Physical work in unstructured environments remains hard to automate", "Some inspection and design work is AI-assisted"],
+    law_enforcement: ["Community trust and de-escalation require human presence", "Physical response and discretionary judgment can't be delegated to machines"],
+    hospitality: ["Tactile craft and in-person service are inherently human", "Culinary creativity and guest experience are hard to replicate"],
+    entertainment: ["Authentic human performance and emotional connection drives audiences", "Original creative voice and stage presence cannot be automated"],
+    transport: ["Physical navigation of complex, unstructured environments", "Regulatory and safety responsibilities require human accountability"],
+    social: ["Empathy, presence, and human connection are core to the work", "Complex case judgment requires lived human understanding"],
+    real_estate: ["Client trust and negotiation in high-stakes transactions", "Local market intuition and relationship networks"],
+    hr: ["Sensitive employee relations and conflict resolution", "Culture-building and organisational empathy"],
+    product: ["User empathy and cross-functional alignment", "Strategic trade-offs and vision require human judgment"],
+    investment: ["Client relationships and trust in high-stakes decisions", "Pattern recognition in novel market conditions"],
+    media: ["Authentic storytelling and source relationships", "Judgment in sensitive communications and public trust"],
+    government: ["Public accountability and democratic legitimacy", "Complex policy judgment and stakeholder navigation"],
     general: ["AI is automating the most routine and structured parts of this role", "Pattern-recognition tasks are increasingly machine-led"],
   };
 
@@ -1490,6 +1518,17 @@ function inferFromKeywords(input: string): AnalysisResult {
     finance: ["Strategic financial advice and business partnering", "Client relationships and trust in judgment"],
     leadership: ["Organisational navigation and people leadership", "Vision-setting and building conviction in teams"],
     trades: ["On-site judgment and physical problem-solving", "Emergency situations requiring real-time adaptive response"],
+    law_enforcement: ["De-escalation, community trust, and use-of-force discretion", "Physical presence and real-time situational judgment"],
+    hospitality: ["Craft mastery, sensory judgment, and guest relationships", "Creative menu development and hospitality that feels personal"],
+    entertainment: ["Live performance, emotional authenticity, and stage presence", "Building a personal brand and loyal audience over time"],
+    transport: ["Adaptive real-time decision-making in physical environments", "Accountability and safety judgment in complex conditions"],
+    social: ["Deep human empathy and relationship-based support", "Advocacy and navigating complex systems on behalf of others"],
+    real_estate: ["Hyper-local market knowledge and client relationship management", "Negotiation skill and deal intuition in complex transactions"],
+    hr: ["Navigating sensitive people situations and organisational dynamics", "Building culture and trust at a human level"],
+    product: ["Vision-setting and synthesising user insight into strategy", "Cross-functional leadership and building conviction across teams"],
+    investment: ["Contrarian judgment and pattern recognition in novel situations", "Client trust built over years of relationship and track record"],
+    media: ["Investigative instinct and source cultivation", "Editorial judgment and public credibility"],
+    government: ["Democratic accountability and constituent trust", "Long-horizon policy thinking and stakeholder coalition-building"],
     general: ["Complex judgment calls requiring contextual understanding", "Relationship building and trust that takes time to develop"],
   };
 
@@ -1522,19 +1561,92 @@ function inferFromKeywords(input: string): AnalysisResult {
   };
 }
 
+// ── Abbreviation expansion map ─────────────────────────────────────────────
+
+const ABBREV_MAP: Record<string, string> = {
+  // Product / Engineering
+  pm: "Product Manager",
+  apm: "Associate Product Manager",
+  tpm: "Technical Program Manager",
+  swe: "Software Engineer",
+  sde: "Software Development Engineer",
+  mle: "Machine Learning Engineer",
+  dse: "Data Science Engineer",
+  devrel: "Developer Relations Engineer",
+  // Go-to-Market / Sales
+  gtm: "Go-to-Market Manager",
+  ae: "Account Executive",
+  sdr: "Sales Development Representative",
+  bdr: "Business Development Representative",
+  csm: "Customer Success Manager",
+  am: "Account Manager",
+  vp: "Vice President",
+  evp: "Executive Vice President",
+  svp: "Senior Vice President",
+  // Finance
+  ib: "Investment Banker",
+  pe: "Private Equity Associate",
+  vc: "Venture Capitalist",
+  cfo: "Chief Financial Officer",
+  cto: "Chief Technology Officer",
+  coo: "Chief Operating Officer",
+  cmo: "Chief Marketing Officer",
+  ceo: "Chief Executive Officer",
+  // Data / Analytics
+  da: "Data Analyst",
+  ds: "Data Scientist",
+  de: "Data Engineer",
+  bi: "Business Intelligence Analyst",
+  // Marketing
+  sem: "SEM Specialist",
+  seo: "SEO Specialist",
+  // HR / People
+  hrbp: "HR Business Partner",
+  ta: "Talent Acquisition Specialist",
+  // Operations
+  ops: "Operations Manager",
+  biz: "Business Development Manager",
+};
+
+// ── Input preprocessor ─────────────────────────────────────────────────────
+
+function preprocessInput(raw: string): string {
+  let s = raw.trim();
+
+  // Strip "at [Company]" / "@ [Company]" / "in [Company]" suffixes
+  // e.g. "Fin Crime Associate at Stripe" -> "Fin Crime Associate"
+  s = s.replace(/\s+(at|@|in|for|with|,)\s+[\w\s&.,'()-]{1,50}$/i, "").trim();
+
+  // Expand lone abbreviations (full input is just the abbrev, case-insensitive)
+  const lower = s.toLowerCase();
+  if (ABBREV_MAP[lower]) {
+    return ABBREV_MAP[lower];
+  }
+
+  // Expand abbreviation at the start: "GTM Manager" -> keep as-is (already descriptive)
+  // Expand abbreviation at the start when it's a standalone word
+  const firstWord = lower.split(/\s+/)[0];
+  if (ABBREV_MAP[firstWord] && s.split(/\s+/).length === 1) {
+    return ABBREV_MAP[firstWord];
+  }
+
+  return s;
+}
+
 // ── Main export ────────────────────────────────────────────────────────────
 
-export function analyseJob(input: string): AnalysisResult {
-  if (!input.trim()) {
+export function analyseJob(rawInput: string): AnalysisResult {
+  if (!rawInput.trim()) {
     return inferFromKeywords("general");
   }
 
+  const input = preprocessInput(rawInput);
   const match = findMatch(input);
 
   if (match) {
     const { job, confidence } = match;
     return {
-      job_input: input,
+      job_input: rawInput,
       matched_title: job.title,
       risk_pct: job.risk_pct,
       timeline_years: job.timeline_years,
