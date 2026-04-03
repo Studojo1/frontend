@@ -1,4 +1,4 @@
-import { FiBookOpen, FiTarget, FiBriefcase, FiClock } from "react-icons/fi";
+import { FiBookOpen, FiTarget, FiBriefcase, FiClock, FiZap } from "react-icons/fi";
 import { LuUsersRound } from "react-icons/lu";
 import { Link } from "react-router";
 
@@ -8,7 +8,7 @@ type DojoCard = {
   description: string;
   descriptionClass?: string;
   checklist: string[];
-  accent: "violet" | "emerald" | "yellow" | "amber";
+  accent: "violet" | "emerald" | "yellow" | "amber" | "rose";
   cta: string;
   ctaClass: string;
   href?: string;
@@ -69,21 +69,21 @@ const DOJOS: DojoCard[] = [
     comingSoon: true,
   },
   {
-    id: "more-coming",
-    title: "More dojos coming soon",
+    id: "ai-risk",
+    title: "AI Risk Dojo",
     description:
-      "We're constantly building new tools to help you succeed. Stay tuned for more exciting dojos.",
-    descriptionClass: "text-amber-100",
+      "Find out if AI will replace your job — and exactly what to do about it.",
+    descriptionClass: "text-rose-100",
     checklist: [
-      "New features regularly",
-      "Student-focused tools",
-      "Always improving",
+      "Instant risk score for any role",
+      "Personalised pivot roadmap",
+      "Upload your resume to start",
     ],
-    accent: "amber",
-    cta: "Coming soon",
-    ctaClass: "text-amber-600",
-    icon: <FiClock />,
-    comingSoon: true,
+    accent: "rose",
+    cta: "Check your risk",
+    ctaClass: "text-rose-600",
+    icon: <FiZap />,
+    href: "/dojos/ai-risk",
   },
 ];
 
@@ -92,6 +92,7 @@ const accentBg: Record<DojoCard["accent"], string> = {
   emerald: "bg-emerald-500",
   yellow: "bg-yellow-500",
   amber: "bg-amber-500",
+  rose: "bg-rose-500",
 };
 
 const accentIconClass: Record<DojoCard["accent"], string> = {
@@ -99,6 +100,7 @@ const accentIconClass: Record<DojoCard["accent"], string> = {
   emerald: "text-emerald-500",
   yellow: "text-yellow-500",
   amber: "text-amber-500",
+  rose: "text-rose-500",
 };
 
 function CheckIcon({ className }: { className?: string }) {
