@@ -1,13 +1,15 @@
 'use client';
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useState, useRef, useCallback } from "react";
+import { Link, useNavigate } from "react-router";
 import {
   FiArrowRight, FiRefreshCw, FiAlertTriangle, FiShield,
-  FiClock, FiTrendingUp, FiSearch,
+  FiClock, FiTrendingUp, FiUpload, FiType, FiCheckCircle,
+  FiTarget, FiZap, FiBook, FiUser, FiSearch,
+  FiFileText, FiChevronRight,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
-import { analyseJob, getRiskLevel } from "~/lib/ai-risk/engine";
+import { analyseJob } from "~/lib/ai-risk/engine";
 import type { AnalysisResult } from "~/lib/ai-risk/engine";
 
 export function meta() {
@@ -27,83 +29,48 @@ const EXAMPLES = [
 ];
 
 const RISK_CONFIG = {
-  critical: { label: "CRITICAL RISK", bg: "bg-red-50", border: "border-red-200", text: "text-red-600", pill: "bg-red-100 text-red-700 border-red-200", arc: "#ef4444" },
-  high:     { label: "HIGH RISK",     bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-600", pill: "bg-orange-100 text-orange-700 border-orange-200", arc: "#f97316" },
-  medium:   { label: "MEDIUM RISK",   bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600", pill: "bg-amber-100 text-amber-700 border-amber-200", arc: "#eab308" },
-  low:      { label: "LOW RISK",      bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600", pill: "bg-emerald-100 text-emerald-700 border-emerald-200", arc: "#10b981" },
+  critical: { label: "CRITICAL RISK", bg: "bg-red-50", border: "border-red-200", text: "text-red-600", pill: "bg-red-100 text-red-700 border-red-200", arc: "#ef4444", urgency: "Act immediately. The window to pivot is closing fast." },
+  high:     { label: "HIGH RISK",     bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-600", pill: "bg-orange-100 text-orange-700 border-orange-200", arc: "#f97316", urgency: "Start planning your pivot now. You have 2–4 years." },
+  medium:   { label: "MEDIUM RISK",   bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600", pill: "bg-amber-100 text-amber-700 border-amber-200", arc: "#eab308", urgency: "Upskill strategically. Your role will change significantly." },
+  low:      { label: "LOW RISK",      bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600", pill: "bg-emerald-100 text-emerald-700 border-emerald-200", arc: "#10b981", urgency: "You're in a resilient role. Stay sharp with AI tools." },
 };
 
-// Semi-circle gauge — 180° arc
+type InputMode = "job" | "resume" | "linkedin";
+type ResumeState = "idle" | "uploading" | "extracted" | "error";
+
+// ── Semi-circle gauge ────────────────────────────────────────────────────────
 function RiskGauge({ pct, animated, level }: { pct: number; animated: boolean; level: keyof typeof RISK_CONFIG }) {
-  const r = 80;
-  const cx = 100;
-  const cy = 100;
-  const circumference = Math.PI * r; // half-circle
+  const r = 80; const cx = 100; const cy = 100;
+  const circumference = Math.PI * r;
   const offset = animated ? circumference * (1 - pct / 100) : circumference;
   const color = RISK_CONFIG[level].arc;
-
   return (
     <svg viewBox="0 0 200 110" className="w-full max-w-[280px] mx-auto">
-      {/* Track */}
-      <path
-        d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-        fill="none"
-        stroke="#f1f5f9"
-        strokeWidth="12"
-        strokeLinecap="round"
-      />
-      {/* Fill */}
-      <path
-        d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
-        fill="none"
-        stroke={color}
-        strokeWidth="12"
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        style={{ transition: animated ? "stroke-dashoffset 1.6s cubic-bezier(0.4,0,0.2,1)" : "none" }}
-      />
-      {/* Percentage */}
-      <text
-        x={cx}
-        y={cy - 10}
-        textAnchor="middle"
-        className="font-clash"
-        fontSize="32"
-        fontWeight="800"
-        fill={color}
-        fontFamily="'Clash Display', sans-serif"
-      >
-        {pct}%
-      </text>
-      <text
-        x={cx}
-        y={cy + 12}
-        textAnchor="middle"
-        fontSize="11"
-        fill="#94a3b8"
-        fontFamily="'Satoshi', sans-serif"
-      >
-        replacement risk
-      </text>
+      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke="#f1f5f9" strokeWidth="12" strokeLinecap="round" />
+      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`} fill="none" stroke={color} strokeWidth="12" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} style={{ transition: animated ? "stroke-dashoffset 1.6s cubic-bezier(0.4,0,0.2,1)" : "none" }} />
+      <text x={cx} y={cy - 10} textAnchor="middle" fontSize="32" fontWeight="800" fill={color} fontFamily="'Clash Display', sans-serif">{pct}%</text>
+      <text x={cx} y={cy + 12} textAnchor="middle" fontSize="11" fill="#94a3b8" fontFamily="'Satoshi', sans-serif">replacement risk</text>
     </svg>
   );
 }
 
 function DifficultyDots({ level }: { level: 1 | 2 | 3 }) {
+  const labels = ["", "Easy", "Medium", "Hard"];
+  const colors = ["", "text-emerald-600", "text-amber-600", "text-red-600"];
   return (
-    <div className="flex gap-1">
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className={`w-2 h-2 rounded-full ${i <= level ? "bg-studojo-purple" : "bg-studojo-ink/15"}`}
-        />
-      ))}
+    <div className="flex items-center gap-1.5">
+      <div className="flex gap-1">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className={`w-2 h-2 rounded-full ${i <= level ? "bg-studojo-purple" : "bg-studojo-ink/15"}`} />
+        ))}
+      </div>
+      <span className={`text-[10px] font-satoshi font-semibold ${colors[level]}`}>{labels[level]}</span>
     </div>
   );
 }
 
-function PivotCard({ pivot }: { pivot: AnalysisResult["pivots"][number] }) {
+function PivotCard({ pivot, showCTA = false }: { pivot: AnalysisResult["pivots"][number]; showCTA?: boolean }) {
+  const navigate = useNavigate();
   return (
     <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5 flex flex-col gap-3">
       <div>
@@ -112,60 +79,229 @@ function PivotCard({ pivot }: { pivot: AnalysisResult["pivots"][number] }) {
       </div>
       <div className="flex flex-wrap gap-1.5">
         {pivot.skills.map((s) => (
-          <span
-            key={s}
-            className="px-2 py-0.5 rounded-md text-[11px] font-satoshi font-medium bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/20"
-          >
-            {s}
-          </span>
+          <span key={s} className="px-2 py-0.5 rounded-md text-[11px] font-satoshi font-medium bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/20">{s}</span>
         ))}
       </div>
-      <div className="flex items-center justify-between pt-1 border-t border-studojo-ink/8">
-        <div className="flex items-center gap-1.5 text-studojo-muted">
-          <FiClock className="w-3.5 h-3.5" />
-          <span className="text-xs font-satoshi">{pivot.timeline}</span>
+      <div className="flex items-center justify-between pt-2 border-t border-studojo-ink/8">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-studojo-muted">
+            <FiClock className="w-3.5 h-3.5" />
+            <span className="text-xs font-satoshi">{pivot.timeline}</span>
+          </div>
+          <DifficultyDots level={pivot.difficulty} />
         </div>
-        <DifficultyDots level={pivot.difficulty} />
+        {showCTA && (
+          <button
+            onClick={() => navigate("/outreach")}
+            className="flex items-center gap-1 text-xs font-satoshi font-semibold text-studojo-purple hover:underline"
+          >
+            Find openings <FiChevronRight className="w-3 h-3" />
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────
+function TimelineCard({ year, insight, icon }: { year: string; insight: string; icon: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border-2 border-studojo-ink/15 bg-white p-4 flex gap-3">
+      <div className="w-8 h-8 rounded-lg bg-studojo-purple/8 flex items-center justify-center flex-shrink-0 mt-0.5">
+        {icon}
+      </div>
+      <div>
+        <div className="text-xs font-satoshi font-bold text-studojo-purple uppercase tracking-wider mb-1">{year}</div>
+        <p className="text-xs font-satoshi text-studojo-muted leading-relaxed">{insight}</p>
+      </div>
+    </div>
+  );
+}
+
+function getTimelineInsights(risk_pct: number, timeline_years: number, title: string) {
+  if (risk_pct >= 75) {
+    return [
+      { year: "In 12 months", insight: `AI tools are already handling core ${title} tasks. Employers are beginning to reduce headcount or freeze new hires in this role.` },
+      { year: "In 3 years", insight: `The majority of routine ${title} work is automated. Only specialists who've transitioned to AI-adjacent roles retain strong salaries.` },
+      { year: "In 5 years", insight: `Demand for standalone ${title} roles drops sharply. Those who pivoted early are now leading AI-augmented teams.` },
+    ];
+  }
+  if (risk_pct >= 50) {
+    return [
+      { year: "In 12 months", insight: `AI tools begin replacing the most routine parts of your workflow. Expect pressure to use AI tools daily or be seen as behind.` },
+      { year: "In 3 years", insight: `The ${title} role is being redefined. AI handles 50–70% of output volume. Human value is in judgment, strategy, and client relationships.` },
+      { year: "In 5 years", insight: `A leaner ${title} workforce manages larger AI pipelines. Salaries bifurcate — AI-fluent ${title}s earn significantly more.` },
+    ];
+  }
+  if (risk_pct >= 25) {
+    return [
+      { year: "In 12 months", insight: `AI becomes a daily co-pilot. Mastering AI tools now will make you 2–3x more productive than peers who don't adapt.` },
+      { year: "In 3 years", insight: `The ${title} role evolves but doesn't disappear. Human judgment, client trust, and contextual reasoning remain irreplaceable.` },
+      { year: "In 5 years", insight: `${title}s who've integrated AI deeply are indispensable. The role requires a broader, more strategic skill set than today.` },
+    ];
+  }
+  return [
+    { year: "In 12 months", insight: `AI becomes a powerful assistant but changes very little about the core value you deliver. Adoption is optional, not urgent.` },
+    { year: "In 3 years", insight: `The ${title} role remains fundamentally human. AI handles peripheral admin. Your expertise gap vs AI actually widens.` },
+    { year: "In 5 years", insight: `${title}s are in higher demand as AI scales, not lower. The human skills premium grows.` },
+  ];
+}
+
+function getUpskillingRecs(result: AnalysisResult) {
+  const allSkills = [...new Set(result.pivots.flatMap((p) => p.skills))];
+  const easiest = result.pivots.find((p) => p.difficulty === 1);
+  const medium = result.pivots.find((p) => p.difficulty === 2);
+
+  const stayRelevant: string[] = [];
+  if (result.risk_pct >= 50) {
+    stayRelevant.push("AI tool proficiency (ChatGPT, Claude, Copilot in your workflow)");
+    stayRelevant.push("Prompt engineering for your domain");
+  }
+  if (result.risk_pct >= 25) {
+    stayRelevant.push("Data literacy — reading, interpreting, and acting on dashboards");
+    stayRelevant.push("Process automation (Zapier / Make for non-engineers)");
+  }
+
+  const pivotSkills = easiest
+    ? { label: easiest.role, skills: easiest.skills }
+    : medium
+    ? { label: medium.role, skills: medium.skills }
+    : null;
+
+  return { stayRelevant, pivotSkills };
+}
+
+function getComparisonRoles(result: AnalysisResult) {
+  const pivotTitles = result.pivots.slice(0, 2).map((p) => p.role);
+  return pivotTitles
+    .map((title) => {
+      const res = analyseJob(title);
+      return { title: res.matched_title, risk_pct: res.risk_pct, level: res.risk_level };
+    })
+    .filter((r) => r.title !== result.matched_title);
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export default function AIRiskPage() {
   const navigate = useNavigate();
+
+  // Input mode
+  const [mode, setMode] = useState<InputMode>("job");
+
+  // Job title input
   const [input, setInput] = useState("");
+
+  // Resume upload
+  const [resumeState, setResumeState] = useState<ResumeState>("idle");
+  const [extractedTitle, setExtractedTitle] = useState("");
+  const [resumeFileName, setResumeFileName] = useState("");
+  const [resumeError, setResumeError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // LinkedIn
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [linkedinUsername, setLinkedinUsername] = useState("");
+  const [linkedinTitle, setLinkedinTitle] = useState("");
+
+  // Source label to show in results
+  const [sourceLabel, setSourceLabel] = useState("");
+
+  // Analysis
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [gaugeAnimated, setGaugeAnimated] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleAnalyse = async (value?: string) => {
-    const q = (value ?? input).trim();
-    if (!q) return;
-    setInput(q);
+  const runAnalysis = async (title: string, source: string) => {
+    if (!title.trim()) return;
+    setSourceLabel(source);
     setAnalyzing(true);
     setResult(null);
     setGaugeAnimated(false);
     await new Promise((r) => setTimeout(r, 1200));
-    const res = analyseJob(q);
+    const res = analyseJob(title.trim());
     setResult(res);
     setAnalyzing(false);
     setTimeout(() => setGaugeAnimated(true), 80);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Job title mode
+  const handleJobAnalyse = (value?: string) => {
+    const q = (value ?? input).trim();
+    if (!q) return;
+    setInput(q);
+    runAnalysis(q, "Searched role");
+  };
+
+  // Resume upload mode
+  const handleFileSelect = async (file: File) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setResumeError("File too large. Max 10MB.");
+      return;
+    }
+    setResumeFileName(file.name);
+    setResumeState("uploading");
+    setResumeError("");
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
+      const res = await fetch("/api/resumes/parse", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Failed to parse resume");
+      const data = await res.json();
+      // Extract most recent job title from parsed data
+      const role =
+        data.work_experiences?.[0]?.role ||
+        data.current_role ||
+        data.resumeData?.work_experiences?.[0]?.role ||
+        "";
+      if (!role) throw new Error("Could not find a job title in your resume. Please enter it manually.");
+      setExtractedTitle(role);
+      setResumeState("extracted");
+    } catch (err: any) {
+      setResumeError(err.message || "Failed to parse resume. Please enter your job title manually.");
+      setResumeState("error");
+    }
+  };
+
+  const handleFileDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  }, []);
+
+  const handleResumeAnalyse = () => {
+    const title = extractedTitle.trim();
+    if (!title) return;
+    runAnalysis(title, `From your resume (${resumeFileName})`);
+  };
+
+  // LinkedIn mode
+  const handleLinkedInUrlChange = (url: string) => {
+    setLinkedinUrl(url);
+    const match = url.match(/linkedin\.com\/in\/([^\/\?#]+)/i);
+    setLinkedinUsername(match ? match[1] : "");
+  };
+
+  const handleLinkedInAnalyse = () => {
+    const title = linkedinTitle.trim();
+    if (!title) return;
+    const source = linkedinUsername ? `LinkedIn: @${linkedinUsername}` : "LinkedIn profile";
+    runAnalysis(title, source);
+  };
+
   const handleReset = () => {
     setResult(null);
     setInput("");
     setGaugeAnimated(false);
+    setResumeState("idle");
+    setExtractedTitle("");
+    setResumeFileName("");
+    setLinkedinUrl("");
+    setLinkedinUsername("");
+    setLinkedinTitle("");
     setTimeout(() => inputRef.current?.focus(), 100);
-  };
-
-  // Submit on Enter
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleAnalyse();
   };
 
   const cfg = result ? RISK_CONFIG[result.risk_level] : null;
@@ -190,44 +326,187 @@ export default function AIRiskPage() {
               Get your risk score, timeline, and a full career roadmap. In seconds.
             </p>
 
-            {/* Input */}
-            <div className="relative mb-4">
-              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-studojo-muted pointer-events-none" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={onKeyDown}
-                placeholder="e.g. Accountant, Software Engineer, Nurse…"
-                autoFocus
-                className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-studojo-ink text-studojo-ink font-satoshi text-base bg-white focus:outline-none focus:ring-4 focus:ring-studojo-purple/20 placeholder:text-studojo-muted/60"
-              />
+            {/* Mode tabs */}
+            <div className="flex rounded-2xl border-2 border-studojo-ink/12 bg-studojo-surface-muted p-1 mb-6">
+              {([
+                { id: "job", icon: FiType, label: "Job Title" },
+                { id: "resume", icon: FiFileText, label: "Resume" },
+                { id: "linkedin", icon: FiUser, label: "LinkedIn" },
+              ] as const).map(({ id, icon: Icon, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setMode(id)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-satoshi font-semibold transition-all ${
+                    mode === id
+                      ? "bg-white border-2 border-studojo-ink shadow-brutal text-studojo-ink"
+                      : "text-studojo-muted hover:text-studojo-ink"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
             </div>
 
-            <button
-              onClick={() => handleAnalyse()}
-              disabled={!input.trim()}
-              className="w-full h-13 px-8 py-3.5 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-brutal inline-flex items-center justify-center gap-2"
-            >
-              Analyse my job <FiArrowRight className="w-4 h-4" />
-            </button>
+            {/* ── Job title mode ── */}
+            {mode === "job" && (
+              <div>
+                <div className="relative mb-4">
+                  <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-studojo-muted pointer-events-none" />
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleJobAnalyse(); }}
+                    placeholder="e.g. Accountant, Software Engineer, Nurse…"
+                    autoFocus
+                    className="w-full h-14 pl-12 pr-4 rounded-2xl border-2 border-studojo-ink text-studojo-ink font-satoshi text-base bg-white focus:outline-none focus:ring-4 focus:ring-studojo-purple/20 placeholder:text-studojo-muted/60"
+                  />
+                </div>
+                <button
+                  onClick={() => handleJobAnalyse()}
+                  disabled={!input.trim()}
+                  className="w-full h-13 px-8 py-3.5 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-brutal inline-flex items-center justify-center gap-2"
+                >
+                  Analyse my job <FiArrowRight className="w-4 h-4" />
+                </button>
 
-            {/* Example chips */}
-            <div className="mt-8">
-              <p className="text-xs font-satoshi text-studojo-muted mb-3">Try an example:</p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {EXAMPLES.map((ex) => (
-                  <button
-                    key={ex}
-                    onClick={() => handleAnalyse(ex)}
-                    className="px-3 py-1.5 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi text-studojo-ink hover:bg-studojo-surface-muted hover:border-studojo-ink/40 transition-colors"
-                  >
-                    {ex}
-                  </button>
-                ))}
+                {/* Example chips */}
+                <div className="mt-8">
+                  <p className="text-xs font-satoshi text-studojo-muted mb-3">Try an example:</p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {EXAMPLES.map((ex) => (
+                      <button
+                        key={ex}
+                        onClick={() => handleJobAnalyse(ex)}
+                        className="px-3 py-1.5 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi text-studojo-ink hover:bg-studojo-surface-muted hover:border-studojo-ink/40 transition-colors"
+                      >
+                        {ex}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* ── Resume upload mode ── */}
+            {mode === "resume" && (
+              <div>
+                {resumeState === "idle" || resumeState === "error" ? (
+                  <div>
+                    <div
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={handleFileDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full h-36 rounded-2xl border-2 border-dashed border-studojo-ink/30 bg-studojo-surface-muted hover:border-studojo-purple hover:bg-studojo-purple/4 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 mb-4"
+                    >
+                      <FiUpload className="w-8 h-8 text-studojo-muted" />
+                      <p className="text-sm font-satoshi font-semibold text-studojo-ink">Drop your resume here</p>
+                      <p className="text-xs font-satoshi text-studojo-muted">PDF or Word doc, max 10MB</p>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); }}
+                      />
+                    </div>
+                    {resumeError && (
+                      <div className="mb-4 text-sm font-satoshi text-red-600 bg-red-50 rounded-xl border border-red-200 p-3 text-left">
+                        {resumeError}
+                        <div className="mt-2">
+                          <button onClick={() => setMode("job")} className="text-xs underline">Enter job title manually instead</button>
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-xs font-satoshi text-studojo-muted">We'll extract your current job title automatically</p>
+                  </div>
+                ) : resumeState === "uploading" ? (
+                  <div className="flex flex-col items-center gap-3 py-8">
+                    <div className="w-10 h-10 border-[3px] border-studojo-purple/20 border-t-studojo-purple rounded-full animate-spin" />
+                    <p className="text-sm font-satoshi text-studojo-muted">Scanning <span className="font-semibold text-studojo-ink">{resumeFileName}</span>…</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center gap-3 rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-4 mb-4 text-left">
+                      <FiCheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-satoshi text-emerald-700 mb-0.5">Role extracted from {resumeFileName}</p>
+                        <p className="text-sm font-satoshi font-bold text-studojo-ink">{extractedTitle}</p>
+                      </div>
+                    </div>
+                    <div className="mb-4 text-left">
+                      <label className="text-xs font-satoshi font-semibold text-studojo-muted uppercase tracking-wider mb-1.5 block">
+                        Confirm or edit your job title
+                      </label>
+                      <input
+                        type="text"
+                        value={extractedTitle}
+                        onChange={(e) => setExtractedTitle(e.target.value)}
+                        className="w-full h-12 px-4 rounded-xl border-2 border-studojo-ink text-studojo-ink font-satoshi text-base bg-white focus:outline-none focus:ring-4 focus:ring-studojo-purple/20"
+                      />
+                    </div>
+                    <button
+                      onClick={handleResumeAnalyse}
+                      disabled={!extractedTitle.trim()}
+                      className="w-full h-13 px-8 py-3.5 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                    >
+                      Analyse my role <FiArrowRight className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => setResumeState("idle")} className="mt-3 text-xs font-satoshi text-studojo-muted hover:text-studojo-ink underline block mx-auto">
+                      Upload a different resume
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── LinkedIn mode ── */}
+            {mode === "linkedin" && (
+              <div>
+                <div className="mb-4 text-left">
+                  <label className="text-xs font-satoshi font-semibold text-studojo-muted uppercase tracking-wider mb-1.5 block">
+                    Your LinkedIn profile URL
+                  </label>
+                  <div className="relative">
+                    <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-studojo-muted pointer-events-none" />
+                    <input
+                      type="url"
+                      value={linkedinUrl}
+                      onChange={(e) => handleLinkedInUrlChange(e.target.value)}
+                      placeholder="linkedin.com/in/your-username"
+                      className="w-full h-12 pl-10 pr-4 rounded-xl border-2 border-studojo-ink text-studojo-ink font-satoshi text-sm bg-white focus:outline-none focus:ring-4 focus:ring-studojo-purple/20 placeholder:text-studojo-muted/60"
+                    />
+                  </div>
+                  {linkedinUsername && (
+                    <p className="mt-1.5 text-xs font-satoshi text-emerald-600 flex items-center gap-1">
+                      <FiCheckCircle className="w-3.5 h-3.5" /> Profile detected: <span className="font-bold">@{linkedinUsername}</span>
+                    </p>
+                  )}
+                </div>
+                <div className="mb-5 text-left">
+                  <label className="text-xs font-satoshi font-semibold text-studojo-muted uppercase tracking-wider mb-1.5 block">
+                    Your current job title
+                  </label>
+                  <input
+                    type="text"
+                    value={linkedinTitle}
+                    onChange={(e) => setLinkedinTitle(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleLinkedInAnalyse(); }}
+                    placeholder="e.g. Marketing Manager, Software Engineer…"
+                    className="w-full h-12 px-4 rounded-xl border-2 border-studojo-ink text-studojo-ink font-satoshi text-base bg-white focus:outline-none focus:ring-4 focus:ring-studojo-purple/20 placeholder:text-studojo-muted/60"
+                  />
+                </div>
+                <button
+                  onClick={handleLinkedInAnalyse}
+                  disabled={!linkedinTitle.trim()}
+                  className="w-full h-13 px-8 py-3.5 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                >
+                  Analyse my profile <FiArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -236,127 +515,321 @@ export default function AIRiskPage() {
       {analyzing && (
         <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4">
           <div className="w-12 h-12 border-[3px] border-studojo-purple/20 border-t-studojo-purple rounded-full animate-spin" />
-          <p className="font-satoshi text-studojo-muted text-sm">Analysing <span className="font-semibold text-studojo-ink">"{input}"</span>…</p>
+          <p className="font-satoshi text-studojo-muted text-sm">Running analysis<span className="font-semibold text-studojo-ink"> — this takes a moment</span></p>
         </div>
       )}
 
       {/* ── RESULTS ── */}
-      {result && cfg && !analyzing && (
-        <div className="flex-1 px-4 py-8 sm:py-12">
-          <div className="mx-auto max-w-2xl">
+      {result && cfg && !analyzing && (() => {
+        const timelineInsights = getTimelineInsights(result.risk_pct, result.timeline_years, result.matched_title);
+        const { stayRelevant, pivotSkills } = getUpskillingRecs(result);
+        const compRoles = getComparisonRoles(result);
 
-            {/* Reset */}
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1.5 text-studojo-muted text-sm font-satoshi hover:text-studojo-ink mb-8 transition-colors"
-            >
-              <FiRefreshCw className="w-3.5 h-3.5" /> Try another job
-            </button>
+        return (
+          <div className="flex-1 px-4 py-8 sm:py-12">
+            <div className="mx-auto max-w-2xl">
 
-            {/* ── HERO SECTION ── */}
-            <div className={`rounded-3xl border-2 ${cfg.border} ${cfg.bg} p-6 sm:p-8 text-center mb-6`}>
-              <p className="text-sm font-satoshi text-studojo-muted mb-1">You searched for:</p>
-              <h2 className="font-clash text-2xl sm:text-3xl font-bold text-studojo-ink mb-6">{result.matched_title}</h2>
-
-              {/* Gauge */}
-              <RiskGauge pct={result.risk_pct} animated={gaugeAnimated} level={result.risk_level} />
-
-              {/* Pills */}
-              <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-satoshi font-bold border ${cfg.pill}`}>
-                  {cfg.label}
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-satoshi font-bold bg-studojo-ink text-white">
-                  <FiClock className="w-3 h-3" />
-                  {result.timeline_years >= 99 ? "Never" : `~${result.timeline_years} years`}
-                </span>
-                {result.confidence === "low" && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-satoshi bg-studojo-surface-muted text-studojo-muted border border-studojo-ink/15">
-                    Estimated match
-                  </span>
-                )}
-              </div>
-
-              {/* Verdict */}
-              <p className={`mt-5 text-sm sm:text-base font-satoshi ${cfg.text} italic max-w-md mx-auto leading-relaxed`}>
-                "{result.verdict}"
-              </p>
-            </div>
-
-            {/* ── WHY / EDGES ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {/* Risk drivers */}
-              <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0">
-                    <FiAlertTriangle className="w-4 h-4 text-red-500" />
-                  </div>
-                  <h3 className="font-clash text-sm font-bold text-studojo-ink">Why AI is coming for this</h3>
-                </div>
-                <ul className="space-y-2.5">
-                  {result.risk_drivers.map((d, i) => (
-                    <li key={i} className="flex gap-2.5 text-xs font-satoshi text-studojo-muted leading-relaxed">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0 mt-1.5" />
-                      {d}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Human edges */}
-              <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
-                    <FiShield className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <h3 className="font-clash text-sm font-bold text-studojo-ink">Your human edge</h3>
-                </div>
-                <ul className="space-y-2.5">
-                  {result.human_edges.map((e, i) => (
-                    <li key={i} className="flex gap-2.5 text-xs font-satoshi text-studojo-muted leading-relaxed">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0 mt-1.5" />
-                      {e}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* ── ROADMAP ── */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <FiTrendingUp className="w-5 h-5 text-studojo-purple" />
-                <h3 className="font-clash text-xl font-bold text-studojo-ink">Your career roadmap</h3>
-              </div>
-              <p className="text-sm font-satoshi text-studojo-muted mb-5">
-                Roles to move into, ranked by how quickly you can get there.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {result.pivots.map((pivot, i) => (
-                  <PivotCard key={i} pivot={pivot} />
-                ))}
-              </div>
-            </div>
-
-            {/* ── CTA ── */}
-            <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple shadow-brutal p-6 text-center">
-              <h4 className="font-clash text-xl font-bold text-white mb-2">
-                Ready to land one of these roles?
-              </h4>
-              <p className="text-sm font-satoshi text-white/75 mb-5">
-                Upload your resume and we'll find the exact decision makers hiring for your pivot role right now.
-              </p>
+              {/* Reset */}
               <button
-                onClick={() => navigate("/outreach/onboarding/upload")}
-                className="h-11 px-6 rounded-xl bg-white text-studojo-purple font-satoshi font-semibold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center gap-2"
+                onClick={handleReset}
+                className="flex items-center gap-1.5 text-studojo-muted text-sm font-satoshi hover:text-studojo-ink mb-8 transition-colors"
               >
-                Find my leads <FiArrowRight className="w-4 h-4" />
+                <FiRefreshCw className="w-3.5 h-3.5" /> Try another job
               </button>
-            </div>
 
+              {/* ── HERO ── */}
+              <div className={`rounded-3xl border-2 ${cfg.border} ${cfg.bg} p-6 sm:p-8 text-center mb-6`}>
+                {sourceLabel && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/60 border border-studojo-ink/10 text-xs font-satoshi text-studojo-muted mb-3">
+                    <FiSearch className="w-3 h-3" /> {sourceLabel}
+                  </div>
+                )}
+                <p className="text-sm font-satoshi text-studojo-muted mb-1">Analysed role:</p>
+                <h2 className="font-clash text-2xl sm:text-3xl font-bold text-studojo-ink mb-6">{result.matched_title}</h2>
+
+                <RiskGauge pct={result.risk_pct} animated={gaugeAnimated} level={result.risk_level} />
+
+                {/* Pills */}
+                <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-satoshi font-bold border ${cfg.pill}`}>
+                    {cfg.label}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-satoshi font-bold bg-studojo-ink text-white">
+                    <FiClock className="w-3 h-3" />
+                    {result.timeline_years >= 99 ? "Never" : `~${result.timeline_years} years`}
+                  </span>
+                  {result.confidence === "low" && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-satoshi bg-studojo-surface-muted text-studojo-muted border border-studojo-ink/15">
+                      Estimated match
+                    </span>
+                  )}
+                </div>
+
+                <p className={`mt-5 text-sm sm:text-base font-satoshi ${cfg.text} italic max-w-md mx-auto leading-relaxed`}>
+                  "{result.verdict}"
+                </p>
+
+                {/* Urgency strip */}
+                <div className="mt-5 rounded-xl bg-white/70 border border-studojo-ink/10 px-4 py-3">
+                  <p className="text-xs font-satoshi font-semibold text-studojo-ink">{cfg.urgency}</p>
+                </div>
+              </div>
+
+              {/* ── RISK / EDGES ── */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center flex-shrink-0">
+                      <FiAlertTriangle className="w-4 h-4 text-red-500" />
+                    </div>
+                    <h3 className="font-clash text-sm font-bold text-studojo-ink">Why AI is coming for this</h3>
+                  </div>
+                  <ul className="space-y-2.5">
+                    {result.risk_drivers.map((d, i) => (
+                      <li key={i} className="flex gap-2.5 text-xs font-satoshi text-studojo-muted leading-relaxed">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0 mt-1.5" />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                      <FiShield className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <h3 className="font-clash text-sm font-bold text-studojo-ink">Your human edge</h3>
+                  </div>
+                  <ul className="space-y-2.5">
+                    {result.human_edges.map((e, i) => (
+                      <li key={i} className="flex gap-2.5 text-xs font-satoshi text-studojo-muted leading-relaxed">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0 mt-1.5" />
+                        {e}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* ── URGENCY TIMELINE ── */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FiClock className="w-5 h-5 text-studojo-purple" />
+                  <h3 className="font-clash text-xl font-bold text-studojo-ink">What happens next</h3>
+                </div>
+                <div className="space-y-3">
+                  {timelineInsights.map(({ year, insight }, i) => (
+                    <TimelineCard
+                      key={i}
+                      year={year}
+                      insight={insight}
+                      icon={<FiClock className="w-4 h-4 text-studojo-purple" />}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* ── HOW YOUR ROLE COMPARES ── */}
+              {compRoles.length > 0 && (
+                <div className="mb-6 rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FiTarget className="w-5 h-5 text-studojo-purple" />
+                    <h3 className="font-clash text-base font-bold text-studojo-ink">Pivot roles vs your current role</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {/* Current role */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-xs font-satoshi text-studojo-muted px-2 py-0.5 rounded bg-studojo-surface-muted whitespace-nowrap">Current</span>
+                        <span className="text-sm font-satoshi font-semibold text-studojo-ink truncate">{result.matched_title}</span>
+                      </div>
+                      <div className="flex items-center gap-2 ml-3">
+                        <div className="w-24 h-2 rounded-full bg-studojo-ink/8 overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${result.risk_pct}%`, backgroundColor: RISK_CONFIG[result.risk_level].arc }} />
+                        </div>
+                        <span className="text-xs font-satoshi font-bold w-9 text-right" style={{ color: RISK_CONFIG[result.risk_level].arc }}>{result.risk_pct}%</span>
+                      </div>
+                    </div>
+                    {/* Pivot roles */}
+                    {compRoles.map((r) => (
+                      <div key={r.title} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-xs font-satoshi text-studojo-purple px-2 py-0.5 rounded bg-studojo-purple/8 whitespace-nowrap">Pivot</span>
+                          <span className="text-sm font-satoshi text-studojo-ink truncate">{r.title}</span>
+                        </div>
+                        <div className="flex items-center gap-2 ml-3">
+                          <div className="w-24 h-2 rounded-full bg-studojo-ink/8 overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${r.risk_pct}%`, backgroundColor: RISK_CONFIG[r.level].arc }} />
+                          </div>
+                          <span className="text-xs font-satoshi font-bold w-9 text-right" style={{ color: RISK_CONFIG[r.level].arc }}>{r.risk_pct}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── UPSKILLING ── */}
+              <div className="mb-6 rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center flex-shrink-0">
+                    <FiBook className="w-4 h-4 text-blue-500" />
+                  </div>
+                  <h3 className="font-clash text-base font-bold text-studojo-ink">Skills to add right now</h3>
+                </div>
+
+                {stayRelevant.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs font-satoshi font-semibold text-studojo-muted uppercase tracking-wider mb-2">Stay relevant in your current role</p>
+                    <ul className="space-y-2">
+                      {stayRelevant.map((s, i) => (
+                        <li key={i} className="flex gap-2 text-xs font-satoshi text-studojo-ink leading-relaxed">
+                          <FiZap className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
+                          {s}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {pivotSkills && (
+                  <div className="mb-4">
+                    <p className="text-xs font-satoshi font-semibold text-studojo-muted uppercase tracking-wider mb-2">Skills for pivoting to {pivotSkills.label}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {pivotSkills.skills.map((s) => (
+                        <span key={s} className="px-2 py-0.5 rounded-md text-[11px] font-satoshi font-medium bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/20">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Link
+                  to="/dojos/careers"
+                  className="mt-2 flex items-center justify-center gap-2 w-full h-10 rounded-xl border-2 border-studojo-ink bg-studojo-surface-muted text-studojo-ink font-satoshi font-semibold text-sm shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                >
+                  <FiFileText className="w-4 h-4" />
+                  Add these skills to your resume — free
+                </Link>
+              </div>
+
+              {/* ── CAREER PIVOT ROADMAP ── */}
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-2">
+                  <FiTrendingUp className="w-5 h-5 text-studojo-purple" />
+                  <h3 className="font-clash text-xl font-bold text-studojo-ink">Your career pivot roadmap</h3>
+                </div>
+                <p className="text-sm font-satoshi text-studojo-muted mb-5">
+                  {result.risk_pct >= 75
+                    ? "These pivots get you out of AI's direct path. Ranked by how fast you can get there."
+                    : result.risk_pct >= 50
+                    ? "Roles that build on what you already do — with significantly lower AI risk."
+                    : "Future-proofed moves that compound your existing skills."}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {result.pivots.map((pivot, i) => (
+                    <PivotCard key={i} pivot={pivot} showCTA={true} />
+                  ))}
+                </div>
+              </div>
+
+              {/* ── MID-PAGE OUTREACH CTA ── */}
+              <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-ink shadow-brutal p-6 mb-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-studojo-purple flex items-center justify-center flex-shrink-0">
+                    <FiTarget className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-clash text-lg font-bold text-white mb-1">
+                      Find {result.pivots[0]?.role || "your pivot role"} openings right now
+                    </h4>
+                    <p className="text-sm font-satoshi text-white/70 mb-4">
+                      We search 50,000+ companies and surface the exact hiring managers and roles for your pivot — not job board noise.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <button
+                        onClick={() => navigate("/outreach")}
+                        className="flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-studojo-purple text-white font-satoshi font-semibold text-sm border-2 border-white/20 transition-all hover:bg-studojo-purple/90"
+                      >
+                        Browse open roles <FiArrowRight className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => navigate("/outreach/onboarding/upload")}
+                        className="flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-white/10 text-white font-satoshi font-semibold text-sm border-2 border-white/20 transition-all hover:bg-white/20"
+                      >
+                        Upload resume → get leads
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── RESUME CTA ── */}
+              <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5 mb-6 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                  <FiFileText className="w-5 h-5 text-emerald-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-clash text-sm font-bold text-studojo-ink">Build an ATS-ready resume for your pivot</p>
+                  <p className="text-xs font-satoshi text-studojo-muted mt-0.5">
+                    Free resume builder optimised for {result.pivots[0]?.role || "your next role"}. No credit card.
+                  </p>
+                </div>
+                <Link
+                  to="/dojos/careers"
+                  className="flex-shrink-0 flex items-center gap-1.5 h-9 px-4 rounded-xl bg-emerald-500 text-white font-satoshi font-semibold text-xs border-2 border-studojo-ink shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                >
+                  Build free <FiArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              {/* ── INTERNSHIP CTA ── */}
+              <div className="rounded-2xl border-2 border-studojo-ink bg-emerald-500 shadow-brutal p-5 mb-6 flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="font-clash text-base font-bold text-white">Find internships in {result.pivots[0]?.role || "your target field"}</p>
+                  <p className="text-xs font-satoshi text-white/80 mt-0.5">
+                    Curated internships across India, US, UK, UAE and Singapore. Updated weekly.
+                  </p>
+                </div>
+                <Link
+                  to="/dojos/internships"
+                  className="flex-shrink-0 flex items-center gap-1.5 h-9 px-4 rounded-xl bg-white text-emerald-600 font-satoshi font-semibold text-xs border-2 border-studojo-ink shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                >
+                  Browse <FiArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              {/* ── FINAL CTA ── */}
+              <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple shadow-brutal p-6 text-center">
+                <h4 className="font-clash text-xl font-bold text-white mb-2">
+                  Ready to land one of these roles?
+                </h4>
+                <p className="text-sm font-satoshi text-white/75 mb-5">
+                  Upload your resume and we find the exact decision makers hiring for your pivot role right now. No job boards. No noise.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={() => navigate("/outreach/onboarding/upload")}
+                    className="h-11 px-6 rounded-xl bg-white text-studojo-purple font-satoshi font-semibold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center justify-center gap-2"
+                  >
+                    Find my leads <FiArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => navigate("/outreach")}
+                    className="h-11 px-6 rounded-xl bg-white/15 text-white font-satoshi font-semibold text-sm border-2 border-white/30 transition-all hover:bg-white/25 inline-flex items-center justify-center gap-2"
+                  >
+                    Browse all openings
+                  </button>
+                </div>
+                <p className="text-xs font-satoshi text-white/50 mt-4">
+                  Already on Studojo?{" "}
+                  <Link to="/outreach" className="text-white/70 underline hover:text-white">Go to your dashboard</Link>
+                </p>
+              </div>
+
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <Footer />
     </div>
