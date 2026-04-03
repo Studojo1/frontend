@@ -1,6 +1,6 @@
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
-import { reportRequests } from "../../../auth-schema";
+import { reportRequests } from "../../auth-schema";
 import { eq } from "drizzle-orm";
 import type { Route } from "./+types/api.report-requests.$id.status";
 
