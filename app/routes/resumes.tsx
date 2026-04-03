@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { redirect, useSearchParams } from "react-router";
-import { FiEdit, FiTrash2, FiPlus, FiFileText, FiEye, FiX } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiPlus, FiFileText, FiEye, FiX, FiCopy } from "react-icons/fi";
 import { Footer, Header, ConfirmModal } from "~/components";
 import { ImportResumeModal, RenameResumeModal, InternshipReturnCard } from "~/components/resumes";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
@@ -377,6 +377,31 @@ export default function Resumes() {
     window.location.href = `/resumes/${resume.id}/edit`;
   };
 
+  const handleDuplicate = async (resume: Resume) => {
+    try {
+      // Fetch the full draft to get sections
+      const res = await fetch(`/api/v2/resumes/${resume.id}`);
+      if (!res.ok) throw new Error("Failed to fetch resume");
+      const { draft } = await res.json();
+
+      const copyRes = await fetch("/api/v2/resumes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `Copy of ${resume.name}`,
+          sections: draft.sections,
+          templateId: draft.templateId || "modern",
+        }),
+      });
+
+      if (!copyRes.ok) throw new Error("Failed to duplicate resume");
+      toast.success("Resume duplicated");
+      loadResumes();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to duplicate resume");
+    }
+  };
+
   const handlePreviewClick = async (resume: Resume) => {
     setResumeToPreview(resume);
     setPreviewModalOpen(true);
@@ -543,6 +568,14 @@ export default function Resumes() {
                         title="Preview resume"
                       >
                         <FiEye className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDuplicate(resume)}
+                        className="flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 font-['Satoshi'] text-xs font-medium leading-4 text-neutral-950 hover:bg-gray-50"
+                        title="Duplicate resume"
+                      >
+                        <FiCopy className="h-4 w-4" />
                       </button>
                       <button
                         type="button"

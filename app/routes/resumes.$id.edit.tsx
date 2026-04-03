@@ -163,9 +163,9 @@ export default function ResumeEditorPage() {
         // Block future attempts if auth fails
         if (response.status === 401 || errorMessage.includes("token") || errorMessage.includes("Authentication")) {
           previewGenerationBlockedRef.current = true;
-          console.warn("Preview generation blocked: authentication required");
+          toast.error("Preview unavailable — please refresh and sign in again.");
           setPreviewLoading(false);
-          return; // Silently fail, don't spam errors
+          return;
         }
         
         throw new Error(errorMessage);
@@ -192,8 +192,8 @@ export default function ResumeEditorPage() {
       // Block future attempts if auth fails
       if (error.message?.includes("token") || error.message?.includes("Authentication") || error.status === 401) {
         previewGenerationBlockedRef.current = true;
-        console.warn("Preview generation blocked: authentication required");
-        return; // Silently fail, don't spam errors
+        toast.error("Preview unavailable — please refresh and sign in again.");
+        return;
       }
       
       toast.error(error.message || "Failed to generate preview");
@@ -312,6 +312,18 @@ export default function ResumeEditorPage() {
     setIsDirty(true);
   }, [document]);
 
+  // Warn on browser close/refresh when there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
   if (!document) {
     return (
       <>
@@ -335,7 +347,10 @@ export default function ResumeEditorPage() {
           <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate("/resumes")}
+                onClick={() => {
+                  if (isDirty && !window.confirm("You have unsaved changes. Leave anyway?")) return;
+                  navigate("/resumes");
+                }}
                 className="text-gray-600 hover:text-gray-900"
               >
                 ← Back
@@ -401,6 +416,7 @@ export default function ResumeEditorPage() {
             <AIPanel
               draftId={document.id}
               sections={document.getSortedSections()}
+              onClose={() => setShowAIPanel(false)}
               onOptimizationComplete={(optimized) => {
                 if (!document) return;
                 const updatedDoc = document.setSections(optimized);

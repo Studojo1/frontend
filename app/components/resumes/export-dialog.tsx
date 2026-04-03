@@ -36,9 +36,28 @@ export function ExportDialog({ draftId, sections, templateId, onClose }: ExportD
         toast.success("Export started! You'll be notified when it's ready.");
         onClose();
       } else {
-        // Export as PDF only
-        // TODO: Implement PDF-only export
-        toast.success("PDF export started!");
+        // Export as PDF only — fetch from preview endpoint and download
+        const response = await fetch(`/api/v2/resumes/${draftId}/preview`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ templateId }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || "Failed to generate PDF");
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "resume.pdf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success("PDF downloaded!");
         onClose();
       }
     } catch (error: any) {

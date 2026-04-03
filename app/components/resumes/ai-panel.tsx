@@ -15,9 +15,10 @@ interface AIPanelProps {
   draftId: string;
   sections: any[];
   onOptimizationComplete?: (optimizedSections: any[]) => void;
+  onClose?: () => void;
 }
 
-export function AIPanel({ draftId, sections, onOptimizationComplete }: AIPanelProps) {
+export function AIPanel({ draftId, sections, onOptimizationComplete, onClose }: AIPanelProps) {
   const [activeTab, setActiveTab] = useState<"suggestions" | "job" | "full">("suggestions");
   const [loading, setLoading] = useState(false);
   const [jobTitle, setJobTitle] = useState("");
@@ -382,7 +383,7 @@ export function AIPanel({ draftId, sections, onOptimizationComplete }: AIPanelPr
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
         <h2 className="font-semibold text-gray-900">AI Assistant</h2>
-        <button className="text-gray-400 hover:text-gray-600">
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
           <FiX className="h-5 w-5" />
         </button>
       </div>
