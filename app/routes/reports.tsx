@@ -18,6 +18,18 @@ export function meta() {
 
 const REPORTS = [
   {
+    slug: "cs-india-2026",
+    title: "CS in India: What Freshers Are Actually Getting Into",
+    subtitle: "Q1 2026",
+    excerpt:
+      "135,000 IT hires projected for FY26. A 12x salary gap at Year 0 based purely on which company you join. And the one skill gap (DSA fluency) keeping 94.5% of engineering graduates out of the roles worth having.",
+    category: "Tech",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-blue-500",
+    badge: "New",
+  },
+  {
     slug: "sales-india-2026",
     title: "Sales in India: What Freshers Actually Face",
     subtitle: "Q1 2026",
@@ -27,7 +39,7 @@ const REPORTS = [
     date: "April 2026",
     findings: 8,
     color: "bg-emerald-500",
-    badge: "New",
+    badge: "",
   },
   {
     slug: "finance-india-2026",

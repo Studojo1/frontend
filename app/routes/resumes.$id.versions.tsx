@@ -97,9 +97,15 @@ export default function VersionHistoryPage() {
 
     setIsRestoring(true);
     try {
-      const response = await fetch(`/api/resumes/${id}/versions/${versionToRestore.version}/restore`, {
+      // Try v2 API first (resume_drafts), fall back to v1 (legacy resumes)
+      let response = await fetch(`/api/v2/resumes/${id}/versions/${versionToRestore.version}/restore`, {
         method: "POST",
       });
+      if (response.status === 404 || response.status === 405) {
+        response = await fetch(`/api/resumes/${id}/versions/${versionToRestore.version}/restore`, {
+          method: "POST",
+        });
+      }
 
       if (!response.ok) {
         throw new Error("Failed to restore version");
