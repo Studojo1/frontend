@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, redirect } from "react-router";
 import {
   FiArrowRight, FiRefreshCw,
   FiClock, FiUpload, FiType,
@@ -10,6 +10,14 @@ import {
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import type { AnalysisResult } from "~/lib/ai-risk/engine";
+import { getSessionFromRequest } from "~/lib/onboarding.server";
+import type { Route } from "./+types/dojos.ai-risk";
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSessionFromRequest(request);
+  if (!session) throw redirect("/auth?redirect=/dojos/ai-risk");
+  return null;
+}
 
 export function meta() {
   return [
