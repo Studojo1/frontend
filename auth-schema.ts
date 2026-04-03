@@ -786,3 +786,19 @@ export const resumeExamplesRelations = relations(resumeExamples, ({ one }) => ({
   }),
 }));
 
+
+export const reportRequests = pgTable(
+  "report_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    topic: text("topic").notNull(),
+    email: text("email"),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    status: text("status").notNull().default("pending"), // 'pending' | 'in_progress' | 'done'
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("report_requests_status_idx").on(table.status),
+    index("report_requests_created_at_idx").on(table.createdAt),
+  ],
+);

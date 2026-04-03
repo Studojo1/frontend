@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 
@@ -29,6 +30,100 @@ const REPORTS = [
     badge: "New",
   },
 ];
+
+function RequestForm() {
+  const [topic, setTopic] = useState("");
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!topic.trim()) return;
+    setState("loading");
+    try {
+      const res = await fetch("/api/report-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: topic.trim(), email: email.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setErrorMsg(data.error || "Something went wrong"); setState("error"); return; }
+      setState("done");
+    } catch {
+      setErrorMsg("Could not connect. Try again.");
+      setState("error");
+    }
+  };
+
+  if (state === "done") {
+    return (
+      <div className="rounded-2xl border-2 border-neutral-900 bg-green-50 p-8 text-center shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border-2 border-neutral-900 bg-green-500">
+          <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div className="font-['Clash_Display'] text-xl font-bold text-neutral-900">Request received</div>
+        <p className="mt-2 font-['Satoshi'] text-sm text-neutral-500">We will review it and let you know when it is published.</p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+      <div className="mb-2 font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-violet-600">Request a Report</div>
+      <h3 className="mb-1 font-['Clash_Display'] text-2xl font-bold text-neutral-900">
+        What should we research next?
+      </h3>
+      <p className="mb-6 font-['Satoshi'] text-sm text-neutral-500">
+        Tell us which job market, industry, or role you want data on. We review every request and publish the most-requested ones.
+      </p>
+
+      <div className="mb-4">
+        <label className="mb-1.5 block font-['Satoshi'] text-sm font-semibold text-neutral-800">
+          What would you like us to research? <span className="text-red-500">*</span>
+        </label>
+        <textarea
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder="e.g. Software engineering salaries in Bengaluru, Data science internships in India, MBA vs direct hire for finance..."
+          required
+          maxLength={500}
+          rows={3}
+          className="w-full resize-none rounded-xl border-2 border-neutral-900 bg-neutral-50 px-4 py-3 font-['Satoshi'] text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+        />
+        <div className="mt-1 text-right font-['Satoshi'] text-xs text-neutral-400">{topic.length}/500</div>
+      </div>
+
+      <div className="mb-6">
+        <label className="mb-1.5 block font-['Satoshi'] text-sm font-semibold text-neutral-800">
+          Email <span className="text-neutral-400 font-normal">(optional — we will notify you when it is live)</span>
+        </label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          maxLength={200}
+          className="w-full rounded-xl border-2 border-neutral-900 bg-neutral-50 px-4 py-3 font-['Satoshi'] text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+        />
+      </div>
+
+      {state === "error" && (
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-2 font-['Satoshi'] text-sm text-red-700">{errorMsg}</div>
+      )}
+
+      <button
+        type="submit"
+        disabled={state === "loading" || !topic.trim()}
+        className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-sm font-bold text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] disabled:opacity-60 disabled:pointer-events-none"
+      >
+        {state === "loading" ? "Submitting..." : "Submit Request"}
+      </button>
+    </form>
+  );
+}
 
 export default function Reports() {
   return (
@@ -127,11 +222,11 @@ export default function Reports() {
             Find the roles these reports talk about.
           </h2>
           <p className="mx-auto mt-3 max-w-xl font-['Satoshi'] text-base text-white/80">
-            Use the Internship Dojo to discover niche finance, PM, and marketing roles across India. ATS resume builder included.
+            Use the Studojo Outreach tool to discover and apply to niche finance, PM, and marketing roles across India. ATS resume builder included.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
-              to="/dojos/internships"
+              to="/outreach"
               className="flex h-12 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white px-8 font-['Satoshi'] text-sm font-bold text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
             >
               Browse Internships
@@ -142,6 +237,13 @@ export default function Reports() {
             >
               Build Your Resume Free
             </Link>
+          </div>
+        </section>
+
+        {/* Request a report */}
+        <section className="mx-auto max-w-5xl px-4 py-16 md:px-8">
+          <div className="mx-auto max-w-2xl">
+            <RequestForm />
           </div>
         </section>
       </main>

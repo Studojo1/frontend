@@ -201,7 +201,7 @@ export default function FinanceIndiaReport() {
         <div className="rpt-cta-strip">
           <div className="rpt-cta-strip-inner">
             <span className="rpt-cta-strip-text">Looking for finance internships in India?</span>
-            <Link to="/dojos/internships" className="rpt-cta-pill">Browse finance roles on Studojo →</Link>
+            <Link to="/outreach" className="rpt-cta-pill">Browse finance roles on Studojo →</Link>
           </div>
         </div>
 
@@ -256,7 +256,7 @@ export default function FinanceIndiaReport() {
                 <div className="rpt-inline-cta-title">Find finance internships in Mumbai, Bengaluru, and Delhi NCR</div>
                 <div className="rpt-inline-cta-sub">The Internship Dojo surfaces niche finance roles across India before job boards catch up.</div>
               </div>
-              <Link to="/dojos/internships" className="rpt-btn-primary">Browse Internships</Link>
+              <Link to="/outreach" className="rpt-btn-primary">Browse Internships</Link>
             </div>
           </div>
 
@@ -537,7 +537,7 @@ export default function FinanceIndiaReport() {
                   <div className="rpt-inline-cta-title">Find your first finance internship</div>
                   <div className="rpt-inline-cta-sub">FP&A, investment research, fintech analytics — curated weekly. Apply directly from Studojo.</div>
                 </div>
-                <Link to="/dojos/internships" className="rpt-btn-primary">Find Finance Internships</Link>
+                <Link to="/outreach" className="rpt-btn-primary">Find Finance Internships</Link>
               </div>
             </div>
             <p className="rpt-source">Source: AmbitionBox salary data, CFA Institute India member survey, recruiter interviews, April 2026</p>
@@ -580,7 +580,7 @@ export default function FinanceIndiaReport() {
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the finance roles this report is talking about — FP&A, analytics, fintech, and investment research openings across India, curated weekly.</p>
             <div className="rpt-final-cta-btns">
-              <Link to="/dojos/internships" className="rpt-btn-white">Browse Finance Internships</Link>
+              <Link to="/outreach" className="rpt-btn-white">Browse Finance Internships</Link>
               <Link to="/dojos/careers" className="rpt-btn-outline">Build Your Resume Free</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
