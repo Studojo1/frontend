@@ -24,8 +24,14 @@ export function meta() {
 }
 
 const EXAMPLES = [
-  "Accountant", "Software Engineer", "Nurse", "Copywriter",
-  "Data Scientist", "Teacher", "Loan Officer", "AI Engineer",
+  "Fin Crime Associate at Stripe",
+  "Growth Manager at a Series B startup",
+  "Investment Banking Analyst",
+  "Software Engineer at FAANG",
+  "Content Strategist at a D2C brand",
+  "Credit Analyst at HDFC",
+  "Management Consultant at McKinsey",
+  "Product Manager at Razorpay",
 ];
 
 const RISK_CONFIG = {
