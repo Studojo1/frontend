@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { FiCheck, FiSend } from "react-icons/fi";
+import { FiCheck } from "react-icons/fi";
 import type { MCQOption } from "~/lib/outreach/types";
 
 interface MCQSelectorProps {
@@ -10,27 +10,30 @@ interface MCQSelectorProps {
   loading?: boolean;
 }
 
-// Any option whose text matches these is treated as "other — please specify"
-const OTHER_PATTERN = /^(other|something else|none of the above|other.*)/i;
+// Vague options that REQUIRE the user to add detail before continuing
+const REQUIRES_DETAIL_PATTERN = /^(other|something else|none of the above|no preference|not sure|unsure|flexible|open to|don't know|dont know|n\/a|none|not applicable)/i;
 
-function isOtherOption(opt: MCQOption): boolean {
-  return OTHER_PATTERN.test(opt.text.trim());
+function requiresDetail(opt: MCQOption): boolean {
+  return REQUIRES_DETAIL_PATTERN.test(opt.text.trim());
 }
 
 export function MCQSelector({ question, options, allowMultiple, onSubmit, loading }: MCQSelectorProps) {
   const [selected, setSelected] = useState<string[]>([]);
-  const [otherText, setOtherText] = useState("");
-  const otherInputRef = useRef<HTMLInputElement>(null);
+  const [extraText, setExtraText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const otherOption = options.find(isOtherOption);
-  const otherSelected = otherOption ? selected.includes(otherOption.label) : false;
+  // Which selected options need mandatory detail
+  const selectedOpts = selected.map((label) => options.find((o) => o.label === label)).filter(Boolean) as MCQOption[];
+  const hasVagueSelected = selectedOpts.some(requiresDetail);
 
-  // Focus the text box as soon as "Other" is selected
+  // Always show the extra text box once something is selected — optional except for vague options
+  const showExtraInput = selected.length > 0;
+
   useEffect(() => {
-    if (otherSelected) {
-      setTimeout(() => otherInputRef.current?.focus(), 50);
+    if (showExtraInput) {
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
-  }, [otherSelected]);
+  }, [showExtraInput]);
 
   const toggle = (label: string) => {
     if (allowMultiple) {
@@ -39,9 +42,7 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
       );
     } else {
       setSelected([label]);
-      // Clear other text if switching away from "Other"
-      const opt = options.find((o) => o.label === label);
-      if (opt && !isOtherOption(opt)) setOtherText("");
+      setExtraText("");
     }
   };
 
@@ -51,21 +52,22 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
     const answers = selected.map((label) => {
       const opt = options.find((o) => o.label === label);
       if (!opt) return label;
-      // Replace "Other" text with whatever the user typed, if provided
-      if (isOtherOption(opt) && otherText.trim()) return otherText.trim();
+      // For vague options, replace label with typed text; for others, append if provided
+      if (requiresDetail(opt) && extraText.trim()) return extraText.trim();
+      if (!requiresDetail(opt) && extraText.trim()) return `${opt.text} — ${extraText.trim()}`;
       return opt.text;
     });
 
     onSubmit(answers);
     setSelected([]);
-    setOtherText("");
+    setExtraText("");
   };
 
   const canSubmit =
     selected.length > 0 &&
     !loading &&
-    // If "Other" is selected, require the text box to be filled
-    (!otherSelected || otherText.trim().length > 0);
+    // Vague options require the text box to be filled
+    (!hasVagueSelected || extraText.trim().length > 0);
 
   return (
     <div className="space-y-2.5">
@@ -95,16 +97,16 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
         })}
       </div>
 
-      {/* Inline text box shown when "Other" is selected */}
-      {otherSelected && (
-        <div className="flex gap-2 items-center animate-in fade-in slide-in-from-top-1 duration-150">
+      {/* Text box appears for every selection — required for vague options, optional otherwise */}
+      {showExtraInput && (
+        <div className="animate-in fade-in slide-in-from-top-1 duration-150">
           <input
-            ref={otherInputRef}
-            value={otherText}
-            onChange={(e) => setOtherText(e.target.value)}
+            ref={inputRef}
+            value={extraText}
+            onChange={(e) => setExtraText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && canSubmit && handleSubmit()}
-            placeholder="Please describe..."
-            className="flex-1 h-9 px-3 rounded-xl border-2 border-studojo-purple/40 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple placeholder:text-studojo-muted/50"
+            placeholder={hasVagueSelected ? "Please describe..." : "Add more detail (optional)"}
+            className="w-full h-9 px-3 rounded-xl border-2 border-studojo-purple/40 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple placeholder:text-studojo-muted/50"
           />
         </div>
       )}
