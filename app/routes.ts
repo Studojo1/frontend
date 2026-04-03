@@ -73,6 +73,8 @@ export default [
   route("api/admin/chat-logs", "routes/api.admin.chat-logs.tsx"),
   route("blog/:slug", "routes/blog.$slug.tsx"),
   route("blog", "routes/blog.tsx"),
+  route("reports", "routes/reports.tsx"),
+  route("reports/finance-india-2026", "routes/reports.finance-india-2026.tsx"),
   route("api/blog/:slug", "routes/api.blog.$slug.tsx"),
   route("api/blog", "routes/api.blog.tsx"),
   route("api/images/*", "routes/api.images.$.tsx"),
