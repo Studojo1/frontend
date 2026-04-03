@@ -75,6 +75,7 @@ export default [
   route("blog", "routes/blog.tsx"),
   route("reports", "routes/reports.tsx"),
   route("reports/finance-india-2026", "routes/reports.finance-india-2026.tsx"),
+  route("reports/sales-india-2026", "routes/reports.sales-india-2026.tsx"),
   route("api/report-requests", "routes/api.report-requests.tsx"),
   route("api/report-requests/:id/status", "routes/api.report-requests.$id.status.tsx"),
   route("admin/report-requests", "routes/admin.report-requests.tsx"),
