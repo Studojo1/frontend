@@ -308,9 +308,18 @@ export default function AIRiskPage() {
     setResumeError("");
     try {
       const formData = new FormData();
-      formData.append("resume", file);
+      formData.append("file", file); // endpoint expects "file" field
       const res = await fetch("/api/resumes/parse", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Failed to parse resume");
+
+      if (res.status === 401) {
+        throw new Error("Sign in to use resume upload, or enter your job title manually.");
+      }
+      if (res.status === 400) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Could not read that file. Please upload a PDF.");
+      }
+      if (!res.ok) throw new Error("Failed to parse resume. Please enter your job title manually.");
+
       const data = await res.json();
       const role =
         data.work_experiences?.[0]?.role ||
@@ -448,7 +457,12 @@ export default function AIRiskPage() {
                     {resumeError && (
                       <div className="mb-4 text-sm font-satoshi text-red-600 bg-red-50 rounded-xl border border-red-200 p-3 text-left">
                         {resumeError}
-                        <button onClick={() => setMode("job")} className="mt-2 text-xs underline block">Enter job title manually instead</button>
+                        <div className="mt-2 flex gap-3">
+                          <button onClick={() => setMode("job")} className="text-xs underline">Enter job title manually</button>
+                          {resumeError.includes("Sign in") && (
+                            <a href="/auth" className="text-xs underline">Sign in</a>
+                          )}
+                        </div>
                       </div>
                     )}
                     <p className="text-xs font-satoshi text-studojo-muted">We will extract your current job title automatically</p>
