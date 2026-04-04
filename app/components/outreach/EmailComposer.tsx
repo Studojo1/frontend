@@ -711,6 +711,14 @@ function ComposePanel({
     generateEmail(true, null);
   }, []);
 
+  // Auto-resize textarea as content changes
+  useEffect(() => {
+    const ta = bodyRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = `${Math.max(160, ta.scrollHeight)}px`;
+  }, [body]);
+
   const styleProfileForAPI = {
     name: styleProfile.name,
     university: styleProfile.university,
@@ -949,10 +957,9 @@ function ComposePanel({
       </div>
 
       {/* ── CENTER PANEL ── */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Toolbar */}
-        <div className="flex items-center justify-between px-3 py-2 border-b-2 border-studojo-ink/10 bg-white flex-shrink-0 gap-2">
-          {/* Edit / Preview */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-studojo-surface-muted/20">
+        {/* Slim top bar: actions only */}
+        <div className="flex items-center justify-between px-3 py-2 border-b-2 border-studojo-ink/10 bg-white flex-shrink-0">
           <div className="flex items-center gap-1">
             <button
               onClick={() => setViewMode("edit")}
@@ -967,22 +974,6 @@ function ComposePanel({
               <FiEye className="w-3 h-3" /> Preview
             </button>
           </div>
-
-          {/* Live score */}
-          {body && (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className={`text-[10px] font-bold font-satoshi px-2 py-0.5 rounded-full border ${
-                score.wordCount <= 100 ? "bg-green-50 text-green-700 border-green-200"
-                : score.wordCount <= 125 ? "bg-amber-50 text-amber-700 border-amber-200"
-                : "bg-red-50 text-red-600 border-red-200"
-              }`}>
-                {score.wordCount}w
-              </span>
-              <ScoreBadge ok={score.youCount >= score.iCount} label="You≥I" />
-              <ScoreBadge ok={score.questionCount === 1} label="1 CTA" />
-            </div>
-          )}
-
           <div className="flex items-center gap-1.5">
             <button onClick={copyEmail} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-satoshi text-studojo-muted hover:text-studojo-ink hover:bg-studojo-surface-muted transition-colors">
               <FiCopy className="w-3 h-3" /> Copy
@@ -992,83 +983,109 @@ function ComposePanel({
               disabled={!body}
               className="flex items-center gap-1.5 h-7 px-3 rounded-xl bg-studojo-purple text-white text-xs font-bold font-satoshi border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:opacity-40 disabled:pointer-events-none"
             >
-              Continue →
+              Use this email →
             </button>
           </div>
         </div>
 
-        {/* Content */}
+        {/* Quick edit pill row */}
+        <div className="flex items-center gap-1.5 px-4 py-2 border-b border-studojo-ink/8 bg-white overflow-x-auto flex-shrink-0">
+          {QUICK_EDITS.map((q) => (
+            <button
+              key={q.label}
+              onClick={() => sendChatMessage(q.prompt)}
+              disabled={chatLoading || generating}
+              className="flex-shrink-0 px-3 py-1 rounded-full bg-studojo-surface-muted text-xs font-satoshi font-medium text-studojo-ink hover:bg-studojo-purple hover:text-white border border-studojo-ink/10 transition-all disabled:opacity-40 disabled:pointer-events-none"
+            >
+              {q.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Main content */}
         {generating ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-3">
-            <div className="w-6 h-6 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-studojo-muted font-satoshi">Generating your email...</p>
+            <div className="w-5 h-5 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-studojo-muted font-satoshi">Writing your email...</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto">
             {viewMode === "edit" ? (
-              <>
-                {/* Quick edit buttons */}
-                <div className="flex flex-wrap gap-1.5">
-                  {QUICK_EDITS.map((q) => (
-                    <button
-                      key={q.label}
-                      onClick={() => sendChatMessage(q.prompt)}
-                      disabled={chatLoading}
-                      className="px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-ink hover:bg-studojo-purple-bg/60 hover:text-studojo-purple border border-studojo-ink/10 hover:border-studojo-purple/30 transition-all disabled:opacity-40 disabled:pointer-events-none"
-                    >
-                      {q.label}
-                    </button>
-                  ))}
-                </div>
+              <div className="max-w-2xl mx-auto p-5 space-y-3">
+                {/* Email compose card */}
+                <div className="rounded-2xl border-2 border-studojo-ink/15 bg-white shadow-sm overflow-hidden">
+                  {/* To: header */}
+                  <div className="flex items-center gap-2 px-5 py-3 border-b border-studojo-ink/8">
+                    <span className="text-xs font-bold text-studojo-muted font-satoshi w-8 flex-shrink-0">To:</span>
+                    <span className="text-xs text-studojo-ink font-satoshi">
+                      {recipientContext.recipientName
+                        ? <><strong>{recipientContext.recipientName}</strong> · {recipientContext.recipientTitle && `${recipientContext.recipientTitle}, `}{recipientContext.company}</>
+                        : <span className="text-studojo-muted">{"{name}"} · {"{company}"}</span>
+                      }
+                    </span>
+                  </div>
 
-                {/* Subject with variants */}
-                <div>
-                  <label className="text-[10px] font-bold text-studojo-muted font-satoshi uppercase block mb-1">
-                    Subject line
-                  </label>
-                  <input
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Subject..."
-                    className="w-full h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi font-medium focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple"
-                  />
+                  {/* Subject */}
+                  <div className="px-5 py-3 border-b border-studojo-ink/8">
+                    <input
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="Subject line..."
+                      className="w-full text-sm font-bold font-satoshi text-studojo-ink bg-transparent border-none outline-none focus:outline-none placeholder:font-normal placeholder:text-studojo-muted/40"
+                    />
+                  </div>
+
+                  {/* Subject variants */}
                   {subjectVariants.length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      <span className="text-[10px] text-studojo-muted/60 font-satoshi self-center">Try:</span>
+                    <div className="px-5 py-2 border-b border-studojo-ink/8 bg-studojo-surface-muted/40 flex flex-wrap gap-1.5 items-center">
+                      <span className="text-[10px] text-studojo-muted font-satoshi font-bold uppercase">Try:</span>
                       {subjectVariants.map((v, i) => (
                         <button
                           key={i}
                           onClick={() => setSubject(v)}
-                          className="text-[10px] font-satoshi text-studojo-purple bg-studojo-purple-bg/50 border border-studojo-purple/20 px-2 py-0.5 rounded-full hover:bg-studojo-purple-bg transition-colors"
+                          className="text-[11px] font-satoshi text-studojo-purple bg-white border border-studojo-purple/25 px-2.5 py-0.5 rounded-full hover:bg-studojo-purple hover:text-white transition-colors"
                         >
                           {v}
                         </button>
                       ))}
                     </div>
                   )}
-                </div>
 
-                {/* Body */}
-                <div>
-                  <label className="text-[10px] font-bold text-studojo-muted font-satoshi uppercase block mb-1">
-                    Body
-                    <span className="ml-2 normal-case font-normal text-studojo-muted/60">
-                      — drag blocks from left, or use quick edits above
-                    </span>
-                  </label>
-                  <textarea
-                    ref={bodyRef}
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
+                  {/* Body */}
+                  <div
+                    className="px-5 py-4"
                     onDrop={(e) => { e.preventDefault(); const t = e.dataTransfer.getData("text/plain"); if (t) insertAtCursor(t); }}
                     onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }}
-                    rows={16}
-                    className="w-full px-3 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple resize-none leading-relaxed"
-                  />
+                  >
+                    <textarea
+                      ref={bodyRef}
+                      value={body}
+                      onChange={(e) => setBody(e.target.value)}
+                      placeholder="Your email body will appear here after generation..."
+                      className="w-full text-sm font-satoshi text-studojo-ink bg-transparent border-none outline-none focus:outline-none resize-none leading-relaxed placeholder:text-studojo-muted/40 overflow-hidden"
+                      rows={1}
+                    />
+                  </div>
+
+                  {/* Score bar inside card footer */}
+                  {body && (
+                    <div className="flex items-center gap-3 px-5 py-2.5 border-t border-studojo-ink/8 bg-studojo-surface-muted/30">
+                      <span className={`text-[10px] font-bold font-satoshi px-2 py-0.5 rounded-full border ${
+                        score.wordCount <= 85 ? "bg-green-50 text-green-700 border-green-200"
+                        : score.wordCount <= 110 ? "bg-amber-50 text-amber-700 border-amber-200"
+                        : "bg-red-50 text-red-600 border-red-200"
+                      }`}>
+                        {score.wordCount} words {score.wordCount <= 85 ? "✓" : score.wordCount <= 110 ? "— a bit long" : "— too long"}
+                      </span>
+                      <ScoreBadge ok={score.youCount >= score.iCount} label={score.youCount >= score.iCount ? "Good you/I ratio" : `Too many "I"s`} />
+                      <ScoreBadge ok={score.questionCount === 1} label={score.questionCount === 1 ? "1 CTA ✓" : score.questionCount === 0 ? "No CTA" : "Multiple CTAs"} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Variable chips */}
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-studojo-muted/60 font-satoshi uppercase font-bold">Insert:</span>
                   {["{name}", "{company}", "{title}"].map((v) => (
                     <button
                       key={v}
@@ -1079,26 +1096,27 @@ function ComposePanel({
                     </button>
                   ))}
                 </div>
-              </>
+              </div>
             ) : (
-              <div className="max-w-xl mx-auto">
+              /* Preview mode */
+              <div className="max-w-2xl mx-auto p-5">
                 <div className="rounded-2xl border-2 border-studojo-ink/15 bg-white shadow-sm overflow-hidden">
-                  <div className="bg-studojo-surface-muted px-5 py-3 border-b-2 border-studojo-ink/10">
-                    <p className="text-xs text-studojo-muted font-satoshi">
-                      <strong>To:</strong> {recipientContext.recipientName || "{name}"} · {recipientContext.company || "{company}"}
+                  <div className="bg-studojo-surface-muted px-5 py-3 border-b-2 border-studojo-ink/10 space-y-0.5">
+                    <p className="text-xs font-satoshi text-studojo-muted">
+                      <strong className="text-studojo-ink">To:</strong> {recipientContext.recipientName || "{name}"} · {recipientContext.company || "{company}"}
                     </p>
-                    <p className="text-sm font-bold font-satoshi text-studojo-ink mt-1">
+                    <p className="text-sm font-bold font-satoshi text-studojo-ink">
                       {renderWithHighlights(subject || "(no subject)")}
                     </p>
                   </div>
-                  <div className="px-5 py-4">
-                    <p className="text-sm font-satoshi leading-relaxed whitespace-pre-line">
+                  <div className="px-5 py-5">
+                    <p className="text-sm font-satoshi leading-7 whitespace-pre-line text-studojo-ink">
                       {renderWithHighlights(body || "(empty)")}
                     </p>
                   </div>
                 </div>
-                <p className="text-xs text-studojo-muted font-satoshi text-center mt-3">
-                  Highlighted = auto-filled per lead
+                <p className="text-[11px] text-studojo-muted font-satoshi text-center mt-3">
+                  Highlighted text = auto-filled per lead when sending
                 </p>
               </div>
             )}
