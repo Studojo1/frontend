@@ -100,7 +100,7 @@ export default function ComposePage() {
             Compose Email
           </h1>
           <p className="text-[11px] text-studojo-muted font-satoshi">
-            Pick a template, drag in content blocks, and refine with the AI assistant
+            Set your style, add recipient context, then refine with the AI assistant
           </p>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function ComposePage() {
       <EmailComposer
         templates={templates}
         initialTemplate={selectedTemplate}
-        candidateContext={candidateContext}
+        savedProfile={null}
         onTemplateChange={setSelectedTemplate}
         onContinue={handleContinue}
       />
