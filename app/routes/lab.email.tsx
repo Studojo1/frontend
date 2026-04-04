@@ -2,7 +2,7 @@
  * /lab/email — hidden test page for the email composer
  * No auth required. Not linked from anywhere on the site.
  */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { EmailComposer, type StyleProfile } from "~/components/outreach/EmailComposer";
 import type { EmailTemplate } from "~/lib/outreach/types";
 
@@ -66,38 +66,27 @@ I bring [specific skill or experience]. Most recently, [one-line achievement wit
   },
 ];
 
-const PROFILE_STORAGE_KEY = "studojo_email_style_profile";
+// Pre-built mock profile derived from a typical Studojo user's onboarding data
+// In production this comes from the candidate's parsed resume + target roles
+const MOCK_PROFILE: StyleProfile = {
+  name: "Arjun Mehta",
+  university: "BITS Pilani",
+  tone: "warm",
+  topCredential: "Grew a fintech newsletter to 4,200 subscribers in 3 months",
+  lookingFor: "internship",
+  targetRoles: "Marketing Intern, Growth Marketing, Brand, SaaS startups, Fintech",
+};
 
 export default function EmailLabPage() {
-  const [savedProfile, setSavedProfile] = useState<StyleProfile | null>(null);
-  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  // Load saved profile from localStorage on mount
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
-      if (raw) setSavedProfile(JSON.parse(raw));
-    } catch {
-      // ignore
-    }
-    setProfileLoaded(true);
-  }, []);
-
-  const handleSaveProfile = (profile: StyleProfile) => {
-    setSavedProfile(profile);
-    try {
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
-    } catch {
-      // ignore
-    }
+  const handleContinue = (subject: string, body: string) => {
+    const text = `Subject: ${subject}\n\n${body}`;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
-
-  const handleContinue = (subject: string, body: string, templateId: number | null) => {
-    // In the live app this navigates to setup — here just show the output
-    alert(`✓ Email ready!\n\nSubject: ${subject}\n\n${body}`);
-  };
-
-  if (!profileLoaded) return null;
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
@@ -108,28 +97,21 @@ export default function EmailLabPage() {
           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-satoshi bg-amber-100 text-amber-700 border border-amber-200">
             STAGING TEST
           </span>
+          <span className="text-[11px] text-studojo-muted font-satoshi">
+            Mock profile: {MOCK_PROFILE.name} · {MOCK_PROFILE.university}
+          </span>
         </div>
-        {savedProfile && (
-          <button
-            onClick={() => {
-              localStorage.removeItem(PROFILE_STORAGE_KEY);
-              setSavedProfile(null);
-              window.location.reload();
-            }}
-            className="text-[11px] text-studojo-muted font-satoshi hover:text-studojo-ink transition-colors"
-          >
-            Reset style profile
-          </button>
+        {copied && (
+          <span className="text-[11px] text-green-600 font-satoshi font-bold">✓ Copied to clipboard</span>
         )}
       </div>
 
       <EmailComposer
         templates={MOCK_TEMPLATES}
         initialTemplate={null}
-        savedProfile={savedProfile}
+        savedProfile={MOCK_PROFILE}
         onTemplateChange={() => {}}
         onContinue={handleContinue}
-        onSaveProfile={handleSaveProfile}
       />
     </div>
   );

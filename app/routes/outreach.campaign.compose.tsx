@@ -4,7 +4,7 @@ import { Header } from "~/components/common/header";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
-import { EmailComposer } from "~/components/outreach/EmailComposer";
+import { EmailComposer, type StyleProfile } from "~/components/outreach/EmailComposer";
 import type { EmailTemplate } from "~/lib/outreach/types";
 
 export default function ComposePage() {
@@ -21,25 +21,50 @@ export default function ComposePage() {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
 
-  // Build candidate context string for the AI assistant
-  const candidateContext = (() => {
-    if (!profileData) return undefined;
-    const parts: string[] = [];
+  // Derive StyleProfile from the candidate's existing onboarding data — no wizard needed
+  const derivedProfile: StyleProfile | null = (() => {
+    if (!profileData) return null;
     const parsed = profileData?.parsed_json ?? profileData;
-    if (parsed?.name) parts.push(`Name: ${parsed.name}`);
-    if (profileData?.target_roles?.length) {
-      parts.push(`Target roles: ${profileData.target_roles.slice(0, 3).join(", ")}`);
-    }
-    if (profileData?.target_industries?.length) {
-      parts.push(`Target industries: ${profileData.target_industries.slice(0, 3).join(", ")}`);
-    }
-    if (parsed?.skills?.length) {
-      parts.push(`Key skills: ${parsed.skills.slice(0, 5).join(", ")}`);
-    }
-    if (parsed?.summary) {
-      parts.push(`Summary: ${String(parsed.summary).slice(0, 200)}`);
-    }
-    return parts.length > 0 ? parts.join("\n") : undefined;
+
+    const name: string = parsed?.name || "";
+    // Try to find university from education array
+    const edu = Array.isArray(parsed?.education) ? parsed.education[0] : null;
+    const university: string =
+      typeof edu === "string" ? edu.split(",")[0] : (edu?.institution || edu?.school || "");
+
+    // Top credential: first work experience bullet or summary snippet
+    const expArr = Array.isArray(parsed?.experience) ? parsed.experience : [];
+    const firstExp = expArr[0];
+    const topCredential: string =
+      (firstExp?.highlights?.[0]) ||
+      (firstExp?.description?.slice(0, 120)) ||
+      (parsed?.summary?.slice(0, 120)) ||
+      "";
+
+    const targetRoles: string = [
+      ...(profileData?.target_roles || []),
+      ...(profileData?.target_industries || []),
+    ]
+      .slice(0, 5)
+      .join(", ");
+
+    // Infer lookingFor from target roles text
+    const rolesText = targetRoles.toLowerCase();
+    const lookingFor = rolesText.includes("intern")
+      ? ("internship" as const)
+      : rolesText.includes("research")
+        ? ("research" as const)
+        : ("fulltime" as const);
+
+    return {
+      name,
+      university,
+      tone: "warm" as const,
+      topCredential,
+      lookingFor,
+      targetRoles,
+      sampleEmail: undefined,
+    };
   })();
 
   useEffect(() => {
@@ -105,11 +130,11 @@ export default function ComposePage() {
         </div>
       </div>
 
-      {/* 3-panel composer fills remaining space */}
+      {/* 3-panel composer — skips style wizard, uses onboarding data */}
       <EmailComposer
         templates={templates}
         initialTemplate={selectedTemplate}
-        savedProfile={null}
+        savedProfile={derivedProfile}
         onTemplateChange={setSelectedTemplate}
         onContinue={handleContinue}
       />
