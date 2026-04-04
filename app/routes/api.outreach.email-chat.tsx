@@ -1,7 +1,8 @@
 /**
  * POST /api/outreach/email-chat
  *
- * AI email assistant — intent-classified, locked-anchor editing.
+ * AI cold email assistant for student job seekers.
+ * Intent-classified, locked-anchor editing.
  * OpenAI gpt-4o-mini primary, Ollama llama3.2:1b fallback.
  */
 
@@ -10,29 +11,122 @@ import type { Route } from "./+types/api.outreach.email-chat";
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama.staging.svc.cluster.local:11434";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// ── Core writing rules (always injected) ─────────────────────────────
+// ── Core framework ────────────────────────────────────────────────────
 
-const BASE_RULES = `
-COLD EMAIL RULES — non-negotiable:
+const COLD_EMAIL_FRAMEWORK = `
+You write cold emails for students reaching out to hiring managers and founders.
+These emails need to show genuine intent, specific research, and a relevant credential.
+They are NOT sales emails. They are one person writing to another person they genuinely admire.
 
-LENGTH: Under 85 words in the body. Under 70 is ideal. Every word earns its place.
+═══════════════════════════════════════════════
+STRUCTURE — follow this every time:
 
-SUBJECT: 2-5 words. Lowercase except proper nouns. Never start with "Re:" or "Quick question".
+1. OPENER (1-2 sentences)
+   → Something SPECIFIC about their work, post, company, or decision
+   → Must be something most people wouldn't know or say
+   → Shows you actually paid attention
 
-OPENER (the most important line):
-- MUST reference something SPECIFIC about the recipient or their company
-- FORBIDDEN: "I admire how [company] is shaping/disrupting/revolutionising...", "I'm impressed by your work", "I hope this finds you well", "My name is", "I wanted to reach out", "I came across your profile"
-- GOOD: Something specific you noticed → why it caught your attention
-- If no hook available: open with a genuine observation about what their role must involve, or a specific question
-- Example: "Saw you're building Stripe's developer marketing from scratch — that's a rare brief."
+2. BRIDGE (2-3 sentences)
+   → Who you are, in one line
+   → Your #1 credential — woven in naturally, as evidence not a claim
+   → Connect your background to something relevant about their work
 
-VOICE: You-centric, not I-centric. "Your team" not "I think your team". Lead sentences with "you/your" where possible. Max 2 uses of "I" in the whole body.
+3. WHY YOU / WHY NOW (1 sentence)
+   → Why this person specifically, or why this company right now
+   → Not generic — reference the hook or something about their stage
 
-CTA: One question. Low friction. "Would you be open to a 15-min chat?" beats "Please schedule time using my calendar link."
+4. ASK (1 sentence)
+   → One low-friction question
+   → Ask for a conversation, not a job
+   → "Would you be open to a 15-minute chat?" beats "Are there any openings?"
 
-FORBIDDEN WORDS: leverage, synergy, passionate, driven, hardworking, team player, motivated, innovative, excited to, thrilled to, love what you're doing, amazing work, incredible company
+═══════════════════════════════════════════════
+WORD COUNT: 110-150 words in the body.
+Long enough to show genuine intent.
+Short enough to respect their time.
+Student cold emails need to do more work than SDR emails — you have no existing relationship.
 
-No em dashes. Use commas or hyphens. No bullet points in cold emails.`;
+═══════════════════════════════════════════════
+SUBJECT LINE — this is critical:
+
+GOOD patterns (use one):
+• [Credential] → [Company]: "fintech newsletter → Stripe"
+• [Specific trigger]: "your developer marketing post"
+• [University connection]: "BITS Pilani → Stripe"
+• [Specific role + company]: "growth internship — Stripe"
+• [Curious / intriguing]: "something I noticed about Stripe's India push"
+
+BAD patterns (NEVER use):
+• "Internship opportunities at [company]" — sounds like a mass email
+• "Following up on [company]" — too vague
+• "Quick question" — overused, spam-flagged
+• "Reaching out about [role]" — generic
+• Any subject that could be sent to 100 companies unchanged
+
+═══════════════════════════════════════════════
+OPENER — this is where most people fail:
+
+FORBIDDEN openers:
+• "I admire how [company] is shaping/disrupting/revolutionising..."
+• "I'm impressed by [company]'s work"
+• "I came across your profile on LinkedIn"
+• "I hope this email finds you well"
+• "My name is [X] and I'm a student at..."
+• "I'm reaching out because I'm looking for..."
+• "I wanted to connect with you because..."
+• "[Company] is one of the most exciting companies in [industry]"
+
+GOOD opener patterns:
+• "[Specific thing they wrote/said/did] — [what you noticed about it]"
+• "Saw your post on [specific topic] — [one genuine reaction to it]"
+• "[Specific decision or move their company made] caught my attention because [why]"
+• "Your [specific piece of work] made me think about [relevant connection to your work]"
+
+If no specific hook is provided: open with a genuine question or observation about what their role must be like, or something specific about the company stage.
+
+═══════════════════════════════════════════════
+VOICE AND TONE:
+
+• Write like a smart person talking to someone they genuinely respect
+• Not desperate. Not obsequious. Confident but humble.
+• Use "you/your" more than "I/my" — lead sentences with their world, not yours
+• Max 3 uses of "I" in the entire body
+• No bullet points in cold emails
+• No em dashes — use commas or hyphens
+• No corporate words: leverage, synergy, passionate, driven, excited to, thrilled to, love what you're doing, amazing work, impactful, innovative, game-changing
+
+═══════════════════════════════════════════════
+EXAMPLE — BAD email:
+
+Subject: internship opportunities at stripe
+
+Hi Manoj,
+
+I admire how Stripe is shaping the fintech landscape. I recently grew a fintech newsletter to 4,200 subscribers in just 3 months, and I'm eager to learn from your growth journey. Would you be open to a brief chat about internship opportunities?
+
+Thanks
+
+[WHY IT'S BAD: Generic opener, subject is mass-email, credential mentioned without context, ask is too transactional]
+
+═══════════════════════════════════════════════
+EXAMPLE — GOOD email:
+
+Subject: fintech newsletter → Stripe growth team
+
+Hi Manoj,
+
+Your post on Stripe's approach to developer adoption in India stuck with me — specifically the point about building for UPI-first users before adapting for card rails. That's a problem I've been covering from the outside.
+
+I run a fintech newsletter (4,200 subscribers, 3 months) and most of what I write about is exactly this — how payments infrastructure shapes product decisions in emerging markets.
+
+I'm a 3rd-year student at BITS Pilani finishing a business degree, actively looking to go deeper on this from the inside.
+
+Would a 15-minute call make sense?
+
+Arjun
+
+[WHY IT'S GOOD: Specific opener showing real research, credential comes with context, "from the outside" shows self-awareness, ask is natural]
+`;
 
 // ── Context builders ──────────────────────────────────────────────────
 
@@ -41,18 +135,20 @@ function buildStyleContext(p: any): string {
   const lines = ["SENDER PROFILE:"];
   if (p.name) lines.push(`Name: ${p.name}`);
   if (p.university) lines.push(`University: ${p.university}`);
-  if (p.lookingFor) lines.push(`Seeking: ${p.lookingFor}`);
+  if (p.lookingFor) lines.push(`Looking for: ${p.lookingFor}`);
   if (p.targetRoles) lines.push(`Target roles/industries: ${p.targetRoles}`);
-  if (p.topCredential) lines.push(`Best credential (use this): "${p.topCredential}"`);
+  if (p.topCredential) lines.push(`Best credential — use this, it's specific and real: "${p.topCredential}"`);
   if (p.tone) {
     const t: Record<string, string> = {
-      direct: "Direct, punchy — no filler, confident sentences",
-      warm: "Warm, conversational — genuine curiosity, reads like a human wrote it",
-      formal: "Professional, precise — polished but still personal",
+      direct: "Direct and punchy — confident, no filler, short sentences",
+      warm: "Warm and conversational — reads like a real human, genuine curiosity",
+      formal: "Professional — polished, precise, still personal",
     };
-    lines.push(`Tone: ${t[p.tone] || p.tone}`);
+    lines.push(`Preferred tone: ${t[p.tone] || p.tone}`);
   }
-  if (p.sampleEmail) lines.push(`Voice sample (match this style):\n${p.sampleEmail.slice(0, 250)}`);
+  if (p.sampleEmail) {
+    lines.push(`Voice reference — match this style:\n"${p.sampleEmail.slice(0, 300)}"`);
+  }
   return lines.join("\n");
 }
 
@@ -60,26 +156,35 @@ function buildRecipientContext(r: any): string {
   if (!r) return "";
   const lines = ["RECIPIENT:"];
   if (r.recipientName) lines.push(`Name: ${r.recipientName}`);
-  if (r.recipientTitle) lines.push(`Title: ${r.recipientTitle}`);
+  if (r.recipientTitle) lines.push(`Role: ${r.recipientTitle}`);
   if (r.company) lines.push(`Company: ${r.company}`);
   const ct: Record<string, string> = {
-    startup: "early-stage startup",
-    scaleup: "Series A–C scale-up",
-    enterprise: "large enterprise / MNC",
-    agency: "agency or consultancy",
+    startup: "Early-stage startup — likely founder or small team, personal emails land well",
+    scaleup: "Series A-C — growing fast, specific roles, show you know the stage",
+    enterprise: "Large enterprise — more formal, route through right person",
+    agency: "Agency — project-based, show portfolio awareness",
   };
-  if (r.companyType) lines.push(`Company type: ${ct[r.companyType] || r.companyType}`);
+  if (r.companyType) lines.push(`Company context: ${ct[r.companyType] || r.companyType}`);
+
   const conn: Record<string, string> = {
-    alumni: "SHARED UNIVERSITY — lead with this alumni connection in the opener",
-    referral: "MUTUAL REFERRAL — mention the connection early",
-    founder_post: "SAW THEIR POST — reference it specifically in the opener",
+    alumni: "SHARED UNIVERSITY ALUMNI — this is your strongest hook. Use it in the first line.",
+    referral: "MUTUAL REFERRAL — mention the person's name who referred you, early.",
+    founder_post: "SAW THEIR LINKEDIN/SOCIAL POST — reference the specific post in the opener.",
   };
-  if (r.connectionType && r.connectionType !== "none") lines.push(`Connection: ${conn[r.connectionType]}`);
-  if (r.specificHook) lines.push(`Research hook (MUST use this in the opener): "${r.specificHook}"`);
+  if (r.connectionType && r.connectionType !== "none") {
+    lines.push(`Connection (USE THIS): ${conn[r.connectionType]}`);
+  }
+
+  if (r.specificHook) {
+    lines.push(`Specific research — THIS MUST GO IN THE OPENER: "${r.specificHook}"`);
+  } else {
+    lines.push(`No specific hook provided — open with an observation about their role or company stage instead.`);
+  }
+
   const goals: Record<string, string> = {
-    chat: "book a 15-min conversation",
-    role: "enquire about a specific open role",
-    general: "express genuine interest and open a conversation",
+    chat: "Book a 15-minute conversation",
+    role: "Ask about a specific open role",
+    general: "Open a genuine conversation about opportunities",
   };
   if (r.goal) lines.push(`Goal: ${goals[r.goal] || r.goal}`);
   return lines.join("\n");
@@ -88,79 +193,100 @@ function buildRecipientContext(r: any): string {
 // ── Prompts ───────────────────────────────────────────────────────────
 
 function initialPrompt(style: any, recipient: any): string {
-  return `${buildStyleContext(style)}
+  return `${COLD_EMAIL_FRAMEWORK}
+
+---
+
+${buildStyleContext(style)}
 
 ${buildRecipientContext(recipient)}
 
-${BASE_RULES}
+---
 
-Write a cold email from scratch. Make it feel like it was written specifically for this person — not a template with names swapped in.
+Write the cold email now. Follow the structure: opener → bridge → why you/why now → ask.
+Use the specific hook in the opener. Weave the credential into the bridge naturally.
+110-150 words in body. Subject using one of the good patterns above.
 
-Use the research hook in the opener. Weave in the sender's credential naturally (not as a list). Keep it under 80 words in the body.
+Generate 3 alternative subject lines too:
+1. Credential-forward: [their credential/result] → [company]
+2. Specific trigger: reference something specific about company/person
+3. Curiosity angle: intriguing but honest, 3-5 words
 
-Also generate 3 subject line alternatives:
-1. Direct reference to the company or specific hook
-2. Shared context angle (alumni / mutual interest / specific trigger)
-3. Curiosity — 2-4 words that raise a question without answering it
-
-Return ONLY this JSON:
+Return ONLY this JSON (no markdown, no other text):
 {
   "subject": "best subject line",
-  "body": "email body here",
-  "explanation": "one sentence about the approach you took",
+  "body": "full email body",
+  "explanation": "one sentence: the specific angle you took and why",
   "edit_scope": "initial",
-  "subject_variants": ["variant 1", "variant 2", "variant 3"]
+  "subject_variants": ["credential variant", "trigger variant", "curiosity variant"]
 }`;
 }
 
 const INTENT_GUIDE = `
-INTENT CLASSIFICATION — pick one:
-- subject_only: user wants to change only the subject line
-- opener_only: user wants to change only the first sentence
-- shorten: make the body shorter/more concise
-- tone_shift: change tone, style, or feel
-- cta_only: change only the closing ask
-- full_rewrite: start completely fresh
-- improve: vague "make it better" — do a meaningful rewrite fixing the 2-3 biggest problems
-- general: any other specific change
+CLASSIFY the user's instruction into one of:
+- subject_only     → change only the subject line
+- opener_only      → rewrite only the first 1-2 sentences
+- shorten          → cut the body down (keep opener, credential, ask — cut filler)
+- lengthen         → add more substance and intent
+- tone_shift       → change tone/feel/style
+- cta_only         → change only the closing ask
+- full_rewrite     → start completely fresh
+- improve          → vague "make it better" — ACTUALLY fix the biggest problems. Look for: generic opener, missing credential context, weak subject, too short on intent, too many I's, soft CTA. Fix all of them.
+- general          → any other specific change
 
-IMPORTANT: For "improve" intent, actually fix things. Identify what's weakest (generic opener? too many I's? weak CTA?) and fix all of it. Don't just change one word.`;
+For "improve": be aggressive. Rewrite the opener to be specific. Add context. Make the credential land. This is not a minor edit.`;
 
-function editPrompt(prompt: string, subject: string, body: string, style: any, recipient: any, history: string[]): string {
-  const hist = history.length > 0
-    ? `\nEDITS ALREADY APPLIED:\n${history.slice(-4).map((h, i) => `${i + 1}. ${h}`).join("\n")}\n`
-    : "";
+function editPrompt(
+  prompt: string,
+  subject: string,
+  body: string,
+  style: any,
+  recipient: any,
+  history: string[],
+): string {
+  const hist =
+    history.length > 0
+      ? `\nEDITS ALREADY APPLIED:\n${history
+          .slice(-4)
+          .map((h, i) => `${i + 1}. ${h}`)
+          .join("\n")}\n`
+      : "";
 
-  return `${buildStyleContext(style)}
+  return `${COLD_EMAIL_FRAMEWORK}
+
+---
+
+${buildStyleContext(style)}
 
 ${buildRecipientContext(recipient)}
 
-CURRENT EMAIL (locked reference):
+---
+
+CURRENT EMAIL (reference — only edit what the instruction requires):
 Subject: ${subject || "(none)"}
 Body:
 ${body || "(empty)"}
 ${hist}
-USER SAYS: "${prompt}"
+USER INSTRUCTION: "${prompt}"
 
 ${INTENT_GUIDE}
 
-${BASE_RULES}
-
-Apply the instruction. Rules for each scope:
-- subject_only → new subject only, body unchanged
-- opener_only → rewrite first sentence only, rest of body unchanged
-- shorten → cut to under 75 words, keep personalization and CTA, nothing else
-- tone_shift → rewrite for new tone, keep structure and facts
-- cta_only → change final sentence only
-- full_rewrite → completely fresh, same profile/recipient context
-- improve → fix the 2-3 biggest problems. Be aggressive. A new opener, tighter body, better CTA.
-- general → make the specific change requested
+Apply the instruction:
+- subject_only → new subject, body unchanged
+- opener_only → first 1-2 sentences only, rest unchanged
+- shorten → under 100 words, keep specifics and credential, cut filler
+- lengthen → 120-150 words, add more research context and substance
+- tone_shift → rewrite for new feel, same facts
+- cta_only → last sentence only
+- full_rewrite → start fresh using the framework
+- improve → aggressive rewrite: fix opener, subject, and any thin spots
+- general → specific change requested
 
 Return ONLY this JSON:
 {
   "subject": "subject line",
-  "body": "email body",
-  "explanation": "one sentence: what specifically changed and why",
+  "body": "full email body",
+  "explanation": "what specifically changed and why",
   "edit_scope": "scope applied",
   "subject_variants": null
 }`;
@@ -169,23 +295,35 @@ Return ONLY this JSON:
 // ── LLM callers ───────────────────────────────────────────────────────
 
 function sanitise(s: any): string {
-  return String(s || "").replace(/[–—]/g, "-").trim();
+  return String(s || "")
+    .replace(/[–—]/g, "-")
+    .trim();
 }
 
-async function callOpenAI(messages: { role: string; content: string }[]): Promise<any | null> {
+async function callOpenAI(userPrompt: string): Promise<any | null> {
   if (!OPENAI_API_KEY) return null;
   try {
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 25000);
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${OPENAI_API_KEY}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
       signal: ctrl.signal,
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages,
-        temperature: 0.6,
-        max_tokens: 750,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert cold email coach for student job seekers. You write specific, researched, human emails. Return valid JSON only — no markdown, no text outside JSON.",
+          },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.65,
+        max_tokens: 900,
         response_format: { type: "json_object" },
       }),
     });
@@ -194,22 +332,31 @@ async function callOpenAI(messages: { role: string; content: string }[]): Promis
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content?.trim();
     return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
-async function callOllama(messages: { role: string; content: string }[]): Promise<any | null> {
+async function callOllama(userPrompt: string): Promise<any | null> {
   try {
     const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 35000);
+    const tid = setTimeout(() => ctrl.abort(), 40000);
     const res = await fetch(`${OLLAMA_URL}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       signal: ctrl.signal,
       body: JSON.stringify({
         model: "llama3.2:1b",
-        messages,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a cold email expert for student job seekers. Return valid JSON only.",
+          },
+          { role: "user", content: userPrompt },
+        ],
         stream: false,
-        options: { temperature: 0.5, num_predict: 750 },
+        options: { temperature: 0.55, num_predict: 900 },
       }),
     });
     clearTimeout(tid);
@@ -218,14 +365,10 @@ async function callOllama(messages: { role: string; content: string }[]): Promis
     const raw: string = (data?.message?.content || data?.response || "").trim();
     const match = raw.match(/\{[\s\S]*\}/);
     return match ? JSON.parse(match[0]) : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
-
-function toMessages(system: string, user: string) {
-  return [{ role: "system", content: system }, { role: "user", content: user }];
-}
-
-const SYSTEM = `You are an expert cold email coach for student job seekers. You write specific, human, short emails that get real replies. You always return valid JSON only — no markdown, no text outside JSON.`;
 
 // ── Route ─────────────────────────────────────────────────────────────
 
@@ -234,8 +377,11 @@ export async function action({ request }: Route.ActionArgs) {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
 
   let body: any;
-  try { body = await request.json(); }
-  catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
   const {
     prompt = "",
@@ -247,15 +393,22 @@ export async function action({ request }: Route.ActionArgs) {
     is_initial = false,
   } = body;
 
-  const userPrompt = (is_initial || (!emailBody && !subject))
-    ? initialPrompt(style_profile, recipient_context)
-    : editPrompt(prompt.trim(), subject, emailBody, style_profile, recipient_context, edit_history);
+  const userPrompt =
+    is_initial || (!emailBody && !subject)
+      ? initialPrompt(style_profile, recipient_context)
+      : editPrompt(
+          prompt.trim(),
+          subject,
+          emailBody,
+          style_profile,
+          recipient_context,
+          edit_history,
+        );
 
   if (!is_initial && !emailBody && !subject && !prompt.trim())
     return Response.json({ error: "prompt is required" }, { status: 400 });
 
-  const msgs = toMessages(SYSTEM, userPrompt);
-  const parsed = (await callOpenAI(msgs)) ?? (await callOllama(msgs));
+  const parsed = (await callOpenAI(userPrompt)) ?? (await callOllama(userPrompt));
 
   if (!parsed?.body && !parsed?.subject)
     return Response.json({ error: "AI unavailable. Please try again." }, { status: 503 });
