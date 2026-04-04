@@ -15,7 +15,12 @@ export function meta() {
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/cs-india-2026` },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "Fresher CS in India: What You're Actually Getting Into" },
+    { property: "og:description", content: "135,000 IT hires projected for FY26. A 12x salary gap based purely on which company you join. Skill gaps, hiring trends, and salary benchmarks for CS freshers in India." },
+    { property: "og:url", content: `${BASE_URL}/reports/cs-india-2026` },
     { property: "og:site_name", content: "Studojo" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Fresher CS in India: What You're Actually Getting Into — Studojo 2026" },
+    { name: "twitter:description", content: "135,000 IT hires projected for FY26. A 12x salary gap at Year 0. Free data-driven report for CS freshers entering the job market in India." },
   ];
 }
 

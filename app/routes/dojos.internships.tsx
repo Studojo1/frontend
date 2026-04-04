@@ -19,13 +19,23 @@ interface Internship {
 }
 
 export function meta({}: Route.MetaArgs) {
+  const BASE_URL = "https://studojo.com";
   return [
-    { title: "Internship Dojo – Studojo" },
+    { title: "Internship Dojo – Find & Apply to Internships | Studojo" },
     {
       name: "description",
       content:
-        "Internship Dojo - Personalized internship help to land you the dream internship",
+        "Discover internships globally, build an ATS-optimised resume, and get AI-powered outreach to hiring managers. The full pipeline from zero to interview, free.",
     },
+    { tagName: "link", rel: "canonical", href: `${BASE_URL}/dojos/internships` },
+    { property: "og:type", content: "website" },
+    { property: "og:title", content: "Internship Dojo – Find & Apply to Internships | Studojo" },
+    { property: "og:description", content: "Discover internships globally, build an ATS-optimised resume, and get AI-powered outreach to hiring managers. Free for students." },
+    { property: "og:url", content: `${BASE_URL}/dojos/internships` },
+    { property: "og:site_name", content: "Studojo" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Internship Dojo – Find & Apply to Internships | Studojo" },
+    { name: "twitter:description", content: "Discover internships globally, build an ATS-optimised resume, and get AI-powered outreach to hiring managers. Free for students." },
   ];
 }
 
