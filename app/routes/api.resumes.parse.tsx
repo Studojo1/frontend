@@ -141,11 +141,11 @@ async function parseResumeWithOpenAI(text: string, apiKey: string): Promise<any>
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `You are an expert resume parser. Your task is to extract COMPLETE and COMPREHENSIVE structured resume data from the provided text. 
+          content: `You are an expert resume parser. Your task is to extract COMPLETE and COMPREHENSIVE structured resume data from the provided text.
 
 CRITICAL INSTRUCTIONS:
 1. Extract ALL sections comprehensively - do not skip any information
@@ -232,7 +232,7 @@ Resume text:\n\n${text}`,
       ],
       response_format: { type: "json_object" },
       temperature: 0.1,
-      max_tokens: 4000, // Increased for comprehensive extraction
+      max_tokens: 2000,
     }),
     });
     
@@ -385,7 +385,7 @@ async function generateProfessionalSummary(resumeData: any, apiKey: string): Pro
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, useLoaderData } from "react-router";
 import { redirect } from "react-router";
 import { toast } from "sonner";
 import { Header } from "~/components";
@@ -123,7 +123,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 export default function ResumeEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+  const { draft: initialDraft } = useLoaderData<typeof loader>();
+
   // Single source of truth: ResumeDocument
   const [document, setDocument] = useState<ResumeDocument | null>(null);
   const [isDirty, setIsDirty] = useState(false);
@@ -138,6 +139,8 @@ export default function ResumeEditorPage() {
   // Track last successful preview generation to prevent infinite loops
   const lastPreviewHashRef = useRef<string>("");
   const previewGenerationBlockedRef = useRef<boolean>(false);
+  // Don't auto-generate preview on initial load — only on subsequent user edits
+  const isFirstLoadRef = useRef<boolean>(true);
 
 
   const generatePreview = useCallback(async () => {
@@ -196,30 +199,19 @@ export default function ResumeEditorPage() {
         return;
       }
       
-      toast.error(error.message || "Failed to generate preview");
+      const isNetworkError = !error.message || error.message === "fetch failed" || error.message === "Failed to fetch" || error.message.includes("ECONNREFUSED");
+      toast.error(isNetworkError ? "Preview unavailable — click Generate Preview to retry." : (error.message || "Failed to generate preview"));
     }
   }, [document, previewUrl]);
 
-  const loadDraft = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/v2/resumes/${id}`);
-      if (!response.ok) {
-        throw new Error("Failed to load draft");
-      }
-      const { draft: draftData } = await response.json();
-      // Create ResumeDocument from draft data
-      const doc = ResumeDocument.fromDraft(draftData);
-      setDocument(doc);
-    } catch (error) {
-      console.error("Error loading draft:", error);
-      navigate("/resumes");
-    }
-  }, [id, navigate]);
-
-  // Load draft on mount
+  // Initialise document from SSR loader data (no extra network round-trip)
   useEffect(() => {
-    loadDraft();
-  }, [loadDraft]);
+    if (!initialDraft) {
+      navigate("/resumes");
+      return;
+    }
+    setDocument(ResumeDocument.fromDraft(initialDraft));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cleanup blob URLs on unmount
   useEffect(() => {
@@ -271,30 +263,27 @@ export default function ResumeEditorPage() {
     };
   }, [document, isDirty, generatePreview]);
 
-  // Generate preview on document changes (debounced) and on mount
+  // Auto-generate preview on document changes (debounced), but NOT on initial load
   useEffect(() => {
     if (!document || !showPreview || document.sections.length === 0) return;
-    if (previewGenerationBlockedRef.current) return; // Block if auth failed
+    if (previewGenerationBlockedRef.current) return;
 
-    // Create stable hash of document state
-    const documentHash = `${document.id}-${document.templateId}-${document.sections.length}-${document.sections.map(s => s.id).join(",")}`;
-    
-    // Skip if document hasn't changed
-    if (documentHash === lastPreviewHashRef.current && previewUrl) {
+    // Skip the very first time document is set (initial load)
+    if (isFirstLoadRef.current) {
+      isFirstLoadRef.current = false;
       return;
     }
 
-    // Generate preview immediately on mount, then debounce subsequent changes
-    const isInitialMount = !previewUrl && !previewLoading;
-    const delay = isInitialMount ? 500 : 2000; // Faster on initial mount
+    const documentHash = `${document.id}-${document.templateId}-${document.sections.length}-${document.sections.map(s => s.id).join(",")}`;
+    if (documentHash === lastPreviewHashRef.current && previewUrl) return;
 
     const timeoutId = setTimeout(() => {
       generatePreview();
       lastPreviewHashRef.current = documentHash;
-    }, delay);
+    }, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [document, showPreview, previewUrl, previewLoading, generatePreview]);
+  }, [document, showPreview, previewUrl, generatePreview]);
 
   const handleSectionUpdate = useCallback((updatedSections: ResumeSection[]) => {
     if (!document) return;
