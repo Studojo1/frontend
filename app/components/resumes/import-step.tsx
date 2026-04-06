@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FiUpload, FiFile, FiX, FiCheck } from "react-icons/fi";
 import { toast } from "sonner";
@@ -14,7 +14,29 @@ export function ImportStep({ onImport, onSkip }: ImportStepProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [importedFileName, setImportedFileName] = useState<string | null>(null);
+  const [progressStep, setProgressStep] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const progressSteps = [
+    "Reading your PDF...",
+    "Extracting text and layout...",
+    "Identifying resume sections...",
+    "Parsing work experience...",
+    "Finalising your data...",
+  ];
+
+  useEffect(() => {
+    if (!isProcessing) {
+      setProgressStep(0);
+      return;
+    }
+    // Cycle through steps every ~18s spread across ~90s max
+    const intervals = [0, 8000, 20000, 40000, 70000];
+    const timers = intervals.map((delay, idx) =>
+      setTimeout(() => setProgressStep(idx), delay)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [isProcessing]);
 
   const handleFileUpload = async (file: File) => {
     if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
@@ -100,11 +122,28 @@ export function ImportStep({ onImport, onSkip }: ImportStepProps) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="border-2 border-emerald-500 rounded-lg p-12 text-center bg-emerald-50"
+          className="border-2 border-emerald-500 rounded-lg p-10 text-center bg-emerald-50"
         >
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-4"></div>
-          <p className="text-emerald-700 font-medium">Processing PDF with AI...</p>
-          <p className="text-sm text-emerald-600 mt-2">This may take a moment</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mb-5"></div>
+          <motion.p
+            key={progressStep}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-emerald-700 font-medium text-base"
+          >
+            {progressSteps[progressStep]}
+          </motion.p>
+          <p className="text-sm text-emerald-600 mt-2">Usually takes 1–2 seconds</p>
+          <div className="flex justify-center gap-1.5 mt-5">
+            {progressSteps.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  idx <= progressStep ? "bg-emerald-500 w-6" : "bg-emerald-200 w-3"
+                }`}
+              />
+            ))}
+          </div>
         </motion.div>
       ) : importedFileName ? (
         <motion.div
