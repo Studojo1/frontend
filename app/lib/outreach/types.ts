@@ -44,6 +44,7 @@ export interface AgentResponse {
   current_state: string;
   mcq: MCQQuestion | null;
   text_input: boolean;
+  input_placeholder?: string | null;
   is_complete: boolean;
   questions_asked_so_far: number;
   psychometric?: PsychometricResult | null;
