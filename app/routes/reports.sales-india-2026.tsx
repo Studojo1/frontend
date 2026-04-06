@@ -15,7 +15,12 @@ export function meta() {
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/sales-india-2026` },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "Fresher Sales in India: What You're Actually Getting Into" },
+    { property: "og:description", content: "28,600+ open sales roles. A 5x salary gap within the same job title. Skill gaps, hiring trends, and salary benchmarks for freshers entering sales in India." },
+    { property: "og:url", content: `${BASE_URL}/reports/sales-india-2026` },
     { property: "og:site_name", content: "Studojo" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Fresher Sales in India: What You're Actually Getting Into — Studojo 2026" },
+    { name: "twitter:description", content: "28,600+ open sales roles. A 5x salary gap within the same title. Free data-driven report for students entering sales in India." },
   ];
 }
 

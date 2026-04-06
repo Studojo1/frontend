@@ -16,13 +16,23 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
+  const BASE_URL = "https://studojo.com";
   return [
-    { title: "Careers Dojo – Studojo" },
+    { title: "Careers Dojo – Free ATS Resume Builder for Students | Studojo" },
     {
       name: "description",
       content:
-        "Build your professional, ATS-friendly resume in minutes. AI-powered resume builder for students and job seekers.",
+        "Build a professional, ATS-optimised resume in minutes. 100% free. No paywalls. Built for students applying to internships and graduate roles.",
     },
+    { tagName: "link", rel: "canonical", href: `${BASE_URL}/dojos/careers` },
+    { property: "og:type", content: "website" },
+    { property: "og:title", content: "Careers Dojo – Free ATS Resume Builder for Students | Studojo" },
+    { property: "og:description", content: "Build a professional, ATS-optimised resume in minutes. 100% free. No paywalls. Built for students." },
+    { property: "og:url", content: `${BASE_URL}/dojos/careers` },
+    { property: "og:site_name", content: "Studojo" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Careers Dojo – Free ATS Resume Builder for Students | Studojo" },
+    { name: "twitter:description", content: "Build a professional, ATS-optimised resume in minutes. 100% free. No paywalls. Built for students." },
   ];
 }
 

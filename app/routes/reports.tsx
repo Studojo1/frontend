@@ -6,17 +6,37 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Reports – Studojo | Data-Driven Career Market Analyses" },
+    { title: "Career Market Reports – Studojo | Data-Driven Analyses for Students" },
     {
       name: "description",
       content:
-        "In-depth market analyses for students. Job data, salary benchmarks, and hiring trends across India and beyond.",
+        "Free career market reports for students. Entry-level salary benchmarks, hiring trends, skill gaps, and job data across Finance, Sales, CS, and more — India 2026.",
     },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports` },
+    { property: "og:type", content: "website" },
+    { property: "og:title", content: "Career Market Reports – Studojo" },
+    { property: "og:description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more." },
+    { property: "og:url", content: `${BASE_URL}/reports` },
+    { property: "og:site_name", content: "Studojo" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Career Market Reports – Studojo" },
+    { name: "twitter:description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more." },
   ];
 }
 
 const REPORTS = [
+  {
+    slug: "internships-ai-india-2026",
+    title: "How Internships Are Changing Post-AI",
+    subtitle: "Q1 2026",
+    excerpt:
+      "48% of applicants were ghosted last year. AI/ML intern stipends now run 3x higher than traditional roles. Here is what is actually shifting in internship hiring, which categories are collapsing, and what the AI-era intern looks like.",
+    category: "Internships",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-amber-500",
+    badge: "New",
+  },
   {
     slug: "cs-india-2026",
     title: "CS in India: What Freshers Are Actually Getting Into",

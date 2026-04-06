@@ -26,13 +26,23 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta({}: Route.MetaArgs) {
+  const BASE_URL = "https://studojo.com";
   return [
-    { title: "Studojo – Student life made simple" },
+    { title: "Studojo – Work on Things That Matter" },
     {
       name: "description",
       content:
-        "Assignments, projects, exam prep—all in one place. Work smarter, not harder.",
+        "Studojo helps 10,000+ students land internships, build ATS-optimised resumes, and ace assignments. Free tools built for ambitious students worldwide.",
     },
+    { tagName: "link", rel: "canonical", href: BASE_URL },
+    { property: "og:type", content: "website" },
+    { property: "og:title", content: "Studojo – Work on Things That Matter" },
+    { property: "og:description", content: "Free tools to help students land internships, build standout resumes, and get assignments done. 10,000+ students helped." },
+    { property: "og:url", content: BASE_URL },
+    { property: "og:site_name", content: "Studojo" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Studojo – Work on Things That Matter" },
+    { name: "twitter:description", content: "Free tools to help students land internships, build standout resumes, and get assignments done. 10,000+ students helped." },
   ];
 }
 

@@ -15,7 +15,12 @@ export function meta() {
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/finance-india-2026` },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "Finance in India: What Graduates Actually Face" },
+    { property: "og:description", content: "1,400+ entry-level finance openings. Salary benchmarks across global banks, fintechs, and Big 4. Skills that command a premium. Data-driven analysis for students entering finance in India." },
+    { property: "og:url", content: `${BASE_URL}/reports/finance-india-2026` },
     { property: "og:site_name", content: "Studojo" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Finance in India: What Graduates Actually Face — Studojo 2026" },
+    { name: "twitter:description", content: "1,400+ entry-level finance openings. Salary benchmarks, skill gaps, and hiring trends. Free report for students entering finance in India." },
   ];
 }
 
