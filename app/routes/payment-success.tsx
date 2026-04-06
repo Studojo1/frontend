@@ -74,7 +74,7 @@ export default function PaymentSuccess() {
     localStorage.removeItem("dodo_pending_tier");
 
     if (jobType === "outreach") {
-      navigate("/outreach/flex-capture");
+      navigate("/outreach/enrichment");
     } else if (jobType === "humanizer") {
       navigate("/dojos/humanizer");
     } else if (jobType === "career") {
