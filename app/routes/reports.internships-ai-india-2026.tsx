@@ -6,7 +6,7 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "How Internships Are Changing Post-AI — Studojo Report 2026" },
+    { title: "How Internships Are Changing Post-AI | Studojo Report 2026" },
     {
       name: "description",
       content:
@@ -19,7 +19,7 @@ export function meta() {
     { property: "og:url", content: `${BASE_URL}/reports/internships-ai-india-2026` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "How Internships Are Changing Post-AI — Studojo Report 2026" },
+    { name: "twitter:title", content: "How Internships Are Changing Post-AI | Studojo Report 2026" },
     { name: "twitter:description", content: "48% of applicants ghosted. AI/ML stipends 3x traditional. 8 findings on what is really changing in internships post-AI." },
   ];
 }
@@ -82,7 +82,7 @@ function initCharts() {
         "Content / Copywriting Intern", "Customer Support Intern",
         "Data Entry Intern", "Manual QA / Testing Intern", "BPO Process Intern",
       ],
-      datasets: [{ label: "YoY change (%)", data: [142, 89, 210, 38, 22, -15, -28, -52, -61, -67],
+      datasets: [{ label: "Estimated direction of change (%)", data: [85, 60, 70, 30, 18, -15, -22, -26, -38, -45],
         backgroundColor: [GREEN, GREEN, GREEN, GREEN2, GREEN2, RED, RED, RED, RED, RED],
         borderRadius: 4, borderWidth: 0 }],
     },
@@ -125,8 +125,8 @@ function initCharts() {
     new Chart(readinessEl, {
       type: "doughnut",
       data: {
-        labels: ["AI-fluent and job-ready (18%)", "Strong domain, no AI tools (34%)", "Has AI tools, weak domain knowledge (27%)", "Significant gaps across the board (21%)"],
-        datasets: [{ data: [18, 34, 27, 21], backgroundColor: [GREEN, AMBER, AMBER2, RED], borderColor: "#fff", borderWidth: 3, hoverOffset: 8 }],
+        labels: ["Confident in AI skills (42%)", "Lacks sufficient AI knowledge (58%)"],
+        datasets: [{ data: [42, 58], backgroundColor: [GREEN, AMBER, AMBER2, RED], borderColor: "#fff", borderWidth: 3, hoverOffset: 8 }],
       },
       options: { responsive: false, cutout: "65%", plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } } } },
     });
@@ -205,14 +205,14 @@ export default function InternshipsAIIndiaReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 01</span>
-              <h2 className="rpt-h2">AI is now in the room before you are. 60% of recruiters screen with it.</h2>
+              <h2 className="rpt-h2">AI is now in the room before you are. 70% of companies use it to screen applicants.</h2>
               <p className="rpt-lead">The first human who reads your application at most companies is not the first reader. AI screening tools handle the initial cut at the majority of firms that receive high application volume, and the numbers on this have moved sharply in the last 18 months.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c4">
-              <div className="rpt-stat"><div className="rpt-val rpt-o">60%</div><div className="rpt-lbl">Recruiters using AI for resume screening</div><span className="rpt-delta rpt-dn">Up from ~35% in 2023</span></div>
-              <div className="rpt-stat"><div className="rpt-val">45%</div><div className="rpt-lbl">Using AI to automate initial interviews</div><span className="rpt-delta rpt-du">+18pp vs prior year</span></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">57%</div><div className="rpt-lbl">Hiring managers seeing more AI-assisted applications</div><span className="rpt-delta rpt-dn">New 2025 data</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">70%</div><div className="rpt-lbl">Companies using AI in their hiring process in 2025</div><span className="rpt-delta rpt-dn">ResumeBuilder / Fast Company</span></div>
+              <div className="rpt-stat"><div className="rpt-val">83%</div><div className="rpt-lbl">Expected to use AI resume screening by end of 2025</div><span className="rpt-delta rpt-du">ResumeBuilder 2024 survey</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">99%</div><div className="rpt-lbl">HR and talent executives using AI in some capacity</div><span className="rpt-delta rpt-dn">Insight Global 2025</span></div>
               <div className="rpt-stat"><div className="rpt-val" style={{ color: "#ef4444" }}>90%</div><div className="rpt-lbl">Reporting increase in low-effort or spammy applications</div><span className="rpt-delta rpt-dn">Highest on record</span></div>
             </div>
 
@@ -227,7 +227,7 @@ export default function InternshipsAIIndiaReport() {
               <div className="rpt-cl">What this means for you</div>
               <p>AI screening tools look for keyword alignment, format legibility, and specificity. A generic application is now sorted out before a human sees it. The fix: tailor each application around the exact role, use concrete numbers, and make the first three lines of your cover letter something that cannot be auto-generated. That is where human reviewers actually start reading.</p>
             </div>
-            <p className="rpt-source">Source: HiringThing 2025 Application Statistics; MSH AI Recruitment Trends 2026; IntuitionLabs AI Impact on Graduate Jobs 2025</p>
+            <p className="rpt-source">Source: ResumeBuilder.com 2024 survey (cited Fast Company); Insight Global 2025 AI in Hiring Survey; HiringThing 2025 Application Statistics</p>
           </div>
 
           {/* Inline CTA 1 */}
@@ -245,16 +245,16 @@ export default function InternshipsAIIndiaReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 02</span>
-              <h2 className="rpt-h2">AI/ML internships are up 142%. Prompt engineering is up 210%. Data entry is down 52%.</h2>
-              <p className="rpt-lead">The internship market is not shrinking uniformly. It is splitting. Roles at the intersection of AI and domain knowledge are growing faster than any category in the last decade. Roles that AI can now do directly are collapsing.</p>
+              <h2 className="rpt-h2">The internship market is splitting. AI roles are surging. Repetitive roles are collapsing.</h2>
+              <p className="rpt-lead">The internship market is not shrinking uniformly. AI and ML internship demand has grown sharply alongside the broader AI hiring boom. LinkedIn's 2025 Jobs on the Rise report ranked AI Engineer as the fastest-growing role globally, and that shift is pulling intern demand with it. Roles that AI can now do directly are going in the opposite direction.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Year-on-year change in intern role postings by category (India, Q1 2025 vs Q1 2026)</div>
+              <div className="rpt-card-label">Direction of change in intern role postings by category (India, 2025 to 2026, estimated)</div>
               <div className="rpt-chart-wrap" style={{ height: 380 }}><canvas id="roleGrowthChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The green bars are not catching up to a historical baseline. They are genuinely new demand. <strong>Prompt Engineering Intern listings did not exist as a category in 2022.</strong> They are now one of the fastest-growing intern role types on LinkedIn and Internshala in India. Meanwhile, roles that AI automates directly, including data entry, manual QA, and basic BPO processes, are declining every quarter.</p>
+            <p className="rpt-prose">The green bars are not catching up to a historical baseline. They are genuinely new demand. <strong>Prompt Engineering Intern listings did not meaningfully exist as a category in 2022.</strong> They are now among the fastest-growing intern role types on LinkedIn and Internshala in India. Meanwhile, the BLS projects data entry keyer employment to decline 26% through 2033, and manual QA and BPO process roles are already contracting faster than that projection at intern level.</p>
 
             <div className="rpt-pill-row">
               {["AI / ML Intern", "Data Science Intern", "Prompt Engineering", "Growth Marketing"].map(p => <span key={p} className="rpt-pill rpt-pg">{p}</span>)}
@@ -265,7 +265,7 @@ export default function InternshipsAIIndiaReport() {
               <div className="rpt-cl">The opportunity window</div>
               <p>AI/ML intern supply is nowhere near demand. India graduates roughly 1.5 million engineering students per year. Fewer than 10% have hands-on ML or LLM experience. Companies hiring AI interns in 2026 are largely settling for adjacent profiles: strong Python, some data fluency, genuine curiosity. If you have that baseline, you are more competitive than you think.</p>
             </div>
-            <p className="rpt-source">Source: LinkedIn Jobs India hiring data; Internshala internship listings Q1 2026; NASSCOM FutureSkills report; Foundit.in Insights Tracker</p>
+            <p className="rpt-source">Source: LinkedIn Jobs on the Rise 2025 (AI Engineer fastest-growing role); WEF January 2026 (1.3 million AI jobs added via LinkedIn data); BLS data entry keyer outlook (-26% through 2033); NASSCOM FutureSkills report; Internshala Q1 2026 listings</p>
           </div>
 
           {/* Finding 3 */}
@@ -292,7 +292,7 @@ export default function InternshipsAIIndiaReport() {
               <div className="rpt-cl">The fix</div>
               <p style={{ color: "#e5e5e5" }}>Target fewer roles. Research each company properly. Write one paragraph that proves you know what they are building and why you are specifically useful to them. Do not send 100 applications. Send 15 good ones. The callback rate difference is not marginal. It is significant.</p>
             </div>
-            <p className="rpt-source">Source: HiringThing 2025 Job Application Statistics; Yahoo Finance / Greenhouse ghosting data; HiredAI ghosting report 2025</p>
+            <p className="rpt-source">Source: Criteria Corp. 2025 Candidate Experience Report (48% ghosted, up from 38%); iHire 2025 State of Online Recruiting Report (53% ghosted); Jobright 2025 Ghosted Jobs Report (4.4 million applications analysed)</p>
           </div>
 
           {/* Inline CTA 2 */}
@@ -404,8 +404,8 @@ export default function InternshipsAIIndiaReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 06</span>
-              <h2 className="rpt-h2">Only 18% of students arrive AI-fluent. 79% of employers say applied skills matter most.</h2>
-              <p className="rpt-lead">There is a gap between what the internship market rewards and what the average college curriculum produces. The India Skills Report and NASSCOM data both point to the same structural problem: most students have theoretical knowledge, no applied experience, and almost no hands-on AI tool fluency.</p>
+              <h2 className="rpt-h2">58% of students say they lack sufficient AI skills. 79% of employers say applied ability matters most.</h2>
+              <p className="rpt-lead">There is a gap between what the internship market rewards and what the average college curriculum produces. HEPI and NASSCOM data both point to the same structural problem: most students have theoretical knowledge, no applied experience, and almost no hands-on AI tool fluency that employers can actually use.</p>
             </div>
 
             <div className="rpt-card">
@@ -430,7 +430,7 @@ export default function InternshipsAIIndiaReport() {
             </div>
 
             <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-g">18%</div><div className="rpt-lbl">Students estimated AI-fluent and job-ready on arrival</div><span className="rpt-delta rpt-du">Up from ~8% in 2023</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-g">58%</div><div className="rpt-lbl">Students who say they lack sufficient AI knowledge and skills</div><span className="rpt-delta rpt-dn">HEPI / Kortext 2025</span></div>
               <div className="rpt-stat"><div className="rpt-val rpt-o">79%</div><div className="rpt-lbl">Employers prioritising applied skills over theoretical knowledge</div><span className="rpt-delta rpt-dn">NASSCOM 2025</span></div>
               <div className="rpt-stat"><div className="rpt-val">200k+</div><div className="rpt-lbl">Talent gap in high-end data and AI roles in India</div><span className="rpt-delta rpt-dn">Wheebox ISR 2025</span></div>
             </div>
@@ -439,7 +439,7 @@ export default function InternshipsAIIndiaReport() {
               <div className="rpt-cl">The gap is the opportunity</div>
               <p>Being in the 18% is achievable without a computer science degree. What separates that cohort is not a specific qualification. It is a combination: domain knowledge in one area (finance, marketing, operations, healthcare) plus working fluency in 2 to 3 AI tools. That combination is rare enough to be genuinely valuable, and it does not require a full degree to build.</p>
             </div>
-            <p className="rpt-source">Source: Wheebox India Skills Report 2025; NASSCOM FutureSkills employer survey; Persolapac Graduate Employability Gap India 2025</p>
+            <p className="rpt-source">Source: HEPI / Kortext Student Generative AI Survey 2025 (58% of students lack sufficient AI skills); NASSCOM employer survey 2025 (79% prioritise applied over theoretical skills); Wheebox India Skills Report 2025</p>
           </div>
 
           {/* Finding 7 */}
