@@ -1,6 +1,27 @@
-import { useState } from "react";
-import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { useState, useCallback } from "react";
+import { FiPlus, FiTrash2, FiZap } from "react-icons/fi";
+import { toast } from "sonner";
 import type { ResumeSection, SectionContent } from "~/lib/resume-draft";
+
+// Shared AI rewrite helper — used by summary and experience
+async function rewriteText(text: string, action: string): Promise<string | null> {
+  try {
+    const res = await fetch("/api/resumes/rewrite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, action }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Rewrite failed");
+    }
+    const data = await res.json();
+    return data.result || null;
+  } catch (e: any) {
+    toast.error(e.message || "AI rewrite failed");
+    return null;
+  }
+}
 
 interface SectionEditorProps {
   section: ResumeSection;
@@ -115,6 +136,19 @@ function SummarySectionEditor({
   content: string;
   onUpdate: (summary: string) => void;
 }) {
+  const [rewriting, setRewriting] = useState<string | null>(null);
+
+  const handleRewrite = async (action: string) => {
+    if (!content.trim()) return;
+    setRewriting(action);
+    const result = await rewriteText(content, action);
+    if (result) {
+      onUpdate(result);
+      toast.success("Updated!");
+    }
+    setRewriting(null);
+  };
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -127,6 +161,21 @@ function SummarySectionEditor({
         rows={4}
         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
       />
+      {content.trim().length > 10 && (
+        <div className="flex items-center gap-2 mt-1.5">
+          <FiZap className="h-3 w-3 text-emerald-500 flex-shrink-0" />
+          {["rephrase", "polish", "shorten"].map((action) => (
+            <button
+              key={action}
+              onClick={() => handleRewrite(action)}
+              disabled={!!rewriting}
+              className="text-xs px-2.5 py-1 rounded-md border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 capitalize"
+            >
+              {rewriting === action ? "..." : action}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -238,6 +287,10 @@ function ExperienceSectionEditor({
               rows={3}
               className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-emerald-500"
               placeholder="Describe your responsibilities and achievements..."
+            />
+            <AIRewriteBar
+              text={entry.description}
+              onResult={(result) => updateEntry(entry.id, { description: result })}
             />
           </div>
         </div>
@@ -578,6 +631,39 @@ function CustomSectionEditor({
           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
         />
       </div>
+    </div>
+  );
+}
+
+// Small reusable AI rewrite bar shown under text areas
+function AIRewriteBar({ text, onResult }: { text: string; onResult: (result: string) => void }) {
+  const [rewriting, setRewriting] = useState<string | null>(null);
+
+  if (!text || text.trim().length <= 10) return null;
+
+  const handleRewrite = async (action: string) => {
+    setRewriting(action);
+    const result = await rewriteText(text, action);
+    if (result) {
+      onResult(result);
+      toast.success("Updated!");
+    }
+    setRewriting(null);
+  };
+
+  return (
+    <div className="flex items-center gap-2 mt-1.5">
+      <FiZap className="h-3 w-3 text-emerald-500 flex-shrink-0" />
+      {["rephrase", "polish", "shorten"].map((action) => (
+        <button
+          key={action}
+          onClick={() => handleRewrite(action)}
+          disabled={!!rewriting}
+          className="text-xs px-2.5 py-1 rounded-md border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 capitalize"
+        >
+          {rewriting === action ? "..." : action}
+        </button>
+      ))}
     </div>
   );
 }
