@@ -26,6 +26,18 @@ export function meta() {
 
 const REPORTS = [
   {
+    slug: "internships-ai-india-2026",
+    title: "How Internships Are Changing Post-AI",
+    subtitle: "Q1 2026",
+    excerpt:
+      "48% of applicants were ghosted last year. AI/ML intern stipends now run 3x higher than traditional roles. Here is what is actually shifting in internship hiring, which categories are collapsing, and what the AI-era intern looks like.",
+    category: "Internships",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-amber-500",
+    badge: "New",
+  },
+  {
     slug: "cs-india-2026",
     title: "CS in India: What Freshers Are Actually Getting Into",
     subtitle: "Q1 2026",
