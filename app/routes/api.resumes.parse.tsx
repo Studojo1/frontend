@@ -229,11 +229,18 @@ function parseExperiences(lines: string[]) {
     const entryText = elines.join("\n");
     const { start, end, current } = parseDateRange(entryText);
 
-    const BULLET_RE = /^[•·\-\*▪◦→\+]|^\d+\./;
+    // Extended bullet set — includes ● (U+25CF) and other Unicode variants
+    const BULLET_RE = /^[•·●○▪▸◦→➜➢➤\-\*\+]|^\d+\./;
+    const stripBullet = (l: string) => l.replace(/^[•·●○▪▸◦→➜➢➤\-\*\+]\s*/, "").replace(/^\d+\.\s*/, "").trim();
+
     const bulletIdx = elines.findIndex((l) => BULLET_RE.test(l));
     const headerLines = elines
       .slice(0, bulletIdx === -1 ? Math.min(3, elines.length) : bulletIdx)
-      .filter((l) => !new RegExp(`^${DATE_PAT}$`, "i").test(l) && !/^\d{4}$/.test(l));
+      .filter((l) => !new RegExp(`^${DATE_PAT}$`, "i").test(l) && !/^\d{4}$/.test(l))
+      // Strip any stray bullet chars from header lines and remove lines that are
+      // clearly descriptions (very long, >80 chars after stripping the bullet)
+      .map(stripBullet)
+      .filter((l) => l.length > 0 && l.length <= 80);
 
     let role = "", company = "";
     if (headerLines.length >= 2) {
@@ -244,10 +251,16 @@ function parseExperiences(lines: string[]) {
       company = parts[1]?.trim() ?? "";
     }
 
+    // Collect description from bullet lines PLUS any header lines that were
+    // too long to be a role/company (they were filtered out above)
+    const longHeaderLines = elines
+      .slice(0, bulletIdx === -1 ? Math.min(3, elines.length) : bulletIdx)
+      .filter((l) => !new RegExp(`^${DATE_PAT}$`, "i").test(l) && !/^\d{4}$/.test(l))
+      .map(stripBullet)
+      .filter((l) => l.length > 80);
+
     const bullets = bulletIdx >= 0 ? elines.slice(bulletIdx) : [];
-    const description = bullets
-      .map((l) => l.replace(/^[•·\-\*▪◦→\+]\s*/, "").replace(/^\d+\.\s*/, ""))
-      .join("\n");
+    const description = [...longHeaderLines, ...bullets.map(stripBullet)].join("\n");
 
     return { company, role, start_date: start, end_date: end, is_current: current, description };
   }).filter((e) => e.role || e.company);
