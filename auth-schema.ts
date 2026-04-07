@@ -147,7 +147,6 @@ export const userProfile = pgTable(
     college: text("college").notNull(),
     yearOfStudy: text("year_of_study").notNull(),
     course: text("course").notNull(),
-    referralSource: text("referral_source"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
