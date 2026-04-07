@@ -73,6 +73,18 @@ const REPORTS = [
     color: "bg-violet-500",
     badge: "",
   },
+  {
+    slug: "marketing-india-2026",
+    title: "Marketing Internships in India: Where the Good Roles Actually Are",
+    subtitle: "Q1 2026",
+    excerpt:
+      "22,000+ listings. A 6x stipend gap between niche and generic roles. And the reason 90% of students apply to the wrong ones — and get nothing back.",
+    category: "Marketing",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-emerald-600",
+    badge: "New",
+  },
 ];
 
 function RequestForm() {
@@ -246,17 +258,6 @@ export default function Reports() {
               </p>
             </div>
 
-            <div className="flex flex-col rounded-2xl border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 opacity-60">
-              <div className="mb-3 font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-neutral-400">
-                Coming soon
-              </div>
-              <h2 className="font-['Clash_Display'] text-lg font-bold text-neutral-400">
-                Marketing Internships: India 2026
-              </h2>
-              <p className="mt-2 font-['Satoshi'] text-sm text-neutral-400">
-                Where the good roles actually are, what they pay, and why 90% of students apply to the wrong ones.
-              </p>
-            </div>
           </div>
         </section>
 
