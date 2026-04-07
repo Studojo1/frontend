@@ -85,6 +85,18 @@ const REPORTS = [
     color: "bg-emerald-600",
     badge: "New",
   },
+  {
+    slug: "pune-jobs-2026",
+    title: "Pune's Job Market in 2026: What Students Are Actually Walking Into",
+    subtitle: "Q1 2026",
+    excerpt:
+      "4,800+ openings. A 3x salary gap between niche and generic roles. And why Hinjewadi isn't the only game in town anymore.",
+    category: "City Report",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-blue-700",
+    badge: "New",
+  },
 ];
 
 function RequestForm() {
