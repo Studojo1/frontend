@@ -58,3 +58,12 @@ export function resetPostHog() {
     // Silently fail
   }
 }
+
+export function registerPostHogProps(props: Record<string, string>) {
+  if (typeof window === "undefined" || !isInitialized) return;
+  try {
+    posthog.register(props);
+  } catch {
+    // Silently fail
+  }
+}

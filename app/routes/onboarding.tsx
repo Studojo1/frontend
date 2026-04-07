@@ -63,7 +63,7 @@ function FloatShape({
   );
 }
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 const YEAR_OPTIONS = [
   "First year",
@@ -75,6 +75,16 @@ const YEAR_OPTIONS = [
   "Graduated",
   "Working professional",
   "Other",
+];
+
+const REFERRAL_SOURCE_OPTIONS = [
+  "Instagram",
+  "Google",
+  "Friends/family",
+  "LinkedIn",
+  "Twitter",
+  "Reddit",
+  "WhatsApp",
 ];
 
 const INPUT_CLASS =
@@ -113,6 +123,7 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
   const [college, setCollege] = useState("");
   const [yearOfStudy, setYearOfStudy] = useState("");
   const [course, setCourse] = useState("");
+  const [referralSource, setReferralSource] = useState("");
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -210,12 +221,16 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
           });
         } catch {}
       }
+      setSubmitting(false);
+      goForward();
+    } else if (step === 4) {
+      if (referralSource) await updateField("referralSource", referralSource);
       navigate("/", { replace: true });
     }
   };
 
   const handleSkip = async () => {
-    if (step === 3) {
+    if (step === TOTAL_STEPS - 1) {
       // Last step — finish
       navigate("/", { replace: true });
     } else {
@@ -439,6 +454,40 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
                           </div>
                         </label>
                       </div>
+                    </motion.div>
+                  )}
+                  {step === 4 && (
+                    <motion.div
+                      key="referral"
+                      custom={direction}
+                      variants={slideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="space-y-5"
+                    >
+                      <div>
+                        <h1 className="mb-2 font-['Clash_Display'] text-xl font-medium tracking-tight text-neutral-900 md:text-2xl">
+                          Where did you hear about us?
+                        </h1>
+                        <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
+                          Help us understand how you found Studojo
+                        </p>
+                      </div>
+                      <select
+                        ref={inputRef as React.RefObject<HTMLSelectElement>}
+                        value={referralSource}
+                        onChange={(e) => setReferralSource(e.target.value)}
+                        className={INPUT_CLASS}
+                      >
+                        <option value="">Select an option...</option>
+                        {REFERRAL_SOURCE_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
                     </motion.div>
                   )}
                 </AnimatePresence>

@@ -121,6 +121,7 @@ export default function ChatPage() {
               current_state: evt.current_state ?? "MCQ",
               mcq: evt.mcq ?? null,
               text_input: evt.text_input ?? false,
+              input_placeholder: evt.input_placeholder ?? null,
               is_complete: evt.is_complete ?? false,
               questions_asked_so_far: evt.questions_asked_so_far ?? 0,
               psychometric: evt.psychometric ?? null,
@@ -212,18 +213,19 @@ export default function ChatPage() {
         loading={loading}
       />
     ) : (currentResponse?.text_input || (!currentResponse?.mcq && currentResponse !== null && !loading)) ? (
-      <div className="flex gap-2">
-        <input
+      <div className="flex gap-2 items-end">
+        <textarea
           value={textInput}
           onChange={(e: any) => setTextInput(e.target.value)}
-          placeholder="Type your answer..."
-          onKeyDown={(e: any) => e.key === "Enter" && handleTextSubmit()}
-          className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+          placeholder={currentResponse?.input_placeholder || "Type your answer..."}
+          onKeyDown={(e: any) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleTextSubmit())}
+          rows={2}
+          className="flex-1 px-4 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
         />
         <button
           onClick={handleTextSubmit}
           disabled={!textInput.trim() || loading}
-          className="h-10 w-10 rounded-xl bg-studojo-purple text-white flex items-center justify-center border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
+          className="h-10 w-10 rounded-xl bg-studojo-purple text-white flex items-center justify-center border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex-shrink-0"
         >
           <FiSend className="w-4 h-4" />
         </button>

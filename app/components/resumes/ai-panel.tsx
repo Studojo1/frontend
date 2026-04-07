@@ -378,11 +378,93 @@ export function AIPanel({ draftId, sections, onOptimizationComplete, onClose }: 
     }
   };
 
+  // Shared suggestion list renderer used across all three tabs
+  const renderSuggestions = () => {
+    if (suggestions.length === 0) return null;
+    return (
+      <div className="space-y-3 mt-4">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold text-gray-900">
+            {suggestions.length} Suggestion{suggestions.length === 1 ? "" : "s"}
+          </div>
+          {suggestions.some((s) => s.suggestedValue) && (
+            <button
+              onClick={applyAllSuggestions}
+              className="text-xs px-2 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600"
+            >
+              Apply All
+            </button>
+          )}
+        </div>
+        {suggestions.map((suggestion) => (
+          <div
+            key={suggestion.id}
+            className={`p-3 rounded-lg border ${
+              suggestion.severity === "error"
+                ? "border-red-200 bg-red-50"
+                : suggestion.severity === "warning"
+                  ? "border-yellow-200 bg-yellow-50"
+                  : "border-blue-200 bg-blue-50"
+            }`}
+          >
+            <div className="flex items-start gap-2">
+              {suggestion.severity === "error" || suggestion.severity === "warning" ? (
+                <FiAlertCircle
+                  className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
+                    suggestion.severity === "error" ? "text-red-600" : "text-yellow-600"
+                  }`}
+                />
+              ) : (
+                <FiInfo className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-medium text-gray-700 mb-1">
+                  {suggestion.type === "keyword" && "Keyword Suggestion"}
+                  {suggestion.type === "completeness" && "Completeness Check"}
+                  {suggestion.type === "formatting" && "Formatting Suggestion"}
+                  {suggestion.type === "rewrite" && "Rewrite Suggestion"}
+                </div>
+                <div className="text-sm text-gray-900">{suggestion.message}</div>
+                {suggestion.suggestedValue && (
+                  <div className="mt-2 p-2 bg-white rounded border border-gray-200">
+                    <div className="text-xs text-gray-500 mb-1">Suggested:</div>
+                    <div className="text-sm text-gray-900 break-words">{suggestion.suggestedValue}</div>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {suggestion.suggestedValue && (
+                  <button
+                    onClick={() => applySuggestion(suggestion)}
+                    className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-100 rounded"
+                    title="Apply suggestion"
+                  >
+                    <FiCheck className="h-4 w-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => setSuggestions(suggestions.filter((s) => s.id !== suggestion.id))}
+                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                  title="Dismiss"
+                >
+                  <FiX className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="w-96 bg-white border-l border-gray-200 flex flex-col h-full">
+    <div className="w-[30rem] bg-white border-l border-gray-200 flex flex-col h-full shadow-lg">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">AI Assistant</h2>
+      <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-50 to-white">
+        <div className="flex items-center gap-2">
+          <FiZap className="h-5 w-5 text-emerald-600" />
+          <h2 className="font-semibold text-gray-900">AI Assistant</h2>
+        </div>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
           <FiX className="h-5 w-5" />
         </button>
@@ -398,299 +480,92 @@ export function AIPanel({ draftId, sections, onOptimizationComplete, onClose }: 
           <button
             key={id}
             onClick={() => setActiveTab(id as any)}
-            className={`flex-1 px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 ${
+            className={`flex-1 px-4 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 transition-colors ${
               activeTab === id
-                ? "text-emerald-600 border-b-2 border-emerald-600"
-                : "text-gray-600 hover:text-gray-900"
+                ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50"
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
             }`}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-3.5 w-3.5" />
             {label}
           </button>
         ))}
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-5">
         {activeTab === "suggestions" && (
           <div className="space-y-4">
             <button
               onClick={handleQuickSuggestions}
               disabled={loading}
-              className="w-full px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50"
+              className="w-full px-4 py-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2"
             >
-              {loading ? "Loading..." : "Get Quick Suggestions"}
+              <FiZap className="h-4 w-4" />
+              {loading ? "Analysing your resume..." : "Get Quick Suggestions"}
             </button>
-            <p className="text-sm text-gray-600">
-              Get instant suggestions for improving your resume sections.
-            </p>
-            
-            {/* Display Suggestions */}
-            {suggestions.length > 0 && (
-              <div className="space-y-3 mt-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-gray-900">
-                    {suggestions.length} Suggestion{suggestions.length === 1 ? '' : 's'}
-                  </div>
-                  {suggestions.some(s => s.suggestedValue) && (
-                    <button
-                      onClick={applyAllSuggestions}
-                      className="text-xs px-2 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600"
-                    >
-                      Apply All
-                    </button>
-                  )}
-                </div>
-                {suggestions.map((suggestion) => (
-                  <div
-                    key={suggestion.id}
-                    className={`p-3 rounded-lg border ${
-                      suggestion.severity === 'error' ? 'border-red-200 bg-red-50' :
-                      suggestion.severity === 'warning' ? 'border-yellow-200 bg-yellow-50' :
-                      'border-blue-200 bg-blue-50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      {suggestion.severity === 'error' ? (
-                        <FiAlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                      ) : suggestion.severity === 'warning' ? (
-                        <FiAlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <FiInfo className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-gray-700 mb-1">
-                          {suggestion.type === 'keyword' && 'Keyword Suggestion'}
-                          {suggestion.type === 'completeness' && 'Completeness Check'}
-                          {suggestion.type === 'formatting' && 'Formatting Suggestion'}
-                          {suggestion.type === 'rewrite' && 'Rewrite Suggestion'}
-                        </div>
-                        <div className="text-sm text-gray-900">{suggestion.message}</div>
-                        {suggestion.suggestedValue && (
-                          <div className="mt-2 p-2 bg-white rounded border border-gray-200">
-                            <div className="text-xs text-gray-500 mb-1">Suggested:</div>
-                            <div className="text-sm text-gray-900 break-words">{suggestion.suggestedValue}</div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        {suggestion.suggestedValue && (
-                          <button
-                            onClick={() => applySuggestion(suggestion)}
-                            className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-100 rounded"
-                            title="Apply suggestion"
-                          >
-                            <FiCheck className="h-4 w-4" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setSuggestions(suggestions.filter(s => s.id !== suggestion.id))}
-                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                          title="Dismiss"
-                        >
-                          <FiX className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {!loading && suggestions.length === 0 && (
+              <p className="text-sm text-gray-500 text-center py-2">
+                Click above to get AI-powered suggestions for your resume.
+              </p>
             )}
+            {renderSuggestions()}
           </div>
         )}
 
         {activeTab === "job" && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Job Title
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
               <input
                 type="text"
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
                 placeholder="e.g., Software Engineer"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Job Description
+                Job Description <span className="text-gray-400 font-normal">(optional but recommended)</span>
               </label>
               <textarea
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                placeholder="Paste the job description here..."
+                placeholder="Paste the job description for more targeted suggestions..."
                 rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
               />
             </div>
             <button
               onClick={handleJobOptimize}
               disabled={loading || !jobTitle.trim()}
-              className="w-full px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50"
+              className="w-full px-4 py-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2"
             >
-              {loading ? "Optimizing..." : "Optimize for Job"}
+              <FiTarget className="h-4 w-4" />
+              {loading ? "Matching to job..." : "Optimize for This Job"}
             </button>
-            
-            {/* Display Suggestions */}
-            {suggestions.length > 0 && (
-              <div className="space-y-3 mt-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-gray-900">
-                    {suggestions.length} Suggestion{suggestions.length === 1 ? '' : 's'}
-                  </div>
-                  {suggestions.some(s => s.suggestedValue) && (
-                    <button
-                      onClick={applyAllSuggestions}
-                      className="text-xs px-2 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600"
-                    >
-                      Apply All
-                    </button>
-                  )}
-                </div>
-                {suggestions.map((suggestion) => (
-                  <div
-                    key={suggestion.id}
-                    className={`p-3 rounded-lg border ${
-                      suggestion.severity === 'error' ? 'border-red-200 bg-red-50' :
-                      suggestion.severity === 'warning' ? 'border-yellow-200 bg-yellow-50' :
-                      'border-blue-200 bg-blue-50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      {suggestion.severity === 'error' ? (
-                        <FiAlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                      ) : suggestion.severity === 'warning' ? (
-                        <FiAlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <FiInfo className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-gray-700 mb-1">
-                          {suggestion.type === 'keyword' && 'Keyword Suggestion'}
-                          {suggestion.type === 'completeness' && 'Completeness Check'}
-                          {suggestion.type === 'formatting' && 'Formatting Suggestion'}
-                          {suggestion.type === 'rewrite' && 'Rewrite Suggestion'}
-                        </div>
-                        <div className="text-sm text-gray-900">{suggestion.message}</div>
-                        {suggestion.suggestedValue && (
-                          <div className="mt-2 p-2 bg-white rounded border border-gray-200">
-                            <div className="text-xs text-gray-500 mb-1">Suggested:</div>
-                            <div className="text-sm text-gray-900 break-words">{suggestion.suggestedValue}</div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        {suggestion.suggestedValue && (
-                          <button
-                            onClick={() => applySuggestion(suggestion)}
-                            className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-100 rounded"
-                            title="Apply suggestion"
-                          >
-                            <FiCheck className="h-4 w-4" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setSuggestions(suggestions.filter(s => s.id !== suggestion.id))}
-                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                          title="Dismiss"
-                        >
-                          <FiX className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            {renderSuggestions()}
           </div>
         )}
 
         {activeTab === "full" && (
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Perform a complete optimization of your resume with ATS-friendly formatting and keyword optimization.
-            </p>
+            <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+              <p className="text-sm text-emerald-800 font-medium mb-1">ATS Full Optimisation</p>
+              <p className="text-xs text-emerald-700">
+                Scans every section for missing keywords, weak phrasing, formatting issues, and completeness gaps.
+              </p>
+            </div>
             <button
               onClick={handleFullOptimize}
               disabled={loading}
-              className="w-full px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50"
+              className="w-full px-4 py-2.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 font-medium text-sm flex items-center justify-center gap-2"
             >
-              {loading ? "Optimizing..." : "Start Full Optimization"}
+              <FiRefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              {loading ? "Running full scan..." : "Start Full Optimisation"}
             </button>
-            
-            {/* Display Suggestions */}
-            {suggestions.length > 0 && (
-              <div className="space-y-3 mt-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-gray-900">
-                    {suggestions.length} Suggestion{suggestions.length === 1 ? '' : 's'}
-                  </div>
-                  {suggestions.some(s => s.suggestedValue) && (
-                    <button
-                      onClick={applyAllSuggestions}
-                      className="text-xs px-2 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600"
-                    >
-                      Apply All
-                    </button>
-                  )}
-                </div>
-                {suggestions.map((suggestion) => (
-                  <div
-                    key={suggestion.id}
-                    className={`p-3 rounded-lg border ${
-                      suggestion.severity === 'error' ? 'border-red-200 bg-red-50' :
-                      suggestion.severity === 'warning' ? 'border-yellow-200 bg-yellow-50' :
-                      'border-blue-200 bg-blue-50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      {suggestion.severity === 'error' ? (
-                        <FiAlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                      ) : suggestion.severity === 'warning' ? (
-                        <FiAlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <FiInfo className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-gray-700 mb-1">
-                          {suggestion.type === 'keyword' && 'Keyword Suggestion'}
-                          {suggestion.type === 'completeness' && 'Completeness Check'}
-                          {suggestion.type === 'formatting' && 'Formatting Suggestion'}
-                          {suggestion.type === 'rewrite' && 'Rewrite Suggestion'}
-                        </div>
-                        <div className="text-sm text-gray-900">{suggestion.message}</div>
-                        {suggestion.suggestedValue && (
-                          <div className="mt-2 p-2 bg-white rounded border border-gray-200">
-                            <div className="text-xs text-gray-500 mb-1">Suggested:</div>
-                            <div className="text-sm text-gray-900 break-words">{suggestion.suggestedValue}</div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        {suggestion.suggestedValue && (
-                          <button
-                            onClick={() => applySuggestion(suggestion)}
-                            className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-100 rounded"
-                            title="Apply suggestion"
-                          >
-                            <FiCheck className="h-4 w-4" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setSuggestions(suggestions.filter(s => s.id !== suggestion.id))}
-                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                          title="Dismiss"
-                        >
-                          <FiX className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            {renderSuggestions()}
           </div>
         )}
       </div>

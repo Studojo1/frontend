@@ -81,7 +81,7 @@ export default function GmailConnectPage() {
   };
 
   const handleContinue = () => {
-    navigate("/outreach/campaign/compose");
+    navigate("/outreach/campaign/style-pick");
   };
 
   const permissions = [

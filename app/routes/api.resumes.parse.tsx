@@ -11,31 +11,30 @@ export async function action({ request }: Route.ActionArgs) {
 
   const session = await getSessionFromRequest(request);
   if (!session) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      { status: 401, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
 
   if (!file) {
-    return new Response(
-      JSON.stringify({ error: "No file provided" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "No file provided" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
-    return new Response(
-      JSON.stringify({ error: "Only PDF files are supported" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Only PDF files are supported" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  // Validate file size (max 10MB to prevent memory issues)
-  const maxSize = 10 * 1024 * 1024; // 10MB
+  const maxSize = 10 * 1024 * 1024;
   if (file.size > maxSize) {
     return new Response(
       JSON.stringify({ error: `File too large. Maximum size is ${maxSize / 1024 / 1024}MB` }),
@@ -44,389 +43,351 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   try {
-    console.log(`[resume-parse] Starting PDF parse for file: ${file.name}, size: ${file.size} bytes`);
-    
-    // Convert file to base64 for OpenAI vision API
-    console.log("[resume-parse] Converting file to buffer...");
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    console.log(`[resume-parse] Buffer created, size: ${buffer.length} bytes`);
+    const text = await extractPdfText(buffer);
+    const resumeData = parseResumeStructured(text);
 
-    const openaiApiKey = process.env.OPENAI_API_KEY;
-    if (!openaiApiKey) {
-      console.error("[resume-parse] OpenAI API key not configured");
-      return new Response(
-        JSON.stringify({ error: "OpenAI API key not configured" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Extract text from PDF
-    console.log("[resume-parse] Extracting text from PDF...");
-    const pdfText = await extractTextFromPDF(buffer);
-    console.log(`[resume-parse] PDF text extracted, length: ${pdfText.length} characters`);
-    
-    // Log PDF text preview for debugging
-    const textPreview = pdfText.substring(0, 500);
-    console.log(`[resume-parse] PDF text preview (first 500 chars):\n${textPreview}...`);
-    
-    // Use OpenAI to structure the resume data
-    console.log("[resume-parse] Parsing resume with OpenAI...");
-    const resumeJson = await parseResumeWithOpenAI(pdfText, openaiApiKey);
-    console.log("[resume-parse] Resume parsed successfully");
-    
-    // Validate parsed data completeness
-    validateParsedResume(resumeJson);
-
-    // Generate professional summary if missing
-    if (!resumeJson.summary || resumeJson.summary.trim() === "") {
-      try {
-        const summary = await generateProfessionalSummary(resumeJson, openaiApiKey);
-        resumeJson.summary = summary;
-      } catch (error) {
-        // Log error but don't fail the import if summary generation fails
-        console.error("Failed to generate professional summary:", error);
-      }
-    }
-
-    return new Response(
-      JSON.stringify({ resumeData: resumeJson }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ resumeData }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error: any) {
-    console.error("PDF parsing error:", error);
-    const errorMessage = error.message || "Failed to parse PDF";
-    
-    // Log more details for debugging
-    if (error.stack) {
-      console.error("Error stack:", error.stack);
-    }
-    
-    return new Response(
-      JSON.stringify({ 
-        error: errorMessage,
-        details: process.env.NODE_ENV === "development" ? error.stack : undefined
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    console.error("[resume-parse] error:", error.message);
+    return new Response(JSON.stringify({ error: error.message || "Failed to parse PDF" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
 
-async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  try {
-    console.log("[resume-parse] Importing pdf-parse library...");
-    // Import pdf-parse dynamically
-    const pdfParse = await import("pdf-parse");
-    console.log("[resume-parse] Parsing PDF buffer...");
-    const data = await pdfParse.default(buffer);
-    console.log(`[resume-parse] PDF parsed, pages: ${data.numpages}, text length: ${data.text.length}`);
-    return data.text;
-  } catch (error: any) {
-    console.error("[resume-parse] PDF extraction error:", error);
-    throw new Error(`PDF text extraction failed: ${error.message}`);
-  }
+// ─── PDF text extraction ────────────────────────────────────────────────────
+
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  const pdfParse = await import("pdf-parse");
+  const data = await pdfParse.default(buffer);
+  return data.text;
 }
 
-async function parseResumeWithOpenAI(text: string, apiKey: string): Promise<any> {
-  console.log(`[resume-parse] Calling OpenAI API with text length: ${text.length}`);
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for OpenAI
-  
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert resume parser. Your task is to extract COMPLETE and COMPREHENSIVE structured resume data from the provided text. 
+// ─── Main parser (pure regex, no LLM) ──────────────────────────────────────
 
-CRITICAL INSTRUCTIONS:
-1. Extract ALL sections comprehensively - do not skip any information
-2. Extract ALL work experiences, ALL education entries, ALL projects, ALL skills, ALL achievements
-3. For LaTeX-generated PDFs, pay attention to section headers (EDUCATION, EXPERIENCE, PROJECTS, TECHNICAL SKILLS, ACHIEVEMENTS, etc.)
-4. Extract complete contact information including email, phone, website, LinkedIn, GitHub, location
-5. Handle bullet points and multi-line descriptions - preserve all content
-6. Extract dates in various formats (MMM YYYY, YYYY-MM, YYYY, etc.) and normalize them
-7. For current positions, set is_current: true and end_date can be empty or "Present"
-8. For skills, categorize them appropriately (Languages, Frameworks, DevOps, Tools, etc.)
-9. Achievements should be mapped to certifications section with issuer as "Award" or "Achievement"
-10. Extract ALL bullet points under each work experience, project, or education entry
+function parseResumeStructured(text: string) {
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const sections = splitSections(lines);
 
-SCHEMA:
-{
-  "title": "string (job title or professional title)",
-  "summary": "string (professional summary if present, otherwise empty)",
-  "contact_info": {
-    "name": "string (full name)",
-    "email": "string (email address)",
-    "phone": "string (phone number)",
-    "location": "string (city, state/country)",
-    "linkedin": "string (LinkedIn URL or username)",
-    "website": "string (personal website or portfolio URL)"
-  },
-  "work_experiences": [{
-    "company": "string (company name)",
-    "role": "string (job title/position)",
-    "start_date": "string (format: YYYY-MM or YYYY)",
-    "end_date": "string (format: YYYY-MM, YYYY, or empty if current)",
-    "is_current": boolean (true if currently working here),
-    "description": "string (ALL bullet points combined, preserve line breaks with \\n)"
-  }],
-  "educations": [{
-    "institution": "string (school/university name)",
-    "degree": "string (degree type: B.Tech, B.S., M.S., etc.)",
-    "field_of_study": "string (major/field of study)",
-    "start_date": "string (format: YYYY-MM or YYYY)",
-    "end_date": "string (format: YYYY-MM, YYYY, or empty if current)",
-    "is_current": boolean (true if currently enrolled),
-    "description": "string (GPA, honors, relevant coursework, etc.)"
-  }],
-  "skills": [{
-    "category": "string (Languages, Frameworks, DevOps, Tools, Specializations, etc.)",
-    "name": "string (individual skill name)",
-    "proficiency": "string (optional: Beginner, Intermediate, Advanced, Expert)"
-  }],
-  "projects": [{
-    "title": "string (project name)",
-    "url": "string (GitHub URL, website URL, or empty)",
-    "start_date": "string (format: YYYY-MM or YYYY)",
-    "end_date": "string (format: YYYY-MM, YYYY, or empty if ongoing)",
-    "description": "string (ALL bullet points and details combined)"
-  }],
-  "certifications": [{
-    "name": "string (certification name or achievement title)",
-    "issuer": "string (issuing organization or 'Award' for achievements)",
-    "issue_date": "string (format: YYYY-MM or YYYY)",
-    "expiry_date": "string (empty if not applicable)",
-    "url": "string (certification URL or empty)"
-  }]
+  return {
+    title: "",
+    summary: sections.summary.join(" ").trim(),
+    contact_info: extractContact(text, lines),
+    work_experiences: parseExperiences(sections.experience),
+    educations: parseEducations(sections.education),
+    skills: parseSkills(sections.skills, text),
+    projects: parseProjects(sections.projects),
+    certifications: parseCertifications(sections.certifications),
+  };
 }
 
-EXAMPLES:
-- Date formats: "Aug 2023", "2023-08", "2023", "Jan 2026 -- May 2026" → parse as "2023-08" to "2026-05"
-- Skills: "Languages: C++, Python, Go" → extract as separate skills with category "Languages"
-- Bullet points: Extract ALL bullets under each entry, combine with \\n separators
-- Contact info: Extract from header line, parse email, phone, URLs, location
+// ─── Section splitting ───────────────────────────────────────────────────────
 
-Return ONLY valid JSON matching the schema above. Extract EVERYTHING - completeness is critical.`,
-        },
-        {
-          role: "user",
-          content: `Extract ALL resume data from this text comprehensively. Pay special attention to:
-- Contact information (email, phone, website, LinkedIn, GitHub, location)
-- ALL work experience entries with complete descriptions
-- ALL education entries
-- ALL projects with full details
-- ALL technical skills (categorized properly)
-- ALL achievements/awards
+const SECTION_MAP: Array<[string, RegExp]> = [
+  ["summary",         /^(professional\s+)?(summary|profile|objective|about(\s+me)?|overview|career\s+summary)$/i],
+  ["experience",      /^(work\s+)?(experience|employment|career|work\s+history|professional\s+(experience|history))$/i],
+  ["education",       /^(education(al)?(\s+(background|qualifications?))?|academic|qualifications?)$/i],
+  ["skills",          /^(technical\s+)?(skills?|competencies|technologies|expertise|tools(\s*&\s*technologies)?)$/i],
+  ["projects",        /^(projects?|personal\s+projects?|key\s+projects?|notable\s+projects?)$/i],
+  ["certifications",  /^(certifications?|certificates?|achievements?|awards?|honors?|accomplishments?)$/i],
+];
 
-Resume text:\n\n${text}`,
-        },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.1,
-      max_tokens: 4000, // Increased for comprehensive extraction
-    }),
-    });
-    
-    clearTimeout(timeoutId);
-    console.log(`[resume-parse] OpenAI API response status: ${response.status}`);
+function splitSections(lines: string[]): Record<string, string[]> {
+  const result: Record<string, string[]> = {
+    summary: [], experience: [], education: [], skills: [], projects: [], certifications: [],
+  };
+  let current = ""; // unknown/header area — don't collect
 
-    if (!response.ok) {
-      let errorMessage = "OpenAI API error";
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error?.message || errorData.error || errorMessage;
-      } catch {
-        const errorText = await response.text();
-        errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+  for (const line of lines) {
+    let matched = false;
+    for (const [name, re] of SECTION_MAP) {
+      if (re.test(line)) {
+        current = name;
+        matched = true;
+        break;
       }
-      throw new Error(`OpenAI API error: ${errorMessage}`);
     }
-
-    const data = await response.json();
-    console.log("[resume-parse] OpenAI response received");
-    const content = data.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content in OpenAI response. The model may have failed to generate a response.");
+    if (!matched && current && result[current] !== undefined) {
+      result[current].push(line);
     }
-
-    // Log OpenAI response preview for debugging
-    const responsePreview = content.substring(0, 500);
-    console.log(`[resume-parse] OpenAI response preview (first 500 chars):\n${responsePreview}...`);
-
-    try {
-      const parsed = JSON.parse(content);
-      // Validate that we got a resume-like structure
-      if (!parsed.contact_info && !parsed.title && !parsed.summary) {
-        throw new Error("OpenAI returned invalid resume structure");
-      }
-      console.log("[resume-parse] Resume JSON parsed and validated");
-      
-      // Log extracted data summary
-      console.log(`[resume-parse] Extracted data summary:
-        - Contact info: ${parsed.contact_info ? 'Yes' : 'Missing'}
-        - Work experiences: ${parsed.work_experiences?.length || 0}
-        - Education entries: ${parsed.educations?.length || 0}
-        - Projects: ${parsed.projects?.length || 0}
-        - Skills: ${parsed.skills?.length || 0}
-        - Certifications/Achievements: ${parsed.certifications?.length || 0}`);
-      
-      return parsed;
-    } catch (error: any) {
-      if (error.message.includes("invalid resume structure")) {
-        throw error;
-      }
-      throw new Error(`Failed to parse OpenAI response as JSON: ${error.message}`);
-    }
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    if (error.name === "AbortError") {
-      console.error("[resume-parse] OpenAI API request timed out");
-      throw new Error("OpenAI API request timed out after 2 minutes");
-    }
-    throw error;
   }
+  return result;
 }
 
-function validateParsedResume(resumeData: any): void {
-  const warnings: string[] = [];
-  
-  // Check for missing critical sections
-  if (!resumeData.contact_info || !resumeData.contact_info.name) {
-    warnings.push("Missing contact information or name");
-  }
-  
-  if (!resumeData.work_experiences || resumeData.work_experiences.length === 0) {
-    warnings.push("No work experience entries found");
-  }
-  
-  if (!resumeData.educations || resumeData.educations.length === 0) {
-    warnings.push("No education entries found");
-  }
-  
-  // Check for incomplete contact info
-  if (resumeData.contact_info) {
-    const contact = resumeData.contact_info;
-    if (!contact.email && !contact.phone && !contact.linkedin && !contact.website) {
-      warnings.push("Contact info missing email, phone, LinkedIn, and website");
+// ─── Contact info ────────────────────────────────────────────────────────────
+
+const ORG_WORDS = new Set(["office","technologies","solutions","pvt","ltd","inc","llc","corp","group","labs","consulting","ventures","capital","media","digital","academy","institute","university","college","school","foundation","services","associates","partners","agency","enterprises","limited","private","company","intern","internship","trainee","assistant","manager","analyst","developer","engineer","designer","marketing","freelance"]);
+const SECTION_WORDS = new Set(["resume","cv","profile","summary","experience","education","skills","projects","contact","objective","about","professional","personal","career","work","portfolio"]);
+
+function extractContact(text: string, lines: string[]) {
+  const contact = { name: "", email: "", phone: "", location: "", linkedin: "", website: "" };
+
+  const emailM = text.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
+  if (emailM) contact.email = emailM[0];
+
+  const phoneM = text.match(/(?:\+\d{1,3}[\s-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/);
+  if (phoneM) contact.phone = phoneM[0].trim();
+
+  const liM = text.match(/linkedin\.com\/in\/([\w-]+)/i);
+  if (liM) contact.linkedin = `linkedin.com/in/${liM[1]}`;
+
+  const ghM = text.match(/github\.com\/([\w-]+)/i);
+  if (ghM) contact.website = `github.com/${ghM[1]}`;
+
+  // Name heuristic (same as outreach tool)
+  for (const line of lines.slice(0, 10)) {
+    if (line.length > 50 || line.includes("@") || /https?:\/\//i.test(line)) continue;
+    if (/[&|:]/.test(line) || /^[\d\-\.\)\#]/.test(line)) continue;
+    const wordsLower = line.toLowerCase().split(/\s+/);
+    if (wordsLower.some((w) => SECTION_WORDS.has(w) || ORG_WORDS.has(w))) continue;
+    const words = line.split(/\s+/);
+    if (words.length >= 2 && words.length <= 4 && words.every((w) => /^[a-zA-Z.'-]+$/.test(w))) {
+      contact.name = line;
+      break;
     }
   }
-  
-  // Log warnings if any
-  if (warnings.length > 0) {
-    console.warn("[resume-parse] Validation warnings:");
-    warnings.forEach(warning => console.warn(`  - ${warning}`));
-  } else {
-    console.log("[resume-parse] Validation passed - all critical sections present");
+
+  // Location: "City, State" or "City, Country" in first 20 lines
+  for (const line of lines.slice(0, 20)) {
+    if (line === contact.name || line.includes("@")) continue;
+    if (/^[A-Za-z\s]+,\s*[A-Za-z\s]+$/.test(line) && line.length < 40) {
+      contact.location = line;
+      break;
+    }
   }
+
+  return contact;
 }
 
-async function generateProfessionalSummary(resumeData: any, apiKey: string): Promise<string> {
-  // Build context from resume data
-  const workExps = resumeData.work_experiences || [];
-  const educations = resumeData.educations || [];
-  const skills = resumeData.skills || [];
-  const projects = resumeData.projects || [];
+// ─── Date helpers ─────────────────────────────────────────────────────────────
 
-  let context = "Based on the following resume information, write a professional 2-3 sentence summary:\n\n";
+const MON = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
+const YEAR = "\\d{4}";
+const DATE_PAT = `(?:${MON}\\s+${YEAR}|${YEAR}(?:-\\d{2})?)`;
+const DATE_RANGE = new RegExp(`(${DATE_PAT})\\s*(?:[-–—]|to)\\s*(${DATE_PAT}|present|current|now)`, "gi");
 
-  if (workExps.length > 0) {
-    context += "Work Experience:\n";
-    workExps.slice(0, 3).forEach((exp: any) => {
-      context += `- ${exp.role || "Position"} at ${exp.company || "Company"}`;
-      if (exp.description) {
-        context += `: ${exp.description.substring(0, 200)}`;
-      }
-      context += "\n";
-    });
+const MONTH_NUM: Record<string, string> = {
+  jan:"01",feb:"02",mar:"03",apr:"04",may:"05",jun:"06",
+  jul:"07",aug:"08",sep:"09",oct:"10",nov:"11",dec:"12",
+};
+
+function normalizeDate(d: string): string {
+  if (!d) return "";
+  const lower = d.toLowerCase().trim();
+  if (lower === "present" || lower === "current" || lower === "now") return "";
+  const mY = d.match(new RegExp(`(${MON})\\s+(\\d{4})`, "i"));
+  if (mY) {
+    const m = MONTH_NUM[mY[1].toLowerCase().substring(0, 3)] || "01";
+    return `${mY[2]}-${m}`;
   }
+  const yOnly = d.match(/^(\d{4})(?:-(\d{2}))?$/);
+  if (yOnly) return yOnly[2] ? `${yOnly[1]}-${yOnly[2]}` : yOnly[1];
+  return d;
+}
 
-  if (educations.length > 0) {
-    context += "\nEducation:\n";
-    educations.slice(0, 2).forEach((edu: any) => {
-      context += `- ${edu.degree || ""} ${edu.field_of_study ? `in ${edu.field_of_study}` : ""} from ${edu.institution || ""}\n`;
-    });
+function parseDateRange(text: string): { start: string; end: string; current: boolean } {
+  DATE_RANGE.lastIndex = 0;
+  const m = DATE_RANGE.exec(text);
+  DATE_RANGE.lastIndex = 0;
+  if (!m) {
+    const ys = text.match(/\b(\d{4})\b/g);
+    return { start: ys?.[0] ?? "", end: ys?.[1] ?? "", current: false };
   }
+  const endLower = m[2].toLowerCase();
+  const isCurrent = endLower === "present" || endLower === "current" || endLower === "now";
+  return { start: normalizeDate(m[1]), end: isCurrent ? "" : normalizeDate(m[2]), current: isCurrent };
+}
 
-  if (skills.length > 0) {
-    context += "\nKey Skills:\n";
-    const skillNames = skills.slice(0, 10).map((s: any) => s.name || s.category).filter(Boolean);
-    context += skillNames.join(", ") + "\n";
+// ─── Experience parser ───────────────────────────────────────────────────────
+
+function parseExperiences(lines: string[]) {
+  if (!lines.length) return [];
+
+  // Split into entries: a new entry starts when a line contains a date range
+  const entries: string[][] = [];
+  let cur: string[] = [];
+  const DATE_RE = new RegExp(DATE_PAT, "i");
+
+  for (const line of lines) {
+    const hasDate = DATE_RE.test(line);
+    if (hasDate && cur.length > 0) {
+      entries.push(cur);
+      cur = [line];
+    } else {
+      cur.push(line);
+    }
   }
+  if (cur.length) entries.push(cur);
 
-  if (projects.length > 0) {
-    context += "\nNotable Projects:\n";
-    projects.slice(0, 2).forEach((proj: any) => {
-      context += `- ${proj.title || "Project"}`;
-      if (proj.description) {
-        context += `: ${proj.description.substring(0, 150)}`;
-      }
-      context += "\n";
-    });
-  }
+  return entries.map((elines) => {
+    const entryText = elines.join("\n");
+    const { start, end, current } = parseDateRange(entryText);
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout for summary
-  
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "You are a professional resume writer. Write concise, impactful professional summaries (2-3 sentences) that highlight key qualifications, experience, and value proposition. Focus on achievements and expertise.",
-          },
-          {
-            role: "user",
-            content: context + "\n\nWrite a professional summary:",
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 200,
-      }),
-    });
-    
-    clearTimeout(timeoutId);
+    // Extended bullet set — includes ● (U+25CF) and other Unicode variants
+    const BULLET_RE = /^[•·●○▪▸◦→➜➢➤\-\*\+]|^\d+\./;
+    const stripBullet = (l: string) => l.replace(/^[•·●○▪▸◦→➜➢➤\-\*\+]\s*/, "").replace(/^\d+\.\s*/, "").trim();
 
-    if (!response.ok) {
-      let errorMessage = "OpenAI API error";
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error?.message || errorData.error || errorMessage;
-      } catch {
-        const errorText = await response.text();
-        errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
-      }
-      throw new Error(`OpenAI API error: ${errorMessage}`);
+    const bulletIdx = elines.findIndex((l) => BULLET_RE.test(l));
+    const headerLines = elines
+      .slice(0, bulletIdx === -1 ? Math.min(3, elines.length) : bulletIdx)
+      .filter((l) => !new RegExp(`^${DATE_PAT}$`, "i").test(l) && !/^\d{4}$/.test(l))
+      // Strip any stray bullet chars from header lines and remove lines that are
+      // clearly descriptions (very long, >80 chars after stripping the bullet)
+      .map(stripBullet)
+      .filter((l) => l.length > 0 && l.length <= 80);
+
+    let role = "", company = "";
+    if (headerLines.length >= 2) {
+      [role, company] = [headerLines[0], headerLines[1]];
+    } else if (headerLines.length === 1) {
+      const parts = headerLines[0].split(/\s*[\|@]\s*/);
+      role = parts[0]?.trim() ?? "";
+      company = parts[1]?.trim() ?? "";
     }
 
-    const data = await response.json();
-    const content = data.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content in OpenAI response for summary generation");
+    // Collect description from bullet lines PLUS any header lines that were
+    // too long to be a role/company (they were filtered out above)
+    const longHeaderLines = elines
+      .slice(0, bulletIdx === -1 ? Math.min(3, elines.length) : bulletIdx)
+      .filter((l) => !new RegExp(`^${DATE_PAT}$`, "i").test(l) && !/^\d{4}$/.test(l))
+      .map(stripBullet)
+      .filter((l) => l.length > 80);
+
+    const bullets = bulletIdx >= 0 ? elines.slice(bulletIdx) : [];
+    const description = [...longHeaderLines, ...bullets.map(stripBullet)].join("\n");
+
+    return { company, role, start_date: start, end_date: end, is_current: current, description };
+  }).filter((e) => e.role || e.company);
+}
+
+// ─── Education parser ─────────────────────────────────────────────────────────
+
+const DEGREE_RE = /\b(B\.?Tech|B\.?E\.?|B\.?Sc\.?|B\.?Com\.?|B\.?A\.?|BBA|BCA|M\.?Tech|M\.?E\.?|M\.?Sc\.?|M\.?Com\.?|M\.?A\.?|MBA|MCA|Ph\.?D\.?|Diploma|Bachelor|Master|Associate)\b/gi;
+
+function parseEducations(lines: string[]) {
+  if (!lines.length) return [];
+
+  const entries: string[][] = [];
+  let cur: string[] = [];
+  for (const line of lines) {
+    DEGREE_RE.lastIndex = 0;
+    if (DEGREE_RE.test(line) && cur.length > 0) {
+      entries.push(cur);
+      cur = [line];
+    } else {
+      cur.push(line);
+    }
+  }
+  if (cur.length) entries.push(cur);
+
+  return entries.map((elines) => {
+    const entryText = elines.join("\n");
+    DEGREE_RE.lastIndex = 0;
+    const degM = DEGREE_RE.exec(entryText);
+    DEGREE_RE.lastIndex = 0;
+    const degree = degM?.[0] ?? "";
+
+    let fieldOfStudy = "";
+    if (degree) {
+      const fM = entryText.match(new RegExp(`${degree}\\s+(?:of\\s+|in\\s+)?([A-Za-z\\s]+?)(?:\\s*[-–,]|\\s*\\d{4}|$)`, "i"));
+      if (fM) fieldOfStudy = fM[1].trim();
     }
 
-    return content.trim();
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    if (error.name === "AbortError") {
-      throw new Error("Summary generation timed out after 1 minute");
+    let institution = "";
+    for (const line of elines) {
+      DEGREE_RE.lastIndex = 0;
+      if (!DEGREE_RE.test(line) && !/\d{4}/.test(line) && line.length > 3) {
+        institution = line.trim();
+        break;
+      }
     }
-    throw error;
+
+    const { start, end, current } = parseDateRange(entryText);
+    return { institution, degree, field_of_study: fieldOfStudy, start_date: start, end_date: end, is_current: current, description: "" };
+  }).filter((e) => e.degree || e.institution);
+}
+
+// ─── Skills parser ───────────────────────────────────────────────────────────
+
+const FALLBACK_SKILLS = ["Python","JavaScript","TypeScript","Java","SQL","React","Node.js","AWS","Docker","Kubernetes","Git","Machine Learning","Data Analysis","Figma","Canva","Photoshop","Google Analytics","SEO","SEM","Tableau","Power BI","MongoDB","PostgreSQL","MySQL","Redis","GraphQL","HTML","CSS","C++","C#","Swift","Kotlin","Flutter","Django","FastAPI","Spring","Angular","Vue.js","Pandas","NumPy","TensorFlow","PyTorch","Salesforce","HubSpot","Jira","Notion","Excel","Product Management","Marketing","Sales","Finance","Accounting","Communication","Leadership","Project Management","Social Media","Content Writing","Video Editing","Graphic Design"];
+
+function parseSkills(sectionLines: string[], fullText: string) {
+  const skills: Array<{ category: string; name: string; proficiency: string }> = [];
+
+  for (const line of sectionLines) {
+    const colonIdx = line.indexOf(":");
+    if (colonIdx > 0 && colonIdx < 40) {
+      const category = line.slice(0, colonIdx).trim();
+      const names = line.slice(colonIdx + 1).split(/[,;|·•]+/).map((s) => s.trim()).filter((s) => s.length > 0 && s.length < 50);
+      for (const name of names) skills.push({ category, name, proficiency: "" });
+    } else {
+      const items = line.split(/[,;|·•]+/).map((s) => s.trim()).filter((s) => s.length > 1 && s.length < 50 && !/^\d+$/.test(s));
+      for (const name of items) skills.push({ category: "Skills", name, proficiency: "" });
+    }
   }
+
+  if (skills.length === 0) {
+    for (const skill of FALLBACK_SKILLS) {
+      if (new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(fullText)) {
+        skills.push({ category: "Skills", name: skill, proficiency: "" });
+      }
+    }
+  }
+
+  return skills;
+}
+
+// ─── Projects parser ─────────────────────────────────────────────────────────
+
+function parseProjects(lines: string[]) {
+  if (!lines.length) return [];
+
+  const projects: Array<{ title: string; url: string; start_date: string; end_date: string; description: string }> = [];
+  let cur: string[] = [];
+  const BULLET_RE = /^[•·\-\*▪◦→\+]|^\d+\./;
+  const DATE_RE = new RegExp(DATE_PAT, "i");
+
+  for (const line of lines) {
+    const isBullet = BULLET_RE.test(line);
+    const hasDate = DATE_RE.test(line);
+    if (!isBullet && !hasDate && cur.length > 0 && line.length < 80) {
+      projects.push(buildProject(cur));
+      cur = [line];
+    } else {
+      cur.push(line);
+    }
+  }
+  if (cur.length) projects.push(buildProject(cur));
+
+  return projects.filter((p) => p.title);
+}
+
+function buildProject(lines: string[]) {
+  const text = lines.join("\n");
+  const { start, end } = parseDateRange(text);
+  const urlM = text.match(/https?:\/\/\S+/);
+  const description = lines
+    .slice(1)
+    .map((l) => l.replace(/^[•·\-\*▪◦→\+]\s*/, "").replace(/^\d+\.\s*/, ""))
+    .join("\n");
+  return { title: lines[0] ?? "", url: urlM?.[0] ?? "", start_date: start, end_date: end, description };
+}
+
+// ─── Certifications parser ───────────────────────────────────────────────────
+
+function parseCertifications(lines: string[]) {
+  return lines
+    .filter((l) => l.length > 3)
+    .map((line) => {
+      const dateM = line.match(/\b(\d{4})\b/);
+      const name = line.replace(/\b\d{4}\b/, "").replace(/^[•·\-\*▪◦→\+]\s*/, "").trim();
+      return { name, issuer: "", issue_date: dateM?.[1] ?? "", expiry_date: "", url: "" };
+    })
+    .filter((c) => c.name);
 }

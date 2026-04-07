@@ -13,7 +13,7 @@ import { useEffect } from "react";
 import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
 import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
-import { capturePostHog, identifyPostHogUser, initPostHog } from "./lib/posthog";
+import { capturePostHog, identifyPostHogUser, initPostHog, registerPostHogProps } from "./lib/posthog";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
 import "./app.css";
@@ -107,6 +107,39 @@ function MixpanelInit() {
     initMixpanel();
     initPostHog();
   }, []);
+
+  // Register UTM params as PostHog super properties so all subsequent events carry them
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const utmProps: Record<string, string> = {};
+    for (const key of ["utm_campaign", "utm_source", "utm_medium", "utm_content", "utm_term"]) {
+      const val = params.get(key);
+      if (val) utmProps[key] = val;
+    }
+    if (Object.keys(utmProps).length > 0) {
+      registerPostHogProps(utmProps);
+    }
+  }, []);
+
+  // Track scroll depth milestones (25/50/75/100%) per page, firing scroll_depth events
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const milestones = new Set<number>();
+    function onScroll() {
+      const scrolled = window.scrollY + window.innerHeight;
+      const total = document.documentElement.scrollHeight;
+      const pct = Math.round((scrolled / total) * 100);
+      for (const depth of [25, 50, 75, 100]) {
+        if (pct >= depth && !milestones.has(depth)) {
+          milestones.add(depth);
+          capturePostHog("scroll_depth", { depth, path: location.pathname });
+        }
+      }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [location.pathname]);
 
   // Identify user when session is available
   useEffect(() => {

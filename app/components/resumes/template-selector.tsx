@@ -5,6 +5,33 @@ import { ConfirmModal } from "~/components/confirm-modal";
 import type { Template } from "~/lib/template-store";
 import { normalizeTemplates } from "~/lib/template-store";
 
+// Visual placeholder shown when no preview image is available
+function TemplatePlaceholder({ templateId, category }: { templateId: string; category: string }) {
+  // Map template categories to visual styles
+  const styles: Record<string, { header: string; accent: string; lines: string[] }> = {
+    professional: { header: "#1e293b", accent: "#3b82f6", lines: ["w-3/4", "w-full", "w-5/6", "w-full", "w-2/3"] },
+    modern:       { header: "#7c3aed", accent: "#a78bfa", lines: ["w-full", "w-4/5", "w-full", "w-3/4", "w-full"] },
+    minimal:      { header: "#374151", accent: "#6b7280", lines: ["w-2/3", "w-full", "w-5/6", "w-4/5", "w-full"] },
+    creative:     { header: "#059669", accent: "#34d399", lines: ["w-full", "w-3/4", "w-full", "w-5/6", "w-2/3"] },
+    academic:     { header: "#b45309", accent: "#f59e0b", lines: ["w-3/4", "w-full", "w-2/3", "w-full", "w-5/6"] },
+  };
+  const style = styles[category?.toLowerCase()] || styles.professional;
+
+  return (
+    <div className="w-full h-full bg-white p-3 flex flex-col gap-1.5 select-none" aria-hidden>
+      {/* Header bar */}
+      <div className="rounded h-5 w-full mb-1" style={{ backgroundColor: style.header }} />
+      {/* Accent line */}
+      <div className="rounded h-1 w-1/3 mb-2" style={{ backgroundColor: style.accent }} />
+      {/* Content lines */}
+      {style.lines.map((w, i) => (
+        <div key={i} className={`rounded h-1.5 bg-gray-200 ${w}`} />
+      ))}
+      <div className="mt-auto rounded h-1 w-2/5" style={{ backgroundColor: style.accent }} />
+    </div>
+  );
+}
+
 interface TemplateSelectorProps {
   selectedTemplateId: string;
   onTemplateChange: (templateId: string) => void;
@@ -67,26 +94,43 @@ export function TemplateSelector({
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {templates.map((template) => (
-          <button
-            key={template.id}
-            onClick={() => handleTemplateSelect(template.id)}
-            className={`relative p-4 border-2 rounded-lg text-left transition-all ${
-              selectedTemplateId === template.id
-                ? "border-emerald-500 bg-emerald-50"
-                : "border-gray-200 hover:border-gray-300 bg-white"
-            }`}
-          >
-            {selectedTemplateId === template.id && (
-              <div className="absolute top-2 right-2">
-                <FiCheck className="h-5 w-5 text-emerald-500" />
+        {templates.map((template) => {
+          const previewSrc = template.previewUrl || template.assets?.previewImage;
+          return (
+            <button
+              key={template.id}
+              onClick={() => handleTemplateSelect(template.id)}
+              className={`relative border-2 rounded-lg text-left transition-all overflow-hidden ${
+                selectedTemplateId === template.id
+                  ? "border-emerald-500 ring-2 ring-emerald-200"
+                  : "border-gray-200 hover:border-gray-400 bg-white"
+              }`}
+            >
+              {selectedTemplateId === template.id && (
+                <div className="absolute top-2 right-2 z-10 bg-emerald-500 rounded-full p-0.5">
+                  <FiCheck className="h-3.5 w-3.5 text-white" />
+                </div>
+              )}
+              {/* Preview area */}
+              <div className="w-full h-40 bg-gray-100 flex items-center justify-center overflow-hidden border-b border-gray-200">
+                {previewSrc ? (
+                  <img
+                    src={previewSrc}
+                    alt={`${template.name} preview`}
+                    className="w-full h-full object-cover object-top"
+                  />
+                ) : (
+                  <TemplatePlaceholder templateId={template.id} category={template.category} />
+                )}
               </div>
-            )}
-            <div className="font-semibold text-gray-900 mb-1">{template.name}</div>
-            <div className="text-sm text-gray-600">{template.description}</div>
-            <div className="text-xs text-gray-500 mt-2 capitalize">{template.category}</div>
-          </button>
-        ))}
+              {/* Info */}
+              <div className="p-3">
+                <div className="font-semibold text-gray-900 text-sm">{template.name}</div>
+                <div className="text-xs text-gray-500 mt-0.5 capitalize">{template.category}</div>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       <ConfirmModal
