@@ -106,7 +106,7 @@ export default function StylePickPage() {
   const activePreviewIsLoading = previewLoading[activePreview];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-24">
       <Header />
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-8">
         <h1 className="font-clash text-2xl font-bold text-studojo-ink mb-1">Pick your email style</h1>
@@ -188,17 +188,19 @@ export default function StylePickPage() {
           </div>
         </div>
 
-        <div className="flex justify-end mt-8">
-          <button
-            onClick={handleContinue}
-            disabled={selected.length === 0}
-            className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center gap-2"
-          >
-            Use these styles <FiArrowRight className="w-4 h-4" />
-          </button>
-        </div>
       </div>
       <Footer />
+
+      {/* Floating Use these styles button */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
+        <button
+          onClick={handleContinue}
+          disabled={selected.length === 0}
+          className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center gap-2 whitespace-nowrap"
+        >
+          Use these styles <FiArrowRight className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
