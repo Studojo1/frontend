@@ -19,7 +19,7 @@ export function meta() {
     { property: "og:url", content: `${BASE_URL}/reports/marketing-india-2026` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Marketing Internships in India 2026 — Studojo" },
+    { name: "twitter:title", content: "Marketing Internships in India 2026 - Studojo" },
     { name: "twitter:description", content: "22,000+ marketing internship listings. A 6x stipend gap. Where the good roles are, what they pay, and why most students apply to the wrong ones." },
   ];
 }
@@ -52,7 +52,7 @@ function initCharts() {
     new Chart(el, config);
   }
 
-  // Chart 1 — Stipend range by company type
+  // Chart 1 - Stipend range by company type
   make("stipendChart", {
     type: "bar",
     data: {
@@ -75,7 +75,7 @@ function initCharts() {
     },
   });
 
-  // Chart 2 — Role type growth YoY
+  // Chart 2 - Role type growth YoY
   make("roleGrowthChart", {
     type: "bar",
     data: {
@@ -101,7 +101,7 @@ function initCharts() {
     },
   });
 
-  // Chart 3 — Skills required in JDs
+  // Chart 3 - Skills required in JDs
   make("skillChart", {
     type: "bar",
     data: {
@@ -123,7 +123,7 @@ function initCharts() {
     },
   });
 
-  // Chart 4 — City distribution
+  // Chart 4 - City distribution
   make("cityChart", {
     type: "bar",
     data: {
@@ -147,7 +147,7 @@ function initCharts() {
     },
   });
 
-  // Chart 5 — Conversion funnel (applications vs callbacks)
+  // Chart 5 - Conversion funnel (applications vs callbacks)
   make("funnelChart", {
     type: "bar",
     data: {
@@ -220,7 +220,7 @@ export default function MarketingIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-green">Finding 01</span>
               <h2 className="rpt-h2">22,000+ listings. But Bengaluru and Mumbai together hold nearly half of them.</h2>
-              <p className="rpt-lead">Marketing internship listings grew 31% year-on-year in 2025 — faster than any other internship category on major Indian job boards. The city distribution is skewed, but less than most students expect.</p>
+              <p className="rpt-lead">Marketing internship listings grew 31% year-on-year in 2025 - faster than any other internship category on major Indian job boards. The city distribution is skewed, but less than most students expect.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c4">
@@ -239,7 +239,7 @@ export default function MarketingIndiaReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">The remote shift is real</div>
-              <p>34% of marketing internship listings in 2026 explicitly allow remote or hybrid work — up from 21% a year ago. Content strategy, SEO, email marketing, and performance marketing roles are leading this shift. If you are in Jaipur, Bhopal, or Kochi, these are increasingly accessible without relocation.</p>
+              <p>34% of marketing internship listings in 2026 explicitly allow remote or hybrid work - up from 21% a year ago. Content strategy, SEO, email marketing, and performance marketing roles are leading this shift. If you are in Jaipur, Bhopal, or Kochi, these are increasingly accessible without relocation.</p>
             </div>
             <p className="rpt-source">Source: Internshala April 2026, LinkedIn Jobs India, Unstop, Naukri.com, Foundit.in</p>
           </div>
@@ -249,7 +249,7 @@ export default function MarketingIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-green">Finding 02</span>
               <h2 className="rpt-h2">The stipend gap is 6x. ₹5,000 and ₹40,000 are both called "marketing intern."</h2>
-              <p className="rpt-lead">The median listed stipend on Internshala is ₹8,000 per month. But the top quartile of roles — the ones worth applying to — pays ₹15,000 to ₹40,000. The difference is almost entirely explained by company type, not role title.</p>
+              <p className="rpt-lead">The median listed stipend on Internshala is ₹8,000 per month. But the top quartile of roles - the ones worth applying to - pays ₹15,000 to ₹40,000. The difference is almost entirely explained by company type, not role title.</p>
             </div>
 
             <blockquote className="rpt-pullquote">
@@ -261,7 +261,7 @@ export default function MarketingIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 320 }}><canvas id="stipendChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">B2B SaaS companies pay the most — ₹15,000 to ₹40,000 per month — because the intern is expected to own a measurable output (pipeline from content, organic traffic, email opens). FMCG summer programs from companies like HUL, Marico, and Godrej pay ₹10,000 to ₹30,000 with structured mentorship. Agencies typically pay ₹8,000 to ₹18,000 but offer breadth of exposure. Early-stage pre-seed startups often pay ₹5,000 to ₹12,000 — and are frequently where you get the most actual responsibility, which matters more than the stipend at this stage.</p>
+            <p className="rpt-prose">B2B SaaS companies pay the most - ₹15,000 to ₹40,000 per month - because the intern is expected to own a measurable output (pipeline from content, organic traffic, email opens). FMCG summer programs from companies like HUL, Marico, and Godrej pay ₹10,000 to ₹30,000 with structured mentorship. Agencies typically pay ₹8,000 to ₹18,000 but offer breadth of exposure. Early-stage pre-seed startups often pay ₹5,000 to ₹12,000 - and are frequently where you get the most actual responsibility, which matters more than the stipend at this stage.</p>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-g">₹8,000</div><div className="rpt-lbl">Median listed stipend, all marketing interns (Internshala, April 2026)</div></div>
@@ -271,7 +271,7 @@ export default function MarketingIndiaReport() {
 
             <div className="rpt-callout rpt-co">
               <div className="rpt-cl">The ₹5,000 warning</div>
-              <p>Listings under ₹5,000/month account for roughly 28% of all marketing intern posts on Internshala. Most are from micro-SMEs, early-stage agencies, or college-level projects. They are not inherently bad — real responsibility at a tiny startup beats busy work at a big one — but filter for actual output ownership before accepting, not stipend alone.</p>
+              <p>Listings under ₹5,000/month account for roughly 28% of all marketing intern posts on Internshala. Most are from micro-SMEs, early-stage agencies, or college-level projects. They are not inherently bad - real responsibility at a tiny startup beats busy work at a big one - but filter for actual output ownership before accepting, not stipend alone.</p>
             </div>
             <p className="rpt-source">Source: Internshala stipend data April 2026, AmbitionBox, Glassdoor India, Studojo analysis</p>
           </div>
@@ -292,7 +292,7 @@ export default function MarketingIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-green">Finding 03</span>
               <h2 className="rpt-h2">Growth marketing is booming. "Social media intern" is the most crowded and slowest-growing category.</h2>
-              <p className="rpt-lead">Not all marketing sub-roles are growing at the same rate. The highest-paying and fastest-growing categories are also the least applied-to — because most students have never heard of them.</p>
+              <p className="rpt-lead">Not all marketing sub-roles are growing at the same rate. The highest-paying and fastest-growing categories are also the least applied-to - because most students have never heard of them.</p>
             </div>
 
             <div className="rpt-card">
@@ -300,7 +300,7 @@ export default function MarketingIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 360 }}><canvas id="roleGrowthChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">Growth and performance marketing roles grew 52% year-on-year — driven by D2C brands and SaaS companies that need interns who can run Meta and Google Ads, read attribution data, and iterate on experiments. Content strategy and SEO roles grew 41%, driven by every company trying to own organic search. Product marketing intern roles grew 38%, mostly at Series B+ startups. <strong>Generic "social media intern" listings grew only 8% — and traditional marketing roles actually contracted.</strong></p>
+            <p className="rpt-prose">Growth and performance marketing roles grew 52% year-on-year - driven by D2C brands and SaaS companies that need interns who can run Meta and Google Ads, read attribution data, and iterate on experiments. Content strategy and SEO roles grew 41%, driven by every company trying to own organic search. Product marketing intern roles grew 38%, mostly at Series B+ startups. <strong>Generic "social media intern" listings grew only 8% - and traditional marketing roles actually contracted.</strong></p>
 
             <div className="rpt-pill-row">
               {["Growth Marketing", "Performance Marketing", "Content Strategy", "SEO / Organic Growth", "Product Marketing"].map(p => <span key={p} className="rpt-pill rpt-pg">{p}</span>)}
@@ -310,7 +310,7 @@ export default function MarketingIndiaReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">Why niche roles pay more and get fewer applicants</div>
-              <p>A "growth marketing intern" requires knowledge of paid acquisition funnels, A/B testing, and analytics tools. Most students cannot demonstrate this credibly, so competition is lower and stipends are higher. The skill gap is addressable in 4–6 weeks of deliberate practice — running a ₹500 Meta campaign on a test account, learning GA4, building a small SEO content calendar. That practice, documented publicly, is worth more than a BBA degree on a marketing application.</p>
+              <p>A "growth marketing intern" requires knowledge of paid acquisition funnels, A/B testing, and analytics tools. Most students cannot demonstrate this credibly, so competition is lower and stipends are higher. The skill gap is addressable in 4–6 weeks of deliberate practice - running a ₹500 Meta campaign on a test account, learning GA4, building a small SEO content calendar. That practice, documented publicly, is worth more than a BBA degree on a marketing application.</p>
             </div>
             <p className="rpt-source">Source: Internshala listing data April 2026, LinkedIn Jobs India, Wellfound, Studojo role analysis</p>
           </div>
@@ -328,7 +328,7 @@ export default function MarketingIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="funnelChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">A generic "Social Media Intern" post at a recognised company attracts 200–400 applications. A "Growth Marketing Intern" post at a Series B SaaS company attracts 30–60 applications. A founder's LinkedIn post hiring a marketing intern directly gets 10–25 applications. The callback rate on the founder post is 41% — because every candidate who finds it has already demonstrated initiative by finding it. <strong>The single highest-leverage thing you can do is apply to roles that most students never see.</strong></p>
+            <p className="rpt-prose">A generic "Social Media Intern" post at a recognised company attracts 200–400 applications. A "Growth Marketing Intern" post at a Series B SaaS company attracts 30–60 applications. A founder's LinkedIn post hiring a marketing intern directly gets 10–25 applications. The callback rate on the founder post is 41% - because every candidate who finds it has already demonstrated initiative by finding it. <strong>The single highest-leverage thing you can do is apply to roles that most students never see.</strong></p>
 
             <div className="rpt-two-col">
               <div>
@@ -407,11 +407,11 @@ export default function MarketingIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 320 }}><canvas id="skillChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">Content creation is still the most frequently required skill at 88% of listings. But the gap is in what "content" means in 2026. It is not just writing blog posts. It is short-form video scripting, distribution strategy, SEO-integrated writing, and repurposing content across formats. <strong>The single fastest-growing skill requirement is analytics</strong> — GA4, Mixpanel, or even just reading a Meta Ads dashboard. Companies do not want interns who post; they want interns who can tell them whether the posts worked.</p>
+            <p className="rpt-prose">Content creation is still the most frequently required skill at 88% of listings. But the gap is in what "content" means in 2026. It is not just writing blog posts. It is short-form video scripting, distribution strategy, SEO-integrated writing, and repurposing content across formats. <strong>The single fastest-growing skill requirement is analytics</strong> - GA4, Mixpanel, or even just reading a Meta Ads dashboard. Companies do not want interns who post; they want interns who can tell them whether the posts worked.</p>
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">The one skill that actually screens out 60% of applicants</div>
-              <p>In conversations with 40+ hiring managers at Indian startups in Q1 2026, the most common rejection reason for marketing intern candidates was not poor writing — it was the inability to interpret basic analytics. "They can produce content. They cannot tell me if it worked." GA4 basics take two days to learn. Add a short analytics project to your portfolio and you immediately separate yourself from the majority of applicants.</p>
+              <p>In conversations with 40+ hiring managers at Indian startups in Q1 2026, the most common rejection reason for marketing intern candidates was not poor writing - it was the inability to interpret basic analytics. "They can produce content. They cannot tell me if it worked." GA4 basics take two days to learn. Add a short analytics project to your portfolio and you immediately separate yourself from the majority of applicants.</p>
             </div>
 
             <div className="rpt-two-col" style={{ marginTop: 24 }}>
@@ -500,11 +500,11 @@ export default function MarketingIndiaReport() {
               </div>
             </div>
 
-            <p className="rpt-prose" style={{ marginTop: 20 }}>The HUL summer internship is competitive for a reason: it is well-structured, the stipend is real, and the brand matters. But it also gets 400+ applicants per slot. The same week, a funded D2C skincare startup in Bengaluru posted a growth marketing intern role on LinkedIn with 11 applications. Both lead to real experience. The second one is actually accessible. <strong>The optimal strategy is to apply to both — but prioritise the niche role you can actually get.</strong></p>
+            <p className="rpt-prose" style={{ marginTop: 20 }}>The HUL summer internship is competitive for a reason: it is well-structured, the stipend is real, and the brand matters. But it also gets 400+ applicants per slot. The same week, a funded D2C skincare startup in Bengaluru posted a growth marketing intern role on LinkedIn with 11 applications. Both lead to real experience. The second one is actually accessible. <strong>The optimal strategy is to apply to both - but prioritise the niche role you can actually get.</strong></p>
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">How to find founder-direct hiring posts before they get aggregated</div>
-              <p>Search LinkedIn with: "marketing intern" "hiring" posted in the last 7 days — filter for India, sort by most recent. Set up a Google Alert for: site:linkedin.com "marketing intern" "India". Founder posts on LinkedIn typically appear 3–7 days before any aggregator picks them up. Those 3–7 days are your advantage.</p>
+              <p>Search LinkedIn with: "marketing intern" "hiring" posted in the last 7 days - filter for India, sort by most recent. Set up a Google Alert for: site:linkedin.com "marketing intern" "India". Founder posts on LinkedIn typically appear 3–7 days before any aggregator picks them up. Those 3–7 days are your advantage.</p>
             </div>
             <p className="rpt-source">Source: LinkedIn Jobs India April 2026, Wellfound, Internshala, Studojo curated listings</p>
           </div>
@@ -523,11 +523,11 @@ export default function MarketingIndiaReport() {
               <div className="rpt-stat"><div className="rpt-val rpt-o">22%</div><div className="rpt-lbl">Conversion rate at MNCs and large companies</div><span className="rpt-delta rpt-dn">Structured but competitive for full-time roles</span></div>
             </div>
 
-            <p className="rpt-prose">The funded startup conversion rate is high because the intern usually fills a genuine gap — they are not in a rotation program, they are doing actual work that would otherwise not get done. When the work is good, keeping the intern is cheaper and faster than hiring. The agency rate is lower because agencies run lean and typically do not convert interns into full-time hires in the same year. The MNC rate reflects both the competitive internal market for junior roles and the longer hiring timelines at larger organisations.</p>
+            <p className="rpt-prose">The funded startup conversion rate is high because the intern usually fills a genuine gap - they are not in a rotation program, they are doing actual work that would otherwise not get done. When the work is good, keeping the intern is cheaper and faster than hiring. The agency rate is lower because agencies run lean and typically do not convert interns into full-time hires in the same year. The MNC rate reflects both the competitive internal market for junior roles and the longer hiring timelines at larger organisations.</p>
 
             <div className="rpt-callout rpt-cp" style={{ background: "#f0fdf4", borderColor: "#10b981" }}>
               <div className="rpt-cl" style={{ color: "#065f46" }}>What interns who got converted did differently</div>
-              <p>They owned a metric. Not just "I helped with content" but "the blog posts I wrote drove 1,200 organic visits in 8 weeks." They made results visible to the founder or manager by putting numbers in their bi-weekly check-ins. Quantified output is what converts an internship into a job offer — not working harder or staying longer.</p>
+              <p>They owned a metric. Not just "I helped with content" but "the blog posts I wrote drove 1,200 organic visits in 8 weeks." They made results visible to the founder or manager by putting numbers in their bi-weekly check-ins. Quantified output is what converts an internship into a job offer - not working harder or staying longer.</p>
             </div>
             <p className="rpt-source">Source: Studojo intern outcomes survey 2025, LinkedIn India career progression data, Internshala conversion study 2025</p>
           </div>
@@ -540,7 +540,7 @@ export default function MarketingIndiaReport() {
               <p className="rpt-lead">64% of marketing internship applications at companies with more than 50 employees are screened by an ATS before a recruiter sees them. The rejection is silent. You never get a rejection email. Your resume just disappears.</p>
             </div>
 
-            <p className="rpt-prose">ATS systems filter on keyword matching. A marketing internship JD that says "SEO experience preferred" will filter out any resume that says "search engine experience" — even though it means the same thing. The fix is not to stuff your resume with keywords. It is to mirror the exact language in the JD you are applying to, naturally, in your experience and skills sections.</p>
+            <p className="rpt-prose">ATS systems filter on keyword matching. A marketing internship JD that says "SEO experience preferred" will filter out any resume that says "search engine experience" - even though it means the same thing. The fix is not to stuff your resume with keywords. It is to mirror the exact language in the JD you are applying to, naturally, in your experience and skills sections.</p>
 
             <div className="rpt-card">
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -563,7 +563,7 @@ export default function MarketingIndiaReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">The 3-minute ATS fix</div>
-              <p>Paste the job description into a word frequency tool. Find the 5–8 most-repeated marketing terms. Check whether those exact words appear anywhere in your resume. If not, add them — naturally, in context. This alone improves ATS pass-through rate by 30–40% based on our analysis of 800+ student resumes.</p>
+              <p>Paste the job description into a word frequency tool. Find the 5–8 most-repeated marketing terms. Check whether those exact words appear anywhere in your resume. If not, add them - naturally, in context. This alone improves ATS pass-through rate by 30–40% based on our analysis of 800+ student resumes.</p>
             </div>
             <p className="rpt-source">Source: Studojo resume analysis data 2025–2026, Jobscan ATS research, Greenhouse applicant tracking research</p>
           </div>
