@@ -47,7 +47,14 @@ export default function EnrichmentPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useOutreachAuth();
   const { candidateId, selectedTier, setSelectedTier, orderId } = useOutreachStore();
-  const { updateOrder } = useOrder();
+  const { createOrder, updateOrder } = useOrder();
+
+  // Ensure an order record exists — create one if this is a fresh user
+  useEffect(() => {
+    if (!orderId && candidateId) {
+      createOrder(candidateId);
+    }
+  }, [orderId, candidateId]);
 
   const [pricing, setPricing] = useState<TierPricing[]>([]);
   const [currency, setCurrency] = useState("USD");
