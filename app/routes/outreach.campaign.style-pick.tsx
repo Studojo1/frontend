@@ -6,6 +6,7 @@ import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
+import { capturePostHog } from "~/lib/posthog";
 
 const STYLES = [
   {
@@ -91,6 +92,7 @@ export default function StylePickPage() {
 
   const handleContinue = () => {
     setSelectedStyles(selected);
+    capturePostHog("style_selected", { styles: selected, styles_count: selected.length });
     navigate("/outreach/campaign/setup");
   };
 

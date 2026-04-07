@@ -8,6 +8,7 @@ import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { getToken, ControlPlaneError } from "~/lib/control-plane";
 import { fetchWithRetry } from "~/lib/fetch-with-retry";
+import { capturePostHog } from "~/lib/posthog";
 import type { ResumePreview } from "~/lib/outreach/types";
 
 export default function UploadPage() {
@@ -62,6 +63,12 @@ export default function UploadPage() {
 
       setPreview(data.preview);
       setCandidateId(data.candidate_id);
+      capturePostHog("resume_uploaded", {
+        candidate_id: data.candidate_id,
+        skills_count: data.preview?.skills?.length ?? 0,
+        experience_years: data.preview?.experience_years ?? null,
+        char_count: data.preview?.char_count ?? null,
+      });
     } catch (err: any) {
       setError(err?.body?.detail || err.message || "Upload failed. Please try again.");
     } finally {

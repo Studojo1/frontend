@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { verifyDodoPayment } from "~/lib/payments";
 import { outreachFetch } from "~/lib/outreach/api";
+import { capturePostHog } from "~/lib/posthog";
 import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
 
 export default function PaymentSuccess() {
@@ -32,6 +33,10 @@ export default function PaymentSuccess() {
 
         if (res.status === "paid") {
           setStatus("paid");
+          capturePostHog("payment_confirmed", {
+            job_type: jobType,
+            session_id: sessionId,
+          });
           return;
         }
         if (res.status === "failed") {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { capturePostHog } from "~/lib/posthog";
 import { FiArrowRight, FiZap } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -32,6 +33,11 @@ export default function FlexCapturePage() {
           best_project: bestProject.trim(),
           outcome: outcome.trim(),
         }),
+      });
+      capturePostHog("flex_captured", {
+        candidate_id: candidateId,
+        has_project: !!bestProject.trim(),
+        has_outcome: !!outcome.trim(),
       });
     } catch {
       // Non-blocking — if it fails we still proceed, emails fall back to resume parse

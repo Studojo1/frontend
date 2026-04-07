@@ -8,6 +8,7 @@ import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
+import { capturePostHog } from "~/lib/posthog";
 
 const stages = [
   { icon: FiShield, label: "Validating campaign configuration", duration: 1500 },
@@ -67,6 +68,12 @@ export default function CampaignLaunchingPage() {
 
         const newCampaignId = createData.campaign_id;
         setCampaignId(newCampaignId);
+        capturePostHog("campaign_started", {
+          campaign_id: newCampaignId,
+          queued_messages: createData.queued_messages ?? 0,
+          styles: selectedStyles,
+          lead_limit: selectedTier ?? null,
+        });
 
         if (createData.queued_messages === 0) {
           setError("No leads found. Please run lead discovery first.");

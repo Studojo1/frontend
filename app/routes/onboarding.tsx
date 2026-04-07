@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { capturePostHog } from "~/lib/posthog";
 import { useEffect, useRef, useState } from "react";
 import { redirect, useNavigate } from "react-router";
 import { Header } from "~/components";
@@ -225,6 +226,7 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
       goForward();
     } else if (step === 4) {
       if (referralSource) await updateField("referralSource", referralSource);
+      capturePostHog("onboarding_completed", { referral_source: referralSource || null });
       navigate("/", { replace: true });
     }
   };

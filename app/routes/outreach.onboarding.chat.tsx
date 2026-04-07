@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
+import { capturePostHog } from "~/lib/posthog";
 import { FiSend, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { ChatInterface } from "~/components/outreach/ChatInterface";
@@ -158,6 +159,11 @@ export default function ChatPage() {
             }),
           }).catch(() => {});
 
+          capturePostHog("profile_quiz_completed", {
+            candidate_id: candidateId,
+            questions_asked: questionsAsked,
+            has_psychometric: !!finalResponse.psychometric,
+          });
           // Navigate to loading page — it polls until profile is ready, then goes to profile
           navigate("/outreach/onboarding/loading");
         } else {

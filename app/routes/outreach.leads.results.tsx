@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { capturePostHog } from "~/lib/posthog";
 import { FiArrowRight, FiArrowLeft, FiFilter, FiMail, FiSend } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -24,7 +25,11 @@ export default function ResultsPage() {
   useEffect(() => {
     if (authLoading || !candidateId) return;
     outreachFetch<{ leads: Lead[] } | Lead[]>(`/candidate/${candidateId}/leads`)
-      .then((data) => setLeads(Array.isArray(data) ? data : data.leads || []))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data.leads || [];
+        setLeads(list);
+        capturePostHog("leads_loaded", { count: list.length, candidate_id: candidateId });
+      })
       .catch((err) => setError(err?.body?.detail || err.message || "Failed to load leads"))
       .finally(() => setLoading(false));
   }, [authLoading, candidateId]);
