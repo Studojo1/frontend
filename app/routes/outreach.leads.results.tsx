@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { FiArrowRight, FiArrowLeft, FiFilter, FiMail } from "react-icons/fi";
+import { FiArrowRight, FiArrowLeft, FiFilter, FiMail, FiSend } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { FlashCard } from "~/components/outreach/FlashCard";
@@ -43,7 +43,7 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-24">
       <Header />
       <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-6 md:px-8">
         <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between sm:mb-6">
@@ -69,7 +69,7 @@ export default function ResultsPage() {
               onClick={() => navigate("/outreach/enrichment")}
               className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
             >
-              <FiMail className="w-4 h-4 mr-1.5" /> Enrich Leads
+              <FiSend className="w-4 h-4 mr-1.5" /> Send Emails
             </button>
           </div>
         </div>
@@ -129,20 +129,22 @@ export default function ResultsPage() {
               </div>
             )}
 
-            {leads.length > 0 && (
-              <div className="text-center mt-8">
-                <button
-                  onClick={() => navigate("/outreach/enrichment")}
-                  className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
-                >
-                  Enrich Emails <FiArrowRight className="w-4 h-4 ml-2" />
-                </button>
-              </div>
-            )}
           </>
         )}
       </div>
       <Footer />
+
+      {/* Floating Send Emails button — always visible */}
+      {leads.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
+          <button
+            onClick={() => navigate("/outreach/enrichment")}
+            className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
+          >
+            <FiSend className="w-4 h-4 mr-2" /> Send Emails
+          </button>
+        </div>
+      )}
     </div>
   );
 }

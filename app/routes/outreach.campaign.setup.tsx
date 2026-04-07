@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
-  FiShield, FiClock, FiMail, FiZap, FiCheckCircle, FiEye, FiEdit2,
+  FiShield, FiClock, FiMail, FiZap, FiCheckCircle, FiEdit2,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
@@ -28,9 +28,6 @@ export default function CampaignSetupPage() {
   const [campaignName, setCampaignName] = useState("My Outreach Campaign");
   const [launching, setLaunching] = useState(false);
   const [error, setError] = useState("");
-  const [previewEmail, setPreviewEmail] = useState<{ subject: string; body: string; lead_name: string; company: string } | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(true);
-  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Test launch state
   const [testEmails, setTestEmails] = useState<TestEmail[]>([]);
@@ -47,31 +44,9 @@ export default function CampaignSetupPage() {
 
   // candidateId recovery is handled by useOutreachAuth hook — no duplicate needed here
 
-  const fetchPreview = async () => {
-    if (!candidateId) return;
-    setPreviewLoading(true);
-    setPreviewError(null);
-    try {
-      const data = await outreachFetch<{ subject: string; body: string; lead_name: string; company: string }>("/campaign/preview-email", {
-        method: "POST",
-        body: JSON.stringify({ candidate_id: candidateId, selected_styles: selectedStyles.length > 0 ? selectedStyles : ["value_prop"] }),
-        maxRetries: 1,
-        timeout: 15000,
-      });
-      setPreviewEmail(data);
-    } catch (err: any) {
-      setPreviewEmail(null);
-      const detail = err?.body?.detail || err?.message || "Preview generation failed";
-      setPreviewError(detail);
-    } finally {
-      setPreviewLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (!candidateId) return;
     updateOrder({ status: "campaign_setup", log_entry: "Entered campaign setup" });
-    fetchPreview();
   }, [candidateId]);
 
   const loadTestEmails = async () => {
@@ -163,11 +138,11 @@ export default function CampaignSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-24">
       <Header />
       <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
         <h1 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Campaign Setup</h1>
-        <p className="text-sm text-studojo-muted font-satoshi mb-8">Review your email preview and settings before launching.</p>
+        <p className="text-sm text-studojo-muted font-satoshi mb-8">Review your settings before launching.</p>
 
         <div className="space-y-6">
           {/* Campaign Name */}
@@ -179,45 +154,6 @@ export default function CampaignSetupPage() {
               placeholder="My Outreach Campaign"
               className="w-full h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
             />
-          </div>
-
-          {/* Email Preview */}
-          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-purple">
-                <FiEye className="w-5 h-5" />
-              </div>
-              <h3 className="font-clash text-lg font-bold text-studojo-ink">Email Preview</h3>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium bg-studojo-purple-bg text-studojo-purple border border-studojo-purple/30">
-                Sample
-              </span>
-            </div>
-            <p className="text-sm text-studojo-muted font-satoshi mb-4">Here is a sample of what your outreach emails will look like.</p>
-            {previewLoading ? (
-              <div className="flex justify-center py-6">
-                <div className="w-6 h-6 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : previewEmail ? (
-              <div className="bg-studojo-surface-muted rounded-xl border-2 border-studojo-ink/20 p-6">
-                <div className="mb-4 pb-4 border-b-2 border-studojo-ink/10">
-                  <p className="text-xs text-studojo-muted font-satoshi">To: {previewEmail.lead_name} at {previewEmail.company}</p>
-                </div>
-                <p className="text-sm font-bold mb-4 font-satoshi text-studojo-ink">Subject: {previewEmail.subject}</p>
-                <p className="text-sm text-studojo-muted whitespace-pre-line leading-relaxed font-satoshi">{previewEmail.body}</p>
-              </div>
-            ) : (
-              <div className="bg-studojo-surface-muted rounded-xl p-6 text-center">
-                <p className="text-sm text-studojo-muted font-satoshi mb-2">
-                  {previewError || "Email preview could not be generated."}
-                </p>
-                <button
-                  onClick={fetchPreview}
-                  className="text-sm font-satoshi font-medium text-studojo-purple hover:underline"
-                >
-                  Retry
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Safe Sending Settings */}
@@ -320,24 +256,25 @@ export default function CampaignSetupPage() {
           </div>
 
           {error && <p className="text-red-600 text-sm text-center font-satoshi">{error}</p>}
-
-          <div className="text-center pt-6">
-            <button
-              onClick={handleLaunch}
-              disabled={launching}
-              className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center"
-            >
-              {launching ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-              ) : (
-                <FiCheckCircle className="w-5 h-5 mr-2" />
-              )}
-              Launch Campaign
-            </button>
-          </div>
         </div>
       </div>
       <Footer />
+
+      {/* Floating Launch Campaign button */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
+        <button
+          onClick={handleLaunch}
+          disabled={launching}
+          className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center whitespace-nowrap"
+        >
+          {launching ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+          ) : (
+            <FiCheckCircle className="w-5 h-5 mr-2" />
+          )}
+          Launch Campaign
+        </button>
+      </div>
     </div>
   );
 }

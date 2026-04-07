@@ -26,8 +26,8 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
   const selectedOpts = selected.map((label) => options.find((o) => o.label === label)).filter(Boolean) as MCQOption[];
   const hasVagueSelected = selectedOpts.some(requiresDetail);
 
-  // Always show the extra text box once something is selected — optional except for vague options
-  const showExtraInput = selected.length > 0;
+  // Only show the text box when a vague/other option is selected — not for every selection
+  const showExtraInput = hasVagueSelected;
 
   useEffect(() => {
     if (showExtraInput) {
