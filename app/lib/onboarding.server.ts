@@ -105,13 +105,14 @@ export async function createProfile(
 
 export async function updateProfile(
   userId: string,
-  data: Partial<{ fullName: string; college: string; yearOfStudy: string; course: string }>
+  data: Partial<{ fullName: string; college: string; yearOfStudy: string; course: string; referralSource: string }>
 ) {
   const updates: Record<string, string> = {};
   if (data.fullName?.trim()) updates.fullName = data.fullName.trim();
   if (data.college?.trim()) updates.college = data.college.trim();
   if (data.yearOfStudy?.trim()) updates.yearOfStudy = data.yearOfStudy.trim();
   if (data.course?.trim()) updates.course = data.course.trim();
+  if (data.referralSource?.trim()) updates.referralSource = data.referralSource.trim();
 
   if (Object.keys(updates).length === 0) return null;
 

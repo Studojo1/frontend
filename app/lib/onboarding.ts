@@ -10,6 +10,7 @@ export type OnboardingProfile = {
   college: string;
   yearOfStudy: string;
   course: string;
+  referralSource?: string | null;
   createdAt: Date;
   updatedAt: Date;
 };

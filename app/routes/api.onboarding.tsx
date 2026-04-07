@@ -29,11 +29,12 @@ export async function action({ request }: Route.ActionArgs) {
   // PATCH: Update existing profile fields incrementally
   if (request.method === "PATCH") {
     const data = body as Record<string, unknown>;
-    const updates: Partial<{ fullName: string; college: string; yearOfStudy: string; course: string }> = {};
+    const updates: Partial<{ fullName: string; college: string; yearOfStudy: string; course: string; referralSource: string }> = {};
     if (typeof data.college === "string") updates.college = data.college;
     if (typeof data.yearOfStudy === "string") updates.yearOfStudy = data.yearOfStudy;
     if (typeof data.course === "string") updates.course = data.course;
     if (typeof data.fullName === "string") updates.fullName = data.fullName;
+    if (typeof data.referralSource === "string") updates.referralSource = data.referralSource;
 
     const profile = await updateProfile(session.user.id, updates);
     if (!profile) {
