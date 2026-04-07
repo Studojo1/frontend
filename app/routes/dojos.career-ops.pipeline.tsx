@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 import { FiZap, FiArrowLeft, FiDownload, FiTrash2, FiExternalLink } from "react-icons/fi";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 export function meta() {
   return [{ title: "My Pipeline - Career Ops Dojo | Studojo" }];

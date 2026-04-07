@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Header, Footer } from "~/components";
 import { FiZap, FiLink, FiFileText, FiArrowLeft, FiDownload } from "react-icons/fi";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 export function meta() {
   return [{ title: "Evaluate a Job - Career Ops Dojo | Studojo" }];

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { Header, Footer } from "~/components";
 import { FiZap, FiFileText, FiTrendingUp, FiUpload, FiArrowRight, FiCheckCircle } from "react-icons/fi";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 export function meta() {
   const BASE_URL = "https://studojo.com";
