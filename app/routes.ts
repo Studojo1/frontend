@@ -78,6 +78,7 @@ export default [
   route("reports/sales-india-2026", "routes/reports.sales-india-2026.tsx"),
   route("reports/cs-india-2026", "routes/reports.cs-india-2026.tsx"),
   route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),
+  route("reports/marketing-india-2026", "routes/reports.marketing-india-2026.tsx"),
   route("api/outreach/email-chat", "routes/api.outreach.email-chat.tsx"),
   route("lab/email", "routes/lab.email.tsx"),
   route("api/ai-risk/analyse", "routes/api.ai-risk.analyse.tsx"),
