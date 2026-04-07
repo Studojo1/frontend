@@ -151,7 +151,7 @@ function initCharts() {
   make("funnelChart", {
     type: "bar",
     data: {
-      labels: ["Generic "Social Media\nIntern" (big co)", "Niche role\n(Growth / Product Mktg)", "Founder post\n(LinkedIn, direct)", "Agency\n(coordinator role)"],
+      labels: ["Generic 'Social Media'\nIntern (big co)", "Niche role\n(Growth / Product Mktg)", "Founder post\n(LinkedIn, direct)", "Agency\n(coordinator role)"],
       datasets: [
         { label: "Applications per role (index)", data: [300, 45, 18, 80], backgroundColor: GREY, borderRadius: 4, borderWidth: 0 },
         { label: "Callback rate (%)", data: [3, 22, 41, 12], backgroundColor: GREEN, borderRadius: 4, borderWidth: 0 },
