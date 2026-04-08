@@ -426,7 +426,7 @@ export function ApplicationFlow({
       {!importModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div
-            className="relative w-full max-w-2xl rounded-lg border-2 border-neutral-900 bg-white p-6 shadow-lg pointer-events-auto"
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg border-2 border-neutral-900 bg-white p-6 shadow-lg pointer-events-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button
