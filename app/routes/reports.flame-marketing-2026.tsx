@@ -136,7 +136,7 @@ function initCharts() {
     data: {
       labels: ["Social media\n(Instagram/LinkedIn)", "Content writing\n/ copywriting", "Canva", "MS Excel", "SEO\n(on-page/off-page)", "Google Analytics\n/ GA4", "Email marketing\n(Mailchimp etc.)", "Meta / Google\nAds (paid)", "Video editing\n(CapCut/Premiere)"],
       datasets: [{
-        label: "Frequency in marketing JDs (relative)",
+        label: "Editorial ranking index (based on JD review — not a counted dataset)",
         data: [95, 90, 82, 78, 71, 65, 52, 55, 48],
         backgroundColor: [PURPLE, PURPLE, PURPLE, PURPLE2, PURPLE2, PURPLE2, PURPLE3, PURPLE3, GREY],
         borderRadius: 4,
@@ -281,7 +281,7 @@ export default function FlameMarketingReport() {
               <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="marketSalaryChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">These are real ranges from Glassdoor India, AmbitionBox, and published salary reports — not estimates. Social media and content executive roles pay ₹1.8–3.3 LPA at most companies. Digital marketing executives earn ₹2.5–4.5 LPA. Brand and marketing executive roles in metro cities run ₹3–6 LPA. The outlier is product marketing at B2B SaaS companies, which can reach ₹9 LPA for strong candidates at funded startups. <strong>A Flame MBA student who insists on a marketing title and targets agencies or mid-size consumer brands is likely to receive offers below the campus placement average.</strong> The students who maintain the CTC average are those who accept BFSI or consulting roles, or are exceptional candidates who land the rare high-paying startup marketing role.</p>
+            <p className="rpt-prose">These ranges are from Glassdoor India, AmbitionBox, and published salary reports (accessed via secondary sources — both platforms require login for direct data). Treat as directional, not precise. Social media and content executive roles pay ₹1.8–3.3 LPA at most companies. Digital marketing executives earn ₹2.5–4.5 LPA. Brand and marketing executive roles in metro cities run ₹3–6 LPA. The outlier is product marketing at B2B SaaS companies, which can reach ₹9 LPA for strong candidates at funded startups. <strong>A Flame MBA student who insists on a marketing title and targets agencies or mid-size consumer brands is likely to receive offers below the campus placement average.</strong> The students who maintain the CTC average are those who accept BFSI or consulting roles, or are exceptional candidates who land the rare high-paying startup marketing role.</p>
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The B2B SaaS exception</div>
@@ -299,7 +299,7 @@ export default function FlameMarketingReport() {
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Skills frequency in Indian marketing JDs — Internshala, LinkedIn, Naukri (April 2026)</div>
+              <div className="rpt-card-label">Skills appearing in Indian marketing JDs — Internshala, LinkedIn, Naukri (April 2026) · Editorial ranking, not a counted dataset</div>
               <div className="rpt-chart-wrap" style={{ height: 360 }}><canvas id="skillsChart"></canvas></div>
             </div>
 
