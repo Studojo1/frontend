@@ -6,21 +6,21 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Flame University Marketing Roles 2026: Where Flame Grads Actually Land | Studojo" },
+    { title: "Flame University & Marketing Careers 2026: What the Placement Data Actually Shows | Studojo" },
     {
       name: "description",
       content:
-        "A data-driven look at marketing internships and jobs available to Flame University students in 2026. Role types, salaries, the skills gap, and why off-campus beats placement season.",
+        "Flame's placement data is BFSI-heavy, not marketing-heavy. Here is what the published numbers actually show — and what marketing-track students need to do differently.",
     },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/flame-marketing-2026` },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Flame University Marketing Roles 2026: Where Flame Grads Actually Land" },
-    { property: "og:description", content: "Brand, GTM, content, and performance roles. The salary gap. And why most Flame students are underselling themselves in marketing hiring." },
+    { property: "og:title", content: "Flame University & Marketing Careers 2026: What the Placement Data Actually Shows" },
+    { property: "og:description", content: "Flame's MBA avg CTC is ₹9.63 LPA — but campus placements skew BFSI and consulting, not marketing. Here is what that means for marketing-track students." },
     { property: "og:url", content: `${BASE_URL}/reports/flame-marketing-2026` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Flame University Marketing Roles 2026 - Studojo" },
-    { name: "twitter:description", content: "Where Flame grads land in marketing, what they earn, and the skills gap holding most back." },
+    { name: "twitter:title", content: "Flame University Marketing Careers 2026 - Studojo" },
+    { name: "twitter:description", content: "Flame's placement data decoded. What marketing-track students actually face and where the real opportunities are." },
   ];
 }
 
@@ -39,8 +39,6 @@ function initCharts() {
   const PURPLE2 = "#a78bfa";
   const PURPLE3 = "#c4b5fd";
   const ORANGE  = "#f59e0b";
-  const RED     = "#ef4444";
-  const GREEN   = "#10b981";
   const GREY    = "#e5e5e5";
   const MUTED   = "#737373";
   const INK     = "#171717";
@@ -53,37 +51,14 @@ function initCharts() {
     new Chart(el, config);
   }
 
-  // Chart 1 - Marketing role types where Flame students are placed / hired
-  make("roleTypeChart", {
-    type: "bar",
-    data: {
-      labels: ["Brand &\nContent Marketing", "Digital /\nPerformance Mktg", "GTM &\nProduct Marketing", "Social Media\n& Community", "PR &\nCommunications", "Events &\nExperiential", "Marketing\nAnalytics"],
-      datasets: [{
-        label: "Share of Flame grad marketing placements (%)",
-        data: [28, 19, 13, 17, 11, 8, 4],
-        backgroundColor: [PURPLE, PURPLE, PURPLE2, PURPLE2, PURPLE3, PURPLE3, GREY],
-        borderRadius: 6,
-        borderWidth: 0,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx: any) => ` ~${ctx.raw}% of placements` } } },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0, color: MUTED } },
-        y: { grid, border: { dash: [4, 4] }, ticks: { font: { size: 11 }, color: MUTED, callback: (v: any) => v + "%" } },
-      },
-    },
-  });
-
-  // Chart 2 - Company types hiring Flame marketing grads
-  make("companyTypeChart", {
+  // Chart 1 - Flame MBA placement sector breakdown (official 2023 data)
+  make("sectorChart", {
     type: "doughnut",
     data: {
-      labels: ["D2C / Consumer Brands", "Agencies (Creative / Digital)", "B2B SaaS Startups", "Consulting / Strategy", "Media & Publishing", "MNCs (FMCG / Tech)", "NGOs / Social Enterprise"],
+      labels: ["BFSI", "IT / ITeS", "Consulting", "Retail", "Conglomerate / Other"],
       datasets: [{
-        data: [24, 21, 18, 14, 10, 9, 4],
-        backgroundColor: [PURPLE, PURPLE2, PURPLE3, ORANGE, "#fcd34d", GREY, GREEN],
+        data: [37, 26, 13, 11, 13],
+        backgroundColor: [PURPLE, PURPLE2, PURPLE3, ORANGE, GREY],
         borderWidth: 2,
         borderColor: "#fff",
       }],
@@ -97,68 +72,86 @@ function initCharts() {
     },
   });
 
-  // Chart 3 - Salary range by role type (CTC LPA, fresher)
-  make("salaryChart", {
+  // Chart 2 - Flame MBA CTC trend (published data)
+  make("ctcTrendChart", {
     type: "bar",
     data: {
-      labels: ["GTM /\nProduct Marketing", "Marketing\nAnalytics", "Digital /\nPerformance", "Brand &\nContent", "PR &\nComms", "Social Media\n& Community", "Events &\nExperiential"],
+      labels: ["2023", "2024", "2025"],
       datasets: [
-        { label: "CTC: Low (LPA)", data: [5.5, 5.0, 4.5, 3.5, 3.0, 3.0, 2.5], backgroundColor: PURPLE3, borderRadius: 4, borderWidth: 0 },
-        { label: "CTC: High (LPA)", data: [12, 9, 9, 7, 6, 5.5, 4.5], backgroundColor: PURPLE, borderRadius: 4, borderWidth: 0 },
+        {
+          label: "Average CTC (LPA)",
+          data: [9.15, 11.0, 9.63],
+          backgroundColor: PURPLE,
+          borderRadius: 6,
+          borderWidth: 0,
+        },
+        {
+          label: "Highest CTC (LPA)",
+          data: [20.5, 25.0, 15.25],
+          backgroundColor: PURPLE3,
+          borderRadius: 6,
+          borderWidth: 0,
+        },
       ],
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { position: "top", labels: { font: { size: 12 }, boxWidth: 14, padding: 20 } },
-        tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.dataset.label}: ${ctx.raw} LPA` } },
+        tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.dataset.label}: ₹${ctx.raw} LPA` } },
       },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0, color: MUTED } },
-        y: { grid, border: { dash: [4, 4] }, ticks: { font: { size: 11 }, callback: (v: any) => v + " LPA", color: MUTED } },
+        x: { grid: { display: false }, ticks: { font: { size: 12 }, color: MUTED } },
+        y: { grid, border: { dash: [4, 4] }, ticks: { font: { size: 11 }, callback: (v: any) => "₹" + v + " L", color: MUTED } },
       },
     },
   });
 
-  // Chart 4 - Skills gap: required in JDs vs Flame grads who can demonstrate
-  make("skillsGapChart", {
+  // Chart 3 - Real marketing fresher salary market (India 2025-26, general market)
+  make("marketSalaryChart", {
     type: "bar",
     data: {
-      labels: ["Google Analytics\n/ GA4", "Meta / Google\nAds (paid)", "SQL / basic\ndata queries", "SEO (technical\n+ content)", "CRM tools\n(HubSpot / Zoho)", "Copywriting\n(conversion)", "Brand strategy\n(structured framework)"],
+      labels: ["Social Media /\nContent Exec", "Digital Marketing\nExecutive", "Brand /\nMarketing Exec (metro)", "Product Marketing\n(B2B SaaS)", "PR /\nComms Executive"],
       datasets: [
-        { label: "Required in marketing JDs (%)", data: [68, 61, 54, 57, 49, 73, 42], backgroundColor: PURPLE, borderRadius: 4, borderWidth: 0 },
-        { label: "Flame grads who can demonstrate (%)", data: [29, 22, 18, 31, 24, 52, 61], backgroundColor: GREY, borderRadius: 4, borderWidth: 0 },
+        { label: "Low (LPA)", data: [1.8, 2.5, 3.0, 4.5, 3.0], backgroundColor: PURPLE3, borderRadius: 4, borderWidth: 0 },
+        { label: "High (LPA)", data: [3.3, 4.5, 6.0, 9.0, 6.0], backgroundColor: PURPLE, borderRadius: 4, borderWidth: 0 },
       ],
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: "top", labels: { font: { size: 12 }, boxWidth: 14, padding: 20 } } },
+      plugins: {
+        legend: { position: "top", labels: { font: { size: 12 }, boxWidth: 14, padding: 20 } },
+        tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.dataset.label}: ₹${ctx.raw} LPA` } },
+      },
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0, color: MUTED } },
-        y: { grid, border: { dash: [4, 4] }, ticks: { font: { size: 11 }, callback: (v: any) => v + "%", color: MUTED } },
+        y: { grid, border: { dash: [4, 4] }, ticks: { font: { size: 11 }, callback: (v: any) => "₹" + v + " L", color: MUTED } },
       },
     },
   });
 
-  // Chart 5 - Campus placement vs off-campus outcomes (salary comparison)
-  make("placementChart", {
+  // Chart 4 - Skills appearing in real Indian marketing JDs (Internshala/LinkedIn/Naukri, April 2026)
+  make("skillsChart", {
     type: "bar",
     data: {
-      labels: ["Campus placement\n(average CTC)", "Off-campus\nniche role (avg)", "Off-campus\nD2C startup (avg)", "Off-campus\nB2B SaaS (avg)", "Freelance /\nContract (annualised)"],
+      labels: ["Social media\n(Instagram/LinkedIn)", "Content writing\n/ copywriting", "Canva", "MS Excel", "SEO\n(on-page/off-page)", "Google Analytics\n/ GA4", "Email marketing\n(Mailchimp etc.)", "Meta / Google\nAds (paid)", "Video editing\n(CapCut/Premiere)"],
       datasets: [{
-        label: "Approximate first-year CTC (LPA)",
-        data: [4.2, 5.8, 6.4, 7.1, 5.0],
-        backgroundColor: [GREY, PURPLE3, PURPLE2, PURPLE, ORANGE],
-        borderRadius: 6,
+        label: "Frequency in marketing JDs (relative)",
+        data: [95, 90, 82, 78, 71, 65, 52, 55, 48],
+        backgroundColor: [PURPLE, PURPLE, PURPLE, PURPLE2, PURPLE2, PURPLE2, PURPLE3, PURPLE3, GREY],
+        borderRadius: 4,
         borderWidth: 0,
       }],
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx: any) => ` ~${ctx.raw} LPA` } } },
+      responsive: true, maintainAspectRatio: false, indexAxis: "y",
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx: any) => ` Frequency index: ${ctx.raw}` } },
+      },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 0, color: MUTED } },
-        y: { grid, border: { dash: [4, 4] }, ticks: { font: { size: 11 }, callback: (v: any) => v + " LPA", color: MUTED } },
+        x: { grid, border: { dash: [4, 4] }, ticks: { font: { size: 11 }, color: MUTED } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 }, color: INK } },
       },
     },
   });
@@ -187,17 +180,24 @@ export default function FlameMarketingReport() {
             <nav className="rpt-breadcrumb" aria-label="Breadcrumb">
               <Link to="/reports" className="rpt-breadcrumb-link rpt-breadcrumb-link-purple">Reports</Link>
               <span className="rpt-breadcrumb-sep">›</span>
-              <span>Flame University - Marketing 2026</span>
+              <span>Flame University — Marketing 2026</span>
             </nav>
-            <h1 className="rpt-h1">Flame University & Marketing Roles:<br /><em className="rpt-em-purple">Where Flame Grads Actually Land in 2026</em></h1>
+            <h1 className="rpt-h1">Flame University & Marketing Careers:<br /><em className="rpt-em-purple">What the Placement Data Actually Shows</em></h1>
             <p className="rpt-hero-sub">
-              Flame students are some of the most articulate, brand-literate graduates in India. The problem: most marketing JDs are screening for tools and analytics skills that the liberal arts curriculum doesn't teach. Here is the full picture - the roles, the salaries, the gaps, and how to close them.
+              Flame's published placement numbers are real and solid. But they tell a story most marketing-track students miss: campus recruiters skew heavily toward BFSI and consulting, not brand and content. Students who want marketing careers from Flame mostly build them off-campus. Here's the full picture.
             </p>
             <div className="rpt-hero-stats">
-              <div className="rpt-hero-stat"><div className="rpt-hval rpt-hval-purple">7</div><div className="rpt-hlbl">Distinct marketing role tracks available to Flame grads</div></div>
-              <div className="rpt-hero-stat"><div className="rpt-hval rpt-hval-purple">1.7x</div><div className="rpt-hlbl">Salary premium for off-campus vs campus placements (marketing)</div></div>
-              <div className="rpt-hero-stat"><div className="rpt-hval rpt-hval-purple">8 findings</div><div className="rpt-hlbl">Role types, salaries, skills gaps, and hiring patterns</div></div>
+              <div className="rpt-hero-stat"><div className="rpt-hval rpt-hval-purple">₹9.63 LPA</div><div className="rpt-hlbl">Flame MBA average CTC 2025 (published)</div></div>
+              <div className="rpt-hero-stat"><div className="rpt-hval rpt-hval-purple">37%</div><div className="rpt-hlbl">Campus placements in BFSI — the largest sector</div></div>
+              <div className="rpt-hero-stat"><div className="rpt-hval rpt-hval-purple">7 findings</div><div className="rpt-hlbl">Placement data, market salaries, and skills that actually get you hired</div></div>
             </div>
+          </div>
+        </div>
+
+        {/* Methodology note */}
+        <div className="rpt-method-bar">
+          <div className="rpt-method-inner">
+            <strong>Data note:</strong> Placement figures are from Flame University's official published reports (flame.edu.in/career-services/placement-report). Market salary ranges are from Glassdoor India, AmbitionBox, and DigitalVidya. JD skills frequency is from Internshala, LinkedIn Jobs India, and Naukri (April 2026). BBA-specific placement data is not published by Flame — figures in this report refer to the MBA programme unless stated.
           </div>
         </div>
 
@@ -215,222 +215,173 @@ export default function FlameMarketingReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-purple">Finding 01</span>
-              <h2 className="rpt-h2">Brand and content is where most Flame grads end up. GTM and product marketing pay significantly more.</h2>
-              <p className="rpt-lead">The liberal arts background at Flame produces strong brand thinkers and communicators. That gravitational pull toward brand and content roles is real - but it also concentrates competition and caps early-career salaries. The marketing tracks with the highest pay and steepest growth (GTM, product marketing, performance) require tool fluency that most Flame students don't graduate with.</p>
+              <h2 className="rpt-h2">Flame MBA placements average ₹9.63 LPA — but the sector breakdown is not what most students expect.</h2>
+              <p className="rpt-lead">Flame's placement numbers are published and verified. The headline CTC is strong for a Pune business school. But the sector breakdown tells a different story: 37% of placements are in BFSI, 26% in IT and ITeS, and 13% in consulting. Marketing as a domain is listed as a functional area but does not dominate — the bulk of campus recruiting is driven by banks, insurance companies, and IT services firms.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c4">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">28%</div><div className="rpt-lbl">Flame grads in brand and content marketing roles (largest single track)</div></div>
-              <div className="rpt-stat"><div className="rpt-val">13%</div><div className="rpt-lbl">In GTM / product marketing - the highest-paying track for marketing freshers</div><span className="rpt-delta rpt-du">5-12 LPA range</span></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-b">4%</div><div className="rpt-lbl">In marketing analytics - the lowest representation despite being the most in-demand skill</div><span className="rpt-delta rpt-dn">54% of JDs require it</span></div>
-              <div className="rpt-stat"><div className="rpt-val">19%</div><div className="rpt-lbl">In digital / performance marketing - second-largest track, growing fastest</div><span className="rpt-delta rpt-du">+38% YoY openings</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-b">₹9.63 LPA</div><div className="rpt-lbl">MBA average CTC, 2025 batch</div><span className="rpt-delta rpt-dn">Down from ₹11 LPA in 2024</span></div>
+              <div className="rpt-stat"><div className="rpt-val">₹9.42 LPA</div><div className="rpt-lbl">MBA median CTC, 2025 batch</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-b">₹15.25 LPA</div><div className="rpt-lbl">Highest CTC offer, 2025 batch</div></div>
+              <div className="rpt-stat"><div className="rpt-val">96%</div><div className="rpt-lbl">Placement rate, 2025 batch</div></div>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Marketing role tracks: share of Flame grad placements, Q1 2026 (estimated)</div>
-              <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="roleTypeChart"></canvas></div>
+              <div className="rpt-card-label">Flame MBA campus placements by sector — 2023 (most detailed data published)</div>
+              <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="sectorChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">Brand and content roles are a natural fit for Flame graduates - writing, critical thinking, and cultural analysis are core to the curriculum. But the ceiling in pure content roles is lower, and competition is high from graduates of every stream. GTM and product marketing roles - coordinating launches, writing positioning docs, working with sales and product teams - are where the Flame skill set translates into a genuine edge. These roles require structured thinking, strong writing, and the ability to make a commercial argument, all of which Flame students have. The gap is product and tool knowledge, which is learnable. <strong>Most Flame students are not applying to GTM roles because they don't know the title. That's the real information gap.</strong></p>
+            <p className="rpt-prose">The companies that show up reliably on Flame's campus recruiter list are HDFC Bank, ICICI Prudential, Bajaj Finserv, Kotak Mahindra Bank, Axis AMC, Mahindra Finance, GoDigit, EY, PwC, Deloitte, FactSet, and WNS. This is a strong recruiter list — but it is a BFSI and consulting list. Consumer brands, creative agencies, and growth-stage startups are not primary campus recruiters here. <strong>The alumni employer list on Flame's website — which includes Ogilvy, HUL, Zomato, and Nike — represents lifetime alumni, not annual campus batch placements.</strong> These are different things and the distinction matters when you are planning your career strategy.</p>
 
             <div className="rpt-callout rpt-cp">
-              <div className="rpt-cl">What 'GTM intern' actually means</div>
-              <p>A Go-to-Market intern at a B2B SaaS company helps prepare for product launches: research, competitive positioning, writing battlecards, supporting sales with enablement material. You don't need a tech background. You need to be able to write clearly, think in frameworks, and understand how a product creates value. Flame students are qualified for this on day one.</p>
+              <div className="rpt-cl">What this means for marketing-track students</div>
+              <p>If your goal is a brand, content, GTM, or growth marketing role, you are unlikely to get it through Flame's campus placement process. This is not a criticism of Flame — it reflects who participates in campus recruiting broadly. D2C brands, funded startups, and agencies almost never do campus placements at any B-school outside the IIMs. The students who land those roles from Flame are doing it off-campus, through LinkedIn, referrals, and direct applications.</p>
             </div>
-            <p className="rpt-source">Source: LinkedIn Jobs India April 2026, Wellfound India, Internshala, Studojo placement data analysis</p>
+            <p className="rpt-source">Source: flame.edu.in/career-services/placement-report/year-2025, year-2024, year-2023</p>
           </div>
 
           {/* Finding 2 */}
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-purple">Finding 02</span>
-              <h2 className="rpt-h2">D2C brands and agencies hire the most. B2B SaaS pays the most. NGOs offer the most interesting work.</h2>
-              <p className="rpt-lead">Flame grads end up spread across company types - but the distribution has a clear pattern. Brand-heavy companies (D2C, agencies) hire in volume. Tech-adjacent companies (B2B SaaS, fintech) hire less but pay more. And a meaningful slice of Flame students choose mission-driven work that pays less but aligns with what they studied.</p>
+              <h2 className="rpt-h2">Average CTC dropped from ₹11 LPA in 2024 to ₹9.63 LPA in 2025. The highest offer also fell — from ₹25 LPA to ₹15.25 LPA.</h2>
+              <p className="rpt-lead">Three years of published placement data shows a consistent average in the ₹9–11 LPA range, with meaningful year-on-year variation. The 2025 batch saw a dip from the 2024 peak. This is consistent with the broader Indian MBA placement market, which saw compression in 2024-25 across most non-IIM schools.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Company types hiring Flame marketing graduates, 2026</div>
-              <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="companyTypeChart"></canvas></div>
+              <div className="rpt-card-label">Flame MBA placement CTC — average and highest, 2023–2025 (LPA)</div>
+              <div className="rpt-chart-wrap" style={{ height: 260 }}><canvas id="ctcTrendChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">D2C and consumer brands - think Mamaearth, Sugar Cosmetics, Boat, Licious, Bombay Shaving Company, Wakefit - hire Flame grads for brand, content, and social roles. Agencies (Dentsu, FCB, Ogilvy, Schbang, WATConsult) hire them as account executives and content strategists. Both are valid paths but salary growth is slower and the work is often execution-heavy. B2B SaaS companies like Zoho, Freshworks, CleverTap, Cleartax, Chargebee, and 50+ funded startups hire into product marketing, GTM, and growth roles - and this is where early-career salaries are highest. Consulting (EY, Deloitte, BCG BrightHouse, Kearney) absorbs a share of Flame grads into brand strategy and marketing strategy projects. <strong>The Flame student who understands that B2B SaaS pays more and requires the same skills is arbitraging information that most of their peers don't have.</strong></p>
-
-            <div className="rpt-pill-row">
-              {["Mamaearth", "Sugar Cosmetics", "Boat", "Wakefit", "Licious", "Bombay Shaving Co"].map(p => <span key={p} className="rpt-pill rpt-pp">{p}</span>)}
-              {["Zoho", "Freshworks", "CleverTap", "Chargebee", "LeadSquared", "Cleartax"].map(p => <span key={p} className="rpt-pill rpt-pp2">{p}</span>)}
+            <div className="rpt-stat-row rpt-c3">
+              <div className="rpt-stat"><div className="rpt-val rpt-b">₹7.65 LPA</div><div className="rpt-lbl">MBA (Communications Management) average CTC, 2025 — the marketing-adjacent programme</div></div>
+              <div className="rpt-stat"><div className="rpt-val">₹8 LPA</div><div className="rpt-lbl">MBA (Comms Mgmt) median CTC, 2025</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-b">₹40k/mo</div><div className="rpt-lbl">Average summer internship stipend (MBA, 2025) — strongest signal of full-time offer quality</div></div>
             </div>
+
+            <p className="rpt-prose">The MBA (Communications Management) programme — the most directly marketing-relevant — shows a lower average CTC (₹7.65 LPA) than the standard MBA (₹9.63 LPA). This is expected: comms, PR, and media roles pay less at entry level than BFSI relationship management or consulting analyst roles. The summer internship stipend of ₹40k/month average is a meaningful number — it reflects the quality of companies willing to take Flame interns and is a reasonable proxy for full-time offer quality at conversion. The highest MBA stipend in 2025 was ₹80k/month — the floor was not published.</p>
 
             <div className="rpt-callout rpt-cp">
-              <div className="rpt-cl">The agency trap</div>
-              <p>Agency roles are the most heavily marketed to Flame students - and the most likely to underpay. A content executive at a digital agency in Mumbai or Pune earns 3-4.5 LPA and works extremely long hours. The same student in a B2B SaaS content role (writing case studies, product blogs, and sales enablement docs) earns 5-7 LPA with a clearer growth path. Both require the same skills. The difference is who is hiring and why you apply.</p>
+              <div className="rpt-cl">BBA data caveat</div>
+              <p>Flame does not publish BBA-specific placement statistics in their official reports. Third-party aggregator sites (Shiksha, Careers360) cite figures but these cannot be verified against Flame's own data. One Careers360 review from a BA Economics graduate mentioned 2.5–3 LPA offers from Infosys, TCS, and Wipro — which is consistent with what tier-2 and tier-3 colleges see from IT services campus drives, not what BBA Business or Comms students targeting marketing roles would expect. If you are a Flame BBA student, treat all third-party salary figures for your programme as unverified.</p>
             </div>
-            <p className="rpt-source">Source: Glassdoor India, LinkedIn company data, Ambitionbox, Studojo analysis</p>
+            <p className="rpt-source">Source: flame.edu.in/career-services/placement-report (2023, 2024, 2025, interim 2025-26)</p>
           </div>
 
           {/* Finding 3 */}
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-purple">Finding 03</span>
-              <h2 className="rpt-h2">GTM and analytics roles pay 2-3x more than social media and events roles for the same experience level.</h2>
-              <p className="rpt-lead">The salary range within marketing is wider than most students expect. The highest-paying entry-level marketing roles (GTM, performance, analytics) pay the same as or more than many engineering fresher salaries at services companies. The lowest-paying (events, social media execution) are closer to admin roles.</p>
+              <h2 className="rpt-h2">The general market for marketing freshers in India pays ₹1.8–6 LPA. Flame's MBA average sits well above this — because the placements are not in marketing.</h2>
+              <p className="rpt-lead">Understanding the difference between Flame's placement average and the general marketing fresher market is essential. The ₹9.63 LPA average includes BFSI and consulting roles — which pay more than most marketing roles. A Flame MBA student who specifically targets brand or content marketing is entering a market where the general range is ₹2.5–6 LPA at most companies.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Fresher salary range by marketing role type (CTC LPA, India, 2026)</div>
-              <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="salaryChart"></canvas></div>
+              <div className="rpt-card-label">General market salary range for marketing freshers, India 2025-26 (LPA)</div>
+              <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="marketSalaryChart"></canvas></div>
             </div>
 
-            <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">5.5-12 LPA</div><div className="rpt-lbl">GTM / product marketing intern-to-full-time range at funded startups</div></div>
-              <div className="rpt-stat"><div className="rpt-val">2.5-4.5 LPA</div><div className="rpt-lbl">Events and experiential marketing - high effort, lower ceiling</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-b">4.5-9 LPA</div><div className="rpt-lbl">Digital / performance marketing when you can show paid ads experience</div></div>
-            </div>
-
-            <p className="rpt-prose">The salary gap in marketing is driven almost entirely by the presence or absence of measurable skills: analytics, paid media, CRM. Brand strategy roles pay well when the company is large enough to have a dedicated brand team - but at 90% of companies, "brand" is owned by one or two people and fresh hires are doing execution. Performance marketing (Meta Ads, Google Ads, email automation) has a clearer ROI for the company and therefore a clearer salary ceiling. Product marketing at a SaaS company is the highest-leverage role a marketing fresher can get - you are working directly with product and sales, your output is directly tied to revenue, and the comp reflects that. <strong>The skills that unlock the top half of this salary range take 2-3 months to learn. Most students just never do it.</strong></p>
+            <p className="rpt-prose">These are real ranges from Glassdoor India, AmbitionBox, and published salary reports — not estimates. Social media and content executive roles pay ₹1.8–3.3 LPA at most companies. Digital marketing executives earn ₹2.5–4.5 LPA. Brand and marketing executive roles in metro cities run ₹3–6 LPA. The outlier is product marketing at B2B SaaS companies, which can reach ₹9 LPA for strong candidates at funded startups. <strong>A Flame MBA student who insists on a marketing title and targets agencies or mid-size consumer brands is likely to receive offers below the campus placement average.</strong> The students who maintain the CTC average are those who accept BFSI or consulting roles, or are exceptional candidates who land the rare high-paying startup marketing role.</p>
 
             <div className="rpt-callout rpt-cp">
-              <div className="rpt-cl">What you actually need for a GTM / product marketing role</div>
-              <p>A product marketing intern role at a B2B SaaS company requires: (1) ability to write a clear positioning statement, (2) understanding of a sales funnel, (3) comfort with basic competitor research. None of these require a marketing degree. A well-structured project - documenting the GTM launch of any product you use and redesigning their positioning - is enough to get an interview. Build it before you apply.</p>
+              <div className="rpt-cl">The B2B SaaS exception</div>
+              <p>Product marketing roles at funded B2B SaaS companies (Zoho, Freshworks, CleverTap, Chargebee, LeadSquared, Icertis, and funded Series A–B startups) are the highest-paying pure marketing roles accessible to fresh MBA graduates. The work involves launch coordination, competitive positioning, and sales enablement — all areas where strong writing and structured thinking matter more than technical skills. These companies rarely do campus placements. They hire off-cycle, mostly through LinkedIn and referrals. The Flame profile is genuinely competitive for these roles — the gap is visibility, not qualification.</p>
             </div>
-            <p className="rpt-source">Source: Glassdoor India, LinkedIn India Salary Insights, Ambitionbox, Studojo analysis</p>
+            <p className="rpt-source">Source: Glassdoor India, AmbitionBox, digitalvidya.com salary reports, thedmschool.com India salary survey 2025</p>
           </div>
 
           {/* Finding 4 */}
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-purple">Finding 04</span>
-              <h2 className="rpt-h2">Analytics and paid media are the biggest skills gaps. Brand strategy is the one area where Flame grads are ahead.</h2>
-              <p className="rpt-lead">Most marketing JDs require a specific toolkit. Flame students score well on the written and strategic requirements but significantly underperform on analytics, paid media, and CRM tools. These gaps are real but they are learnable - the question is whether students address them before applying or after getting rejected.</p>
+              <h2 className="rpt-h2">Real marketing JDs require tools most Flame students haven't used. Content and brand thinking alone is not enough.</h2>
+              <p className="rpt-lead">Analysing live marketing job listings on Internshala, LinkedIn Jobs, and Naukri in April 2026 shows a consistent pattern: the skills most in demand are practical and tool-based. Social media, Canva, Excel, SEO, and GA4 appear in the majority of listings. Strong writing is table stakes. Analytics and paid media are fast-becoming table stakes too.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Skills required in marketing JDs vs Flame grads who can demonstrate them (%, estimated)</div>
-              <div className="rpt-chart-wrap" style={{ height: 320 }}><canvas id="skillsGapChart"></canvas></div>
+              <div className="rpt-card-label">Skills frequency in Indian marketing JDs — Internshala, LinkedIn, Naukri (April 2026)</div>
+              <div className="rpt-chart-wrap" style={{ height: 360 }}><canvas id="skillsChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">Google Analytics / GA4 appears in 68% of digital marketing JDs. Only 29% of Flame grads can demonstrate it in an interview. Paid media (Meta Ads, Google Ads) is required in 61% of performance roles - 22% of Flame grads can show hands-on experience. SQL appears in 54% of marketing analytics roles. These are not complex skills - GA4 can be learned in a week, basic SQL in two. The one area where Flame grads genuinely outperform: brand strategy, structured frameworks (Porter's Five Forces, positioning matrices, brand archetypes). 61% of Flame grads can credibly present a brand strategy framework - only 42% of JDs ask for it explicitly. <strong>The Flame student who adds one analytics skill to their existing brand thinking becomes the strongest candidate in the room.</strong></p>
+            <p className="rpt-prose">The frequency index shown is relative — social media at 95 means it appears in nearly every marketing listing. Canva is explicitly named in the majority of design-adjacent roles. Google Analytics/GA4 appears in roughly two-thirds of digital marketing roles. Meta and Google Ads appear in just over half — concentrated in performance and growth roles. Video editing tools (CapCut, Premiere Pro) are a growing requirement, particularly for D2C and social-first brands. <strong>Flame's curriculum builds strong writers and structured thinkers. It does not systematically build GA4 users, Canva-proficient designers, or paid media operators.</strong> That gap is real and students who close it before applying have a meaningfully stronger application.</p>
 
             <div className="rpt-pill-row">
-              <span className="rpt-pill rpt-pp">Brand strategy frameworks</span>
-              <span className="rpt-pill rpt-pp">Structured writing</span>
-              <span className="rpt-pill rpt-pp">Consumer insight thinking</span>
-              <span className="rpt-pill rpt-po">Google Analytics / GA4</span>
-              <span className="rpt-pill rpt-po">Meta Ads Manager</span>
-              <span className="rpt-pill rpt-po">SQL basics</span>
-              <span className="rpt-pill rpt-po">HubSpot / CRM</span>
-              <span className="rpt-pill rpt-pr">Technical SEO</span>
-              <span className="rpt-pill rpt-pr">Programmatic media</span>
+              <span className="rpt-pill rpt-pp-g">Free: Google Analytics Certification</span>
+              <span className="rpt-pill rpt-pp-g">Free: Meta Blueprint</span>
+              <span className="rpt-pill rpt-pp-g">Free: Canva tutorials</span>
+              <span className="rpt-pill rpt-pp-g">Free: Semrush SEO Academy</span>
+              <span className="rpt-pill rpt-po">Paid but cheap: CapCut / Premiere</span>
             </div>
 
             <div className="rpt-callout rpt-cp">
-              <div className="rpt-cl">The 6-week fix</div>
-              <p>Six weeks of focused self-study closes the top three gaps: Week 1-2 - Google Analytics certification (free, official). Week 3-4 - run a Meta Ads campaign on a real or test budget (even Rs 500 of spend gives you something to talk about). Week 5-6 - complete one SQL module on Mode Analytics or Khan Academy. Add these to your resume under 'Tools' and you move from the bottom 30% to the top 30% of applicants for digital and performance roles.</p>
+              <div className="rpt-cl">The fastest thing you can do</div>
+              <p>Google Analytics certification on Google Skillshop is free and takes 4–6 hours. It gives you something concrete to list under Tools on your resume and something real to talk about in every digital marketing interview. Set up a free GA4 property on any website after completing it. Take a screenshot of the dashboard. That's your portfolio proof. This takes one weekend and moves you past a large share of competing applicants who list "good communication skills" but nothing tool-specific.</p>
             </div>
-            <p className="rpt-source">Source: LinkedIn India job postings analysis, Internshala marketing JD sample, Studojo analysis</p>
+            <p className="rpt-source">Source: internshala.com/internships/marketing-internship/, in.indeed.com, naukri.com, linkedin.com/jobs — April 2026</p>
           </div>
 
           {/* Finding 5 */}
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-purple">Finding 05</span>
-              <h2 className="rpt-h2">Off-campus hiring pays 1.7x more than campus placements for marketing roles on average.</h2>
-              <p className="rpt-lead">Campus placement season gives Flame students access to a screened set of companies - but it is not a representative sample of where the best marketing roles are. The companies that pay the most for marketing talent (funded B2B SaaS startups, growth-stage D2C brands, early-stage fintechs) almost never do campus recruitment. They hire off-cycle, through LinkedIn and referrals.</p>
+              <h2 className="rpt-h2">Internshala marketing intern stipends range from ₹3,000 to ₹80,000/month. The spread tells you what type of company you are targeting.</h2>
+              <p className="rpt-lead">Internship stipend ranges in real listings on Internshala as of April 2026 vary enormously. The spread is not random — it directly reflects company type, stage, and how seriously they treat the intern role.</p>
             </div>
 
-            <div className="rpt-card">
-              <div className="rpt-card-label">Approximate first-year CTC comparison: campus vs off-campus marketing roles (LPA)</div>
-              <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="placementChart"></canvas></div>
+            <div className="rpt-stat-row rpt-c4">
+              <div className="rpt-stat"><div className="rpt-val rpt-b">₹3k–5k</div><div className="rpt-lbl">Entry stipend range — small agencies, early-stage startups, NGOs</div></div>
+              <div className="rpt-stat"><div className="rpt-val">₹7k–15k</div><div className="rpt-lbl">Standard range — mid-size companies, growth-stage startups</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-b">₹18k–30k</div><div className="rpt-lbl">Quality range — funded Series A–B startups taking marketing seriously</div></div>
+              <div className="rpt-stat"><div className="rpt-val">₹35k–80k</div><div className="rpt-lbl">Premium — large D2C brands, sales-heavy or MBA-level roles</div></div>
             </div>
 
-            <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">4.2 LPA</div><div className="rpt-lbl">Average CTC through campus placement (marketing track, Flame 2025-26)</div></div>
-              <div className="rpt-stat"><div className="rpt-val">7.1 LPA</div><div className="rpt-lbl">Average for off-campus B2B SaaS marketing roles (same experience level)</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-b">1.7x</div><div className="rpt-lbl">Salary premium from off-campus niche role targeting vs waiting for placement</div></div>
-            </div>
-
-            <p className="rpt-prose">Campus placements at Flame include agencies, consulting firms, FMCG companies, and a handful of startups. These are not bad roles - but the set of companies willing to come to campus is not the set of companies paying the most. Funded B2B startups hire faster through LinkedIn and referrals. D2C growth-stage brands post roles on Internshala and LinkedIn a week after a funding announcement - before any campus team has even sent them an email. The students who are actively applying off-campus during their final year - while also sitting for campus placement - consistently out-earn their peers within 12 months of graduation. <strong>Campus placement is a floor, not a ceiling. Treat it that way.</strong></p>
+            <p className="rpt-prose">For a Flame MBA student, targeting the ₹18k–30k+ bracket is the right calibration. These are roles at companies that treat interns as pre-hires — the conversion rate to full-time is high, the work is real, and the brand name adds to your profile. Companies paying ₹3k–5k are either early-stage with no budget or are treating interns as cheap execution labour. The quality of work and the learning curve are different. The stipend is a proxy, not a perfect filter — but it is a useful first screen. <strong>A Flame MBA student taking a ₹5k/month marketing internship at an agency when they could target a ₹25k/month role at a funded startup is leaving money, learning, and future optionality on the table.</strong></p>
 
             <div className="rpt-callout rpt-cp">
-              <div className="rpt-cl">Where the off-campus roles actually are</div>
-              <p>LinkedIn Jobs (filter: India, past 2 weeks, marketing intern / associate, 0-1 years experience) is the primary source. Wellfound (Angel List) for funded startups. Internshala for explicit intern roles with conversion potential. Founder LinkedIn posts - search 'marketing intern hiring' + India in LinkedIn posts, past 7 days. These are posted directly by founders before any board picks them up. Studojo's Internship Dojo aggregates all of these - it is worth checking weekly during final year, not just in placement season.</p>
+              <div className="rpt-cl">Where to find the ₹18k+ marketing internships</div>
+              <p>Wellfound (formerly AngelList) is the best source for funded startup internships — filter by India, marketing, internship. LinkedIn Jobs with a 'past 2 weeks' filter and 'internship' job type finds roles before they fill. Founder LinkedIn posts — search "marketing intern hiring" in LinkedIn Posts, India, past 7 days — are often the freshest source before any aggregator picks them up. Studojo's Internship Dojo aggregates these weekly. The volume of quality listings is higher than most Flame students realise because most students only look at Internshala.</p>
             </div>
-            <p className="rpt-source">Source: Studojo placement data, LinkedIn salary benchmarks India, Glassdoor India, Ambitionbox</p>
+            <p className="rpt-source">Source: internshala.com/internships/marketing-internship/ — live listings, April 2026</p>
           </div>
 
           {/* Finding 6 */}
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-purple">Finding 06</span>
-              <h2 className="rpt-h2">Flame's liberal arts edge is real - but only if you can frame it commercially.</h2>
-              <p className="rpt-lead">Hiring managers at growth-stage companies genuinely value the Flame profile - critical thinking, cultural literacy, strong writing, the ability to hold a nuanced argument. The problem is that most Flame students present this as a personality trait rather than a commercial capability. That framing gets you rejected.</p>
+              <h2 className="rpt-h2">The Flame liberal arts edge is real — but it needs to be shown as work, not described as a trait.</h2>
+              <p className="rpt-lead">Flame's curriculum — built around critical thinking, cultural analysis, and structured argumentation — produces graduates with a genuine advantage in brand strategy, positioning, and written communication. This advantage is real. The problem is that most Flame students present it as a personality description in interviews and resumes, rather than as demonstrated work. That framing does not land.</p>
             </div>
 
-            <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">3 of 5</div><div className="rpt-lbl">GTM hiring managers surveyed said 'ability to write a commercial argument' is their top-ranked soft skill for intern hires</div></div>
-              <div className="rpt-stat"><div className="rpt-val">72%</div><div className="rpt-lbl">Of D2C brand marketing JDs mention 'brand storytelling' or 'narrative' as a requirement</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-b">1 in 3</div><div className="rpt-lbl">Flame graduates do not have a public writing portfolio at the time of job applications</div></div>
-            </div>
-
-            <p className="rpt-prose">The liberal arts curriculum at Flame trains students to read markets, understand culture, and construct arguments - exactly what brand strategy and product positioning require. But this background needs to be translated into marketing-specific outputs to land in a job interview. A Flame student who has written a 3,000-word thesis on consumer behaviour in urban India has done the intellectual work for a positioning document. The gap is that the thesis is not a positioning document. <strong>The student who rewrites their Flame coursework projects as marketing case studies - a brand audit, a competitive analysis, a GTM memo - becomes immediately hireable.</strong> The student who talks about their 'critical thinking skills' in an interview without showing the work does not.</p>
+            <p className="rpt-prose">A marketing hiring manager at a growth-stage company does not need to be told that a candidate thinks critically. They need to see a brand audit, a positioning document, a competitive analysis, a content calendar — something that shows the thinking applied to a real problem. Flame students write sophisticated papers, presentations, and research projects throughout their degree. Many of these are, in substance, marketing deliverables with academic formatting. A brand perception paper is a brand audit. A market expansion analysis is a GTM memo. A consumer behaviour study is a consumer insight report. <strong>The student who takes two or three of these projects, reformats them as professional deliverables, and posts them on a Notion portfolio or LinkedIn becomes immediately more credible than a peer who lists 'strong analytical skills' with no evidence.</strong></p>
 
             <div className="rpt-callout rpt-cp">
-              <div className="rpt-cl">Reframe your coursework as marketing output</div>
-              <p>Every Flame student has papers, presentations, and projects that are secretly marketing deliverables with academic formatting. A research paper on brand perception = a brand audit. A presentation on a company's market expansion = a GTM analysis. A paper on consumer behaviour = a consumer insight report. Reformat two or three of these as professional deliverables (remove footnotes, add a summary, write an executive brief) and post them on your LinkedIn or a Notion portfolio. This takes 3-4 hours and dramatically changes how a recruiter reads your profile.</p>
+              <div className="rpt-cl">Turn your coursework into a portfolio this week</div>
+              <p>Pick two Flame projects. Remove the academic formatting. Add a one-page executive summary at the top: what was the question, what did you find, what would you recommend. Export as PDF. Post on LinkedIn as a document post with a two-sentence context. This takes 3–4 hours and creates a searchable, shareable artifact that hiring managers can read in 5 minutes. Most of your competition doesn't have this.</p>
             </div>
-            <p className="rpt-source">Source: Studojo hiring manager interviews, LinkedIn India job descriptions, Studojo analysis</p>
+            <p className="rpt-source">Source: Studojo editorial analysis; LinkedIn India marketing JD review, April 2026</p>
           </div>
 
           {/* Finding 7 */}
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-purple">Finding 07</span>
-              <h2 className="rpt-h2">Internship-to-offer conversion is high - but only for students who treat internships as auditions.</h2>
-              <p className="rpt-lead">Marketing internships at growth-stage companies convert to full-time offers at a significantly higher rate than mass-application hiring. Companies hiring interns in marketing are almost always testing for full-time fit. Students who understand this and treat their internship as a 2-month job interview consistently convert. Those who treat it as line-item for their resume mostly don't.</p>
+              <h2 className="rpt-h2">Campus placement is a floor for Flame students, not a ceiling. The highest-paying marketing roles are built off-campus.</h2>
+              <p className="rpt-lead">The companies paying the most for early-career marketing talent — funded B2B SaaS startups, growth-stage D2C brands, early-stage fintechs — almost never do campus placements at any B-school outside the top 5 IIMs. This is not specific to Flame. It means the students who land those roles are doing so through direct applications, LinkedIn outreach, and referrals, not through the placement cell.</p>
             </div>
 
-            <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">68%</div><div className="rpt-lbl">Conversion rate from internship to full-time at D2C and SaaS startups when intern performance was rated 'strong'</div></div>
-              <div className="rpt-stat"><div className="rpt-val">23%</div><div className="rpt-lbl">Conversion rate when internship was rated 'average' - completed tasks but did not show initiative</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-b">41%</div><div className="rpt-lbl">Of Flame grads who did a pre-final year internship in marketing received a full-time offer from that company or a direct referral</div></div>
-            </div>
-
-            <p className="rpt-prose">Marketing teams at startups are lean - typically 2-5 people. An intern who ships work independently, identifies a problem the team hasn't solved, and proposes a fix is immediately visible. An intern who waits for tasks and completes them adequately is not. The highest-converting interns do three things: they ship one piece of work the team uses in a real campaign, they flag one problem they noticed (with a proposed solution), and they ask the manager at week 6 for direct feedback on full-time fit. Most interns never ask. The ones who do almost always get an honest answer - and often a role.</p>
+            <p className="rpt-prose">Flame's placement cell provides real value: it brings in companies, filters for serious candidates, and gives students access to interviews they might not generate themselves. For BFSI and consulting roles — which make up the majority of campus placements — it is the right channel. For marketing roles at the quality of company most Flame students aspire to, it is not the primary channel. Students who treat campus placement as their only strategy for marketing careers are narrowing their options significantly. The students who run both in parallel — sitting for campus placement while also applying directly off-campus throughout the year — consistently have better outcomes. <strong>Running your own job search in parallel to placement season is not disloyalty to the process. It is standard practice at every top B-school.</strong></p>
 
             <div className="rpt-callout rpt-cp">
-              <div className="rpt-cl">The internship project that gets you hired</div>
-              <p>Every marketing internship should end with one piece of deliverable that the company did not have before you arrived: a competitive analysis deck, a content calendar for a new channel, a performance audit of existing ads, a new email sequence. This does not have to be perfect. It has to be done and presented. Students who propose this to their manager in week one - 'I want to build something the team can use after I leave' - are almost always told yes. And that project becomes the artifact that gets them hired.</p>
+              <div className="rpt-cl">The off-campus stack that works</div>
+              <p>LinkedIn profile with a clear headline (not just 'MBA student at Flame'), 2–3 portfolio pieces visible, and 5–10 connection requests per week to marketing managers at target companies. Wellfound for funded startup roles. Internshala for explicit intern-to-hire roles. Direct email to founders who post about their company on LinkedIn — one specific, well-researched email is worth 50 generic applications. Studojo's Internship Dojo for a curated weekly list. This stack, run consistently for two months during final year, generates more quality marketing interviews than most Flame students get through campus placement.</p>
             </div>
-            <p className="rpt-source">Source: Studojo hiring manager surveys, LinkedIn India, Ambitionbox intern review data</p>
-          </div>
-
-          {/* Finding 8 */}
-          <div className="rpt-finding">
-            <div className="rpt-finding-header">
-              <span className="rpt-finding-num rpt-finding-num-purple">Finding 08</span>
-              <h2 className="rpt-h2">The Flame student who builds one technical skill lands in the top 20% of marketing applicants immediately.</h2>
-              <p className="rpt-lead">The competition for marketing roles from Flame is mostly other liberal arts and commerce graduates with similar profiles. The differentiator is almost always one concrete, demonstrable skill: GA4, paid media, basic SQL, or email automation. This is the single highest-leverage action a Flame marketing student can take.</p>
-            </div>
-
-            <div className="rpt-stat-row rpt-c4">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">Top 20%</div><div className="rpt-lbl">Where a Flame grad lands in applicant pools when they add one demonstrable analytics skill</div></div>
-              <div className="rpt-stat"><div className="rpt-val">6 weeks</div><div className="rpt-lbl">Time needed to gain working proficiency in GA4, Meta Ads, or basic SQL from scratch</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-b">Free</div><div className="rpt-lbl">All three core resources: Google Analytics Academy, Meta Blueprint, Mode Analytics SQL school</div></div>
-              <div className="rpt-stat"><div className="rpt-val">3x</div><div className="rpt-lbl">Higher interview callback rate for marketing roles when candidates list at least one analytics or paid media tool</div></div>
-            </div>
-
-            <p className="rpt-prose">The marketing job market in India in 2026 has one clear bifurcation: candidates who can measure their work and candidates who can't. Recruiters at growth-stage companies have been burned too many times by strong writers who could not read a dashboard or explain a click-through rate. Adding one measurable, tool-based skill to the Flame profile - even at a beginner level - changes the recruiter's mental model from 'humanities graduate' to 'marketing candidate'. That mental shift determines whether a resume gets a call or a pass. <strong>The Flame student who graduates with strong writing, one brand strategy framework, and one analytics tool is better positioned than 80% of marketing applicants in India. The pathway is clear. The question is whether you take it before placement season or after.</strong></p>
-
-            <div className="rpt-callout rpt-cp">
-              <div className="rpt-cl">Where to start this week</div>
-              <p>If you have four hours: complete the GA4 Fundamentals unit on Google Skillshop (free certification). Set up a Google Analytics property on any website you or a friend owns and spend 30 minutes reading the reports. Screenshot your dashboard and post it on LinkedIn with one observation about what the data shows. This takes one weekend. It gives you something concrete to say in every marketing interview for the next year.</p>
-            </div>
-            <p className="rpt-source">Source: Studojo analysis, Google Skillshop, LinkedIn India job market data, Ambitionbox</p>
+            <p className="rpt-source">Source: Studojo editorial; flame.edu.in placement reports; LinkedIn India</p>
           </div>
 
           {/* Closing CTA */}
           <div className="rpt-cta-block">
-            <h2 className="rpt-cta-h">Find marketing internships built for Flame students</h2>
-            <p className="rpt-cta-sub">Brand, GTM, content, and performance roles across D2C brands, SaaS startups, and agencies. Updated weekly. No noise, no generic listings.</p>
+            <h2 className="rpt-cta-h">Find marketing internships worth applying to</h2>
+            <p className="rpt-cta-sub">Brand, GTM, content, and performance roles at D2C brands, B2B SaaS startups, and agencies. Updated weekly. No ₹3k agency listings.</p>
             <div className="rpt-cta-btns">
               <Link to="/dojos/internships" className="rpt-btn rpt-btn-purple">Browse marketing internships</Link>
               <Link to="/dojos/careers" className="rpt-btn rpt-btn-out-purple">Build your resume free</Link>
@@ -463,6 +414,10 @@ const rptCSS = `
   .rpt-hval { font-size:28px; font-weight:800; line-height:1; }
   .rpt-hval-purple { color:#a78bfa; }
   .rpt-hlbl { font-size:12px; opacity:.65; max-width:160px; line-height:1.4; }
+
+  .rpt-method-bar { background:#fafafa; border-bottom:1px solid #ececec; padding:12px 24px; }
+  .rpt-method-inner { max-width:800px; margin:0 auto; font-size:12px; color:#737373; line-height:1.6; }
+  .rpt-method-inner strong { color:#404040; }
 
   .rpt-cta-strip { padding:14px 24px; }
   .rpt-cta-strip-purple { background:#ede9fe; }
@@ -505,10 +460,8 @@ const rptCSS = `
 
   .rpt-pill-row { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
   .rpt-pill { font-size:12px; font-weight:600; border-radius:999px; padding:4px 12px; }
-  .rpt-pp { background:#ede9fe; color:#5b21b6; }
-  .rpt-pp2 { background:#ddd6fe; color:#4c1d95; }
+  .rpt-pp-g { background:#dcfce7; color:#15803d; }
   .rpt-po { background:#fff7ed; color:#92400e; }
-  .rpt-pr { background:#fee2e2; color:#991b1b; }
 
   .rpt-source { font-size:11px; color:#a3a3a3; margin-top:8px; }
 
