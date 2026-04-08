@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { redirect, useSearchParams } from "react-router";
-import { FiEdit, FiTrash2, FiPlus, FiFileText, FiEye, FiX, FiCopy } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiPlus, FiFileText, FiEye, FiAlertCircle } from "react-icons/fi";
 import { Footer, Header, ConfirmModal } from "~/components";
 import { ImportResumeModal, RenameResumeModal, InternshipReturnCard } from "~/components/resumes";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
@@ -377,31 +377,6 @@ export default function Resumes() {
     window.location.href = `/resumes/${resume.id}/edit`;
   };
 
-  const handleDuplicate = async (resume: Resume) => {
-    try {
-      // Fetch the full draft to get sections
-      const res = await fetch(`/api/v2/resumes/${resume.id}`);
-      if (!res.ok) throw new Error("Failed to fetch resume");
-      const { draft } = await res.json();
-
-      const copyRes = await fetch("/api/v2/resumes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: `Copy of ${resume.name}`,
-          sections: draft.sections,
-          templateId: draft.templateId || "modern",
-        }),
-      });
-
-      if (!copyRes.ok) throw new Error("Failed to duplicate resume");
-      toast.success("Resume duplicated");
-      loadResumes();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to duplicate resume");
-    }
-  };
-
   const handlePreviewClick = async (resume: Resume) => {
     setResumeToPreview(resume);
     setPreviewModalOpen(true);
@@ -477,22 +452,34 @@ export default function Resumes() {
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => window.location.href = "/resumes/new"}
-                  className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-6 font-['Clash_Display'] text-base font-medium leading-5 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] outline outline-2 outline-offset-[-2px] outline-neutral-900"
+                  onClick={() => resumes.length >= 4 ? null : window.location.href = "/resumes/new"}
+                  disabled={resumes.length >= 4}
+                  className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-6 font-['Clash_Display'] text-base font-medium leading-5 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] outline outline-2 outline-offset-[-2px] outline-neutral-900 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   <FiPlus className="h-5 w-5" />
                   Create Resume
                 </button>
                 <button
                   type="button"
-                  onClick={() => setImportModalOpen(true)}
-                  className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-6 font-['Clash_Display'] text-base font-medium leading-5 text-gray-700 border-2 border-gray-300 hover:bg-gray-50"
+                  onClick={() => resumes.length < 4 && setImportModalOpen(true)}
+                  disabled={resumes.length >= 4}
+                  className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-6 font-['Clash_Display'] text-base font-medium leading-5 text-gray-700 border-2 border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <FiPlus className="h-5 w-5" />
                   Import Resume
                 </button>
               </div>
             </div>
+
+            {/* Limit banner */}
+            {resumes.length >= 4 && (
+              <div className="mb-6 flex items-center gap-3 rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3">
+                <FiAlertCircle className="h-5 w-5 flex-shrink-0 text-amber-600" />
+                <p className="font-['Satoshi'] text-sm text-amber-800">
+                  You've reached the 4 resume limit. Delete a resume to add a new one.
+                </p>
+              </div>
+            )}
 
             {/* Resumes List */}
             {loading ? (
@@ -568,14 +555,6 @@ export default function Resumes() {
                         title="Preview resume"
                       >
                         <FiEye className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDuplicate(resume)}
-                        className="flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 font-['Satoshi'] text-xs font-medium leading-4 text-neutral-950 hover:bg-gray-50"
-                        title="Duplicate resume"
-                      >
-                        <FiCopy className="h-4 w-4" />
                       </button>
                       <button
                         type="button"

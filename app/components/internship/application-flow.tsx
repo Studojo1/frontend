@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { FiX } from "react-icons/fi";
+import { FiX, FiAlertCircle } from "react-icons/fi";
 import { QuestionInput, type Question } from "./question-input";
 import { ImportResumeModal } from "~/components/resumes/import-resume-modal";
+
+const RESUME_LIMIT = 4;
 
 interface Resume {
   id: string;
@@ -299,42 +301,32 @@ export function ApplicationFlow({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedResumeId) {
-      toast.error("Please select a resume");
-      return;
-    }
-
+  const submitWithResume = async (resumeId: string) => {
+    setSelectedResumeId(resumeId);
     setSubmitting(true);
     try {
       const res = await fetch(`/api/internships/${internshipId}/apply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          resume_id: selectedResumeId,
+          resume_id: resumeId,
           question_responses: questionResponses,
         }),
       });
 
       if (!res.ok) {
         const error = await res.json();
-        
-        // Handle duplicate application (409 Conflict)
         if (res.status === 409) {
           toast.error(error.error || "You have already applied for this internship");
-          onClose(); // Close modal on duplicate application
+          onClose();
           return;
         }
-        
         throw new Error(error.error || "Failed to submit application");
       }
 
       toast.success("Application submitted successfully!");
       onSuccess();
     } catch (error: any) {
-      // Only show error if it's not a duplicate (which we already handled)
       if (error.message && !error.message.includes("already applied")) {
         toast.error(error.message || "Failed to submit application");
       }
@@ -390,37 +382,18 @@ export function ApplicationFlow({
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-6">
             {questions.length > 0 && (
               <div className="space-y-4">
                 <h3 className="font-['Clash_Display'] text-xl font-bold text-neutral-900">
                   Application Questions
                 </h3>
                 {questions.map((question) => {
-                  // Debug: log question structure
-                  console.log("Rendering question:", {
-                    id: question.id,
-                    question_text: question.question_text,
-                    question_type: question.question_type,
-                    hasQuestionText: !!question.question_text,
-                    questionTextValue: question.question_text,
-                    questionTextType: typeof question.question_text,
-                    allKeys: Object.keys(question),
-                    fullQuestion: question
-                  });
-                  
-                  if (!question.question_text) {
-                    console.warn("Question missing question_text:", question);
-                  }
                   const questionText = question.question_text || `Question ${(question.order || 0) + 1}`;
-                  console.log("Question text to display:", questionText);
                   return (
                     <div key={question.id} className="space-y-2">
-                      <label 
-                        className="block font-['Satoshi'] font-medium text-neutral-900"
-                        style={{ display: 'block', visibility: 'visible', opacity: 1, color: '#171717' }}
-                      >
-                        {questionText || `Question ${(question.order || 0) + 1}`}
+                      <label className="block font-['Satoshi'] font-medium text-neutral-900">
+                        {questionText}
                         {question.required && <span className="text-red-500"> *</span>}
                       </label>
                       <QuestionInput
@@ -441,53 +414,65 @@ export function ApplicationFlow({
             )}
 
             <div>
-              <label className="mb-2 block font-['Satoshi'] font-medium text-neutral-900">
-                Select Resume
-              </label>
+              <div className="mb-3 flex items-center justify-between">
+                <label className="font-['Satoshi'] font-medium text-neutral-900">
+                  Choose a resume to apply with
+                </label>
+                {resumes.length < RESUME_LIMIT && (
+                  <button
+                    type="button"
+                    onClick={() => setImportModalOpen(true)}
+                    className="text-xs font-['Satoshi'] font-medium text-violet-600 hover:underline"
+                  >
+                    + Import resume
+                  </button>
+                )}
+              </div>
+
+              {resumes.length >= RESUME_LIMIT && (
+                <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2">
+                  <FiAlertCircle className="h-4 w-4 flex-shrink-0 text-amber-600" />
+                  <p className="font-['Satoshi'] text-xs text-amber-800">
+                    4 resume limit reached. Delete a resume to import a new one.
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-2">
                 {resumes.map((resume) => (
-                  <label
+                  <div
                     key={resume.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg border-2 border-neutral-900 p-4 transition-colors hover:bg-violet-50"
+                    className="flex items-center gap-3 rounded-lg border-2 border-neutral-900 p-4"
                   >
-                    <input
-                      type="radio"
-                      name="resume"
-                      value={resume.id}
-                      checked={selectedResumeId === resume.id}
-                      onChange={(e) => setSelectedResumeId(e.target.value)}
-                      className="h-4 w-4 text-violet-600 focus:ring-violet-500"
-                    />
-                    <div className="flex-1">
-                      <p className="font-['Satoshi'] font-medium text-neutral-900">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-['Satoshi'] font-medium text-neutral-900 truncate">
                         {resume.name}
                       </p>
-                      <p className="text-sm font-['Satoshi'] text-gray-500">
-                        Created {new Date(resume.createdAt).toLocaleDateString()}
+                      <p className="text-xs font-['Satoshi'] text-gray-500">
+                        {new Date(resume.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                  </label>
+                    <button
+                      type="button"
+                      disabled={submitting}
+                      onClick={() => submitWithResume(resume.id)}
+                      className="flex-shrink-0 rounded-lg border-2 border-neutral-900 bg-violet-600 px-4 py-2 font-['Satoshi'] text-sm font-bold text-white transition-colors hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {submitting && selectedResumeId === resume.id ? "Applying..." : "Apply"}
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 rounded-lg border-2 border-neutral-900 px-6 py-3 font-['Satoshi'] font-medium text-neutral-900 transition-colors hover:bg-neutral-100"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={submitting || !selectedResumeId}
-                className="flex-1 rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-3 font-['Satoshi'] font-bold text-white transition-colors hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submitting ? "Submitting..." : "Submit Application"}
-              </button>
-            </div>
-          </form>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full rounded-lg border-2 border-neutral-900 px-6 py-3 font-['Satoshi'] font-medium text-neutral-900 transition-colors hover:bg-neutral-100"
+            >
+              Cancel
+            </button>
+          </div>
         )}
           </div>
         </div>
