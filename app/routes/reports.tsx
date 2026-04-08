@@ -97,6 +97,18 @@ const REPORTS = [
     color: "bg-blue-700",
     badge: "New",
   },
+  {
+    slug: "flame-marketing-2026",
+    title: "Flame University & Marketing Roles: Where Flame Grads Actually Land",
+    subtitle: "Q1 2026",
+    excerpt:
+      "7 role tracks. A 1.7x salary gap between campus and off-campus. And the one skill that moves a Flame grad into the top 20% of marketing applicants immediately.",
+    category: "University Report",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-violet-700",
+    badge: "New",
+  },
 ];
 
 function RequestForm() {
