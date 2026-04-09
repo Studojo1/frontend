@@ -151,13 +151,13 @@ export default function InternshipsDojo() {
             className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-violet-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:p-8"
           >
             <h2 className="font-['Clash_Display'] text-2xl font-medium leading-7 text-white md:text-3xl">
-              Opportunity Apply
+              Find People Hiring in Your Domain
             </h2>
             <p className="font-['Satoshi'] text-base font-normal leading-6 text-white/90 md:text-lg">
-              Find hiring managers and launch personalized outreach campaigns powered by AI.
+              Discover who's actively hiring in your field and get AI-powered outreach to land the role.
             </p>
             <div className="mt-auto inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-violet-600 transition-transform group-hover:translate-x-[1px] group-hover:translate-y-[1px]">
-              <span>Start outreach</span>
+              <span>Find custom roles</span>
               <FiArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </div>
           </a>

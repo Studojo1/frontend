@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, count } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { resumeDrafts, resumeVersions } from "../../auth-schema";
@@ -50,6 +50,19 @@ export async function action({ request }: Route.ActionArgs) {
     return Response.json(
       { error: "Name and sections array are required" },
       { status: 400 }
+    );
+  }
+
+  // Enforce 4-resume limit
+  const [{ value: draftCount }] = await db
+    .select({ value: count() })
+    .from(resumeDrafts)
+    .where(and(eq(resumeDrafts.userId, session.user.id), eq(resumeDrafts.isArchived, false)));
+
+  if (draftCount >= 4) {
+    return Response.json(
+      { error: "You can only save 4 resumes at a time. Delete one before adding a new one.", limitReached: true },
+      { status: 429 }
     );
   }
 

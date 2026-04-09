@@ -33,11 +33,18 @@ export async function action({ request, params }: Route.ActionArgs) {
     );
   }
 
-  const { resume_id, question_responses } = body as { resume_id?: unknown; question_responses?: Record<string, unknown> };
+  const { resume_id, resume_data, question_responses } = body as { resume_id?: unknown; resume_data?: unknown; question_responses?: Record<string, unknown> };
 
-  if (!resume_id || typeof resume_id !== "string") {
+  if (!resume_id && !resume_data) {
     return new Response(
-      JSON.stringify({ error: "resume_id is required and must be a string" }),
+      JSON.stringify({ error: "Either resume_id or resume_data is required" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  if (resume_id && typeof resume_id !== "string") {
+    return new Response(
+      JSON.stringify({ error: "resume_id must be a string" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -100,18 +107,26 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
   }
 
-  // Validate resume exists and belongs to user
-  const [resume] = await db
-    .select()
-    .from(resumes)
-    .where(and(eq(resumes.id, resume_id), eq(resumes.userId, session.user.id)))
-    .limit(1);
+  // Validate resume — either by ID or use inline resume_data
+  let resolvedResumeId: string | null = null;
+  let resolvedResumeSnapshot: unknown = resume_data || null;
 
-  if (!resume) {
-    return new Response(
-      JSON.stringify({ error: "Resume not found or does not belong to you" }),
-      { status: 404, headers: { "Content-Type": "application/json" } }
-    );
+  if (resume_id) {
+    const [resume] = await db
+      .select()
+      .from(resumes)
+      .where(and(eq(resumes.id, resume_id as string), eq(resumes.userId, session.user.id)))
+      .limit(1);
+
+    if (!resume) {
+      return new Response(
+        JSON.stringify({ error: "Resume not found or does not belong to you" }),
+        { status: 404, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    resolvedResumeId = resume.id;
+    resolvedResumeSnapshot = resume.resumeData;
   }
 
   // Check if user has already applied
@@ -139,8 +154,8 @@ export async function action({ request, params }: Route.ActionArgs) {
     .values({
       internshipId: internshipId,
       userId: session.user.id,
-      resumeId: resume_id,
-      resumeSnapshot: resume.resumeData, // Lock the resume data
+      resumeId: resolvedResumeId,
+      resumeSnapshot: resolvedResumeSnapshot,
       status: "pending",
     })
     .returning();
@@ -213,7 +228,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       internship_id: internshipId,
       internship_title: internship.title,
       company_name: internship.companyName,
-      resume_id: resume_id,
+      resume_id: resolvedResumeId,
       timestamp: newApplication.createdAt.toISOString(),
     });
   } catch (error) {

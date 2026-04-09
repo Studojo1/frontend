@@ -253,7 +253,6 @@ export const resumeVersions = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     resumeId: uuid("resume_id")
-      .notNull()
       .references(() => resumes.id, { onDelete: "cascade" }),
     version: integer("version").notNull(),
     resumeData: jsonb("resume_data").notNull(),
@@ -472,7 +471,6 @@ export const internshipApplications = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     resumeId: uuid("resume_id")
-      .notNull()
       .references(() => resumes.id, { onDelete: "restrict" }),
     resumeSnapshot: jsonb("resume_snapshot").notNull(), // Locked resume data
     status: text("status").default("pending").notNull(), // 'pending', 'shortlisted', 'rejected', 'forwarded', 'accepted', 'interview_scheduled', 'more_info_requested'
