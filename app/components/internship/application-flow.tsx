@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { FiX, FiAlertCircle, FiUpload } from "react-icons/fi";
+import { FiX, FiAlertCircle, FiUpload, FiCheckCircle } from "react-icons/fi";
 import { QuestionInput, type Question } from "./question-input";
 import { ImportResumeModal } from "~/components/resumes/import-resume-modal";
 import { fetchWithRetry } from "~/lib/fetch-with-retry";
@@ -33,6 +33,7 @@ export function ApplicationFlow({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [questionResponses, setQuestionResponses] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
+  const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [tab, setTab] = useState<"studojo" | "upload">("studojo");
@@ -282,7 +283,7 @@ export function ApplicationFlow({
         throw new Error(error.error || "Failed to submit application");
       }
 
-      toast.success("Application submitted successfully!");
+      setSubmitted(true);
       onSuccess();
     } catch (error: any) {
       if (error.message && !error.message.includes("already applied")) {
@@ -316,7 +317,7 @@ export function ApplicationFlow({
         throw new Error(error.error || "Failed to submit application");
       }
 
-      toast.success("Application submitted successfully!");
+      setSubmitted(true);
       onSuccess();
     } catch (error: any) {
       if (error.message && !error.message.includes("already applied")) {
@@ -440,7 +441,36 @@ export function ApplicationFlow({
               Apply for Internship
             </h2>
 
-            {loading ? (
+            {submitted ? (
+              <div className="flex flex-col items-center gap-6 py-4 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 border-2 border-green-500">
+                  <FiCheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-['Clash_Display'] text-2xl font-bold text-neutral-900">
+                    Application submitted
+                  </h3>
+                  <p className="mt-2 font-['Satoshi'] text-gray-500">
+                    You're in. The team will be in touch if it's a fit.
+                  </p>
+                </div>
+                <div className="flex w-full flex-col gap-3">
+                  <a
+                    href="/outreach"
+                    className="block w-full rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-3 font-['Satoshi'] font-bold text-white transition-colors hover:bg-violet-700 text-center"
+                  >
+                    Don't just apply — find who's hiring in your field
+                  </a>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="w-full rounded-lg border-2 border-neutral-900 px-6 py-3 font-['Satoshi'] font-medium text-neutral-900 transition-colors hover:bg-neutral-100"
+                  >
+                    Browse more internships
+                  </button>
+                </div>
+              </div>
+            ) : loading ? (
               <p className="font-['Satoshi'] text-gray-600">Loading resumes...</p>
             ) : (
               <div className="space-y-6">
