@@ -459,7 +459,7 @@ export function ApplicationFlow({
                     href="/outreach"
                     className="block w-full rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-3 font-['Satoshi'] font-bold text-white transition-colors hover:bg-violet-700 text-center"
                   >
-                    Don't just apply — find who's hiring in your field
+                    Don't just apply. Find who's hiring in your field.
                   </a>
                   <button
                     type="button"
@@ -660,7 +660,7 @@ export function ApplicationFlow({
                       )}
                     </div>
                     <p className="mt-2 font-['Satoshi'] text-xs text-gray-500 text-center">
-                      Your PDF won't be saved to your profile — it's used for this application only.
+                      Your PDF won't be saved to your profile. It's used for this application only.
                     </p>
                   </div>
                 )}
