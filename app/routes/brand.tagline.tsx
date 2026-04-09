@@ -54,15 +54,7 @@ export default function BrandTagline() {
           }}
         >
           <span style={{ color: "#ffffff" }}>that </span>
-          <span
-            style={{
-              color: "#7c3aed",
-              WebkitTextStroke: "6px #ffffff",
-              paintOrder: "stroke fill",
-            }}
-          >
-            matter.
-          </span>
+          <span style={{ color: "#7c3aed" }}>matter.</span>
         </div>
       </div>
 
