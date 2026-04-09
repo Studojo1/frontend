@@ -472,7 +472,6 @@ export const internshipApplications = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     resumeId: uuid("resume_id")
-      .notNull()
       .references(() => resumes.id, { onDelete: "restrict" }),
     resumeSnapshot: jsonb("resume_snapshot").notNull(), // Locked resume data
     status: text("status").default("pending").notNull(), // 'pending', 'shortlisted', 'rejected', 'forwarded', 'accepted', 'interview_scheduled', 'more_info_requested'
@@ -786,19 +785,3 @@ export const resumeExamplesRelations = relations(resumeExamples, ({ one }) => ({
   }),
 }));
 
-
-export const reportRequests = pgTable(
-  "report_requests",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    topic: text("topic").notNull(),
-    email: text("email"),
-    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
-    status: text("status").notNull().default("pending"), // 'pending' | 'in_progress' | 'done'
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => [
-    index("report_requests_status_idx").on(table.status),
-    index("report_requests_created_at_idx").on(table.createdAt),
-  ],
-);
