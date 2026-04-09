@@ -57,9 +57,8 @@ export default function BrandTagline() {
           <span
             style={{
               color: "#7c3aed",
-              backgroundColor: "#ffffff",
-              padding: "0 12px 4px 12px",
-              borderRadius: 4,
+              WebkitTextStroke: "6px #ffffff",
+              paintOrder: "stroke fill",
             }}
           >
             matter.
