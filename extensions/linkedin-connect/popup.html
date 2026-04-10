@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Studojo LinkedIn Connect</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- State: checking -->
+    <div id="state-checking" class="state">
+      <div class="logo">
+        <span class="logo-s">S</span>
+      </div>
+      <p class="checking-text">Checking status...</p>
+    </div>
+
+    <!-- State: not logged into LinkedIn -->
+    <div id="state-no-linkedin" class="state hidden">
+      <div class="logo"><span class="logo-s">S</span></div>
+      <h2>Log into LinkedIn first</h2>
+      <p>Open LinkedIn in a tab and sign in, then come back here.</p>
+      <a href="https://www.linkedin.com/login" target="_blank" class="btn btn-secondary">
+        Open LinkedIn
+      </a>
+    </div>
+
+    <!-- State: not logged into Studojo -->
+    <div id="state-no-studojo" class="state hidden">
+      <div class="logo"><span class="logo-s">S</span></div>
+      <h2>Log into Studojo first</h2>
+      <p>Open Studojo and sign in, then come back here.</p>
+      <a href="https://studojo.com/auth?mode=signin" target="_blank" class="btn btn-secondary">
+        Open Studojo
+      </a>
+    </div>
+
+    <!-- State: ready to connect -->
+    <div id="state-ready" class="state hidden">
+      <div class="logo"><span class="logo-s">S</span></div>
+      <h2>Connect LinkedIn</h2>
+      <p>
+        Studojo will find relevant people to connect with for any role you're
+        targeting — and write a personal note for each one.
+      </p>
+      <button id="btn-connect" class="btn btn-primary">
+        Connect LinkedIn
+      </button>
+      <p class="fine-print">
+        Your session is encrypted and never shared.
+      </p>
+    </div>
+
+    <!-- State: connecting (loading) -->
+    <div id="state-connecting" class="state hidden">
+      <div class="logo"><span class="logo-s">S</span></div>
+      <div class="spinner"></div>
+      <p>Connecting...</p>
+    </div>
+
+    <!-- State: connected -->
+    <div id="state-connected" class="state hidden">
+      <div class="check-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2>LinkedIn connected</h2>
+      <p>Head to Studojo to find people to connect with.</p>
+      <a
+        href="https://studojo.com/outreach/linkedin"
+        target="_blank"
+        class="btn btn-primary"
+      >
+        Find people to connect with
+      </a>
+      <button id="btn-disconnect" class="btn btn-ghost">
+        Disconnect
+      </button>
+    </div>
+
+    <!-- State: error -->
+    <div id="state-error" class="state hidden">
+      <div class="logo"><span class="logo-s">S</span></div>
+      <h2>Something went wrong</h2>
+      <p id="error-message">Please try again.</p>
+      <button id="btn-retry" class="btn btn-primary">Try Again</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
