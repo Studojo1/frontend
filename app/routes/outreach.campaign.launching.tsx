@@ -10,12 +10,12 @@ import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 
 const stages = [
-  { icon: FiShield, label: "Validating campaign configuration", duration: 1500 },
-  { icon: FiCheckCircle, label: "Preparing leads for outreach", duration: 2000 },
-  { icon: FiMail, label: "Setting up email pipeline", duration: 3000 },
-  { icon: FiClock, label: "Scheduling send times", duration: 2000 },
-  { icon: FiZap, label: "Starting enrichment engine", duration: 1500 },
-  { icon: FiSend, label: "Campaign ready", duration: 1000 },
+  { icon: FiShield, label: "Checking your setup...", duration: 1500 },
+  { icon: FiCheckCircle, label: "Loading your contacts...", duration: 2000 },
+  { icon: FiMail, label: "Writing your personalised emails...", duration: 3000 },
+  { icon: FiClock, label: "Scheduling your sends...", duration: 2000 },
+  { icon: FiZap, label: "Almost ready...", duration: 1500 },
+  { icon: FiSend, label: "All set — let's go!", duration: 1000 },
 ];
 
 export default function CampaignLaunchingPage() {

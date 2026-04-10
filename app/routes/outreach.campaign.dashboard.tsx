@@ -387,7 +387,7 @@ export default function DashboardPage() {
                     : "bg-amber-50 text-amber-700 border-amber-200"
                 }`}>
                   <RiFlaskLine className="w-3 h-3 mr-1" />
-                  {isComplete ? "Test Complete" : isFailed ? "Test Failed" : "Test In Progress"}
+                  {isComplete ? "Test Done" : isFailed ? "Test Failed" : "Sending Test Emails"}
                 </span>
               </div>
               <button
@@ -571,6 +571,16 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
+
+            {/* Cadence info banner — shown while campaign is running and not yet complete */}
+            {metrics.status === "running" && metrics.sent_count < metrics.total_leads && (
+              <div className="rounded-2xl border-2 border-studojo-ink/20 bg-amber-50 p-4 flex items-start gap-3">
+                <span className="text-lg mt-0.5">📬</span>
+                <p className="text-sm font-satoshi text-studojo-ink">
+                  <span className="font-bold">Your emails go out gradually</span> (5–7 per day) to protect your Gmail reputation. Check back tomorrow — most replies come within 3–5 days.
+                </p>
+              </div>
+            )}
 
             {/* Gmail Re-Auth Banner */}
             {showReauthBanner && (

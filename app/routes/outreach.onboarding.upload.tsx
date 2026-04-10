@@ -86,7 +86,7 @@ export default function UploadPage() {
             <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8">
               <h1 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Upload Your Resume</h1>
               <p className="text-sm text-studojo-muted font-satoshi mb-8">
-                We'll analyze your background to find the right decision makers.
+                We'll read your resume and find hiring managers who match your background.
               </p>
 
               <div
@@ -196,7 +196,7 @@ export default function UploadPage() {
                   onClick={handleContinue}
                   className="h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                 >
-                  Continue to AI Chat
+                  Build My Profile
                 </button>
               </div>
             </div>

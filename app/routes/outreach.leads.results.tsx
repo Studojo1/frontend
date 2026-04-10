@@ -48,9 +48,9 @@ export default function ResultsPage() {
       <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-6 md:px-8">
         <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between sm:mb-6">
           <div>
-            <h1 className="font-clash text-xl sm:text-2xl font-bold text-studojo-ink">Lead Results</h1>
+            <h1 className="font-clash text-xl sm:text-2xl font-bold text-studojo-ink">Your Hiring Managers</h1>
             <p className="text-sm text-studojo-muted font-satoshi mt-0.5">
-              {leads.length} decision makers found. Tap cards to see scoring details.
+              Found {leads.length} hiring managers matched to your profile. Tap any card to see why they were picked.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -69,7 +69,7 @@ export default function ResultsPage() {
               onClick={() => navigate("/outreach/enrichment")}
               className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
             >
-              <FiSend className="w-4 h-4 mr-1.5" /> Send Emails
+              <FiSend className="w-4 h-4 mr-1.5" /> Get Their Emails
             </button>
           </div>
         </div>

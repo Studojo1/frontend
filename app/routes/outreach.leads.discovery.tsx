@@ -9,10 +9,10 @@ import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 
 const stages = [
-  { icon: RiRobot2Fill, label: "Analyzing your profile", duration: 2000 },
-  { icon: FiSearch, label: "Mapping roles & filters", duration: 3000 },
-  { icon: FiUsers, label: "Finding decision makers", duration: 8000 },
-  { icon: FiBarChart2, label: "Scoring & ranking leads", duration: 4000 },
+  { icon: RiRobot2Fill, label: "Reading your resume...", duration: 2000 },
+  { icon: FiSearch, label: "Figuring out what roles fit you...", duration: 3000 },
+  { icon: FiUsers, label: "Searching for hiring managers...", duration: 8000 },
+  { icon: FiBarChart2, label: "Ranking the best matches for you...", duration: 4000 },
 ];
 
 const PREVIEW_POOL = [
@@ -48,7 +48,7 @@ export default function DiscoveryPage() {
   const counterRef = useRef<ReturnType<typeof setInterval>>();
   const cycleRef = useRef<ReturnType<typeof setInterval>>();
 
-  // Cards visible as soon as we reach stage 3 (Finding decision makers)
+  // Cards visible as soon as we reach stage 3 (Searching for hiring managers)
   const cardsVisible = currentStage >= 2;
 
   // Derive the 4 preview leads from the current offset
@@ -168,8 +168,8 @@ export default function DiscoveryPage() {
             </h2>
             <p className="text-sm text-studojo-muted font-satoshi mb-5">
               {allDone
-                ? "We found your leads. Redirecting..."
-                : "Scanning thousands of profiles to find the right people for you."
+                ? "Found your hiring managers. Redirecting..."
+                : "Hang tight — this takes about 30 seconds."
               }
             </p>
 
