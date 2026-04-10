@@ -19,7 +19,7 @@ const FREE_TOOLS: FreeTool[] = [
   {
     id: "internships",
     title: "Internship Dojo",
-    description: "Browse verified internships from our hiring partners. Apply directly — no portals.",
+    description: "Browse verified internships from our hiring partners. Apply directly, no portals.",
     checklist: ["Live internship listings", "Channel partner roles", "Direct apply links"],
     accent: "bg-emerald-500",
     accentIcon: "text-emerald-500",
@@ -43,11 +43,11 @@ const FREE_TOOLS: FreeTool[] = [
   {
     id: "ai-risk",
     title: "AI Risk Dojo",
-    description: "Check if your content gets flagged. Score it, fix it, submit with confidence.",
-    checklist: ["AI detection analysis", "Risk scoring", "Rewrite suggestions"],
+    description: "Find out how likely your job or career path is to be replaced by AI and what you can do to stay ahead.",
+    checklist: ["Role replacement probability", "Smart upskilling paths", "Future-proof your career"],
     accent: "bg-rose-500",
     accentIcon: "text-rose-500",
-    cta: "Check my content",
+    cta: "Check my role",
     href: "/dojos/ai-risk",
     icon: <FiBarChart2 />,
     badge: "Free",

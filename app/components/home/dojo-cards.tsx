@@ -75,22 +75,14 @@ export function FeaturedProductCard() {
               </ul>
             </div>
 
-            {/* Right: pricing widget */}
-            <div className="flex shrink-0 flex-col items-start gap-3 rounded-[24px] border-2 border-white/30 bg-white/15 p-6 backdrop-blur-sm md:min-w-[220px] md:items-center md:text-center">
-              <div>
-                <div className="font-['Clash_Display'] text-5xl font-bold text-white md:text-6xl">
-                  $20
-                </div>
-                <p className="mt-1 font-['Satoshi'] text-sm text-white/80">
-                  for 200 personalised outreaches
-                </p>
-                <p className="mt-0.5 font-['Satoshi'] text-xs font-semibold uppercase tracking-widest text-white/60">
-                  one-time &middot; no subscription
-                </p>
-              </div>
+            {/* Right: CTA */}
+            <div className="flex shrink-0 flex-col items-start gap-4 rounded-[24px] border-2 border-white/30 bg-white/15 p-6 backdrop-blur-sm md:min-w-[220px] md:items-center md:text-center">
+              <p className="font-['Satoshi'] text-sm text-white/80 md:text-base">
+                Ready to skip the queue and email hiring managers directly?
+              </p>
               <Link
                 to="/outreach/onboarding/upload"
-                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-violet-600 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-violet-600 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
               >
                 Get Internship &rarr;
               </Link>

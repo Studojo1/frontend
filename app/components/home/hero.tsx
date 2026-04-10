@@ -2,24 +2,10 @@ import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { FiArrowRight, FiArrowDown, FiMail, FiUser, FiMessageSquare } from "react-icons/fi";
 
-const floatY = [0, -18, -8, -24, 0];
-const floatX = [0, 8, -12, 6, 0];
-const floatRotate = [0, 4, -5, 3, 0];
-
-function LiveDot() {
-  return (
-    <span className="relative flex h-2 w-2 shrink-0">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-    </span>
-  );
-}
-
 const PROOF_STATS = [
-  { value: "138+", label: "placed" },
+  { value: "138+", label: "students" },
   { value: "95%", label: "satisfied" },
-  { value: "4.9★", label: "rating" },
-  { value: "$20", label: "for 200 outreaches" },
+  { value: "4.9", label: "rating" },
 ];
 
 export function Hero() {
@@ -29,14 +15,6 @@ export function Hero() {
 
         {/* Left: copy */}
         <div className="flex flex-col gap-5 md:max-w-lg md:gap-7 lg:max-w-xl">
-          {/* Eyebrow */}
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-emerald-300 bg-emerald-100 px-3 py-1.5">
-            <LiveDot />
-            <span className="font-['Satoshi'] text-xs font-semibold text-emerald-700 md:text-sm">
-              138 students placed. As of yesterday.
-            </span>
-          </div>
-
           {/* H1 */}
           <h1 className="font-['Clash_Display'] text-4xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl lg:text-6xl">
             Don&apos;t apply.{" "}
@@ -54,7 +32,7 @@ export function Hero() {
           {/* CTAs */}
           <div className="flex flex-col gap-3 md:flex-row md:flex-wrap">
             <Link
-              to="/outreach/onboarding/upload"
+              to="/outreach"
               className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-8"
             >
               Get Internship <FiArrowRight className="h-5 w-5" />
@@ -82,13 +60,13 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Right: app simulation cards */}
-        <div className="hidden shrink-0 flex-col items-center gap-4 md:flex md:w-[340px] lg:w-[380px]">
+        {/* Right: app simulation cards — stacked, gentle float only on y-axis */}
+        <div className="hidden shrink-0 flex-col gap-4 md:flex md:w-[320px] lg:w-[360px]">
           {/* Card 1: Contact Found */}
           <motion.div
             className="w-full rounded-2xl border-2 border-neutral-900 bg-violet-500 p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
-            animate={{ y: floatY, x: floatX, rotate: floatRotate }}
-            transition={{ repeat: Infinity, repeatType: "reverse", duration: 20, delay: 0 }}
+            animate={{ y: [0, -6, 0] }}
+            transition={{ repeat: Infinity, repeatType: "mirror", duration: 4, ease: "easeInOut" }}
           >
             <div className="mb-3 flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white/40 bg-white/20">
@@ -104,7 +82,7 @@ export function Hero() {
               </div>
               <div>
                 <p className="font-['Satoshi'] text-sm font-bold text-white">Rohan S.</p>
-                <p className="font-['Satoshi'] text-xs text-white/80">VP Engineering &middot; PhonePe</p>
+                <p className="font-['Satoshi'] text-xs text-white/80">VP Engineering · PhonePe</p>
               </div>
             </div>
           </motion.div>
@@ -112,8 +90,8 @@ export function Hero() {
           {/* Card 2: Email Written */}
           <motion.div
             className="w-full rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
-            animate={{ y: floatY.map((v) => -v), x: floatX.map((v) => -v), rotate: floatRotate.map((r) => -r) }}
-            transition={{ repeat: Infinity, repeatType: "reverse", duration: 22, delay: 1 }}
+            animate={{ y: [0, -6, 0] }}
+            transition={{ repeat: Infinity, repeatType: "mirror", duration: 4, ease: "easeInOut", delay: 1.3 }}
           >
             <div className="mb-3 flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-100">
@@ -135,19 +113,19 @@ export function Hero() {
           {/* Card 3: Reply Received */}
           <motion.div
             className="w-full rounded-2xl border-2 border-neutral-900 bg-emerald-400 p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
-            animate={{ y: floatY, x: floatX.map((v) => v * 0.8), rotate: floatRotate.map((r) => r + 3) }}
-            transition={{ repeat: Infinity, repeatType: "reverse", duration: 18, delay: 0.5 }}
+            animate={{ y: [0, -6, 0] }}
+            transition={{ repeat: Infinity, repeatType: "mirror", duration: 4, ease: "easeInOut", delay: 2.6 }}
           >
             <div className="mb-3 flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white/40 bg-white/20">
                 <FiMessageSquare className="h-3.5 w-3.5 text-white" />
               </span>
               <span className="font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-white/80">
-                Reply Received &#10003;
+                Reply Received
               </span>
             </div>
             <p className="font-['Satoshi'] text-sm font-medium text-white">
-              &ldquo;Looks great, can we jump on a call this week? &mdash; Rohan&rdquo;
+              "Looks great, can we jump on a call this week? Rohan"
             </p>
           </motion.div>
         </div>

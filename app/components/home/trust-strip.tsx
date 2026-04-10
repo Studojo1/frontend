@@ -16,7 +16,7 @@ export function TrustStrip() {
       <div className="mx-auto max-w-[var(--section-max-width)]">
         <div className="flex flex-wrap items-center gap-3 md:gap-6">
           <span className="font-['Satoshi'] text-xs font-semibold uppercase tracking-widest text-neutral-400 shrink-0">
-            Placed at
+            Positive replies from
           </span>
           <div className="flex flex-wrap items-center gap-2 md:gap-4">
             {COMPANIES.map((company) => (

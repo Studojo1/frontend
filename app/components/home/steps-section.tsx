@@ -38,13 +38,7 @@ export function StepsSection() {
           </p>
         </div>
 
-        <div className="relative flex flex-col gap-8 md:grid md:grid-cols-3">
-          {/* Dashed connector line — desktop only */}
-          <div
-            className="absolute top-8 left-0 right-0 hidden border-t-2 border-dashed border-neutral-300 md:block"
-            style={{ top: "2rem", left: "calc(16.66% + 2rem)", right: "calc(16.66% + 2rem)" }}
-            aria-hidden
-          />
+        <div className="flex flex-col gap-8 md:grid md:grid-cols-3">
           {STEPS.map(({ num, circleClass, title, description }) => (
             <div
               key={num}

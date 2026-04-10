@@ -75,12 +75,12 @@ function AnnouncementBar() {
   return (
     <div className="border-b border-neutral-900 bg-violet-500 px-4 py-2.5 text-center">
       <p className="font-['Satoshi'] text-xs font-medium text-white md:text-sm">
-        Summer 2026 internships are filling up fast &mdash;{" "}
+        Summer 2026 internships are filling up fast.{" "}
         <Link
-          to="/outreach/onboarding/upload"
+          to="/outreach"
           className="font-bold underline underline-offset-2 hover:no-underline"
         >
-          grab your spot now &rarr;
+          Grab your spot now &rarr;
         </Link>
       </p>
     </div>
