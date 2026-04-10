@@ -12,7 +12,7 @@ const GOOD_ITEMS = [
   "Email the actual hiring manager",
   "Personal message, not a form",
   "Reply in days, not months",
-  "200 outreaches from $20",
+  "First reply typically within a week",
 ];
 
 function XIcon() {
