@@ -11,7 +11,7 @@ const STYLES = [
   {
     id: "warm_intro",
     label: "Warm & Genuine",
-    description: "Humble, friendly — asks for a nudge in the right direction. Works well for small companies and founders.",
+    description: "Humble and friendly. Asks for a nudge in the right direction. Works well for small companies and founders.",
   },
   {
     id: "value_prop",
@@ -31,7 +31,7 @@ const STYLES = [
   {
     id: "direct_ask",
     label: "Direct & Concise",
-    description: "No fluff — asks clearly for open roles or a referral. Works well for VPs, Directors, CTOs.",
+    description: "No fluff. Asks clearly for open roles or a referral. Works well for VPs, Directors, CTOs.",
   },
 ] as const;
 
@@ -150,14 +150,14 @@ export default function StylePickPage() {
             })}
 
             <p className="text-xs text-studojo-muted font-satoshi pt-1">
-              {selected.length}/3 styles selected — at least 1 required
+              {selected.length}/3 styles selected (at least 1 required)
             </p>
           </div>
 
           {/* Right: preview pane */}
           <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6 h-fit sticky top-6">
             <p className="text-xs font-bold text-studojo-muted font-satoshi uppercase tracking-wider mb-3">
-              Email Preview — {STYLES.find((s) => s.id === activePreview)?.label}
+              Email Preview: {STYLES.find((s) => s.id === activePreview)?.label}
             </p>
 
             {activePreviewIsLoading ? (
@@ -178,7 +178,7 @@ export default function StylePickPage() {
               </div>
             ) : previews[activePreview] === null ? (
               <p className="text-sm text-studojo-muted font-satoshi text-center py-8">
-                Preview unavailable — this style will still be used when sending.
+                Preview unavailable. This style will still be used when sending.
               </p>
             ) : (
               <p className="text-sm text-studojo-muted font-satoshi text-center py-8">

@@ -15,7 +15,7 @@ const stages = [
   { icon: FiMail, label: "Writing your personalised emails...", duration: 3000 },
   { icon: FiClock, label: "Scheduling your sends...", duration: 2000 },
   { icon: FiZap, label: "Almost ready...", duration: 1500 },
-  { icon: FiSend, label: "All set — let's go!", duration: 1000 },
+  { icon: FiSend, label: "All set. Let's go!", duration: 1000 },
 ];
 
 export default function CampaignLaunchingPage() {

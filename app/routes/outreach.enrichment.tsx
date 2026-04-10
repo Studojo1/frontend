@@ -267,7 +267,7 @@ export default function EnrichmentPage() {
             <FiMail className="w-7 h-7" />
           </div>
           <h1 className="font-clash text-2xl font-bold text-studojo-ink">Contact Your Hiring Managers</h1>
-          <p className="text-sm text-studojo-muted mt-2 font-satoshi">Choose how many to reach out to — we'll handle everything else.</p>
+          <p className="text-sm text-studojo-muted mt-2 font-satoshi">Choose how many to reach out to. We'll handle everything else.</p>
         </div>
 
         {/* Value checklist — what they're getting */}
@@ -277,7 +277,7 @@ export default function EnrichmentPage() {
             {[
               "Verified email addresses for your hiring managers",
               "A personalised email written for each one (based on your resume)",
-              "Emails sent gradually over several days — protects your Gmail reputation",
+              "Emails sent gradually over several days, protecting your Gmail reputation",
               "Replies land straight in your inbox",
             ].map((item) => (
               <li key={item} className="flex items-start gap-2.5 text-sm font-satoshi text-studojo-ink">
@@ -367,7 +367,7 @@ export default function EnrichmentPage() {
               disabled={paying}
               className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-50 disabled:pointer-events-none"
             >
-              <FiCreditCard className="w-5 h-5 mr-2" /> {paying ? "Processing..." : `Pay ${displayPrice} — Contact ${selectedTier} Hiring Managers`}
+              <FiCreditCard className="w-5 h-5 mr-2" /> {paying ? "Processing..." : `Pay ${displayPrice} · Contact ${selectedTier} Hiring Managers`}
             </button>
           )}
           <p className="text-xs text-studojo-muted font-satoshi text-center max-w-md">
