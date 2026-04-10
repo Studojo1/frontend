@@ -98,6 +98,17 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "internships-15k-india-2026",
+    title: "Roles That Land You Above ₹15k: The Internship Map India 2026",
+    subtitle: "Q2 2026",
+    excerpt: "48 roles mapped across 8 domains. Which categories own the ₹30k+ bracket, which skills unlock the floor, and which roles will never pay ₹15k no matter who you are.",
+    category: "Market Report",
+    date: "April 2026",
+    findings: 3,
+    color: "bg-amber-600",
+    badge: "New",
+  },
+  {
     slug: "flame-marketing-2026",
     title: "Flame University & Marketing Roles: Where Flame Grads Actually Land",
     subtitle: "Q1 2026",

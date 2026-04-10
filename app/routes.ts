@@ -86,6 +86,7 @@ export default [
   route("reports/pune-jobs-2026", "routes/reports.pune-jobs-2026.tsx"),
   route("reports/flame-marketing-2026", "routes/reports.flame-marketing-2026.tsx"),
   route("brand/tagline", "routes/brand.tagline.tsx"),
+  route("reports/internships-15k-india-2026", "routes/reports.internships-15k-india-2026.tsx"),
   route("api/outreach/email-chat", "routes/api.outreach.email-chat.tsx"),
   route("lab/email", "routes/lab.email.tsx"),
   route("api/ai-risk/analyse", "routes/api.ai-risk.analyse.tsx"),
