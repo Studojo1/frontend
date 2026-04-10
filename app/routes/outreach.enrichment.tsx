@@ -205,8 +205,8 @@ export default function EnrichmentPage() {
         key: orderData.key_id,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "OpportunityApply",
-        description: `${selectedTier} Email Enrichment Credits`,
+        name: "Outreach",
+        description: `Contact ${selectedTier} Hiring Managers`,
         order_id: orderData.order_id,
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           try {
@@ -269,12 +269,30 @@ export default function EnrichmentPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
-        <div className="text-center mb-10">
+        <div className="text-center mb-6">
           <div className="w-14 h-14 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center mx-auto text-studojo-purple mb-6">
             <FiMail className="w-7 h-7" />
           </div>
-          <h1 className="font-clash text-2xl font-bold text-studojo-ink">Email Outreach Credits</h1>
-          <p className="text-sm text-studojo-muted mt-2 font-satoshi">Choose how many leads to reach out to. Emails are enriched and personalized automatically.</p>
+          <h1 className="font-clash text-2xl font-bold text-studojo-ink">Contact Your Hiring Managers</h1>
+          <p className="text-sm text-studojo-muted mt-2 font-satoshi">Choose how many to reach out to — we'll handle everything else.</p>
+        </div>
+
+        {/* Value checklist — what they're getting */}
+        <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg/30 p-5 mb-8">
+          <p className="font-clash text-sm font-bold text-studojo-ink mb-3">Here's what you get:</p>
+          <ul className="space-y-2">
+            {[
+              "Verified email addresses for your hiring managers",
+              "A personalised email written for each one (based on your resume)",
+              "Emails sent gradually over several days — protects your Gmail reputation",
+              "Replies land straight in your inbox",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2.5 text-sm font-satoshi text-studojo-ink">
+                <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
 
         {credits && credits.total_credits > 0 && (
@@ -348,7 +366,7 @@ export default function EnrichmentPage() {
               onClick={() => onPaymentSuccess()}
               className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
             >
-              Continue with {selectedTier} Credits
+              Contact {selectedTier} Hiring Managers (Use Credits)
             </button>
           ) : (
             <button
@@ -356,11 +374,11 @@ export default function EnrichmentPage() {
               disabled={paying}
               className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-50 disabled:pointer-events-none"
             >
-              <FiCreditCard className="w-5 h-5 mr-2" /> {paying ? "Processing..." : `Pay ${displayPrice} & Continue`}
+              <FiCreditCard className="w-5 h-5 mr-2" /> {paying ? "Processing..." : `Pay ${displayPrice} — Contact ${selectedTier} Hiring Managers`}
             </button>
           )}
           <p className="text-xs text-studojo-muted font-satoshi text-center max-w-md">
-            Leads will be automatically enriched and personalized emails will be generated as your campaign runs.
+            Your emails go out automatically over several days. Most students get their first reply within a week.
           </p>
         </div>
       </div>

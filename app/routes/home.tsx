@@ -74,8 +74,18 @@ function InternshipPopup() {
 
   useEffect(() => {
     if (sessionStorage.getItem("outreach-popup-dismissed")) return;
-    const t = setTimeout(() => setVisible(true), 800);
-    return () => clearTimeout(t);
+    let fired = false;
+    function onScroll() {
+      if (fired) return;
+      const scrolled = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+      if (scrolled >= 0.6) {
+        fired = true;
+        setVisible(true);
+        window.removeEventListener("scroll", onScroll);
+      }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   function dismiss() {
@@ -115,10 +125,10 @@ function InternshipPopup() {
               </div>
               <div className="flex flex-col gap-2">
                 <h2 className="font-['Clash_Display'] text-2xl font-medium leading-tight text-neutral-900">
-                  Find your dream internship
+                  Email hiring managers directly
                 </h2>
                 <p className="font-['Satoshi'] text-base text-neutral-600">
-                  AI finds the right roles, writes your outreach, and gets you in front of real hiring managers. No job boards.
+                  Upload your resume. We find who can hire you and write the emails. Most students get a reply within a week.
                 </p>
               </div>
               <Link
@@ -126,7 +136,7 @@ function InternshipPopup() {
                 onClick={dismiss}
                 className="inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
               >
-                Try the Outreach Tool →
+                Find My Hiring Managers →
               </Link>
               <button
                 onClick={dismiss}

@@ -576,7 +576,7 @@ export default function ProfilePage() {
           className="pointer-events-auto px-8 py-3.5 rounded-full bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none flex items-center gap-2.5"
         >
           {loading && <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />}
-          Find Decision Makers
+          Find My Hiring Managers
           {!loading && <FiArrowRight className="w-4 h-4" />}
         </button>
       </div>

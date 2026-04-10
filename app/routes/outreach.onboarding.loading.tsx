@@ -14,7 +14,7 @@ const QUOTES = [
   { text: "Most outreach fails because it's generic. Yours won't be.", author: "Studojo" },
   { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
   { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
-  { text: "Identifying the decision makers most likely to respond to someone like you.", author: "Studojo" },
+  { text: "Finding the hiring managers most likely to respond to someone like you.", author: "Studojo" },
   { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
   { text: "Your answers just became your competitive edge.", author: "Studojo" },
   { text: "The people who get hired aren't always the most qualified. They're the most visible to the right people.", author: "Studojo" },

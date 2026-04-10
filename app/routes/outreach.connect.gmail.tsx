@@ -85,9 +85,9 @@ export default function GmailConnectPage() {
   };
 
   const permissions = [
-    { icon: <FiSend className="w-5 h-5" />, label: "Send Emails", desc: "Send personalized outreach on your behalf" },
-    { icon: <FiEye className="w-5 h-5" />, label: "Read Replies", desc: "Track when leads respond to your emails" },
-    { icon: <FiShield className="w-5 h-5" />, label: "Your Email Address", desc: "Identify which Gmail account to use" },
+    { icon: <FiSend className="w-5 h-5" />, label: "Send Emails", desc: "Send your outreach emails from your Gmail" },
+    { icon: <FiEye className="w-5 h-5" />, label: "Read Replies", desc: "Know when a hiring manager replies" },
+    { icon: <FiShield className="w-5 h-5" />, label: "Your Email Address", desc: "Link your Gmail account" },
   ];
 
   if (authLoading || connecting) {
@@ -166,7 +166,7 @@ export default function GmailConnectPage() {
                 <span className="text-sm font-bold text-studojo-green font-satoshi">Your data is safe</span>
               </div>
               <p className="text-sm text-studojo-muted font-satoshi">
-                We never store your emails. Access is used solely for sending your approved outreach messages and tracking replies.
+                We never store your emails or read your inbox. We only send outreach you've set up — nothing else. You can disconnect anytime from Gmail settings.
               </p>
             </div>
 

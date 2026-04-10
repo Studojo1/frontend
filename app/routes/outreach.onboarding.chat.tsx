@@ -319,10 +319,10 @@ export default function ChatPage() {
           {/* Title */}
           <div className="flex-shrink-0 px-6 pt-6 md:pt-8 pb-2">
             <h1 className="font-clash text-xl md:text-2xl font-bold text-studojo-ink">
-              Career Intelligence Chat
+              Quick Profile Setup
             </h1>
             <p className="text-sm text-studojo-muted font-satoshi mt-1">
-              Our AI will ask you a few questions to understand your career goals.
+              3 quick questions so we can find the right hiring managers for you.
             </p>
           </div>
 
