@@ -1,107 +1,12 @@
-import { FiBookOpen, FiTarget, FiBriefcase, FiClock, FiZap } from "react-icons/fi";
-import { LuUsersRound } from "react-icons/lu";
 import { Link } from "react-router";
+import { FiSend } from "react-icons/fi";
 
-type DojoCard = {
-  id: string;
-  title: string;
-  description: string;
-  descriptionClass?: string;
-  checklist: string[];
-  accent: "violet" | "emerald" | "yellow" | "amber" | "rose";
-  cta: string;
-  ctaClass: string;
-  href?: string;
-  icon: React.ReactNode;
-  comingSoon?: boolean;
-};
-
-const DOJOS: DojoCard[] = [
-  {
-    id: "assignment",
-    title: "Assignment Dojo",
-    description:
-      "Ace your assignments with AI-powered help. Due soon? We got you.",
-    checklist: [
-      "Plagiarism-safe content",
-      "Properly formatted",
-      "References included",
-    ],
-    accent: "violet",
-    cta: "Try it now",
-    ctaClass: "text-violet-600",
-    icon: <FiBookOpen />,
-    href: "/dojos/assignment",
-  },
-  {
-    id: "internships",
-    title: "Internship Dojo",
-    description:
-      "Discover exciting internship opportunities and kickstart your career journey.",
-    descriptionClass: "text-emerald-100",
-    checklist: [
-      "Build ATS optimized resumes",
-      "Curated opportunities",
-      "Easy application process",
-      "Track your applications",
-    ],
-    accent: "emerald",
-    cta: "Browse internships",
-    ctaClass: "text-emerald-600",
-    icon: <FiBriefcase />,
-    href: "/dojos/internships",
-  },
-  {
-    id: "revision",
-    title: "Revision Dojo",
-    description:
-      "Study smarter with personalized notes. Exam prep made easy.",
-    descriptionClass: "text-amber-100",
-    checklist: [
-      "Custom study notes",
-      "Practice questions",
-      "Flashcards & mind maps",
-    ],
-    accent: "yellow",
-    cta: "Coming soon",
-    ctaClass: "text-amber-600",
-    icon: <FiTarget />,
-    comingSoon: true,
-  },
-  {
-    id: "ai-risk",
-    title: "AI Risk Dojo",
-    description:
-      "Find out if AI will replace your job — and exactly what to do about it.",
-    descriptionClass: "text-rose-100",
-    checklist: [
-      "Instant risk score for any role",
-      "Personalised pivot roadmap",
-      "Upload your resume to start",
-    ],
-    accent: "rose",
-    cta: "Check your risk",
-    ctaClass: "text-rose-600",
-    icon: <FiZap />,
-    href: "/dojos/ai-risk",
-  },
+const CHECKLIST = [
+  "AI finds the right hiring manager",
+  "Personalised email for each one",
+  "Sent from your own Gmail",
+  "Reply tracking included",
 ];
-
-const accentBg: Record<DojoCard["accent"], string> = {
-  violet: "bg-violet-500",
-  emerald: "bg-emerald-500",
-  yellow: "bg-yellow-500",
-  amber: "bg-amber-500",
-  rose: "bg-rose-500",
-};
-
-const accentIconClass: Record<DojoCard["accent"], string> = {
-  violet: "text-violet-500",
-  emerald: "text-emerald-500",
-  yellow: "text-yellow-500",
-  amber: "text-amber-500",
-  rose: "text-rose-500",
-};
 
 function CheckIcon({ className }: { className?: string }) {
   return (
@@ -125,102 +30,69 @@ function CheckIcon({ className }: { className?: string }) {
   );
 }
 
-function ArrowIcon({ className }: { className?: string }) {
+export function FeaturedProductCard() {
   return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={`shrink-0 ${className ?? ""}`}
-      aria-hidden
-    >
-      <path
-        d="M4 10h10M10 6l4 4-4 4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-export function DojoCards() {
-  return (
-    <section
-      id="dojos"
-      className="scroll-mt-24 border-b border-neutral-900 bg-white px-4 pt-8 pb-8 md:px-8 md:pt-24 md:pb-16"
-    >
+    <section className="border-b border-neutral-900 bg-white px-4 pt-8 pb-8 md:px-8 md:pt-24 md:pb-16">
       <div className="mx-auto max-w-[var(--section-max-width)]">
-        <div className="mb-8 text-center md:mb-16">
-          <div className="mb-4 flex flex-col items-center gap-0 md:mb-0 md:gap-0">
-            <h2 className="font-['Clash_Display'] text-lg font-medium leading-7 text-neutral-900 md:text-4xl md:leading-8 lg:text-5xl">
-              Your personal{" "}
-              <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-emerald-300 px-3 py-1 font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 md:text-2xl md:leading-8">
-                dojos
-              </span>
-            </h2>
-          </div>
+        <div className="mb-8 text-center md:mb-14">
+          <h2 className="font-['Clash_Display'] text-3xl font-medium leading-8 text-neutral-900 md:text-4xl lg:text-5xl">
+            Your path to the{" "}
+            <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-violet-300 px-3 py-1 font-['Satoshi'] text-xl font-medium leading-8 text-neutral-900 md:text-3xl">
+              interview room
+            </span>
+          </h2>
           <p className="mx-auto mt-4 max-w-2xl font-['Satoshi'] text-base font-normal leading-6 text-neutral-700 md:text-xl md:leading-7">
-            Each dojo is designed for one thing: helping you get stuff done,
-            fast.
+            One tool. One goal. Get you in front of the right people.
           </p>
         </div>
 
-        <div className="flex flex-col gap-8 md:grid md:grid-cols-2">
-          {DOJOS.map((d) => (
-            <article
-              key={d.id}
-              className={`flex flex-col gap-5 rounded-[32px] border-2 border-neutral-900 p-6 shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:p-8 ${accentBg[d.accent]}`}
-            >
-              <div
-                className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white"
-                aria-hidden
-              >
-                <span className={`text-2xl ${accentIconClass[d.accent]}`}>
-                  {d.icon}
+        <article className="flex flex-col gap-6 rounded-[32px] border-2 border-neutral-900 bg-violet-500 p-6 shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:p-10 lg:p-12">
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            {/* Left: icon, title, description, checklist */}
+            <div className="flex flex-col gap-5 md:max-w-lg">
+              <div className="flex items-center gap-3">
+                <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white" aria-hidden>
+                  <FiSend className="h-7 w-7 text-violet-500" />
+                </div>
+                <span className="inline-flex items-center rounded-full border-2 border-white/40 bg-white/20 px-3 py-1 font-['Satoshi'] text-xs font-bold text-white">
+                  Hero Product
                 </span>
               </div>
-              <h3 className="font-['Clash_Display'] text-3xl font-medium leading-7 text-white">
-                {d.title}
+
+              <h3 className="font-['Clash_Display'] text-3xl font-medium leading-8 text-white md:text-4xl">
+                Outreach Dojo
               </h3>
-              <p
-                className={`font-['Satoshi'] text-base font-normal leading-6 text-white md:text-xl md:font-medium md:leading-7 ${d.descriptionClass ?? ""}`}
-              >
-                {d.description}
+              <p className="font-['Satoshi'] text-base font-normal leading-6 text-white/90 md:text-xl md:font-medium md:leading-7">
+                Skip the job portal queue. Email the hiring managers who can actually say yes.
               </p>
-              <ul className="flex flex-col gap-2" role="list">
-                {d.checklist.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-2 font-['Satoshi'] text-sm font-normal leading-5 text-white md:text-xl md:font-medium md:leading-6"
-                  >
+              <ul className="flex flex-col gap-3" role="list">
+                {CHECKLIST.map((item) => (
+                  <li key={item} className="flex items-center gap-2 font-['Satoshi'] text-sm font-normal leading-5 text-white md:text-xl md:font-medium md:leading-6">
                     <CheckIcon className="h-5 w-5 text-white md:h-6 md:w-6" />
-                    <span>{item}</span>
+                    {item}
                   </li>
                 ))}
               </ul>
-              {d.comingSoon ? (
-                <div
-                  className={`inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white/80 px-8 py-3 font-['Satoshi'] text-base font-medium leading-6 opacity-75 md:w-fit ${d.ctaClass}`}
-                >
-                  {d.cta}
-                </div>
-              ) : (
-                <Link
-                  to={d.href ?? "#"}
-                  className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-8 py-3 font-['Satoshi'] text-base font-medium leading-6 transition-transform hover:translate-x-[2px] hover:translate-y-[2px] md:w-fit ${d.ctaClass}`}
-                >
-                  {d.cta}
-                  <ArrowIcon className={d.ctaClass} />
-                </Link>
-              )}
-            </article>
-          ))}
-        </div>
+            </div>
+
+            {/* Right: CTA */}
+            <div className="flex shrink-0 flex-col items-start gap-4 rounded-[24px] border-2 border-white/30 bg-white/15 p-6 backdrop-blur-sm md:min-w-[220px] md:items-center md:text-center">
+              <p className="font-['Satoshi'] text-sm text-white/80 md:text-base">
+                Ready to skip the queue and email hiring managers directly?
+              </p>
+              <Link
+                to="/outreach/onboarding/upload"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-violet-600 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+              >
+                Get Internship &rarr;
+              </Link>
+            </div>
+          </div>
+        </article>
       </div>
     </section>
   );
 }
+
+// Keep DojoCards as an alias for backwards compat if anything imports it
+export { FeaturedProductCard as DojoCards };

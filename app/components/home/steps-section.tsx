@@ -2,23 +2,23 @@ const STEPS = [
   {
     num: "01",
     circleClass: "bg-purple-300",
-    title: "Choose your dojo",
+    title: "Upload your resume",
     description:
-      "Pick what you need help with. Assignment, resume, exam prep, or study session.",
+      "Takes 30 seconds. Our AI reads your background and builds your candidate profile.",
   },
   {
     num: "02",
     circleClass: "bg-emerald-300",
-    title: "Answer quick questions",
+    title: "We find your hiring managers",
     description:
-      "We'll ask 2-3 questions to personalize everything for you. Super quick.",
+      "Real people. Real roles. Searched from LinkedIn and company databases to find who'd actually interview you.",
   },
   {
     num: "03",
     circleClass: "bg-amber-400",
-    title: "Get your result",
+    title: "Replies land in your inbox",
     description:
-      "High-quality output, ready to use. No editing needed (unless you want to).",
+      "Personal emails sent from your own Gmail. Most students get their first reply within a week.",
   },
 ] as const;
 
@@ -28,13 +28,13 @@ export function StepsSection() {
       <div className="mx-auto max-w-[var(--section-max-width)]">
         <div className="mb-8 text-center md:mb-16">
           <h2 className="font-['Clash_Display'] text-3xl font-medium leading-8 text-neutral-900 md:text-4xl">
-            So simple, it&apos;s{" "}
+            Three steps to your first{" "}
             <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-pink-300 px-3 py-1 font-['Satoshi'] text-lg font-medium leading-8 text-neutral-900">
-              actually fun
+              reply
             </span>
           </h2>
           <p className="mx-auto mt-4 max-w-2xl font-['Satoshi'] text-base font-normal leading-6 text-neutral-700 md:text-xl md:leading-7">
-            Three steps. That&apos;s it. No tutorials, no confusion.
+            No tutorials. No confusion. Just upload and let us handle the rest.
           </p>
         </div>
 
