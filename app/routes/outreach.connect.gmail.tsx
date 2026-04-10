@@ -166,7 +166,7 @@ export default function GmailConnectPage() {
                 <span className="text-sm font-bold text-studojo-green font-satoshi">Your data is safe</span>
               </div>
               <p className="text-sm text-studojo-muted font-satoshi">
-                We never store your emails or read your inbox. We only send outreach you've set up — nothing else. You can disconnect anytime from Gmail settings.
+                We never store your emails or read your inbox. We only send outreach you've set up. Nothing else. You can disconnect anytime from Gmail settings.
               </p>
             </div>
 

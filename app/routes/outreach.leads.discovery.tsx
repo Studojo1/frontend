@@ -169,7 +169,7 @@ export default function DiscoveryPage() {
             <p className="text-sm text-studojo-muted font-satoshi mb-5">
               {allDone
                 ? "Found your hiring managers. Redirecting..."
-                : "Hang tight — this takes about 30 seconds."
+                : "Hang tight. This takes about 30 seconds."
               }
             </p>
 

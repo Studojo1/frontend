@@ -17,7 +17,7 @@ export default function FlexCapturePage() {
 
   const handleSave = async () => {
     if (!bestProject.trim()) {
-      setError("Please describe your project — even one sentence helps a lot.");
+      setError("Please describe your project. Even one sentence helps a lot.");
       return;
     }
     if (!candidateId) {
@@ -65,7 +65,7 @@ export default function FlexCapturePage() {
           What can we flex in your emails?
         </h1>
         <p className="text-sm text-studojo-muted font-satoshi mb-8">
-          Two quick questions — this is what the AI uses to write your outreach. The more specific you are, the better your emails convert.
+          Two quick questions. This is what the AI uses to write your outreach. The more specific you are, the better your emails convert.
         </p>
 
         <div className="space-y-6">
@@ -90,7 +90,7 @@ export default function FlexCapturePage() {
             <label className="block text-sm font-bold font-satoshi text-studojo-ink mb-1">
               What was the result or impact?
             </label>
-            <p className="text-xs text-studojo-muted font-satoshi mb-3">Numbers, reactions, or outcomes — anything concrete.</p>
+            <p className="text-xs text-studojo-muted font-satoshi mb-3">Numbers, reactions, or outcomes. Anything concrete.</p>
             <textarea
               value={outcome}
               onChange={(e) => setOutcome(e.target.value.slice(0, 150))}

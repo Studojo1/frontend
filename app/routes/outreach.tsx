@@ -5,7 +5,7 @@ import { Footer } from "~/components/common/footer";
 
 const FEATURES = [
   { icon: <FiUpload className="w-6 h-6" />, title: "Upload Your Resume", desc: "Our AI reads your background and figures out what roles fit you in under a minute." },
-  { icon: <FiSearch className="w-6 h-6" />, title: "Find Hiring Managers", desc: "We find the actual person who'd interview you — not just a company name." },
+  { icon: <FiSearch className="w-6 h-6" />, title: "Find Hiring Managers", desc: "We find the actual person who'd interview you, not just a company name." },
   { icon: <FiMail className="w-6 h-6" />, title: "Send Personal Emails", desc: "A personalised email goes out to each hiring manager, automatically from your Gmail." },
 ];
 

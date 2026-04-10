@@ -146,7 +146,7 @@ export default function ResultsPage() {
             onClick={() => navigate("/outreach/enrichment")}
             className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
           >
-            <FiSend className="w-4 h-4 mr-2" /> Send Emails
+            <FiSend className="w-4 h-4 mr-2" /> Get Their Emails
           </button>
         </div>
       )}

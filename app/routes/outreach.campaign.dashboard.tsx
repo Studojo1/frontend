@@ -577,7 +577,7 @@ export default function DashboardPage() {
               <div className="rounded-2xl border-2 border-studojo-ink/20 bg-amber-50 p-4 flex items-start gap-3">
                 <span className="text-lg mt-0.5">📬</span>
                 <p className="text-sm font-satoshi text-studojo-ink">
-                  <span className="font-bold">Your emails go out gradually</span> (5–7 per day) to protect your Gmail reputation. Check back tomorrow — most replies come within 3–5 days.
+                  <span className="font-bold">Your emails go out gradually</span> (5–7 per day) to protect your Gmail reputation. Check back tomorrow. Most replies come within 3–5 days.
                 </p>
               </div>
             )}
@@ -957,7 +957,7 @@ export default function DashboardPage() {
               </div>
 
               <p className="text-sm text-studojo-muted font-satoshi mb-5">
-                Send test emails to your own addresses. They go through the exact same pipeline as real campaign emails — sent in ~2 minutes. Reply to test reply detection and sentiment analysis.
+                Send test emails to your own addresses. They go through the exact same pipeline as real campaign emails, sent in ~2 minutes. Reply to test reply detection and sentiment analysis.
               </p>
 
               {testError && (
