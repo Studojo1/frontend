@@ -1,93 +1,158 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
-import { SmoothLink } from "~/components";
-import type { ReactNode } from "react";
+import { FiArrowRight, FiArrowDown, FiMail, FiUser, FiMessageSquare } from "react-icons/fi";
 
-const floatY = [0, -24, -12, -30, 0];
-const floatX = [0, 12, -18, 8, 0];
-const floatRotate = [0, 6, -8, 4, 0];
+const floatY = [0, -18, -8, -24, 0];
+const floatX = [0, 8, -12, 6, 0];
+const floatRotate = [0, 4, -5, 3, 0];
 
-export function Hero({ children }: { children?: ReactNode }) {
+function LiveDot() {
   return (
-    <section className="overflow-hidden border-b border-neutral-900 bg-purple-50">
-      <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col gap-12 px-4 pt-8 pb-8 md:px-8 md:py-20 md:flex-row md:items-center md:justify-between md:gap-16">
-        <div className="flex max-w-3xl flex-col gap-5 md:gap-7">
-          <div className="flex flex-col items-center gap-3 md:items-start md:gap-0">
-            <h1 className="font-['Clash_Display'] text-4xl font-medium leading-10 tracking-tight text-neutral-900 text-center md:text-left md:text-5xl lg:text-6xl">
-              Student life made{" "}
-              <span className="inline-flex rounded-2xl border-2 border-neutral-900 border-solid bg-purple-300 px-3 py-1 font-['Satoshi'] text-xl font-medium leading-8 tracking-tight text-neutral-900 md:text-3xl lg:text-4xl">
-                simple
-              </span>
-            </h1>
+    <span className="relative flex h-2 w-2 shrink-0">
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+    </span>
+  );
+}
+
+const PROOF_STATS = [
+  { value: "138+", label: "placed" },
+  { value: "95%", label: "satisfied" },
+  { value: "4.9★", label: "rating" },
+  { value: "$20", label: "for 200 outreaches" },
+];
+
+export function Hero() {
+  return (
+    <section className="border-b border-neutral-900 bg-purple-50">
+      <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col gap-10 px-4 pt-8 pb-8 md:flex-row md:items-center md:justify-between md:gap-16 md:px-8 md:py-20">
+
+        {/* Left: copy */}
+        <div className="flex flex-col gap-5 md:max-w-lg md:gap-7 lg:max-w-xl">
+          {/* Eyebrow */}
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border-2 border-emerald-300 bg-emerald-100 px-3 py-1.5">
+            <LiveDot />
+            <span className="font-['Satoshi'] text-xs font-semibold text-emerald-700 md:text-sm">
+              138 students placed. As of yesterday.
+            </span>
           </div>
-          <p className="font-['Satoshi'] text-base font-normal leading-7 text-neutral-700 text-center md:text-left md:text-lg md:max-w-[632px] lg:text-xl">
-            Assignments, resumes, exam prep. One place. No tutorials needed. Just pick what you need and get it done.
+
+          {/* H1 */}
+          <h1 className="font-['Clash_Display'] text-4xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl lg:text-6xl">
+            Don&apos;t apply.{" "}
+            <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-purple-300 px-3 py-1 font-['Satoshi'] text-2xl font-medium text-neutral-900 md:text-4xl lg:text-5xl">
+              Get contacted.
+            </span>
+          </h1>
+
+          {/* Subtext */}
+          <p className="font-['Satoshi'] text-base font-normal leading-7 text-neutral-700 md:text-lg md:leading-8">
+            Upload your resume. Our AI finds the hiring managers who&apos;d actually interview you, researches their company, and sends a personal email as you.{" "}
+            <strong className="font-semibold text-neutral-900">Most students get their first reply within a week.</strong>
           </p>
-          <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
+
+          {/* CTAs */}
+          <div className="flex flex-col gap-3 md:flex-row md:flex-wrap">
             <Link
-              to="/outreach"
-              className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-10"
+              to="/outreach/onboarding/upload"
+              className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-8"
             >
-              AI Outreach Tool
+              Get Internship <FiArrowRight className="h-5 w-5" />
             </Link>
-            <SmoothLink
-              to="#dojos"
-              className="inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-10"
+            <Link
+              to="#free-tools"
+              className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white font-['Satoshi'] text-base font-medium text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-8"
             >
-              See How It Works
-            </SmoothLink>
+              See free tools <FiArrowDown className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {/* Proof strip */}
+          <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1">
+            {PROOF_STATS.map((s) => (
+              <div key={s.label} className="flex items-baseline gap-1">
+                <span className="font-['Clash_Display'] text-lg font-bold text-neutral-900 md:text-xl">
+                  {s.value}
+                </span>
+                <span className="font-['Satoshi'] text-xs text-neutral-500 md:text-sm">
+                  {s.label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="hidden shrink-0 items-center gap-4 md:flex md:gap-8">
+        {/* Right: app simulation cards */}
+        <div className="hidden shrink-0 flex-col items-center gap-4 md:flex md:w-[340px] lg:w-[380px]">
+          {/* Card 1: Contact Found */}
           <motion.div
-            className="h-24 w-24 shrink-0 rounded-full border-2 border-neutral-900 bg-yellow-500 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
-            aria-hidden
-            animate={{
-              y: floatY,
-              x: floatX,
-              rotate: floatRotate,
-            }}
-            transition={{
-              repeat: Infinity,
-              repeatType: "reverse",
-              duration: 20,
-              delay: 0,
-            }}
-          />
+            className="w-full rounded-2xl border-2 border-neutral-900 bg-violet-500 p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+            animate={{ y: floatY, x: floatX, rotate: floatRotate }}
+            transition={{ repeat: Infinity, repeatType: "reverse", duration: 20, delay: 0 }}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white/40 bg-white/20">
+                <FiUser className="h-3.5 w-3.5 text-white" />
+              </span>
+              <span className="font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-white/80">
+                Contact Found
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-white/40 bg-white/20 font-['Clash_Display'] text-sm font-bold text-white">
+                RS
+              </div>
+              <div>
+                <p className="font-['Satoshi'] text-sm font-bold text-white">Rohan S.</p>
+                <p className="font-['Satoshi'] text-xs text-white/80">VP Engineering &middot; PhonePe</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Card 2: Email Written */}
           <motion.div
-            className="h-20 w-20 shrink-0 rounded-2xl border-2 border-neutral-900 bg-emerald-300 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
-            aria-hidden
-            animate={{
-              y: floatY,
-              x: floatX,
-              rotate: floatRotate.map((r) => 12 + r),
-            }}
-            transition={{
-              repeat: Infinity,
-              repeatType: "reverse",
-              duration: 22,
-              delay: 1,
-            }}
-          />
+            className="w-full rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+            animate={{ y: floatY.map((v) => -v), x: floatX.map((v) => -v), rotate: floatRotate.map((r) => -r) }}
+            transition={{ repeat: Infinity, repeatType: "reverse", duration: 22, delay: 1 }}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-100">
+                <FiMail className="h-3.5 w-3.5 text-violet-600" />
+              </span>
+              <span className="font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-neutral-500">
+                Email Written
+              </span>
+            </div>
+            <p className="font-['Satoshi'] text-xs leading-5 text-neutral-700">
+              Hi Rohan, I came across your work at PhonePe and was really impressed by the scale of problems you&apos;re solving...
+            </p>
+            <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+              <span className="font-['Satoshi'] text-xs font-semibold text-violet-700">Personalised</span>
+            </div>
+          </motion.div>
+
+          {/* Card 3: Reply Received */}
           <motion.div
-            className="h-12 w-12 shrink-0 rounded-2xl border-2 border-neutral-900 bg-violet-500 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
-            aria-hidden
-            animate={{
-              y: floatY,
-              x: floatX,
-              rotate: floatRotate,
-            }}
-            transition={{
-              repeat: Infinity,
-              repeatType: "reverse",
-              duration: 18,
-              delay: 0.5,
-            }}
-          />
+            className="w-full rounded-2xl border-2 border-neutral-900 bg-emerald-400 p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+            animate={{ y: floatY, x: floatX.map((v) => v * 0.8), rotate: floatRotate.map((r) => r + 3) }}
+            transition={{ repeat: Infinity, repeatType: "reverse", duration: 18, delay: 0.5 }}
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white/40 bg-white/20">
+                <FiMessageSquare className="h-3.5 w-3.5 text-white" />
+              </span>
+              <span className="font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-white/80">
+                Reply Received &#10003;
+              </span>
+            </div>
+            <p className="font-['Satoshi'] text-sm font-medium text-white">
+              &ldquo;Looks great, can we jump on a call this week? &mdash; Rohan&rdquo;
+            </p>
+          </motion.div>
         </div>
+
       </div>
-      {children}
     </section>
   );
 }

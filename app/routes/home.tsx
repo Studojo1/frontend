@@ -3,13 +3,15 @@ import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
   CTABanner,
-  DojoCards,
+  FeaturedProductCard,
   Footer,
+  FreeToolsSection,
   Header,
   Hero,
-  PricingSection,
+  ProblemSolution,
   StepsSection,
   TestimonialsSection,
+  TrustStrip,
 } from "~/components";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import type { Route } from "./+types/home";
@@ -28,21 +30,21 @@ export async function loader({ request }: Route.LoaderArgs) {
 export function meta({}: Route.MetaArgs) {
   const BASE_URL = "https://studojo.com";
   return [
-    { title: "Studojo – Work on Things That Matter" },
+    { title: "Studojo — Land Your Summer 2026 Internship" },
     {
       name: "description",
       content:
-        "Studojo helps 10,000+ students land internships, build ATS-optimised resumes, and ace assignments. Free tools built for ambitious students worldwide.",
+        "Skip the job portal queue. Studojo's AI finds the hiring manager, writes a personalised email, and sends it from your Gmail. 138 students placed. TCS, Goldman, Figma. $20 for 200 outreaches.",
     },
     { tagName: "link", rel: "canonical", href: BASE_URL },
     { property: "og:type", content: "website" },
-    { property: "og:title", content: "Studojo – Work on Things That Matter" },
-    { property: "og:description", content: "Free tools to help students land internships, build standout resumes, and get assignments done. 10,000+ students helped." },
+    { property: "og:title", content: "Studojo — Land Your Summer 2026 Internship" },
+    { property: "og:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview. 138 students placed." },
     { property: "og:url", content: BASE_URL },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Studojo – Work on Things That Matter" },
-    { name: "twitter:description", content: "Free tools to help students land internships, build standout resumes, and get assignments done. 10,000+ students helped." },
+    { name: "twitter:title", content: "Studojo — Land Your Summer 2026 Internship" },
+    { name: "twitter:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview." },
   ];
 }
 
@@ -68,6 +70,22 @@ const sectionVariants = {
     },
   },
 };
+
+function AnnouncementBar() {
+  return (
+    <div className="border-b border-neutral-900 bg-violet-500 px-4 py-2.5 text-center">
+      <p className="font-['Satoshi'] text-xs font-medium text-white md:text-sm">
+        Summer 2026 internships are filling up fast &mdash;{" "}
+        <Link
+          to="/outreach/onboarding/upload"
+          className="font-bold underline underline-offset-2 hover:no-underline"
+        >
+          grab your spot now &rarr;
+        </Link>
+      </p>
+    </div>
+  );
+}
 
 function InternshipPopup() {
   const [visible, setVisible] = useState(false);
@@ -116,7 +134,7 @@ function InternshipPopup() {
               className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-900 bg-neutral-100 font-['Satoshi'] text-sm font-medium text-neutral-900 hover:bg-neutral-200"
               aria-label="Close"
             >
-              ×
+              &times;
             </button>
 
             <div className="flex flex-col gap-5">
@@ -132,11 +150,11 @@ function InternshipPopup() {
                 </p>
               </div>
               <Link
-                to="/outreach"
+                to="/outreach/onboarding/upload"
                 onClick={dismiss}
                 className="inline-flex h-14 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
               >
-                Find My Hiring Managers →
+                Find My Hiring Managers &rarr;
               </Link>
               <button
                 onClick={dismiss}
@@ -155,6 +173,7 @@ function InternshipPopup() {
 export default function Home() {
   return (
     <>
+      <AnnouncementBar />
       <Header />
       <InternshipPopup />
       <motion.main
@@ -166,10 +185,19 @@ export default function Home() {
           <Hero />
         </motion.div>
         <motion.div variants={sectionVariants}>
-          <DojoCards />
+          <TrustStrip />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <StepsSection />
+        </motion.div>
+        <motion.div variants={sectionVariants}>
+          <ProblemSolution />
+        </motion.div>
+        <motion.div variants={sectionVariants}>
+          <FeaturedProductCard />
+        </motion.div>
+        <motion.div variants={sectionVariants}>
+          <FreeToolsSection />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <TestimonialsSection />
