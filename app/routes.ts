@@ -121,4 +121,5 @@ export default [
   route("outreach/campaign/launching", "routes/outreach.campaign.launching.tsx"),
   route("outreach/campaign/dashboard", "routes/outreach.campaign.dashboard.tsx"),
   route("outreach/linkedin", "routes/outreach.linkedin.tsx"),
+  route("install-extension", "routes/install-extension.tsx"),
 ] satisfies RouteConfig;
