@@ -125,7 +125,7 @@ export function Hero() {
               </span>
             </div>
             <p className="font-['Satoshi'] text-sm font-medium text-white">
-              "Looks great, can we jump on a call this week? Rohan"
+              "This looks really interesting. Are you free for a quick call this week?"
             </p>
           </motion.div>
         </div>

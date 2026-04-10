@@ -1,13 +1,14 @@
 const COMPANIES = [
-  "Razorpay",
-  "TCS",
+  "Google",
   "Goldman Sachs",
+  "McKinsey",
+  "Stripe",
   "Figma",
   "BCG",
   "Deloitte",
+  "Amazon",
   "Monzo",
-  "CRED",
-  "Zepto",
+  "PhonePe",
 ];
 
 export function TrustStrip() {
