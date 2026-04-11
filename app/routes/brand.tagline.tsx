@@ -35,7 +35,7 @@ export default function BrandTagline() {
         <div
           style={{
             fontSize: 108,
-            fontWeight: 400,
+            fontWeight: 700,
             color: "#ffffff",
             lineHeight: 1.05,
             letterSpacing: "-3px",
@@ -47,7 +47,7 @@ export default function BrandTagline() {
         <div
           style={{
             fontSize: 108,
-            fontWeight: 400,
+            fontWeight: 700,
             lineHeight: 1.05,
             letterSpacing: "-3px",
             textAlign: "center",
