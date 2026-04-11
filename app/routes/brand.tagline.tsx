@@ -25,9 +25,10 @@ export default function BrandTagline() {
           backgroundColor: "#0a0a0a",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "center",
           gap: 0,
+          padding: "0 60px",
           border: "2px solid #222",
           borderRadius: 4,
         }}
@@ -39,7 +40,7 @@ export default function BrandTagline() {
             color: "#ffffff",
             lineHeight: 1.05,
             letterSpacing: "-3px",
-            textAlign: "center",
+            textAlign: "left",
           }}
         >
           Work on things
@@ -50,7 +51,7 @@ export default function BrandTagline() {
             fontWeight: 700,
             lineHeight: 1.05,
             letterSpacing: "-3px",
-            textAlign: "center",
+            textAlign: "left",
           }}
         >
           <span style={{ color: "#ffffff" }}>that </span>
