@@ -113,6 +113,7 @@ function SearchForm({ onJobStarted }: SearchFormProps) {
     setLoading(true);
     setError("");
     try {
+      // 1. Create job on backend (returns job ID immediately)
       const job = await outreachFetch<SearchJob>("/linkedin/search", {
         method: "POST",
         body: JSON.stringify({
@@ -120,11 +121,28 @@ function SearchForm({ onJobStarted }: SearchFormProps) {
           location: location.trim() || undefined,
         }),
       });
+
+      // 2. Get Studojo session cookie to pass to extension
+      const sessionCookie = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("__Secure-better-auth.session_token=") || c.startsWith("better-auth.session_token="))
+        ?.split("=")
+        .slice(1)
+        .join("=") || "";
+
+      // 3. Tell extension to do the LinkedIn search and submit results to backend
+      const submitUrl = `${window.location.origin}/api/v1/outreach/linkedin/search/${job.id}/submit-results`;
+      window.dispatchEvent(
+        new CustomEvent("STUDOJO_SEARCH", {
+          detail: { jobId: job.id, keywords: role.trim(), location: location.trim() || null, apiUrl: submitUrl, sessionCookie },
+        })
+      );
+
       onJobStarted(job);
     } catch (err: unknown) {
       const msg = (err as { body?: { detail?: string }; message?: string })?.body?.detail
         || (err as { message?: string })?.message
-        || "Search failed. Try again.";
+        || "Search failed. Make sure the extension is installed and LinkedIn is open.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -437,6 +455,19 @@ export default function LinkedInConnectPage() {
   const [activeJob, setActiveJob] = useState<SearchJob | null>(null);
   const [recentSearches, setRecentSearches] = useState<SearchJob[]>([]);
   const [checkingToken, setCheckingToken] = useState(true);
+  const [extensionReady, setExtensionReady] = useState(false);
+
+  // Detect if extension content script is injected
+  useEffect(() => {
+    const onReady = () => setExtensionReady(true);
+    window.addEventListener("STUDOJO_EXTENSION_READY", onReady);
+    // Give content script 800ms to fire the event
+    const timer = setTimeout(() => setExtensionReady(false), 800);
+    return () => {
+      window.removeEventListener("STUDOJO_EXTENSION_READY", onReady);
+      clearTimeout(timer);
+    };
+  }, []);
 
   const checkTokenStatus = useCallback(async () => {
     try {
@@ -492,7 +523,7 @@ export default function LinkedInConnectPage() {
 
       {/* Main content */}
       <section className="mx-auto max-w-[var(--section-max-width)] px-4 py-10 md:px-8">
-        {!tokenStatus?.connected ? (
+        {(!tokenStatus?.connected || !extensionReady) ? (
           <InstallStep />
         ) : activeJob ? (
           <SearchResults

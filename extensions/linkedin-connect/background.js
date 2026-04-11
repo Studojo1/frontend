@@ -1,135 +1,222 @@
 /**
  * Studojo LinkedIn Connect — Background Service Worker (Manifest V3)
  *
- * Reads li_at + JSESSIONID from LinkedIn cookies and the Studojo session
- * cookie, then posts the tokens to the Studojo backend for encrypted storage.
- *
- * This runs as a service worker so it has access to chrome.cookies for
- * httpOnly cookies — content scripts cannot read these.
+ * Handles:
+ *   CONNECT_LINKEDIN  — read cookies, POST encrypted tokens to Studojo backend
+ *   CHECK_STATUS      — check if extension is connected
+ *   DISCONNECT        — clear stored state
+ *   SEARCH_LINKEDIN   — run Voyager people search from browser (real IP + cookies),
+ *                       POST results to Studojo backend for message generation
  */
 
-const STUDOJO_API = "https://studojo.com/api/v1/outreach/linkedin/token";
-const STUDOJO_API_STAGING = "https://studojo.pro/api/v1/outreach/linkedin/token";
-
+const STUDOJO_ORIGINS = ['https://studojo.com', 'https://studojo.pro'];
 const SESSION_COOKIE_NAMES = [
-  "__Secure-better-auth.session_token",
-  "better-auth.session_token",
+  '__Secure-better-auth.session_token',
+  'better-auth.session_token',
 ];
 
-/**
- * Get a cookie value by name from a given URL.
- * Returns null if not found.
- */
+const LI_TRACK = JSON.stringify({
+  clientVersion: '1.13.1862',
+  mpVersion: '1.13.1862',
+  osName: 'web',
+  timezoneOffset: 5.5,
+  timezone: 'Asia/Calcutta',
+  deviceFormFactor: 'DESKTOP',
+  mpName: 'voyager-web',
+  displayDensity: 1,
+  displayWidth: 1920,
+  displayHeight: 1080,
+});
+
+// ── Cookie helpers ─────────────────────────────────────────────────────────────
+
 async function getCookie(url, name) {
   return new Promise((resolve) => {
-    chrome.cookies.get({ url, name }, (cookie) => {
-      resolve(cookie ? cookie.value : null);
-    });
+    chrome.cookies.get({ url, name }, (cookie) => resolve(cookie ? cookie.value : null));
   });
 }
 
-/**
- * Try to get the Studojo session cookie from prod then staging.
- * Returns { value, apiUrl } or null.
- */
 async function getStudojoSession() {
-  for (const name of SESSION_COOKIE_NAMES) {
-    const val = await getCookie("https://studojo.com", name);
-    if (val) return { value: val, apiUrl: STUDOJO_API };
-  }
-  // Try staging (for dev/testing)
-  for (const name of SESSION_COOKIE_NAMES) {
-    const val = await getCookie("https://studojo.pro", name);
-    if (val) return { value: val, apiUrl: STUDOJO_API_STAGING };
+  for (const origin of STUDOJO_ORIGINS) {
+    for (const name of SESSION_COOKIE_NAMES) {
+      const val = await getCookie(origin, name);
+      if (val) return { value: val, origin };
+    }
   }
   return null;
 }
 
-/**
- * Read LinkedIn name from storage (set during connect flow).
- */
-async function getStoredName() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(["linkedin_name"], (result) => {
-      resolve(result.linkedin_name || null);
-    });
+// ── LinkedIn Voyager search ────────────────────────────────────────────────────
+
+async function searchLinkedIn(keywords, location, count = 10) {
+  const liAt = await getCookie('https://www.linkedin.com', 'li_at');
+  const jsessionid = await getCookie('https://www.linkedin.com', 'JSESSIONID');
+
+  if (!liAt) throw new Error('not_logged_in');
+  if (!jsessionid) throw new Error('no_jsessionid');
+
+  const query = location ? `${keywords} ${location}` : keywords;
+
+  const params = new URLSearchParams({
+    keywords: query,
+    q: 'all',
+    filters: 'List(resultType->PEOPLE)',
+    origin: 'SWITCH_SEARCH_VERTICAL',
+    count: String(count),
+    start: '0',
   });
+
+  const response = await fetch(
+    `https://www.linkedin.com/voyager/api/search/blended?${params}`,
+    {
+      method: 'GET',
+      headers: {
+        Cookie: `li_at=${liAt}; JSESSIONID=${jsessionid}`,
+        'csrf-token': jsessionid,
+        'x-restli-protocol-version': '2.0.0',
+        'x-li-lang': 'en_US',
+        'x-li-track': LI_TRACK,
+        Accept: 'application/vnd.linkedin.normalized+json+2.1',
+        'Accept-Language': 'en-US,en;q=0.9',
+        Referer: 'https://www.linkedin.com/search/results/people/',
+      },
+    }
+  );
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error('linkedin_session_expired');
+  }
+  if (response.status === 429) {
+    throw new Error('linkedin_rate_limited');
+  }
+  if (!response.ok) {
+    throw new Error(`linkedin_error_${response.status}`);
+  }
+
+  const data = await response.json();
+  return parseVoyagerResults(data);
 }
 
-/**
- * Main connect flow: read cookies → POST to Studojo backend.
- * Returns { ok: true, linkedin_name? } or throws with a human-readable error.
- */
+function parseVoyagerResults(data) {
+  const people = [];
+  const included = data.included || [];
+
+  const entityMap = {};
+  for (const entity of included) {
+    const urn = entity.entityUrn || '';
+    if (urn) entityMap[urn] = entity;
+  }
+
+  const elements = data?.data?.elements || [];
+  for (const cluster of elements) {
+    for (const item of cluster.elements || []) {
+      const memberUrn = item.targetUrn || item.entityUrn || '';
+      const profile = entityMap[memberUrn] || {};
+
+      const publicId = profile.publicIdentifier || item.publicIdentifier;
+      if (!publicId) continue;
+
+      const name = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
+      const headline = profile.headline || '';
+      const company = profile.occupation || '';
+
+      let imageUrl = '';
+      const pic = profile.picture?.['com.linkedin.common.VectorImage'];
+      if (pic?.artifacts?.length && pic.rootUrl) {
+        const last = pic.artifacts[pic.artifacts.length - 1];
+        imageUrl = pic.rootUrl + (last.fileIdentifyingUrlPathSegment || '');
+      }
+
+      people.push({
+        name: name || 'Unknown',
+        headline,
+        company,
+        profile_url: `https://www.linkedin.com/in/${publicId}/`,
+        profile_image_url: imageUrl || null,
+      });
+    }
+  }
+  return people;
+}
+
+// ── Connect flow ───────────────────────────────────────────────────────────────
+
 async function connectLinkedIn() {
-  // 1. Read LinkedIn session cookies
-  const liAt = await getCookie("https://www.linkedin.com", "li_at");
-  const jsessionid = await getCookie("https://www.linkedin.com", "JSESSIONID");
+  const liAt = await getCookie('https://www.linkedin.com', 'li_at');
+  const jsessionid = await getCookie('https://www.linkedin.com', 'JSESSIONID');
 
-  if (!liAt) {
-    throw new Error("not_logged_in");
-  }
-  if (!jsessionid) {
-    throw new Error("no_jsessionid");
-  }
+  if (!liAt) throw new Error('not_logged_in');
+  if (!jsessionid) throw new Error('no_jsessionid');
 
-  // 2. Read Studojo session cookie
-  const studojoSession = await getStudojoSession();
-  if (!studojoSession) {
-    throw new Error("not_logged_in_studojo");
-  }
+  const session = await getStudojoSession();
+  if (!session) throw new Error('not_logged_in_studojo');
 
-  // 3. Try to read LinkedIn name from the li_at payload (it's a JWT-like token)
-  let linkedinName = null;
-  try {
-    // li_at is not a standard JWT but we can try to read cached name
-    linkedinName = await getStoredName();
-  } catch (_) {}
+  const linkedinName = (await chrome.storage.local.get(['linkedin_name']))?.linkedin_name || null;
 
-  // 4. POST to Studojo backend
-  // Include the Studojo session as a Cookie header so the backend can auth the user
-  const response = await fetch(studojoSession.apiUrl, {
-    method: "POST",
+  const apiUrl = `${session.origin}/api/v1/outreach/linkedin/token`;
+
+  const response = await fetch(apiUrl, {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      // Send the session cookie manually — fetch from an extension can't use credentials:include
-      Cookie: `${SESSION_COOKIE_NAMES[0]}=${studojoSession.value}`,
+      'Content-Type': 'application/json',
+      Cookie: `${SESSION_COOKIE_NAMES[0]}=${session.value}`,
     },
-    body: JSON.stringify({
-      li_at: liAt,
-      jsessionid: jsessionid,
-      linkedin_name: linkedinName,
-    }),
+    body: JSON.stringify({ li_at: liAt, jsessionid, linkedin_name: linkedinName }),
   });
 
-  if (response.status === 401) {
-    throw new Error("not_logged_in_studojo");
+  if (response.status === 401) throw new Error('not_logged_in_studojo');
+  if (!response.ok) throw new Error(`api_error:${response.status}`);
+
+  chrome.storage.local.set({ connected: true, connected_at: Date.now() });
+  return { ok: true };
+}
+
+// ── Search flow ────────────────────────────────────────────────────────────────
+
+async function runSearch({ jobId, keywords, location, apiUrl, sessionCookie }) {
+  // 1. Do the Voyager search from the browser
+  const people = await searchLinkedIn(keywords, location, 10);
+
+  if (!people.length) {
+    // POST empty results — backend will mark job done with 0 results
+    await submitResults(apiUrl, sessionCookie, jobId, []);
+    return { ok: true, count: 0 };
   }
+
+  // 2. POST results to backend for message generation + storage
+  await submitResults(apiUrl, sessionCookie, jobId, people);
+  return { ok: true, count: people.length };
+}
+
+async function submitResults(apiUrl, sessionCookie, jobId, people) {
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Cookie: `${SESSION_COOKIE_NAMES[0]}=${sessionCookie}`,
+    },
+    body: JSON.stringify({ people }),
+  });
 
   if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`api_error:${response.status}:${text.slice(0, 100)}`);
+    const text = await response.text().catch(() => '');
+    throw new Error(`submit_error:${response.status}:${text.slice(0, 100)}`);
   }
-
-  // 5. Cache success state
-  chrome.storage.local.set({ connected: true, connected_at: Date.now() });
-
-  return { ok: true };
 }
 
 // ── Message handler ────────────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type === "CONNECT_LINKEDIN") {
+  if (message.type === 'CONNECT_LINKEDIN') {
     connectLinkedIn()
-      .then((result) => sendResponse({ success: true, ...result }))
-      .catch((err) => sendResponse({ success: false, error: err.message }));
-    return true; // Keep channel open for async response
+      .then((r) => sendResponse({ success: true, ...r }))
+      .catch((e) => sendResponse({ success: false, error: e.message }));
+    return true;
   }
 
-  if (message.type === "CHECK_STATUS") {
-    // Quick check: is LinkedIn cookie present?
-    getCookie("https://www.linkedin.com", "li_at").then((liAt) => {
-      chrome.storage.local.get(["connected", "connected_at"], (stored) => {
+  if (message.type === 'CHECK_STATUS') {
+    getCookie('https://www.linkedin.com', 'li_at').then((liAt) => {
+      chrome.storage.local.get(['connected', 'connected_at'], (stored) => {
         sendResponse({
           li_at_present: !!liAt,
           connected: !!stored.connected,
@@ -140,10 +227,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
 
-  if (message.type === "DISCONNECT") {
-    chrome.storage.local.remove(["connected", "connected_at"], () => {
-      sendResponse({ ok: true });
-    });
+  if (message.type === 'DISCONNECT') {
+    chrome.storage.local.remove(['connected', 'connected_at'], () => sendResponse({ ok: true }));
+    return true;
+  }
+
+  if (message.type === 'SEARCH_LINKEDIN') {
+    runSearch(message)
+      .then((r) => sendResponse({ ok: true, ...r }))
+      .catch((e) => sendResponse({ ok: false, error: e.message }));
     return true;
   }
 });

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Studojo LinkedIn Connect",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Connect your LinkedIn to Studojo — find the right people to message for any role you want.",
   "permissions": ["cookies", "storage"],
   "host_permissions": [
@@ -13,6 +13,13 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://studojo.com/outreach/linkedin*", "https://studojo.pro/outreach/linkedin*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
