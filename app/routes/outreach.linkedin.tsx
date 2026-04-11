@@ -122,19 +122,34 @@ function SearchForm({ onJobStarted }: SearchFormProps) {
         }),
       });
 
-      // 2. Get Studojo session cookie to pass to extension
-      const sessionCookie = document.cookie
-        .split("; ")
-        .find((c) => c.startsWith("__Secure-better-auth.session_token=") || c.startsWith("better-auth.session_token="))
-        ?.split("=")
-        .slice(1)
-        .join("=") || "";
+      // 2. Listen for people from the extension, then submit to backend ourselves
+      //    (page has auth cookie natively — extension service worker can't send cookies)
+      const onResult = async (e: Event) => {
+        const detail = (e as CustomEvent<{ jobId: number; ok: boolean; people: unknown[]; error: string | null }>).detail;
+        if (detail.jobId !== job.id) return;
+        window.removeEventListener("STUDOJO_SEARCH_RESULT", onResult);
 
-      // 3. Tell extension to do the LinkedIn search and submit results to backend
-      const submitUrl = `${window.location.origin}/api/v1/outreach/linkedin/search/${job.id}/submit-results`;
+        if (!detail.ok || !detail.people?.length) {
+          // Mark job failed on backend
+          await outreachFetch(`/linkedin/search/${job.id}/submit-results`, {
+            method: "POST",
+            body: JSON.stringify({ people: [] }),
+          }).catch(() => {});
+          return;
+        }
+
+        // Submit people to backend — page fetch has cookie naturally
+        await outreachFetch(`/linkedin/search/${job.id}/submit-results`, {
+          method: "POST",
+          body: JSON.stringify({ people: detail.people }),
+        }).catch(() => {});
+      };
+      window.addEventListener("STUDOJO_SEARCH_RESULT", onResult);
+
+      // 3. Tell extension to search LinkedIn
       window.dispatchEvent(
         new CustomEvent("STUDOJO_SEARCH", {
-          detail: { jobId: job.id, keywords: role.trim(), location: location.trim() || null, apiUrl: submitUrl, sessionCookie },
+          detail: { jobId: job.id, keywords: role.trim(), location: location.trim() || null },
         })
       );
 

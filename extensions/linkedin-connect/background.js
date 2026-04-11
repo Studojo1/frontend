@@ -5,8 +5,9 @@
  *   CONNECT_LINKEDIN  — read cookies, POST encrypted tokens to Studojo backend
  *   CHECK_STATUS      — check if extension is connected
  *   DISCONNECT        — clear stored state
- *   SEARCH_LINKEDIN   — run Voyager people search from browser (real IP + cookies),
- *                       POST results to Studojo backend for message generation
+ *   SEARCH_LINKEDIN   — run Voyager people search from browser (real IP + cookies)
+ *                       and return raw people list back to caller.
+ *                       The PAGE then submits results to the backend (has auth cookie natively).
  */
 
 const STUDOJO_ORIGINS = ['https://studojo.com', 'https://studojo.pro'];
@@ -71,7 +72,6 @@ async function searchLinkedIn(keywords, location, count = 10) {
     {
       method: 'GET',
       headers: {
-        Cookie: `li_at=${liAt}; JSESSIONID=${jsessionid}`,
         'csrf-token': jsessionid,
         'x-restli-protocol-version': '2.0.0',
         'x-li-lang': 'en_US',
@@ -80,6 +80,7 @@ async function searchLinkedIn(keywords, location, count = 10) {
         'Accept-Language': 'en-US,en;q=0.9',
         Referer: 'https://www.linkedin.com/search/results/people/',
       },
+      credentials: 'include', // Let the browser send li_at + JSESSIONID natively
     }
   );
 
@@ -155,12 +156,15 @@ async function connectLinkedIn() {
 
   const apiUrl = `${session.origin}/api/v1/outreach/linkedin/token`;
 
+  // Use no-credentials fetch for token save — background can POST JSON fine,
+  // backend auth uses the session value we pass in the body for this endpoint.
+  // Actually, for the token endpoint we need auth. Use the connect tab approach:
+  // open a studojo tab and inject a message, OR rely on the page doing this.
+  // Simpler: just POST with credentials:include to studojo.com (same browser session).
   const response = await fetch(apiUrl, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Cookie: `${SESSION_COOKIE_NAMES[0]}=${session.value}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include', // browser sends Studojo session cookie
     body: JSON.stringify({ li_at: liAt, jsessionid, linkedin_name: linkedinName }),
   });
 
@@ -169,39 +173,6 @@ async function connectLinkedIn() {
 
   chrome.storage.local.set({ connected: true, connected_at: Date.now() });
   return { ok: true };
-}
-
-// ── Search flow ────────────────────────────────────────────────────────────────
-
-async function runSearch({ jobId, keywords, location, apiUrl, sessionCookie }) {
-  // 1. Do the Voyager search from the browser
-  const people = await searchLinkedIn(keywords, location, 10);
-
-  if (!people.length) {
-    // POST empty results — backend will mark job done with 0 results
-    await submitResults(apiUrl, sessionCookie, jobId, []);
-    return { ok: true, count: 0 };
-  }
-
-  // 2. POST results to backend for message generation + storage
-  await submitResults(apiUrl, sessionCookie, jobId, people);
-  return { ok: true, count: people.length };
-}
-
-async function submitResults(apiUrl, sessionCookie, jobId, people) {
-  const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Cookie: `${SESSION_COOKIE_NAMES[0]}=${sessionCookie}`,
-    },
-    body: JSON.stringify({ people }),
-  });
-
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`submit_error:${response.status}:${text.slice(0, 100)}`);
-  }
 }
 
 // ── Message handler ────────────────────────────────────────────────────────────
@@ -233,8 +204,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message.type === 'SEARCH_LINKEDIN') {
-    runSearch(message)
-      .then((r) => sendResponse({ ok: true, ...r }))
+    // Run Voyager search and return raw people list.
+    // The PAGE will submit results to the backend (it has auth cookie natively).
+    searchLinkedIn(message.keywords, message.location, 10)
+      .then((people) => sendResponse({ ok: true, people }))
       .catch((e) => sendResponse({ ok: false, error: e.message }));
     return true;
   }
