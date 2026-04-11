@@ -25,7 +25,7 @@ export default function BrandTagline() {
           backgroundColor: "#0a0a0a",
           display: "flex",
           flexDirection: "column",
-          alignItems: "flex-start",
+          alignItems: "center",
           justifyContent: "center",
           gap: 0,
           padding: "0 60px",
@@ -40,7 +40,7 @@ export default function BrandTagline() {
             color: "#ffffff",
             lineHeight: 1.05,
             letterSpacing: "-3px",
-            textAlign: "left",
+            textAlign: "center",
             whiteSpace: "nowrap",
           }}
         >
@@ -52,7 +52,7 @@ export default function BrandTagline() {
             fontWeight: 700,
             lineHeight: 1.05,
             letterSpacing: "-3px",
-            textAlign: "left",
+            textAlign: "center",
             whiteSpace: "nowrap",
           }}
         >
