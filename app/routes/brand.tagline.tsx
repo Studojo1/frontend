@@ -56,7 +56,7 @@ export default function BrandTagline() {
             whiteSpace: "nowrap",
           }}
         >
-          <span style={{ color: "#ffffff" }}>that </span>
+          <span style={{ color: "#ffffff", fontWeight: 500 }}>that </span>
           <span style={{ color: "#7c3aed" }}>matter.</span>
         </div>
       </div>
