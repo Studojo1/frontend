@@ -5,9 +5,6 @@
  *   CONNECT_LINKEDIN  — read cookies, POST encrypted tokens to Studojo backend
  *   CHECK_STATUS      — check if extension is connected
  *   DISCONNECT        — clear stored state
- *   SEARCH_LINKEDIN   — run Voyager people search from browser (real IP + cookies)
- *                       and return raw people list back to caller.
- *                       The PAGE then submits results to the backend (has auth cookie natively).
  */
 
 const STUDOJO_ORIGINS = ['https://studojo.com', 'https://studojo.pro'];
@@ -15,19 +12,6 @@ const SESSION_COOKIE_NAMES = [
   '__Secure-better-auth.session_token',
   'better-auth.session_token',
 ];
-
-const LI_TRACK = JSON.stringify({
-  clientVersion: '1.13.1862',
-  mpVersion: '1.13.1862',
-  osName: 'web',
-  timezoneOffset: 5.5,
-  timezone: 'Asia/Calcutta',
-  deviceFormFactor: 'DESKTOP',
-  mpName: 'voyager-web',
-  displayDensity: 1,
-  displayWidth: 1920,
-  displayHeight: 1080,
-});
 
 // ── Cookie helpers ─────────────────────────────────────────────────────────────
 
@@ -45,99 +29,6 @@ async function getStudojoSession() {
     }
   }
   return null;
-}
-
-// ── LinkedIn Voyager search ────────────────────────────────────────────────────
-
-async function searchLinkedIn(keywords, location, count = 10) {
-  const liAt = await getCookie('https://www.linkedin.com', 'li_at');
-  const jsessionid = await getCookie('https://www.linkedin.com', 'JSESSIONID');
-
-  if (!liAt) throw new Error('not_logged_in');
-  if (!jsessionid) throw new Error('no_jsessionid');
-
-  const query = location ? `${keywords} ${location}` : keywords;
-
-  const params = new URLSearchParams({
-    keywords: query,
-    q: 'all',
-    filters: 'List(resultType->PEOPLE)',
-    origin: 'SWITCH_SEARCH_VERTICAL',
-    count: String(count),
-    start: '0',
-  });
-
-  const response = await fetch(
-    `https://www.linkedin.com/voyager/api/search/blended?${params}`,
-    {
-      method: 'GET',
-      headers: {
-        'csrf-token': jsessionid,
-        'x-restli-protocol-version': '2.0.0',
-        'x-li-lang': 'en_US',
-        'x-li-track': LI_TRACK,
-        Accept: 'application/vnd.linkedin.normalized+json+2.1',
-        'Accept-Language': 'en-US,en;q=0.9',
-        Referer: 'https://www.linkedin.com/search/results/people/',
-      },
-      credentials: 'include', // Let the browser send li_at + JSESSIONID natively
-    }
-  );
-
-  if (response.status === 401 || response.status === 403) {
-    throw new Error('linkedin_session_expired');
-  }
-  if (response.status === 429) {
-    throw new Error('linkedin_rate_limited');
-  }
-  if (!response.ok) {
-    throw new Error(`linkedin_error_${response.status}`);
-  }
-
-  const data = await response.json();
-  return parseVoyagerResults(data);
-}
-
-function parseVoyagerResults(data) {
-  const people = [];
-  const included = data.included || [];
-
-  const entityMap = {};
-  for (const entity of included) {
-    const urn = entity.entityUrn || '';
-    if (urn) entityMap[urn] = entity;
-  }
-
-  const elements = data?.data?.elements || [];
-  for (const cluster of elements) {
-    for (const item of cluster.elements || []) {
-      const memberUrn = item.targetUrn || item.entityUrn || '';
-      const profile = entityMap[memberUrn] || {};
-
-      const publicId = profile.publicIdentifier || item.publicIdentifier;
-      if (!publicId) continue;
-
-      const name = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
-      const headline = profile.headline || '';
-      const company = profile.occupation || '';
-
-      let imageUrl = '';
-      const pic = profile.picture?.['com.linkedin.common.VectorImage'];
-      if (pic?.artifacts?.length && pic.rootUrl) {
-        const last = pic.artifacts[pic.artifacts.length - 1];
-        imageUrl = pic.rootUrl + (last.fileIdentifyingUrlPathSegment || '');
-      }
-
-      people.push({
-        name: name || 'Unknown',
-        headline,
-        company,
-        profile_url: `https://www.linkedin.com/in/${publicId}/`,
-        profile_image_url: imageUrl || null,
-      });
-    }
-  }
-  return people;
 }
 
 // ── Connect flow ───────────────────────────────────────────────────────────────
@@ -203,12 +94,4 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
 
-  if (message.type === 'SEARCH_LINKEDIN') {
-    // Run Voyager search and return raw people list.
-    // The PAGE will submit results to the backend (it has auth cookie natively).
-    searchLinkedIn(message.keywords, message.location, 10)
-      .then((people) => sendResponse({ ok: true, people }))
-      .catch((e) => sendResponse({ ok: false, error: e.message }));
-    return true;
-  }
 });
