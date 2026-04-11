@@ -36,7 +36,7 @@ export default function BrandTagline() {
         <div
           style={{
             fontSize: 108,
-            fontWeight: 600,
+            fontWeight: 570,
             color: "#ffffff",
             lineHeight: 1.05,
             letterSpacing: "-3px",
@@ -56,7 +56,7 @@ export default function BrandTagline() {
             whiteSpace: "nowrap",
           }}
         >
-          <span style={{ color: "#ffffff", fontWeight: 600 }}>that </span>
+          <span style={{ color: "#ffffff", fontWeight: 570 }}>that </span>
           <span style={{ color: "#7c3aed" }}>matter.</span>
         </div>
       </div>
