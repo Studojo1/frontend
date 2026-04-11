@@ -122,35 +122,26 @@ function SearchForm({ onJobStarted }: SearchFormProps) {
         }),
       });
 
-      // 2. Listen for people from the extension, then submit to backend ourselves
-      //    (page has auth cookie natively — extension service worker can't send cookies)
-      const onResult = async (e: Event) => {
-        const detail = (e as CustomEvent<{ jobId: number; ok: boolean; people: unknown[]; error: string | null }>).detail;
-        if (detail.jobId !== job.id) return;
-        window.removeEventListener("STUDOJO_SEARCH_RESULT", onResult);
+      // 2. Listen for people from the extension via postMessage, then submit to backend
+      //    (page has auth cookie natively — extension service worker can't send cookies cross-origin)
+      const onMessage = async (event: MessageEvent) => {
+        if (event.source !== window) return;
+        if (event.data?.type !== "STUDOJO_SEARCH_RESULT") return;
+        if (event.data.jobId !== job.id) return;
+        window.removeEventListener("message", onMessage);
 
-        if (!detail.ok || !detail.people?.length) {
-          // Mark job failed on backend
-          await outreachFetch(`/linkedin/search/${job.id}/submit-results`, {
-            method: "POST",
-            body: JSON.stringify({ people: [] }),
-          }).catch(() => {});
-          return;
-        }
-
-        // Submit people to backend — page fetch has cookie naturally
+        // Submit people to backend — page fetch sends auth cookie naturally
         await outreachFetch(`/linkedin/search/${job.id}/submit-results`, {
           method: "POST",
-          body: JSON.stringify({ people: detail.people }),
+          body: JSON.stringify({ people: event.data.people || [] }),
         }).catch(() => {});
       };
-      window.addEventListener("STUDOJO_SEARCH_RESULT", onResult);
+      window.addEventListener("message", onMessage);
 
-      // 3. Tell extension to search LinkedIn
-      window.dispatchEvent(
-        new CustomEvent("STUDOJO_SEARCH", {
-          detail: { jobId: job.id, keywords: role.trim(), location: location.trim() || null },
-        })
+      // 3. Tell extension to search LinkedIn via postMessage (crosses isolation boundary)
+      window.postMessage(
+        { type: "STUDOJO_SEARCH", jobId: job.id, keywords: role.trim(), location: location.trim() || null },
+        "*"
       );
 
       onJobStarted(job);
@@ -472,14 +463,17 @@ export default function LinkedInConnectPage() {
   const [checkingToken, setCheckingToken] = useState(true);
   const [extensionReady, setExtensionReady] = useState(false);
 
-  // Detect if extension content script is injected
+  // Detect if extension content script is injected via postMessage
   useEffect(() => {
-    const onReady = () => setExtensionReady(true);
-    window.addEventListener("STUDOJO_EXTENSION_READY", onReady);
-    // Give content script 800ms to fire the event
-    const timer = setTimeout(() => setExtensionReady(false), 800);
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== window) return;
+      if (event.data?.type === "STUDOJO_EXTENSION_READY") setExtensionReady(true);
+    };
+    window.addEventListener("message", onMessage);
+    // Give content script 1s to fire the ready message
+    const timer = setTimeout(() => {}, 1000);
     return () => {
-      window.removeEventListener("STUDOJO_EXTENSION_READY", onReady);
+      window.removeEventListener("message", onMessage);
       clearTimeout(timer);
     };
   }, []);
