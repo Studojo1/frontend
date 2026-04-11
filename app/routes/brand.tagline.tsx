@@ -20,7 +20,7 @@ export default function BrandTagline() {
       <div
         id="print-card"
         style={{
-          width: 800,
+          width: 1100,
           height: 500,
           backgroundColor: "#0a0a0a",
           display: "flex",
@@ -41,6 +41,7 @@ export default function BrandTagline() {
             lineHeight: 1.05,
             letterSpacing: "-3px",
             textAlign: "left",
+            whiteSpace: "nowrap",
           }}
         >
           Work on things
@@ -52,6 +53,7 @@ export default function BrandTagline() {
             lineHeight: 1.05,
             letterSpacing: "-3px",
             textAlign: "left",
+            whiteSpace: "nowrap",
           }}
         >
           <span style={{ color: "#ffffff" }}>that </span>
