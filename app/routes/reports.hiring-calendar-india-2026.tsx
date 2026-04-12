@@ -108,11 +108,11 @@ function initCharts() {
   make("ppoChart", {
     type: "bar",
     data: {
-      labels: ["Series A–C\nFunded Startups", "FMCG\n(HUL, ITC, P&G)", "B2B SaaS\n(Growth Stage)", "Global Consulting\n(McKinsey, BCG)", "Investment Banking\n(Goldman, MS)", "Indian MNCs\n(TCS, Wipro, HCL)", "Marketing\nAgencies"],
+      labels: ["Series A–C\nFunded Startups", "B2B SaaS\n(Growth Stage)", "FMCG\n(HUL, ITC, P&G)", "Global Consulting\n(McKinsey, BCG)", "Investment Banking\n(Goldman, MS)", "Indian MNCs\n(TCS, Wipro, HCL)", "Marketing\nAgencies"],
       datasets: [{
         label: "Pre-Placement Offer (PPO) conversion rate (%)",
-        data: [78, 65, 72, 60, 55, 40, 31],
-        backgroundColor: [GREEN, ORANGE, GREEN, ORANGE2, ORANGE3, GREY, GREY],
+        data: [78, 72, 65, 60, 55, 40, 31],
+        backgroundColor: [GREEN, GREEN, ORANGE, ORANGE2, ORANGE3, GREY, GREY],
         borderRadius: 6,
         borderWidth: 0,
       }],
@@ -227,7 +227,7 @@ export default function HiringCalendarReport() {
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 1</div><div className="rpt-lbl">January – March: FMCG, consulting, banking, and Big Tech summer program applications open. The most structured and deadline-driven window.</div><span className="rpt-delta rpt-du">Highest-stakes wave</span></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 2</div><div className="rpt-lbl">August – October: Campus placement season at Tier 1 colleges. Off-campus off-season for startups and unicorns. Callback rates peak here.</div><span className="rpt-delta rpt-du">Best callback rates</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 2</div><div className="rpt-lbl">August – October: Campus placement season at Tier 1 colleges. Peak hiring window for unicorns and startups off-campus. Callback rates highest here.</div><span className="rpt-delta rpt-du">Best callback rates</span></div>
               <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 3</div><div className="rpt-lbl">November – December: PPO conversions finalize. New graduate program applications open. Series B/C companies plan for January cohorts.</div><span className="rpt-delta rpt-dn">Underutilized by students</span></div>
             </div>
 
@@ -270,7 +270,7 @@ export default function HiringCalendarReport() {
                 <tbody>
                   <tr className="rpt-tr-hi">
                     <td><strong>Hindustan Unilever (HUL)</strong></td>
-                    <td>ULIP (Unilever Leadership Internship Program)</td>
+                    <td>HUL MBA Summer Internship (UFLP pathway)</td>
                     <td>November</td>
                     <td>January</td>
                     <td>April – June</td>
@@ -324,7 +324,7 @@ export default function HiringCalendarReport() {
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Marico</strong></td>
-                    <td>Marico Innovation Foundation Internship</td>
+                    <td>Marico Summer Internship Program</td>
                     <td>November</td>
                     <td>January</td>
                     <td>April – June</td>
@@ -384,8 +384,8 @@ export default function HiringCalendarReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Finding 03</span>
-              <h2 className="rpt-h2">Consulting and banking open applications in October. The internship is in April. Most students miss this by 6 months.</h2>
-              <p className="rpt-lead">McKinsey, BCG, Bain, Goldman Sachs, Morgan Stanley, and J.P. Morgan all follow global recruiting calendars that are misaligned with Indian academic cycles. The application window opens 6–8 months before the internship starts — and runs for 3–4 weeks only.</p>
+              <h2 className="rpt-h2">Consulting opens in September–October. Banking opens in August. Most students find out in November when it's too late.</h2>
+              <p className="rpt-lead">McKinsey, BCG, and Bain open applications in September–October for April internships. Goldman Sachs and Morgan Stanley open even earlier — in August, for a March start. The window runs 3–4 weeks. Miss it and you wait a full year.</p>
             </div>
 
             <div className="rpt-card" style={{ overflowX: "auto" }}>
