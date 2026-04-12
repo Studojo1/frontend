@@ -33,6 +33,12 @@ export default function OutreachLanding() {
               >
                 Find My Hiring Managers <FiArrowRight className="w-5 h-5 ml-2" />
               </button>
+              <button
+                onClick={() => navigate("/outreach/orders")}
+                className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-white text-studojo-ink font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              >
+                View My Campaigns <FiClipboard className="w-5 h-5 ml-2" />
+              </button>
             </div>
           </div>
         </div>
