@@ -859,6 +859,11 @@ export default function HiringCalendarReport() {
             </div>
 
             <div className="rpt-card">
+              <div className="rpt-card-label">Off-campus callback rate (%) vs. hiring activity index - by month</div>
+              <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="offCampusChart"></canvas></div>
+            </div>
+
+            <div className="rpt-card">
               <div className="rpt-card-label">How many months before the internship start date do applications open (by company type)</div>
               <div className="rpt-chart-wrap" style={{ height: 340 }}><canvas id="leadTimeChart"></canvas></div>
             </div>
@@ -900,11 +905,6 @@ export default function HiringCalendarReport() {
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="rpt-card">
-              <div className="rpt-card-label">Off-campus callback rate (%) vs. hiring activity index - by month</div>
-              <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="offCampusChart"></canvas></div>
             </div>
 
             <p className="rpt-prose">The callback rate peaks in October - not in March or September when posting volumes are highest. In October, posting volume is still high but student competition is lower (mid-semester exams, campus placement focus at Tier 1 colleges). Off-campus applicants who target October are competing with a smaller pool. <strong>The best month to send cold applications to startup and unicorn hiring managers is October, not February.</strong></p>
