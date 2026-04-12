@@ -120,6 +120,18 @@ const REPORTS = [
     color: "bg-violet-700",
     badge: "New",
   },
+  {
+    slug: "hiring-calendar-india-2026",
+    title: "India Hiring Calendar 2026: Which Companies Hire in Which Month",
+    subtitle: "Q2 2026",
+    excerpt:
+      "80+ companies mapped with exact application windows. HUL opens 8 months before start. Goldman opens in August for a March internship. Miss the window and you wait a year.",
+    category: "Hiring Calendar",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-amber-500",
+    badge: "New",
+  },
 ];
 
 function RequestForm() {
@@ -290,6 +302,19 @@ export default function Reports() {
               </h2>
               <p className="mt-2 font-['Satoshi'] text-sm text-neutral-400">
                 5,200+ open PM roles. Salary data, AI skill premiums, and where to actually apply.
+              </p>
+            </div>
+
+            {/* Coming soon placeholder 2 */}
+            <div className="flex flex-col rounded-2xl border-2 border-dashed border-neutral-300 bg-neutral-50 p-6 opacity-60">
+              <div className="mb-3 font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-neutral-400">
+                Coming soon
+              </div>
+              <h2 className="font-['Clash_Display'] text-lg font-bold text-neutral-400">
+                Data Science & Analytics Roles India 2026
+              </h2>
+              <p className="mt-2 font-['Satoshi'] text-sm text-neutral-400">
+                Entry-level salaries, skill gaps, and which companies actually hire freshers into real data roles.
               </p>
             </div>
 
