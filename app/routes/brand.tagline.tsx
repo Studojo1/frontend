@@ -20,7 +20,7 @@ export default function BrandTagline() {
       <div
         id="print-card"
         style={{
-          width: 800,
+          width: 1100,
           height: 500,
           backgroundColor: "#0a0a0a",
           display: "flex",
@@ -28,6 +28,7 @@ export default function BrandTagline() {
           alignItems: "center",
           justifyContent: "center",
           gap: 0,
+          padding: "0 60px",
           border: "2px solid #222",
           borderRadius: 4,
         }}
@@ -35,11 +36,12 @@ export default function BrandTagline() {
         <div
           style={{
             fontSize: 108,
-            fontWeight: 400,
+            fontWeight: 570,
             color: "#ffffff",
             lineHeight: 1.05,
             letterSpacing: "-3px",
             textAlign: "center",
+            whiteSpace: "nowrap",
           }}
         >
           Work on things
@@ -47,13 +49,14 @@ export default function BrandTagline() {
         <div
           style={{
             fontSize: 108,
-            fontWeight: 400,
+            fontWeight: 700,
             lineHeight: 1.05,
             letterSpacing: "-3px",
             textAlign: "center",
+            whiteSpace: "nowrap",
           }}
         >
-          <span style={{ color: "#ffffff" }}>that </span>
+          <span style={{ color: "#ffffff", fontWeight: 570 }}>that </span>
           <span style={{ color: "#7c3aed" }}>matter.</span>
         </div>
       </div>

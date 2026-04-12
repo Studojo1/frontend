@@ -1,13 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router";
 import {
-  FiDownload,
   FiSearch,
   FiCopy,
   FiCheck,
   FiExternalLink,
   FiRefreshCw,
-  FiX,
   FiUser,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
@@ -16,11 +13,6 @@ import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { outreachFetch } from "~/lib/outreach/api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-interface TokenStatus {
-  connected: boolean;
-  linkedin_name?: string | null;
-}
 
 interface SearchJob {
   id: number;
@@ -42,59 +34,6 @@ interface Lead {
   message_copied_at?: string | null;
 }
 
-// ── Install step ──────────────────────────────────────────────────────────────
-
-function InstallStep() {
-  return (
-    <div className="mx-auto max-w-xl">
-      <div className="rounded-2xl border-2 border-studojo-ink bg-white p-8 shadow-brutal text-center">
-        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-studojo-ink bg-violet-100">
-          <span className="text-2xl font-bold text-studojo-purple" style={{ fontFamily: "'Clash Display', sans-serif" }}>S</span>
-        </div>
-        <h2 className="font-clash text-2xl font-bold text-studojo-ink mb-2">
-          Install the Chrome Extension
-        </h2>
-        <p className="font-satoshi text-sm text-studojo-muted mb-6 leading-relaxed">
-          The Studojo extension reads your LinkedIn session securely so we can
-          find the right people for you to connect with. Nothing is stored
-          except an encrypted token — your session never leaves your browser in
-          plain text.
-        </p>
-
-        <div className="mb-6 flex flex-col gap-3 text-left">
-          {[
-            "Install the extension below",
-            "Click the extension icon in your toolbar",
-            "Hit \"Connect LinkedIn\" — done in 5 seconds",
-          ].map((step, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-studojo-ink bg-violet-500 font-satoshi text-xs font-bold text-white">
-                {i + 1}
-              </div>
-              <span className="font-satoshi text-sm text-studojo-ink">{step}</span>
-            </div>
-          ))}
-        </div>
-
-        <a
-          href="https://studojo.com/install-extension"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-studojo-ink bg-studojo-purple font-satoshi text-sm font-semibold text-white shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-        >
-          <FiDownload className="h-4 w-4" />
-          Install Extension (Chrome)
-        </a>
-
-        <p className="mt-4 font-satoshi text-xs text-studojo-muted">
-          Already installed? Open the extension popup and click Connect LinkedIn.
-          Then refresh this page.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 // ── Search form ───────────────────────────────────────────────────────────────
 
 interface SearchFormProps {
@@ -113,6 +52,7 @@ function SearchForm({ onJobStarted }: SearchFormProps) {
     setLoading(true);
     setError("");
     try {
+      // Create job — backend immediately starts Apollo search server-side
       const job = await outreachFetch<SearchJob>("/linkedin/search", {
         method: "POST",
         body: JSON.stringify({
@@ -120,11 +60,12 @@ function SearchForm({ onJobStarted }: SearchFormProps) {
           location: location.trim() || undefined,
         }),
       });
+
       onJobStarted(job);
     } catch (err: unknown) {
       const msg = (err as { body?: { detail?: string }; message?: string })?.body?.detail
         || (err as { message?: string })?.message
-        || "Search failed. Try again.";
+        || "Search failed. Please try again.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -212,10 +153,14 @@ function SearchResults({ job: initialJob, onReset }: ResultsProps) {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [copiedIds, setCopiedIds] = useState<Set<number>>(new Set());
   const [loadingLeads, setLoadingLeads] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
 
   // Poll job status until done
   useEffect(() => {
     if (job.status === "done" || job.status === "failed") return;
+
+    // Hard timeout — if still running after 45s, show error
+    const timeout = setTimeout(() => setTimedOut(true), 45000);
 
     const interval = setInterval(async () => {
       try {
@@ -223,11 +168,15 @@ function SearchResults({ job: initialJob, onReset }: ResultsProps) {
         setJob(updated);
         if (updated.status === "done" || updated.status === "failed") {
           clearInterval(interval);
+          clearTimeout(timeout);
         }
       } catch (_) {}
     }, 2500);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, [job.id, job.status]);
 
   // Load leads when done
@@ -262,6 +211,25 @@ function SearchResults({ job: initialJob, onReset }: ResultsProps) {
   };
 
   if (job.status === "queued" || job.status === "running") {
+    if (timedOut) {
+      return (
+        <div className="mx-auto max-w-xl">
+          <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-8 text-center">
+            <h3 className="font-clash text-xl font-bold text-red-700 mb-2">Search is taking too long</h3>
+            <p className="font-satoshi text-sm text-red-600 mb-4">
+              The search didn't complete in time. Please try again.
+            </p>
+            <button
+              onClick={onReset}
+              className="mx-auto flex h-10 items-center gap-2 rounded-xl border-2 border-studojo-ink bg-white px-5 font-satoshi text-sm font-semibold shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+            >
+              <FiRefreshCw className="h-4 w-4" />
+              Try again
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="mx-auto max-w-xl">
         <div className="rounded-2xl border-2 border-studojo-ink bg-white p-10 shadow-brutal text-center">
@@ -272,9 +240,9 @@ function SearchResults({ job: initialJob, onReset }: ResultsProps) {
             Finding people...
           </h3>
           <p className="font-satoshi text-sm text-studojo-muted">
-            Searching LinkedIn for{" "}
+            Searching for{" "}
             <span className="font-semibold text-studojo-ink">{job.target_role}</span>{" "}
-            and writing personalised messages. Takes about 15 seconds.
+            and writing personalised messages. Takes about 15–20 seconds.
           </p>
         </div>
       </div>
@@ -433,22 +401,16 @@ function SearchResults({ job: initialJob, onReset }: ResultsProps) {
 
 export default function LinkedInConnectPage() {
   const { loading: authLoading } = useOutreachAuth();
-  const [tokenStatus, setTokenStatus] = useState<TokenStatus | null>(null);
   const [activeJob, setActiveJob] = useState<SearchJob | null>(null);
   const [recentSearches, setRecentSearches] = useState<SearchJob[]>([]);
   const [checkingToken, setCheckingToken] = useState(true);
 
   const checkTokenStatus = useCallback(async () => {
     try {
-      const status = await outreachFetch<TokenStatus>("/linkedin/token/status");
-      setTokenStatus(status);
-
-      if (status.connected) {
-        const searches = await outreachFetch<SearchJob[]>("/linkedin/searches");
-        setRecentSearches(searches);
-      }
+      const searches = await outreachFetch<SearchJob[]>("/linkedin/searches");
+      setRecentSearches(searches);
     } catch (_) {
-      setTokenStatus({ connected: false });
+      // ignore — user may have no searches yet
     } finally {
       setCheckingToken(false);
     }
@@ -492,9 +454,7 @@ export default function LinkedInConnectPage() {
 
       {/* Main content */}
       <section className="mx-auto max-w-[var(--section-max-width)] px-4 py-10 md:px-8">
-        {!tokenStatus?.connected ? (
-          <InstallStep />
-        ) : activeJob ? (
+        {activeJob ? (
           <SearchResults
             job={activeJob}
             onReset={() => setActiveJob(null)}

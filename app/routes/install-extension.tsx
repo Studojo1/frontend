@@ -16,7 +16,7 @@ const STEPS = [
   {
     num: 1,
     title: "Download the extension",
-    desc: 'Click the button below to download the extension ZIP file.',
+    desc: 'Click the button below to download the extension ZIP. Unzip it — you\'ll get a folder called "linkedin-connect".',
   },
   {
     num: 2,
@@ -91,7 +91,7 @@ export default function InstallExtension() {
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               <a
-                href="https://github.com/Studojo1/frontend/archive/refs/heads/staging.zip"
+                href="https://github.com/Studojo1/frontend/releases/download/extension-v1.0.0/studojo-linkedin-connect-v1.0.0.zip"
                 className="flex h-12 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-8 font-['Satoshi'] text-sm font-bold text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
