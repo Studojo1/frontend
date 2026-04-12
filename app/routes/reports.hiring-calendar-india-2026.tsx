@@ -82,7 +82,7 @@ function initCharts() {
   make("leadTimeChart", {
     type: "bar",
     data: {
-      labels: ["FMCG (HUL, ITC, P&G)", "Global Consulting\n(McKinsey, BCG, Bain)", "Investment Banking\n(Goldman, Morgan Stanley)", "Big Tech\n(Google, Microsoft, Amazon)", "Indian Unicorns\n(Flipkart, Swiggy, Zepto)", "Series A–C\nStartups", "Agencies &\nSMEs"],
+      labels: ["FMCG (HUL, ITC, P&G)", "Global Consulting\n(McKinsey, BCG, Bain)", "Investment Banking\n(Goldman, Morgan Stanley)", "Big Tech\n(Google, Microsoft, Amazon)", "Indian Unicorns\n(Flipkart, Swiggy, Zepto)", "Series A-C\nStartups", "Agencies &\nSMEs"],
       datasets: [{
         label: "Months before start date when applications open",
         data: [8, 7, 7, 6, 4, 2, 1],
@@ -108,7 +108,7 @@ function initCharts() {
   make("ppoChart", {
     type: "bar",
     data: {
-      labels: ["Series A–C\nFunded Startups", "B2B SaaS\n(Growth Stage)", "FMCG\n(HUL, ITC, P&G)", "Global Consulting\n(McKinsey, BCG)", "Investment Banking\n(Goldman, MS)", "Indian MNCs\n(TCS, Wipro, HCL)", "Marketing\nAgencies"],
+      labels: ["Series A-C\nFunded Startups", "B2B SaaS\n(Growth Stage)", "FMCG\n(HUL, ITC, P&G)", "Global Consulting\n(McKinsey, BCG)", "Investment Banking\n(Goldman, MS)", "Indian MNCs\n(TCS, Wipro, HCL)", "Marketing\nAgencies"],
       datasets: [{
         label: "Pre-Placement Offer (PPO) conversion rate (%)",
         data: [78, 72, 65, 60, 55, 40, 31],
@@ -222,14 +222,14 @@ export default function HiringCalendarReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Finding 01</span>
-              <h2 className="rpt-h2">There are three hiring waves. Most students only catch one.</h2>
-              <p className="rpt-lead">India's internship and fresher hiring market runs on a predictable rhythm. Three distinct waves dominate the calendar. Students who know all three can apply 3–4x more strategically than those who treat job hunting as a year-round undifferentiated grind.</p>
+              <h2 className="rpt-h2">India's hiring market has three waves. Miss two of them and you're competing for scraps.</h2>
+              <p className="rpt-lead">India's internship and fresher hiring market runs on a predictable rhythm. Three distinct waves dominate the calendar. Students who know all three can apply 3-4x more strategically than those who treat job hunting as a year-round undifferentiated grind.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 1</div><div className="rpt-lbl">January – March: FMCG, consulting, banking, and Big Tech summer program applications open. The most structured and deadline-driven window.</div><span className="rpt-delta rpt-du">Highest-stakes wave</span></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 2</div><div className="rpt-lbl">August – October: Campus placement season at Tier 1 colleges. Peak hiring window for unicorns and startups off-campus. Callback rates highest here.</div><span className="rpt-delta rpt-du">Best callback rates</span></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 3</div><div className="rpt-lbl">November – December: PPO conversions finalize. New graduate program applications open. Series B/C companies plan for January cohorts.</div><span className="rpt-delta rpt-dn">Underutilized by students</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 1</div><div className="rpt-lbl">January - March: FMCG, consulting, banking, and Big Tech summer program applications open. The most structured and deadline-driven window.</div><span className="rpt-delta rpt-du">Highest-stakes wave</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 2</div><div className="rpt-lbl">August - October: Campus placement season at Tier 1 colleges. Peak hiring window for unicorns and startups off-campus. Callback rates highest here.</div><span className="rpt-delta rpt-du">Best callback rates</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">Wave 3</div><div className="rpt-lbl">November - December: PPO conversions finalize. New graduate program applications open. Series B/C companies plan for January cohorts.</div><span className="rpt-delta rpt-dn">Underutilized by students</span></div>
             </div>
 
             <div className="rpt-card">
@@ -243,15 +243,15 @@ export default function HiringCalendarReport() {
               <div className="rpt-cl">The October insight</div>
               <p>October has one of the highest off-campus callback rates of the year - but most students are either in mid-semester exams or assume "placement season is for campus only." Startup and unicorn hiring teams are actively screening in October for November and January start dates. If you apply off-campus in October with a targeted application, you're competing with very few people.</p>
             </div>
-            <p className="rpt-source">Source: Studojo analysis, Internshala job board data 2025–26, LinkedIn Jobs India, Wellfound, AmbitionBox posting cycles</p>
+            <p className="rpt-source">Source: Studojo analysis, Internshala job board data 2025-26, LinkedIn Jobs India, Wellfound, AmbitionBox posting cycles</p>
           </div>
 
           {/* Finding 2 */}
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Finding 02</span>
-              <h2 className="rpt-h2">FMCG giants open applications 8 months before start. Most students apply 8 weeks before.</h2>
-              <p className="rpt-lead">HUL, ITC, P&G, Marico, Godrej, and Dabur all run structured internship programs with hard annual deadlines. The application window is typically 4–6 weeks long. Miss it and there is no rolling admission - you wait 12 months for the next cycle.</p>
+              <h2 className="rpt-h2">The best FMCG roles are already decided by the time most students start looking.</h2>
+              <p className="rpt-lead">HUL, ITC, P&G, Marico, Godrej, and Dabur all run structured internship programs with hard annual deadlines. The application window is typically 4-6 weeks long. Miss it and there is no rolling admission - you wait 12 months for the next cycle.</p>
             </div>
 
             <div className="rpt-card" style={{ overflowX: "auto" }}>
@@ -274,8 +274,8 @@ export default function HiringCalendarReport() {
                     <td>HUL MBA Summer Internship (UFLP pathway)</td>
                     <td>November</td>
                     <td>January</td>
-                    <td>April – June</td>
-                    <td>₹80,000–₹1,00,000/mo</td>
+                    <td>April - June</td>
+                    <td>₹80,000-₹1,00,000/mo</td>
                     <td>MBA Year 1 (IIM A/B/C/L/K, XLRI, FMS)</td>
                   </tr>
                   <tr>
@@ -283,8 +283,8 @@ export default function HiringCalendarReport() {
                     <td>Madhuri (Undergrad Internship)</td>
                     <td>January</td>
                     <td>February</td>
-                    <td>May – July</td>
-                    <td>₹25,000–₹35,000/mo</td>
+                    <td>May - July</td>
+                    <td>₹25,000-₹35,000/mo</td>
                     <td>Penultimate year - Tier 1 colleges</td>
                   </tr>
                   <tr className="rpt-tr-hi">
@@ -292,8 +292,8 @@ export default function HiringCalendarReport() {
                     <td>ITC Interrobang (MBA)</td>
                     <td>October</td>
                     <td>December</td>
-                    <td>April – June</td>
-                    <td>₹70,000–₹90,000/mo</td>
+                    <td>April - June</td>
+                    <td>₹70,000-₹90,000/mo</td>
                     <td>MBA Year 1 - Top B-schools</td>
                   </tr>
                   <tr>
@@ -301,8 +301,8 @@ export default function HiringCalendarReport() {
                     <td>ITC WOW (Undergrad)</td>
                     <td>January</td>
                     <td>February</td>
-                    <td>May – July</td>
-                    <td>₹20,000–₹30,000/mo</td>
+                    <td>May - July</td>
+                    <td>₹20,000-₹30,000/mo</td>
                     <td>Penultimate year - engineering/commerce</td>
                   </tr>
                   <tr className="rpt-tr-hi">
@@ -310,8 +310,8 @@ export default function HiringCalendarReport() {
                     <td>CEO Program</td>
                     <td>October</td>
                     <td>December</td>
-                    <td>April – June</td>
-                    <td>₹75,000–₹95,000/mo</td>
+                    <td>April - June</td>
+                    <td>₹75,000-₹95,000/mo</td>
                     <td>MBA Year 1 - IIM A/B/C/L/K, ISB</td>
                   </tr>
                   <tr>
@@ -319,8 +319,8 @@ export default function HiringCalendarReport() {
                     <td>Undergrad Internship</td>
                     <td>December</td>
                     <td>February</td>
-                    <td>May – July</td>
-                    <td>₹20,000–₹25,000/mo</td>
+                    <td>May - July</td>
+                    <td>₹20,000-₹25,000/mo</td>
                     <td>Penultimate year - BITS, IIT, NIT</td>
                   </tr>
                   <tr className="rpt-tr-hi">
@@ -328,8 +328,8 @@ export default function HiringCalendarReport() {
                     <td>Marico Summer Internship Program</td>
                     <td>November</td>
                     <td>January</td>
-                    <td>April – June</td>
-                    <td>₹30,000–₹45,000/mo</td>
+                    <td>April - June</td>
+                    <td>₹30,000-₹45,000/mo</td>
                     <td>MBA Year 1, top-tier undergrads</td>
                   </tr>
                   <tr>
@@ -337,8 +337,8 @@ export default function HiringCalendarReport() {
                     <td>Godrej Summer Internship</td>
                     <td>December</td>
                     <td>February</td>
-                    <td>April – June</td>
-                    <td>₹25,000–₹40,000/mo</td>
+                    <td>April - June</td>
+                    <td>₹25,000-₹40,000/mo</td>
                     <td>MBA Year 1, penultimate undergrads</td>
                   </tr>
                   <tr className="rpt-tr-hi">
@@ -346,8 +346,8 @@ export default function HiringCalendarReport() {
                     <td>Dabur Young Leader Program</td>
                     <td>January</td>
                     <td>March</td>
-                    <td>May – July</td>
-                    <td>₹20,000–₹30,000/mo</td>
+                    <td>May - July</td>
+                    <td>₹20,000-₹30,000/mo</td>
                     <td>MBA Year 1, penultimate undergrads</td>
                   </tr>
                   <tr>
@@ -355,8 +355,8 @@ export default function HiringCalendarReport() {
                     <td>NILE (Nestlé Internship)</td>
                     <td>December</td>
                     <td>February</td>
-                    <td>April – June</td>
-                    <td>₹30,000–₹40,000/mo</td>
+                    <td>April - June</td>
+                    <td>₹30,000-₹40,000/mo</td>
                     <td>MBA Year 1 - Top B-schools</td>
                   </tr>
                 </tbody>
@@ -367,7 +367,7 @@ export default function HiringCalendarReport() {
               <div className="rpt-cl">The annual cycle reality</div>
               <p>Every FMCG company above runs its internship program once per year. There is no rolling admission, no second batch, no late applications. If you miss HUL's Madhuri window in February, your next shot is February next year. Set calendar reminders in October - that's when ITC and P&G open, and most students aren't watching yet.</p>
             </div>
-            <p className="rpt-source">Source: Company careers pages, IIM placement committee data, Studojo recruiter network, AmbitionBox 2025–26</p>
+            <p className="rpt-source">Source: Company careers pages, IIM placement committee data, Studojo recruiter network, AmbitionBox 2025-26</p>
           </div>
 
           {/* CTA 1 */}
@@ -385,8 +385,8 @@ export default function HiringCalendarReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Finding 03</span>
-              <h2 className="rpt-h2">Consulting opens in September–October. Banking opens in August. Most students find out in November when it's too late.</h2>
-              <p className="rpt-lead">McKinsey, BCG, and Bain open applications in September–October for April internships. Goldman Sachs and Morgan Stanley open even earlier - in August, for a March start. The window runs 3–4 weeks. Miss it and you wait a full year.</p>
+              <h2 className="rpt-h2">Consulting and banking close their windows before most students know they were open.</h2>
+              <p className="rpt-lead">McKinsey, BCG, and Bain open applications in September-October for April internships. Goldman Sachs and Morgan Stanley open even earlier - in August, for a March start. The window runs 3-4 weeks. Miss it and you wait a full year.</p>
             </div>
 
             <div className="rpt-card" style={{ overflowX: "auto" }}>
@@ -408,126 +408,126 @@ export default function HiringCalendarReport() {
                     <td><strong>McKinsey & Company</strong></td>
                     <td>Summer Business Analyst</td>
                     <td>September</td>
-                    <td>Nov – Jan</td>
-                    <td>April – June</td>
-                    <td>₹1,50,000–₹2,00,000/mo</td>
+                    <td>Nov - Jan</td>
+                    <td>April - June</td>
+                    <td>₹1,50,000-₹2,00,000/mo</td>
                     <td>MBA Year 1, IIM A/B/C/L/K, ISB</td>
                   </tr>
                   <tr>
                     <td><strong>McKinsey & Company</strong></td>
                     <td>Junior Summer Associate (undergrad)</td>
                     <td>October</td>
-                    <td>Dec – Jan</td>
-                    <td>May – July</td>
-                    <td>₹80,000–₹1,00,000/mo</td>
+                    <td>Dec - Jan</td>
+                    <td>May - July</td>
+                    <td>₹80,000-₹1,00,000/mo</td>
                     <td>Penultimate year - IIT, BITS, top colleges</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>BCG (Boston Consulting Group)</strong></td>
                     <td>Summer Consultant (MBA)</td>
                     <td>September</td>
-                    <td>Nov – Dec</td>
-                    <td>April – June</td>
-                    <td>₹1,40,000–₹1,80,000/mo</td>
+                    <td>Nov - Dec</td>
+                    <td>April - June</td>
+                    <td>₹1,40,000-₹1,80,000/mo</td>
                     <td>MBA Year 1, top-15 B-schools</td>
                   </tr>
                   <tr>
                     <td><strong>BCG</strong></td>
                     <td>Platinion / Tech Advantage Intern</td>
                     <td>October</td>
-                    <td>Dec – Feb</td>
-                    <td>April – June</td>
-                    <td>₹80,000–₹1,10,000/mo</td>
+                    <td>Dec - Feb</td>
+                    <td>April - June</td>
+                    <td>₹80,000-₹1,10,000/mo</td>
                     <td>Engineering + MBA profile, IIT/BITS</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Bain & Company</strong></td>
                     <td>Summer Associate (MBA)</td>
                     <td>October</td>
-                    <td>Dec – Jan</td>
-                    <td>April – June</td>
-                    <td>₹1,30,000–₹1,70,000/mo</td>
+                    <td>Dec - Jan</td>
+                    <td>April - June</td>
+                    <td>₹1,30,000-₹1,70,000/mo</td>
                     <td>MBA Year 1, top B-schools</td>
                   </tr>
                   <tr>
                     <td><strong>Deloitte India</strong></td>
                     <td>Deloitte Summer Analyst</td>
                     <td>November</td>
-                    <td>Jan – Feb</td>
-                    <td>April – June</td>
-                    <td>₹40,000–₹60,000/mo</td>
+                    <td>Jan - Feb</td>
+                    <td>April - June</td>
+                    <td>₹40,000-₹60,000/mo</td>
                     <td>Penultimate year, CA/MBA, tier-1 colleges</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>EY (Ernst & Young)</strong></td>
                     <td>EY Intern Program</td>
                     <td>November</td>
-                    <td>Jan – Feb</td>
-                    <td>March – May</td>
-                    <td>₹30,000–₹50,000/mo</td>
+                    <td>Jan - Feb</td>
+                    <td>March - May</td>
+                    <td>₹30,000-₹50,000/mo</td>
                     <td>CA Inter, MBA, commerce graduates</td>
                   </tr>
                   <tr>
                     <td><strong>PwC India</strong></td>
                     <td>PwC Summer Internship</td>
                     <td>December</td>
-                    <td>Feb – Mar</td>
-                    <td>April – June</td>
-                    <td>₹25,000–₹40,000/mo</td>
+                    <td>Feb - Mar</td>
+                    <td>April - June</td>
+                    <td>₹25,000-₹40,000/mo</td>
                     <td>MBA, CA, commerce penultimate year</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Goldman Sachs India</strong></td>
                     <td>Summer Analyst - IBD / Markets</td>
                     <td>August</td>
-                    <td>Oct – Nov</td>
-                    <td>March – May</td>
-                    <td>₹1,20,000–₹1,60,000/mo</td>
+                    <td>Oct - Nov</td>
+                    <td>March - May</td>
+                    <td>₹1,20,000-₹1,60,000/mo</td>
                     <td>Penultimate year - IIT, BITS, NIT; top B-schools</td>
                   </tr>
                   <tr>
                     <td><strong>Goldman Sachs India</strong></td>
                     <td>Engineering Summer Analyst</td>
                     <td>August</td>
-                    <td>Oct – Dec</td>
-                    <td>March – May</td>
-                    <td>₹1,00,000–₹1,40,000/mo</td>
+                    <td>Oct - Dec</td>
+                    <td>March - May</td>
+                    <td>₹1,00,000-₹1,40,000/mo</td>
                     <td>CS / ECE penultimate year - IIT, BITS, NIT</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Morgan Stanley India</strong></td>
                     <td>Summer Analyst - Technology</td>
                     <td>August</td>
-                    <td>Oct – Nov</td>
-                    <td>March – May</td>
-                    <td>₹1,00,000–₹1,30,000/mo</td>
+                    <td>Oct - Nov</td>
+                    <td>March - May</td>
+                    <td>₹1,00,000-₹1,30,000/mo</td>
                     <td>CS / ECE penultimate year - IIT, BITS, NIT</td>
                   </tr>
                   <tr>
                     <td><strong>J.P. Morgan India</strong></td>
                     <td>Summer Analyst - Technology / Markets</td>
                     <td>September</td>
-                    <td>Nov – Jan</td>
-                    <td>March – May</td>
-                    <td>₹90,000–₹1,20,000/mo</td>
+                    <td>Nov - Jan</td>
+                    <td>March - May</td>
+                    <td>₹90,000-₹1,20,000/mo</td>
                     <td>Penultimate year - IIT, BITS, NIT; top B-schools</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Deutsche Bank India</strong></td>
                     <td>Spring Intern (Technology)</td>
                     <td>August</td>
-                    <td>Sep – Nov</td>
-                    <td>January – March</td>
-                    <td>₹80,000–₹1,10,000/mo</td>
+                    <td>Sep - Nov</td>
+                    <td>January - March</td>
+                    <td>₹80,000-₹1,10,000/mo</td>
                     <td>CS penultimate year - top colleges</td>
                   </tr>
                   <tr>
                     <td><strong>Citi India</strong></td>
                     <td>ICG Summer Analyst</td>
                     <td>September</td>
-                    <td>Nov – Dec</td>
-                    <td>April – June</td>
-                    <td>₹80,000–₹1,00,000/mo</td>
+                    <td>Nov - Dec</td>
+                    <td>April - June</td>
+                    <td>₹80,000-₹1,00,000/mo</td>
                     <td>Penultimate year, MBA Year 1 - top colleges</td>
                   </tr>
                 </tbody>
@@ -536,13 +536,13 @@ export default function HiringCalendarReport() {
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-o">7 months</div><div className="rpt-lbl">Average lead time - consulting firms open applications before internship starts</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">3–4 weeks</div><div className="rpt-lbl">Typical application window length at Goldman Sachs, McKinsey, BCG</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">3-4 weeks</div><div className="rpt-lbl">Typical application window length at Goldman Sachs, McKinsey, BCG</div></div>
               <div className="rpt-stat"><div className="rpt-val">August</div><div className="rpt-lbl">When Goldman Sachs opens summer analyst applications - 7 months before March start</div></div>
             </div>
 
             <div className="rpt-callout rpt-cd">
               <div className="rpt-cl">The calendar misalignment problem</div>
-              <p style={{ color: "#e5e5e5" }}>Indian college semesters run June–November and December–May. Goldman Sachs and Morgan Stanley open applications in August - two weeks into Semester 5 for most engineering students. Most students haven't even settled into their semester routine. These firms close applications in October, when mid-semester exams hit. The students who get these roles set reminders in April for August. They prepare case studies and DSA practice over summer. They don't discover the deadline in October.</p>
+              <p style={{ color: "#e5e5e5" }}>Indian college semesters run June-November and December-May. Goldman Sachs and Morgan Stanley open applications in August - two weeks into Semester 5 for most engineering students. Most students haven't even settled into their semester routine. These firms close applications in October, when mid-semester exams hit. The students who get these roles set reminders in April for August. They prepare case studies and DSA practice over summer. They don't discover the deadline in October.</p>
             </div>
             <p className="rpt-source">Source: Goldman Sachs India careers portal, Morgan Stanley India, J.P. Morgan India, McKinsey India, BCG India, IIM campus placement data 2025</p>
           </div>
@@ -551,8 +551,8 @@ export default function HiringCalendarReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Finding 04</span>
-              <h2 className="rpt-h2">Big Tech opens intern applications in July. The interview process lasts 3 months. Most students miss round 1.</h2>
-              <p className="rpt-lead">Google, Microsoft, Amazon, Meta, and Adobe India all run structured intern hiring programs with multi-round processes. The first application deadline is typically August–September. Students who apply in October are applying for a waitlist.</p>
+              <h2 className="rpt-h2">By the time most students apply to Big Tech, the first round is already full.</h2>
+              <p className="rpt-lead">Google, Microsoft, Amazon, Meta, and Adobe India all run structured intern hiring programs with multi-round processes. The first application deadline is typically August-September. Students who apply in October are applying for a waitlist.</p>
             </div>
 
             <div className="rpt-card" style={{ overflowX: "auto" }}>
@@ -573,19 +573,19 @@ export default function HiringCalendarReport() {
                   <tr className="rpt-tr-hi">
                     <td><strong>Google India</strong></td>
                     <td>STEP Intern (Software Engineering)</td>
-                    <td>July – August</td>
-                    <td>2–3 technical rounds (DSA heavy)</td>
-                    <td>May – August</td>
-                    <td>₹1,50,000–₹2,00,000/mo</td>
+                    <td>July - August</td>
+                    <td>2-3 technical rounds (DSA heavy)</td>
+                    <td>May - August</td>
+                    <td>₹1,50,000-₹2,00,000/mo</td>
                     <td>1st/2nd year CS undergrads, IIT/BITS/NIT</td>
                   </tr>
                   <tr>
                     <td><strong>Google India</strong></td>
                     <td>SWE Intern (Penultimate)</td>
-                    <td>August – September</td>
-                    <td>2–3 technical rounds</td>
-                    <td>May – August</td>
-                    <td>₹1,80,000–₹2,20,000/mo</td>
+                    <td>August - September</td>
+                    <td>2-3 technical rounds</td>
+                    <td>May - August</td>
+                    <td>₹1,80,000-₹2,20,000/mo</td>
                     <td>3rd year CS/ECE - IIT, BITS, NIT, IIIT</td>
                   </tr>
                   <tr className="rpt-tr-hi">
@@ -593,89 +593,89 @@ export default function HiringCalendarReport() {
                     <td>Explore (1st/2nd year)</td>
                     <td>August</td>
                     <td>2 rounds - coding + behavioral</td>
-                    <td>May – July</td>
-                    <td>₹1,20,000–₹1,60,000/mo</td>
+                    <td>May - July</td>
+                    <td>₹1,20,000-₹1,60,000/mo</td>
                     <td>1st/2nd year - IIT, BITS, IIIT, NIT</td>
                   </tr>
                   <tr>
                     <td><strong>Microsoft India</strong></td>
                     <td>SWE Intern (Penultimate)</td>
-                    <td>August – September</td>
+                    <td>August - September</td>
                     <td>3 rounds - technical + design</td>
-                    <td>May – July</td>
-                    <td>₹1,50,000–₹2,00,000/mo</td>
+                    <td>May - July</td>
+                    <td>₹1,50,000-₹2,00,000/mo</td>
                     <td>CS/ECE penultimate - IIT, BITS, IIIT</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Amazon India</strong></td>
                     <td>SDE Intern</td>
-                    <td>July – August</td>
-                    <td>OA + 2–3 interviews</td>
-                    <td>May – August</td>
-                    <td>₹1,20,000–₹1,60,000/mo</td>
+                    <td>July - August</td>
+                    <td>OA + 2-3 interviews</td>
+                    <td>May - August</td>
+                    <td>₹1,20,000-₹1,60,000/mo</td>
                     <td>CS penultimate - top colleges</td>
                   </tr>
                   <tr>
                     <td><strong>Amazon India</strong></td>
                     <td>Business Analyst Intern</td>
-                    <td>September – October</td>
+                    <td>September - October</td>
                     <td>Case study + 2 interviews</td>
-                    <td>May – July</td>
-                    <td>₹80,000–₹1,00,000/mo</td>
+                    <td>May - July</td>
+                    <td>₹80,000-₹1,00,000/mo</td>
                     <td>MBA Year 1, engineering penultimate</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Meta (Facebook) India</strong></td>
                     <td>SWE Intern</td>
-                    <td>August – September</td>
+                    <td>August - September</td>
                     <td>2 technical rounds</td>
-                    <td>May – August</td>
-                    <td>₹1,80,000–₹2,40,000/mo</td>
+                    <td>May - August</td>
+                    <td>₹1,80,000-₹2,40,000/mo</td>
                     <td>CS penultimate - IIT, BITS, IIIT</td>
                   </tr>
                   <tr>
                     <td><strong>Adobe India</strong></td>
                     <td>Research Intern / SWE Intern</td>
-                    <td>August – September</td>
-                    <td>OA + 2–3 rounds</td>
-                    <td>May – July</td>
-                    <td>₹1,20,000–₹1,50,000/mo</td>
+                    <td>August - September</td>
+                    <td>OA + 2-3 rounds</td>
+                    <td>May - July</td>
+                    <td>₹1,20,000-₹1,50,000/mo</td>
                     <td>CS penultimate - IIT, BITS, NIT</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Salesforce India</strong></td>
                     <td>Futureforce Intern (SWE / PM)</td>
-                    <td>September – October</td>
+                    <td>September - October</td>
                     <td>OA + 2 rounds</td>
-                    <td>May – July</td>
-                    <td>₹1,00,000–₹1,40,000/mo</td>
+                    <td>May - July</td>
+                    <td>₹1,00,000-₹1,40,000/mo</td>
                     <td>CS / MBA penultimate - tier-1 colleges</td>
                   </tr>
                   <tr>
                     <td><strong>Uber India</strong></td>
                     <td>SWE Intern / Data Analyst Intern</td>
-                    <td>September – October</td>
-                    <td>OA + 2–3 rounds</td>
-                    <td>May – July</td>
-                    <td>₹1,20,000–₹1,60,000/mo</td>
+                    <td>September - October</td>
+                    <td>OA + 2-3 rounds</td>
+                    <td>May - July</td>
+                    <td>₹1,20,000-₹1,60,000/mo</td>
                     <td>CS penultimate - IIT, BITS, top private</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Atlassian India</strong></td>
                     <td>SWE Intern</td>
-                    <td>August – September</td>
+                    <td>August - September</td>
                     <td>2 technical rounds</td>
-                    <td>Nov – Jan (off-cycle)</td>
-                    <td>₹1,50,000–₹1,80,000/mo</td>
+                    <td>Nov - Jan (off-cycle)</td>
+                    <td>₹1,50,000-₹1,80,000/mo</td>
                     <td>CS penultimate - top colleges</td>
                   </tr>
                   <tr>
                     <td><strong>Walmart Global Tech</strong></td>
                     <td>SWE Intern / Data Intern</td>
-                    <td>October – November</td>
+                    <td>October - November</td>
                     <td>OA + 2 rounds</td>
-                    <td>May – July</td>
-                    <td>₹1,00,000–₹1,30,000/mo</td>
+                    <td>May - July</td>
+                    <td>₹1,00,000-₹1,30,000/mo</td>
                     <td>CS/ECE penultimate - tier-1 colleges</td>
                   </tr>
                 </tbody>
@@ -684,7 +684,7 @@ export default function HiringCalendarReport() {
 
             <div className="rpt-callout rpt-co">
               <div className="rpt-cl">OA is the first filter - and it runs out of slots</div>
-              <p>Most Big Tech companies use Online Assessments (OAs) as the first round. OA slots are limited and expire. Google, Amazon, and Microsoft have sent OA links that expire in 5–7 days. If you apply late, the OA link may already be exhausted for your cohort. Early application is not about eagerness - it's about securing a slot in the assessment pipeline.</p>
+              <p>Most Big Tech companies use Online Assessments (OAs) as the first round. OA slots are limited and expire. Google, Amazon, and Microsoft have sent OA links that expire in 5-7 days. If you apply late, the OA link may already be exhausted for your cohort. Early application is not about eagerness - it's about securing a slot in the assessment pipeline.</p>
             </div>
             <p className="rpt-source">Source: Google India careers, Microsoft India, Amazon India, Codeforces / LeetCode India community data, IIT campus placement committee reports 2025</p>
           </div>
@@ -704,7 +704,7 @@ export default function HiringCalendarReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Finding 05</span>
-              <h2 className="rpt-h2">Indian unicorns hire year-round but cluster heavily in August–October and January–February.</h2>
+              <h2 className="rpt-h2">Unicorns don't post on job boards. They hire in clusters - and most students miss every single one.</h2>
               <p className="rpt-lead">Flipkart, Swiggy, Zepto, Meesho, PhonePe, Razorpay, CRED, and other high-growth Indian companies do not follow rigid annual cycles. But their hiring still clusters - driven by funding rounds, product launches, and business planning cycles.</p>
             </div>
 
@@ -723,93 +723,93 @@ export default function HiringCalendarReport() {
                 <tbody>
                   <tr className="rpt-tr-hi">
                     <td><strong>Flipkart</strong></td>
-                    <td>Aug – Oct, Jan – Feb</td>
+                    <td>Aug - Oct, Jan - Feb</td>
                     <td>SWE Intern, PM Intern, Data Analyst, Ops</td>
-                    <td>₹80,000–₹1,20,000/mo (intern)</td>
+                    <td>₹80,000-₹1,20,000/mo (intern)</td>
                     <td>Pre-Big Billion Days prep + post-festive planning</td>
                   </tr>
                   <tr>
                     <td><strong>Swiggy</strong></td>
-                    <td>Aug – Sep, Feb – Mar</td>
+                    <td>Aug - Sep, Feb - Mar</td>
                     <td>Growth Marketing Intern, Data Intern, PM</td>
-                    <td>₹50,000–₹90,000/mo</td>
+                    <td>₹50,000-₹90,000/mo</td>
                     <td>Pre-quarter planning + campus placement season alignment</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Zepto</strong></td>
-                    <td>Year-round (peaks Jan–Mar, Sep–Oct)</td>
+                    <td>Year-round (peaks Jan-Mar, Sep-Oct)</td>
                     <td>Growth, Marketing, SWE, Ops</td>
-                    <td>₹40,000–₹80,000/mo</td>
+                    <td>₹40,000-₹80,000/mo</td>
                     <td>Fast-growth mode; post-funding cohort hires</td>
                   </tr>
                   <tr>
                     <td><strong>Meesho</strong></td>
-                    <td>Sep – Nov, Jan – Feb</td>
+                    <td>Sep - Nov, Jan - Feb</td>
                     <td>SWE Intern, Growth, Data, Marketing</td>
-                    <td>₹60,000–₹90,000/mo</td>
+                    <td>₹60,000-₹90,000/mo</td>
                     <td>Annual planning + campus recruitment cycle</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>PhonePe</strong></td>
-                    <td>Aug – Oct, Jan – Mar</td>
+                    <td>Aug - Oct, Jan - Mar</td>
                     <td>SWE Intern, Product, Data Science, FinTech Analyst</td>
-                    <td>₹80,000–₹1,20,000/mo</td>
+                    <td>₹80,000-₹1,20,000/mo</td>
                     <td>Pre-festive season + new year headcount planning</td>
                   </tr>
                   <tr>
                     <td><strong>Razorpay</strong></td>
-                    <td>Sep – Oct, Feb – Mar</td>
+                    <td>Sep - Oct, Feb - Mar</td>
                     <td>SWE Intern, Growth Marketing, PM Intern</td>
-                    <td>₹70,000–₹1,00,000/mo</td>
+                    <td>₹70,000-₹1,00,000/mo</td>
                     <td>Product roadmap cycles + annual campus visits</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>CRED</strong></td>
-                    <td>Oct – Dec, Feb – Mar</td>
+                    <td>Oct - Dec, Feb - Mar</td>
                     <td>Design Intern, Growth Intern, SWE, Data</td>
-                    <td>₹60,000–₹90,000/mo</td>
+                    <td>₹60,000-₹90,000/mo</td>
                     <td>Curated hiring - small batches, high bar; avoids peak competition</td>
                   </tr>
                   <tr>
                     <td><strong>Zomato / Blinkit</strong></td>
-                    <td>Aug – Oct, Jan – Mar</td>
+                    <td>Aug - Oct, Jan - Mar</td>
                     <td>Growth Marketing, PM, Operations, Data</td>
-                    <td>₹50,000–₹80,000/mo</td>
+                    <td>₹50,000-₹80,000/mo</td>
                     <td>Pre-festive season planning</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Groww</strong></td>
-                    <td>Sep – Nov, Feb – Mar</td>
+                    <td>Sep - Nov, Feb - Mar</td>
                     <td>SWE, PM, Growth, Content</td>
-                    <td>₹60,000–₹1,00,000/mo</td>
+                    <td>₹60,000-₹1,00,000/mo</td>
                     <td>Fintech product cycles + campus hiring season</td>
                   </tr>
                   <tr>
                     <td><strong>upGrad</strong></td>
-                    <td>Year-round (Jan–Mar peak)</td>
+                    <td>Year-round (Jan-Mar peak)</td>
                     <td>Content, Growth, Marketing, BD</td>
-                    <td>₹15,000–₹35,000/mo</td>
+                    <td>₹15,000-₹35,000/mo</td>
                     <td>New course launches drive marketing hiring spikes</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>Nykaa</strong></td>
-                    <td>Aug – Sep, Feb – Mar</td>
+                    <td>Aug - Sep, Feb - Mar</td>
                     <td>Marketing Intern, Content, Analytics, BD</td>
-                    <td>₹20,000–₹40,000/mo</td>
+                    <td>₹20,000-₹40,000/mo</td>
                     <td>Pre-festive (Big Beauty Sale) + New Year plans</td>
                   </tr>
                   <tr>
                     <td><strong>Lenskart</strong></td>
-                    <td>Jan – Mar, Aug – Sep</td>
+                    <td>Jan - Mar, Aug - Sep</td>
                     <td>Performance Marketing, Growth, Ops, SWE</td>
-                    <td>₹25,000–₹50,000/mo</td>
+                    <td>₹25,000-₹50,000/mo</td>
                     <td>Expansion-driven hiring tied to store openings / funding</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <p className="rpt-prose">Unlike FMCG or banking, unicorns do not run annual programs with fixed windows. They hire when a team has budget and a problem to solve. The clusters appear because of shared external calendars - festive season prep, new financial year budgets (April), and the overlap with campus placement season (Aug–Oct). <strong>The best signal for unicorn hiring is watching their LinkedIn company pages and founder posts - not job boards, which lag by 1–2 weeks.</strong></p>
+            <p className="rpt-prose">Unlike FMCG or banking, unicorns do not run annual programs with fixed windows. They hire when a team has budget and a problem to solve. The clusters appear because of shared external calendars - festive season prep, new financial year budgets (April), and the overlap with campus placement season (Aug-Oct). <strong>The best signal for unicorn hiring is watching their LinkedIn company pages and founder posts - not job boards, which lag by 1-2 weeks.</strong></p>
             <p className="rpt-source">Source: LinkedIn company pages, Wellfound (AngelList India), Glassdoor India, Studojo recruiter network interviews Q1 2026</p>
           </div>
 
@@ -817,20 +817,20 @@ export default function HiringCalendarReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Finding 06</span>
-              <h2 className="rpt-h2">Series A–C startups hire in bursts after funding rounds. The 60-day window post-announcement is the best time to apply.</h2>
-              <p className="rpt-lead">When a startup raises a Series A, B, or C round, they typically build out their team within 60–90 days of the announcement. For interns and freshers, this is the single best off-cycle opportunity - budgets just expanded, roles haven't been posted yet, and competition is minimal.</p>
+              <h2 className="rpt-h2">A startup just raised a round. You have 60 days before the roles get posted and the competition arrives.</h2>
+              <p className="rpt-lead">When a startup raises a Series A, B, or C round, they typically build out their team within 60-90 days of the announcement. For interns and freshers, this is the single best off-cycle opportunity - budgets just expanded, roles haven't been posted yet, and competition is minimal.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c4">
-              <div className="rpt-stat"><div className="rpt-val rpt-o">60–90</div><div className="rpt-lbl">Days after a funding announcement when startup hiring peaks</div></div>
-              <div className="rpt-stat"><div className="rpt-val">₹15,000–₹35,000</div><div className="rpt-lbl">Typical intern stipend range at Series A startups, post-funding</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">78%</div><div className="rpt-lbl">Pre-Placement Offer (PPO) conversion at Series A–C companies - highest of any category</div></div>
-              <div className="rpt-stat"><div className="rpt-val">Q1 & Q3</div><div className="rpt-lbl">When most India VC funding rounds close - Jan–Mar and Jul–Sep</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">60-90</div><div className="rpt-lbl">Days after a funding announcement when startup hiring peaks</div></div>
+              <div className="rpt-stat"><div className="rpt-val">₹15,000-₹35,000</div><div className="rpt-lbl">Typical intern stipend range at Series A startups, post-funding</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">78%</div><div className="rpt-lbl">Pre-Placement Offer (PPO) conversion at Series A-C companies - highest of any category</div></div>
+              <div className="rpt-stat"><div className="rpt-val">Q1 & Q3</div><div className="rpt-lbl">When most India VC funding rounds close - Jan-Mar and Jul-Sep</div></div>
             </div>
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">How to use funding announcements as a hiring signal</div>
-              <p>Set Google Alerts for "Series A India," "Series B India," and "[sector] funding India" - or follow TechCrunch India, Inc42, and The Ken on LinkedIn. When a startup announces a round, apply within 2 weeks. Email the founder or head of marketing/engineering directly: "I saw your Series A - congrats. I'd love to help you build [specific function] as an intern." Response rates on these messages are 3–5x higher than a standard job board application.</p>
+              <p>Set Google Alerts for "Series A India," "Series B India," and "[sector] funding India" - or follow TechCrunch India, Inc42, and The Ken on LinkedIn. When a startup announces a round, apply within 2 weeks. Email the founder or head of marketing/engineering directly: "I saw your Series A - congrats. I'd love to help you build [specific function] as an intern." Response rates on these messages are 3-5x higher than a standard job board application.</p>
             </div>
 
             <div className="rpt-card" style={{ overflowX: "auto" }}>
@@ -840,10 +840,10 @@ export default function HiringCalendarReport() {
                   <tr><th>Quarter</th><th>Funding activity</th><th>Hiring lag</th><th>Best application window</th><th>Roles that open</th></tr>
                 </thead>
                 <tbody>
-                  <tr className="rpt-tr-hi"><td><strong>Q1 (Jan–Mar)</strong></td><td>High - new annual budgets, LP commitments</td><td>4–8 weeks</td><td>February – April</td><td>Growth, marketing, sales, product, SWE</td></tr>
-                  <tr><td><strong>Q2 (Apr–Jun)</strong></td><td>Moderate - pre-summer slowdown</td><td>4–8 weeks</td><td>May – June (limited)</td><td>Engineering, operations</td></tr>
-                  <tr className="rpt-tr-hi"><td><strong>Q3 (Jul–Sep)</strong></td><td>High - post-monsoon activity, international VC tours</td><td>4–6 weeks</td><td>August – October</td><td>Growth, marketing, product, BD</td></tr>
-                  <tr><td><strong>Q4 (Oct–Dec)</strong></td><td>Moderate - end of year, fewer new rounds</td><td>6–10 weeks</td><td>November – January</td><td>Planning roles, data, finance</td></tr>
+                  <tr className="rpt-tr-hi"><td><strong>Q1 (Jan-Mar)</strong></td><td>High - new annual budgets, LP commitments</td><td>4-8 weeks</td><td>February - April</td><td>Growth, marketing, sales, product, SWE</td></tr>
+                  <tr><td><strong>Q2 (Apr-Jun)</strong></td><td>Moderate - pre-summer slowdown</td><td>4-8 weeks</td><td>May - June (limited)</td><td>Engineering, operations</td></tr>
+                  <tr className="rpt-tr-hi"><td><strong>Q3 (Jul-Sep)</strong></td><td>High - post-monsoon activity, international VC tours</td><td>4-6 weeks</td><td>August - October</td><td>Growth, marketing, product, BD</td></tr>
+                  <tr><td><strong>Q4 (Oct-Dec)</strong></td><td>Moderate - end of year, fewer new rounds</td><td>6-10 weeks</td><td>November - January</td><td>Planning roles, data, finance</td></tr>
                 </tbody>
               </table>
             </div>
@@ -854,7 +854,7 @@ export default function HiringCalendarReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Finding 07</span>
-              <h2 className="rpt-h2">Application lead time varies 8x by company type. One chart explains when to apply where.</h2>
+              <h2 className="rpt-h2">Applying to the right company at the wrong time is the same as not applying at all.</h2>
               <p className="rpt-lead">FMCG companies expect you to apply 8 months before the internship. Agencies expect you to apply 4 weeks before. Applying on the wrong timeline - too early or too late - reduces your chances even if you are the right candidate.</p>
             </div>
 
@@ -865,7 +865,7 @@ export default function HiringCalendarReport() {
 
             <div className="rpt-two-col">
               <div>
-                <div className="rpt-col-head">Apply 6–8 months ahead</div>
+                <div className="rpt-col-head">Apply 6-8 months ahead</div>
                 <div className="rpt-card" style={{ padding: 20 }}>
                   <div className="rpt-bar-list">
                     {[
@@ -883,11 +883,11 @@ export default function HiringCalendarReport() {
                 </div>
               </div>
               <div>
-                <div className="rpt-col-head">Apply 4–8 weeks ahead</div>
+                <div className="rpt-col-head">Apply 4-8 weeks ahead</div>
                 <div className="rpt-card" style={{ padding: 20 }}>
                   <div className="rpt-bar-list">
                     {[
-                      ["Series A–C startups", 50, "#10b981", "Hire when budget releases"],
+                      ["Series A-C startups", 50, "#10b981", "Hire when budget releases"],
                       ["Unicorns (Zepto, Meesho)", 45, "#10b981", "Role posted → filled in weeks"],
                       ["Marketing agencies", 30, "#fcd34d", "High turnover, rolling"],
                       ["Boutique consultancies", 25, "#fcd34d", "Project-driven, ad hoc"],
@@ -915,7 +915,7 @@ export default function HiringCalendarReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Finding 08</span>
-              <h2 className="rpt-h2">The PPO calendar: when internships become jobs - and which companies convert at 78%.</h2>
+              <h2 className="rpt-h2">At some companies, the internship is the job offer. At others, it never was.</h2>
               <p className="rpt-lead">A Pre-Placement Offer (PPO) is an offer of full-time employment extended to an intern before they graduate. At certain companies, accepting a summer internship is effectively accepting a job. At others, it's not. The conversion rate - and timing - varies dramatically.</p>
             </div>
 
@@ -931,19 +931,19 @@ export default function HiringCalendarReport() {
                   <tr><th>Company Type</th><th>PPO Communicated</th><th>Offer Deadline</th><th>Conversion Rate</th><th>Note</th></tr>
                 </thead>
                 <tbody>
-                  <tr className="rpt-tr-hi"><td><strong>Series A–C Funded Startups</strong></td><td>Last week of internship</td><td>Within 2 weeks</td><td>78%</td><td>High conversion - intern is often filling a real gap</td></tr>
-                  <tr><td><strong>B2B SaaS (growth stage)</strong></td><td>2–4 weeks before end</td><td>1–2 weeks</td><td>72%</td><td>Strong conversion if intern owned measurable output</td></tr>
-                  <tr className="rpt-tr-hi"><td><strong>FMCG (HUL, ITC, P&G)</strong></td><td>End of internship</td><td>3–4 weeks</td><td>65%</td><td>Structured PPO process - often same day as final presentation</td></tr>
-                  <tr><td><strong>Global Consulting (McKinsey, BCG)</strong></td><td>2–3 weeks before end</td><td>4–6 weeks to decide</td><td>60%</td><td>Known PPO policy - intern knows from Day 1 this is possible</td></tr>
-                  <tr className="rpt-tr-hi"><td><strong>Investment Banking (Goldman, MS, JPM)</strong></td><td>Last 1–2 days</td><td>2–3 weeks</td><td>55%</td><td>Selective - typically top 50% of intern cohort</td></tr>
-                  <tr><td><strong>Indian MNCs (TCS, Wipro, Infosys off-campus)</strong></td><td>Post-internship (3–6 months later)</td><td>Variable</td><td>40%</td><td>PPO exists but processes slow; many offers rescinded or deferred</td></tr>
+                  <tr className="rpt-tr-hi"><td><strong>Series A-C Funded Startups</strong></td><td>Last week of internship</td><td>Within 2 weeks</td><td>78%</td><td>High conversion - intern is often filling a real gap</td></tr>
+                  <tr><td><strong>B2B SaaS (growth stage)</strong></td><td>2-4 weeks before end</td><td>1-2 weeks</td><td>72%</td><td>Strong conversion if intern owned measurable output</td></tr>
+                  <tr className="rpt-tr-hi"><td><strong>FMCG (HUL, ITC, P&G)</strong></td><td>End of internship</td><td>3-4 weeks</td><td>65%</td><td>Structured PPO process - often same day as final presentation</td></tr>
+                  <tr><td><strong>Global Consulting (McKinsey, BCG)</strong></td><td>2-3 weeks before end</td><td>4-6 weeks to decide</td><td>60%</td><td>Known PPO policy - intern knows from Day 1 this is possible</td></tr>
+                  <tr className="rpt-tr-hi"><td><strong>Investment Banking (Goldman, MS, JPM)</strong></td><td>Last 1-2 days</td><td>2-3 weeks</td><td>55%</td><td>Selective - typically top 50% of intern cohort</td></tr>
+                  <tr><td><strong>Indian MNCs (TCS, Wipro, Infosys off-campus)</strong></td><td>Post-internship (3-6 months later)</td><td>Variable</td><td>40%</td><td>PPO exists but processes slow; many offers rescinded or deferred</td></tr>
                   <tr className="rpt-tr-hi"><td><strong>Marketing Agencies</strong></td><td>If at all - post-internship</td><td>Variable</td><td>31%</td><td>High turnover environment; PPO less common</td></tr>
                 </tbody>
               </table>
             </div>
 
             <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-o">August</div><div className="rpt-lbl">When most summer internship PPOs are communicated (for April–July internships)</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">August</div><div className="rpt-lbl">When most summer internship PPOs are communicated (for April-July internships)</div></div>
               <div className="rpt-stat"><div className="rpt-val rpt-o">November</div><div className="rpt-lbl">When most PPO deadlines fall - aligned with campus placement season for Tier 1 colleges</div></div>
               <div className="rpt-stat"><div className="rpt-val">78%</div><div className="rpt-lbl">PPO conversion at funded startups - highest of any company category in India 2026</div></div>
             </div>
@@ -959,7 +959,7 @@ export default function HiringCalendarReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-orange">Full Calendar</span>
-              <h2 className="rpt-h2">Month-by-month: what to do, who is hiring, and what to apply for.</h2>
+              <h2 className="rpt-h2">The full calendar. Every month. No excuses for missing a window again.</h2>
               <p className="rpt-lead">Use this as your working calendar. Each month has a primary action, who is actively recruiting, and what you should be doing even when nobody is accepting applications.</p>
             </div>
 
@@ -980,7 +980,7 @@ export default function HiringCalendarReport() {
                     <td><strong>February</strong></td>
                     <td>Apply - FMCG MBA programs, consulting undergrad, banks</td>
                     <td>Nestlé NILE, P&G undergrad, PwC, Goldman Sachs spring cohort (some)</td>
-                    <td>P&G undergrad closes Feb. PwC closes Feb–Mar.</td>
+                    <td>P&G undergrad closes Feb. PwC closes Feb-Mar.</td>
                     <td>Start case prep for BCG/McKinsey Oct cycle. Build analytics portfolio.</td>
                   </tr>
                   <tr className="rpt-tr-hi">
@@ -1014,7 +1014,7 @@ export default function HiringCalendarReport() {
                   <tr className="rpt-tr-hi">
                     <td><strong>July</strong></td>
                     <td>Apply - Google STEP, Amazon SDE, Microsoft Explore open NOW.</td>
-                    <td>Google, Amazon, Microsoft, Adobe, Meta (open July–August). Unicorns restart.</td>
+                    <td>Google, Amazon, Microsoft, Adobe, Meta (open July-August). Unicorns restart.</td>
                     <td>Google STEP OA slots fill fast - apply Week 1 of July.</td>
                     <td>Set up campus interview prep group. Research unicorn hiring plans.</td>
                   </tr>
@@ -1022,36 +1022,36 @@ export default function HiringCalendarReport() {
                     <td><strong>August</strong></td>
                     <td>Highest-volume month. Apply everywhere simultaneously.</td>
                     <td>Goldman Sachs opens. Morgan Stanley opens. All Big Tech active. Campus placements start (Tier 1).</td>
-                    <td>Goldman Sachs closes in 3–4 weeks. Microsoft Explore closes Aug.</td>
+                    <td>Goldman Sachs closes in 3-4 weeks. Microsoft Explore closes Aug.</td>
                     <td>PPOs from summer internships communicated this month - respond promptly.</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>September</strong></td>
                     <td>Consulting windows open. IB applications peak. Unicorn off-campus peak.</td>
                     <td>McKinsey, BCG, Bain open. J.P. Morgan, Citi open. Swiggy, Meesho, Razorpay active.</td>
-                    <td>McKinsey closes Sep–Oct. BCG closes Oct. Goldman rounds end.</td>
+                    <td>McKinsey closes Sep-Oct. BCG closes Oct. Goldman rounds end.</td>
                     <td>Prepare case interviews. Set Google Alerts for funding announcements.</td>
                   </tr>
                   <tr>
                     <td><strong>October</strong></td>
                     <td>Highest callback month for off-campus. Final consulting applications.</td>
                     <td>CRED, Nykaa, Meesho active. P&G CEO program opens. ITC Interrobang opens.</td>
-                    <td>BCG closes Oct. Bain closes Oct–Nov. P&G CEO opens Oct.</td>
+                    <td>BCG closes Oct. Bain closes Oct-Nov. P&G CEO opens Oct.</td>
                     <td>Off-campus callback rates peak - send targeted applications daily.</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>November</strong></td>
                     <td>PPO decisions due. New annual program applications (ITC, P&G MBA).</td>
                     <td>ITC Interrobang, HUL ULIP open. Consulting new cycle starts. Some unicorns (Jan cohort).</td>
-                    <td>PPO deadlines for summer interns. ITC open Nov–Dec.</td>
+                    <td>PPO deadlines for summer interns. ITC open Nov-Dec.</td>
                     <td>If no PPO: build Dec applications list. Research new funded startups.</td>
                   </tr>
                   <tr>
                     <td><strong>December</strong></td>
                     <td>FMCG MBA cycle in full swing. HUL ULIP, P&G CEO, Nestlé NILE active.</td>
                     <td>HUL ULIP, McKinsey, BCG (next cycle preview). Godrej, Nestlé open.</td>
-                    <td>HUL ULIP closes Jan. P&G CEO closes Dec. Nestlé closes Jan–Feb.</td>
-                    <td>Prepare case interviews for Jan–Feb FMCG GD/PIs. Refresh portfolio.</td>
+                    <td>HUL ULIP closes Jan. P&G CEO closes Dec. Nestlé closes Jan-Feb.</td>
+                    <td>Prepare case interviews for Jan-Feb FMCG GD/PIs. Refresh portfolio.</td>
                   </tr>
                 </tbody>
               </table>
