@@ -19,7 +19,7 @@ const RESOURCE_LINKS = [
 const DOJO_LINKS = [
   { to: "/outreach/onboarding/upload", label: "Outreach Dojo", desc: "Email hiring managers directly", stat: "138 placed", color: "bg-violet-500", icon: <IoBriefcaseOutline /> },
   { to: "/dojos/careers", label: "Resume Maker", desc: "Build your career path", stat: "5k+ resumes", color: "bg-sky-500", icon: <FiBookOpen /> },
-  { to: "/dojos/internships", label: "Internship Dojo", desc: "Browse live internships", stat: "Free", color: "bg-emerald-500", icon: <IoBriefcaseOutline /> },
+  { to: "/dojos/internships", label: "Internship Dojo", desc: "Browse live internships & jobs", stat: "Free", color: "bg-emerald-500", icon: <IoBriefcaseOutline /> },
   { to: "/dojos/ai-risk", label: "AI Risk Dojo", desc: "AI detection & rewriting", stat: "Free", color: "bg-rose-500", icon: <FiTarget /> },
 ];
 

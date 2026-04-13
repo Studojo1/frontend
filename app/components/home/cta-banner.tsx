@@ -5,7 +5,7 @@ export function CTABanner() {
     <section className="border-b border-neutral-900 bg-violet-500 px-4 pt-8 pb-8 md:px-8 md:py-24">
       <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col items-center gap-4 text-center md:gap-7">
         <h2 className="font-['Clash_Display'] text-3xl font-medium leading-tight tracking-tight text-white md:text-4xl lg:text-5xl">
-          Summer 2026 won&apos;t wait for you.
+          2026 recruiting won&apos;t wait for you.
         </h2>
         <p className="max-w-xl font-['Satoshi'] text-base font-normal leading-6 text-purple-100 md:text-xl md:leading-7">
           138 students have already found their hiring managers. Takes 2 minutes to set up.

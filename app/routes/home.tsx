@@ -30,7 +30,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export function meta({}: Route.MetaArgs) {
   const BASE_URL = "https://studojo.com";
   return [
-    { title: "Studojo — Land Your Summer 2026 Internship" },
+    { title: "Studojo — Land Your Next Internship or Job" },
     {
       name: "description",
       content:
@@ -38,12 +38,12 @@ export function meta({}: Route.MetaArgs) {
     },
     { tagName: "link", rel: "canonical", href: BASE_URL },
     { property: "og:type", content: "website" },
-    { property: "og:title", content: "Studojo — Land Your Summer 2026 Internship" },
+    { property: "og:title", content: "Studojo — Land Your Next Internship or Job" },
     { property: "og:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview. 138 students placed." },
     { property: "og:url", content: BASE_URL },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Studojo — Land Your Summer 2026 Internship" },
+    { name: "twitter:title", content: "Studojo — Land Your Next Internship or Job" },
     { name: "twitter:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview." },
   ];
 }
@@ -75,7 +75,7 @@ function AnnouncementBar() {
   return (
     <div className="border-b border-neutral-900 bg-violet-500 px-4 py-2.5 text-center">
       <p className="font-['Satoshi'] text-xs font-medium text-white md:text-sm">
-        Summer 2026 internships are filling up fast.{" "}
+        2026 recruiting is on. Internships &amp; jobs are filling up fast.{" "}
         <Link
           to="/outreach"
           className="font-bold underline underline-offset-2 hover:no-underline"

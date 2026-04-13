@@ -35,7 +35,7 @@ export function Hero() {
               to="/outreach"
               className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-8"
             >
-              Get Internship <FiArrowRight className="h-5 w-5" />
+              Get Contacted <FiArrowRight className="h-5 w-5" />
             </Link>
             <Link
               to="#free-tools"

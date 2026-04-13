@@ -84,7 +84,7 @@ export function FeaturedProductCard() {
                 to="/outreach/onboarding/upload"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-violet-600 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
               >
-                Get Internship &rarr;
+                Start Outreaching &rarr;
               </Link>
             </div>
           </div>
