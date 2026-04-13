@@ -6,6 +6,7 @@ import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
+import { ControlPlaneError } from "~/lib/control-plane";
 import { capturePostHog } from "~/lib/posthog";
 
 const STYLES = [
@@ -54,6 +55,7 @@ export default function StylePickPage() {
   const [activePreview, setActivePreview] = useState<StyleId>("warm_intro");
   const [previews, setPreviews] = useState<Record<string, PreviewEmail | null>>({});
   const [previewLoading, setPreviewLoading] = useState<Record<string, boolean>>({});
+  const [previewWarnings, setPreviewWarnings] = useState<Record<string, string>>({});
 
   const fetchPreview = async (styleId: StyleId) => {
     if (previews[styleId] !== undefined || !candidateId) return;
@@ -63,11 +65,14 @@ export default function StylePickPage() {
         method: "POST",
         body: JSON.stringify({ candidate_id: candidateId, selected_styles: [styleId] }),
         maxRetries: 1,
-        timeout: 15000,
+        timeout: 30000,
       });
       setPreviews((prev) => ({ ...prev, [styleId]: data }));
-    } catch {
+    } catch (err) {
       setPreviews((prev) => ({ ...prev, [styleId]: null }));
+      if (err instanceof ControlPlaneError && err.status === 503) {
+        setPreviewWarnings((prev) => ({ ...prev, [styleId]: err.message }));
+      }
     } finally {
       setPreviewLoading((prev) => ({ ...prev, [styleId]: false }));
     }
@@ -177,6 +182,10 @@ export default function StylePickPage() {
                 <p className="text-sm text-studojo-muted whitespace-pre-line leading-relaxed font-satoshi">
                   {activePreviewData.body}
                 </p>
+              </div>
+            ) : previews[activePreview] === null && previewWarnings[activePreview] ? (
+              <div className="rounded-xl border-2 border-yellow-400 bg-yellow-50 p-4 text-sm font-satoshi text-yellow-800">
+                {previewWarnings[activePreview]}
               </div>
             ) : previews[activePreview] === null ? (
               <p className="text-sm text-studojo-muted font-satoshi text-center py-8">
