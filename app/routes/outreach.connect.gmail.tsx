@@ -27,7 +27,13 @@ export default function GmailConnectPage() {
     const errorMsg = searchParams.get("message");
 
     if (status === "error") {
-      setError(errorMsg || "Gmail connection failed. Please try again.");
+      if (errorMsg === "missing_send_permission") {
+        setError(
+          'Google didn\'t grant the "Send email on your behalf" permission. On the Google sign-in screen, make sure all checkboxes are checked before clicking Allow.'
+        );
+      } else {
+        setError(errorMsg || "Gmail connection failed. Please try again.");
+      }
       setHandled(true);
       return;
     }
