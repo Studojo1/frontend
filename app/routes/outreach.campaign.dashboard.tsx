@@ -165,6 +165,7 @@ export default function DashboardPage() {
   // Gmail re-auth state
   const [showReauthBanner, setShowReauthBanner] = useState(false);
   const [reauthLoading, setReauthLoading] = useState(false);
+  const [gmailTokenValid, setGmailTokenValid] = useState(true);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initialLoaded = useRef(false);
@@ -252,11 +253,8 @@ export default function DashboardPage() {
     outreachFetch<{ email_account_id?: number; email_address?: string; token_valid?: boolean; scopes?: string[] }>(
       `/gmail/oauth/account?email_account_id=${emailAccountId}`
     ).then((data) => {
-      // Show banner if account exists but we can't confirm gmail.readonly scope
-      // The backend doesn't expose scopes, so show banner unless user has dismissed it
-      if (data?.token_valid) {
-        setShowReauthBanner(true);
-      }
+      setGmailTokenValid(data?.token_valid ?? true);
+      setShowReauthBanner(true);
     }).catch(() => {});
   }, [campaignId, emailAccountId]);
 
@@ -584,14 +582,17 @@ export default function DashboardPage() {
 
             {/* Gmail Re-Auth Banner */}
             {showReauthBanner && (
-              <div className="rounded-2xl border-2 border-studojo-purple/30 bg-studojo-purple-bg p-4 flex items-center justify-between gap-4">
+              <div className={`rounded-2xl border-2 p-4 flex items-center justify-between gap-4 ${gmailTokenValid ? "border-studojo-purple/30 bg-studojo-purple-bg" : "border-red-300 bg-red-50"}`}>
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-studojo-purple/10 border-2 border-studojo-purple/20 flex items-center justify-center flex-shrink-0">
-                    <FiMessageCircle className="w-4 h-4 text-studojo-purple" />
+                  <div className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center flex-shrink-0 ${gmailTokenValid ? "bg-studojo-purple/10 border-studojo-purple/20" : "bg-red-100 border-red-200"}`}>
+                    <FiMessageCircle className={`w-4 h-4 ${gmailTokenValid ? "text-studojo-purple" : "text-red-600"}`} />
                   </div>
                   <p className="text-sm font-satoshi text-studojo-ink">
-                    <span className="font-bold">Reply tracking is now available!</span>{" "}
-                    Reconnect your Gmail to see who replies to your outreach emails.
+                    {gmailTokenValid ? (
+                      <><span className="font-bold">Reply tracking is now available!</span>{" "}Reconnect your Gmail to see who replies to your outreach emails.</>
+                    ) : (
+                      <><span className="font-bold text-red-700">Gmail connection issue.</span>{" "}Your emails cannot be sent. Reconnect Gmail and make sure to allow all permissions.</>
+                    )}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
