@@ -123,4 +123,9 @@ export default [
   route("outreach/campaign/dashboard", "routes/outreach.campaign.dashboard.tsx"),
   route("outreach/linkedin", "routes/outreach.linkedin.tsx"),
   route("install-extension", "routes/install-extension.tsx"),
+
+  // ── Resume Builder (rsb) ──────────────────────────────────────────
+  route("rsb", "routes/rsb.tsx"),
+  route("rsb/drafts", "routes/rsb.drafts.tsx"),
+  route("rsb/session/:id", "routes/rsb.session.$id.tsx"),
 ] satisfies RouteConfig;
