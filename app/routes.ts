@@ -88,6 +88,7 @@ export default [
   route("brand/tagline", "routes/brand.tagline.tsx"),
   route("reports/internships-15k-india-2026", "routes/reports.internships-15k-india-2026.tsx"),
   route("reports/hiring-calendar-india-2026", "routes/reports.hiring-calendar-india-2026.tsx"),
+  route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("api/outreach/email-chat", "routes/api.outreach.email-chat.tsx"),
   route("lab/email", "routes/lab.email.tsx"),
   route("api/ai-risk/analyse", "routes/api.ai-risk.analyse.tsx"),
@@ -123,4 +124,9 @@ export default [
   route("outreach/campaign/dashboard", "routes/outreach.campaign.dashboard.tsx"),
   route("outreach/linkedin", "routes/outreach.linkedin.tsx"),
   route("install-extension", "routes/install-extension.tsx"),
+
+  // ── Resume Builder (rsb) ──────────────────────────────────────────
+  route("rsb", "routes/rsb.tsx"),
+  route("rsb/drafts", "routes/rsb.drafts.tsx"),
+  route("rsb/session/:id", "routes/rsb.session.$id.tsx"),
 ] satisfies RouteConfig;
