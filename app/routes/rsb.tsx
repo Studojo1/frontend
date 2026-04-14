@@ -20,12 +20,12 @@ export default function RsbRoot() {
     }
   }, [isPending, session?.user, navigate]);
 
-  // Auto-resume: if user already has a draft, jump to it.
+  // New session every visit — prior drafts are accessed via /rsb/drafts.
   useEffect(() => {
-    if (!session?.user) return;
-    const cached = typeof window !== "undefined" ? localStorage.getItem("rsb:lastSessionId") : null;
-    if (cached) navigate(`/rsb/session/${cached}`, { replace: true });
-  }, [session?.user, navigate]);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("rsb:lastSessionId");
+    }
+  }, []);
 
   const createSession = useCallback(async (p: IntakePayload) => {
     setCreating(true);
@@ -34,9 +34,6 @@ export default function RsbRoot() {
         method: "POST",
         body: JSON.stringify(p),
       });
-      if (typeof window !== "undefined") {
-        localStorage.setItem("rsb:lastSessionId", res.session.id);
-      }
       navigate(`/rsb/session/${res.session.id}`);
     } catch (e) {
       console.error(e);

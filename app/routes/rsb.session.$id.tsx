@@ -59,7 +59,6 @@ export default function RsbSessionRoute() {
         setDoc(res.session.resume_doc || EMPTY_DOC);
         setAts(res.session.ats || EMPTY_ATS);
         setMessages(res.transcript);
-        if (typeof window !== "undefined") localStorage.setItem("rsb:lastSessionId", res.session.id);
       } catch (e) {
         console.error(e);
         navigate("/rsb", { replace: true });
