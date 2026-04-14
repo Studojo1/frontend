@@ -26,6 +26,18 @@ export function meta() {
 
 const REPORTS = [
   {
+    slug: "ops-india-2026",
+    title: "Operations Interns in India: The Skill Gap Nobody Talks About",
+    subtitle: "Q1 2026",
+    excerpt:
+      "12,400+ ops intern openings. Only 19% of applicants work-ready. The Excel crisis, the SOP gap, and why Notion fluency is now the deciding factor in ops intern hiring across India.",
+    category: "Operations",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-orange-500",
+    badge: "New",
+  },
+  {
     slug: "internships-ai-india-2026",
     title: "How Internships Are Changing Post-AI",
     subtitle: "Q1 2026",
