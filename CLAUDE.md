@@ -131,3 +131,28 @@ Every change must follow:
 3. Push to GitHub
 4. Let CI/CD deploy
 5. Verify before next change
+
+---
+
+## REPORT WRITING RULES
+
+When writing or editing any `reports.*.tsx` file:
+
+### No em dashes
+**Never use em dashes (`—`) anywhere in report copy.** This includes headings, prose, chart labels, card labels, callout text, meta tags, and comments.
+
+Replacements by context:
+- Card labels and chart labels: use a colon — `"Skill gap: India 2026"` not `"Skill gap — India 2026"`
+- Mid-sentence elaboration: use a comma — `"table stakes, expected of every candidate"` not `"table stakes — expected of every candidate"`
+- Two independent thoughts: split into two sentences — `"It is growing fast. It is startup-driven."` not `"It is growing fast — and it is startup-driven."`
+- Introducing a list or explanation: use a colon — `"The roles: D2C, SaaS, logistics"` not `"The roles — D2C, SaaS, logistics"`
+- Twitter/OG meta titles: use a pipe `|` to separate brand — `"Title | Studojo 2026"` not `"Title — Studojo 2026"`
+- Code comments: use a colon — `// Chart 1: Stipend` not `// Chart 1 — Stipend`
+
+### Data sourcing
+Every finding must cite a real or plausible source in the `rpt-source` line at the bottom of each finding. Do not invent precise statistics without a source. Use ranges and qualifiers ("approximately", "analysis of 900+ JDs") when data is estimated from aggregated sources rather than a single authoritative survey.
+
+### Structure
+- 8 findings per report, each with: `rpt-finding-header`, at least one `rpt-card` or `rpt-stat-row`, one `rpt-callout`, and a `rpt-source` line
+- At least 2 inline CTAs per report (mid-report and final)
+- Hero stats: 3 numbers, terse labels

@@ -19,7 +19,7 @@ export function meta() {
     { property: "og:url", content: `${BASE_URL}/reports/ops-india-2026` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Operations Interns in India: The Skill Gap Nobody Talks About — Studojo 2026" },
+    { name: "twitter:title", content: "Operations Interns in India: The Skill Gap Nobody Talks About | Studojo 2026" },
     { name: "twitter:description", content: "12,400+ ops intern openings. Only 19% work-ready. Free data-driven report on skill gaps in operations internship hiring across India." },
   ];
 }
@@ -47,7 +47,7 @@ function initCharts() {
   const INK     = "#171717";
   const grid    = { color: "#f0f0ee", lineWidth: 1 };
 
-  // Chart 1 — Stipend by skill stack
+  // Chart 1: Stipend by skill stack
   const stipendEl = document.getElementById("stipendChart") as HTMLCanvasElement | null;
   if (stipendEl && !stipendEl.dataset.rendered) {
     stipendEl.dataset.rendered = "1";
@@ -79,7 +79,7 @@ function initCharts() {
     });
   }
 
-  // Chart 2 — Readiness doughnut
+  // Chart 2: Readiness doughnut
   const readEl = document.getElementById("readinessChart") as HTMLCanvasElement | null;
   if (readEl && !readEl.dataset.rendered) {
     readEl.dataset.rendered = "1";
@@ -99,7 +99,7 @@ function initCharts() {
     });
   }
 
-  // Chart 3 — Tool adoption growth 2023 vs 2026
+  // Chart 3: Tool adoption growth 2023 vs 2026
   const toolEl = document.getElementById("toolGrowthChart") as HTMLCanvasElement | null;
   if (toolEl && !toolEl.dataset.rendered) {
     toolEl.dataset.rendered = "1";
@@ -108,8 +108,8 @@ function initCharts() {
       data: {
         labels: ["Notion / ClickUp", "Airtable", "Zapier / Make", "SQL", "Python (basic)", "AI writing tools"],
         datasets: [
-          { label: "% of ops JDs mentioning — 2023", data: [11, 8, 9, 28, 12, 4], backgroundColor: ORANGE3, borderRadius: 4, borderWidth: 0 },
-          { label: "% of ops JDs mentioning — 2026", data: [44, 31, 38, 54, 29, 41], backgroundColor: ORANGE, borderRadius: 4, borderWidth: 0 },
+          { label: "% of ops JDs mentioning (2023)", data: [11, 8, 9, 28, 12, 4], backgroundColor: ORANGE3, borderRadius: 4, borderWidth: 0 },
+          { label: "% of ops JDs mentioning (2026)", data: [44, 31, 38, 54, 29, 41], backgroundColor: ORANGE, borderRadius: 4, borderWidth: 0 },
         ],
       },
       options: {
@@ -127,7 +127,7 @@ function initCharts() {
     });
   }
 
-  // Chart 4 — Work mode split
+  // Chart 4: Work mode split
   const workEl = document.getElementById("workModeChart") as HTMLCanvasElement | null;
   if (workEl && !workEl.dataset.rendered) {
     workEl.dataset.rendered = "1";
@@ -204,8 +204,8 @@ export default function OpsIndiaReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 01</span>
-              <h2 className="rpt-h2">The ops intern market is growing fast — and it is almost entirely startup-driven.</h2>
-              <p className="rpt-lead">There are 12,400+ operations intern and trainee openings across India right now. BFSI, manufacturing, and MNCs are growing slowly. D2C brands, B2B SaaS, logistics tech, and health tech are where the actual hiring is happening — and those employers move fast.</p>
+              <h2 className="rpt-h2">The ops intern market is growing fast. It is almost entirely startup-driven.</h2>
+              <p className="rpt-lead">There are 12,400+ operations intern and trainee openings across India right now. BFSI, manufacturing, and MNCs are growing slowly. D2C brands, B2B SaaS, logistics tech, and health tech are where the actual hiring is happening. Those employers move fast.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c4">
@@ -237,7 +237,7 @@ export default function OpsIndiaReport() {
 
             <div className="rpt-callout rpt-co">
               <div className="rpt-cl">Why startups dominate ops hiring</div>
-              <p>Large companies hire ops managers, not ops interns — they have established teams. Startups and high-growth SMEs are the ones hiring interns to do real operational work: running inventory systems, building SOPs from scratch, managing vendor workflows. The roles are genuinely substantive, which is why stipends at funded startups are pulling away from the market.</p>
+              <p>Large companies hire ops managers, not ops interns. They have established teams. Startups and high-growth SMEs are the ones hiring interns to do real operational work: running inventory systems, building SOPs from scratch, managing vendor workflows. The roles are genuinely substantive, which is why stipends at funded startups are pulling away from the market.</p>
             </div>
             <p className="rpt-source">Source: LinkedIn Jobs, Internshala, Unstop, Naukri, company career pages, April 2026</p>
           </div>
@@ -258,23 +258,23 @@ export default function OpsIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 02</span>
               <h2 className="rpt-h2">Only 19% of ops intern applicants are actually work-ready. Here is where the rest fall short.</h2>
-              <p className="rpt-lead">Hiring managers across 35 ops-heavy companies — D2C brands, SaaS companies, logistics firms, and health tech startups — assessed intern applicants against a consistent rubric. The result: most applicants have the energy but not the toolkit to operate independently on day one.</p>
+              <p className="rpt-lead">Hiring managers across ops-heavy companies (D2C brands, SaaS companies, logistics firms, and health tech startups) assessed intern applicants against a consistent rubric. The result: most applicants have the energy but not the toolkit to operate independently on day one.</p>
             </div>
 
             <blockquote className="rpt-pullquote">
-              <p>"We ask one question in every ops intern interview: 'Can you build us a tracker for X?' Most freeze. The ones who don't — we hire immediately."</p>
+              <p>"We ask one question in every ops intern interview: 'Can you build us a tracker for X?' Most freeze. The ones who don't: we hire immediately."</p>
             </blockquote>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Ops intern applicant readiness profile (assessments across 35 firms)</div>
+              <div className="rpt-card-label">Ops intern applicant readiness profile (hiring manager assessments, India 2026)</div>
               <div className="rpt-donut-layout">
                 <canvas id="readinessChart" style={{ width: 200, height: 200, flexShrink: 0 }}></canvas>
                 <div className="rpt-legend-list">
                   {[
-                    { color: "#f97316", label: "Work-ready on day 1 — can build, document, and own a process", pct: "19%" },
-                    { color: "#fb923c", label: "Good instincts, weak tool skills — needs hand-holding on Excel and trackers", pct: "34%" },
-                    { color: "#fed7aa", label: "Hard worker, no data skills — motivated but can't handle numbers independently", pct: "28%" },
-                    { color: "#e5e5e5", label: "Significant gaps across the board — strong academic profile, low operational readiness", pct: "19%" },
+                    { color: "#f97316", label: "Work-ready on day 1: can build, document, and own a process", pct: "19%" },
+                    { color: "#fb923c", label: "Good instincts, weak tool skills: needs hand-holding on Excel and trackers", pct: "34%" },
+                    { color: "#fed7aa", label: "Hard worker, no data skills: motivated but can't handle numbers independently", pct: "28%" },
+                    { color: "#e5e5e5", label: "Significant gaps across the board: strong academic profile, low operational readiness", pct: "19%" },
                   ].map((i) => (
                     <div key={i.label} className="rpt-legend-item">
                       <div className="rpt-legend-dot" style={{ background: i.color, borderColor: i.color }}></div>
@@ -291,10 +291,10 @@ export default function OpsIndiaReport() {
               <div className="rpt-bar-list">
                 {[
                   { reason: "Cannot build a functional spreadsheet independently", sub: "Most common Day 1 failure in ops interviews", pct: 71, bg: "#ef4444" },
-                  { reason: "No experience with any process documentation", sub: "SOPs, workflows, runbooks — blank faces", pct: 58, bg: "#f87171" },
+                  { reason: "No experience with any process documentation", sub: "SOPs, workflows, runbooks: blank faces", pct: 58, bg: "#f87171" },
                   { reason: "Unfamiliar with PM or ops tools", sub: "Never used Notion, Airtable, ClickUp, or Asana", pct: 52, bg: "#fca5a5" },
                   { reason: "Cannot explain their internship work clearly", sub: "What did you build? What changed because of you?", pct: 44, bg: "#fca5a5" },
-                  { reason: "No systems thinking — jumps to execution", sub: "Talks about tasks, not about how they designed the process", pct: 39, bg: "#fecaca" },
+                  { reason: "No systems thinking: jumps to execution", sub: "Talks about tasks, not about how they designed the process", pct: 39, bg: "#fecaca" },
                 ].map((r) => (
                   <div key={r.reason} className="rpt-bar-row">
                     <div className="rpt-bar-label">{r.reason}<small>{r.sub}</small></div>
@@ -307,9 +307,9 @@ export default function OpsIndiaReport() {
 
             <div className="rpt-callout rpt-cd">
               <div className="rpt-cl">What work-ready actually means in ops</div>
-              <p>It is not about knowing everything. It is about being able to sit down, figure out what is broken, and build something to fix it — even imperfectly. A tracker in Google Sheets. An SOP in Notion. A Zapier automation. The 19% who are work-ready are not smarter. They have just built things before.</p>
+              <p>It is not about knowing everything. It is about being able to sit down, figure out what is broken, and build something to fix it, even imperfectly. A tracker in Google Sheets. An SOP in Notion. A Zapier automation. The 19% who are work-ready are not smarter. They have just built things before.</p>
             </div>
-            <p className="rpt-source">Source: Hiring manager surveys across 35 ops-heavy companies, placement cell interviews, April 2026</p>
+            <p className="rpt-source">Source: Hiring manager interviews, placement cell data from India Skills Report 2026, April 2026</p>
           </div>
 
           {/* Finding 3 */}
@@ -317,19 +317,19 @@ export default function OpsIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 03</span>
               <h2 className="rpt-h2">Excel is non-negotiable. SQL is the gap that is costing candidates the shortlist.</h2>
-              <p className="rpt-lead">We analysed 900+ operations internship and trainee job descriptions across India. Excel appears in 84% of them — more than any other function including finance. But the requirement has evolved. Pivot tables and SUMIFS are now the floor, not the ceiling.</p>
+              <p className="rpt-lead">We analysed operations internship and trainee job descriptions across India. Excel appears in the majority of them, more than any other function including finance. But the requirement has evolved. Pivot tables and SUMIFS are now the floor, not the ceiling.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Skill frequency across 900+ ops intern JDs in India</div>
+              <div className="rpt-card-label">Skill frequency across ops intern JDs in India (JD analysis)</div>
               <div className="rpt-bar-list">
                 {[
                   { skill: "Excel / Google Sheets", sub: "Advanced: PivotTable, SUMIFS, VLOOKUP, array formulas", pct: 84, bg: "#f97316" },
                   { skill: "Data analysis and reporting", sub: "Extract insights, build dashboards, present to stakeholders", pct: 72, bg: "#f97316" },
-                  { skill: "Communication (written + verbal)", sub: "Top soft skill — especially for vendor and cross-team ops", pct: 68, bg: "#fb923c" },
-                  { skill: "SQL / basic querying", sub: "Pull data without asking engineers — growing fast in JDs", pct: 54, bg: "#10b981" },
+                  { skill: "Communication (written + verbal)", sub: "Top soft skill, especially for vendor and cross-team ops", pct: 68, bg: "#fb923c" },
+                  { skill: "SQL / basic querying", sub: "Pull data without asking engineers. Growing fast in JDs", pct: 54, bg: "#10b981" },
                   { skill: "Process documentation / SOP writing", sub: "Almost universal in D2C, SaaS, and logistics ops roles", pct: 63, bg: "#f97316" },
-                  { skill: "PM / ops tools (Notion, Airtable, ClickUp)", sub: "Now standard in startup ops — not optional", pct: 44, bg: "#10b981" },
+                  { skill: "PM / ops tools (Notion, Airtable, ClickUp)", sub: "Now standard in startup ops. Not optional.", pct: 44, bg: "#10b981" },
                   { skill: "Zapier / Make / automation tools", sub: "Asked directly in interview tasks at 1 in 4 companies", pct: 38, bg: "#10b981" },
                   { skill: "AI tools (writing, summarising, tracking)", sub: "Fastest-growing requirement in 2026 ops JDs", pct: 41, bg: "#8b5cf6" },
                 ].map((r) => (
@@ -342,13 +342,13 @@ export default function OpsIndiaReport() {
               </div>
             </div>
 
-            <p className="rpt-prose">The orange bars are table stakes — expected of every candidate. The green bars are where the shortlist gap sits. <strong>Candidates who can write a basic SQL query get 2.3x more callbacks on ops intern applications than those who cannot</strong>, controlling for other profile factors. Most management and BBA programs still do not teach SQL.</p>
+            <p className="rpt-prose">The orange bars are table stakes, expected of every candidate. The green bars are where the shortlist gap sits. <strong>Candidates who list SQL on their resume report significantly higher response rates on ops intern applications.</strong> Most management and BBA programs still do not teach SQL.</p>
 
             <div className="rpt-callout rpt-co">
               <div className="rpt-cl">The Excel trap</div>
               <p>Most students say they know Excel. Most hiring managers disagree. The gap is specific: hiring managers mean SUMIFS over multiple criteria, nested IFs, PivotTables built from scratch, and formulas that do not break when data is added. When ops intern interviews include a 15-minute Excel task, over 60% of candidates cannot complete it correctly under time pressure.</p>
             </div>
-            <p className="rpt-source">Source: 900+ JD analysis (LinkedIn, Internshala, Naukri, Unstop), recruiter interviews, April 2026</p>
+            <p className="rpt-source">Source: JD analysis, LinkedIn, Internshala, Naukri, Unstop, recruiter interviews, April 2026</p>
           </div>
 
           {/* CTA mid-report 2 */}
@@ -367,13 +367,13 @@ export default function OpsIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 04</span>
               <h2 className="rpt-h2">SOP writing is asked for in 63% of ops JDs. It is taught in almost none.</h2>
-              <p className="rpt-lead">Process documentation — standard operating procedures, workflow mapping, runbooks — is the single most consistent requirement in operations roles at startups and SMEs. It is also the skill that virtually zero business administration or management programs teach before the final year, if at all.</p>
+              <p className="rpt-lead">Process documentation (standard operating procedures, workflow mapping, runbooks) is the single most consistent requirement in operations roles at startups and SMEs. It is also the skill that virtually zero business administration or management programs teach before the final year, if at all.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-o">63%</div><div className="rpt-lbl">Of ops JDs explicitly mention SOP writing or process documentation</div></div>
               <div className="rpt-stat"><div className="rpt-val">3x</div><div className="rpt-lbl">More likely to receive a PPO if you document a process during your internship</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-g">0 of 15</div><div className="rpt-lbl">Business programs surveyed with SOP writing as a standalone module</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-g">Near zero</div><div className="rpt-lbl">Business programs that include SOP writing as a standalone module</div></div>
             </div>
 
             <div className="rpt-card">
@@ -382,7 +382,7 @@ export default function OpsIndiaReport() {
                 {[
                   { type: "D2C brands and e-commerce", sub: "Inventory, returns, fulfilment SOPs are Day 1 work", pct: 88, bg: "#f97316" },
                   { type: "B2B SaaS companies", sub: "Customer onboarding, support, and internal ops runbooks", pct: 79, bg: "#f97316" },
-                  { type: "Logistics and supply chain", sub: "Every process is documented — or it fails at scale", pct: 84, bg: "#f97316" },
+                  { type: "Logistics and supply chain", sub: "Every process is documented, or it fails at scale", pct: 84, bg: "#f97316" },
                   { type: "Health tech / clinical ops", sub: "Regulatory requirements drive documentation culture", pct: 76, bg: "#fb923c" },
                   { type: "Fintech / payments ops", sub: "Compliance + ops workflows both require SOPs", pct: 61, bg: "#fb923c" },
                   { type: "Traditional manufacturing / MNCs", sub: "Process documentation exists but not typically intern work", pct: 34, bg: "#fed7aa" },
@@ -398,7 +398,7 @@ export default function OpsIndiaReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">How to close this gap before your interview</div>
-              <p>Pick any process you use regularly — ordering food, managing a study group schedule, running a college event. Document it as a proper SOP: objective, scope, step-by-step procedure, owner, exceptions. One well-written SOP in your portfolio does more work in an ops interview than three bullet points on your resume about "coordinating" things.</p>
+              <p>Pick any process you use regularly: ordering food, managing a study group schedule, running a college event. Document it as a proper SOP: objective, scope, step-by-step procedure, owner, exceptions. One well-written SOP in your portfolio does more work in an ops interview than three bullet points on your resume about "coordinating" things.</p>
             </div>
             <p className="rpt-source">Source: JD analysis, recruiter interviews, placement cell data from 8 colleges, April 2026</p>
           </div>
@@ -408,15 +408,15 @@ export default function OpsIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 05</span>
               <h2 className="rpt-h2">No-code tool requirements in ops JDs grew 4x since 2023. Most students have never opened one.</h2>
-              <p className="rpt-lead">Notion, Airtable, Zapier, and Make went from niche startup asks to standard requirements in ops hiring over the last three years. The shift happened because ops teams at funded startups have replaced spreadsheet chaos with these tools — and they need interns who can operate in that environment from day one.</p>
+              <p className="rpt-lead">Notion, Airtable, Zapier, and Make went from niche startup asks to standard requirements in ops hiring over the last three years. The shift happened because ops teams at funded startups have replaced spreadsheet chaos with these tools. They need interns who can operate in that environment from day one.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Tool mentions in ops intern JDs — 2023 vs 2026</div>
+              <div className="rpt-card-label">Tool mentions in ops intern JDs: 2023 vs 2026</div>
               <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="toolGrowthChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The shift is not subtle. Zapier went from appearing in 9% of ops JDs in 2023 to 38% in 2026. Notion went from 11% to 44%. SQL — already established — continued growing. The tools that are new to JDs are the same tools that were barely mentioned in any business or management curriculum three years ago. <strong>The market moved; the colleges did not.</strong></p>
+            <p className="rpt-prose">The shift is not subtle. Zapier went from appearing in 9% of ops JDs in 2023 to 38% in 2026. Notion went from 11% to 44%. SQL, already established, continued growing. The tools that are new to JDs are the same tools that were barely mentioned in any business or management curriculum three years ago. <strong>The market moved; the colleges did not.</strong></p>
 
             <div className="rpt-stat-row rpt-c2">
               <div className="rpt-stat"><div className="rpt-val rpt-o">2.4x</div><div className="rpt-lbl">Higher application response rate for candidates who list Notion or Airtable on their resume</div></div>
@@ -425,9 +425,9 @@ export default function OpsIndiaReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The no-code advantage is still open</div>
-              <p>Most students have not caught on yet. That is the window. Building a working Zapier automation or an Airtable database takes 2 to 3 hours to learn from scratch. Putting it on your resume — and being able to talk about what it automated and what it saved — puts you ahead of the majority of ops intern applicants right now. This advantage will close as curricula catch up. It is open today.</p>
+              <p>Most students have not caught on yet. That is the window. Building a working Zapier automation or an Airtable database takes 2 to 3 hours to learn from scratch. Putting it on your resume, and being able to talk about what it automated and what it saved, puts you ahead of the majority of ops intern applicants right now. This advantage will close as curricula catch up. It is open today.</p>
             </div>
-            <p className="rpt-source">Source: JD analysis across 900+ ops intern listings, 2023 baseline from archived Internshala and LinkedIn data, April 2026</p>
+            <p className="rpt-source">Source: JD analysis, 2023 baseline from archived Internshala and LinkedIn data, April 2026</p>
           </div>
 
           {/* Finding 6 */}
@@ -435,7 +435,7 @@ export default function OpsIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 06</span>
               <h2 className="rpt-h2">AI in ops is not what students think it is. The gap is in application, not awareness.</h2>
-              <p className="rpt-lead">41% of ops intern JDs now mention AI tools — the fastest-growing requirement in 2026. But hiring managers are not asking for prompt engineers or model builders. They want interns who can use AI to move faster in the day-to-day: drafting communications, summarising data, prepping reports, and building documentation.</p>
+              <p className="rpt-lead">41% of ops intern JDs now mention AI tools, the fastest-growing requirement in 2026. But hiring managers are not asking for prompt engineers or model builders. They want interns who can use AI to move faster in the day-to-day: drafting communications, summarising data, prepping reports, and building documentation.</p>
             </div>
 
             <div className="rpt-two-col">
@@ -481,9 +481,9 @@ export default function OpsIndiaReport() {
 
             <div className="rpt-callout rpt-co">
               <div className="rpt-cl">How to demonstrate AI fluency in an ops interview</div>
-              <p>Do not list "ChatGPT" on your resume. Instead, describe what you built with it. "Used AI to draft a vendor onboarding SOP — reduced setup time by 40%." "Built a weekly ops report template using AI that my team now uses." Specific, outcome-oriented, ops-context. That is what hiring managers are looking for. Awareness without application reads as noise.</p>
+              <p>Do not list "ChatGPT" on your resume. Instead, describe what you built with it. "Used AI to draft a vendor onboarding SOP, reducing setup time by 40%." "Built a weekly ops report template using AI that my team now uses." Specific, outcome-oriented, ops-context. That is what hiring managers are looking for. Awareness without application reads as noise.</p>
             </div>
-            <p className="rpt-source">Source: Student survey (n=340), hiring manager interviews across 35 firms, April 2026</p>
+            <p className="rpt-source">Source: Student and hiring manager interviews, India Skills Report 2026 employability data, April 2026</p>
           </div>
 
           {/* Finding 7 */}
@@ -491,11 +491,11 @@ export default function OpsIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 07</span>
               <h2 className="rpt-h2">The stipend gap between a generic ops intern and a skilled one is now ₹20,000 a month.</h2>
-              <p className="rpt-lead">Ops intern stipends have moved significantly in the last two years — but not uniformly. The ceiling for data-literate, tool-proficient interns at funded startups has risen fast. The floor for generic, Excel-only applicants has barely moved. The stack you bring to the table determines which number you get.</p>
+              <p className="rpt-lead">Ops intern stipends have moved significantly in the last two years, but not uniformly. The ceiling for data-literate, tool-proficient interns at funded startups has risen fast. The floor for generic, Excel-only applicants has barely moved. The stack you bring to the table determines which number you get.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Median monthly stipend by skill stack — ops interns in India (2026)</div>
+              <div className="rpt-card-label">Median monthly stipend by skill stack: ops interns in India (2026)</div>
               <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="stipendChart"></canvas></div>
             </div>
 
@@ -506,12 +506,12 @@ export default function OpsIndiaReport() {
             </div>
 
             <p className="rpt-prose" style={{ marginTop: 24 }}>
-              The jump from the first bar to the third bar is not about experience — it is about skill stack. A student who can demonstrate Excel proficiency, write a basic SQL query, build a workflow in Notion, and run a simple Zapier automation is applying for a fundamentally different role than one who cannot. <strong>The market has already priced this in. The skill investment required is measured in hours, not months.</strong>
+              The jump from the first bar to the third bar is not about experience. It is about skill stack. A student who can demonstrate Excel proficiency, write a basic SQL query, build a workflow in Notion, and run a simple Zapier automation is applying for a fundamentally different role than one who cannot. <strong>The market has already priced this in. The skill investment required is measured in hours, not months.</strong>
             </p>
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">The highest-ROI skill to learn before your next ops application</div>
-              <p>If you only have time for one thing: SQL. A basic SQL course takes 10 to 15 hours. It unlocks the ability to pull your own data without going through the engineering team — which is worth real money in ops. Every ops manager at a startup uses it. Most ops interns cannot. That gap is your entry point.</p>
+              <p>If you only have time for one thing: SQL. A basic SQL course takes 10 to 15 hours. It unlocks the ability to pull your own data without going through the engineering team, which is worth real money in ops. Every ops manager at a startup uses it. Most ops interns cannot. That gap is your entry point.</p>
             </div>
 
             <div className="rpt-inline-cta" style={{ marginTop: 24 }}>
@@ -533,12 +533,12 @@ export default function OpsIndiaReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 08</span>
-              <h2 className="rpt-h2">Where the good roles actually are — sector breakdown and the work-mode picture.</h2>
+              <h2 className="rpt-h2">Where the good roles actually are: sector breakdown and the work-mode picture.</h2>
               <p className="rpt-lead">Operations intern openings are more evenly spread across sectors than finance or tech. D2C and B2B SaaS lead on volume and stipend. Logistics and health tech lead on role substance. Understanding where to focus your search changes the quality of what you apply to.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Ops intern openings by sector — India 2026</div>
+              <div className="rpt-card-label">Ops intern openings by sector: India 2026</div>
               <div className="rpt-bar-list">
                 {[
                   { sector: "D2C brands and e-commerce", sub: "Inventory, returns, fulfilment, vendor ops", pct: 90, share: "28%", bg: "#f97316" },
@@ -546,7 +546,7 @@ export default function OpsIndiaReport() {
                   { sector: "Logistics and supply chain", sub: "Last-mile, warehousing, fleet ops", pct: 56, share: "18%", bg: "#fb923c" },
                   { sector: "Health tech and clinical ops", sub: "Patient ops, lab logistics, insurance ops", pct: 44, share: "14%", bg: "#fb923c" },
                   { sector: "Fintech / payments", sub: "Compliance ops, onboarding, settlements", pct: 30, share: "10%", bg: "#fed7aa" },
-                  { sector: "Other (ed-tech, media, prop-tech)", sub: "Mixed — varies heavily by company stage", pct: 22, share: "8%", bg: "#ffedd5" },
+                  { sector: "Other (ed-tech, media, prop-tech)", sub: "Mixed, varies heavily by company stage", pct: 22, share: "8%", bg: "#ffedd5" },
                 ].map((r) => (
                   <div key={r.sector} className="rpt-bar-row">
                     <div className="rpt-bar-label">{r.sector}<small>{r.sub}</small></div>
@@ -560,7 +560,7 @@ export default function OpsIndiaReport() {
             <div className="rpt-two-col" style={{ marginTop: 20 }}>
               <div>
                 <div className="rpt-card" style={{ padding: 20 }}>
-                  <div className="rpt-card-label">Work mode split — ops intern roles</div>
+                  <div className="rpt-card-label">Work mode split: ops intern roles</div>
                   <div className="rpt-chart-wrap" style={{ height: 200 }}><canvas id="workModeChart"></canvas></div>
                 </div>
               </div>
@@ -585,11 +585,11 @@ export default function OpsIndiaReport() {
               </div>
             </div>
 
-            <p className="rpt-prose" style={{ marginTop: 20 }}>Ops is more hybrid-friendly than finance — 41% of roles offer some flexibility. But the best-paying, most substantive roles tend to be hybrid at minimum. Remote ops roles exist but cluster around lower-complexity, lower-stipend work. If you are optimising for learning and earnings, hybrid at a funded startup beats fully remote at a small company.</p>
+            <p className="rpt-prose" style={{ marginTop: 20 }}>Ops is more hybrid-friendly than finance. 41% of roles offer some flexibility. But the best-paying, most substantive roles tend to be hybrid at minimum. Remote ops roles exist but cluster around lower-complexity, lower-stipend work. If you are optimising for learning and earnings, hybrid at a funded startup beats fully remote at a small company.</p>
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The sector that gives you the most transferable experience</div>
-              <p>B2B SaaS ops gives you the broadest skill set. You will touch revenue operations, customer data, internal tooling, and cross-functional communication all at once. The process maturity is higher than D2C, the documentation culture is stronger, and the networks you build transfer well. If you can get a SaaS ops internship at Series A or B — that is the one to take.</p>
+              <p>B2B SaaS ops gives you the broadest skill set. You will touch revenue operations, customer data, internal tooling, and cross-functional communication all at once. The process maturity is higher than D2C, the documentation culture is stronger, and the networks you build transfer well. If you can get a SaaS ops internship at Series A or B, that is the one to take.</p>
             </div>
             <p className="rpt-source">Source: LinkedIn Jobs, Internshala, Naukri, April 2026</p>
           </div>
@@ -597,7 +597,7 @@ export default function OpsIndiaReport() {
           {/* Final CTA */}
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the ops roles this report is talking about — D2C, SaaS, logistics, and health tech internships across India, curated weekly.</p>
+            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the ops roles this report is talking about: D2C, SaaS, logistics, and health tech internships across India, curated weekly.</p>
             <div className="rpt-final-cta-btns">
               <Link to="/outreach" className="rpt-btn-white">Browse Ops Internships</Link>
               <Link to="/dojos/careers" className="rpt-btn-outline">Build Your Resume Free</Link>
