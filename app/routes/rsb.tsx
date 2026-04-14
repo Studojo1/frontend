@@ -3,10 +3,10 @@ import { useNavigate } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { Header } from "~/components/common/header";
 import { WelcomeScreen } from "~/components/rsb/WelcomeScreen";
-import { RoleIntake, type IntakePayload } from "~/components/rsb/RoleIntake";
-import { rsbFetch } from "~/lib/rsb/api";
+import { LinkedInIntake, type IntakeSubmit } from "~/components/rsb/LinkedInIntake";
+import { rsbFetch, rsbUpload } from "~/lib/rsb/api";
 
-type CreateResponse = { session: { id: string }; initial_message: string };
+type CreateResponse = { session: { id: string } };
 
 export default function RsbRoot() {
   const { data: session, isPending } = authClient.useSession();
@@ -20,28 +20,41 @@ export default function RsbRoot() {
     }
   }, [isPending, session?.user, navigate]);
 
-  // New session every visit — prior drafts are accessed via /rsb/drafts.
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("rsb:lastSessionId");
     }
   }, []);
 
-  const createSession = useCallback(async (p: IntakePayload) => {
-    setCreating(true);
-    try {
-      const res = await rsbFetch<CreateResponse>("/session", {
-        method: "POST",
-        body: JSON.stringify(p),
-      });
-      navigate(`/rsb/session/${res.session.id}`);
-    } catch (e) {
-      console.error(e);
-      alert("Something went wrong creating your draft. Try again in a moment.");
-    } finally {
-      setCreating(false);
-    }
-  }, [navigate]);
+  const createSession = useCallback(
+    async (p: IntakeSubmit) => {
+      setCreating(true);
+      try {
+        const res = await rsbFetch<CreateResponse>("/session", {
+          method: "POST",
+          body: JSON.stringify({
+            full_name: p.full_name,
+            linkedin_url: p.linkedin_url ?? null,
+          }),
+        });
+        const sessionId = res.session.id;
+        if (p.pdf) {
+          try {
+            await rsbUpload(`/session/${sessionId}/linkedin`, p.pdf);
+          } catch (e) {
+            console.error("LinkedIn PDF parse failed", e);
+          }
+        }
+        navigate(`/rsb/session/${sessionId}`);
+      } catch (e) {
+        console.error(e);
+        alert("Something went wrong creating your draft. Try again in a moment.");
+      } finally {
+        setCreating(false);
+      }
+    },
+    [navigate],
+  );
 
   if (isPending || !session?.user) {
     return (
@@ -60,7 +73,7 @@ export default function RsbRoot() {
       {phase === "welcome" ? (
         <WelcomeScreen onStart={() => setPhase("intake")} />
       ) : (
-        <RoleIntake submitting={creating} onSubmit={createSession} />
+        <LinkedInIntake submitting={creating} onSubmit={createSession} />
       )}
     </>
   );

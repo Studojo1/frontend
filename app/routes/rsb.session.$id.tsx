@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { Header } from "~/components/common/header";
@@ -6,13 +6,14 @@ import { ChatPanel } from "~/components/rsb/ChatPanel";
 import { ResumePreview } from "~/components/rsb/ResumePreview";
 import { AtsMeter } from "~/components/rsb/AtsMeter";
 import { ExportBar } from "~/components/rsb/ExportBar";
-import { rsbFetch, rsbStreamFetch, parseSSE } from "~/lib/rsb/api";
+import { rsbFetch } from "~/lib/rsb/api";
 import { getToken } from "~/lib/control-plane";
-import type { Ats, ChatMsg, ResumeDoc, RsbSession } from "~/lib/rsb/types";
+import type { Ats, ChatMsg, ChatResponse, ResumeDoc, RsbSession, StepInfo } from "~/lib/rsb/types";
 
 type SessionResponse = {
   session: RsbSession;
   transcript: ChatMsg[];
+  current_step: StepInfo;
 };
 
 const EMPTY_DOC: ResumeDoc = {
@@ -35,14 +36,13 @@ export default function RsbSessionRoute() {
   const { data: auth, isPending } = authClient.useSession();
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
-  const [streaming, setStreaming] = useState("");
   const [sending, setSending] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [doc, setDoc] = useState<ResumeDoc>(EMPTY_DOC);
   const [ats, setAts] = useState<Ats>(EMPTY_ATS);
-  const [session, setSession] = useState<RsbSession | null>(null);
+  const [step, setStep] = useState<StepInfo | null>(null);
   const [exporting, setExporting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const streamingRef = useRef("");
 
   useEffect(() => {
     if (!isPending && !auth?.user) navigate(`/auth?mode=signin&redirect=/rsb/session/${id}`);
@@ -55,10 +55,10 @@ export default function RsbSessionRoute() {
       try {
         const res = await rsbFetch<SessionResponse>(`/session/${id}`);
         if (cancelled) return;
-        setSession(res.session);
         setDoc(res.session.resume_doc || EMPTY_DOC);
         setAts(res.session.ats || EMPTY_ATS);
         setMessages(res.transcript);
+        setStep(res.current_step);
       } catch (e) {
         console.error(e);
         navigate("/rsb", { replace: true });
@@ -75,71 +75,55 @@ export default function RsbSessionRoute() {
     async (text: string) => {
       if (!id || sending) return;
       setSending(true);
-      streamingRef.current = "";
-      setStreaming("");
-      const userMsg: ChatMsg = {
-        id: `local-${Date.now()}`,
-        role: "user",
-        content: text,
-      };
+      const userMsg: ChatMsg = { id: `local-${Date.now()}`, role: "user", content: text };
       setMessages((prev) => [...prev, userMsg]);
-
       try {
-        const res = await rsbStreamFetch(`/session/${id}/chat`, { message: text });
-        if (!res.ok) throw new Error(`chat failed: ${res.status}`);
-
-        let finalAssistant = "";
-        for await (const ev of parseSSE(res)) {
-          if (ev.event === "token") {
-            const tok = ev.data;
-            streamingRef.current += tok;
-            setStreaming(streamingRef.current);
-          } else if (ev.event === "resume_patch") {
-            try {
-              const payload = JSON.parse(ev.data);
-              if (payload.merged) setDoc(payload.merged);
-            } catch {}
-          } else if (ev.event === "ats_update") {
-            try {
-              setAts(JSON.parse(ev.data));
-            } catch {}
-          } else if (ev.event === "done") {
-            try {
-              const payload = JSON.parse(ev.data);
-              finalAssistant = payload.assistant_text || streamingRef.current;
-              if (payload.resume_doc) setDoc(payload.resume_doc);
-              if (payload.ats) setAts(payload.ats);
-            } catch {}
-          } else if (ev.event === "error") {
-            console.error("SSE error event:", ev.data);
-          }
-        }
-
+        const res = await rsbFetch<ChatResponse>(`/session/${id}/chat`, {
+          method: "POST",
+          body: JSON.stringify({ message: text }),
+        });
         setMessages((prev) => [
           ...prev,
-          {
-            id: `assistant-${Date.now()}`,
-            role: "assistant",
-            content: finalAssistant || streamingRef.current,
-          },
+          { id: `a-${Date.now()}`, role: "assistant", content: res.assistant_message },
         ]);
+        setDoc(res.session.resume_doc || EMPTY_DOC);
+        setAts(res.session.ats || EMPTY_ATS);
+        setStep(res.next_step);
       } catch (e) {
         console.error(e);
         setMessages((prev) => [
           ...prev,
-          {
-            id: `err-${Date.now()}`,
-            role: "assistant",
-            content: "Something glitched on my end. Try that again?",
-          },
+          { id: `err-${Date.now()}`, role: "assistant", content: "Couldn't save that, please try again." },
         ]);
       } finally {
-        setStreaming("");
         setSending(false);
       }
     },
     [id, sending],
   );
+
+  const onGenerate = useCallback(async () => {
+    if (!id || generating) return;
+    setGenerating(true);
+    try {
+      const res = await rsbFetch<{ session: RsbSession }>(`/session/${id}/generate`, { method: "POST" });
+      setDoc(res.session.resume_doc || EMPTY_DOC);
+      setAts(res.session.ats || EMPTY_ATS);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `gen-${Date.now()}`,
+          role: "assistant",
+          content: "Polished your resume. Check the preview and hit Export when you're happy.",
+        },
+      ]);
+    } catch (e) {
+      console.error(e);
+      alert("Couldn't build the polished resume. Try again in a moment.");
+    } finally {
+      setGenerating(false);
+    }
+  }, [id, generating]);
 
   const onExport = useCallback(async () => {
     if (!id) return;
@@ -205,9 +189,11 @@ export default function RsbSessionRoute() {
           <div className="flex flex-col gap-3 min-h-[70vh]">
             <ChatPanel
               messages={messages}
-              streamingText={streaming}
+              step={step}
               onSend={send}
               sending={sending}
+              onGenerate={onGenerate}
+              generating={generating}
             />
             <AtsMeter ats={ats} />
           </div>

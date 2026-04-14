@@ -25,6 +25,23 @@ export async function rsbFetch<T = unknown>(
   return (await res.json()) as T;
 }
 
+export async function rsbUpload<T = unknown>(path: string, file: File): Promise<T> {
+  const token = await getToken();
+  if (!token) throw new ControlPlaneError("Not authenticated", 401);
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new ControlPlaneError(body || res.statusText, res.status);
+  }
+  return (await res.json()) as T;
+}
+
 export async function rsbStreamFetch(
   path: string,
   body: unknown,

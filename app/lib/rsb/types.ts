@@ -27,6 +27,7 @@ export type ExperienceItem = {
   location?: string | null;
   start?: string | null;
   end?: string | null;
+  dates?: string | null;
   is_current?: boolean;
   bullets: Bullet[];
 };
@@ -37,6 +38,7 @@ export type EducationItem = {
   field?: string | null;
   start?: string | null;
   end?: string | null;
+  dates?: string | null;
   gpa?: string | null;
   honors?: string[];
 };
@@ -79,7 +81,16 @@ export type ChatMsg = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  meta?: Record<string, unknown> | null;
   created_at?: string;
+};
+
+export type StepInfo = {
+  step_id: string;
+  prompt: string;
+  kind: "text" | "mcq" | "confirm" | "done";
+  options: string[];
+  is_complete: boolean;
 };
 
 export type RsbSession = {
@@ -89,7 +100,14 @@ export type RsbSession = {
   experience_band: string | null;
   region: string | null;
   status: string;
+  chat_step: string;
   resume_doc: ResumeDoc;
   ats: Ats;
   updated_at: string | null;
+};
+
+export type ChatResponse = {
+  session: RsbSession;
+  assistant_message: string;
+  next_step: StepInfo;
 };
