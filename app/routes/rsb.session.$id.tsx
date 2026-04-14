@@ -198,7 +198,22 @@ export default function RsbSessionRoute() {
             <AtsMeter ats={ats} />
           </div>
           <div className="flex flex-col gap-3 min-h-[70vh]">
-            <ResumePreview doc={doc} />
+            <ResumePreview
+              doc={doc}
+              editable={step?.is_complete === true}
+              onEdit={async (next) => {
+                setDoc(next);
+                try {
+                  const res = await rsbFetch<{ resume_doc: ResumeDoc; ats: Ats }>(
+                    `/session/${id}/doc`,
+                    { method: "PUT", body: JSON.stringify(next) },
+                  );
+                  setAts(res.ats);
+                } catch (e) {
+                  console.error("save failed", e);
+                }
+              }}
+            />
             <ExportBar doc={doc} ats={ats} exporting={exporting} onExport={onExport} onCopyPlain={onCopyPlain} />
           </div>
         </div>
