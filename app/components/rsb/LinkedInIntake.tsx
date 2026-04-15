@@ -5,21 +5,27 @@ export type IntakeSubmit = {
   full_name: string;
   linkedin_url?: string;
   pdf?: File;
+  resumePdf?: File;
 };
 
 export function LinkedInIntake({
   onSubmit,
   submitting,
+  requireResume = false,
 }: {
   onSubmit: (v: IntakeSubmit) => void;
   submitting: boolean;
+  requireResume?: boolean;
 }) {
   const [fullName, setFullName] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [pdf, setPdf] = useState<File | null>(null);
+  const [resumePdf, setResumePdf] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const resumeRef = useRef<HTMLInputElement>(null);
 
-  const canSubmit = fullName.trim().length > 1 && !submitting;
+  const canSubmit =
+    fullName.trim().length > 1 && !submitting && (!requireResume || !!resumePdf);
 
   const submit = () => {
     if (!canSubmit) return;
@@ -27,6 +33,7 @@ export function LinkedInIntake({
       full_name: fullName.trim(),
       linkedin_url: linkedinUrl.trim() || undefined,
       pdf: pdf ?? undefined,
+      resumePdf: resumePdf ?? undefined,
     });
   };
 
@@ -98,6 +105,48 @@ export function LinkedInIntake({
             if (f) setPdf(f);
           }}
         />
+
+        {requireResume && (
+          <>
+            <label className="block text-sm font-bold text-neutral-900 mt-6 mb-2">
+              Your existing resume <span className="text-rose-600">(required)</span>
+            </label>
+            <p className="text-xs text-neutral-500 mb-3">
+              We'll mine it for bullets, outcomes, and tools, then merge with your chat answers.
+            </p>
+            <button
+              type="button"
+              onClick={() => resumeRef.current?.click()}
+              className={`w-full border-2 border-dashed border-neutral-900 rounded-2xl px-4 py-6 flex flex-col items-center gap-2 transition-all ${
+                resumePdf ? "bg-amber-50" : "bg-neutral-50 hover:bg-amber-50"
+              }`}
+            >
+              {resumePdf ? (
+                <>
+                  <FiCheck className="w-6 h-6 text-emerald-600" />
+                  <span className="text-sm font-bold text-neutral-900">{resumePdf.name}</span>
+                  <span className="text-xs text-neutral-500">Click to replace</span>
+                </>
+              ) : (
+                <>
+                  <FiUploadCloud className="w-7 h-7 text-neutral-700" />
+                  <span className="text-sm font-bold text-neutral-900">Upload your resume PDF</span>
+                  <span className="text-xs text-neutral-500">PDF only, under 10 MB</span>
+                </>
+              )}
+            </button>
+            <input
+              ref={resumeRef}
+              type="file"
+              accept="application/pdf,.pdf"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) setResumePdf(f);
+              }}
+            />
+          </>
+        )}
 
         <button
           onClick={submit}

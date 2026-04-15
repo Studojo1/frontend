@@ -45,7 +45,7 @@ export function ResumePreview({
   onEdit?: (next: ResumeDoc) => void;
 }) {
   const c = doc.contact || {};
-  const contactBits = [c.email, c.phone, c.location, c.linkedin, c.github, c.portfolio].filter(Boolean);
+  const contactBits = [c.email, c.phone, c.linkedin].filter(Boolean);
   const hasAny =
     c.full_name ||
     doc.summary ||
@@ -243,10 +243,9 @@ export function ResumePreview({
         {(doc.skills.technical.length > 0 ||
           doc.skills.soft.length > 0 ||
           doc.skills.languages.length > 0 ||
-          doc.skills.certifications.length > 0 ||
-          editable) && (
+          doc.skills.certifications.length > 0) && (
           <Section title="Skills">
-            {(doc.skills.technical.length > 0 || editable) && (
+            {doc.skills.technical.length > 0 && (
               <p className="text-sm text-neutral-800">
                 <strong>Technical:</strong>{" "}
                 <Editable
@@ -257,7 +256,7 @@ export function ResumePreview({
                 />
               </p>
             )}
-            {(doc.skills.soft.length > 0 || editable) && (
+            {doc.skills.soft.length > 0 && (
               <p className="text-sm text-neutral-800">
                 <strong>Soft:</strong>{" "}
                 <Editable
@@ -268,7 +267,7 @@ export function ResumePreview({
                 />
               </p>
             )}
-            {(doc.skills.languages.length > 0 || editable) && (
+            {doc.skills.languages.length > 0 && (
               <p className="text-sm text-neutral-800">
                 <strong>Languages:</strong>{" "}
                 <Editable
@@ -279,7 +278,7 @@ export function ResumePreview({
                 />
               </p>
             )}
-            {(doc.skills.certifications.length > 0 || editable) && (
+            {doc.skills.certifications.length > 0 && (
               <p className="text-sm text-neutral-800">
                 <strong>Certifications:</strong>{" "}
                 <Editable

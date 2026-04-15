@@ -21,6 +21,7 @@ export function ChatPanel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [listening, setListening] = useState(false);
   const recogRef = useRef<any>(null);
+  const keepListeningRef = useRef(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -42,27 +43,59 @@ export function ChatPanel({
       return;
     }
     if (listening) {
+      keepListeningRef.current = false;
       try {
         recogRef.current?.stop();
       } catch {}
       setListening(false);
       return;
     }
-    const r = new SR();
-    r.lang = "en-US";
-    r.interimResults = true;
-    r.continuous = false;
-    r.onresult = (evt: any) => {
-      let txt = "";
-      for (let i = evt.resultIndex; i < evt.results.length; i++) {
-        txt += evt.results[i][0].transcript;
+
+    keepListeningRef.current = true;
+    let finalTranscript = "";
+
+    const startOnce = () => {
+      const r = new SR();
+      r.lang = "en-US";
+      r.interimResults = true;
+      r.continuous = true;
+      r.onresult = (evt: any) => {
+        let interim = "";
+        for (let i = evt.resultIndex; i < evt.results.length; i++) {
+          const res = evt.results[i];
+          if (res.isFinal) finalTranscript += res[0].transcript + " ";
+          else interim += res[0].transcript;
+        }
+        setInput((finalTranscript + interim).trim());
+      };
+      r.onerror = (evt: any) => {
+        if (evt?.error === "no-speech" || evt?.error === "aborted") return;
+        keepListeningRef.current = false;
+        setListening(false);
+      };
+      r.onend = () => {
+        if (keepListeningRef.current) {
+          try {
+            r.start();
+          } catch {
+            setTimeout(() => {
+              if (keepListeningRef.current) startOnce();
+            }, 150);
+          }
+        } else {
+          setListening(false);
+        }
+      };
+      try {
+        r.start();
+        recogRef.current = r;
+      } catch {
+        keepListeningRef.current = false;
+        setListening(false);
       }
-      setInput(txt);
     };
-    r.onerror = () => setListening(false);
-    r.onend = () => setListening(false);
-    r.start();
-    recogRef.current = r;
+
+    startOnce();
     setListening(true);
   };
 
