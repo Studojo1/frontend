@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { FiArrowRight } from "react-icons/fi";
+import classicImg from "~/assets/rsb/templates/classic.png";
+import modernImg from "~/assets/rsb/templates/modern.png";
+import compactImg from "~/assets/rsb/templates/compact.png";
 
 export type TemplateId = "classic" | "modern" | "compact";
 
@@ -7,27 +10,27 @@ type Opt = {
   id: TemplateId;
   name: string;
   tagline: string;
-  preview: React.ReactNode;
+  image: string;
 };
 
 const OPTIONS: Opt[] = [
   {
     id: "classic",
     name: "Classic",
-    tagline: "Safest pick for any ATS. Clean uppercase headings.",
-    preview: <ClassicPreview />,
+    tagline: "Centered serif name, dot-separated contact line, traditional.",
+    image: classicImg,
   },
   {
     id: "modern",
     name: "Modern",
-    tagline: "Violet accent bar, friendly sans, strong section cues.",
-    preview: <ModernPreview />,
+    tagline: "Small label above name, boxed summary, crisp sans-serif.",
+    image: modernImg,
   },
   {
     id: "compact",
     name: "Compact",
-    tagline: "Dense serif layout when you need to fit a lot on one page.",
-    preview: <CompactPreview />,
+    tagline: "Left-aligned header, tight spacing, fits more per page.",
+    image: compactImg,
   },
 ];
 
@@ -58,8 +61,12 @@ export function TemplatePicker({ onPick }: { onPick: (t: TemplateId) => void }) 
                     : "shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:-translate-x-[1px] hover:-translate-y-[1px]"
                 }`}
               >
-                <div className="aspect-[1/1.4] bg-neutral-50 border border-neutral-300 rounded-md overflow-hidden mb-3">
-                  {opt.preview}
+                <div className="aspect-[1/1.4] bg-white border border-neutral-300 rounded-md overflow-hidden mb-3 flex items-center justify-center">
+                  <img
+                    src={opt.image}
+                    alt={`${opt.name} template preview`}
+                    className="w-full h-full object-cover object-top"
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <h3 className="font-['Clash_Display'] text-xl text-neutral-900">{opt.name}</h3>
@@ -87,70 +94,6 @@ export function TemplatePicker({ onPick }: { onPick: (t: TemplateId) => void }) 
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function BarLines({ count = 4, maxW = 95 }: { count?: number; maxW?: number }) {
-  return (
-    <>
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className="h-[3px] bg-neutral-300 rounded mb-[3px]"
-          style={{ width: `${maxW - i * 8}%` }}
-        />
-      ))}
-    </>
-  );
-}
-
-function ClassicPreview() {
-  return (
-    <div className="p-3 h-full flex flex-col gap-2">
-      <div className="h-2 bg-neutral-900 rounded w-2/3" />
-      <div className="h-[4px] bg-neutral-500 rounded w-3/4" />
-      <div className="h-[1px] bg-neutral-900 mt-1" />
-      <div className="h-[5px] bg-neutral-900 w-1/4 rounded" />
-      <BarLines />
-      <div className="h-[1px] bg-neutral-900 mt-1" />
-      <div className="h-[5px] bg-neutral-900 w-1/3 rounded" />
-      <BarLines count={3} />
-    </div>
-  );
-}
-
-function ModernPreview() {
-  return (
-    <div className="p-3 h-full flex flex-col gap-2">
-      <div className="h-[9px] bg-neutral-900 rounded w-3/4" />
-      <div className="h-[3px] bg-neutral-400 rounded w-2/3" />
-      <div className="h-[1px] bg-neutral-300 mt-1" />
-      <div className="flex items-center gap-1 mt-1">
-        <div className="w-[3px] h-[7px] bg-violet-500 rounded-sm" />
-        <div className="h-[5px] bg-violet-700 w-1/4 rounded" />
-      </div>
-      <BarLines />
-      <div className="flex items-center gap-1 mt-1">
-        <div className="w-[3px] h-[7px] bg-violet-500 rounded-sm" />
-        <div className="h-[5px] bg-violet-700 w-1/3 rounded" />
-      </div>
-      <BarLines count={3} />
-    </div>
-  );
-}
-
-function CompactPreview() {
-  return (
-    <div className="p-3 h-full flex flex-col gap-1 items-center">
-      <div className="h-[6px] bg-neutral-900 rounded w-1/2 mx-auto" />
-      <div className="h-[3px] bg-neutral-500 rounded w-2/3 mx-auto" />
-      <div className="h-[1px] bg-neutral-900 w-full mt-1" />
-      <div className="h-[4px] bg-neutral-900 w-1/4 self-start rounded" />
-      <div className="self-stretch"><BarLines count={5} /></div>
-      <div className="h-[1px] bg-neutral-900 w-full mt-1" />
-      <div className="h-[4px] bg-neutral-900 w-1/3 self-start rounded" />
-      <div className="self-stretch"><BarLines count={4} /></div>
     </div>
   );
 }
