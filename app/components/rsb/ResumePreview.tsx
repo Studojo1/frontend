@@ -95,7 +95,7 @@ export function ResumePreview({
           </header>
         )}
 
-        {(doc.summary || editable) && (
+        {(
           <Section title="Summary">
             <Editable
               as="p"
@@ -240,57 +240,65 @@ export function ResumePreview({
           </Section>
         )}
 
-        {(doc.skills.technical.length > 0 ||
-          doc.skills.soft.length > 0 ||
-          doc.skills.languages.length > 0 ||
-          doc.skills.certifications.length > 0) && (
-          <Section title="Skills">
-            {doc.skills.technical.length > 0 && (
-              <p className="text-sm text-neutral-800">
-                <strong>Technical:</strong>{" "}
-                <Editable
-                  as="span"
-                  value={doc.skills.technical.join(", ")}
-                  editable={editable}
-                  onCommit={(v) => setCsv("technical", v)}
-                />
-              </p>
-            )}
-            {doc.skills.soft.length > 0 && (
-              <p className="text-sm text-neutral-800">
-                <strong>Soft:</strong>{" "}
-                <Editable
-                  as="span"
-                  value={doc.skills.soft.join(", ")}
-                  editable={editable}
-                  onCommit={(v) => setCsv("soft", v)}
-                />
-              </p>
-            )}
-            {doc.skills.languages.length > 0 && (
-              <p className="text-sm text-neutral-800">
-                <strong>Languages:</strong>{" "}
-                <Editable
-                  as="span"
-                  value={doc.skills.languages.join(", ")}
-                  editable={editable}
-                  onCommit={(v) => setCsv("languages", v)}
-                />
-              </p>
-            )}
-            {doc.skills.certifications.length > 0 && (
-              <p className="text-sm text-neutral-800">
-                <strong>Certifications:</strong>{" "}
-                <Editable
-                  as="span"
-                  value={doc.skills.certifications.join(", ")}
-                  editable={editable}
-                  onCommit={(v) => setCsv("certifications", v)}
-                />
-              </p>
-            )}
-          </Section>
-        )}
+        <Section title="Skills">
+          <p className="text-sm text-neutral-800">
+            <strong>Technical:</strong>{" "}
+            <Editable
+              as="span"
+              value={doc.skills.technical.join(", ")}
+              editable={editable}
+              placeholder="—"
+              onCommit={(v) => setCsv("technical", v)}
+            />
+          </p>
+          {doc.skills.soft.length > 0 && (
+            <p className="text-sm text-neutral-800">
+              <strong>Soft:</strong>{" "}
+              <Editable
+                as="span"
+                value={doc.skills.soft.join(", ")}
+                editable={editable}
+                onCommit={(v) => setCsv("soft", v)}
+              />
+            </p>
+          )}
+        </Section>
+
+        <Section title="Languages">
+          <p className="text-sm text-neutral-800">
+            <Editable
+              as="span"
+              value={doc.skills.languages.join(", ")}
+              editable={editable}
+              placeholder="—"
+              onCommit={(v) => setCsv("languages", v)}
+            />
+          </p>
+        </Section>
+
+        <Section title="Certifications">
+          {doc.skills.certifications.length > 0 ? (
+            <ul className="list-disc pl-5 space-y-0.5">
+              {doc.skills.certifications.map((cert, i) => (
+                <li key={i} className="text-sm text-neutral-800">{cert}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-neutral-400">—</p>
+          )}
+        </Section>
+
+        <Section title="Awards & Achievements">
+          {doc.awards && doc.awards.length > 0 ? (
+            <ul className="list-disc pl-5 space-y-0.5">
+              {doc.awards.map((a, i) => (
+                <li key={i} className="text-sm text-neutral-800">{a}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-neutral-400">—</p>
+          )}
+        </Section>
       </div>
     </div>
   );
