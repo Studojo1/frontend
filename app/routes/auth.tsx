@@ -191,21 +191,8 @@ export default function Auth() {
           name: email.split("@")[0] || "User",
           callbackURL: redirectUrl,
         },
-        { 
+        {
           onSuccess: async () => {
-            // Publish signup event (non-blocking)
-            try {
-              if (data?.user) {
-                const { publishEmailEvent } = await import("~/lib/events");
-                await publishEmailEvent("event.user.signup", {
-                  user_id: data.user.id,
-                  email: data.user.email,
-                  name: data.user.name,
-                });
-              }
-            } catch (error) {
-              console.error("Failed to publish signup event:", error);
-            }
             navigate(redirectUrl);
           }
         },

@@ -387,28 +387,28 @@ export const auth = betterAuth({
         });
       }
     }),
-    after: createAuthMiddleware(async (ctx) => {
-      // Publish signup event after successful user creation
-      if (ctx.path === "/sign-up/email" && ctx.response?.status === 200) {
-        try {
-          const user = (ctx.response as any)?.data?.user;
-          if (user) {
-            // Publish event asynchronously (non-blocking)
+  },
+
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          // Fire for ALL signup methods (email/password, Google OAuth, etc.)
+          try {
             const { publishEmailEvent } = await import("./events");
             publishEmailEvent("event.user.signup", {
               user_id: user.id,
               email: user.email,
               name: user.name,
             }).catch((err) => {
-              console.error("Failed to publish signup event:", err);
+              console.error("[auth] Failed to publish signup event via databaseHook:", err);
             });
+          } catch (err) {
+            console.error("[auth] Error in user.create databaseHook:", err);
           }
-        } catch (error) {
-          // Non-blocking - log but don't fail the request
-          console.error("Error publishing signup event:", error);
-        }
-      }
-    }),
+        },
+      },
+    },
   },
 
   session: {
