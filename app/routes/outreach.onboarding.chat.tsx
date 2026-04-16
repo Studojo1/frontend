@@ -46,7 +46,7 @@ const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)/;
 
 export default function ChatPage() {
   const navigate = useNavigate();
-  useOutreachAuth();
+  const { user } = useOutreachAuth();
   const { candidateId, chatHistory, addChatMessage, setCurrentStep, setPsychResult } = useOutreachStore();
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
@@ -164,6 +164,18 @@ export default function ChatPage() {
             questions_asked: questionsAsked,
             has_psychometric: !!finalResponse.psychometric,
           });
+
+          // Send segmentation email (non-blocking)
+          if (user?.id) {
+            import("~/lib/events").then(({ publishEmailEvent }) => {
+              publishEmailEvent("event.funnel.segmentation_v1", {
+                user_id: user.id,
+                email: user.email,
+                name: user.name,
+              }).catch(() => {});
+            }).catch(() => {});
+          }
+
           // Navigate to loading page — it polls until profile is ready, then goes to profile
           navigate("/outreach/onboarding/loading");
         } else {
