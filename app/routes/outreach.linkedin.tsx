@@ -1,11 +1,14 @@
+"use client";
 import { useEffect, useState, useCallback } from "react";
 import {
-  FiSearch,
-  FiCopy,
   FiCheck,
-  FiExternalLink,
   FiRefreshCw,
   FiUser,
+  FiWifi,
+  FiWifiOff,
+  FiSend,
+  FiUserPlus,
+  FiDownload,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -14,413 +17,284 @@ import { outreachFetch } from "~/lib/outreach/api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface SearchJob {
-  id: number;
-  status: "queued" | "running" | "done" | "failed";
-  target_role: string;
-  result_count: number;
-  error?: string | null;
-  created_at: string;
+interface TokenStatus {
+  connected: boolean;
+  linkedin_name?: string | null;
 }
 
-interface Lead {
-  id: number;
-  name: string;
-  headline?: string | null;
-  company?: string | null;
-  profile_url: string;
-  profile_image_url?: string | null;
-  suggested_message?: string | null;
-  message_copied_at?: string | null;
-}
+type Tab = "message" | "connect";
 
-// ── Search form ───────────────────────────────────────────────────────────────
+type ResultState =
+  | { status: "idle" }
+  | { status: "loading"; label: string }
+  | { status: "success"; label: string }
+  | { status: "error"; label: string };
 
-interface SearchFormProps {
-  onJobStarted: (job: SearchJob) => void;
-}
+// ── Extension status banner ───────────────────────────────────────────────────
 
-function SearchForm({ onJobStarted }: SearchFormProps) {
-  const [role, setRole] = useState("");
-  const [location, setLocation] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+function ExtensionBanner({ status, onRefresh }: { status: TokenStatus | null; onRefresh: () => void }) {
+  if (status === null) {
+    return (
+      <div className="rounded-2xl border-2 border-neutral-200 bg-white p-5 shadow-sm flex items-center gap-3 animate-pulse">
+        <div className="h-5 w-5 rounded-full bg-neutral-200" />
+        <div className="h-4 w-48 rounded bg-neutral-200" />
+      </div>
+    );
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!role.trim()) return;
-    setLoading(true);
-    setError("");
-    try {
-      // Create job — backend immediately starts Apollo search server-side
-      const job = await outreachFetch<SearchJob>("/linkedin/search", {
-        method: "POST",
-        body: JSON.stringify({
-          target_role: role.trim(),
-          location: location.trim() || undefined,
-        }),
-      });
-
-      onJobStarted(job);
-    } catch (err: unknown) {
-      const msg = (err as { body?: { detail?: string }; message?: string })?.body?.detail
-        || (err as { message?: string })?.message
-        || "Search failed. Please try again.";
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!status.connected) {
+    return (
+      <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5">
+        <div className="flex items-start gap-3">
+          <FiWifiOff className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div className="min-w-0 flex-1">
+            <p className="font-satoshi text-sm font-semibold text-amber-800">
+              LinkedIn not connected
+            </p>
+            <p className="mt-0.5 font-satoshi text-xs text-amber-700">
+              Install the LeadFlow extension, open it, and click "Connect LinkedIn". Then refresh below.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <a
+                href="https://studojo.com/outreach/install-extension"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border-2 border-studojo-ink bg-white px-3 py-1.5 font-satoshi text-xs font-semibold shadow-brutal transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+              >
+                <FiDownload className="h-3 w-3" />
+                Get extension
+              </a>
+              <button
+                onClick={onRefresh}
+                className="inline-flex items-center gap-1.5 rounded-lg border-2 border-studojo-ink bg-white px-3 py-1.5 font-satoshi text-xs font-semibold shadow-brutal transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+              >
+                <FiRefreshCw className="h-3 w-3" />
+                Refresh status
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-xl">
-      <div className="rounded-2xl border-2 border-studojo-ink bg-white p-8 shadow-brutal">
-        <h2 className="font-clash text-2xl font-bold text-studojo-ink mb-1">
-          Who should you connect with?
-        </h2>
-        <p className="font-satoshi text-sm text-studojo-muted mb-6">
-          Tell us the role you want. We find the right people on LinkedIn and
-          write a personalised message for each one.
-        </p>
-
-        <div className="mb-4">
-          <label className="mb-1.5 block font-satoshi text-sm font-semibold text-studojo-ink">
-            Role you are targeting <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            placeholder="e.g. Product Manager, SWE Intern, Marketing Intern"
-            required
-            maxLength={150}
-            className="w-full rounded-xl border-2 border-studojo-ink bg-neutral-50 px-4 py-3 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
-          />
-        </div>
-
-        <div className="mb-6">
-          <label className="mb-1.5 block font-satoshi text-sm font-semibold text-studojo-ink">
-            Location{" "}
-            <span className="font-normal text-studojo-muted">(optional)</span>
-          </label>
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="e.g. Bangalore, Mumbai, Delhi"
-            maxLength={100}
-            className="w-full rounded-xl border-2 border-studojo-ink bg-neutral-50 px-4 py-3 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
-          />
-        </div>
-
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-2 font-satoshi text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading || !role.trim()}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-studojo-ink bg-studojo-purple font-satoshi text-sm font-semibold text-white shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:pointer-events-none disabled:opacity-60"
-        >
-          {loading ? (
-            <>
-              <FiRefreshCw className="h-4 w-4 animate-spin" />
-              Starting search...
-            </>
-          ) : (
-            <>
-              <FiSearch className="h-4 w-4" />
-              Find people to connect with
-            </>
-          )}
-        </button>
+    <div className="rounded-2xl border-2 border-green-300 bg-green-50 p-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2.5">
+        <FiWifi className="h-4 w-4 shrink-0 text-green-600" />
+        <span className="font-satoshi text-sm font-semibold text-green-800">
+          LinkedIn connected
+          {status.linkedin_name ? ` — ${status.linkedin_name}` : ""}
+        </span>
       </div>
-    </form>
+      <span className="rounded-full bg-green-200 px-2 py-0.5 font-satoshi text-xs font-bold text-green-800">
+        Active
+      </span>
+    </div>
   );
 }
 
-// ── Search results ─────────────────────────────────────────────────────────────
+// ── Send panel ────────────────────────────────────────────────────────────────
 
-interface ResultsProps {
-  job: SearchJob;
-  onReset: () => void;
-}
+function SendPanel({ connected }: { connected: boolean }) {
+  const [tab, setTab] = useState<Tab>("message");
+  const [profileUrl, setProfileUrl] = useState("");
+  const [content, setContent] = useState("");
+  const [note, setNote] = useState("");
+  const [result, setResult] = useState<ResultState>({ status: "idle" });
 
-function SearchResults({ job: initialJob, onReset }: ResultsProps) {
-  const [job, setJob] = useState<SearchJob>(initialJob);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [copiedIds, setCopiedIds] = useState<Set<number>>(new Set());
-  const [loadingLeads, setLoadingLeads] = useState(false);
-  const [timedOut, setTimedOut] = useState(false);
+  const reset = () => setResult({ status: "idle" });
 
-  // Poll job status until done
-  useEffect(() => {
-    if (job.status === "done" || job.status === "failed") return;
-
-    // Hard timeout — if still running after 45s, show error
-    const timeout = setTimeout(() => setTimedOut(true), 45000);
-
-    const interval = setInterval(async () => {
-      try {
-        const updated = await outreachFetch<SearchJob>(`/linkedin/search/${job.id}`);
-        setJob(updated);
-        if (updated.status === "done" || updated.status === "failed") {
-          clearInterval(interval);
-          clearTimeout(timeout);
-        }
-      } catch (_) {}
-    }, 2500);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [job.id, job.status]);
-
-  // Load leads when done
-  useEffect(() => {
-    if (job.status !== "done") return;
-    setLoadingLeads(true);
-    outreachFetch<Lead[]>(`/linkedin/search/${job.id}/leads`)
-      .then(setLeads)
-      .catch(() => {})
-      .finally(() => setLoadingLeads(false));
-  }, [job.id, job.status]);
-
-  const handleCopy = async (lead: Lead) => {
-    if (!lead.suggested_message) return;
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileUrl.trim() || !content.trim()) return;
+    setResult({ status: "loading", label: "Sending message…" });
     try {
-      await navigator.clipboard.writeText(lead.suggested_message);
-      setCopiedIds((prev) => new Set([...prev, lead.id]));
-      // Track copy
-      outreachFetch("/linkedin/leads/mark-copied", {
+      await outreachFetch("/linkedin/message", {
         method: "POST",
-        body: JSON.stringify({ lead_id: lead.id }),
-      }).catch(() => {});
-      // Reset copied indicator after 3s
-      setTimeout(() => {
-        setCopiedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(lead.id);
-          return next;
-        });
-      }, 3000);
-    } catch (_) {}
+        body: JSON.stringify({ profile_url: profileUrl.trim(), content: content.trim() }),
+        maxRetries: 1,
+        timeout: 30000,
+      });
+      setResult({ status: "success", label: "Message sent!" });
+      setContent("");
+    } catch (err: unknown) {
+      const msg =
+        (err as { body?: { detail?: string }; message?: string })?.body?.detail ||
+        (err as { message?: string })?.message ||
+        "Failed to send. Try again.";
+      setResult({ status: "error", label: msg });
+    }
   };
 
-  if (job.status === "queued" || job.status === "running") {
-    if (timedOut) {
-      return (
-        <div className="mx-auto max-w-xl">
-          <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-8 text-center">
-            <h3 className="font-clash text-xl font-bold text-red-700 mb-2">Search is taking too long</h3>
-            <p className="font-satoshi text-sm text-red-600 mb-4">
-              The search didn't complete in time. Please try again.
-            </p>
-            <button
-              onClick={onReset}
-              className="mx-auto flex h-10 items-center gap-2 rounded-xl border-2 border-studojo-ink bg-white px-5 font-satoshi text-sm font-semibold shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-            >
-              <FiRefreshCw className="h-4 w-4" />
-              Try again
-            </button>
-          </div>
-        </div>
-      );
+  const handleSendConnect = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileUrl.trim()) return;
+    setResult({ status: "loading", label: "Sending connection request…" });
+    try {
+      await outreachFetch("/linkedin/connect-request", {
+        method: "POST",
+        body: JSON.stringify({ profile_url: profileUrl.trim(), note: note.trim() }),
+        maxRetries: 1,
+        timeout: 30000,
+      });
+      setResult({ status: "success", label: "Connection request sent!" });
+      setNote("");
+    } catch (err: unknown) {
+      const msg =
+        (err as { body?: { detail?: string }; message?: string })?.body?.detail ||
+        (err as { message?: string })?.message ||
+        "Failed to send. Try again.";
+      setResult({ status: "error", label: msg });
     }
-    return (
-      <div className="mx-auto max-w-xl">
-        <div className="rounded-2xl border-2 border-studojo-ink bg-white p-10 shadow-brutal text-center">
-          <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center">
-            <FiRefreshCw className="h-10 w-10 animate-spin text-studojo-purple" />
-          </div>
-          <h3 className="font-clash text-xl font-bold text-studojo-ink mb-2">
-            Finding people...
-          </h3>
-          <p className="font-satoshi text-sm text-studojo-muted">
-            Searching for{" "}
-            <span className="font-semibold text-studojo-ink">{job.target_role}</span>{" "}
-            and writing personalised messages. Takes about 15–20 seconds.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  };
 
-  if (job.status === "failed") {
-    return (
-      <div className="mx-auto max-w-xl">
-        <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-8 text-center">
-          <h3 className="font-clash text-xl font-bold text-red-700 mb-2">Search failed</h3>
-          <p className="font-satoshi text-sm text-red-600 mb-4">
-            {job.error || "Something went wrong. Your LinkedIn session may have expired."}
-          </p>
-          <button
-            onClick={onReset}
-            className="mx-auto flex h-10 items-center gap-2 rounded-xl border-2 border-studojo-ink bg-white px-5 font-satoshi text-sm font-semibold shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-          >
-            <FiRefreshCw className="h-4 w-4" />
-            Try again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (loadingLeads) {
-    return (
-      <div className="mx-auto max-w-xl text-center">
-        <div className="font-satoshi text-sm text-studojo-muted">Loading results...</div>
-      </div>
-    );
-  }
+  const isLoading = result.status === "loading";
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="font-clash text-2xl font-bold text-studojo-ink">
-            {leads.length} people found
-          </h2>
-          <p className="font-satoshi text-sm text-studojo-muted">
-            For: <span className="font-semibold text-studojo-ink">{job.target_role}</span>
-          </p>
-        </div>
-        <button
-          onClick={onReset}
-          className="flex h-9 items-center gap-2 rounded-xl border-2 border-studojo-ink bg-white px-4 font-satoshi text-sm font-semibold shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-        >
-          <FiSearch className="h-3.5 w-3.5" />
-          New search
-        </button>
+    <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal">
+      {/* Tabs */}
+      <div className="flex border-b-2 border-studojo-ink">
+        {(["message", "connect"] as Tab[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => { setTab(t); reset(); }}
+            className={`flex flex-1 items-center justify-center gap-2 px-4 py-3.5 font-satoshi text-sm font-semibold transition-colors first:rounded-tl-2xl last:rounded-tr-2xl ${
+              tab === t
+                ? "bg-studojo-purple text-white"
+                : "bg-white text-studojo-muted hover:text-studojo-ink"
+            }`}
+          >
+            {t === "message" ? <FiSend className="h-3.5 w-3.5" /> : <FiUserPlus className="h-3.5 w-3.5" />}
+            {t === "message" ? "Send Message" : "Send Connection"}
+          </button>
+        ))}
       </div>
 
-      {leads.length === 0 ? (
-        <div className="rounded-2xl border-2 border-studojo-ink bg-white p-8 text-center shadow-brutal">
-          <p className="font-satoshi text-sm text-studojo-muted">
-            No results found for this search. Try a broader role title.
-          </p>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {leads.map((lead) => (
-            <div
-              key={lead.id}
-              className="rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-brutal"
-            >
-              <div className="flex items-start gap-4">
-                {/* Avatar */}
-                <div className="shrink-0">
-                  {lead.profile_image_url ? (
-                    <img
-                      src={lead.profile_image_url}
-                      alt={lead.name}
-                      className="h-12 w-12 rounded-xl border-2 border-studojo-ink object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-studojo-ink bg-violet-100">
-                      <FiUser className="h-5 w-5 text-studojo-purple" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-clash text-base font-bold text-studojo-ink truncate">
-                      {lead.name}
-                    </h3>
-                    <a
-                      href={lead.profile_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 text-studojo-muted hover:text-studojo-purple"
-                    >
-                      <FiExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  </div>
-                  {lead.headline && (
-                    <p className="font-satoshi text-xs text-studojo-muted mt-0.5 line-clamp-2">
-                      {lead.headline}
-                    </p>
-                  )}
-                  {lead.company && !lead.headline && (
-                    <p className="font-satoshi text-xs text-studojo-muted mt-0.5">{lead.company}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Suggested message */}
-              {lead.suggested_message && (
-                <div className="mt-4">
-                  <div className="mb-1.5 font-satoshi text-xs font-semibold uppercase tracking-wide text-studojo-muted">
-                    Suggested connection note
-                  </div>
-                  <div className="relative rounded-xl border-2 border-neutral-200 bg-neutral-50 p-3 pr-10 font-satoshi text-sm text-studojo-ink leading-relaxed">
-                    {lead.suggested_message}
-                    <button
-                      onClick={() => handleCopy(lead)}
-                      className="absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-300 bg-white transition-colors hover:border-studojo-ink hover:bg-violet-50"
-                      title="Copy message"
-                    >
-                      {copiedIds.has(lead.id) ? (
-                        <FiCheck className="h-3.5 w-3.5 text-green-600" />
-                      ) : (
-                        <FiCopy className="h-3.5 w-3.5 text-studojo-muted" />
-                      )}
-                    </button>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="font-satoshi text-xs text-studojo-muted">
-                      {lead.message_copied_at || copiedIds.has(lead.id)
-                        ? "Copied"
-                        : "Copy, then paste in LinkedIn"}
-                    </span>
-                    <a
-                      href={lead.profile_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-satoshi text-xs font-semibold text-studojo-purple hover:underline"
-                    >
-                      Connect on LinkedIn
-                    </a>
-                  </div>
-                </div>
-              )}
+      <div className="p-6">
+        {/* Profile URL — shared across tabs */}
+        <div className="mb-4">
+          <label className="mb-1.5 block font-satoshi text-xs font-semibold uppercase tracking-wide text-studojo-muted">
+            LinkedIn Profile URL
+          </label>
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 border-studojo-ink bg-neutral-50">
+              <FiUser className="h-4 w-4 text-studojo-muted" />
             </div>
-          ))}
+            <input
+              type="url"
+              value={profileUrl}
+              onChange={(e) => { setProfileUrl(e.target.value); reset(); }}
+              placeholder="https://linkedin.com/in/username"
+              disabled={isLoading || !connected}
+              className="h-9 flex-1 rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
+            />
+          </div>
         </div>
-      )}
+
+        {/* Tab-specific content */}
+        {tab === "message" ? (
+          <form onSubmit={handleSendMessage}>
+            <label className="mb-1.5 block font-satoshi text-xs font-semibold uppercase tracking-wide text-studojo-muted">
+              Message
+            </label>
+            <textarea
+              value={content}
+              onChange={(e) => { setContent(e.target.value); reset(); }}
+              placeholder="Hey [Name], I came across your profile and wanted to reach out…"
+              rows={5}
+              disabled={isLoading || !connected}
+              className="mb-4 w-full resize-none rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 py-2.5 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
+            />
+            <ResultBox result={result} />
+            <button
+              type="submit"
+              disabled={isLoading || !connected || !profileUrl.trim() || !content.trim()}
+              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-studojo-ink bg-studojo-purple font-satoshi text-sm font-semibold text-white shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:pointer-events-none disabled:opacity-50"
+            >
+              {isLoading ? (
+                <><FiRefreshCw className="h-4 w-4 animate-spin" /> Sending…</>
+              ) : (
+                <><FiSend className="h-4 w-4" /> Send Message</>
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleSendConnect}>
+            <label className="mb-1.5 block font-satoshi text-xs font-semibold uppercase tracking-wide text-studojo-muted">
+              Note{" "}
+              <span className="font-normal normal-case text-studojo-muted">(optional, max 300 chars)</span>
+            </label>
+            <textarea
+              value={note}
+              onChange={(e) => { setNote(e.target.value.slice(0, 300)); reset(); }}
+              placeholder="Hi [Name], I'd love to connect — I'm interested in roles at [Company]."
+              rows={4}
+              disabled={isLoading || !connected}
+              className="mb-1 w-full resize-none rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 py-2.5 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
+            />
+            <div className="mb-4 text-right font-satoshi text-xs text-studojo-muted">
+              {note.length}/300
+            </div>
+            <ResultBox result={result} />
+            <button
+              type="submit"
+              disabled={isLoading || !connected || !profileUrl.trim()}
+              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl border-2 border-studojo-ink bg-studojo-ink font-satoshi text-sm font-semibold text-white shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:pointer-events-none disabled:opacity-50"
+            >
+              {isLoading ? (
+                <><FiRefreshCw className="h-4 w-4 animate-spin" /> Sending…</>
+              ) : (
+                <><FiUserPlus className="h-4 w-4" /> Send Connection Request</>
+              )}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ResultBox({ result }: { result: ResultState }) {
+  if (result.status === "idle") return null;
+  if (result.status === "loading") return null;
+
+  const isSuccess = result.status === "success";
+  return (
+    <div
+      className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 font-satoshi text-sm font-semibold ${
+        isSuccess
+          ? "border-green-300 bg-green-50 text-green-700"
+          : "border-red-300 bg-red-50 text-red-700"
+      }`}
+    >
+      {isSuccess && <FiCheck className="h-4 w-4 shrink-0" />}
+      {result.label}
     </div>
   );
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export default function LinkedInConnectPage() {
+export default function LinkedInOutreachPage() {
   const { loading: authLoading } = useOutreachAuth();
-  const [activeJob, setActiveJob] = useState<SearchJob | null>(null);
-  const [recentSearches, setRecentSearches] = useState<SearchJob[]>([]);
-  const [checkingToken, setCheckingToken] = useState(true);
+  const [tokenStatus, setTokenStatus] = useState<TokenStatus | null>(null);
 
-  const checkTokenStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async () => {
+    setTokenStatus(null);
     try {
-      const searches = await outreachFetch<SearchJob[]>("/linkedin/searches");
-      setRecentSearches(searches);
-    } catch (_) {
-      // ignore — user may have no searches yet
-    } finally {
-      setCheckingToken(false);
+      const s = await outreachFetch<TokenStatus>("/linkedin/token/status");
+      setTokenStatus(s);
+    } catch {
+      setTokenStatus({ connected: false });
     }
   }, []);
 
   useEffect(() => {
-    if (!authLoading) checkTokenStatus();
-  }, [authLoading, checkTokenStatus]);
+    if (!authLoading) fetchStatus();
+  }, [authLoading, fetchStatus]);
 
-  if (authLoading || checkingToken) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
@@ -436,72 +310,30 @@ export default function LinkedInConnectPage() {
       <Header />
 
       {/* Hero */}
-      <section className="border-b-2 border-studojo-ink bg-white px-4 py-12 md:px-8">
+      <section className="border-b-2 border-studojo-ink bg-white px-4 py-10 md:px-8">
         <div className="mx-auto max-w-[var(--section-max-width)]">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border-2 border-studojo-ink bg-violet-500 px-4 py-1 font-satoshi text-xs font-bold uppercase tracking-wider text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
-            LinkedIn Connect
+            LinkedIn Outreach
           </div>
           <h1 className="font-clash text-3xl font-bold text-studojo-ink md:text-4xl">
-            Find who to connect with.
+            Send messages and connections.
           </h1>
-          <p className="mt-3 max-w-xl font-satoshi text-base text-studojo-muted">
-            Tell us the role you want. We find the right people on LinkedIn and
-            write a personalised connection note for each one. No cold outreach
-            guesswork.
+          <p className="mt-2 max-w-xl font-satoshi text-base text-studojo-muted">
+            Connect your LinkedIn account via the extension, then send messages
+            and connection requests directly from here.
           </p>
         </div>
       </section>
 
-      {/* Main content */}
-      <section className="mx-auto max-w-[var(--section-max-width)] px-4 py-10 md:px-8">
-        {activeJob ? (
-          <SearchResults
-            job={activeJob}
-            onReset={() => setActiveJob(null)}
-          />
-        ) : (
-          <div className="flex flex-col gap-10">
-            <SearchForm onJobStarted={setActiveJob} />
+      {/* Main */}
+      <section className="mx-auto max-w-2xl px-4 py-10 md:px-8">
+        <div className="flex flex-col gap-6">
+          {/* Extension status */}
+          <ExtensionBanner status={tokenStatus} onRefresh={fetchStatus} />
 
-            {/* Recent searches */}
-            {recentSearches.length > 0 && (
-              <div className="mx-auto w-full max-w-xl">
-                <h3 className="mb-3 font-clash text-lg font-bold text-studojo-ink">
-                  Recent searches
-                </h3>
-                <div className="flex flex-col gap-2">
-                  {recentSearches.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => setActiveJob(s)}
-                      className="flex items-center justify-between rounded-xl border-2 border-neutral-200 bg-white px-4 py-3 text-left transition-colors hover:border-studojo-ink"
-                    >
-                      <div>
-                        <div className="font-satoshi text-sm font-semibold text-studojo-ink">
-                          {s.target_role}
-                        </div>
-                        <div className="font-satoshi text-xs text-studojo-muted">
-                          {s.result_count} people found
-                        </div>
-                      </div>
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 font-satoshi text-xs font-semibold ${
-                          s.status === "done"
-                            ? "bg-green-100 text-green-700"
-                            : s.status === "failed"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}
-                      >
-                        {s.status}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+          {/* Send panel */}
+          <SendPanel connected={tokenStatus?.connected ?? false} />
+        </div>
       </section>
 
       <Footer />
