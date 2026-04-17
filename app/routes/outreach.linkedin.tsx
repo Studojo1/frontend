@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   FiCheck,
   FiRefreshCw,
@@ -13,13 +13,38 @@ import {
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
-import { outreachFetch } from "~/lib/outreach/api";
+
+// ── Extension bridge ──────────────────────────────────────────────────────────
+// Communicates with the LeadFlow extension content script via postMessage.
+// The extension's studojo-bridge.js content script relays to the background SW.
+
+function sendToExtension(type: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    const requestId = Math.random().toString(36).slice(2);
+    const timer = setTimeout(() => {
+      window.removeEventListener("message", handler);
+      reject(new Error("Extension not responding. Make sure the LeadFlow extension is installed and enabled."));
+    }, 30000);
+
+    function handler(event: MessageEvent) {
+      if (event.data?.__lf_source !== "studojo-extension") return;
+      if (event.data?.requestId !== requestId) return;
+      clearTimeout(timer);
+      window.removeEventListener("message", handler);
+      resolve(event.data);
+    }
+
+    window.addEventListener("message", handler);
+    window.postMessage({ __lf_source: "studojo-dashboard", requestId, type, payload }, "*");
+  });
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface TokenStatus {
   connected: boolean;
   linkedin_name?: string | null;
+  extensionPresent?: boolean;
 }
 
 type Tab = "message" | "connect";
@@ -35,9 +60,33 @@ type ResultState =
 function ExtensionBanner({ status, onRefresh }: { status: TokenStatus | null; onRefresh: () => void }) {
   if (status === null) {
     return (
-      <div className="rounded-2xl border-2 border-neutral-200 bg-white p-5 shadow-sm flex items-center gap-3 animate-pulse">
+      <div className="rounded-2xl border-2 border-neutral-200 bg-white p-5 flex items-center gap-3 animate-pulse">
         <div className="h-5 w-5 rounded-full bg-neutral-200" />
         <div className="h-4 w-48 rounded bg-neutral-200" />
+      </div>
+    );
+  }
+
+  if (!status.extensionPresent) {
+    return (
+      <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5">
+        <div className="flex items-start gap-3">
+          <FiDownload className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div className="min-w-0 flex-1">
+            <p className="font-satoshi text-sm font-semibold text-amber-800">LeadFlow extension not detected</p>
+            <p className="mt-0.5 font-satoshi text-xs text-amber-700">
+              The extension is required to send messages and connections from your browser.
+              Install it, then refresh this page.
+            </p>
+            <button
+              onClick={onRefresh}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border-2 border-studojo-ink bg-white px-3 py-1.5 font-satoshi text-xs font-semibold shadow-brutal transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+            >
+              <FiRefreshCw className="h-3 w-3" />
+              Refresh
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -48,30 +97,17 @@ function ExtensionBanner({ status, onRefresh }: { status: TokenStatus | null; on
         <div className="flex items-start gap-3">
           <FiWifiOff className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
           <div className="min-w-0 flex-1">
-            <p className="font-satoshi text-sm font-semibold text-amber-800">
-              LinkedIn not connected
-            </p>
+            <p className="font-satoshi text-sm font-semibold text-amber-800">LinkedIn not connected</p>
             <p className="mt-0.5 font-satoshi text-xs text-amber-700">
-              Install the LeadFlow extension, open it, and click "Connect LinkedIn". Then refresh below.
+              Open the LeadFlow extension and click "Connect LinkedIn".
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <a
-                href="https://studojo.com/outreach/install-extension"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border-2 border-studojo-ink bg-white px-3 py-1.5 font-satoshi text-xs font-semibold shadow-brutal transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
-              >
-                <FiDownload className="h-3 w-3" />
-                Get extension
-              </a>
-              <button
-                onClick={onRefresh}
-                className="inline-flex items-center gap-1.5 rounded-lg border-2 border-studojo-ink bg-white px-3 py-1.5 font-satoshi text-xs font-semibold shadow-brutal transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
-              >
-                <FiRefreshCw className="h-3 w-3" />
-                Refresh status
-              </button>
-            </div>
+            <button
+              onClick={onRefresh}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border-2 border-studojo-ink bg-white px-3 py-1.5 font-satoshi text-xs font-semibold shadow-brutal transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+            >
+              <FiRefreshCw className="h-3 w-3" />
+              Refresh
+            </button>
           </div>
         </div>
       </div>
@@ -83,12 +119,11 @@ function ExtensionBanner({ status, onRefresh }: { status: TokenStatus | null; on
       <div className="flex items-center gap-2.5">
         <FiWifi className="h-4 w-4 shrink-0 text-green-600" />
         <span className="font-satoshi text-sm font-semibold text-green-800">
-          LinkedIn connected
-          {status.linkedin_name ? ` — ${status.linkedin_name}` : ""}
+          LinkedIn connected — extension active
         </span>
       </div>
       <span className="rounded-full bg-green-200 px-2 py-0.5 font-satoshi text-xs font-bold text-green-800">
-        Active
+        Ready
       </span>
     </div>
   );
@@ -110,20 +145,18 @@ function SendPanel({ connected }: { connected: boolean }) {
     if (!profileUrl.trim() || !content.trim()) return;
     setResult({ status: "loading", label: "Sending message…" });
     try {
-      await outreachFetch("/linkedin/message", {
-        method: "POST",
-        body: JSON.stringify({ profile_url: profileUrl.trim(), content: content.trim() }),
-        maxRetries: 1,
-        timeout: 30000,
+      const res = await sendToExtension("VOYAGER_SEND_MESSAGE", {
+        profileUrl: profileUrl.trim(),
+        content: content.trim(),
       });
-      setResult({ status: "success", label: "Message sent!" });
-      setContent("");
+      if (res.success) {
+        setResult({ status: "success", label: "Message sent!" });
+        setContent("");
+      } else {
+        setResult({ status: "error", label: String(res.error || "Failed to send.") });
+      }
     } catch (err: unknown) {
-      const msg =
-        (err as { body?: { detail?: string }; message?: string })?.body?.detail ||
-        (err as { message?: string })?.message ||
-        "Failed to send. Try again.";
-      setResult({ status: "error", label: msg });
+      setResult({ status: "error", label: (err as Error).message || "Failed to send." });
     }
   };
 
@@ -132,20 +165,18 @@ function SendPanel({ connected }: { connected: boolean }) {
     if (!profileUrl.trim()) return;
     setResult({ status: "loading", label: "Sending connection request…" });
     try {
-      await outreachFetch("/linkedin/connect-request", {
-        method: "POST",
-        body: JSON.stringify({ profile_url: profileUrl.trim(), note: note.trim() }),
-        maxRetries: 1,
-        timeout: 30000,
+      const res = await sendToExtension("VOYAGER_SEND_CONNECT", {
+        profileUrl: profileUrl.trim(),
+        note: note.trim(),
       });
-      setResult({ status: "success", label: "Connection request sent!" });
-      setNote("");
+      if (res.success) {
+        setResult({ status: "success", label: "Connection request sent!" });
+        setNote("");
+      } else {
+        setResult({ status: "error", label: String(res.error || "Failed to send.") });
+      }
     } catch (err: unknown) {
-      const msg =
-        (err as { body?: { detail?: string }; message?: string })?.body?.detail ||
-        (err as { message?: string })?.message ||
-        "Failed to send. Try again.";
-      setResult({ status: "error", label: msg });
+      setResult({ status: "error", label: (err as Error).message || "Failed to send." });
     }
   };
 
@@ -279,14 +310,38 @@ function ResultBox({ result }: { result: ResultState }) {
 export default function LinkedInOutreachPage() {
   const { loading: authLoading } = useOutreachAuth();
   const [tokenStatus, setTokenStatus] = useState<TokenStatus | null>(null);
+  const extensionDetected = useRef(false);
+
+  // Listen for the extension's READY ping from the bridge content script
+  useEffect(() => {
+    function handler(event: MessageEvent) {
+      if (event.data?.__lf_source === "studojo-extension" && event.data?.type === "EXTENSION_READY") {
+        extensionDetected.current = true;
+        setTokenStatus((prev) => prev ? { ...prev, extensionPresent: true } : null);
+      }
+    }
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   const fetchStatus = useCallback(async () => {
     setTokenStatus(null);
+    // Ask extension directly for connection status
     try {
-      const s = await outreachFetch<TokenStatus>("/linkedin/token/status");
-      setTokenStatus(s);
+      const res = await sendToExtension("GET_STATUS", {});
+      setTokenStatus({
+        connected: !!(res.liAtCookie && res.connected),
+        extensionPresent: true,
+      });
     } catch {
-      setTokenStatus({ connected: false });
+      // Extension not present — fall back to backend token check
+      try {
+        const { outreachFetch } = await import("~/lib/outreach/api");
+        const s = await outreachFetch<TokenStatus>("/linkedin/token/status");
+        setTokenStatus({ ...s, extensionPresent: false });
+      } catch {
+        setTokenStatus({ connected: false, extensionPresent: false });
+      }
     }
   }, []);
 
