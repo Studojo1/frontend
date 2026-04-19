@@ -67,13 +67,13 @@ export function ResumePreview({
     });
 
   return (
-    <div className="bg-white border-2 border-neutral-900 rounded-[24px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] overflow-hidden h-full">
-      <div className="bg-neutral-900 text-white px-4 py-2 text-xs font-bold uppercase tracking-wider font-['Satoshi'] flex items-center justify-between">
+    <div className="bg-white border-2 border-neutral-900 rounded-[24px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] overflow-hidden flex flex-col h-full">
+      <div className="bg-neutral-900 text-white px-4 py-2 text-xs font-bold uppercase tracking-wider font-['Satoshi'] flex items-center justify-between shrink-0">
         <span>Live preview{editable ? " · editable" : ""}</span>
         <span className="text-violet-300">A4 · single column · ATS-safe</span>
       </div>
 
-      <div className="p-8 overflow-y-auto" style={{ maxHeight: "calc(100vh - 260px)" }}>
+      <div className="p-8 overflow-y-auto flex-1 min-h-0">
         {!hasAny && (
           <div className="text-center text-neutral-400 py-20 font-['Satoshi']">
             Your resume will appear here as you chat.
