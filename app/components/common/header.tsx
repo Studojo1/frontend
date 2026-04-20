@@ -35,7 +35,7 @@ const RESOURCES_LINKS = [
 ];
 
 const USER_LINKS = [
-  { to: "/resumes", label: "My Resumes" },
+  { to: "/profile", label: "My Profile" },
   { to: "/settings", label: "Settings" },
 ] as const;
 
@@ -182,15 +182,21 @@ export function Header() {
                   <button
                     type="button"
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 font-['Satoshi'] text-base font-medium leading-6 text-neutral-700 hover:text-neutral-900"
+                    className="flex items-center gap-2"
+                    aria-label="Open profile menu"
                   >
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>{session.user.name ?? session.user.email}</span>
+                    <div className="h-9 w-9 rounded-full bg-violet-500 border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] flex items-center justify-center">
+                      <span className="font-['Clash_Display'] text-sm font-bold text-white select-none">
+                        {(session.user.name ?? session.user.email ?? "?")
+                          .split(" ")
+                          .map((w: string) => w[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </span>
+                    </div>
                     <svg
-                      className={`h-4 w-4 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+                      className={`h-4 w-4 text-neutral-700 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -203,14 +209,14 @@ export function Header() {
                     <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border-2 border-neutral-900 bg-white shadow-lg z-50">
                       <div className="py-2">
                         <Link
-                          to="/resumes"
+                          to="/profile"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-3 px-4 py-2 font-['Satoshi'] text-sm text-neutral-700 hover:bg-neutral-50"
                         >
                           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
-                          <span>My Resumes</span>
+                          <span>My Profile</span>
                         </Link>
                         <Link
                           to="/my-applications"
@@ -262,14 +268,18 @@ export function Header() {
                   )}
                 </div>
                 <Link
-                  to="/settings"
-                  className="flex h-10 w-10 items-center justify-center rounded-lg text-neutral-700 hover:bg-neutral-100 sm:hidden"
-                  aria-label="Settings"
+                  to="/profile"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-500 border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] sm:hidden"
+                  aria-label="My Profile"
                 >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                  <span className="font-['Clash_Display'] text-xs font-bold text-white select-none">
+                    {(session.user.name ?? session.user.email ?? "?")
+                      .split(" ")
+                      .map((w: string) => w[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </span>
                 </Link>
               </>
             ) : (
@@ -355,11 +365,11 @@ export function Header() {
                 <>
                   <li>
                     <Link
-                      to="/resumes"
+                      to="/profile"
                       onClick={() => setMobileOpen(false)}
                       className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >
-                      My Resumes
+                      My Profile
                     </Link>
                   </li>
                   <li>

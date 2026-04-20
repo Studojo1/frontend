@@ -111,9 +111,15 @@ export function ChatPanel({
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 space-y-3"
-        style={{ maxHeight: "calc(100vh - 360px)" }}
+        className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0"
       >
+        {messages.length === 0 && !sending && (
+          <div className="flex h-full items-center justify-center py-12 text-center">
+            <p className="font-['Satoshi'] text-sm text-neutral-400 max-w-xs">
+              Your resume coach is ready. Say hi or describe the role you&apos;re targeting.
+            </p>
+          </div>
+        )}
         {messages.map((m) => (
           <Bubble key={m.id} role={m.role} text={m.content} />
         ))}
@@ -185,7 +191,7 @@ export function ChatPanel({
             <button
               onClick={() => submit()}
               disabled={sending || !input.trim()}
-              className="px-4 bg-violet-500 text-neutral-900 font-bold border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-40 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+              className="px-4 bg-violet-500 text-white font-bold border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-40 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
             >
               <FiSend className="w-5 h-5" />
             </button>
@@ -200,7 +206,7 @@ function Bubble({ role, text }: { role: "user" | "assistant"; text: string }) {
   if (role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] bg-violet-500 text-neutral-900 px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-br-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
+        <div className="max-w-[80%] bg-violet-500 text-white px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-br-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
           {text}
         </div>
       </div>
@@ -208,8 +214,11 @@ function Bubble({ role, text }: { role: "user" | "assistant"; text: string }) {
   }
   return (
     <div className="flex justify-start">
-      <div className="max-w-[85%] bg-white text-neutral-900 px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-bl-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
-        {text}
+      <div className="max-w-[85%]">
+        <div className="text-[10px] font-bold text-neutral-400 mb-0.5 ml-1 font-['Satoshi']">studojo</div>
+        <div className="bg-white text-neutral-900 px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-bl-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
+          {text}
+        </div>
       </div>
     </div>
   );

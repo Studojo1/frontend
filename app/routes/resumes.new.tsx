@@ -12,6 +12,7 @@ import type { Route } from "./+types/resumes.new";
 import type { ResumeSection } from "~/lib/resume-draft";
 
 export async function loader({ request }: Route.LoaderArgs) {
+  throw redirect("/rsb");
   const session = await getSessionFromRequest(request);
   if (!session) throw redirect("/auth");
   
