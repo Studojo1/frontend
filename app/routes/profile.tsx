@@ -17,6 +17,7 @@ import { Footer } from "~/components/common/footer";
 import { authClient } from "~/lib/auth-client";
 import { rsbFetch } from "~/lib/rsb/api";
 import { outreachFetch } from "~/lib/outreach/api";
+import { getJobs, type JobResponse } from "~/lib/control-plane";
 import { toast } from "sonner";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import type { Route } from "./+types/profile";
@@ -145,6 +146,7 @@ export default function Profile() {
   const [classicResumes, setClassicResumes] = useState<ClassicResume[] | null>(null);
   const [outreachOrders, setOutreachOrders] = useState<OutreachOrder[] | null>(null);
   const [applications, setApplications] = useState<Application[] | null>(null);
+  const [assignmentJobs, setAssignmentJobs] = useState<JobResponse[] | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const user = authSession?.user;
@@ -201,6 +203,11 @@ export default function Profile() {
       .then((r) => (r.ok ? r.json() : { applications: [] }))
       .then((d) => setApplications(d.applications))
       .catch(() => setApplications([]));
+
+    // Assignment/dojo jobs from control plane
+    getJobs(undefined, 20, 0)
+      .then((jobs) => setAssignmentJobs(jobs))
+      .catch(() => setAssignmentJobs([]));
   }, [user]);
 
   const handleDeleteClassic = async (id: string) => {
@@ -410,6 +417,74 @@ export default function Profile() {
                           </div>
                         </div>
                         <StatusBadge label={cfg.label} color={cfg.color} />
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+
+            {/* ── Assignment & Dojo Orders ── */}
+            <section>
+              <SectionHeader
+                title="Dojo Activity"
+                cta={
+                  <Link to="/orders" className="font-['Satoshi'] text-sm font-semibold text-violet-600 hover:underline flex items-center gap-1">
+                    View all <FiExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                }
+              />
+              {assignmentJobs === null ? (
+                <Skeleton rows={2} />
+              ) : assignmentJobs.length === 0 ? (
+                <EmptyState
+                  icon={<FiFileText className="h-6 w-6" />}
+                  title="No dojo activity yet"
+                  desc="Use Assignment Dojo, Document Humanizer, or other tools and your activity appears here."
+                />
+              ) : (
+                <ul className="space-y-3">
+                  {assignmentJobs.map((job) => {
+                    const statusColor =
+                      job.status === "COMPLETED"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                        : job.status === "FAILED"
+                        ? "bg-red-50 text-red-600 border-red-300"
+                        : job.status === "RUNNING"
+                        ? "bg-blue-50 text-blue-700 border-blue-300"
+                        : "bg-amber-50 text-amber-700 border-amber-300";
+                    const typeLabel =
+                      job.type === "assignment-gen" ? "Assignment"
+                      : job.type === "humanizer" ? "Humanizer"
+                      : job.type === "outline-gen" ? "Outline"
+                      : job.type === "outline-edit" ? "Outline Edit"
+                      : job.type;
+                    return (
+                      <li key={job.job_id} className="flex items-center justify-between gap-4 rounded-2xl border-2 border-neutral-200 bg-white p-4">
+                        <div className="min-w-0">
+                          <p className="font-['Satoshi'] text-sm font-bold text-neutral-900">{typeLabel}</p>
+                          <p className="mt-0.5 font-['Satoshi'] text-xs text-neutral-500">
+                            {new Date(job.created_at).toLocaleDateString()}
+                            {job.result?.download_url ? " · Ready to download" : ""}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <StatusBadge
+                            label={job.status.charAt(0) + job.status.slice(1).toLowerCase()}
+                            color={statusColor}
+                          />
+                          {job.result?.download_url && (
+                            <a
+                              href={job.result.download_url as string}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-center rounded-lg border-2 border-neutral-200 p-2 text-neutral-500 hover:bg-neutral-50"
+                              title="Download"
+                            >
+                              <FiExternalLink className="h-4 w-4" />
+                            </a>
+                          )}
+                        </div>
                       </li>
                     );
                   })}
