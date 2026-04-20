@@ -379,7 +379,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {rsbSessions.map((s) => {
+                {(Array.isArray(rsbSessions) ? rsbSessions : []).map((s) => {
                   const score = s.ats?.score ?? 0;
                   const scoreColor =
                     score >= 80
@@ -434,7 +434,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {applications.map((a) => (
+                {(Array.isArray(applications) ? applications : []).map((a) => (
                   <div
                     key={a.id}
                     className="flex items-center justify-between p-3 rounded-xl border-2 border-neutral-200"
@@ -472,7 +472,7 @@ export default function ProfilePage() {
               </p>
             ) : (
               <div className="space-y-2">
-                {outreachOrders.map((o, i) => (
+                {(Array.isArray(outreachOrders) ? outreachOrders : []).map((o, i) => (
                   <div
                     key={o.id ?? i}
                     className="flex items-center justify-between p-3 rounded-xl border-2 border-neutral-200"
@@ -507,7 +507,7 @@ export default function ProfilePage() {
               </p>
             ) : (
               <div className="space-y-2">
-                {jobs.map((j) => (
+                {(Array.isArray(jobs) ? jobs : []).map((j) => (
                   <div
                     key={j.job_id}
                     className="flex items-center justify-between p-3 rounded-xl border-2 border-neutral-200"
@@ -541,7 +541,7 @@ export default function ProfilePage() {
               <p className="font-['Satoshi'] text-sm text-neutral-500 py-2">No classic resumes.</p>
             ) : (
               <div className="space-y-2">
-                {classicResumes.map((r) => (
+                {(Array.isArray(classicResumes) ? classicResumes : []).map((r) => (
                   <Link
                     key={r.id}
                     to={`/resumes/${r.id}/edit`}
