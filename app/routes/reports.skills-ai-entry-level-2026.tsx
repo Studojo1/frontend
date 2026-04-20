@@ -84,8 +84,8 @@ function initCharts() {
     data: {
       labels: ["AI Research\nAssistant", "AI Data\nAnalyst", "Prompt\nEngineer", "ML Engineer\n(entry)", "AI Product\nManager", "MLOps\nEngineer"],
       datasets: [
-        { label: "Salary low (USD)", data: [60000, 68000, 72000, 92000, 105000, 98000], backgroundColor: BLUE3, borderRadius: 4, borderWidth: 0 },
-        { label: "Salary high (USD)", data: [88000, 98000, 108000, 135000, 155000, 145000], backgroundColor: BLUE, borderRadius: 4, borderWidth: 0 },
+        { label: "Salary low (USD)", data: [50000, 68000, 72000, 92000, 85000, 85000], backgroundColor: BLUE3, borderRadius: 4, borderWidth: 0 },
+        { label: "Salary high (USD)", data: [75000, 98000, 108000, 135000, 120000, 130000], backgroundColor: BLUE, borderRadius: 4, borderWidth: 0 },
       ],
     },
     options: {
@@ -124,7 +124,7 @@ function initCharts() {
     },
   });
 
-  // Chart 4: Builder vs Wrapper vs Analyst — which path is most accessible
+  // Chart 4: Builder vs Wrapper vs Analyst - which path is most accessible
   make("pathChart", {
     type: "doughnut",
     data: {
@@ -203,7 +203,7 @@ export default function AISkillsReport() {
             </p>
             <div className="rpt-hero-stats">
               <div className="rpt-hero-stat"><div className="rpt-hval">94%</div><div className="rpt-hlbl">Of entry-level AI job postings require Python (Burning Glass / LinkedIn Jobs, 2025)</div></div>
-              <div className="rpt-hero-stat"><div className="rpt-hval">42%</div><div className="rpt-hlbl">Of entry-level AI roles are application/wrapper roles — not core model building</div></div>
+              <div className="rpt-hero-stat"><div className="rpt-hval">42%</div><div className="rpt-hlbl">Of entry-level AI roles are application/wrapper roles - not core model building</div></div>
               <div className="rpt-hero-stat"><div className="rpt-hval">8 findings</div><div className="rpt-hlbl">Skills, roles, salaries, portfolio signals, and where the jobs actually are</div></div>
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function AISkillsReport() {
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Entry-level AI job postings by role type (Burning Glass / LinkedIn analysis, 2025-26)</div>
+              <div className="rpt-card-label">Estimated breakdown of entry-level AI roles by type (based on job posting analysis, Lightcast / LinkedIn, 2025-26)</div>
               <div className="rpt-chart-wrap" style={{ height: 320 }}><canvas id="pathChart"></canvas></div>
             </div>
 
@@ -247,7 +247,7 @@ export default function AISkillsReport() {
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", flexShrink: 0, marginTop: 6 }}></div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: "#171717" }}>{title}</div>
-                          <div style={{ fontSize: 13, color: "#737373", lineHeight: 1.55, marginTop: 2 }}>{detail}</div>
+                          <div style={{ fontSize: 14, color: "#737373", lineHeight: 1.55, marginTop: 2 }}>{detail}</div>
                         </div>
                       </div>
                     ))}
@@ -266,7 +266,7 @@ export default function AISkillsReport() {
                     ].map(([profile, advice]) => (
                       <div key={profile as string} style={{ borderLeft: "3px solid #3b82f6", paddingLeft: 10 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: "#1d4ed8", textTransform: "uppercase" as const, letterSpacing: 1 }}>{profile}</div>
-                        <div style={{ fontSize: 13, color: "#525252", marginTop: 2, lineHeight: 1.55 }}>{advice}</div>
+                        <div style={{ fontSize: 14, color: "#525252", marginTop: 2, lineHeight: 1.55 }}>{advice}</div>
                       </div>
                     ))}
                   </div>
@@ -287,19 +287,19 @@ export default function AISkillsReport() {
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Skill frequency in entry-level AI job postings (% of listings that mention this skill, 2025-26)</div>
+              <div className="rpt-card-label">Approximate skill frequency in entry-level AI job postings (based on job posting analysis, Stack Overflow / LinkedIn / Lightcast, 2025-26)</div>
               <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="skillsChart"></canvas></div>
             </div>
 
             <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">Python</div><div className="rpt-lbl">In 94% of postings. Depth matters: not just scripts. Data manipulation with Pandas, working with APIs, writing clean, readable functions. The bare minimum is 3 months of daily coding practice.</div></div>
-              <div className="rpt-stat"><div className="rpt-val">SQL</div><div className="rpt-lbl">In 78% of postings. Joins, aggregations, window functions, subqueries. Most data work in AI roles happens upstream of any model. If you cannot query data, you cannot do the job.</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">Git</div><div className="rpt-lbl">In 88% of postings. Branches, pull requests, commit messages. A GitHub profile with consistent green squares is visible evidence of practice. An empty GitHub is a red flag to most technical interviewers.</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-b">Python</div><div className="rpt-lbl">Required in the vast majority of AI postings. Depth matters: not just scripts. Data manipulation with Pandas, working with APIs, writing clean, readable functions. The bare minimum is 3 months of daily coding practice.</div></div>
+              <div className="rpt-stat"><div className="rpt-val">SQL</div><div className="rpt-lbl">Cited across most data-adjacent AI postings. Joins, aggregations, window functions, subqueries. Most data work in AI roles happens upstream of any model. If you cannot query data, you cannot do the job.</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">Git</div><div className="rpt-lbl">Expected in nearly all technical AI postings. Branches, pull requests, commit messages. A GitHub profile with consistent green squares is visible evidence of practice. An empty GitHub is a red flag to most technical interviewers.</div></div>
             </div>
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">What "knowing Python" actually means to a hiring manager</div>
-              <p>Many students list Python on their resume after completing one online course. Interviewers test this. The threshold is: can you write a script from scratch to clean a dataset, call an API, handle errors, and output a structured file — without Googling the basic syntax. If you need to look up how to open a file or write a for loop, you are not at the required level. The Pandas + requests + JSON trio is the practical entry point. Get to where you can build something small from a blank file in under an hour.</p>
+              <p>Many students list Python on their resume after completing one online course. Interviewers test this. The threshold is: can you write a script from scratch to clean a dataset, call an API, handle errors, and output a structured file - without Googling the basic syntax. If you need to look up how to open a file or write a for loop, you are not at the required level. The Pandas + requests + JSON trio is the practical entry point. Get to where you can build something small from a blank file in under an hour.</p>
             </div>
 
             <div className="rpt-two-col" style={{ marginTop: 20 }}>
@@ -308,16 +308,16 @@ export default function AISkillsReport() {
                 <div className="rpt-card" style={{ padding: 18 }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {[
-                      ["PyTorch (preferred over TensorFlow)", "65% of ML postings. PyTorch dominates research and most production ML. TensorFlow is declining in job posting frequency."],
+                      ["PyTorch (preferred over TensorFlow)", "Leads TensorFlow in ML postings (37.7% vs 32.9% of framework-specific listings; 85% of deep learning research papers). PyTorch dominates research and most production ML."],
                       ["Linear algebra + calculus basics", "Not tested directly but essential for understanding models. 3Blue1Brown Essence series is the fastest path."],
-                      ["Statistics and probability", "76% of postings. Distributions, hypothesis testing, Bayes theorem, confidence intervals."],
+                      ["Statistics and probability", "Frequently required in data-adjacent AI roles. Distributions, hypothesis testing, Bayes theorem, confidence intervals."],
                       ["A Kaggle competition (top 20%)", "Public evidence of applied ML. More credible than any course certificate."],
                     ].map(([skill, note]) => (
                       <div key={skill as string} style={{ display: "flex", gap: 10 }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 600, color: "#171717" }}>{skill}</div>
-                          <div style={{ fontSize: 13, color: "#737373" }}>{note}</div>
+                          <div style={{ fontSize: 14, color: "#737373" }}>{note}</div>
                         </div>
                       </div>
                     ))}
@@ -338,7 +338,7 @@ export default function AISkillsReport() {
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 600, color: "#171717" }}>{skill}</div>
-                          <div style={{ fontSize: 13, color: "#737373" }}>{note}</div>
+                          <div style={{ fontSize: 14, color: "#737373" }}>{note}</div>
                         </div>
                       </div>
                     ))}
@@ -364,7 +364,7 @@ export default function AISkillsReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 03</span>
-              <h2 className="rpt-h2">Entry-level ML Engineers earn $92k-$135k in the US. MLOps is the best-paid, least-competed role. AI Product Manager is the highest ceiling.</h2>
+              <h2 className="rpt-h2">Entry-level ML Engineers earn $92k-$135k in the US. MLOps roles start at $85k. AI Product Manager has the highest ceiling at $85k-$120k for entry-level.</h2>
               <p className="rpt-lead">Pay varies significantly by role type, not just by company. Understanding which roles pay what helps you decide where to direct preparation time. Here is the verified salary data for each entry-level AI track.</p>
             </div>
 
@@ -374,7 +374,7 @@ export default function AISkillsReport() {
             </div>
 
             <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">$98-145k</div><div className="rpt-lbl">MLOps Engineer entry-level range (US). High demand, undersupplied talent pool. Requires DevOps + ML crossover skills.</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-b">$85-130k</div><div className="rpt-lbl">MLOps Engineer entry-level range (US). True entry-level starts ~$85K; range reflects early-career with adjacent DevOps or ML experience. High demand, undersupplied talent pool.</div></div>
               <div className="rpt-stat"><div className="rpt-val">$92-135k</div><div className="rpt-lbl">ML Engineer (entry-level, US). Glassdoor median $108k. Big Tech pays significantly above this band.</div></div>
               <div className="rpt-stat"><div className="rpt-val rpt-o">$68-98k</div><div className="rpt-lbl">AI Data Analyst (entry-level, US). Most accessible entry point. Median $79k across sectors (LinkedIn Salary 2025).</div></div>
             </div>
@@ -383,18 +383,18 @@ export default function AISkillsReport() {
               <div className="rpt-card-label">Global equivalents for entry-level ML Engineer roles</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 8 }}>
                 {[
-                  { market: "United States", range: "$92,000 to $135,000/yr", note: "San Francisco Bay Area at the top. NYC and Seattle close. Remote-friendly roles from non-Bay companies often $85k-$110k.", color: "#3b82f6" },
+                  { market: "United States", range: "$92,000 to $135,000/yr", note: "ML Engineer entry-level (Glassdoor median $108K). AI PM entry-level is $85K-$120K. MLOps starts ~$85K. San Francisco Bay Area at the top. NYC and Seattle close.", color: "#3b82f6" },
                   { market: "United Kingdom", range: "£45,000 to £72,000/yr", note: "London (DeepMind, Wayve, Stability AI, Meta AI). Manchester and Edinburgh emerging. Big Tech London competes with Bay Area on equity.", color: "#3b82f6" },
                   { market: "Germany", range: "EUR 52,000 to EUR 78,000/yr", note: "Berlin (Delivery Hero, Zalando AI), Munich (BMW AI, Allianz tech). Strong for European AI startups.", color: "#60a5fa" },
-                  { market: "India", range: "INR 10 to 24 LPA", note: "Bengaluru dominates. MNCs (Google, Microsoft, Amazon) at INR 20-24 LPA. Funded startups INR 12-18 LPA. Public-sector AI roles INR 8-12 LPA.", color: "#60a5fa" },
+                  { market: "India", range: "INR 5 to 12 LPA (fresher)", note: "Bengaluru dominates. Fresher/entry-level national range INR 5-10 LPA. MNCs (Google, Microsoft, Amazon) reach INR 18-24 LPA for strong candidates. Funded startups INR 10-15 LPA.", color: "#60a5fa" },
                   { market: "Singapore", range: "SGD $65,000 to $105,000/yr", note: "Regional AI hub. GovTech, Sea Group, Grab, Shopee all hiring. Government AIAP programme for fresh graduates.", color: "#93c5fd" },
-                  { market: "Australia", range: "AUD $80,000 to $115,000/yr", note: "Sydney (Atlassian, Canva AI) and Melbourne lead. Government AI roles through ADHA and ASD. Remote roles growing post-2024.", color: "#93c5fd" },
+                  { market: "Australia", range: "AUD $70,000 to $115,000/yr", note: "Sydney (Atlassian, Canva AI) and Melbourne lead. PayScale shows ~AUD $69K for under 1 year; broader market average ~AUD $98K. Government AI roles through ADHA and ASD.", color: "#93c5fd" },
                 ].map(r => (
                   <div key={r.market} style={{ display: "flex", gap: 12 }}>
                     <div style={{ width: 4, borderRadius: 2, background: r.color, flexShrink: 0, alignSelf: "stretch" }}></div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 700, color: "#171717", marginBottom: 2 }}>{r.market} - {r.range}</div>
-                      <div style={{ fontSize: 13, color: "#525252", lineHeight: 1.6 }}>{r.note}</div>
+                      <div style={{ fontSize: 14, color: "#525252", lineHeight: 1.6 }}>{r.note}</div>
                     </div>
                   </div>
                 ))}
@@ -407,7 +407,7 @@ export default function AISkillsReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 04</span>
-              <h2 className="rpt-h2">Domain knowledge plus AI beats pure AI at most companies outside Big Tech. A finance student who can use ML beats a CS student who cannot explain what a bond is — at every fintech.</h2>
+              <h2 className="rpt-h2">Domain knowledge plus AI beats pure AI at most companies outside Big Tech. A finance student who can use ML beats a CS student who cannot explain what a bond is - at every fintech.</h2>
               <p className="rpt-lead">The most underrated edge in the AI job market in 2026 is sector expertise. Most AI teams are not staffed exclusively by ML researchers. They hire domain specialists who can apply AI within a vertical.</p>
             </div>
 
@@ -426,7 +426,7 @@ export default function AISkillsReport() {
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", flexShrink: 0, marginTop: 6 }}></div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: "#171717" }}>{title}</div>
-                          <div style={{ fontSize: 13, color: "#737373", lineHeight: 1.5, marginTop: 2 }}>{detail}</div>
+                          <div style={{ fontSize: 14, color: "#737373", lineHeight: 1.5, marginTop: 2 }}>{detail}</div>
                         </div>
                       </div>
                     ))}
@@ -447,7 +447,7 @@ export default function AISkillsReport() {
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#60a5fa", flexShrink: 0, marginTop: 6 }}></div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: "#171717" }}>{title}</div>
-                          <div style={{ fontSize: 13, color: "#737373", lineHeight: 1.5, marginTop: 2 }}>{detail}</div>
+                          <div style={{ fontSize: 14, color: "#737373", lineHeight: 1.5, marginTop: 2 }}>{detail}</div>
                         </div>
                       </div>
                     ))}
@@ -479,7 +479,7 @@ export default function AISkillsReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 05</span>
-              <h2 className="rpt-h2">A deployed project beats a certificate 9.2 to 4.2 on a hiring manager's signal scale. The portfolio is not optional — it is the interview.</h2>
+              <h2 className="rpt-h2">A deployed project beats a certificate 9.2 to 4.2 on a hiring manager's signal scale. The portfolio is not optional - it is the interview.</h2>
               <p className="rpt-lead">AI roles are uniquely portfolio-driven at entry level. Companies hire for demonstrated ability, not credentials. Here is what signals actually move hiring managers and what is largely ignored.</p>
             </div>
 
@@ -508,7 +508,7 @@ export default function AISkillsReport() {
                     <div style={{ width: 4, borderRadius: 2, background: r.flag === "blue" ? "#3b82f6" : r.flag === "amber" ? "#f59e0b" : "#e5e5e5", flexShrink: 0, alignSelf: "stretch" }}></div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 700, color: "#171717", marginBottom: 3 }}>{r.label}</div>
-                      <div style={{ fontSize: 13, color: "#525252", lineHeight: 1.6 }}>{r.detail}</div>
+                      <div style={{ fontSize: 14, color: "#525252", lineHeight: 1.6 }}>{r.detail}</div>
                     </div>
                   </div>
                 ))}
@@ -521,7 +521,7 @@ export default function AISkillsReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 06</span>
-              <h2 className="rpt-h2">San Francisco has 5x the AI job posting density of London. But 60% of AI jobs posted in 2025 were at companies that did not exist 5 years ago.</h2>
+              <h2 className="rpt-h2">San Francisco has the highest AI job posting density globally. But the remote layer is real, and Bengaluru is the fastest-growing AI market by absolute job volume.</h2>
               <p className="rpt-lead">AI hiring is geographically concentrated but the remote layer is growing. Here is where the jobs actually are and what that means for where you should be targeting.</p>
             </div>
 
@@ -532,7 +532,7 @@ export default function AISkillsReport() {
 
             <div className="rpt-bar-list" style={{ marginTop: 16 }}>
               {[
-                { city: "San Francisco Bay Area", range: "Index 100", sub: "OpenAI, Anthropic, Google DeepMind, Meta AI, Scale AI, Cohere. Highest density. Also highest cost of living — $3,000+/month for a room.", bg: "#3b82f6", pct: 100 },
+                { city: "San Francisco Bay Area", range: "Index 100", sub: "OpenAI, Anthropic, Google DeepMind, Meta AI, Scale AI, Cohere. Highest density. Also highest cost of living - $3,000+/month for a room.", bg: "#3b82f6", pct: 100 },
                 { city: "Seattle", range: "Index 54", sub: "Amazon Web Services AI, Microsoft Azure AI, Waymo. Strong for MLOps and cloud-native AI. Lower cost than SF.", bg: "#3b82f6", pct: 54 },
                 { city: "New York City", range: "Index 48", sub: "Finance AI (Goldman, JPMorgan, Two Sigma), media AI, LegalTech. Best city for domain-specific AI roles in finance and law.", bg: "#60a5fa", pct: 48 },
                 { city: "Bengaluru, India", range: "Index 22", sub: "Google India, Microsoft India, Walmart Global Tech, PhonePe, Swiggy AI teams. Fastest-growing AI market by absolute volume.", bg: "#60a5fa", pct: 22 },
@@ -548,8 +548,8 @@ export default function AISkillsReport() {
             </div>
 
             <div className="rpt-callout rpt-cp">
-              <div className="rpt-cl">The remote layer is real — for the right roles</div>
-              <p>Approximately 34% of entry-level AI job postings in 2025 offered full or hybrid remote work (LinkedIn Jobs analysis). This skews heavily toward Application/Wrapper and Analyst roles. Core ML research roles at Big Tech remain almost entirely in-person. If you are targeting an AI startup at the application layer, location is a significantly smaller barrier than it was 3 years ago. A strong portfolio and a solid GitHub profile can land you a remote role at a US company from India, Eastern Europe, or Southeast Asia.</p>
+              <div className="rpt-cl">The remote layer is real - for the right roles</div>
+              <p>Around 27% of entry-level AI postings specifically offered full or hybrid remote in 2025 (vs ~34% for AI roles broadly across all seniority levels). This skews heavily toward Application/Wrapper and Analyst roles. Core ML research roles at Big Tech remain almost entirely in-person. If you are targeting an AI startup at the application layer, location is a significantly smaller barrier than it was 3 years ago. A strong portfolio and a solid GitHub profile can land you a remote role at a US company from India, Eastern Europe, or Southeast Asia.</p>
             </div>
             <p className="rpt-source">Source: LinkedIn Jobs AI category geographic analysis Q4 2025, Burning Glass AI regional hiring data 2025, Glassdoor remote AI jobs tracker 2025, Indeed AI job trends report 2025</p>
           </div>
@@ -558,7 +558,7 @@ export default function AISkillsReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 07</span>
-              <h2 className="rpt-h2">Where to actually find entry-level AI roles — and why LinkedIn is not the whole picture.</h2>
+              <h2 className="rpt-h2">Where to actually find entry-level AI roles - and why LinkedIn is not the whole picture.</h2>
               <p className="rpt-lead">Most entry-level AI roles are posted on 3 to 4 platforms. But the best roles, especially at startups, are posted before they hit job boards at all. Here is the full sourcing map.</p>
             </div>
 
@@ -578,7 +578,7 @@ export default function AISkillsReport() {
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 600, color: "#171717" }}>{name}</div>
-                          <div style={{ fontSize: 13, color: "#737373" }}>{note}</div>
+                          <div style={{ fontSize: 14, color: "#737373" }}>{note}</div>
                         </div>
                       </div>
                     ))}
@@ -599,7 +599,7 @@ export default function AISkillsReport() {
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#60a5fa", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 600, color: "#171717" }}>{name}</div>
-                          <div style={{ fontSize: 13, color: "#737373" }}>{note}</div>
+                          <div style={{ fontSize: 14, color: "#737373" }}>{note}</div>
                         </div>
                       </div>
                     ))}
@@ -615,7 +615,7 @@ export default function AISkillsReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 08</span>
               <h2 className="rpt-h2">The 90-day sprint: a realistic preparation timeline from zero to first AI application.</h2>
-              <p className="rpt-lead">Students often ask how long it takes to be competitive for an entry-level AI role. The honest answer depends on your starting point. Here is a realistic, structured path for the Application/Wrapper track — the most accessible entry point.</p>
+              <p className="rpt-lead">Students often ask how long it takes to be competitive for an entry-level AI role. The honest answer depends on your starting point. Here is a realistic, structured path for the Application/Wrapper track - the most accessible entry point.</p>
             </div>
 
             <div className="rpt-card" style={{ padding: 24 }}>
@@ -658,7 +658,7 @@ export default function AISkillsReport() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {phase.items.map((item, i) => (
                         <div key={i} style={{ display: "flex", gap: 8 }}>
-                          <div style={{ fontSize: 13, color: "#737373", lineHeight: 1.6 }}>{item}</div>
+                          <div style={{ fontSize: 14, color: "#737373", lineHeight: 1.6 }}>{item}</div>
                         </div>
                       ))}
                     </div>
