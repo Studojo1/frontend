@@ -1,5 +1,27 @@
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
+
+class ProfileErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="p-6 bg-red-50 border-2 border-red-400 rounded-2xl m-6">
+          <p className="font-bold text-red-800 mb-2">Profile render error (staging debug):</p>
+          <pre className="text-xs text-red-700 whitespace-pre-wrap break-all">{this.state.error.message}{"\n"}{this.state.error.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { authClient } from "~/lib/auth-client";
 import { Header } from "~/components/common/header";
 import { rsbFetch } from "~/lib/rsb/api";
@@ -251,6 +273,7 @@ export default function ProfilePage() {
   const completeness = Math.round((filledCount / fields.length) * 100);
 
   return (
+    <ProfileErrorBoundary>
     <>
       <Header />
       <div className="bg-gradient-to-br from-violet-50 via-white to-amber-50 min-h-[calc(100vh-80px)] px-4 md:px-8 py-8">
@@ -561,5 +584,6 @@ export default function ProfilePage() {
         </div>
       </div>
     </>
+    </ProfileErrorBoundary>
   );
 }
