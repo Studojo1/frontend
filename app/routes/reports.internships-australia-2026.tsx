@@ -251,15 +251,15 @@ export default function AustraliaInternshipsReport() {
                       <div key={title as string} style={{ display: "flex", gap: 10 }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#171717" }}>{title}</div>
-                          <div style={{ fontSize: 12, color: "#737373", lineHeight: 1.5 }}>{detail}</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "#171717" }}>{title}</div>
+                          <div style={{ fontSize: 14, color: "#737373", lineHeight: 1.5 }}>{detail}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                   <div className="rpt-mini-total" style={{ background: "#d0fae4", border: "1px solid #10b981" }}>
                     <div className="rpt-mini-total-label" style={{ color: "#065f46" }}>In practice</div>
-                    <div style={{ fontSize: 12, color: "#525252", marginTop: 4, lineHeight: 1.6 }}>Most university-required placements qualify. Most startup or agency "internships" where you run social media or do design work do not.</div>
+                    <div style={{ fontSize: 14, color: "#525252", marginTop: 4, lineHeight: 1.6 }}>Most university-required placements qualify. Most startup or agency "internships" where you run social media or do design work do not.</div>
                   </div>
                 </div>
               </div>
@@ -276,15 +276,15 @@ export default function AustraliaInternshipsReport() {
                       <div key={title as string} style={{ display: "flex", gap: 10 }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#171717" }}>{title}</div>
-                          <div style={{ fontSize: 12, color: "#737373", lineHeight: 1.5 }}>{detail}</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "#171717" }}>{title}</div>
+                          <div style={{ fontSize: 14, color: "#737373", lineHeight: 1.5 }}>{detail}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                   <div className="rpt-mini-total" style={{ background: "#fee2e2", border: "1px solid #ef4444" }}>
                     <div className="rpt-mini-total-label" style={{ color: "#991b1b" }}>The penalty</div>
-                    <div style={{ fontSize: 12, color: "#525252", marginTop: 4, lineHeight: 1.6 }}>Employers found in breach of the Fair Work Act face fines of up to AUD $54,000 per contravention. The Fair Work Ombudsman actively investigates complaints.</div>
+                    <div style={{ fontSize: 14, color: "#525252", marginTop: 4, lineHeight: 1.6 }}>Employers found in breach of the Fair Work Act face fines of up to AUD $54,000 per contravention. The Fair Work Ombudsman actively investigates complaints.</div>
                   </div>
                 </div>
               </div>
@@ -361,7 +361,7 @@ export default function AustraliaInternshipsReport() {
                     ].map(([title, detail]) => (
                       <div key={title as string} style={{ borderLeft: "3px solid #10b981", paddingLeft: 10 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: "#065f46", textTransform: "uppercase" as const, letterSpacing: 1 }}>{title}</div>
-                        <div style={{ fontSize: 12, color: "#525252", marginTop: 2, lineHeight: 1.55 }}>{detail}</div>
+                        <div style={{ fontSize: 14, color: "#525252", marginTop: 2, lineHeight: 1.55 }}>{detail}</div>
                       </div>
                     ))}
                   </div>
@@ -380,7 +380,7 @@ export default function AustraliaInternshipsReport() {
                     ].map(([title, detail]) => (
                       <div key={title as string} style={{ borderLeft: "3px solid #10b981", paddingLeft: 10 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: "#065f46", textTransform: "uppercase" as const, letterSpacing: 1 }}>{title}</div>
-                        <div style={{ fontSize: 12, color: "#525252", marginTop: 2, lineHeight: 1.55 }}>{detail}</div>
+                        <div style={{ fontSize: 14, color: "#525252", marginTop: 2, lineHeight: 1.55 }}>{detail}</div>
                       </div>
                     ))}
                   </div>
@@ -546,9 +546,9 @@ export default function AustraliaInternshipsReport() {
                   },
                 ].map(r => (
                   <div key={r.name} style={{ borderLeft: `3px solid ${r.color}`, paddingLeft: 14 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#171717" }}>{r.name}</div>
-                    <div style={{ fontSize: 11, color: "#737373", fontWeight: 500, marginBottom: 4 }}>{r.sub}</div>
-                    <div style={{ fontSize: 13, color: "#525252", lineHeight: 1.6 }}>{r.detail}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#171717" }}>{r.name}</div>
+                    <div style={{ fontSize: 13, color: "#737373", fontWeight: 500, marginBottom: 4 }}>{r.sub}</div>
+                    <div style={{ fontSize: 14, color: "#525252", lineHeight: 1.6 }}>{r.detail}</div>
                   </div>
                 ))}
               </div>
@@ -592,8 +592,8 @@ export default function AustraliaInternshipsReport() {
                       <div key={name as string} style={{ display: "flex", gap: 10 }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: "#171717" }}>{name}</div>
-                          <div style={{ fontSize: 11, color: "#737373" }}>{note}</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "#171717" }}>{name}</div>
+                          <div style={{ fontSize: 13, color: "#737373" }}>{note}</div>
                         </div>
                       </div>
                     ))}
@@ -614,8 +614,8 @@ export default function AustraliaInternshipsReport() {
                       <div key={skill as string} style={{ display: "flex", gap: 10 }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: "#171717" }}>{skill}</div>
-                          <div style={{ fontSize: 11, color: "#737373" }}>{note}</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "#171717" }}>{skill}</div>
+                          <div style={{ fontSize: 13, color: "#737373" }}>{note}</div>
                         </div>
                       </div>
                     ))}
@@ -671,9 +671,9 @@ const rptCSS = `
   .rpt-lead { font-size:15px; color:#525252; line-height:1.7; max-width:640px; }
   .rpt-prose { font-size:15px; line-height:1.75; color:#525252; margin-bottom:24px; }
   .rpt-prose strong { color:#171717; font-weight:700; }
-  .rpt-source { font-size:11px; color:#a3a3a3; margin-top:16px; }
+  .rpt-source { font-size:12px; color:#a3a3a3; margin-top:16px; }
   .rpt-card { background:#fff; border:2px solid #171717; border-radius:20px; padding:28px; box-shadow:4px 4px 0px 0px rgba(25,26,35,1); margin-bottom:20px; }
-  .rpt-card-label { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#737373; margin-bottom:16px; }
+  .rpt-card-label { font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#737373; margin-bottom:16px; }
   .rpt-chart-wrap { position:relative; }
   .rpt-chart-wrap canvas { width:100%!important; }
   .rpt-stat-row { display:grid; gap:16px; margin-bottom:20px; }
@@ -683,21 +683,21 @@ const rptCSS = `
   .rpt-stat { background:#f5f5f5; border:2px solid #171717; border-radius:16px; padding:18px 16px; }
   .rpt-val { font-family:'Clash Display',sans-serif; font-size:28px; font-weight:700; line-height:1; margin-bottom:6px; }
   .rpt-e { color:#10b981; } .rpt-b { color:#3b82f6; } .rpt-v { color:#8b5cf6; } .rpt-g { color:#10b981; } .rpt-o { color:#f59e0b; }
-  .rpt-lbl { font-size:12px; color:#525252; line-height:1.45; font-weight:500; }
+  .rpt-lbl { font-size:13px; color:#525252; line-height:1.45; font-weight:500; }
   .rpt-delta { display:inline-block; font-size:11px; font-weight:700; margin-top:6px; padding:2px 8px; border-radius:999px; }
   .rpt-du { background:#d0fae4; color:#065f46; } .rpt-dn { background:#f5f5f5; color:#737373; border:1px solid #e5e5e5; }
   .rpt-callout { border:2px solid #171717; border-radius:16px; padding:20px 22px; margin-top:20px; }
   .rpt-cp { background:#ecfdf5; border-color:#10b981; } .rpt-cg { background:#d0fae4; border-color:#10b981; } .rpt-co { background:#fef3c6; border-color:#f59e0b; } .rpt-cd { background:#171717; border-color:#171717; color:#fff; }
   .rpt-cl { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
   .rpt-cp .rpt-cl { color:#065f46; } .rpt-cg .rpt-cl { color:#065f46; } .rpt-co .rpt-cl { color:#92400e; } .rpt-cd .rpt-cl { color:#6ee7b7; }
-  .rpt-callout p { font-size:14px; line-height:1.7; }
+  .rpt-callout p { font-size:15px; line-height:1.7; }
   .rpt-pullquote { border-left:4px solid #10b981; padding:16px 20px; margin:24px 0; background:#ecfdf5; border-radius:0 12px 12px 0; }
   .rpt-pullquote p { font-family:'Clash Display',sans-serif; font-size:18px; font-weight:600; line-height:1.45; color:#171717; }
   .rpt-bar-list { display:flex; flex-direction:column; gap:10px; }
   .rpt-bar-row { display:grid; grid-template-columns:200px 1fr 120px; align-items:center; gap:12px; }
   .rpt-bar-row.rpt-narrow { grid-template-columns:140px 1fr; }
-  .rpt-bar-label { font-size:12px; font-weight:500; color:#171717; line-height:1.35; }
-  .rpt-bar-label small { display:block; font-size:11px; color:#737373; font-weight:400; }
+  .rpt-bar-label { font-size:13px; font-weight:500; color:#171717; line-height:1.35; }
+  .rpt-bar-label small { display:block; font-size:12px; color:#737373; font-weight:400; }
   .rpt-bar-track { height:28px; background:#f5f5f5; border:1px solid #e5e5e5; border-radius:6px; overflow:hidden; }
   .rpt-bar-fill { height:100%; border-radius:6px 0 0 6px; display:flex; align-items:center; padding-left:10px; font-size:11px; font-weight:700; color:#fff; white-space:nowrap; }
   .rpt-bar-value { font-size:12px; font-weight:700; color:#171717; text-align:right; }
