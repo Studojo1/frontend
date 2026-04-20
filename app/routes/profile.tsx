@@ -38,11 +38,12 @@ const STATUS_COLORS: Record<string, string> = {
   created: "bg-neutral-100 text-neutral-700 border-neutral-300",
 };
 
-function StatusBadge({ status }: { status: string }) {
-  const cls = STATUS_COLORS[status] ?? "bg-neutral-100 text-neutral-700 border-neutral-300";
+function StatusBadge({ status }: { status: string | null | undefined }) {
+  const s = status ?? "";
+  const cls = STATUS_COLORS[s] ?? "bg-neutral-100 text-neutral-700 border-neutral-300";
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${cls} font-['Satoshi']`}>
-      {status.replace(/_/g, " ")}
+      {s.replace(/_/g, " ")}
     </span>
   );
 }
