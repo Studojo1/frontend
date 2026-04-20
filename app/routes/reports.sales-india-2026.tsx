@@ -19,7 +19,7 @@ export function meta() {
     { property: "og:url", content: `${BASE_URL}/reports/sales-india-2026` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Fresher Sales in India: What You're Actually Getting Into — Studojo 2026" },
+    { name: "twitter:title", content: "Fresher Sales in India: What You're Actually Getting Into | Studojo 2026" },
     { name: "twitter:description", content: "28,600+ open sales roles. A 5x salary gap within the same title. Free data-driven report for students entering sales in India." },
   ];
 }
@@ -77,7 +77,7 @@ function initCharts() {
     },
   });
 
-  // Chart 2: Role growth — YoY % only, coloured by direction
+  // Chart 2: Role growth: YoY % only, coloured by direction
   make("roleChart", {
     type: "bar",
     data: {

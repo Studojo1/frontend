@@ -19,7 +19,7 @@ export function meta() {
     { property: "og:url", content: `${BASE_URL}/reports/cs-india-2026` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Fresher CS in India: What You're Actually Getting Into — Studojo 2026" },
+    { name: "twitter:title", content: "Fresher CS in India: What You're Actually Getting Into | Studojo 2026" },
     { name: "twitter:description", content: "135,000 IT hires projected for FY26. A 12x salary gap at Year 0. Free data-driven report for CS freshers entering the job market in India." },
   ];
 }
@@ -78,7 +78,7 @@ function initCharts() {
     },
   });
 
-  // Chart 2: Salary by company type (grouped bar — low / high)
+  // Chart 2: Salary by company type (grouped bar: low / high)
   make("salaryChart", {
     type: "bar",
     data: {
@@ -101,7 +101,7 @@ function initCharts() {
     },
   });
 
-  // Chart 3: Role growth — YoY %, single axis, coloured by direction
+  // Chart 3: Role growth: YoY %, single axis, coloured by direction
   make("roleChart", {
     type: "bar",
     data: {
@@ -187,7 +187,7 @@ function initCharts() {
     },
   });
 
-  // Chart 7: Career trajectory — Services vs Product/GCC
+  // Chart 7: Career trajectory: Services vs Product/GCC
   make("trajectoryChart", {
     type: "line",
     data: {
@@ -260,7 +260,7 @@ export default function CSIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 01</span>
               <h2 className="rpt-h2">135,000 IT hires projected for FY26. Fresher hiring jumped 39% in a single month.</h2>
-              <p className="rpt-lead">The Indian IT-BPM sector is adding headcount again. NASSCOM projects 135,000 net new hires for FY26 — and fresher hiring is driving the growth. The Naukri JobSpeak Index hit 3,001 points in December 2025, with fresher-specific hiring up 39% YoY in January 2026 alone.</p>
+              <p className="rpt-lead">The Indian IT-BPM sector is adding headcount again. NASSCOM projects 135,000 net new hires for FY26, and fresher hiring is driving the growth. The Naukri JobSpeak Index hit 3,001 points in December 2025, with fresher-specific hiring up 39% YoY in January 2026 alone.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c4">
@@ -279,7 +279,7 @@ export default function CSIndiaReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The GCC shift</div>
-              <p>Global Capability Centers — Indian offices of multinationals like JPMorgan, Goldman Sachs, Boeing, and Nike — added 40% more presence in tier-2 cities in FY26. GCCs now employ over 1.9 million people in India. They pay product-company salaries with MNC stability. They are the most underrated fresher opportunity in the market right now.</p>
+              <p>Global Capability Centers: Indian offices of multinationals like JPMorgan, Goldman Sachs, Boeing, and Nike: added 40% more presence in tier-2 cities in FY26. GCCs now employ over 1.9 million people in India. They pay product-company salaries with MNC stability. They are the most underrated fresher opportunity in the market right now.</p>
             </div>
             <p className="rpt-source">Source: NASSCOM via BusinessToday Feb 2026, Naukri JobSpeak Jan 2026, Taggd IT Hiring Trends 2026</p>
           </div>
@@ -301,10 +301,10 @@ export default function CSIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 320 }}><canvas id="salaryChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The chart shows actual ranges, not aspirational ceilings. Within IT services, Infosys has three distinct tracks: SE (3.6 LPA), DSE (6.25 LPA), and SP (7.1 to 11.7 LPA) — and a new AI-roles band hitting 21 LPA for specialist hires announced in December 2025. <strong>The single biggest salary lever at Year 0 is not your college or your CGPA — it is which company type you get into.</strong> Everything else is secondary.</p>
+            <p className="rpt-prose">The chart shows actual ranges, not aspirational ceilings. Within IT services, Infosys has three distinct tracks: SE (3.6 LPA), DSE (6.25 LPA), and SP (7.1 to 11.7 LPA), and a new AI-roles band hitting 21 LPA for specialist hires announced in December 2025. <strong>The single biggest salary lever at Year 0 is not your college or your CGPA: it is which company type you get into.</strong> Everything else is secondary.</p>
 
             <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">3.4 LPA</div><div className="rpt-lbl">TCS Ninja — the largest single fresher intake in India (42,000 seats)</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-b">3.4 LPA</div><div className="rpt-lbl">TCS Ninja: the largest single fresher intake in India (42,000 seats)</div></div>
               <div className="rpt-stat"><div className="rpt-val">40.5 LPA</div><div className="rpt-lbl">Google India L3 median total comp (Levels.fyi, 2026)</div></div>
               <div className="rpt-stat"><div className="rpt-val rpt-g">21 LPA</div><div className="rpt-lbl">Infosys new AI-roles band for freshers, announced Dec 2025 (Business Standard)</div></div>
             </div>
@@ -336,11 +336,11 @@ export default function CSIndiaReport() {
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Role type YoY growth rate (%) — India, 2025 to 2026</div>
+              <div className="rpt-card-label">Role type YoY growth rate (%): India, 2025 to 2026</div>
               <div className="rpt-chart-wrap" style={{ height: 340 }}><canvas id="roleChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">AI/ML is the outlier at +54% YoY — driven by every company retrofitting its product with LLMs and needing engineers who can build with them. Data engineering and GenAI roles follow at +34%, full-stack at +30%. Cloud and DevOps are steady growers. <strong>Manual QA is the one role in active decline</strong>: AI-assisted test generation is replacing repetitive test-writing, and QA Automation (which requires coding) is absorbing the growth instead.</p>
+            <p className="rpt-prose">AI/ML is the outlier at +54% YoY, driven by every company retrofitting its product with LLMs and needing engineers who can build with them. Data engineering and GenAI roles follow at +34%, full-stack at +30%. Cloud and DevOps are steady growers. <strong>Manual QA is the one role in active decline</strong>: AI-assisted test generation is replacing repetitive test-writing, and QA Automation (which requires coding) is absorbing the growth instead.</p>
 
             <div className="rpt-pill-row">
               {["AI / ML Engineer", "Data Engineering", "Full Stack Developer", "Cloud / DevOps", "QA Automation"].map(p => <span key={p} className="rpt-pill rpt-pg">{p}</span>)}
@@ -350,7 +350,7 @@ export default function CSIndiaReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">What "AI-led selective recruitment" actually means for you</div>
-              <p>NASSCOM is saying that companies are hiring fewer people but each hire is expected to do more. TCS, Infosys, and Wipro are all investing in AI upskilling internally — which means they want freshers who can learn fast, not freshers who already know a lot. The bar on aptitude and fundamentals has not dropped. But the companies are increasingly willing to train you on specific tools as long as you pass the fundamentals screen.</p>
+              <p>NASSCOM is saying that companies are hiring fewer people but each hire is expected to do more. TCS, Infosys, and Wipro are all investing in AI upskilling internally, which means they want freshers who can learn fast, not freshers who already know a lot. The bar on aptitude and fundamentals has not dropped. But the companies are increasingly willing to train you on specific tools as long as you pass the fundamentals screen.</p>
             </div>
             <p className="rpt-source">Source: Naukri JobSpeak Aug 2025 (AI-ML +54%), Naukri JobSpeak Jun 2025 (AI-ML +42%), NASSCOM mass-to-selective shift statement, Taggd IT Hiring Trends 2026</p>
           </div>
@@ -414,7 +414,7 @@ export default function CSIndiaReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">The non-IIT path into product companies</div>
-              <p>Product companies and GCCs do off-campus hiring. Platforms: Wellfound, LinkedIn, company career pages, hackathons (Codeforces, LeetCode contests). A strong GitHub profile, 2 to 3 deployed projects, and LeetCode 150 solved consistently is more deterministic than your college name at most funded startups. The IIT filter applies strongly at FAANG — it is much weaker at the Series A to C level.</p>
+              <p>Product companies and GCCs do off-campus hiring. Platforms: Wellfound, LinkedIn, company career pages, hackathons (Codeforces, LeetCode contests). A strong GitHub profile, 2 to 3 deployed projects, and LeetCode 150 solved consistently is more deterministic than your college name at most funded startups. The IIT filter applies strongly at FAANG: it is much weaker at the Series A to C level.</p>
             </div>
             <p className="rpt-source">Source: Taggd IT Hiring Trends 2026, NASSCOM FY26 headcount projections, company-confirmed fresher targets (Business Standard, PeopleMatters)</p>
           </div>
@@ -424,7 +424,7 @@ export default function CSIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 05</span>
               <h2 className="rpt-h2">DSA is in 91% of CS JDs. Only 5.5% of graduates arrive able to write functional code.</h2>
-              <p className="rpt-lead">We looked at what skills appear across fresher CS and SWE job descriptions. Then we looked at what freshers actually show up knowing. The gap is structural and significant — but the top items are entirely learnable.</p>
+              <p className="rpt-lead">We looked at what skills appear across fresher CS and SWE job descriptions. Then we looked at what freshers actually show up knowing. The gap is structural and significant, but the top items are entirely learnable.</p>
             </div>
 
             <div className="rpt-card">
@@ -432,12 +432,12 @@ export default function CSIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="skillChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">DSA and OOP/DBMS fundamentals appear in nearly every JD because every technical interview tests them directly. Git appears in 74% of JDs and is almost never taught in college. Cloud basics appear in 61% — also absent from most curricula. <strong>The most striking gap: only 5.5% of engineering graduates have basic programming ability sufficient for industry use</strong> (Aspiring Minds / Masai School analysis). The remaining 94.5% fail on practical coding screens despite having passed engineering courses on the same topics.</p>
+            <p className="rpt-prose">DSA and OOP/DBMS fundamentals appear in nearly every JD because every technical interview tests them directly. Git appears in 74% of JDs and is almost never taught in college. Cloud basics appear in 61%: also absent from most curricula. <strong>The most striking gap: only 5.5% of engineering graduates have basic programming ability sufficient for industry use</strong> (Aspiring Minds / Masai School analysis). The remaining 94.5% fail on practical coding screens despite having passed engineering courses on the same topics.</p>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-b">5.5%</div><div className="rpt-lbl">Of engineering graduates with functional programming ability for industry use (Aspiring Minds)</div></div>
               <div className="rpt-stat"><div className="rpt-val">3.84%</div><div className="rpt-lbl">With combined technical, cognitive, and linguistic skills for startup roles</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">15 lakh</div><div className="rpt-lbl">Engineering graduates per year in India — only a fraction industry-ready</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">15 lakh</div><div className="rpt-lbl">Engineering graduates per year in India: only a fraction industry-ready</div></div>
             </div>
 
             <div className="rpt-callout rpt-co">
@@ -463,7 +463,7 @@ export default function CSIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 06</span>
               <h2 className="rpt-h2">Only 42.6% of graduates are employable. 83% of 2024 engineering graduates had no job or internship.</h2>
-              <p className="rpt-lead">The Mercer-Mettl India Graduate Skill Index 2025 assessed over 1 million students across 2,700+ campuses. Only 42.6% met the minimum employability threshold — down from 44.3% in 2023. Here is where the gaps are and why interviews go wrong.</p>
+              <p className="rpt-lead">The Mercer-Mettl India Graduate Skill Index 2025 assessed over 1 million students across 2,700+ campuses. Only 42.6% met the minimum employability threshold: down from 44.3% in 2023. Here is where the gaps are and why interviews go wrong.</p>
             </div>
 
             <div className="rpt-card">
@@ -508,7 +508,7 @@ export default function CSIndiaReport() {
 
             <div className="rpt-callout rpt-cd">
               <div className="rpt-cl">The fix</div>
-              <p>Solve DSA problems out loud. Literally narrate your thought process as you code. That single habit closes the gap that causes 47% of interview failures at the explanation stage and also trains you to think structurally — which makes the DSA itself easier. Do this from problem 1, not after you feel "ready."</p>
+              <p>Solve DSA problems out loud. Literally narrate your thought process as you code. That single habit closes the gap that causes 47% of interview failures at the explanation stage and also trains you to think structurally, which makes the DSA itself easier. Do this from problem 1, not after you feel "ready."</p>
             </div>
             <p className="rpt-source">Source: Mercer-Mettl India Graduate Skill Index 2025, Wheebox India Skills Report 2025, Unstop Talent Report 2025, Business Standard Feb 2026</p>
           </div>
@@ -526,12 +526,12 @@ export default function CSIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="compChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The stacked bars show the three components of total comp. Services companies are almost entirely base salary with minimal variable and zero equity. Product startups begin adding equity meaningfully — but on a 4-year vesting schedule. <strong>FAANG India packages are structured with the highest RSU component</strong>: at Google India, RSUs account for approximately 32% of total compensation and vest quarterly after the one-year cliff.</p>
+            <p className="rpt-prose">The stacked bars show the three components of total comp. Services companies are almost entirely base salary with minimal variable and zero equity. Product startups begin adding equity meaningfully, but on a 4-year vesting schedule. <strong>FAANG India packages are structured with the highest RSU component</strong>: at Google India, RSUs account for approximately 32% of total compensation and vest quarterly after the one-year cliff.</p>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-b">54%</div><div className="rpt-lbl">Of product-company freshers (10 to 25 LPA band) receive ESOPs at joining (Weekday.works)</div></div>
               <div className="rpt-stat"><div className="rpt-val">23%</div><div className="rpt-lbl">Average ESOP share of total comp in that band (4-year vesting standard)</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">~1%</div><div className="rpt-lbl">Of Indian startups that have run actual ESOP buyback programs — liquidity is not guaranteed</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">~1%</div><div className="rpt-lbl">Of Indian startups that have run actual ESOP buyback programs: liquidity is not guaranteed</div></div>
             </div>
 
             <div className="rpt-callout rpt-cp">
@@ -546,7 +546,7 @@ export default function CSIndiaReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 08</span>
               <h2 className="rpt-h2">IT Services path vs Product/GCC path: same starting point, very different year 5.</h2>
-              <p className="rpt-lead">Both are real career paths. Both are accessible. But the salary trajectories diverge sharply by year two — and the gap compounds. Here is the full picture so you can choose with your eyes open.</p>
+              <p className="rpt-lead">Both are real career paths. Both are accessible. But the salary trajectories diverge sharply by year two, and the gap compounds. Here is the full picture so you can choose with your eyes open.</p>
             </div>
 
             <div className="rpt-card">

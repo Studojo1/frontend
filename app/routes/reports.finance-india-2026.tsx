@@ -6,7 +6,7 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Finance in India: What Graduates Actually Face — Studojo Report 2026" },
+    { title: "Finance in India: What Graduates Actually Face | Studojo Report 2026" },
     {
       name: "description",
       content:
@@ -19,7 +19,7 @@ export function meta() {
     { property: "og:url", content: `${BASE_URL}/reports/finance-india-2026` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Finance in India: What Graduates Actually Face — Studojo 2026" },
+    { name: "twitter:title", content: "Finance in India: What Graduates Actually Face | Studojo 2026" },
     { name: "twitter:description", content: "1,400+ entry-level finance openings. Salary benchmarks, skill gaps, and hiring trends. Free report for students entering finance in India." },
   ];
 }
@@ -282,7 +282,7 @@ export default function FinanceIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 320 }}><canvas id="salaryChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The chart above shows both median starting and top-quartile salaries. <strong>Global banks are the outlier</strong> — median starting pay is 18 to 22 LPA, roughly 3x what Big 4 entry roles pay. But global banks hire 12 to 15 graduates per city per quarter. Big 4 firms hire hundreds. Most people end up in the second column, not the first.</p>
+            <p className="rpt-prose">The chart above shows both median starting and top-quartile salaries. <strong>Global banks are the outlier</strong>: median starting pay is 18 to 22 LPA, roughly 3x what Big 4 entry roles pay. But global banks hire 12 to 15 graduates per city per quarter. Big 4 firms hire hundreds. Most people end up in the second column, not the first.</p>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-v">20 LPA</div><div className="rpt-lbl">Median year-1 comp at global investment banks (Goldman, JPM, Citi)</div></div>
@@ -366,7 +366,7 @@ export default function FinanceIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 360 }}><canvas id="roleChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The orange bars show year-on-year growth rates. Traditional accounting and audit roles are growing at 8%. Financial data analytics is growing at 67%. Fintech product finance is growing at 72%. The purple bars show current volume — traditional roles still dominate headcount, but the <strong>growth is entirely in hybrid roles</strong> that require both finance and technical skills.</p>
+            <p className="rpt-prose">The orange bars show year-on-year growth rates. Traditional accounting and audit roles are growing at 8%. Financial data analytics is growing at 67%. Fintech product finance is growing at 72%. The purple bars show current volume: traditional roles still dominate headcount, but the <strong>growth is entirely in hybrid roles</strong> that require both finance and technical skills.</p>
 
             <div className="rpt-pill-row">
               {["Financial Analysis / FP&A", "Investment Research", "Corporate Treasury"].map(p => <span key={p} className="rpt-pill rpt-pv">{p}</span>)}
@@ -425,7 +425,7 @@ export default function FinanceIndiaReport() {
             <p className="rpt-prose" style={{ marginTop: 24 }}>Frequency tells you what is expected. What moves the needle on salary is the combination. Here is what the data shows when you look at skill stacks and their median year-1 pay outcomes.</p>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Salary premium by skill stack — median year-1 CTC (LPA)</div>
+              <div className="rpt-card-label">Salary premium by skill stack: median year-1 CTC (LPA)</div>
               <div className="rpt-chart-wrap" style={{ height: 240 }}><canvas id="skillPremiumChart"></canvas></div>
             </div>
 
@@ -540,7 +540,7 @@ export default function FinanceIndiaReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Find your first finance internship</div>
-                  <div className="rpt-inline-cta-sub">FP&A, investment research, fintech analytics — curated weekly. Apply directly from Studojo.</div>
+                  <div className="rpt-inline-cta-sub">FP&A, investment research, fintech analytics: curated weekly. Apply directly from Studojo.</div>
                 </div>
                 <Link to="/outreach" className="rpt-btn-primary">Find Finance Internships</Link>
               </div>
@@ -559,19 +559,19 @@ export default function FinanceIndiaReport() {
             <div className="rpt-two-col">
               <div>
                 <div className="rpt-card" style={{ padding: 20 }}>
-                  <div className="rpt-card-label">Work mode split — finance roles</div>
+                  <div className="rpt-card-label">Work mode split: finance roles</div>
                   <div className="rpt-chart-wrap" style={{ height: 200 }}><canvas id="locationChart"></canvas></div>
                 </div>
               </div>
               <div>
                 <div className="rpt-card" style={{ padding: 20 }}>
-                  <div className="rpt-card-label">Work mode split — tech roles (for comparison)</div>
+                  <div className="rpt-card-label">Work mode split: tech roles (for comparison)</div>
                   <div className="rpt-chart-wrap" style={{ height: 200 }}><canvas id="locationTechChart"></canvas></div>
                 </div>
               </div>
             </div>
 
-            <p className="rpt-prose" style={{ marginTop: 20 }}>Finance is dramatically more in-office than tech. 64% of entry-level finance roles are fully on-site. The 9% that are fully remote are almost entirely in financial data, research writing, and compliance roles at smaller firms. If you are planning your career around remote flexibility, finance is the wrong starting point — or you need to target a very specific niche within it.</p>
+            <p className="rpt-prose" style={{ marginTop: 20 }}>Finance is dramatically more in-office than tech. 64% of entry-level finance roles are fully on-site. The 9% that are fully remote are almost entirely in financial data, research writing, and compliance roles at smaller firms. If you are planning your career around remote flexibility, finance is the wrong starting point, or you need to target a very specific niche within it.</p>
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">Where the remote roles actually are in finance</div>
@@ -583,7 +583,7 @@ export default function FinanceIndiaReport() {
           {/* Final CTA block */}
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the finance roles this report is talking about — FP&A, analytics, fintech, and investment research openings across India, curated weekly.</p>
+            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the finance roles this report is talking about: FP&A, analytics, fintech, and investment research openings across India, curated weekly.</p>
             <div className="rpt-final-cta-btns">
               <Link to="/outreach" className="rpt-btn-white">Browse Finance Internships</Link>
               <Link to="/dojos/careers" className="rpt-btn-outline">Build Your Resume Free</Link>

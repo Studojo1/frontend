@@ -91,7 +91,7 @@ export default function Internships15kReport() {
             </nav>
             <h1 className="r15-h1">Roles That Land You<br /><em>Above ₹15k</em></h1>
             <p className="r15-sub">
-              Most students apply everywhere and wonder why the callbacks don't come. This report maps exactly which roles break the ₹15k floor — and which ones never will, no matter how good your resume is.
+              Most students apply everywhere and wonder why the callbacks don't come. This report maps exactly which roles break the ₹15k floor: and which ones never will, no matter how good your resume is.
             </p>
             <div className="r15-hero-stats">
               <div className="r15-hstat"><div className="r15-hval">20 roles</div><div className="r15-hlbl">Mapped across 5 domains</div></div>
@@ -115,7 +115,7 @@ export default function Internships15kReport() {
           <div className="r15-finding">
             <span className="r15-fnum">The Role Map</span>
             <h2 className="r15-h2">20 roles. 5 domains. One map showing exactly where the money is.</h2>
-            <p className="r15-lead">Every cell is a real role category. Color shows typical stipend bracket based on Glassdoor India, Internshala, Unstop, and LinkedIn live listings (Q1–Q2 2026). Ranges reflect what a credible applicant realistically lands — not the advertised ceiling.</p>
+            <p className="r15-lead">Every cell is a real role category. Color shows typical stipend bracket based on Glassdoor India, Internshala, Unstop, and LinkedIn live listings (Q1–Q2 2026). Ranges reflect what a credible applicant realistically lands: not the advertised ceiling.</p>
 
             {/* Legend */}
             <div className="r15-legend">
@@ -168,7 +168,7 @@ export default function Internships15kReport() {
             <div className="r15-inline-cta-inner">
               <div>
                 <div className="r15-inline-cta-title">Find the amber and violet roles before everyone else</div>
-                <div className="r15-inline-cta-sub">Studojo surfaces niche, high-stipend internships across India — before job boards catch up.</div>
+                <div className="r15-inline-cta-sub">Studojo surfaces niche, high-stipend internships across India: before job boards catch up.</div>
               </div>
               <Link to="/dojos/internships" className="r15-btn-primary">Browse Internships</Link>
             </div>
@@ -178,7 +178,7 @@ export default function Internships15kReport() {
           <div className="r15-finding">
             <span className="r15-fnum">Finding 01</span>
             <h2 className="r15-h2">Three domains own the ₹40k+ bracket. Everything else is competing for ₹15k–25k at best.</h2>
-            <p className="r15-lead">AI/ML, Quant Finance, and Software Engineering at MNCs are the only domains where ₹40k+ is a realistic outcome. Strategy Consulting at MBB joins them at the top. Across every other domain, ₹15k–25k is where strong applicants land — and that ceiling is structural, not about effort.</p>
+            <p className="r15-lead">AI/ML, Quant Finance, and Software Engineering at MNCs are the only domains where ₹40k+ is a realistic outcome. Strategy Consulting at MBB joins them at the top. Across every other domain, ₹15k–25k is where strong applicants land, and that ceiling is structural, not about effort.</p>
 
             <div className="r15-stat-row r15-c3">
               <div className="r15-stat">
@@ -200,7 +200,7 @@ export default function Internships15kReport() {
 
             <div className="r15-callout r15-co">
               <div className="r15-cl">The 3x rule</div>
-              <p>The difference between a ₹10k internship and a ₹40k internship is almost never luck. It is domain selection made 6 to 12 months earlier. Students who land the top bracket started building the right skill profile before placement season opened — not during it.</p>
+              <p>The difference between a ₹10k internship and a ₹40k internship is almost never luck. It is domain selection made 6 to 12 months earlier. Students who land the top bracket started building the right skill profile before placement season opened: not during it.</p>
             </div>
           </div>
 
@@ -217,7 +217,7 @@ export default function Internships15kReport() {
                   {[
                     ["Funding stage", "Series A+ startups pay to compete. Pre-seed rarely can afford to.", "#f59e0b"],
                     ["Role category", "Tech and quant roles pay 2–3x non-tech at the same company.", "#f59e0b"],
-                    ["Skill scarcity", "ML, Quant, DevOps — supply is far below demand in India.", "#8b5cf6"],
+                    ["Skill scarcity", "ML, Quant, DevOps: supply is far below demand in India.", "#8b5cf6"],
                     ["Company type", "Product-led companies pay more than service-led. B2B SaaS beats agencies.", "#8b5cf6"],
                   ].map(([label, desc, color]) => (
                     <div key={label as string} className="r15-bar-item" style={{ borderLeftColor: color as string }}>
@@ -250,7 +250,7 @@ export default function Internships15kReport() {
           <div className="r15-finding">
             <span className="r15-fnum">Finding 03</span>
             <h2 className="r15-h2">Five skills unlock the ₹15k+ bracket across almost every domain. Most students have none at a demonstrable level.</h2>
-            <p className="r15-lead">The ₹15k floor is not about degree or grades. It is about a small set of applied skills in short supply. Students getting amber and gold roles have at least two of these at project level — not just listed on a resume.</p>
+            <p className="r15-lead">The ₹15k floor is not about degree or grades. It is about a small set of applied skills in short supply. Students getting amber and gold roles have at least two of these at project level: not just listed on a resume.</p>
 
             <div className="r15-skills-grid">
               {[
@@ -270,7 +270,7 @@ export default function Internships15kReport() {
 
             <div className="r15-callout r15-cg">
               <div className="r15-cl">The minimum viable profile for ₹15k+</div>
-              <p>One domain you know well. One of the five skills above at project level. One application tailored to the company. That combination gets callbacks — not a perfect CGPA, not a premium certification.</p>
+              <p>One domain you know well. One of the five skills above at project level. One application tailored to the company. That combination gets callbacks: not a perfect CGPA, not a premium certification.</p>
             </div>
             <p className="r15-source">Source: Internshala JD analysis Q1 2026; NASSCOM skills demand report 2025; Glassdoor India intern salary data; Levels.fyi India 2026</p>
           </div>
