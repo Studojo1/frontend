@@ -207,7 +207,7 @@ function ProfileContent() {
 
   const openEdit = () => {
     setEditForm({
-      fullName: profile?.fullName ?? "",
+      fullName: storedName ?? user?.name ?? "",
       college: profile?.college ?? "",
       yearOfStudy: profile?.yearOfStudy ?? "",
       course: profile?.course ?? "",
@@ -254,7 +254,8 @@ function ProfileContent() {
   }
 
   const user = auth.user;
-  const displayName = profile?.fullName ?? user.name ?? user.email;
+  const storedName = profile?.fullName && profile.fullName.trim().length > 2 ? profile.fullName.trim() : null;
+  const displayName = storedName ?? user.name ?? user.email;
   const initials = (() => {
     const parts = (displayName ?? "").split(" ").filter(Boolean);
     if (parts.length === 0) return "?";
