@@ -187,12 +187,12 @@ export function Header() {
                   >
                     <div className="h-9 w-9 rounded-full bg-violet-500 border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] flex items-center justify-center">
                       <span className="font-['Clash_Display'] text-sm font-bold text-white select-none">
-                        {(session.user.name ?? session.user.email ?? "?")
-                          .split(" ")
-                          .map((w: string) => w[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
+                        {(() => {
+                          const parts = (session.user.name ?? session.user.email ?? "").split(" ").filter(Boolean);
+                          if (parts.length === 0) return "?";
+                          if (parts.length === 1) return (parts[0][0] ?? "?").toUpperCase();
+                          return ((parts[0][0] ?? "") + (parts[parts.length - 1][0] ?? "")).toUpperCase();
+                        })()}
                       </span>
                     </div>
                     <svg
@@ -273,12 +273,12 @@ export function Header() {
                   aria-label="My Profile"
                 >
                   <span className="font-['Clash_Display'] text-xs font-bold text-white select-none">
-                    {(session.user.name ?? session.user.email ?? "?")
-                      .split(" ")
-                      .map((w: string) => w[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
+                    {(() => {
+                      const parts = (session.user.name ?? session.user.email ?? "").split(" ").filter(Boolean);
+                      if (parts.length === 0) return "?";
+                      if (parts.length === 1) return (parts[0][0] ?? "?").toUpperCase();
+                      return ((parts[0][0] ?? "") + (parts[parts.length - 1][0] ?? "")).toUpperCase();
+                    })()}
                   </span>
                 </Link>
               </>

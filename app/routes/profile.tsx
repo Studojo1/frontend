@@ -130,7 +130,7 @@ function InputField({
   );
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { data: auth, isPending } = authClient.useSession();
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
@@ -255,12 +255,12 @@ export default function ProfilePage() {
 
   const user = auth.user;
   const displayName = profile?.fullName ?? user.name ?? user.email;
-  const initials = (displayName ?? "?")
-    .split(" ")
-    .map((w: string) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = (() => {
+    const parts = (displayName ?? "").split(" ").filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return (parts[0][0] ?? "?").toUpperCase();
+    return ((parts[0][0] ?? "") + (parts[parts.length - 1][0] ?? "")).toUpperCase();
+  })();
 
   // Profile completeness
   const fields = [
@@ -273,7 +273,6 @@ export default function ProfilePage() {
   const completeness = Math.round((filledCount / fields.length) * 100);
 
   return (
-    <ProfileErrorBoundary>
     <>
       <Header />
       <div className="bg-gradient-to-br from-violet-50 via-white to-amber-50 min-h-[calc(100vh-80px)] px-4 md:px-8 py-8">
@@ -584,6 +583,13 @@ export default function ProfilePage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <ProfileErrorBoundary>
+      <ProfileContent />
     </ProfileErrorBoundary>
   );
 }
