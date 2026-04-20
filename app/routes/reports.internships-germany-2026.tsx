@@ -38,9 +38,9 @@ function initCharts() {
   Chart.defaults.font.family = "Satoshi, sans-serif";
   Chart.defaults.color = "#171717";
 
-  const AMBER = "#f59e0b";
-  const AMBER2 = "#fbbf24";
-  const AMBER3 = "#fde68a";
+  const EMERALD = "#10b981";
+  const EMERALD2 = "#34d399";
+  const EMERALD3 = "#6ee7b7";
   const GREEN = "#10b981";
   const GREEN2 = "#34d399";
   const RED = "#ef4444";
@@ -62,8 +62,8 @@ function initCharts() {
     data: {
       labels: ["Research Institute /\nUniversity", "NGO / Non-profit", "Startup\n(pre-Series B)", "Mittelstand\n(mid-sized German co)", "Consulting\n(Big 4, MBB)", "DAX 40\n(BASF, BMW, SAP)"],
       datasets: [
-        { label: "Stipend: low (EUR/month)", data: [400, 400, 600, 800, 1200, 1500], backgroundColor: AMBER3, borderRadius: 4, borderWidth: 0 },
-        { label: "Stipend: high (EUR/month)", data: [800, 900, 1200, 1500, 2500, 3000], backgroundColor: AMBER, borderRadius: 4, borderWidth: 0 },
+        { label: "Stipend: low (EUR/month)", data: [400, 400, 600, 800, 1200, 1500], backgroundColor: EMERALD3, borderRadius: 4, borderWidth: 0 },
+        { label: "Stipend: high (EUR/month)", data: [800, 900, 1200, 1500, 2500, 3000], backgroundColor: EMERALD, borderRadius: 4, borderWidth: 0 },
       ],
     },
     options: {
@@ -85,8 +85,8 @@ function initCharts() {
     data: {
       labels: ["Berlin", "Hamburg", "Cologne /\nDusseldorf", "Stuttgart /\nMunich", "Frankfurt"],
       datasets: [
-        { label: "Avg stipend: low (EUR/month)", data: [800, 900, 900, 1100, 1200], backgroundColor: AMBER3, borderRadius: 4, borderWidth: 0 },
-        { label: "Avg stipend: high (EUR/month)", data: [1500, 1800, 1700, 2500, 3000], backgroundColor: AMBER, borderRadius: 4, borderWidth: 0 },
+        { label: "Avg stipend: low (EUR/month)", data: [800, 900, 900, 1100, 1200], backgroundColor: EMERALD3, borderRadius: 4, borderWidth: 0 },
+        { label: "Avg stipend: high (EUR/month)", data: [1500, 1800, 1700, 2500, 3000], backgroundColor: EMERALD, borderRadius: 4, borderWidth: 0 },
       ],
     },
     options: {
@@ -110,7 +110,7 @@ function initCharts() {
       datasets: [{
         label: "Median stipend (EUR/month)",
         data: [600, 650, 1100, 1300, 1400, 1800, 2200],
-        backgroundColor: [AMBER3, AMBER3, AMBER2, AMBER2, AMBER2, AMBER, AMBER],
+        backgroundColor: [EMERALD3, EMERALD3, EMERALD2, EMERALD2, EMERALD2, EMERALD, EMERALD],
         borderRadius: 6,
         borderWidth: 0,
       }],
@@ -156,7 +156,7 @@ function initCharts() {
       datasets: [{
         label: "Roles accessible with this skill (%)",
         data: [78, 65, 60, 58, 52, 71, 42],
-        backgroundColor: [AMBER, AMBER, AMBER2, AMBER2, AMBER3, AMBER, AMBER2],
+        backgroundColor: [EMERALD, EMERALD, EMERALD2, EMERALD2, EMERALD3, EMERALD, EMERALD2],
         borderRadius: 6,
       }],
     },
@@ -234,21 +234,21 @@ export default function GermanyInternshipsReport() {
                 <div className="rpt-col-head">Pflichtpraktikum (mandatory internship)</div>
                 <div className="rpt-card" style={{ padding: 20 }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={{ borderLeft: "3px solid #f59e0b", paddingLeft: 12 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: 1 }}>Definition</div>
+                    <div style={{ borderLeft: "3px solid #10b981", paddingLeft: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: 1 }}>Definition</div>
                       <div style={{ fontSize: 13, color: "#171717", marginTop: 3, lineHeight: 1.6 }}>Required by your university as part of your degree programme. Must be documented as such in your enrollment certificate or study regulations.</div>
                     </div>
-                    <div style={{ borderLeft: "3px solid #f59e0b", paddingLeft: 12 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: 1 }}>Pay requirement</div>
+                    <div style={{ borderLeft: "3px solid #10b981", paddingLeft: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: 1 }}>Pay requirement</div>
                       <div style={{ fontSize: 13, color: "#171717", marginTop: 3, lineHeight: 1.6 }}>Exempt from minimum wage law regardless of duration. Companies can pay nothing legally. Most still pay EUR 400 to 900/month as a goodwill stipend.</div>
                     </div>
-                    <div style={{ borderLeft: "3px solid #f59e0b", paddingLeft: 12 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: 1 }}>Duration</div>
+                    <div style={{ borderLeft: "3px solid #10b981", paddingLeft: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: 1 }}>Duration</div>
                       <div style={{ fontSize: 13, color: "#171717", marginTop: 3, lineHeight: 1.6 }}>No cap. Can run 3 months to a full year. The exemption applies for the entire compulsory period.</div>
                     </div>
                   </div>
-                  <div className="rpt-mini-total" style={{ background: "#fef3c6", border: "1px solid #f59e0b" }}>
-                    <div className="rpt-mini-total-label" style={{ color: "#92400e" }}>Bottom line</div>
+                  <div className="rpt-mini-total" style={{ background: "#d1fae5", border: "1px solid #10b981" }}>
+                    <div className="rpt-mini-total-label" style={{ color: "#065f46" }}>Bottom line</div>
                     <div style={{ fontSize: 12, color: "#525252", marginTop: 4, lineHeight: 1.6 }}>Legally unpaid is possible. In practice, most reputable companies still pay. Always ask explicitly before accepting.</div>
                   </div>
                 </div>
@@ -257,16 +257,16 @@ export default function GermanyInternshipsReport() {
                 <div className="rpt-col-head">Freiwilliges Praktikum (voluntary internship)</div>
                 <div className="rpt-card" style={{ padding: 20 }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={{ borderLeft: "3px solid #f59e0b", paddingLeft: 12 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: 1 }}>Definition</div>
+                    <div style={{ borderLeft: "3px solid #10b981", paddingLeft: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: 1 }}>Definition</div>
                       <div style={{ fontSize: 13, color: "#171717", marginTop: 3, lineHeight: 1.6 }}>Not required by your degree. Done by choice for experience, a career switch, or a gap period. This is most internships posted on LinkedIn and job boards.</div>
                     </div>
-                    <div style={{ borderLeft: "3px solid #f59e0b", paddingLeft: 12 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: 1 }}>Pay requirement</div>
+                    <div style={{ borderLeft: "3px solid #10b981", paddingLeft: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: 1 }}>Pay requirement</div>
                       <div style={{ fontSize: 13, color: "#171717", marginTop: 3, lineHeight: 1.6 }}>Under 3 months: exempt from minimum wage. Over 3 months: minimum wage of EUR 12.82/hour is legally required for every hour worked. No exceptions.</div>
                     </div>
-                    <div style={{ borderLeft: "3px solid #f59e0b", paddingLeft: 12 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: 1 }}>Duration</div>
+                    <div style={{ borderLeft: "3px solid #10b981", paddingLeft: 12 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: 1 }}>Duration</div>
                       <div style={{ fontSize: 13, color: "#171717", marginTop: 3, lineHeight: 1.6 }}>Most companies keep voluntary internships to 3 months or less specifically to stay below the mandatory pay threshold.</div>
                     </div>
                   </div>
@@ -342,11 +342,11 @@ export default function GermanyInternshipsReport() {
 
             <div className="rpt-bar-list" style={{ marginTop: 16 }}>
               {[
-                { city: "Frankfurt am Main", range: "EUR 1,200 to 3,000", sub: "Finance, banking, Big 4. Deutsche Bank, Commerzbank, Goldman Sachs, DWS, ECB all headquartered here.", bg: "#f59e0b", pct: 100 },
-                { city: "Munich", range: "EUR 1,100 to 2,500", sub: "Automotive (BMW HQ, MAN), tech (Google Munich, AWS), insurance (Allianz, Munich Re), consulting.", bg: "#fbbf24", pct: 85 },
-                { city: "Stuttgart", range: "EUR 1,000 to 2,200", sub: "Engineering and automotive core: Daimler, Bosch, Porsche. Some of the best engineering internships in Europe.", bg: "#fbbf24", pct: 77 },
-                { city: "Hamburg", range: "EUR 900 to 1,800", sub: "Shipping/logistics (Hapag-Lloyd), media (Axel Springer), e-commerce (Otto). Strong for marketing and operations.", bg: "#fde68a", pct: 65 },
-                { city: "Berlin", range: "EUR 800 to 1,500", sub: "Startup capital of Germany. Most English-friendly. Zalando, N26, HelloFresh, Delivery Hero. Lower pay, higher volume.", bg: "#fde68a", pct: 55 },
+                { city: "Frankfurt am Main", range: "EUR 1,200 to 3,000", sub: "Finance, banking, Big 4. Deutsche Bank, Commerzbank, Goldman Sachs, DWS, ECB all headquartered here.", bg: "#10b981", pct: 100 },
+                { city: "Munich", range: "EUR 1,100 to 2,500", sub: "Automotive (BMW HQ, MAN), tech (Google Munich, AWS), insurance (Allianz, Munich Re), consulting.", bg: "#34d399", pct: 85 },
+                { city: "Stuttgart", range: "EUR 1,000 to 2,200", sub: "Engineering and automotive core: Daimler, Bosch, Porsche. Some of the best engineering internships in Europe.", bg: "#34d399", pct: 77 },
+                { city: "Hamburg", range: "EUR 900 to 1,800", sub: "Shipping/logistics (Hapag-Lloyd), media (Axel Springer), e-commerce (Otto). Strong for marketing and operations.", bg: "#6ee7b7", pct: 65 },
+                { city: "Berlin", range: "EUR 800 to 1,500", sub: "Startup capital of Germany. Most English-friendly. Zalando, N26, HelloFresh, Delivery Hero. Lower pay, higher volume.", bg: "#6ee7b7", pct: 55 },
               ].map(r => (
                 <div key={r.city} className="rpt-bar-row">
                   <div className="rpt-bar-label">{r.city}<small>{r.sub}</small></div>
@@ -452,25 +452,25 @@ export default function GermanyInternshipsReport() {
                     name: "DAAD RISE Programme",
                     sub: "Research Internships in Science and Engineering",
                     detail: "12 weeks at German research universities and institutes. Fully funded: EUR 650 to 750/month stipend + travel grant. For students in science, engineering, and computer science. Application opens October for summer placements. Acceptance rate approximately 15 to 20%.",
-                    color: "#f59e0b",
+                    color: "#10b981",
                   },
                   {
                     name: "DAAD Scholarship for Study-Related Internships",
                     sub: "Studienrelevantes Praktikum im Ausland",
                     detail: "For students at German universities doing a Pflichtpraktikum abroad, or Indian students at partner institutions. Monthly scholarship of EUR 300 plus travel subsidy. Application through your university's international office.",
-                    color: "#fbbf24",
+                    color: "#34d399",
                   },
                   {
                     name: "German Student Visa (Visum zur Stellensuche / Schengen Work Entitlement)",
                     sub: "For students enrolled at a German university",
                     detail: "Students on a German Aufenthaltserlaubnis (residence permit for study) may work up to 120 full days or 240 half days per year. Internships count as work. No additional work permit needed. Notify your Auslanderamt if switching from study to internship mode.",
-                    color: "#fde68a",
+                    color: "#6ee7b7",
                   },
                   {
                     name: "Indian Student on Schengen Visa (short internship)",
                     sub: "For internships under 90 days",
                     detail: "Indian citizens can enter Germany on a national visa (Typ D) for an internship up to 90 days. Requires: invitation letter from the German company, proof of funding (EUR 700 to 1,000/month), and university enrollment documentation. Apply 8 to 12 weeks in advance at the German consulate.",
-                    color: "#fde68a",
+                    color: "#6ee7b7",
                   },
                 ].map(r => (
                   <div key={r.name} style={{ borderLeft: `3px solid ${r.color}`, paddingLeft: 14 }}>
@@ -522,7 +522,7 @@ export default function GermanyInternshipsReport() {
                       ["One deployed project", "The credibility signal that replaces work experience"],
                     ].map(([skill, note]) => (
                       <div key={skill as string} style={{ display: "flex", gap: 10 }}>
-                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", flexShrink: 0, marginTop: 5 }}></div>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 600, color: "#171717" }}>{skill}</div>
                           <div style={{ fontSize: 11, color: "#737373" }}>{note}</div>
@@ -543,7 +543,7 @@ export default function GermanyInternshipsReport() {
                       ["German B1 (or active progress toward it)", "Required in 58% of German-company non-tech JDs"],
                     ].map(([skill, note]) => (
                       <div key={skill as string} style={{ display: "flex", gap: 10 }}>
-                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", flexShrink: 0, marginTop: 5 }}></div>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", flexShrink: 0, marginTop: 5 }}></div>
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 600, color: "#171717" }}>{skill}</div>
                           <div style={{ fontSize: 11, color: "#737373" }}>{note}</div>
@@ -576,7 +576,7 @@ export default function GermanyInternshipsReport() {
                   { label: "References (Zeugnisse) are standard documents", detail: "Any previous internship or job in Germany should have resulted in an Arbeitszeugnis (work reference letter) from the employer, written in a formalised style with a specific scoring system embedded in neutral-sounding language. Ask for this before leaving any German workplace.", flag: "green" },
                 ].map(r => (
                   <div key={r.label} style={{ display: "flex", gap: 12 }}>
-                    <div style={{ width: 4, borderRadius: 2, background: r.flag === "amber" ? "#f59e0b" : r.flag === "green" ? "#10b981" : "#e5e5e5", flexShrink: 0, alignSelf: "stretch" }}></div>
+                    <div style={{ width: 4, borderRadius: 2, background: r.flag === "amber" ? "#10b981" : r.flag === "green" ? "#10b981" : "#e5e5e5", flexShrink: 0, alignSelf: "stretch" }}></div>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#171717", marginBottom: 3 }}>{r.label}</div>
                       <div style={{ fontSize: 13, color: "#525252", lineHeight: 1.6 }}>{r.detail}</div>
@@ -614,26 +614,26 @@ export default function GermanyInternshipsReport() {
 const rptCSS = `
   .rpt-hero { background:#171717; color:#fff; padding:56px 24px 48px; }
   .rpt-hero-inner { max-width:800px; margin:0 auto; }
-  .rpt-badge { display:inline-flex; align-items:center; background:#f59e0b; border:2px solid #fbbf24; border-radius:999px; padding:4px 14px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#fff; margin-bottom:12px; }
+  .rpt-badge { display:inline-flex; align-items:center; background:#10b981; border:2px solid #34d399; border-radius:999px; padding:4px 14px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#fff; margin-bottom:12px; }
   .rpt-breadcrumb { display:flex; align-items:center; gap:6px; font-size:13px; color:#737373; margin-bottom:14px; }
-  .rpt-breadcrumb-link { color:#fde68a; text-decoration:none; }
+  .rpt-breadcrumb-link { color:#6ee7b7; text-decoration:none; }
   .rpt-breadcrumb-link:hover { text-decoration:underline; }
   .rpt-breadcrumb-sep { color:#525252; }
   .rpt-h1 { font-family:'Clash Display',sans-serif; font-size:clamp(28px,5vw,48px); font-weight:700; line-height:1.1; color:#fff; margin-bottom:16px; }
-  .rpt-h1 em { font-style:italic; color:#fde68a; }
+  .rpt-h1 em { font-style:italic; color:#6ee7b7; }
   .rpt-hero-sub { font-size:16px; color:#a3a3a3; line-height:1.7; max-width:600px; margin-bottom:28px; }
   .rpt-hero-stats { display:flex; gap:40px; flex-wrap:wrap; padding-top:24px; border-top:1px solid #333; }
-  .rpt-hval { font-family:'Clash Display',sans-serif; font-size:26px; font-weight:700; color:#fde68a; }
+  .rpt-hval { font-family:'Clash Display',sans-serif; font-size:26px; font-weight:700; color:#6ee7b7; }
   .rpt-hlbl { font-size:12px; color:#737373; margin-top:2px; }
-  .rpt-cta-strip { background:#fffbeb; border-bottom:2px solid #171717; padding:12px 24px; }
+  .rpt-cta-strip { background:#ecfdf5; border-bottom:2px solid #171717; padding:12px 24px; }
   .rpt-cta-strip-inner { max-width:800px; margin:0 auto; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
   .rpt-cta-strip-text { font-size:14px; font-weight:500; color:#525252; }
-  .rpt-cta-pill { display:inline-flex; align-items:center; background:#f59e0b; color:#fff; border:2px solid #171717; border-radius:999px; padding:5px 16px; font-size:12px; font-weight:700; text-decoration:none; box-shadow:2px 2px 0px 0px rgba(25,26,35,1); transition:transform 0.1s,box-shadow 0.1s; }
+  .rpt-cta-pill { display:inline-flex; align-items:center; background:#10b981; color:#fff; border:2px solid #171717; border-radius:999px; padding:5px 16px; font-size:12px; font-weight:700; text-decoration:none; box-shadow:2px 2px 0px 0px rgba(25,26,35,1); transition:transform 0.1s,box-shadow 0.1s; }
   .rpt-cta-pill:hover { transform:translate(1px,1px); box-shadow:1px 1px 0px 0px rgba(25,26,35,1); }
   .rpt-content { max-width:800px; margin:0 auto; padding:0 24px 80px; }
   .rpt-finding { margin-top:64px; }
   .rpt-finding-header { margin-bottom:28px; }
-  .rpt-finding-num { display:inline-block; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#f59e0b; margin-bottom:8px; }
+  .rpt-finding-num { display:inline-block; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#10b981; margin-bottom:8px; }
   .rpt-h2 { font-family:'Clash Display',sans-serif; font-size:clamp(20px,3vw,28px); font-weight:700; line-height:1.2; color:#171717; margin-bottom:10px; }
   .rpt-lead { font-size:15px; color:#525252; line-height:1.7; max-width:640px; }
   .rpt-prose { font-size:15px; line-height:1.75; color:#525252; margin-bottom:24px; }
@@ -649,16 +649,16 @@ const rptCSS = `
   .rpt-c4 { grid-template-columns:repeat(4,1fr); }
   .rpt-stat { background:#f5f5f5; border:2px solid #171717; border-radius:16px; padding:18px 16px; }
   .rpt-val { font-family:'Clash Display',sans-serif; font-size:28px; font-weight:700; line-height:1; margin-bottom:6px; }
-  .rpt-a { color:#f59e0b; } .rpt-b { color:#3b82f6; } .rpt-v { color:#8b5cf6; } .rpt-g { color:#10b981; } .rpt-o { color:#f59e0b; }
+  .rpt-a { color:#10b981; } .rpt-b { color:#3b82f6; } .rpt-v { color:#8b5cf6; } .rpt-g { color:#10b981; } .rpt-o { color:#10b981; }
   .rpt-lbl { font-size:12px; color:#525252; line-height:1.45; font-weight:500; }
   .rpt-delta { display:inline-block; font-size:11px; font-weight:700; margin-top:6px; padding:2px 8px; border-radius:999px; }
   .rpt-du { background:#d0fae4; color:#065f46; } .rpt-dn { background:#f5f5f5; color:#737373; border:1px solid #e5e5e5; }
   .rpt-callout { border:2px solid #171717; border-radius:16px; padding:20px 22px; margin-top:20px; }
-  .rpt-cp { background:#fffbeb; border-color:#f59e0b; } .rpt-cg { background:#d0fae4; border-color:#10b981; } .rpt-co { background:#fef3c6; border-color:#f59e0b; } .rpt-cd { background:#171717; border-color:#171717; color:#fff; }
+  .rpt-cp { background:#ecfdf5; border-color:#10b981; } .rpt-cg { background:#d0fae4; border-color:#10b981; } .rpt-co { background:#d1fae5; border-color:#10b981; } .rpt-cd { background:#171717; border-color:#171717; color:#fff; }
   .rpt-cl { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
-  .rpt-cp .rpt-cl { color:#92400e; } .rpt-cg .rpt-cl { color:#065f46; } .rpt-co .rpt-cl { color:#92400e; } .rpt-cd .rpt-cl { color:#fde68a; }
+  .rpt-cp .rpt-cl { color:#065f46; } .rpt-cg .rpt-cl { color:#065f46; } .rpt-co .rpt-cl { color:#065f46; } .rpt-cd .rpt-cl { color:#6ee7b7; }
   .rpt-callout p { font-size:14px; line-height:1.7; }
-  .rpt-pullquote { border-left:4px solid #f59e0b; padding:16px 20px; margin:24px 0; background:#fffbeb; border-radius:0 12px 12px 0; }
+  .rpt-pullquote { border-left:4px solid #10b981; padding:16px 20px; margin:24px 0; background:#ecfdf5; border-radius:0 12px 12px 0; }
   .rpt-pullquote p { font-family:'Clash Display',sans-serif; font-size:18px; font-weight:600; line-height:1.45; color:#171717; }
   .rpt-bar-list { display:flex; flex-direction:column; gap:10px; }
   .rpt-bar-row { display:grid; grid-template-columns:190px 1fr 80px; align-items:center; gap:12px; }
@@ -681,14 +681,14 @@ const rptCSS = `
   .rpt-legend-pct { font-family:'Clash Display',sans-serif; font-size:18px; font-weight:700; color:#171717; }
   .rpt-pill-row { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
   .rpt-pill { border:2px solid #171717; border-radius:999px; padding:5px 14px; font-size:12px; font-weight:700; }
-  .rpt-pg { background:#d0fae4; color:#065f46; border-color:#10b981; } .rpt-po { background:#fef3c6; color:#92400e; border-color:#f59e0b; } .rpt-pr { background:#fee2e2; color:#991b1b; border-color:#ef4444; }
-  .rpt-inline-cta { background:#fffbeb; border:2px solid #171717; border-radius:20px; padding:24px 28px; margin:32px 0; box-shadow:4px 4px 0px 0px rgba(25,26,35,1); }
+  .rpt-pg { background:#d0fae4; color:#065f46; border-color:#10b981; } .rpt-po { background:#d1fae5; color:#065f46; border-color:#10b981; } .rpt-pr { background:#fee2e2; color:#991b1b; border-color:#ef4444; }
+  .rpt-inline-cta { background:#ecfdf5; border:2px solid #171717; border-radius:20px; padding:24px 28px; margin:32px 0; box-shadow:4px 4px 0px 0px rgba(25,26,35,1); }
   .rpt-inline-cta-inner { display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; }
   .rpt-inline-cta-title { font-family:'Clash Display',sans-serif; font-size:18px; font-weight:700; color:#171717; margin-bottom:4px; }
   .rpt-inline-cta-sub { font-size:13px; color:#525252; }
-  .rpt-btn-primary { display:inline-flex; align-items:center; justify-content:center; height:44px; padding:0 24px; background:#f59e0b; color:#fff; border:2px solid #171717; border-radius:14px; font-size:13px; font-weight:700; text-decoration:none; white-space:nowrap; box-shadow:3px 3px 0px 0px rgba(25,26,35,1); transition:transform 0.1s,box-shadow 0.1s; }
+  .rpt-btn-primary { display:inline-flex; align-items:center; justify-content:center; height:44px; padding:0 24px; background:#10b981; color:#fff; border:2px solid #171717; border-radius:14px; font-size:13px; font-weight:700; text-decoration:none; white-space:nowrap; box-shadow:3px 3px 0px 0px rgba(25,26,35,1); transition:transform 0.1s,box-shadow 0.1s; }
   .rpt-btn-primary:hover { transform:translate(2px,2px); box-shadow:1px 1px 0px 0px rgba(25,26,35,1); }
-  .rpt-final-cta { margin-top:64px; background:#f59e0b; border:2px solid #171717; border-radius:24px; padding:48px 40px; text-align:center; box-shadow:6px 6px 0px 0px rgba(25,26,35,1); }
+  .rpt-final-cta { margin-top:64px; background:#10b981; border:2px solid #171717; border-radius:24px; padding:48px 40px; text-align:center; box-shadow:6px 6px 0px 0px rgba(25,26,35,1); }
   .rpt-final-cta-title { font-family:'Clash Display',sans-serif; font-size:clamp(24px,4vw,36px); font-weight:700; color:#fff; margin-bottom:12px; }
   .rpt-final-cta-sub { font-size:15px; color:rgba(255,255,255,0.85); max-width:560px; margin:0 auto 28px; line-height:1.65; }
   .rpt-final-cta-btns { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }

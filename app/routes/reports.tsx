@@ -160,8 +160,8 @@ const REPORTS = [
     subtitle: "Q1 2026",
     excerpt:
       "Germany's minimum wage is EUR 12.82/hour but mandatory internships are legally exempt. DAX 40 companies pay EUR 1,500 to 3,000/month. The exact rules, city data, and how international students qualify.",
-    category: "Internships",
-    type: "Internships" as ReportType,
+    category: "Cities",
+    type: "Cities" as ReportType,
     date: "April 2026",
     findings: 8,
     badge: "New",
