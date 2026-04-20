@@ -19,6 +19,7 @@ export async function loader() {
     { loc: "/reports/hiring-calendar-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/pune-jobs-2026", priority: "0.8", changefreq: "monthly" },
     { loc: "/reports/flame-marketing-2026", priority: "0.8", changefreq: "monthly" },
+    { loc: "/reports/internships-germany-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
     { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },
@@ -56,6 +57,7 @@ export async function loader() {
     "/reports/hiring-calendar-india-2026": "2026-04-01",
     "/reports/pune-jobs-2026": "2026-04-01",
     "/reports/flame-marketing-2026": "2026-04-01",
+    "/reports/internships-germany-2026": "2026-04-20",
   };
 
   const urls = [

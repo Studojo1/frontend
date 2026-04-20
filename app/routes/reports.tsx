@@ -154,6 +154,18 @@ const REPORTS = [
     findings: 8,
     badge: "New",
   },
+  {
+    slug: "internships-germany-2026",
+    title: "Do Interns in Germany Get Paid? Stipends, Laws and What to Expect",
+    subtitle: "Q1 2026",
+    excerpt:
+      "Germany's minimum wage is EUR 12.82/hour but mandatory internships are legally exempt. DAX 40 companies pay EUR 1,500 to 3,000/month. The exact rules, city data, and how international students qualify.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "April 2026",
+    findings: 8,
+    badge: "New",
+  },
 ];
 
 const FILTERS: Array<"All" | ReportType> = ["All", "Sector", "Internships", "Cities", "Colleges", "Hiring Calendar"];
