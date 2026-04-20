@@ -26,6 +26,14 @@ export function meta() {
 
 type ReportType = "Sector" | "Internships" | "Cities" | "Colleges" | "Hiring Calendar";
 
+const TYPE_COLORS: Record<ReportType, string> = {
+  "Sector":          "bg-blue-500",
+  "Internships":     "bg-amber-500",
+  "Cities":          "bg-emerald-500",
+  "Colleges":        "bg-violet-500",
+  "Hiring Calendar": "bg-orange-500",
+};
+
 const REPORTS = [
   {
     slug: "ops-india-2026",
@@ -37,7 +45,6 @@ const REPORTS = [
     type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-orange-500",
     badge: "New",
   },
   {
@@ -50,7 +57,6 @@ const REPORTS = [
     type: "Internships" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-amber-500",
     badge: "New",
   },
   {
@@ -63,7 +69,6 @@ const REPORTS = [
     type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-blue-500",
     badge: "New",
   },
   {
@@ -76,7 +81,6 @@ const REPORTS = [
     type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-emerald-500",
     badge: "",
   },
   {
@@ -89,7 +93,6 @@ const REPORTS = [
     type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-violet-500",
     badge: "",
   },
   {
@@ -102,7 +105,6 @@ const REPORTS = [
     type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-emerald-600",
     badge: "New",
   },
   {
@@ -115,7 +117,6 @@ const REPORTS = [
     type: "Cities" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-blue-700",
     badge: "New",
   },
   {
@@ -127,7 +128,6 @@ const REPORTS = [
     type: "Internships" as ReportType,
     date: "April 2026",
     findings: 3,
-    color: "bg-amber-600",
     badge: "New",
   },
   {
@@ -140,7 +140,6 @@ const REPORTS = [
     type: "Colleges" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-violet-700",
     badge: "New",
   },
   {
@@ -153,7 +152,6 @@ const REPORTS = [
     type: "Hiring Calendar" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-amber-500",
     badge: "New",
   },
 ];
@@ -308,7 +306,7 @@ export default function Reports() {
                 className="group flex flex-col rounded-2xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
               >
                 {/* Card top */}
-                <div className={`${report.color} rounded-t-xl border-b-2 border-neutral-900 p-6`}>
+                <div className={`${TYPE_COLORS[report.type]} rounded-t-xl border-b-2 border-neutral-900 p-6`}>
                   <div className="flex items-start justify-between">
                     <span className="rounded-full border-2 border-white/40 bg-white/20 px-3 py-1 font-['Satoshi'] text-xs font-bold text-white">
                       {report.category}
