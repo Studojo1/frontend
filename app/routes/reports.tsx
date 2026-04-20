@@ -179,6 +179,18 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "skills-ai-entry-level-2026",
+    title: "Breaking Into AI in 2026: The Skills, Roles and Hiring Reality for Entry-Level Candidates",
+    subtitle: "Q2 2026",
+    excerpt:
+      "94% of AI job postings want Python. 42% of roles are application-layer, not model-building. A deployed project scores 9.2/10 with hiring managers; a certificate scores 4.2. The exact stack, real salaries, and a 90-day path to your first AI role.",
+    category: "Sector",
+    type: "Sector" as ReportType,
+    date: "April 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
     slug: "internships-australia-2026",
     title: "Do Interns in Australia Get Paid? Minimum Wage, Sector Rates and How to Apply",
     subtitle: "Q1 2026",
