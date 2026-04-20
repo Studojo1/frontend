@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Operations Interns in India: The Skill Gap Nobody Talks About | Studojo Report 2026" },
-    {
-      name: "description",
-      content:
-        "12,400+ ops intern openings. Only 19% of applicants are work ready. The data skills gap, the SOP problem, and why no code tools are now the deciding factor in ops intern hiring across India.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/ops-india-2026` },
+    { title: "Operations Internship India 2026: Skill Gaps, Stipends and Hiring Data | Studojo" },
+    { name: "description", content: "12,400+ ops intern openings in India. Only 19% of applicants are work-ready. Excel, Notion and SOP gaps costing students offers across D2C, SaaS and logistics companies in 2026." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "operations internship india 2026, ops intern stipend india, supply chain internship india, business operations intern india, d2c operations internship" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/ops-india-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Operations Interns in India: The Skill Gap Nobody Talks About" },
-    { property: "og:description", content: "12,400+ ops intern openings. Only 19% of applicants are work ready. Skill gaps, stipend data, and hiring trends for ops interns across India in 2026." },
-    { property: "og:url", content: `${BASE_URL}/reports/ops-india-2026` },
+    { property: "og:title", content: "Operations Internship India 2026: Skill Gaps, Stipends and Hiring Data" },
+    { property: "og:description", content: "12,400+ ops intern openings in India. Only 19% of applicants are work-ready. Excel, Notion and SOP gaps costing students offers across D2C, SaaS and logistics companies in 2026." },
+    { property: "og:url", content: "https://studojo.com/reports/ops-india-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Operations Interns in India: The Skill Gap Nobody Talks About | Studojo 2026" },
-    { name: "twitter:description", content: "12,400+ ops intern openings. Only 19% work ready. Free data driven report on skill gaps in operations internship hiring across India." },
+    { name: "twitter:title", content: "Operations Internship India 2026: Skill Gaps and Stipend Data | Studojo" },
+    { name: "twitter:description", content: "12,400+ ops intern openings. Only 19% work-ready. Skill gaps, stipend data and hiring trends for ops interns across India." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -165,6 +170,9 @@ export default function OpsIndiaReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Operations Internship India 2026: Skill Gaps, Stipends and Hiring Data", "description": "12,400+ ops intern openings in India. Only 19% of applicants are work-ready. Excel, Notion and SOP gaps costing students offers across D2C, SaaS and logistics companies in 2026.", "url": "https://studojo.com/reports/ops-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/ops-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Operations Internship India 2026", "item": "https://studojo.com/reports/ops-india-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: reportCSS }} />
       <main>

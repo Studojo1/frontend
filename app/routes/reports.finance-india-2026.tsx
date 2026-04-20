@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Finance in India: What Graduates Actually Face | Studojo Report 2026" },
-    {
-      name: "description",
-      content:
-        "1,400+ entry-level finance openings. Salary benchmarks across global banks, fintechs, and Big 4. Skills that command a premium. Data-driven analysis for students entering finance in India.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/finance-india-2026` },
+    { title: "Entry-Level Finance Jobs India 2026: Salary Benchmarks and Skill Gaps | Studojo" },
+    { name: "description", content: "1,400+ entry-level finance openings across global banks, Big 4 and fintechs. Salary ranges, the skills gap screening 75% of applicants, and where the real opportunities are in India in 2026." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "entry level finance jobs india 2026, finance fresher salary india, investment banking internship india, ca fresher salary, finance graduate jobs india" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/finance-india-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Finance in India: What Graduates Actually Face" },
-    { property: "og:description", content: "1,400+ entry-level finance openings. Salary benchmarks across global banks, fintechs, and Big 4. Skills that command a premium. Data-driven analysis for students entering finance in India." },
-    { property: "og:url", content: `${BASE_URL}/reports/finance-india-2026` },
+    { property: "og:title", content: "Entry-Level Finance Jobs India 2026: Salary Benchmarks and Skill Gaps" },
+    { property: "og:description", content: "1,400+ entry-level finance openings across global banks, Big 4 and fintechs. Salary ranges, the skills gap screening 75% of applicants, and where the real opportunities are in India in 2026." },
+    { property: "og:url", content: "https://studojo.com/reports/finance-india-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Finance in India: What Graduates Actually Face | Studojo 2026" },
-    { name: "twitter:description", content: "1,400+ entry-level finance openings. Salary benchmarks, skill gaps, and hiring trends. Free report for students entering finance in India." },
+    { name: "twitter:title", content: "Entry-Level Finance Jobs India 2026: Salary Benchmarks and Skill Gaps | Studojo" },
+    { name: "twitter:description", content: "1,400+ finance openings. Salary benchmarks across global banks, Big 4 and fintechs. Free data-driven report for finance freshers in India." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -178,6 +183,9 @@ export default function FinanceIndiaReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Entry-Level Finance Jobs India 2026: Salary Benchmarks and Skill Gaps", "description": "1,400+ entry-level finance openings across global banks, Big 4 and fintechs. Salary ranges, the skills gap screening 75% of applicants, and where the real opportunities are in India in 2026.", "url": "https://studojo.com/reports/finance-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/finance-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Finance Jobs India 2026", "item": "https://studojo.com/reports/finance-india-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: reportCSS }} />
       <main>

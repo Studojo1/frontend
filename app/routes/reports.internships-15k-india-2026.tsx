@@ -5,13 +5,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Internship Roles That Pay Above ₹15k in India | Studojo 2026" },
-    { name: "description", content: "A role-by-role map of internships paying above ₹15,000/month in India in 2026. Which roles, which companies, which skills unlock the bracket." },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/internships-15k-india-2026` },
+    { title: "Internships Paying Above 15000 Per Month in India 2026 | Studojo" },
+    { name: "description", content: "48 internship roles mapped across 8 domains. ML Engineering interns earn Rs 50k-100k/month. Quant Trading interns earn Rs 150k. Which roles, which skills, and which companies break the Rs 15k floor." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "high paying internships india 2026, internships above 15000 india, ml internship stipend india, best paying internships students india, internship salary india" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/internships-15k-india-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Internship Roles That Pay Above ₹15k in India 2026" },
-    { property: "og:url", content: `${BASE_URL}/reports/internships-15k-india-2026` },
+    { property: "og:title", content: "Internships Paying Above Rs 15,000 Per Month in India 2026" },
+    { property: "og:description", content: "48 internship roles mapped across 8 domains. ML Engineering interns earn Rs 50k-100k/month. Quant Trading interns earn Rs 150k. Which roles, which skills, and which companies break the Rs 15k floor." },
+    { property: "og:url", content: "https://studojo.com/reports/internships-15k-india-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Internships Paying Above Rs 15,000 Per Month in India 2026 | Studojo" },
+    { name: "twitter:description", content: "48 roles mapped across 8 domains. ML interns earn Rs 50k-100k. Quant Trading up to Rs 150k. Find out which roles and skills break the Rs 15k floor." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -77,6 +90,9 @@ const BRACKET = {
 export default function Internships15kReport() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Internships Paying Above Rs 15,000 Per Month in India 2026", "description": "48 internship roles mapped across 8 domains. ML Engineering interns earn Rs 50k-100k/month. Quant Trading interns earn Rs 150k. Which roles, which skills, and which companies break the Rs 15k floor.", "url": "https://studojo.com/reports/internships-15k-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/internships-15k-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Internships Paying Above Rs 15k in India 2026", "item": "https://studojo.com/reports/internships-15k-india-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <main>

@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Flame University & Marketing Careers 2026: What the Placement Data Actually Shows | Studojo" },
-    {
-      name: "description",
-      content:
-        "Flame's placement data is BFSI-heavy, not marketing-heavy. Here is what the published numbers actually show, and what marketing-track students need to do differently.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/flame-marketing-2026` },
+    { title: "Flame University Marketing Placements 2026: What the Data Actually Shows | Studojo" },
+    { name: "description", content: "Flame's avg CTC is 9.63 LPA but campus placements skew BFSI, not marketing. 7 role tracks analysed. The 1.7x campus vs off-campus salary gap and what marketing-track students need to do differently." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "flame university placements 2026, flame university marketing career, flame mba salary, flame bba placement data, flame university pune" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/flame-marketing-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Flame University & Marketing Careers 2026: What the Placement Data Actually Shows" },
-    { property: "og:description", content: "Flame's MBA avg CTC is ₹9.63 LPA, but campus placements skew BFSI and consulting, not marketing. Here is what that means for marketing-track students." },
-    { property: "og:url", content: `${BASE_URL}/reports/flame-marketing-2026` },
+    { property: "og:title", content: "Flame University Marketing Placements 2026: What the Data Actually Shows" },
+    { property: "og:description", content: "Flame's avg CTC is 9.63 LPA but campus placements skew BFSI, not marketing. 7 role tracks analysed. The 1.7x campus vs off-campus salary gap and what marketing-track students need to do differently." },
+    { property: "og:url", content: "https://studojo.com/reports/flame-marketing-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Flame University Marketing Careers 2026 - Studojo" },
-    { name: "twitter:description", content: "Flame's placement data decoded. What marketing-track students actually face and where the real opportunities are." },
+    { name: "twitter:title", content: "Flame University Marketing Placements 2026 | Studojo" },
+    { name: "twitter:description", content: "Flame placement data decoded. Campus skews BFSI, not marketing. What marketing-track Flame students actually face and where the real roles are." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -169,6 +174,9 @@ export default function FlameMarketingReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Flame University Marketing Placements 2026: What the Data Actually Shows", "description": "Flame's avg CTC is 9.63 LPA but campus placements skew BFSI, not marketing. 7 role tracks analysed. The 1.7x campus vs off-campus salary gap and what marketing-track students need to do differently.", "url": "https://studojo.com/reports/flame-marketing-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/flame-marketing-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Flame University Marketing Placements 2026", "item": "https://studojo.com/reports/flame-marketing-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
       <main>

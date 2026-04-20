@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Pune Job Market 2026: What Students and Freshers Actually Face | Studojo" },
-    {
-      name: "description",
-      content:
-        "4,800+ entry-level openings in Pune. The sectors growing fastest, the salary gap between colleges, and why Pune is quietly becoming India's best city for early-career tech, ops, and product roles.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/pune-jobs-2026` },
+    { title: "Pune Jobs for Freshers 2026: Salary Data, Top Sectors and Hiring Trends | Studojo" },
+    { name: "description", content: "4,800+ entry-level openings in Pune. IT, product, ops and fintech are growing fastest. A 3x salary gap between role types. What freshers and students are actually walking into in Pune in 2026." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "pune jobs freshers 2026, entry level jobs pune, pune it jobs 2026, jobs in pune for freshers, hinjewadi jobs freshers, pune startup jobs" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/pune-jobs-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Pune Job Market 2026: What Students and Freshers Actually Face" },
-    { property: "og:description", content: "4,800+ entry-level openings. The sectors growing fastest, salary data, and the skills gap that screens out 70% of applicants before a human reads their resume." },
-    { property: "og:url", content: `${BASE_URL}/reports/pune-jobs-2026` },
+    { property: "og:title", content: "Pune Jobs for Freshers 2026: Salary Data, Top Sectors and Hiring Trends" },
+    { property: "og:description", content: "4,800+ entry-level openings in Pune. IT, product, ops and fintech are growing fastest. A 3x salary gap between role types. What freshers and students are actually walking into in Pune in 2026." },
+    { property: "og:url", content: "https://studojo.com/reports/pune-jobs-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Pune Job Market 2026 - Studojo" },
-    { name: "twitter:description", content: "4,800+ entry-level openings in Pune. Sectors, salaries, skill gaps, and what actually gets freshers hired in 2026." },
+    { name: "twitter:title", content: "Pune Jobs for Freshers 2026: Salary Data and Hiring Trends | Studojo" },
+    { name: "twitter:description", content: "4,800+ entry-level openings in Pune. Sectors, salary data, skill gaps, and what actually gets freshers hired in 2026." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -182,6 +187,9 @@ export default function PuneJobsReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Pune Jobs for Freshers 2026: Salary Data, Top Sectors and Hiring Trends", "description": "4,800+ entry-level openings in Pune. IT, product, ops and fintech are growing fastest. A 3x salary gap between role types. What freshers and students are actually walking into in Pune in 2026.", "url": "https://studojo.com/reports/pune-jobs-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/pune-jobs-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Pune Jobs for Freshers 2026", "item": "https://studojo.com/reports/pune-jobs-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
       <main>

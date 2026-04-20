@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Fresher Sales in India: What You're Actually Getting Into | Studojo Report 2026" },
-    {
-      name: "description",
-      content:
-        "28,600+ open sales roles. A 5x salary gap within the same job title. And the one skill missing in 57% of freshers that kills their chances before the first round.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/sales-india-2026` },
+    { title: "Entry-Level Sales Jobs India 2026: Salary Data and Skill Gaps | Studojo" },
+    { name: "description", content: "28,600+ open sales roles in India. A 5x salary gap within the same job title. The CRM skill gap ending 60% of interviews before they start. Full data for freshers entering sales in 2026." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "entry level sales jobs india 2026, sales fresher salary india, business development intern india, sales bde salary india, inside sales fresher india" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/sales-india-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Fresher Sales in India: What You're Actually Getting Into" },
-    { property: "og:description", content: "28,600+ open sales roles. A 5x salary gap within the same job title. Skill gaps, hiring trends, and salary benchmarks for freshers entering sales in India." },
-    { property: "og:url", content: `${BASE_URL}/reports/sales-india-2026` },
+    { property: "og:title", content: "Entry-Level Sales Jobs India 2026: Salary Data and Skill Gaps" },
+    { property: "og:description", content: "28,600+ open sales roles in India. A 5x salary gap within the same job title. The CRM skill gap ending 60% of interviews before they start. Full data for freshers entering sales in 2026." },
+    { property: "og:url", content: "https://studojo.com/reports/sales-india-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Fresher Sales in India: What You're Actually Getting Into | Studojo 2026" },
-    { name: "twitter:description", content: "28,600+ open sales roles. A 5x salary gap within the same title. Free data-driven report for students entering sales in India." },
+    { name: "twitter:title", content: "Entry-Level Sales Jobs India 2026: Salary Data and Skill Gaps | Studojo" },
+    { name: "twitter:description", content: "28,600+ sales roles. A 5x salary gap within the same title. Free data-driven report for students entering sales in India." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -219,6 +224,9 @@ export default function SalesIndiaReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Entry-Level Sales Jobs India 2026: Salary Data and Skill Gaps", "description": "28,600+ open sales roles in India. A 5x salary gap within the same job title. The CRM skill gap ending 60% of interviews before they start. Full data for freshers entering sales in 2026.", "url": "https://studojo.com/reports/sales-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/sales-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Entry-Level Sales Jobs India 2026", "item": "https://studojo.com/reports/sales-india-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
       <main>

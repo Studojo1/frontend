@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Marketing Internships in India 2026: Where the Good Roles Actually Are | Studojo" },
-    {
-      name: "description",
-      content:
-        "22,000+ marketing internship listings across India. A 6x stipend gap. And why 90% of students apply to the wrong ones. Data-driven analysis for students targeting marketing in 2026.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/marketing-india-2026` },
+    { title: "Marketing Internship Stipend India 2026: Which Roles Pay and Which Don't | Studojo" },
+    { name: "description", content: "22,000+ marketing internship listings in India. Stipends range from Rs 5,000 to Rs 40,000 per month. The 6x gap explained by company type, niche role categories, and what actually gets students hired." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "marketing internship india 2026, marketing intern stipend india, content marketing internship india, growth marketing intern india, digital marketing internship india" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/marketing-india-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Marketing Internships in India 2026: Where the Good Roles Actually Are" },
-    { property: "og:description", content: "22,000+ marketing internship listings. A 6x stipend gap. Niche role types, top companies, city data, and what actually gets you hired." },
-    { property: "og:url", content: `${BASE_URL}/reports/marketing-india-2026` },
+    { property: "og:title", content: "Marketing Internship Stipend India 2026: Which Roles Pay and Which Don't" },
+    { property: "og:description", content: "22,000+ marketing internship listings in India. Stipends range from Rs 5,000 to Rs 40,000 per month. The 6x gap explained by company type, niche role categories, and what actually gets students hired." },
+    { property: "og:url", content: "https://studojo.com/reports/marketing-india-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Marketing Internships in India 2026 - Studojo" },
-    { name: "twitter:description", content: "22,000+ marketing internship listings. A 6x stipend gap. Where the good roles are, what they pay, and why most students apply to the wrong ones." },
+    { name: "twitter:title", content: "Marketing Internship Stipend India 2026 | Studojo" },
+    { name: "twitter:description", content: "22,000+ listings. Rs 5k to Rs 40k stipend gap. Where the good roles are, what they pay, and why most students apply to the wrong ones." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -180,6 +185,9 @@ export default function MarketingIndiaReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Marketing Internship Stipend India 2026: Which Roles Pay and Which Don't", "description": "22,000+ marketing internship listings in India. Stipends range from Rs 5,000 to Rs 40,000 per month. The 6x gap explained by company type, niche role categories, and what actually gets students hired.", "url": "https://studojo.com/reports/marketing-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/marketing-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Marketing Internship Stipend India 2026", "item": "https://studojo.com/reports/marketing-india-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
       <main>

@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Fresher CS in India: What You're Actually Getting Into | Studojo Report 2026" },
-    {
-      name: "description",
-      content:
-        "135,000 IT hires projected for FY26. A 12x salary gap at Year 0 based purely on which company you join. And the one skill gap that keeps 94.5% of engineering graduates out of the roles worth having.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/cs-india-2026` },
+    { title: "Fresher CS Salaries India 2026: Salary Data, Skill Gaps and Hiring Trends | Studojo" },
+    { name: "description", content: "135,000 IT hires projected for FY26. TCS pays 3.6 LPA, product startups pay 20 LPA+. The 12x salary gap, DSA skill gaps, and what CS freshers actually face in India." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "fresher cs salary india 2026, entry level software engineer salary india, it fresher salary india, dsa interview india, software engineer salary freshers" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/cs-india-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Fresher CS in India: What You're Actually Getting Into" },
-    { property: "og:description", content: "135,000 IT hires projected for FY26. A 12x salary gap based purely on which company you join. Skill gaps, hiring trends, and salary benchmarks for CS freshers in India." },
-    { property: "og:url", content: `${BASE_URL}/reports/cs-india-2026` },
+    { property: "og:title", content: "Fresher CS Salaries India 2026: Salary Data, Skill Gaps and Hiring Trends" },
+    { property: "og:description", content: "135,000 IT hires projected for FY26. TCS pays 3.6 LPA, product startups pay 20 LPA+. The 12x salary gap, DSA skill gaps, and what CS freshers actually face in India." },
+    { property: "og:url", content: "https://studojo.com/reports/cs-india-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Fresher CS in India: What You're Actually Getting Into | Studojo 2026" },
+    { name: "twitter:title", content: "Fresher CS Salaries India 2026: Salary Data, Skill Gaps and Hiring Trends | Studojo" },
     { name: "twitter:description", content: "135,000 IT hires projected for FY26. A 12x salary gap at Year 0. Free data-driven report for CS freshers entering the job market in India." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -220,6 +225,9 @@ export default function CSIndiaReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Fresher CS Salaries India 2026: Salary Data, Skill Gaps and Hiring Trends", "description": "135,000 IT hires projected for FY26. TCS pays 3.6 LPA, product startups pay 20 LPA+. The 12x salary gap, DSA skill gaps, and what CS freshers actually face in India.", "url": "https://studojo.com/reports/cs-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/cs-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Fresher CS Salaries India 2026", "item": "https://studojo.com/reports/cs-india-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
       <main>
