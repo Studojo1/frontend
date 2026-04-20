@@ -35,7 +35,7 @@ const RESOURCES_LINKS = [
 ];
 
 const USER_LINKS = [
-  { to: "/resumes", label: "My Resumes" },
+  { to: "/profile", label: "My Profile" },
   { to: "/settings", label: "Settings" },
 ] as const;
 
@@ -203,14 +203,14 @@ export function Header() {
                     <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border-2 border-neutral-900 bg-white shadow-lg z-50">
                       <div className="py-2">
                         <Link
-                          to="/resumes"
+                          to="/profile"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-3 px-4 py-2 font-['Satoshi'] text-sm text-neutral-700 hover:bg-neutral-50"
                         >
                           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
-                          <span>My Resumes</span>
+                          <span>My Profile</span>
                         </Link>
                         <Link
                           to="/my-applications"
@@ -355,11 +355,11 @@ export function Header() {
                 <>
                   <li>
                     <Link
-                      to="/resumes"
+                      to="/profile"
                       onClick={() => setMobileOpen(false)}
                       className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >
-                      My Resumes
+                      My Profile
                     </Link>
                   </li>
                   <li>

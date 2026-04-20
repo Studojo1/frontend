@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { Header } from "~/components/common/header";
 import { ChatPanel } from "~/components/rsb/ChatPanel";
@@ -42,6 +42,8 @@ export default function RsbSessionRoute() {
   const [session, setSession] = useState<RsbSession | null>(null);
   const [exporting, setExporting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"chat" | "preview">("chat");
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const streamingRef = useRef("");
 
   useEffect(() => {
@@ -92,8 +94,7 @@ export default function RsbSessionRoute() {
         let finalAssistant = "";
         for await (const ev of parseSSE(res)) {
           if (ev.event === "token") {
-            const tok = ev.data;
-            streamingRef.current += tok;
+            streamingRef.current += ev.data;
             setStreaming(streamingRef.current);
           } else if (ev.event === "resume_patch") {
             try {
@@ -110,6 +111,7 @@ export default function RsbSessionRoute() {
               finalAssistant = payload.assistant_text || streamingRef.current;
               if (payload.resume_doc) setDoc(payload.resume_doc);
               if (payload.ats) setAts(payload.ats);
+              setLastSaved(new Date());
             } catch {}
           } else if (ev.event === "error") {
             console.error("SSE error event:", ev.data);
@@ -192,7 +194,7 @@ export default function RsbSessionRoute() {
       <>
         <Header />
         <div className="min-h-[60vh] flex items-center justify-center text-neutral-500 font-['Satoshi']">
-          Loading your draft...
+          Loading your draft…
         </div>
       </>
     );
@@ -201,21 +203,108 @@ export default function RsbSessionRoute() {
   return (
     <>
       <Header />
-      <div className="bg-gradient-to-br from-violet-50 via-white to-amber-50 min-h-[calc(100vh-80px)] px-4 md:px-6 py-4">
-        <div className="max-w-[1400px] mx-auto grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-4">
-          <div className="flex flex-col gap-3 min-h-[70vh]">
-            <ChatPanel
-              messages={messages}
-              streamingText={streaming}
-              onSend={send}
-              sending={sending}
-            />
-            <AtsMeter ats={ats} />
+
+      {/* Full-height wrapper */}
+      <div className="flex flex-col bg-gradient-to-br from-violet-50 via-white to-amber-50" style={{ height: "calc(100vh - 96px)" }}>
+
+        {/* Top bar */}
+        <div className="flex-shrink-0 border-b-2 border-neutral-900 bg-white px-4 py-2 flex items-center gap-4">
+          <Link
+            to="/profile"
+            className="flex items-center gap-1 font-['Satoshi'] text-sm font-semibold text-neutral-600 hover:text-neutral-900 transition-colors"
+          >
+            ← My Profile
+          </Link>
+          {session?.target_role && (
+            <>
+              <span className="text-neutral-300">·</span>
+              <span className="font-['Satoshi'] text-sm text-neutral-700 truncate max-w-[200px]">
+                {session.target_role}
+              </span>
+            </>
+          )}
+          {lastSaved && (
+            <span className="ml-auto flex items-center gap-1.5 font-['Satoshi'] text-xs text-emerald-600">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Auto-saved
+            </span>
+          )}
+        </div>
+
+        {/* Mobile tab bar */}
+        <div className="flex-shrink-0 flex border-b-2 border-neutral-900 bg-white md:hidden">
+          {(["chat", "preview"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2.5 font-['Satoshi'] text-sm font-bold transition-colors capitalize ${
+                activeTab === tab
+                  ? "bg-violet-500 text-white border-b-0"
+                  : "bg-white text-neutral-600 hover:bg-neutral-50"
+              }`}
+            >
+              {tab === "chat" ? "Chat" : "Preview"}
+            </button>
+          ))}
+        </div>
+
+        {/* Content area */}
+        <div className="flex-1 overflow-hidden px-3 py-3 md:px-5 md:py-4">
+
+          {/* Desktop: side-by-side */}
+          <div className="hidden md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-4 h-full">
+            <div className="flex flex-col gap-3 min-h-0">
+              <div className="flex-1 min-h-0">
+                <ChatPanel
+                  messages={messages}
+                  streamingText={streaming}
+                  onSend={send}
+                  sending={sending}
+                />
+              </div>
+              <div className="flex-shrink-0">
+                <AtsMeter ats={ats} />
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 min-h-0">
+              <div className="flex-1 min-h-0">
+                <ResumePreview doc={doc} />
+              </div>
+              <div className="flex-shrink-0">
+                <ExportBar doc={doc} ats={ats} exporting={exporting} onExport={onExport} onCopyPlain={onCopyPlain} lastSaved={lastSaved} />
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col gap-3 min-h-[70vh]">
-            <ResumePreview doc={doc} />
-            <ExportBar doc={doc} ats={ats} exporting={exporting} onExport={onExport} onCopyPlain={onCopyPlain} />
+
+          {/* Mobile: single active panel */}
+          <div className="flex flex-col gap-3 h-full md:hidden">
+            {activeTab === "chat" ? (
+              <>
+                <div className="flex-1 min-h-0">
+                  <ChatPanel
+                    messages={messages}
+                    streamingText={streaming}
+                    onSend={send}
+                    sending={sending}
+                  />
+                </div>
+                <div className="flex-shrink-0">
+                  <AtsMeter ats={ats} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex-1 min-h-0">
+                  <ResumePreview doc={doc} />
+                </div>
+                <div className="flex-shrink-0">
+                  <ExportBar doc={doc} ats={ats} exporting={exporting} onExport={onExport} onCopyPlain={onCopyPlain} lastSaved={lastSaved} />
+                </div>
+              </>
+            )}
           </div>
+
         </div>
       </div>
     </>

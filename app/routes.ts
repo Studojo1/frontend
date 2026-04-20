@@ -35,6 +35,8 @@ export default [
   route("api/v2/resumes/:id/versions", "routes/api.v2.resumes.$id.versions.tsx"),
   route("api/v2/resumes/:id", "routes/api.v2.resumes.$id.tsx"),
   route("api/v2/resumes", "routes/api.v2.resumes.tsx"),
+  route("profile", "routes/profile.tsx"),
+  route("api/user/applications", "routes/api.user.applications.tsx"),
   route("onboarding", "routes/onboarding.tsx"),
   route("settings", "routes/settings.tsx"),
   route("settings/email", "routes/settings.email.tsx"),

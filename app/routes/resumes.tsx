@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { redirect, useSearchParams } from "react-router";
-import { FiEdit, FiTrash2, FiPlus, FiFileText, FiEye, FiAlertCircle } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiPlus, FiFileText, FiEye, FiAlertCircle, FiArrowRight } from "react-icons/fi";
 import { Footer, Header, ConfirmModal } from "~/components";
 import { ImportResumeModal, RenameResumeModal, InternshipReturnCard } from "~/components/resumes";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
@@ -439,26 +439,31 @@ export default function Resumes() {
               />
             )}
 
+            {/* AI Builder Banner */}
+            <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl border-2 border-violet-500 bg-violet-50 px-5 py-4 shadow-[4px_4px_0px_0px_rgba(109,40,217,0.3)]">
+              <div>
+                <p className="font-['Satoshi'] text-sm font-bold text-violet-900">New: AI Resume Builder</p>
+                <p className="font-['Satoshi'] text-xs text-violet-700 mt-0.5">Chat-based, ATS-ready, takes 10 minutes.</p>
+              </div>
+              <a
+                href="/rsb"
+                className="flex items-center gap-2 rounded-xl bg-violet-500 px-4 py-2 font-['Satoshi'] text-sm font-bold text-white border-2 border-violet-900 shadow-[3px_3px_0px_0px_rgba(109,40,217,0.5)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none flex-shrink-0"
+              >
+                Build with AI <FiArrowRight className="h-4 w-4" />
+              </a>
+            </div>
+
             {/* Header */}
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h1 className="font-['Clash_Display'] text-3xl font-medium leading-tight tracking-tight text-neutral-950 md:text-4xl">
-                  My Resumes
+                  Classic Resumes
                 </h1>
                 <p className="mt-2 font-['Satoshi'] text-sm font-normal leading-6 text-gray-600">
-                  Manage your saved resumes and optimize them for job applications
+                  Your existing section-based resumes — view, edit, or delete
                 </p>
               </div>
               <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => resumes.length >= 4 ? null : window.location.href = "/resumes/new"}
-                  disabled={resumes.length >= 4}
-                  className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-6 font-['Clash_Display'] text-base font-medium leading-5 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] outline outline-2 outline-offset-[-2px] outline-neutral-900 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  <FiPlus className="h-5 w-5" />
-                  Create Resume
-                </button>
                 <button
                   type="button"
                   onClick={() => resumes.length < 4 && setImportModalOpen(true)}
