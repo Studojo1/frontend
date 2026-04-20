@@ -184,8 +184,8 @@ const REPORTS = [
     subtitle: "Q2 2026",
     excerpt:
       "94% of AI job postings want Python. 42% of roles are application-layer, not model-building. A deployed project scores 9.2/10 with hiring managers; a certificate scores 4.2. The exact stack, real salaries, and a 90-day path to your first AI role.",
-    category: "Sector",
-    type: "Sector" as ReportType,
+    category: "Internships",
+    type: "Internships" as ReportType,
     date: "April 2026",
     findings: 8,
     badge: "New",
