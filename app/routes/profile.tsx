@@ -70,6 +70,7 @@ function Skeleton() {
 export default function ProfilePage() {
   const { data: auth, isPending } = authClient.useSession();
   const navigate = useNavigate();
+  const [mounted, setMounted] = useState(false);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [rsbSessions, setRsbSessions] = useState<RsbSession[] | null>(null);
@@ -78,9 +79,11 @@ export default function ProfilePage() {
   const [outreachOrders, setOutreachOrders] = useState<OutreachOrder[] | null>(null);
   const [jobs, setJobs] = useState<any[] | null>(null);
 
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
-    if (!isPending && !auth?.user) navigate("/auth?mode=signin&redirect=/profile");
-  }, [isPending, auth?.user, navigate]);
+    if (mounted && !isPending && !auth?.user) navigate("/auth?mode=signin&redirect=/profile");
+  }, [mounted, isPending, auth?.user, navigate]);
 
   useEffect(() => {
     if (!auth?.user) return;
@@ -117,7 +120,7 @@ export default function ProfilePage() {
       .catch(() => setJobs([]));
   }, [auth?.user]);
 
-  if (isPending || !auth?.user) {
+  if (!mounted || isPending || !auth?.user) {
     return (
       <>
         <Header />
