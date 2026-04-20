@@ -63,7 +63,7 @@ export default function RsbRoot() {
       {phase === "welcome" ? (
         <WelcomeScreen onStart={() => setPhase("intake")} />
       ) : (
-        <RoleIntake submitting={creating} onSubmit={createSession} onBack={() => setPhase("welcome")} />
+        <RoleIntake submitting={creating} onSubmit={createSession} />
       )}
     </>
   );

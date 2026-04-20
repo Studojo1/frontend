@@ -12,12 +12,9 @@ import type { Route } from "./+types/resumes.new";
 import type { ResumeSection } from "~/lib/resume-draft";
 
 export async function loader({ request }: Route.LoaderArgs) {
-  // All new resume creation goes through the AI builder
-  throw redirect("/rsb");
-
   const session = await getSessionFromRequest(request);
   if (!session) throw redirect("/auth");
-
+  
   const onboardingStatus = await requireOnboardingComplete(session.user.id);
   if (!onboardingStatus.complete) {
     throw redirect("/onboarding");

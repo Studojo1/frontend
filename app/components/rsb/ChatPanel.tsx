@@ -29,33 +29,23 @@ export function ChatPanel({
 
   return (
     <div className="bg-white border-2 border-neutral-900 rounded-[24px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] flex flex-col h-full overflow-hidden font-['Satoshi']">
-      {/* Header bar */}
-      <div className="flex-shrink-0 bg-neutral-900 text-white px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+      <div className="bg-neutral-900 text-white px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         Resume coach
       </div>
 
-      {/* Messages */}
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-4 space-y-3"
+        style={{ maxHeight: "calc(100vh - 320px)" }}
       >
-        {messages.length === 0 && !streamingText && (
-          <div className="flex h-full items-center justify-center py-12 text-center">
-            <div>
-              <p className="font-['Satoshi'] text-sm font-semibold text-neutral-500">Your resume coach is ready.</p>
-              <p className="mt-1 font-['Satoshi'] text-xs text-neutral-400">Say hi or describe the role you&apos;re targeting.</p>
-            </div>
-          </div>
-        )}
         {messages.map((m) => (
           <Bubble key={m.id} role={m.role} text={m.content} />
         ))}
         {streamingText && <Bubble role="assistant" text={streamingText} streaming />}
       </div>
 
-      {/* Input */}
-      <div className="flex-shrink-0 border-t-2 border-neutral-900 p-3 bg-violet-50">
+      <div className="border-t-2 border-neutral-900 p-3 bg-violet-50">
         <div className="flex gap-2">
           <textarea
             value={input}
@@ -67,13 +57,13 @@ export function ChatPanel({
               }
             }}
             rows={2}
-            placeholder="Type your answer…"
+            placeholder="Type your answer..."
             className="flex-1 px-3 py-2 bg-white border-2 border-neutral-900 rounded-xl text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none resize-none"
           />
           <button
             onClick={submit}
             disabled={sending || !input.trim()}
-            className="px-4 bg-violet-500 text-white font-bold border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-40 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+            className="px-4 bg-violet-500 text-neutral-900 font-bold border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-40 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
           >
             <FiSend className="w-5 h-5" />
           </button>
@@ -87,15 +77,14 @@ function Bubble({ role, text, streaming }: { role: "user" | "assistant"; text: s
   if (role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] bg-violet-500 text-white px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-br-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
+        <div className="max-w-[80%] bg-violet-500 text-neutral-900 px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-br-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
           {text}
         </div>
       </div>
     );
   }
   return (
-    <div className="flex justify-start flex-col gap-0.5">
-      <span className="ml-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-['Satoshi']">studojo</span>
+    <div className="flex justify-start">
       <div className="max-w-[85%] bg-white text-neutral-900 px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-bl-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
         {text}
         {streaming && <span className="inline-block w-1.5 h-4 bg-neutral-900 ml-0.5 animate-pulse align-middle" />}
