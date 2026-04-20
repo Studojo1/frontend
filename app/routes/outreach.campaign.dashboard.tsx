@@ -247,14 +247,20 @@ export default function DashboardPage() {
   // Check if Gmail re-auth is needed (for reply tracking scope)
   useEffect(() => {
     if (!campaignId || !emailAccountId) return;
-    const dismissed = localStorage.getItem(`reauth_banner_dismissed_${emailAccountId}`);
-    if (dismissed) return;
 
     outreachFetch<{ email_account_id?: number; email_address?: string; token_valid?: boolean; scopes?: string[] }>(
       `/gmail/oauth/account?email_account_id=${emailAccountId}`
     ).then((data) => {
-      setGmailTokenValid(data?.token_valid ?? true);
-      setShowReauthBanner(true);
+      const valid = data?.token_valid ?? true;
+      setGmailTokenValid(valid);
+      // Always show the banner when token is invalid (critical — don't respect dismiss)
+      // Only respect dismiss for the informational "reply tracking available" banner
+      if (!valid) {
+        setShowReauthBanner(true);
+      } else {
+        const dismissed = localStorage.getItem(`reauth_banner_dismissed_${emailAccountId}`);
+        if (!dismissed) setShowReauthBanner(true);
+      }
     }).catch(() => {});
   }, [campaignId, emailAccountId]);
 
