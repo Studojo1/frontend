@@ -85,7 +85,7 @@ function initCharts() {
     data: {
       labels: ["Bristol /\nLeeds", "Edinburgh /\nGlasgow", "Birmingham /\nNotts", "Manchester", "London\n(general)", "London\n(finance/law)"],
       datasets: [
-        { label: "Summer intern annual equivalent (GBP)", data: [22000, 23000, 24000, 35837, 40378, 52000], backgroundColor: EMERALD, borderRadius: 4, borderWidth: 0 },
+        { label: "Summer intern annual equivalent (GBP)", data: [22000, 23000, 24000, 23500, 29000, 52000], backgroundColor: EMERALD, borderRadius: 4, borderWidth: 0 },
       ],
     },
     options: {
@@ -135,7 +135,7 @@ function initCharts() {
       labels: ["Goldman Sachs\n(summer analyst)", "JPMorgan\n(summer analyst)", "McKinsey / BCG /\nBain", "Magic Circle\nlaw firms", "Big 4\nConsulting", "Google / Microsoft\n(EMEA intern)"],
       datasets: [{
         label: "Estimated acceptance rate (%)",
-        data: [0.8, 0.9, 1.5, 3, 5, 4],
+        data: [0.7, 0.7, 1.5, 3, 5, 4],
         backgroundColor: [RED, RED, AMBER, AMBER, EMERALD2, EMERALD3],
         borderRadius: 6,
         borderWidth: 0,
@@ -209,7 +209,7 @@ export default function UKInternshipsReport() {
             </p>
             <div className="rpt-hero-stats">
               <div className="rpt-hero-stat"><div className="rpt-hval">£12.21</div><div className="rpt-hlbl">National Living Wage per hour (21+, April 2025)</div></div>
-              <div className="rpt-hero-stat"><div className="rpt-hval">0.8%</div><div className="rpt-hlbl">Goldman Sachs summer analyst acceptance rate</div></div>
+              <div className="rpt-hero-stat"><div className="rpt-hval">0.7%</div><div className="rpt-hlbl">Goldman Sachs summer analyst acceptance rate (2025 cycle)</div></div>
               <div className="rpt-hero-stat"><div className="rpt-hval">8 findings</div><div className="rpt-hlbl">Pay data, legal rules, recruitment calendar, how to qualify</div></div>
             </div>
           </div>
@@ -289,7 +289,7 @@ export default function UKInternshipsReport() {
             <div className="rpt-stat-row rpt-c3" style={{ marginTop: 20 }}>
               <div className="rpt-stat"><div className="rpt-val rpt-e">£12.21</div><div className="rpt-lbl">National Living Wage (21+) from April 2025. Rising to £12.71 from April 2026.</div></div>
               <div className="rpt-stat"><div className="rpt-val">£10.00</div><div className="rpt-lbl">National Minimum Wage for ages 18 to 20 from April 2025. Rising to £10.85 in April 2026.</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">£7.49</div><div className="rpt-lbl">Rate for ages 16 to 17. Rising to £8.00 from April 2026 (Low Pay Commission recommendation).</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">£7.55</div><div className="rpt-lbl">Rate for ages 16 to 17. Rising to £8.00 from April 2026 (Low Pay Commission recommendation).</div></div>
             </div>
 
             <p className="rpt-prose">HMRC actively enforces minimum wage rules for interns. Employers found in breach are named in a public list on GOV.UK and face penalties of up to 200% of the unpaid wages (capped at £20,000 per worker). High-profile cases have included law firms, media agencies, and startups. <strong>The test is not whether your contract says "intern": it is whether you are doing work that benefits the business.</strong> If yes, you are a worker, and you are owed the minimum wage from day one.</p>
@@ -312,7 +312,7 @@ export default function UKInternshipsReport() {
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-e">£45-60k</div><div className="rpt-lbl">Goldman Sachs and JPMorgan summer analyst pro-rata annual pay in London (Glassdoor UK, 2025)</div></div>
               <div className="rpt-stat"><div className="rpt-val">£43,007</div><div className="rpt-lbl">Average annual equivalent for Big 4 / MBB consulting interns in the UK (Glassdoor / PrepLounge, 2025)</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">£20,400</div><div className="rpt-lbl">UK average internship pay across all sectors and companies (Glassdoor UK, 2025)</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">£24,500</div><div className="rpt-lbl">UK average internship pay across all sectors (Glassdoor UK / Indeed, 2025-26). Lower quartile is around £18,000.</div></div>
             </div>
 
             <p className="rpt-prose">The top end of UK intern pay is genuinely competitive: investment banks pay £45,000 to £60,000 pro-rata, which translates to £3,750 to £5,000 per month for a 10 to 12-week summer placement. MBB consulting follows closely at roughly £3,584/month median. Tech companies (Google, Microsoft, Arm) sit at £3,100 to £3,750/month. <strong>General finance internships away from investment banking average closer to £2,001/month in London, which represents the midpoint between the glamorous IB packages and the minimum-wage-adjacent creative and media internships that make up the majority of listings.</strong></p>
@@ -351,8 +351,8 @@ export default function UKInternshipsReport() {
             <div className="rpt-bar-list" style={{ marginTop: 16 }}>
               {[
                 { city: "London: finance and law", range: "£40,000 to £60,000/yr", sub: "City of London, Canary Wharf. Investment banking, Magic Circle law, consulting. Housing costs: £1,200 to £1,800/month for a room.", bg: "#10b981", pct: 100 },
-                { city: "London: general", range: "£26,000 to £40,000/yr", sub: "Tech, media, marketing, general business. High volume but wide range. Transport costs add £200/month.", bg: "#34d399", pct: 75 },
-                { city: "Manchester", range: "£23,000 to £36,000/yr", sub: "Fast-growing tech and media hub. BBC, ITV, KPMG North all based here. Rent: £700 to £1,000/month.", bg: "#34d399", pct: 65 },
+                { city: "London: general", range: "£24,000 to £35,000/yr", sub: "Tech, media, marketing, general business. Average ~£29,000/yr (Glassdoor/Indeed 2025). High volume but wide range. Transport costs add £200/month.", bg: "#34d399", pct: 75 },
+                { city: "Manchester", range: "£20,000 to £28,000/yr", sub: "Fast-growing tech and media hub. BBC, ITV, KPMG North all based here. Average ~£23,500/yr (Glassdoor 2025). Rent: £700 to £1,000/month.", bg: "#34d399", pct: 65 },
                 { city: "Edinburgh / Glasgow", range: "£20,000 to £28,000/yr", sub: "Strong finance (Standard Life, Edinburgh), law, government. Rent: £650 to £900/month.", bg: "#6ee7b7", pct: 55 },
                 { city: "Birmingham / Bristol", range: "£20,000 to £26,000/yr", sub: "HSBC UK HQ in Birmingham. Bristol: strong tech and sustainability sector. Rent: £650 to £850/month.", bg: "#6ee7b7", pct: 48 },
               ].map(r => (
@@ -365,11 +365,11 @@ export default function UKInternshipsReport() {
             </div>
 
             <blockquote className="rpt-pullquote">
-              <p>"A £26,000/yr London internship leaves you with roughly £350/month after rent and travel. A £23,000/yr Manchester internship often leaves you with more."</p>
+              <p>"A £29,000/yr London internship leaves you with roughly £500/month after rent and travel. A £23,500/yr Manchester internship often leaves you with more."</p>
             </blockquote>
 
             <p className="rpt-prose">The real advantage of London is concentration: nearly all investment banking, Magic Circle law, and MBB consulting internships are exclusively London-based. If you are targeting those sectors, you have no choice. For tech, consulting (Big 4), and most other sectors, Manchester, Edinburgh, and Bristol offer meaningful roles at lower cost with significantly higher disposable income. <strong>The exception is finance above £35,000/yr pro-rata: that entire tier is London only.</strong></p>
-            <p className="rpt-source">Source: salary.com UK city internship data 2025, Glassdoor UK city-level salary reports, Rightmove UK rental market tracker Q1 2026, Numbeo UK cost of living index 2025</p>
+            <p className="rpt-source">Source: Glassdoor UK London intern salary (avg £28,381/yr), Indeed London intern (avg £29,391/yr), salary.com UK city internship data 2025, Rightmove UK rental market tracker Q1 2026, Numbeo UK cost of living index 2025</p>
           </div>
 
           {/* Finding 4 */}
@@ -513,7 +513,7 @@ export default function UKInternshipsReport() {
             <div className="rpt-stat-row rpt-c3" style={{ marginTop: 20 }}>
               <div className="rpt-stat"><div className="rpt-val rpt-e">20 hrs/wk</div><div className="rpt-lbl">Maximum work during term time on a Student Visa (degree-level students). Foundation/language students: 10 hrs/wk.</div></div>
               <div className="rpt-stat"><div className="rpt-val">2 years</div><div className="rpt-lbl">Graduate Route duration for undergrad and master's graduates. Dropping to 18 months from January 2027.</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">£26,200</div><div className="rpt-lbl">Minimum salary for Skilled Worker visa sponsorship (April 2025). Required if applying from outside the UK without Graduate Route.</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">£38,700</div><div className="rpt-lbl">Minimum salary for Skilled Worker visa sponsorship (general threshold, April 2025). Rises to £41,700 from July 2025. Required if applying from outside the UK without Graduate Route.</div></div>
             </div>
 
             <div className="rpt-callout rpt-co">

@@ -183,7 +183,7 @@ const REPORTS = [
     title: "Do Interns in Australia Get Paid? Minimum Wage, Sector Rates and How to Apply",
     subtitle: "Q1 2026",
     excerpt:
-      "Australia's minimum wage is AUD $24.95/hr from July 2025 and unpaid internships are tightly regulated under the Fair Work Act. Canva pays AUD $80,000+ annualised. Here's what the market actually looks like.",
+      "Australia's minimum wage is AUD $24.95/hr from July 2025 and unpaid internships are tightly regulated under the Fair Work Act. Canva pays AUD $90,000+ annualised. Here's what the market actually looks like.",
     category: "Cities",
     type: "Cities" as ReportType,
     date: "April 2026",

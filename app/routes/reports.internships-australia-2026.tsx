@@ -85,7 +85,7 @@ function initCharts() {
     data: {
       labels: ["Canberra\n(govt focus)", "Melbourne", "Brisbane", "Sydney", "Perth\n(mining premium)"],
       datasets: [
-        { label: "Annual low (AUD)", data: [48000, 58000, 42000, 59000, 65000], backgroundColor: EMERALD3, borderRadius: 4, borderWidth: 0 },
+        { label: "Annual low (AUD)", data: [48000, 58000, 42000, 59000, 57000], backgroundColor: EMERALD3, borderRadius: 4, borderWidth: 0 },
         { label: "Annual high (AUD)", data: [65000, 70000, 77000, 75000, 87000], backgroundColor: EMERALD, borderRadius: 4, borderWidth: 0 },
       ],
     },
@@ -209,7 +209,7 @@ export default function AustraliaInternshipsReport() {
             </nav>
             <h1 className="rpt-h1">Australia Internships in 2026:<br /><em>What You Actually Get Paid</em></h1>
             <p className="rpt-hero-sub">
-              Australia's minimum wage is AUD $24.95/hour. Unpaid internships are still legal but narrowly so. Canva pays AUD $80,000 to $110,000 annualised. Rio Tinto pays AUD $32/hour. And the application window for the best roles closes in April, for a role starting in January.
+              Australia's minimum wage is AUD $24.95/hour. Unpaid internships are still legal but narrowly so. Canva pays AUD $90,000 to $110,000 annualised. Rio Tinto pays AUD $32/hour. And the application window for the best roles closes in April, for a role starting in January.
             </p>
             <div className="rpt-hero-stats">
               <div className="rpt-hero-stat"><div className="rpt-hval">AUD $24.95</div><div className="rpt-hlbl">National Minimum Wage per hour (from 1 July 2025)</div></div>
@@ -284,7 +284,7 @@ export default function AustraliaInternshipsReport() {
                   </div>
                   <div className="rpt-mini-total" style={{ background: "#fee2e2", border: "1px solid #ef4444" }}>
                     <div className="rpt-mini-total-label" style={{ color: "#991b1b" }}>The penalty</div>
-                    <div style={{ fontSize: 14, color: "#525252", marginTop: 4, lineHeight: 1.6 }}>Employers found in breach of the Fair Work Act face fines of up to AUD $54,000 per contravention. The Fair Work Ombudsman actively investigates complaints.</div>
+                    <div style={{ fontSize: 14, color: "#525252", marginTop: 4, lineHeight: 1.6 }}>Employers found in breach of the Fair Work Act face civil penalties of up to AUD $93,900 per contravention (for companies); serious contraventions can reach AUD $469,500. The Fair Work Ombudsman actively investigates complaints.</div>
                   </div>
                 </div>
               </div>
@@ -293,7 +293,7 @@ export default function AustraliaInternshipsReport() {
             <div className="rpt-stat-row rpt-c3" style={{ marginTop: 20 }}>
               <div className="rpt-stat"><div className="rpt-val rpt-e">AUD $24.95</div><div className="rpt-lbl">National Minimum Wage per hour from 1 July 2025 (3.5% increase). Weekly: AUD $948 based on 38-hour week.</div></div>
               <div className="rpt-stat"><div className="rpt-val">AUD $31.19</div><div className="rpt-lbl">Casual minimum wage (includes 25% casual loading). Applies if you work casual hours rather than fixed contract.</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">AUD $54,000</div><div className="rpt-lbl">Maximum fine per contravention of the Fair Work Act for underpaying employees. Investigated by the Fair Work Ombudsman.</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">AUD $93,900</div><div className="rpt-lbl">Maximum civil penalty per contravention for companies (standard). Serious contraventions: up to AUD $469,500. Investigated by the Fair Work Ombudsman.</div></div>
             </div>
 
             <p className="rpt-prose">The Fair Work Ombudsman runs an anonymous tip line and actively investigates complaints. High-profile cases have involved fashion brands, hospitality businesses, and marketing agencies. <strong>The test is not whether both parties agreed to unpaid work: voluntary agreement to work for free does not make unpaid work legal under Australian employment law.</strong> The relationship is assessed objectively based on what the intern actually does, not what the contract says.</p>
@@ -304,7 +304,7 @@ export default function AustraliaInternshipsReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 02</span>
-              <h2 className="rpt-h2">Canva pays AUD $80,000 to $110,000 annualised. Rio Tinto pays AUD $32/hour. The top of Australian intern pay is genuinely world-class.</h2>
+              <h2 className="rpt-h2">Canva pays AUD $90,000 to $110,000 annualised. Rio Tinto pays AUD $32/hour. The top of Australian intern pay is genuinely world-class.</h2>
               <p className="rpt-lead">Australian intern pay at the top end competes with London and Singapore. The difference is which sectors lead. In Australia, tech and mining set the ceiling, not finance.</p>
             </div>
 
@@ -314,12 +314,12 @@ export default function AustraliaInternshipsReport() {
             </div>
 
             <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-e">AUD $95k</div><div className="rpt-lbl">Canva internship annual equivalent (AUD $80,000 to $110,000 depending on role). 12-week summer program.</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-e">AUD $100k</div><div className="rpt-lbl">Canva internship annual equivalent (AUD $90,000 to $110,000 depending on role). 12-week summer program.</div></div>
               <div className="rpt-stat"><div className="rpt-val">AUD $81,500</div><div className="rpt-lbl">Medical intern average annual salary (all states). Award-based, standardised across public hospitals.</div></div>
               <div className="rpt-stat"><div className="rpt-val rpt-o">AUD $58,958</div><div className="rpt-lbl">Average finance intern annual pay (PayScale Australia 2025). J.P. Morgan Australia: approx AUD $60,000/yr pro-rata.</div></div>
             </div>
 
-            <p className="rpt-prose">Canva is the benchmark for Australian tech internship pay. Their 12-week summer programme (November to February) pays AUD $80,000 to $110,000 annualised, which is roughly AUD $1,540 to $2,115 per week. Atlassian runs a similar 12-week programme with competitive pay. Both accept applications in October for November starts. <strong>Medical internships are paid under an Award-based system: standardised by state, averaging AUD $81,500/year nationally.</strong> Finance internships at major banks average AUD $58,958 with J.P. Morgan Australia at roughly AUD $60,000 pro-rata. The IB analyst first-year package (base plus bonus) reaches AUD $120,000 to $180,000, but these are graduate roles, not intern stipends.</p>
+            <p className="rpt-prose">Canva is the benchmark for Australian tech internship pay. Their 12-week summer programme (November to February) pays AUD $90,000 to $110,000 annualised, which is roughly AUD $1,540 to $2,115 per week. Atlassian runs a similar 12-week programme with competitive pay. Both accept applications in October for November starts. <strong>Medical internships are paid under an Award-based system: standardised by state, averaging AUD $81,500/year nationally.</strong> Finance internships at major banks average AUD $58,958 with J.P. Morgan Australia at roughly AUD $60,000 pro-rata. The IB analyst first-year package (base plus bonus) reaches AUD $120,000 to $180,000, but these are graduate roles, not intern stipends.</p>
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The superannuation factor</div>
@@ -388,7 +388,7 @@ export default function AustraliaInternshipsReport() {
               </div>
             </div>
 
-            <p className="rpt-prose" style={{ marginTop: 20 }}>The mining sector employs around 2.6% of the Australian workforce but produces around 14% of GDP. Median earnings in mining are AUD $2,832/week: the highest of any Australian industry sector, more than 60% above the all-industries median of AUD $1,741/week. <strong>For engineering students, a Rio Tinto or BHP internship pays more per hour than a Big 4 consulting internship and offers earlier project ownership.</strong> The trade-off is location: most operational roles are in remote Western Australia or Queensland, with FIFO (fly-in, fly-out) arrangements common for site work.</p>
+            <p className="rpt-prose" style={{ marginTop: 20 }}>The mining sector employs around 2.6% of the Australian workforce (including indirect METS employment; direct mining workers are under 2% of the workforce) but contributes around 14% of GDP. Median earnings in mining are AUD $2,832/week: the highest of any Australian industry sector, more than 60% above the all-industries median of AUD $1,741/week. <strong>For engineering students, a Rio Tinto or BHP internship pays more per hour than a Big 4 consulting internship and offers earlier project ownership.</strong> The trade-off is location: most operational roles are in remote Western Australia or Queensland, with FIFO (fly-in, fly-out) arrangements common for site work.</p>
 
             <div className="rpt-callout rpt-co">
               <div className="rpt-cl">What FIFO means for intern logistics</div>
@@ -412,7 +412,7 @@ export default function AustraliaInternshipsReport() {
 
             <div className="rpt-bar-list" style={{ marginTop: 16 }}>
               {[
-                { city: "Perth", range: "AUD $65,000 to $87,000/yr", sub: "Mining premium. Rio Tinto, BHP, Woodside, Fortescue corporate HQs. Most internships tied to mining, resources, and engineering.", bg: "#10b981", pct: 100 },
+                { city: "Perth", range: "AUD $57,000 to $87,000/yr", sub: "Mining and resources premium. Rio Tinto, BHP, Woodside, Fortescue HQs. General avg ~$57K; mining/engineering roles reach $87K.", bg: "#10b981", pct: 100 },
                 { city: "Sydney", range: "AUD $59,000 to $75,000/yr", sub: "Finance hub. CBA, Westpac, ANZ head offices. ASX, ASIC. Google Sydney. Strong law and consulting.", bg: "#34d399", pct: 85 },
                 { city: "Melbourne", range: "AUD $58,000 to $70,000/yr", sub: "Consulting and tech. Canva Melbourne, Atlassian. Deloitte, PwC, EY large presence. BHP corporate office.", bg: "#34d399", pct: 80 },
                 { city: "Brisbane", range: "AUD $42,000 to $77,000/yr", sub: "Emerging hub. Wide variance: mining logistics (Gladstone), tech growth post-2032 Olympic push. QUT and UQ strong alumni networks.", bg: "#6ee7b7", pct: 68 },
@@ -489,7 +489,7 @@ export default function AustraliaInternshipsReport() {
               <div className="rpt-card-label">Top structured intern programs in Australia with verified pay data</div>
               <div className="rpt-bar-list">
                 {[
-                  { r: "Canva (Sydney / Melbourne)", sub: "12-week summer program. AUD $80,000-$110,000 annualised. Applications October-November.", pct: 100, bg: "#10b981" },
+                  { r: "Canva (Sydney / Melbourne)", sub: "12-week summer program. AUD $90,000-$110,000 annualised. Applications October-November.", pct: 100, bg: "#10b981" },
                   { r: "Goldman Sachs / JPMorgan (Sydney)", sub: "10-week summer analyst. AUD ~$60,000 pro-rata (approx AUD $58/hr). Acceptance: under 2%.", pct: 95, bg: "#10b981" },
                   { r: "Atlassian (Sydney / Melbourne)", sub: "12-week summer program. Nov 2026-Feb 2027 intake open. Competitive with Canva.", pct: 88, bg: "#34d399" },
                   { r: "Rio Tinto / BHP (Perth, WA)", sub: "10-12 weeks. AUD $30-$35/hour. Accommodation and meals included on site.", pct: 75, bg: "#34d399" },
