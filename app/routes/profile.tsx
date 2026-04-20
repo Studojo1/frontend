@@ -94,29 +94,29 @@ export default function ProfilePage() {
       .catch(() => setProfile(null));
 
     rsbFetch<{ sessions: RsbSession[] }>("/sessions")
-      .then((d) => setRsbSessions(d.sessions ?? []))
+      .then((d) => setRsbSessions(Array.isArray(d?.sessions) ? d.sessions : []))
       .catch(() => setRsbSessions([]));
 
     Promise.all([
       fetch("/api/v2/resumes").then((r) => r.json()).catch(() => ({ drafts: [] })),
       fetch("/api/resumes").then((r) => r.json()).catch(() => []),
     ]).then(([v2, v1]) => {
-      const v2list = (v2.drafts ?? []).map((d: any) => ({ id: d.id, name: d.name, updatedAt: d.updatedAt ?? d.createdAt }));
+      const v2list = Array.isArray(v2?.drafts) ? v2.drafts.map((d: any) => ({ id: d.id, name: d.name, updatedAt: d.updatedAt ?? d.createdAt })) : [];
       const v1list = Array.isArray(v1) ? v1.map((r: any) => ({ id: r.id, name: r.name, updatedAt: r.updatedAt ?? r.createdAt })) : [];
       setClassicResumes([...v2list, ...v1list]);
-    });
+    }).catch(() => setClassicResumes([]));
 
     fetch("/api/user/applications")
       .then((r) => r.json())
-      .then((d) => setApplications(d.applications ?? []))
+      .then((d) => setApplications(Array.isArray(d?.applications) ? d.applications : []))
       .catch(() => setApplications([]));
 
     outreachFetch<{ orders?: OutreachOrder[] }>("/orders/list")
-      .then((d) => setOutreachOrders(d.orders ?? []))
+      .then((d) => setOutreachOrders(Array.isArray(d?.orders) ? d.orders : []))
       .catch(() => setOutreachOrders([]));
 
     getJobs(undefined, 10)
-      .then((j) => setJobs(j))
+      .then((j) => setJobs(Array.isArray(j) ? j : []))
       .catch(() => setJobs([]));
   }, [auth?.user]);
 
