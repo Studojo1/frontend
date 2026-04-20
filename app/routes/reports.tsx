@@ -24,6 +24,8 @@ export function meta() {
   ];
 }
 
+type ReportType = "Sector" | "Internships" | "Cities" | "Colleges" | "Hiring Calendar";
+
 const REPORTS = [
   {
     slug: "ops-india-2026",
@@ -32,6 +34,7 @@ const REPORTS = [
     excerpt:
       "12,400+ ops intern openings. Only 19% of applicants work-ready. The Excel crisis, the SOP gap, and why Notion fluency is now the deciding factor in ops intern hiring across India.",
     category: "Operations",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
     color: "bg-orange-500",
@@ -44,6 +47,7 @@ const REPORTS = [
     excerpt:
       "48% of applicants were ghosted last year. AI/ML intern stipends now run 3x higher than traditional roles. Here is what is actually shifting in internship hiring, which categories are collapsing, and what the AI-era intern looks like.",
     category: "Internships",
+    type: "Internships" as ReportType,
     date: "April 2026",
     findings: 8,
     color: "bg-amber-500",
@@ -56,6 +60,7 @@ const REPORTS = [
     excerpt:
       "135,000 IT hires projected for FY26. A 12x salary gap at Year 0 based purely on which company you join. And the one skill gap (DSA fluency) keeping 94.5% of engineering graduates out of the roles worth having.",
     category: "Tech",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
     color: "bg-blue-500",
@@ -68,6 +73,7 @@ const REPORTS = [
     excerpt:
       "28,600+ entry-level openings. A ₹12 LPA ceiling that almost nobody in their first year reaches. And the one skill gap (CRM fluency) that ends 60% of sales interviews before they start.",
     category: "Sales",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
     color: "bg-emerald-500",
@@ -80,6 +86,7 @@ const REPORTS = [
     excerpt:
       "1,400+ entry-level openings. A 20 LPA ceiling at global banks that almost nobody reaches. And the one skill gap that sends 75% of finance graduates home before the first round.",
     category: "Finance",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
     color: "bg-violet-500",
@@ -92,6 +99,7 @@ const REPORTS = [
     excerpt:
       "22,000+ listings. A 6x stipend gap between niche and generic roles. And the reason 90% of students apply to the wrong ones — and get nothing back.",
     category: "Marketing",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
     color: "bg-emerald-600",
@@ -104,6 +112,7 @@ const REPORTS = [
     excerpt:
       "4,800+ openings. A 3x salary gap between niche and generic roles. And why Hinjewadi isn't the only game in town anymore.",
     category: "City Report",
+    type: "Cities" as ReportType,
     date: "April 2026",
     findings: 8,
     color: "bg-blue-700",
@@ -114,7 +123,8 @@ const REPORTS = [
     title: "Roles That Land You Above ₹15k: The Internship Map India 2026",
     subtitle: "Q2 2026",
     excerpt: "48 roles mapped across 8 domains. Which categories own the ₹30k+ bracket, which skills unlock the floor, and which roles will never pay ₹15k no matter who you are.",
-    category: "Market Report",
+    category: "Internships",
+    type: "Internships" as ReportType,
     date: "April 2026",
     findings: 3,
     color: "bg-amber-600",
@@ -126,7 +136,8 @@ const REPORTS = [
     subtitle: "Q1 2026",
     excerpt:
       "7 role tracks. A 1.7x salary gap between campus and off-campus. And the one skill that moves a Flame grad into the top 20% of marketing applicants immediately.",
-    category: "University Report",
+    category: "Colleges",
+    type: "Colleges" as ReportType,
     date: "April 2026",
     findings: 8,
     color: "bg-violet-700",
@@ -139,12 +150,15 @@ const REPORTS = [
     excerpt:
       "80+ companies mapped with exact application windows. HUL opens 8 months before start. Goldman opens in August for a March internship. Miss the window and you wait a year.",
     category: "Hiring Calendar",
+    type: "Hiring Calendar" as ReportType,
     date: "April 2026",
     findings: 8,
     color: "bg-amber-500",
     badge: "New",
   },
 ];
+
+const FILTERS: Array<"All" | ReportType> = ["All", "Sector", "Internships", "Cities", "Colleges", "Hiring Calendar"];
 
 function RequestForm() {
   const [topic, setTopic] = useState("");
@@ -241,6 +255,9 @@ function RequestForm() {
 }
 
 export default function Reports() {
+  const [activeFilter, setActiveFilter] = useState<"All" | ReportType>("All");
+  const visibleReports = activeFilter === "All" ? REPORTS : REPORTS.filter((r) => r.type === activeFilter);
+
   return (
     <>
       <Header />
@@ -260,10 +277,31 @@ export default function Reports() {
           </div>
         </section>
 
+        {/* Filter tabs */}
+        <section className="border-b-2 border-neutral-900 bg-white px-4 md:px-8">
+          <div className="mx-auto max-w-5xl">
+            <div className="flex gap-1 overflow-x-auto py-3">
+              {FILTERS.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setActiveFilter(f)}
+                  className={`whitespace-nowrap rounded-full border-2 px-4 py-1.5 font-['Satoshi'] text-sm font-semibold transition-colors ${
+                    activeFilter === f
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Reports grid */}
         <section className="mx-auto max-w-5xl px-4 py-12 md:px-8">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {REPORTS.map((report) => (
+            {visibleReports.map((report) => (
               <Link
                 key={report.slug}
                 to={`/reports/${report.slug}`}
