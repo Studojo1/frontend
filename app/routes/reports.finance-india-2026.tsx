@@ -37,9 +37,9 @@ function initCharts() {
   Chart.defaults.font.family = "Satoshi, sans-serif";
   Chart.defaults.color = "#171717";
 
-  const VIOLET = "#8b5cf6";
-  const VIOLET2 = "#a78bfa";
-  const VIOLET3 = "#c4b5fd";
+  const VIOLET = "#3b82f6";
+  const VIOLET2 = "#60a5fa";
+  const VIOLET3 = "#93c5fd";
   const GREEN = "#10b981";
   const GREEN2 = "#34d399";
   const ORANGE = "#f59e0b";
