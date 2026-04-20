@@ -5,13 +5,13 @@ import { Header, Footer } from "~/components";
 export function meta() {
   return [
     { title: "Do Interns in Germany Get Paid? Stipends, Laws and What to Expect in 2026 | Studojo" },
-    { name: "description", content: "Germany's minimum wage is EUR 12.82/hour but mandatory internships can be unpaid. DAX 40 companies pay EUR 1,500-3,000/month. The exact rules, city-by-city data, and how international students qualify." },
+    { name: "description", content: "Germany's minimum wage rose to EUR 13.90/hour in January 2026 but mandatory internships remain exempt. DAX 40 companies pay EUR 1,500-3,000/month. The exact rules, city-by-city data, and how international students qualify." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "do interns in germany get paid, germany internship stipend 2026, internship salary germany, pflichtpraktikum bezahlung, germany internship minimum wage, international student internship germany" },
     { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/internships-germany-2026" },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "Do Interns in Germany Get Paid? Stipends, Laws and What to Expect in 2026" },
-    { property: "og:description", content: "Germany's minimum wage is EUR 12.82/hour but mandatory internships can be unpaid. DAX 40 companies pay EUR 1,500-3,000/month. The exact rules, city-by-city data, and how international students qualify." },
+    { property: "og:description", content: "Germany's minimum wage rose to EUR 13.90/hour in January 2026 but mandatory internships remain exempt. DAX 40 companies pay EUR 1,500-3,000/month. The exact rules, city-by-city data, and how international students qualify." },
     { property: "og:url", content: "https://studojo.com/reports/internships-germany-2026" },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: "https://studojo.com/og-reports.png" },
@@ -21,7 +21,7 @@ export function meta() {
     { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "Do Interns in Germany Get Paid? Stipends, Laws and What to Expect in 2026 | Studojo" },
-    { name: "twitter:description", content: "Germany minimum wage is EUR 12.82/hr but mandatory internships can be unpaid. DAX 40 pays EUR 1,500-3,000/month. Full breakdown for international students." },
+    { name: "twitter:description", content: "Germany minimum wage is EUR 13.90/hr (Jan 2026) but mandatory internships are exempt. DAX 40 pays EUR 1,500-3,000/month. Full breakdown for international students." },
     { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
     { name: "twitter:site", content: "@studojo_com" },
   ];
@@ -183,7 +183,7 @@ export default function GermanyInternshipsReport() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Do Interns in Germany Get Paid? Stipends, Laws and What to Expect in 2026", "description": "Germany's minimum wage is EUR 12.82/hour but mandatory internships can be unpaid. DAX 40 companies pay EUR 1,500-3,000/month. The exact rules, city-by-city data, and how international students qualify.", "url": "https://studojo.com/reports/internships-germany-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/internships-germany-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Do Interns in Germany Get Paid? Stipends, Laws and What to Expect in 2026", "description": "Germany's minimum wage rose to EUR 13.90/hour in January 2026 but mandatory internships remain exempt. DAX 40 companies pay EUR 1,500-3,000/month. The exact rules, city-by-city data, and how international students qualify.", "url": "https://studojo.com/reports/internships-germany-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/internships-germany-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Internships Germany 2026", "item": "https://studojo.com/reports/internships-germany-2026"}]}` }} />
 
       <Header />
@@ -201,11 +201,11 @@ export default function GermanyInternshipsReport() {
             </nav>
             <h1 className="rpt-h1">Do Interns in Germany<br /><em>Actually Get Paid?</em></h1>
             <p className="rpt-hero-sub">
-              The answer is: it depends on one legal distinction most students have never heard of. Germany's minimum wage is EUR 12.82/hour. But one category of internship is fully exempt. DAX 40 companies pay up to EUR 3,000/month. Here is the full picture for 2026.
+              The answer is: it depends on one legal distinction most students have never heard of. Germany's minimum wage rose to EUR 13.90/hour on 1 January 2026. But one category of internship is fully exempt. DAX 40 companies pay up to EUR 3,000/month. Here is the full picture for 2026.
             </p>
             <div className="rpt-hero-stats">
-              <div className="rpt-hero-stat"><div className="rpt-hval">EUR 12.82</div><div className="rpt-hlbl">Germany minimum wage per hour (2025/2026)</div></div>
-              <div className="rpt-hero-stat"><div className="rpt-hval">EUR 2,200</div><div className="rpt-hlbl">Full-time equivalent monthly at minimum wage</div></div>
+              <div className="rpt-hero-stat"><div className="rpt-hval">EUR 13.90</div><div className="rpt-hlbl">Germany minimum wage per hour (Jan 2026, up from EUR 12.82 in 2025)</div></div>
+              <div className="rpt-hero-stat"><div className="rpt-hval">EUR 2,404</div><div className="rpt-hlbl">Full-time equivalent monthly at Jan 2026 minimum wage</div></div>
               <div className="rpt-hero-stat"><div className="rpt-hval">8 findings</div><div className="rpt-hlbl">Pay data, legal rules, city breakdowns, how to qualify</div></div>
             </div>
           </div>
@@ -263,7 +263,7 @@ export default function GermanyInternshipsReport() {
                     </div>
                     <div style={{ borderLeft: "3px solid #10b981", paddingLeft: 12 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: 1 }}>Pay requirement</div>
-                      <div style={{ fontSize: 13, color: "#171717", marginTop: 3, lineHeight: 1.6 }}>Under 3 months: exempt from minimum wage. Over 3 months: minimum wage of EUR 12.82/hour is legally required for every hour worked. No exceptions.</div>
+                      <div style={{ fontSize: 13, color: "#171717", marginTop: 3, lineHeight: 1.6 }}>Under 3 months: exempt from minimum wage. Over 3 months: minimum wage of EUR 13.90/hour (2026) is legally required for every hour worked, applied retroactively from the very first day of work. No exceptions.</div>
                     </div>
                     <div style={{ borderLeft: "3px solid #10b981", paddingLeft: 12 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: "#065f46", textTransform: "uppercase", letterSpacing: 1 }}>Duration</div>
@@ -279,12 +279,12 @@ export default function GermanyInternshipsReport() {
             </div>
 
             <div className="rpt-stat-row rpt-c3" style={{ marginTop: 20 }}>
-              <div className="rpt-stat"><div className="rpt-val rpt-a">EUR 12.82</div><div className="rpt-lbl">Minimum wage per hour in Germany (Mindestlohn, 2025/2026), set by the Mindestlohnkommission</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-a">EUR 13.90</div><div className="rpt-lbl">Germany minimum wage per hour from 1 Jan 2026 (up from EUR 12.82 in 2025), Mindestlohnkommission</div></div>
               <div className="rpt-stat"><div className="rpt-val">3 months</div><div className="rpt-lbl">The threshold after which voluntary interns must be paid minimum wage regardless of agreement</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-g">EUR 2,200</div><div className="rpt-lbl">Approximate full-time equivalent monthly pay at minimum wage (173 hours at EUR 12.82)</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-g">EUR 2,404</div><div className="rpt-lbl">Approximate full-time equivalent monthly pay at 2026 minimum wage (173 hours at EUR 13.90)</div></div>
             </div>
 
-            <p className="rpt-prose">The minimum wage law (Mindestlohngesetz, MiLoG) has applied since 2015 and was last raised to EUR 12.82/hour on 1 January 2025. The next scheduled review is January 2026. <strong>The law is enforced: companies found in violation can face fines of up to EUR 500,000.</strong> Unpaid voluntary internships lasting beyond 3 months are illegal and reportable to the Zollverwaltung (customs authority), which enforces minimum wage compliance in Germany.</p>
+            <p className="rpt-prose">The minimum wage law (Mindestlohngesetz, MiLoG) has applied since 2015. It rose to EUR 12.82/hour on 1 January 2025 and increased again to EUR 13.90/hour on 1 January 2026, set by the Mindestlohnkommission. <strong>The law is enforced: companies found in violation can face fines of up to EUR 500,000.</strong> Unpaid voluntary internships lasting beyond 3 months are illegal and reportable to the Zollverwaltung (customs authority), which enforces minimum wage compliance in Germany.</p>
             <p className="rpt-source">Source: Bundesministerium fur Arbeit und Soziales (BMAS) Mindestlohngesetz 2025, Mindestlohnkommission 2024 adjustment, DGB (Deutscher Gewerkschaftsbund) intern rights guide</p>
           </div>
 
@@ -401,7 +401,7 @@ export default function GermanyInternshipsReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 05</span>
-              <h2 className="rpt-h2">60% of non-tech roles require B1+ German. 70% of tech roles are English-first. The language barrier is real but navigable.</h2>
+              <h2 className="rpt-h2">54% of tech roles are English-first. 50%+ of non-tech roles require B1+ German. The language barrier is real but navigable.</h2>
               <p className="rpt-lead">Language is the single biggest barrier for international students pursuing German internships. But the picture is not uniform. Sector determines how hard the language barrier actually is in practice.</p>
             </div>
 
@@ -410,7 +410,7 @@ export default function GermanyInternshipsReport() {
               <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="langChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">Tech and software engineering roles in Germany are overwhelmingly English-first. Most major tech companies operating in Germany: SAP, Google, Microsoft, Amazon, Zalando, N26, Delivery Hero, have declared English as their working language and actively recruit internationally. <strong>Finance is split: international banks (Goldman, JPMorgan, Deutsche Bank in international divisions) operate in English, but German-owned Mittelstand finance firms and regional banks require German fluency.</strong> Marketing, HR, customer-facing, and operations roles in German companies are predominantly in German at B1 level or above.</p>
+            <p className="rpt-prose">Tech and software engineering roles in Germany are the most international-friendly sector. Around 54% of IT job postings require English (Bundesagentur fur Arbeit, 2025), making tech the clearest path for non-German speakers. Most major tech companies: SAP, Google, Microsoft, Amazon, Zalando, N26, Delivery Hero have declared English as their working language. <strong>Finance is split: international banks (Goldman, JPMorgan, Deutsche Bank in international divisions) operate in English, but German-owned Mittelstand finance firms and regional banks require German fluency.</strong> Around 50% of non-tech employers prioritise B1 German or above. Marketing, HR, customer-facing, and operations roles require German in the large majority of cases.</p>
 
             <div className="rpt-pill-row">
               {["Tech / SWE (English-first)", "Finance: intl banks (English OK)", "Consulting: MBB (bilingual OK)"].map(p => <span key={p} className="rpt-pill rpt-pg">{p}</span>)}
@@ -440,7 +440,7 @@ export default function GermanyInternshipsReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 06</span>
-              <h2 className="rpt-h2">International students can intern in Germany on a student visa with up to 120 full working days per year.</h2>
+              <h2 className="rpt-h2">International students can intern in Germany on a student visa with up to 140 full working days per year.</h2>
               <p className="rpt-lead">If you are an international student studying in India, you can intern in Germany via multiple legal pathways. Here is exactly what each route involves and what it costs in time and paperwork.</p>
             </div>
 
@@ -451,7 +451,7 @@ export default function GermanyInternshipsReport() {
                   {
                     name: "DAAD RISE Programme",
                     sub: "Research Internships in Science and Engineering",
-                    detail: "12 weeks at German research universities and institutes. Fully funded: EUR 650 to 750/month stipend + travel grant. For students in science, engineering, and computer science. Application opens October for summer placements. Acceptance rate approximately 15 to 20%.",
+                    detail: "12 weeks at German research universities and institutes. Fully funded: EUR 650 to 750/month stipend + travel grant. For students in science, engineering, and computer science. Application opens October for summer placements. Acceptance rate approximately 22% (2,358 applications for 527 offers in Summer 2024).",
                     color: "#10b981",
                   },
                   {
@@ -485,7 +485,7 @@ export default function GermanyInternshipsReport() {
             <div className="rpt-stat-row rpt-c3" style={{ marginTop: 20 }}>
               <div className="rpt-stat"><div className="rpt-val rpt-a">120 days</div><div className="rpt-lbl">Full working days allowed per year for students on a German study residence permit (Aufenthaltsgesetz)</div></div>
               <div className="rpt-stat"><div className="rpt-val">8-12 weeks</div><div className="rpt-lbl">Typical visa processing time from Indian consulates for German national visa applications</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-g">15-20%</div><div className="rpt-lbl">Acceptance rate for DAAD RISE: competitive but entirely based on academic record and research fit, not college brand</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-g">~22%</div><div className="rpt-lbl">Acceptance rate for DAAD RISE (2024 data: 527 offers from 2,358 applications). Based on research fit, not college brand.</div></div>
             </div>
 
             <div className="rpt-callout rpt-co">

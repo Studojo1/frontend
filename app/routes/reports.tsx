@@ -159,7 +159,31 @@ const REPORTS = [
     title: "Do Interns in Germany Get Paid? Stipends, Laws and What to Expect",
     subtitle: "Q1 2026",
     excerpt:
-      "Germany's minimum wage is EUR 12.82/hour but mandatory internships are legally exempt. DAX 40 companies pay EUR 1,500 to 3,000/month. The exact rules, city data, and how international students qualify.",
+      "Germany's minimum wage is EUR 13.90/hour from Jan 2026 but mandatory internships are legally exempt. DAX 40 companies pay EUR 1,500 to 3,000/month. The exact rules, city data, and how international students qualify.",
+    category: "Cities",
+    type: "Cities" as ReportType,
+    date: "April 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
+    slug: "internships-uk-2026",
+    title: "Do Interns in the UK Get Paid? NLW Rules, Sector Rates and What to Expect",
+    subtitle: "Q1 2026",
+    excerpt:
+      "The UK National Living Wage hits £12.71/hr in April 2026 and applies to most interns — unpaid placements are largely illegal. Goldman pays £5,000/month. Here's what every sector actually pays and how to get in.",
+    category: "Cities",
+    type: "Cities" as ReportType,
+    date: "April 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
+    slug: "internships-australia-2026",
+    title: "Do Interns in Australia Get Paid? Minimum Wage, Sector Rates and How to Apply",
+    subtitle: "Q1 2026",
+    excerpt:
+      "Australia's minimum wage is AUD $24.95/hr from July 2025 and unpaid internships are tightly regulated under the Fair Work Act. Canva pays AUD $80,000+ annualised. Here's what the market actually looks like.",
     category: "Cities",
     type: "Cities" as ReportType,
     date: "April 2026",
