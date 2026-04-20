@@ -561,10 +561,10 @@ export default function PuneJobsReport() {
 
 const rptCSS = `
   .rpt-hero { background:#171717; color:#fff; padding:56px 24px 48px; }
-  .rpt-hero-blue { background:#0f172a; }
+  .rpt-hero-blue { background:#052e16; }
   .rpt-hero-inner { max-width:800px; margin:0 auto; }
   .rpt-badge { display:inline-flex; align-items:center; border:2px solid; border-radius:999px; padding:4px 14px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#fff; margin-bottom:12px; }
-  .rpt-badge-blue { background:#3b82f6; border-color:#60a5fa; }
+  .rpt-badge-blue { background:#10b981; border-color:#34d399; }
   .rpt-breadcrumb { display:flex; align-items:center; gap:6px; font-size:13px; color:#737373; margin-bottom:14px; }
   .rpt-breadcrumb-link { text-decoration:none; }
   .rpt-breadcrumb-link-blue { color:#60a5fa; }
@@ -579,7 +579,7 @@ const rptCSS = `
   .rpt-hval-blue { color:#60a5fa; }
   .rpt-hlbl { font-family:'Satoshi',sans-serif; font-size:11px; color:rgba(255,255,255,0.55); max-width:160px; line-height:1.4; }
   .rpt-cta-strip { border-top:2px solid #171717; border-bottom:2px solid #171717; padding:12px 24px; }
-  .rpt-cta-strip-blue { background:#eff6ff; }
+  .rpt-cta-strip-blue { background:#f0fdf4; }
   .rpt-cta-strip-inner { max-width:800px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
   .rpt-cta-strip-text { font-family:'Satoshi',sans-serif; font-size:13px; font-weight:600; color:#1e3a5f; }
   .rpt-cta-pill { font-family:'Satoshi',sans-serif; font-size:12px; font-weight:700; text-decoration:none; padding:6px 14px; border-radius:999px; border:2px solid #171717; }
@@ -612,19 +612,19 @@ const rptCSS = `
   .rpt-card-label { font-family:'Satoshi',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#737373; margin-bottom:12px; }
   .rpt-chart-wrap { position:relative; }
   .rpt-callout { border-left:4px solid; border-radius:0 8px 8px 0; padding:14px 18px; margin:24px 0; }
-  .rpt-cb { background:#eff6ff; border-color:#3b82f6; }
+  .rpt-cb { background:#f0fdf4; border-color:#3b82f6; }
   .rpt-co { background:#fffbeb; border-color:#f59e0b; }
   .rpt-cl { font-family:'Satoshi',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; margin-bottom:6px; }
   .rpt-co .rpt-cl { color:#92400e; }
   .rpt-callout p { font-family:'Satoshi',sans-serif; font-size:13px; line-height:1.7; color:#404040; margin:0; }
-  .rpt-pullquote { border-left:4px solid #3b82f6; margin:28px 0; padding:12px 20px; }
+  .rpt-pullquote { border-left:4px solid #10b981; margin:28px 0; padding:12px 20px; }
   .rpt-pullquote p { font-family:'Clash Display',sans-serif; font-size:18px; color:#171717; font-style:italic; margin:0; line-height:1.5; }
   .rpt-two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:20px 0; }
   @media(max-width:600px) { .rpt-two-col { grid-template-columns:1fr; } }
   .rpt-col-head { font-family:'Satoshi',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#737373; margin-bottom:8px; }
   .rpt-pill-row { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
   .rpt-pill { font-family:'Satoshi',sans-serif; font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; border:1.5px solid; }
-  .rpt-pb { background:#dbeafe; color:#1e40af; border-color:#93c5fd; }
+  .rpt-pb { background:#dbeafe; color:#1e40af; border-color:#6ee7b7; }
   .rpt-po { background:#fffbeb; color:#92400e; border-color:#fcd34d; }
   .rpt-pr { background:#fee2e2; color:#991b1b; border-color:#fca5a5; }
   .rpt-bar-list { display:flex; flex-direction:column; gap:8px; }
@@ -638,7 +638,7 @@ const rptCSS = `
   .rpt-mini-total-label { font-family:'Satoshi',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
   .rpt-mini-total-sub { font-family:'Satoshi',sans-serif; font-size:10px; color:#737373; margin-top:2px; }
   .rpt-inline-cta { border:2px solid #171717; border-radius:16px; padding:24px; margin:40px 0; }
-  .rpt-inline-cta-blue { background:#eff6ff; }
+  .rpt-inline-cta-blue { background:#f0fdf4; }
   .rpt-inline-cta-inner { display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; }
   .rpt-inline-cta-title { font-family:'Clash Display',sans-serif; font-size:18px; font-weight:700; color:#171717; }
   .rpt-inline-cta-sub { font-family:'Satoshi',sans-serif; font-size:13px; color:#525252; margin-top:4px; }

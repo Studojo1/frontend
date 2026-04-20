@@ -610,8 +610,8 @@ const reportCSS = `
   .rpt-badge {
     display: inline-flex;
     align-items: center;
-    background: #8b5cf6;
-    border: 2px solid #a78bfa;
+    background: #3b82f6;
+    border: 2px solid #60a5fa;
     border-radius: 999px;
     padding: 4px 14px;
     font-size: 11px;
@@ -629,7 +629,7 @@ const reportCSS = `
     color: #737373;
     margin-bottom: 14px;
   }
-  .rpt-breadcrumb-link { color: #a78bfa; text-decoration: none; }
+  .rpt-breadcrumb-link { color: #93c5fd; text-decoration: none; }
   .rpt-breadcrumb-link:hover { text-decoration: underline; }
   .rpt-breadcrumb-sep { color: #525252; }
   .rpt-h1 {
@@ -640,19 +640,19 @@ const reportCSS = `
     color: #fff;
     margin-bottom: 16px;
   }
-  .rpt-h1 em { font-style: italic; color: #dab2ff; }
+  .rpt-h1 em { font-style: italic; color: #bfdbfe; }
   .rpt-hero-sub { font-size: 16px; color: #a3a3a3; line-height: 1.7; max-width: 600px; margin-bottom: 28px; }
   .rpt-hero-stats { display: flex; gap: 40px; flex-wrap: wrap; padding-top: 24px; border-top: 1px solid #333; }
-  .rpt-hval { font-family: 'Clash Display', sans-serif; font-size: 26px; font-weight: 700; color: #dab2ff; }
+  .rpt-hval { font-family: 'Clash Display', sans-serif; font-size: 26px; font-weight: 700; color: #bfdbfe; }
   .rpt-hlbl { font-size: 12px; color: #737373; margin-top: 2px; }
 
-  .rpt-cta-strip { background: #faf5fe; border-bottom: 2px solid #171717; padding: 12px 24px; }
+  .rpt-cta-strip { background: #eff6ff; border-bottom: 2px solid #171717; padding: 12px 24px; }
   .rpt-cta-strip-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .rpt-cta-strip-text { font-size: 14px; font-weight: 500; color: #525252; }
   .rpt-cta-pill {
     display: inline-flex;
     align-items: center;
-    background: #8b5cf6;
+    background: #3b82f6;
     color: #fff;
     border: 2px solid #171717;
     border-radius: 999px;
@@ -730,7 +730,7 @@ const reportCSS = `
   .rpt-dn { background: #f5f5f5; color: #737373; border: 1px solid #e5e5e5; }
 
   .rpt-callout { border: 2px solid #171717; border-radius: 16px; padding: 20px 22px; margin-top: 20px; }
-  .rpt-cp { background: #faf5fe; border-color: #8b5cf6; }
+  .rpt-cp { background: #eff6ff; border-color: #8b5cf6; }
   .rpt-cg { background: #d0fae4; border-color: #10b981; }
   .rpt-co { background: #fef3c6; border-color: #f59e0b; }
   .rpt-cd { background: #171717; border-color: #171717; color: #fff; }
@@ -738,15 +738,15 @@ const reportCSS = `
   .rpt-cp .rpt-cl { color: #8b5cf6; }
   .rpt-cg .rpt-cl { color: #065f46; }
   .rpt-co .rpt-cl { color: #92400e; }
-  .rpt-cd .rpt-cl { color: #dab2ff; }
+  .rpt-cd .rpt-cl { color: #bfdbfe; }
   .rpt-callout p { font-size: 14px; line-height: 1.7; }
   .rpt-callout strong { font-weight: 700; }
 
   .rpt-pullquote {
-    border-left: 4px solid #8b5cf6;
+    border-left: 4px solid #3b82f6;
     padding: 16px 20px;
     margin: 24px 0;
-    background: #faf5fe;
+    background: #eff6ff;
     border-radius: 0 12px 12px 0;
   }
   .rpt-pullquote p {
@@ -784,12 +784,12 @@ const reportCSS = `
 
   .rpt-pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
   .rpt-pill { border: 2px solid #171717; border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 700; }
-  .rpt-pv { background: #faf5fe; color: #8b5cf6; border-color: #8b5cf6; }
+  .rpt-pv { background: #eff6ff; color: #8b5cf6; border-color: #8b5cf6; }
   .rpt-pg { background: #d0fae4; color: #065f46; border-color: #10b981; }
   .rpt-po { background: #fef3c6; color: #92400e; border-color: #f59e0b; }
 
   .rpt-inline-cta {
-    background: #faf5fe;
+    background: #eff6ff;
     border: 2px solid #171717;
     border-radius: 20px;
     padding: 24px 28px;
@@ -806,7 +806,7 @@ const reportCSS = `
     justify-content: center;
     height: 44px;
     padding: 0 24px;
-    background: #8b5cf6;
+    background: #3b82f6;
     color: #fff;
     border: 2px solid #171717;
     border-radius: 14px;
@@ -840,7 +840,7 @@ const reportCSS = `
 
   .rpt-final-cta {
     margin-top: 64px;
-    background: #8b5cf6;
+    background: #3b82f6;
     border: 2px solid #171717;
     border-radius: 24px;
     padding: 48px 40px;

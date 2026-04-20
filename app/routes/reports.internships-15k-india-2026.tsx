@@ -301,7 +301,7 @@ const css = `
   .r15-hero { background: #171717; color: #fff; padding: 56px 24px 48px; }
   .r15-badge { display: inline-flex; align-items: center; background: #f59e0b; border: 2px solid #92400e; border-radius: 999px; padding: 4px 14px; font-family: 'Satoshi', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #171717; margin-bottom: 12px; }
   .r15-breadcrumb { display: flex; align-items: center; gap: 6px; font-family: 'Satoshi', sans-serif; font-size: 13px; color: #737373; margin-bottom: 14px; }
-  .r15-bc-link { color: #dab2ff; text-decoration: none; } .r15-bc-link:hover { text-decoration: underline; }
+  .r15-bc-link { color: #fde68a; text-decoration: none; } .r15-bc-link:hover { text-decoration: underline; }
   .r15-bc-sep { color: #525252; }
   .r15-h1 { font-family: 'Clash Display', sans-serif; font-size: clamp(28px, 5vw, 52px); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 16px; letter-spacing: -1px; }
   .r15-h1 em { font-style: italic; color: #fde68a; }
@@ -312,10 +312,10 @@ const css = `
   .r15-hlbl { font-family: 'Satoshi', sans-serif; font-size: 12px; color: #737373; margin-top: 2px; max-width: 180px; }
 
   /* ── cta strip ── */
-  .r15-cta-strip { background: #faf5fe; border-bottom: 2px solid #171717; padding: 12px 24px; }
+  .r15-cta-strip { background: #fffbeb; border-bottom: 2px solid #171717; padding: 12px 24px; }
   .r15-cta-strip-inner { max-width: 860px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .r15-cta-strip-text { font-family: 'Satoshi', sans-serif; font-size: 14px; font-weight: 500; color: #525252; }
-  .r15-cta-pill { display: inline-flex; align-items: center; background: #8b5cf6; color: #fff; border: 2px solid #171717; border-radius: 999px; padding: 5px 16px; font-family: 'Satoshi', sans-serif; font-size: 12px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .r15-cta-pill { display: inline-flex; align-items: center; background: #f59e0b; color: #fff; border: 2px solid #171717; border-radius: 999px; padding: 5px 16px; font-family: 'Satoshi', sans-serif; font-size: 12px; font-weight: 700; text-decoration: none; white-space: nowrap; }
 
   /* ── findings ── */
   .r15-finding { padding: 52px 0; border-bottom: 1px solid #e5e5e5; }
@@ -385,10 +385,10 @@ const css = `
   .r15-inline-cta-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
   .r15-inline-cta-title { font-family: 'Clash Display', sans-serif; font-size: 18px; font-weight: 700; color: #171717; margin-bottom: 4px; }
   .r15-inline-cta-sub { font-family: 'Satoshi', sans-serif; font-size: 13px; color: #737373; }
-  .r15-btn-primary { background: #8b5cf6; color: #fff; border: 2px solid #171717; border-radius: 8px; padding: 10px 20px; font-family: 'Satoshi', sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .r15-btn-primary { background: #f59e0b; color: #fff; border: 2px solid #171717; border-radius: 8px; padding: 10px 20px; font-family: 'Satoshi', sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap; }
 
   /* ── final cta ── */
-  .r15-final-cta { background: #8b5cf6; padding: 72px 24px; text-align: center; }
+  .r15-final-cta { background: #f59e0b; padding: 72px 24px; text-align: center; }
   .r15-final-title { font-family: 'Clash Display', sans-serif; font-size: clamp(28px, 5vw, 48px); font-weight: 700; color: #fff; margin-bottom: 14px; }
   .r15-final-sub { font-family: 'Satoshi', sans-serif; font-size: 16px; color: rgba(255,255,255,0.75); max-width: 520px; margin: 0 auto 32px; line-height: 1.7; }
   .r15-final-btns { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
