@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiArrowRight, FiCalendar, FiUsers, FiSend, FiInbox, FiZap } from "react-icons/fi";
+import { FiCreditCard, FiTag, FiCalendar, FiArrowRight, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { TierSelector } from "~/components/outreach/TierSelector";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { useOrder } from "~/lib/outreach/hooks";
@@ -26,20 +25,16 @@ interface CouponResult {
   distributor: string | null;
 }
 
-const STEPS = [
-  { icon: FiUsers, title: "We find hiring managers", body: "Verified email addresses at companies in your target industry, within 24 hours." },
-  { icon: FiMail, title: "We write each email", body: "Personalised using your resume and the company's context. Not a template blast." },
-  { icon: FiSend, title: "Emails go out over 5-7 days", body: "Spaced gradually to protect your Gmail sender score and maximise delivery." },
-  { icon: FiInbox, title: "Replies land in your Gmail", body: "You take it from there. Most students hear back within a week." },
+const TIERS = [
+  { value: 200 as const, label: "Starter", desc: "Focused, targeted outreach" },
+  { value: 350 as const, label: "Growth", desc: "Best balance of reach and quality", recommended: true },
+  { value: 500 as const, label: "Scale", desc: "Maximum market coverage" },
 ];
 
-const INCLUDED = [
-  "Verified emails - no bounces",
-  "One personalised cold email per manager",
-  "Automated send schedule (protects Gmail)",
-  "Open and click tracking",
-  "All replies to your Gmail inbox",
-  "Full campaign dashboard",
+const BULLETS = [
+  "We find verified hiring manager emails at companies in your industry",
+  "Each email is written personally from your resume — not a template",
+  "Sent over 5-7 days automatically. Replies come straight to your Gmail.",
 ];
 
 export default function EnrichmentPage() {
@@ -49,7 +44,9 @@ export default function EnrichmentPage() {
       <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="text-center p-8">
           <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
           </div>
           <h2 className="text-lg font-bold text-gray-900 mb-1">Payment Complete</h2>
           <p className="text-sm text-gray-500">Closing...</p>
@@ -72,6 +69,7 @@ export default function EnrichmentPage() {
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
+  const [showCoupon, setShowCoupon] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
   const [dodoCheckoutUrl, setDodoCheckoutUrl] = useState<string | null>(null);
@@ -102,9 +100,9 @@ export default function EnrichmentPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && !window.Razorpay) {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      document.body.appendChild(script);
+      const s = document.createElement("script");
+      s.src = "https://checkout.razorpay.com/v1/checkout.js";
+      document.body.appendChild(s);
     }
   }, []);
 
@@ -136,7 +134,7 @@ export default function EnrichmentPage() {
     } finally { setCouponLoading(false); }
   };
 
-  const handlePayAndContinue = async () => {
+  const handlePay = async () => {
     if (!candidateId) return;
     if (credits && credits.available_credits >= selectedTier) { onPaymentSuccess(); return; }
     setPaying(true); setError("");
@@ -194,213 +192,165 @@ export default function EnrichmentPage() {
   if (!candidateId) { navigate("/outreach/onboarding/upload"); return null; }
 
   const selectedPricing = pricing.find((p) => p.tier === selectedTier);
+  const currSymbol = currency === "INR" ? "₹" : "$";
   const displayPrice = couponResult?.valid
-    ? `${currency === "INR" ? "₹" : "$"}${(couponResult.discounted_amount / 100).toFixed(0)}`
+    ? `${currSymbol}${(couponResult.discounted_amount / 100).toFixed(0)}`
     : selectedPricing?.display_price || (selectedTier === 200 ? "$20" : selectedTier === 350 ? "$27" : "$40");
   const hasEnoughCredits = credits ? credits.available_credits >= selectedTier : false;
-  const currSymbol = currency === "INR" ? "₹" : "$";
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
 
-      <div className="flex-1 mx-auto w-full max-w-5xl px-4 py-6 md:px-8">
-        {/* Two-column layout on desktop */}
-        <div className="grid md:grid-cols-[1fr_380px] gap-6 items-start">
+      <div className="flex-1 flex items-start justify-center px-4 py-10">
+        <div className="w-full max-w-md space-y-6">
 
-          {/* LEFT: value prop */}
-          <div className="space-y-5">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-studojo-purple-bg border-2 border-studojo-ink text-xs font-satoshi font-bold text-studojo-purple mb-3">
-                <FiZap className="w-3 h-3" /> Done-for-you hiring manager outreach
-              </div>
-              <h1 className="font-clash text-2xl md:text-3xl font-bold text-studojo-ink leading-tight mb-2">
-                Get your resume in front of hiring managers directly.
-              </h1>
-              <p className="font-satoshi text-sm text-studojo-muted">
-                We find emails, write personalised cold emails from your resume, and send them automatically. You wait for replies.
-              </p>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { stat: "300+", label: "students launched" },
-                { stat: "~8%", label: "reply rate" },
-                { stat: "7 days", label: "to first reply" },
-              ].map(({ stat, label }) => (
-                <div key={label} className="rounded-xl border-2 border-studojo-ink bg-studojo-purple-bg/30 p-3 text-center">
-                  <div className="font-clash text-xl font-bold text-studojo-purple">{stat}</div>
-                  <div className="font-satoshi text-xs text-studojo-muted mt-0.5">{label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Steps */}
-            <div>
-              <p className="font-clash text-sm font-bold text-studojo-ink mb-2">What happens after you pay</p>
-              <div className="space-y-2">
-                {STEPS.map((step, i) => (
-                  <div key={step.title} className="flex gap-3 p-3 rounded-xl border-2 border-studojo-ink/15 hover:border-studojo-ink/40 transition-colors">
-                    <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-purple text-xs font-bold font-clash">
-                      {i + 1}
-                    </div>
-                    <div>
-                      <p className="font-satoshi font-bold text-xs text-studojo-ink">{step.title}</p>
-                      <p className="font-satoshi text-xs text-studojo-muted mt-0.5">{step.body}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Included */}
-            <div className="rounded-xl border-2 border-studojo-ink/20 p-4">
-              <p className="font-clash text-xs font-bold text-studojo-ink mb-2">Everything included</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                {INCLUDED.map((item) => (
-                  <div key={item} className="flex items-start gap-1.5">
-                    <FiCheckCircle className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
-                    <span className="font-satoshi text-xs text-studojo-ink">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Trust */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              {[
-                { label: "Secure payment", sub: "Razorpay and Dodo" },
-                { label: "No spam risk", sub: "Gradual send schedule" },
-                { label: "Cancel anytime", sub: "Before campaign starts" },
-                { label: "Real emails only", sub: "Verified before sending" },
-              ].map(({ label, sub }) => (
-                <div key={label} className="flex items-start gap-1.5">
-                  <FiCheckCircle className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-satoshi font-bold text-xs text-studojo-ink">{label}</p>
-                    <p className="font-satoshi text-xs text-studojo-muted">{sub}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          {/* Headline */}
+          <div>
+            <h1 className="font-clash text-3xl font-bold text-studojo-ink leading-tight mb-2">
+              Reach hiring managers directly.
+            </h1>
+            <p className="font-satoshi text-sm text-studojo-muted">
+              We do the outreach. You focus on the interviews.
+            </p>
           </div>
 
-          {/* RIGHT: pricing + payment */}
-          <div className="space-y-4">
-            {/* Credits */}
-            {credits && credits.total_credits > 0 && (
-              <div className="rounded-xl border-2 border-studojo-ink bg-studojo-green-bg/30 p-3 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold font-satoshi text-studojo-ink">Your credits</p>
-                  <p className="text-xs text-studojo-muted font-satoshi">{credits.available_credits} available</p>
+          {/* 3 bullets */}
+          <ul className="space-y-2.5">
+            {BULLETS.map((b) => (
+              <li key={b} className="flex items-start gap-2.5">
+                <div className="mt-0.5 w-4 h-4 rounded-full bg-studojo-purple flex items-center justify-center flex-shrink-0">
+                  <FiCheck className="w-2.5 h-2.5 text-white" />
                 </div>
-                <span className="px-2 py-0.5 rounded-full text-xs font-satoshi font-bold bg-studojo-green-bg text-studojo-green border border-studojo-green/30">
-                  {credits.available_credits} left
-                </span>
-              </div>
-            )}
+                <span className="font-satoshi text-sm text-studojo-ink">{b}</span>
+              </li>
+            ))}
+          </ul>
 
-            {/* Tier selector */}
-            <div>
-              <p className="font-clash text-sm font-bold text-studojo-ink mb-1">Choose your tier</p>
-              <p className="font-satoshi text-xs text-studojo-muted mb-3">More contacts = more chances at a reply.</p>
-              <TierSelector
-                selected={selectedTier}
-                onSelect={(tier) => { setSelectedTier(tier); setCouponResult(null); setCouponError(""); }}
-                pricing={pricing}
-              />
+          {/* Tier selector */}
+          <div className="grid grid-cols-3 gap-2">
+            {TIERS.map((tier) => {
+              const livePricing = pricing.find((p) => p.tier === tier.value);
+              const price = livePricing?.display_price || (tier.value === 200 ? "$20" : tier.value === 350 ? "$27" : "$40");
+              const isSelected = selectedTier === tier.value;
+              return (
+                <button
+                  key={tier.value}
+                  onClick={() => { setSelectedTier(tier.value); setCouponResult(null); setCouponError(""); }}
+                  className={`relative flex flex-col items-center p-3 rounded-2xl border-2 transition-all text-center ${
+                    isSelected
+                      ? "border-studojo-ink bg-studojo-purple-bg shadow-brutal"
+                      : "border-studojo-ink/20 hover:border-studojo-ink/60"
+                  }`}
+                >
+                  {tier.recommended && (
+                    <span className="absolute -top-2.5 text-[10px] font-satoshi font-bold bg-studojo-purple text-white px-2 py-0.5 rounded-full border border-studojo-ink">
+                      Best
+                    </span>
+                  )}
+                  <span className="font-clash text-xl font-bold text-studojo-purple">{tier.value}</span>
+                  <span className="font-satoshi text-xs font-bold text-studojo-ink mt-0.5">{tier.label}</span>
+                  <span className="font-satoshi text-xs text-studojo-muted mt-1">{price}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="font-satoshi text-xs text-studojo-muted text-center -mt-3">
+            contacts — pick how many hiring managers to reach
+          </p>
+
+          {/* Credits notice */}
+          {credits && credits.available_credits > 0 && (
+            <div className="rounded-xl border-2 border-studojo-ink/20 bg-studojo-green-bg/40 px-4 py-2.5 flex items-center justify-between">
+              <span className="font-satoshi text-xs text-studojo-ink font-bold">Your credits</span>
+              <span className="font-satoshi text-xs text-studojo-green font-bold">{credits.available_credits} available</span>
             </div>
+          )}
 
-            {/* Coupon */}
-            {!hasEnoughCredits && (
-              <div>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <FiTag className="w-3.5 h-3.5 text-studojo-purple" />
-                  <span className="font-satoshi text-xs font-bold text-studojo-ink">Have a coupon?</span>
-                </div>
-                <div className="flex gap-2">
+          {/* Coupon toggle */}
+          {!hasEnoughCredits && (
+            <div>
+              <button
+                onClick={() => setShowCoupon(!showCoupon)}
+                className="flex items-center gap-1.5 text-xs font-satoshi text-studojo-muted hover:text-studojo-ink transition-colors"
+              >
+                <FiTag className="w-3.5 h-3.5" />
+                {showCoupon ? "Hide coupon" : "Have a coupon code?"}
+              </button>
+              {showCoupon && (
+                <div className="mt-2 flex gap-2">
                   <input
                     value={couponCode}
                     onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); setCouponError(""); }}
-                    placeholder="Coupon code"
+                    placeholder="Enter code"
                     className="flex-1 h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-xs font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
                   />
                   <button
                     onClick={validateCoupon}
                     disabled={couponLoading}
-                    className="h-9 px-3 rounded-xl bg-white text-studojo-ink text-xs font-satoshi font-bold border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50"
+                    className="h-9 px-4 rounded-xl bg-white text-studojo-ink text-xs font-satoshi font-bold border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50"
                   >
                     {couponLoading ? "..." : "Apply"}
                   </button>
                 </div>
-                {couponError && <p className="text-red-600 text-xs mt-1.5 font-satoshi">{couponError}</p>}
-                {couponResult?.valid && (
-                  <div className="mt-2 p-2.5 bg-studojo-green-bg rounded-xl border border-studojo-ink/20">
-                    <p className="text-xs text-studojo-green font-bold font-satoshi">
-                      {couponResult.discount_type === "percent"
-                        ? `${couponResult.discount_value}% off`
-                        : `${currSymbol}${(couponResult.discount_value / 100).toFixed(0)} off`}
-                    </p>
-                    <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
-                      <span className="line-through">{currSymbol}{(couponResult.original_amount / 100).toFixed(0)}</span>
-                      {" to "}
-                      <span className="text-studojo-green font-bold">{currSymbol}{(couponResult.discounted_amount / 100).toFixed(0)}</span>
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {error && <p className="text-red-600 text-xs font-satoshi">{error}</p>}
-
-            {/* Pay button */}
-            {hasEnoughCredits ? (
-              <button
-                onClick={() => onPaymentSuccess()}
-                className="w-full h-12 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center justify-center gap-2"
-              >
-                Use my credits
-                <FiArrowRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                onClick={handlePayAndContinue}
-                disabled={paying}
-                className="w-full h-12 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
-              >
-                <FiCreditCard className="w-4 h-4" />
-                {paying ? "Processing..." : `Pay ${displayPrice} and start outreach`}
-              </button>
-            )}
-
-            <p className="text-xs text-studojo-muted font-satoshi text-center">
-              Emails send over 5-7 days. Most students get their first reply within a week.
-            </p>
-
-            <div className="flex items-center gap-2">
-              <div className="flex-1 h-px bg-studojo-ink/10" />
-              <span className="text-xs text-studojo-muted font-satoshi">or</span>
-              <div className="flex-1 h-px bg-studojo-ink/10" />
+              )}
+              {couponError && <p className="text-red-600 text-xs mt-1.5 font-satoshi">{couponError}</p>}
+              {couponResult?.valid && (
+                <div className="mt-2 px-3 py-2 bg-studojo-green-bg rounded-xl border border-studojo-ink/20 flex items-center justify-between">
+                  <span className="text-xs text-studojo-green font-bold font-satoshi">
+                    {couponResult.discount_type === "percent" ? `${couponResult.discount_value}% off` : `${currSymbol}${(couponResult.discount_value / 100).toFixed(0)} off`}
+                  </span>
+                  <span className="text-xs text-studojo-muted font-satoshi">
+                    <span className="line-through">{currSymbol}{(couponResult.original_amount / 100).toFixed(0)}</span>
+                    {" "}<span className="text-studojo-green font-bold">{currSymbol}{(couponResult.discounted_amount / 100).toFixed(0)}</span>
+                  </span>
+                </div>
+              )}
             </div>
+          )}
 
-            {/* Consultation CTA */}
-            <a
-              href={CONSULTATION_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full h-12 rounded-xl bg-white text-studojo-ink font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center justify-center gap-2"
+          {error && <p className="text-red-600 text-xs font-satoshi">{error}</p>}
+
+          {/* Primary CTA */}
+          {hasEnoughCredits ? (
+            <button
+              onClick={onPaymentSuccess}
+              className="w-full h-12 rounded-2xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none flex items-center justify-center gap-2"
             >
-              <FiCalendar className="w-4 h-4 text-studojo-purple" />
-              Book a free 15-min strategy call
-            </a>
-            <p className="text-xs text-studojo-muted font-satoshi text-center">
-              Not sure yet? Talk to us first. No pressure.
-            </p>
+              Use my credits <FiArrowRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={handlePay}
+              disabled={paying}
+              className="w-full h-12 rounded-2xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <FiCreditCard className="w-4 h-4" />
+              {paying ? "Processing..." : `Pay ${displayPrice} and start outreach`}
+            </button>
+          )}
+
+          {/* Divider + secondary CTA */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-studojo-ink/10" />
+            <span className="text-xs text-studojo-muted font-satoshi">not ready?</span>
+            <div className="flex-1 h-px bg-studojo-ink/10" />
           </div>
+
+          <a
+            href={CONSULTATION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full h-11 rounded-2xl bg-white text-studojo-ink font-satoshi font-bold text-sm border-2 border-studojo-ink/40 hover:border-studojo-ink transition-colors flex items-center justify-center gap-2"
+          >
+            <FiCalendar className="w-4 h-4 text-studojo-purple" />
+            Book a free 15-min strategy call
+          </a>
+
         </div>
       </div>
 
+      {/* Dodo modal */}
       {dodoCheckoutUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/60" onClick={() => { closeDodoModal(); setPaying(false); }} />
