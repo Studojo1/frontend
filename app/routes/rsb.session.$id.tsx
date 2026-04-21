@@ -271,7 +271,27 @@ export default function RsbSessionRoute() {
                   }}
                 />
               </div>
-              <ExportBar doc={doc} exporting={exporting} onExport={onExport} onCopyPlain={onCopyPlain} lastSaved={lastSaved} />
+              <ExportBar
+  doc={doc}
+  exporting={exporting}
+  onExport={onExport}
+  onCopyPlain={onCopyPlain}
+  lastSaved={lastSaved}
+  onPatchContact={async (patch) => {
+    const next: ResumeDoc = { ...doc, contact: { ...doc.contact, ...patch } };
+    setDoc(next);
+    try {
+      const res = await rsbFetch<{ resume_doc: ResumeDoc; ats: Ats }>(
+        `/session/${id}/doc`,
+        { method: "PUT", body: JSON.stringify(next) },
+      );
+      setAts(res.ats);
+      setLastSaved(new Date());
+    } catch (e) {
+      console.error("patch contact failed", e);
+    }
+  }}
+/>
             </div>
           </div>
         </div>
