@@ -26,6 +26,7 @@ import { authClient } from "~/lib/auth-client";
 import { Header } from "~/components/common/header";
 import { rsbFetch } from "~/lib/rsb/api";
 import { outreachFetch } from "~/lib/outreach/api";
+import { useOutreachStore } from "~/lib/outreach/store";
 import { getJobs } from "~/lib/control-plane";
 import type { RsbSession } from "~/lib/rsb/types";
 
@@ -133,6 +134,7 @@ function InputField({
 function ProfileContent() {
   const { data: auth, isPending } = authClient.useSession();
   const navigate = useNavigate();
+  const { setOrderId, setCandidateId, setCampaignId, setEmailAccountId } = useOutreachStore();
   const [mounted, setMounted] = useState(false);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -219,9 +221,17 @@ function ProfileContent() {
 
   const handleOrderClick = async (orderId: number) => {
     try {
-      const data = await outreachFetch<{ order_id: number; redirect: string }>(
-        `/orders/${orderId}/resume`,
-      );
+      const data = await outreachFetch<{
+        order_id: number;
+        candidate_id?: number;
+        campaign_id?: number;
+        email_account_id?: number;
+        redirect: string;
+      }>(`/orders/${orderId}/resume`);
+      setOrderId(data.order_id);
+      if (data.candidate_id) setCandidateId(data.candidate_id);
+      if (data.campaign_id) setCampaignId(data.campaign_id);
+      if (data.email_account_id) setEmailAccountId(data.email_account_id);
       const redirect = data.redirect.startsWith("/outreach")
         ? data.redirect
         : `/outreach${data.redirect}`;
