@@ -217,6 +217,20 @@ function ProfileContent() {
     setTimeout(() => nameRef.current?.focus(), 50);
   };
 
+  const handleOrderClick = async (orderId: number) => {
+    try {
+      const data = await outreachFetch<{ order_id: number; redirect: string }>(
+        `/orders/${orderId}/resume`,
+      );
+      const redirect = data.redirect.startsWith("/outreach")
+        ? data.redirect
+        : `/outreach${data.redirect}`;
+      navigate(redirect);
+    } catch {
+      navigate("/outreach/orders");
+    }
+  };
+
   const cancelEdit = () => {
     setEditing(false);
     setSaveError("");
@@ -496,12 +510,14 @@ function ProfileContent() {
             ) : (
               <div className="space-y-2">
                 {(Array.isArray(outreachOrders) ? outreachOrders : []).map((o, i) => (
-                  <div
+                  <button
                     key={o.id ?? i}
-                    className="flex items-center justify-between p-3 rounded-xl border-2 border-neutral-200"
+                    type="button"
+                    onClick={() => handleOrderClick(o.id)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl border-2 border-neutral-200 hover:border-violet-400 hover:bg-violet-50 transition-all text-left group"
                   >
                     <div>
-                      <span className="font-['Satoshi'] text-sm font-semibold text-neutral-900">
+                      <span className="font-['Satoshi'] text-sm font-semibold text-neutral-900 group-hover:text-violet-700">
                         Order #{o.id}
                       </span>
                       {o.created_at && (
@@ -511,7 +527,7 @@ function ProfileContent() {
                       )}
                     </div>
                     <StatusBadge status={o.status} />
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
