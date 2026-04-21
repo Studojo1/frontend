@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiMail, FiCheckCircle, FiTag, FiCreditCard } from "react-icons/fi";
+import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiArrowRight, FiCalendar, FiUsers, FiSend, FiInbox, FiZap } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TierSelector } from "~/components/outreach/TierSelector";
@@ -10,10 +10,11 @@ import { useOrder } from "~/lib/outreach/hooks";
 import { outreachFetch } from "~/lib/outreach/api";
 import type { TierPricing } from "~/lib/outreach/types";
 
+// Update this to your Calendly / scheduling link
+const CONSULTATION_URL = "https://cal.com/studojo/internship-strategy";
+
 declare global {
-  interface Window {
-    Razorpay: any;
-  }
+  interface Window { Razorpay: any; }
 }
 
 interface CouponResult {
@@ -27,8 +28,39 @@ interface CouponResult {
   distributor: string | null;
 }
 
+const STEPS = [
+  {
+    icon: FiUsers,
+    title: "We find your hiring managers",
+    body: "Within 24 hours, we identify verified hiring managers at companies in your target industry — with confirmed email addresses.",
+  },
+  {
+    icon: FiMail,
+    title: "We write personalised emails",
+    body: "Each email is written using your resume and the company's context. Not a template blast — actual personalised outreach.",
+  },
+  {
+    icon: FiSend,
+    title: "Emails go out automatically",
+    body: "Sent gradually over 5–7 days to protect your Gmail reputation. Spacing increases deliverability and reply rates.",
+  },
+  {
+    icon: FiInbox,
+    title: "Replies land in your inbox",
+    body: "Every reply comes straight to your Gmail. You take it from there. Most students hear back within a week.",
+  },
+];
+
+const WHAT_YOU_GET = [
+  "Verified email addresses — no guessing, no bounces",
+  "One personalised cold email per hiring manager, written from your resume",
+  "Automated send schedule over 5–7 days (protects your Gmail sender score)",
+  "Open & click tracking so you see who engaged",
+  "All replies delivered directly to your Gmail inbox",
+  "Full campaign dashboard to monitor progress",
+];
+
 export default function EnrichmentPage() {
-  // If rendered inside the Dodo modal iframe after payment redirect, show minimal UI
   const isInIframe = typeof window !== "undefined" && window.self !== window.top;
   if (isInIframe) {
     return (
@@ -49,11 +81,8 @@ export default function EnrichmentPage() {
   const { candidateId, selectedTier, setSelectedTier, orderId } = useOutreachStore();
   const { createOrder, updateOrder } = useOrder();
 
-  // Ensure an order record exists — create one if this is a fresh user
   useEffect(() => {
-    if (!orderId && candidateId) {
-      createOrder(candidateId);
-    }
+    if (!orderId && candidateId) createOrder(candidateId);
   }, [orderId, candidateId]);
 
   const [pricing, setPricing] = useState<TierPricing[]>([]);
@@ -71,22 +100,14 @@ export default function EnrichmentPage() {
   const dodoTierRef = useRef<number>(0);
   const dodoPollingRef = useRef(false);
 
-  const closeDodoModal = () => {
-    setDodoCheckoutUrl(null);
-    dodoPollingRef.current = false;
-  };
+  const closeDodoModal = () => { setDodoCheckoutUrl(null); dodoPollingRef.current = false; };
 
-  // After payment succeeds, advance order and navigate to campaign setup
   const onPaymentSuccess = async () => {
-    try {
-      setCredits(await outreachFetch("/payment/credits"));
-    } catch {}
-    // JIT: skip enrichment, go directly to Gmail connect / campaign setup
+    try { setCredits(await outreachFetch("/payment/credits")); } catch {}
     updateOrder({ status: "campaign_setup", log_entry: `Payment completed for ${selectedTier} credits (JIT enrichment)` });
     navigate("/outreach/connect/gmail");
   };
 
-  // Poll verify-dodo while modal is open
   const pollDodoVerify = async (attempt: number) => {
     if (!dodoPollingRef.current) return;
     try {
@@ -94,38 +115,21 @@ export default function EnrichmentPage() {
         method: "POST",
         body: JSON.stringify({ session_id: dodoSessionRef.current }),
       });
-      if (res.status === "paid") {
-        closeDodoModal();
-        setPaying(false);
-        onPaymentSuccess();
-        return;
-      }
-      if (res.status === "failed") {
-        closeDodoModal();
-        setError("Payment failed. Please try again.");
-        setPaying(false);
-        return;
-      }
-      if (attempt < 60 && dodoPollingRef.current) {
-        setTimeout(() => pollDodoVerify(attempt + 1), 3000);
-      }
+      if (res.status === "paid") { closeDodoModal(); setPaying(false); onPaymentSuccess(); return; }
+      if (res.status === "failed") { closeDodoModal(); setError("Payment failed. Please try again."); setPaying(false); return; }
+      if (attempt < 60 && dodoPollingRef.current) setTimeout(() => pollDodoVerify(attempt + 1), 3000);
     } catch {
-      if (attempt < 60 && dodoPollingRef.current) {
-        setTimeout(() => pollDodoVerify(attempt + 1), 5000);
-      }
+      if (attempt < 60 && dodoPollingRef.current) setTimeout(() => pollDodoVerify(attempt + 1), 5000);
     }
   };
 
-  // Load Razorpay script
   useEffect(() => {
     if (typeof window !== "undefined" && !window.Razorpay) {
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.onload = () => setRazorpayLoaded(true);
       document.body.appendChild(script);
-    } else {
-      setRazorpayLoaded(true);
-    }
+    } else { setRazorpayLoaded(true); }
   }, []);
 
   useEffect(() => {
@@ -138,18 +142,14 @@ export default function EnrichmentPage() {
         setPricing(pricingData.tiers || []);
         if (pricingData.currency) setCurrency(pricingData.currency);
         setCredits(creditsData);
-      } catch {
-        // fallback tiers
-      }
+      } catch {}
     };
     loadData();
   }, []);
 
   const validateCoupon = async () => {
     if (!couponCode.trim()) return;
-    setCouponLoading(true);
-    setCouponError("");
-    setCouponResult(null);
+    setCouponLoading(true); setCouponError(""); setCouponResult(null);
     try {
       const data = await outreachFetch<CouponResult>("/payment/coupon/validate", {
         method: "POST",
@@ -158,83 +158,47 @@ export default function EnrichmentPage() {
       setCouponResult(data);
     } catch (err: any) {
       setCouponError(err?.body?.detail || err.message || "Invalid coupon");
-    } finally {
-      setCouponLoading(false);
-    }
+    } finally { setCouponLoading(false); }
   };
 
   const handlePayAndContinue = async () => {
     if (!candidateId) return;
-
-    // If user already has enough credits, skip payment
-    if (credits && credits.available_credits >= selectedTier) {
-      onPaymentSuccess();
-      return;
-    }
-
-    setPaying(true);
-    setError("");
+    if (credits && credits.available_credits >= selectedTier) { onPaymentSuccess(); return; }
+    setPaying(true); setError("");
     try {
       const orderData = await outreachFetch<any>("/payment/create-order", {
         method: "POST",
         body: JSON.stringify({ tier: selectedTier, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined }),
       });
-
       if (orderData.free) {
         setCredits((prev) => prev
           ? { ...prev, total_credits: prev.total_credits + orderData.credits_granted, available_credits: prev.available_credits + orderData.credits_granted }
-          : { total_credits: orderData.credits_granted, used_credits: 0, available_credits: orderData.credits_granted }
-        );
-        setPaying(false);
-        onPaymentSuccess();
-        return;
+          : { total_credits: orderData.credits_granted, used_credits: 0, available_credits: orderData.credits_granted });
+        setPaying(false); onPaymentSuccess(); return;
       }
-
-      // Dodo Payments modal checkout (international users)
       if (orderData.checkout_url) {
         dodoSessionRef.current = orderData.session_id;
         dodoTierRef.current = selectedTier;
         dodoPollingRef.current = true;
         setDodoCheckoutUrl(orderData.checkout_url);
-        pollDodoVerify(0);
-        return;
+        pollDodoVerify(0); return;
       }
-
-      // Razorpay modal checkout (India)
       const options = {
-        key: orderData.key_id,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: "Outreach",
-        description: `Contact ${selectedTier} Hiring Managers`,
+        key: orderData.key_id, amount: orderData.amount, currency: orderData.currency,
+        name: "Studojo Outreach", description: `Contact ${selectedTier} Hiring Managers`,
         order_id: orderData.order_id,
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           try {
-            await outreachFetch("/payment/verify", {
-              method: "POST",
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              }),
-            });
-            setPaying(false);
-            onPaymentSuccess();
-          } catch (err: any) {
-            setError(err?.body?.detail || err.message || "Payment verification failed");
-            setPaying(false);
-          }
+            await outreachFetch("/payment/verify", { method: "POST", body: JSON.stringify(response) });
+            setPaying(false); onPaymentSuccess();
+          } catch (err: any) { setError(err?.body?.detail || err.message || "Payment verification failed"); setPaying(false); }
         },
         prefill: { email: user?.email || "", name: user?.name || "" },
         theme: { color: "#7C3AED" },
         modal: { ondismiss: () => setPaying(false) },
       };
-
       const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", (response: any) => {
-        setError(response.error?.description || "Payment failed");
-        setPaying(false);
-      });
+      rzp.on("payment.failed", (response: any) => { setError(response.error?.description || "Payment failed"); setPaying(false); });
       rzp.open();
     } catch (err: any) {
       setError(err?.body?.detail || err.message || "Failed to create payment order");
@@ -253,40 +217,73 @@ export default function EnrichmentPage() {
     );
   }
 
-  if (!candidateId) {
-    navigate("/outreach/onboarding/upload");
-    return null;
-  }
+  if (!candidateId) { navigate("/outreach/onboarding/upload"); return null; }
 
   const selectedPricing = pricing.find((p) => p.tier === selectedTier);
   const displayPrice = couponResult?.valid
     ? `${currency === "INR" ? "₹" : "$"}${(couponResult.discounted_amount / 100).toFixed(0)}`
     : selectedPricing?.display_price || (selectedTier === 200 ? "$20" : selectedTier === 350 ? "$27" : "$40");
-
   const hasEnoughCredits = credits ? credits.available_credits >= selectedTier : false;
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
-        <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center mx-auto text-studojo-purple mb-6">
-            <FiMail className="w-7 h-7" />
+
+      <div className="mx-auto max-w-2xl px-4 py-10 md:px-8">
+
+        {/* Hero */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-studojo-purple-bg border-2 border-studojo-ink text-xs font-satoshi font-bold text-studojo-purple mb-5">
+            <FiZap className="w-3.5 h-3.5" /> Done-for-you hiring manager outreach
           </div>
-          <h1 className="font-clash text-2xl font-bold text-studojo-ink">Contact Your Hiring Managers</h1>
-          <p className="text-sm text-studojo-muted mt-2 font-satoshi">Choose how many to reach out to. We'll handle everything else.</p>
+          <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink leading-tight mb-3">
+            Get your resume in front of<br />hiring managers directly.
+          </h1>
+          <p className="text-base text-studojo-muted font-satoshi max-w-md mx-auto">
+            We find their emails, write personalised cold emails using your resume, and send them automatically. You just wait for replies.
+          </p>
         </div>
 
-        {/* Value checklist — what they're getting */}
-        <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg/30 p-5 mb-8">
-          <p className="font-clash text-sm font-bold text-studojo-ink mb-3">Here's what you get:</p>
-          <ul className="space-y-2">
-            {[
-              "Verified email addresses for your hiring managers",
-              "A personalised email written for each one (based on your resume)",
-              "Emails sent gradually over several days, protecting your Gmail reputation",
-              "Replies land straight in your inbox",
-            ].map((item) => (
+        {/* Stats strip */}
+        <div className="grid grid-cols-3 gap-3 mb-10">
+          {[
+            { stat: "300+", label: "students launched" },
+            { stat: "~8%", label: "average reply rate" },
+            { stat: "7 days", label: "to first reply" },
+          ].map(({ stat, label }) => (
+            <div key={label} className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg/30 p-4 text-center">
+              <div className="font-clash text-2xl font-bold text-studojo-purple">{stat}</div>
+              <div className="font-satoshi text-xs text-studojo-muted mt-0.5">{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* How it works */}
+        <div className="mb-10">
+          <h2 className="font-clash text-lg font-bold text-studojo-ink mb-4">Here's exactly what happens</h2>
+          <div className="space-y-3">
+            {STEPS.map((step, i) => (
+              <div key={step.title} className="flex gap-4 p-4 rounded-2xl border-2 border-studojo-ink/20 hover:border-studojo-ink transition-colors">
+                <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-purple">
+                  <step.icon className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-xs font-satoshi font-bold text-studojo-muted uppercase tracking-wide">Step {i + 1}</span>
+                  </div>
+                  <p className="font-satoshi font-bold text-sm text-studojo-ink">{step.title}</p>
+                  <p className="font-satoshi text-sm text-studojo-muted mt-0.5">{step.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* What's included */}
+        <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg/20 p-5 mb-10">
+          <p className="font-clash text-sm font-bold text-studojo-ink mb-3">Everything included in every tier:</p>
+          <ul className="space-y-2.5">
+            {WHAT_YOU_GET.map((item) => (
               <li key={item} className="flex items-start gap-2.5 text-sm font-satoshi text-studojo-ink">
                 <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
                 {item}
@@ -295,6 +292,7 @@ export default function EnrichmentPage() {
           </ul>
         </div>
 
+        {/* Credits banner */}
         {credits && credits.total_credits > 0 && (
           <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-4 mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -312,17 +310,21 @@ export default function EnrichmentPage() {
           </div>
         )}
 
+        {/* Tier selector */}
+        <h2 className="font-clash text-lg font-bold text-studojo-ink mb-3">Choose how many hiring managers</h2>
+        <p className="font-satoshi text-sm text-studojo-muted mb-4">More contacts = more chances at a reply. We recommend 350 for most students.</p>
         <TierSelector
           selected={selectedTier}
           onSelect={(tier) => { setSelectedTier(tier); setCouponResult(null); setCouponError(""); }}
           pricing={pricing}
         />
 
+        {/* Coupon */}
         {!hasEnoughCredits && (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6 mt-6">
-            <div className="flex items-center gap-3 mb-4">
-              <FiTag className="w-5 h-5 text-studojo-purple" />
-              <h3 className="font-clash text-base font-bold text-studojo-ink">Have a coupon?</h3>
+          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5 mt-6">
+            <div className="flex items-center gap-2 mb-3">
+              <FiTag className="w-4 h-4 text-studojo-purple" />
+              <h3 className="font-clash text-sm font-bold text-studojo-ink">Have a coupon?</h3>
             </div>
             <div className="flex gap-3">
               <input
@@ -360,31 +362,71 @@ export default function EnrichmentPage() {
 
         {error && <p className="text-red-600 text-sm text-center mt-6 font-satoshi">{error}</p>}
 
-        <div className="flex flex-col items-center gap-3 mt-10">
+        {/* CTAs */}
+        <div className="mt-8 space-y-3">
           {hasEnoughCredits ? (
             <button
               onClick={() => onPaymentSuccess()}
-              className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+              className="w-full h-14 rounded-2xl bg-studojo-purple text-white font-satoshi font-bold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center justify-center gap-2"
             >
-              Contact {selectedTier} Hiring Managers (Use Credits)
+              Contact {selectedTier} Hiring Managers — Use My Credits
+              <FiArrowRight className="w-5 h-5" />
             </button>
           ) : (
             <button
               onClick={handlePayAndContinue}
               disabled={paying}
-              className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full h-14 rounded-2xl bg-studojo-purple text-white font-satoshi font-bold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
             >
-              <FiCreditCard className="w-5 h-5 mr-2" /> {paying ? "Processing..." : `Pay ${displayPrice} · Contact ${selectedTier} Hiring Managers`}
+              <FiCreditCard className="w-5 h-5" />
+              {paying ? "Processing..." : `Pay ${displayPrice} — Contact ${selectedTier} Hiring Managers`}
             </button>
           )}
-          <p className="text-xs text-studojo-muted font-satoshi text-center max-w-md">
-            Your emails go out automatically over several days. Most students get their first reply within a week.
+
+          <p className="text-xs text-studojo-muted font-satoshi text-center">
+            Emails send over 5–7 days. Most students get their first reply within a week.
+          </p>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-2">
+            <div className="flex-1 h-px bg-studojo-ink/10" />
+            <span className="text-xs text-studojo-muted font-satoshi">or</span>
+            <div className="flex-1 h-px bg-studojo-ink/10" />
+          </div>
+
+          {/* Free consultation CTA */}
+          <a
+            href={CONSULTATION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full h-14 rounded-2xl bg-white text-studojo-ink font-satoshi font-bold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center justify-center gap-2"
+          >
+            <FiCalendar className="w-5 h-5 text-studojo-purple" />
+            Book a free 15-min strategy call first
+          </a>
+          <p className="text-xs text-studojo-muted font-satoshi text-center">
+            Not sure if this is right for you? Talk to us first — no pressure, no sales pitch.
           </p>
         </div>
+
+        {/* Trust footer */}
+        <div className="mt-10 pt-6 border-t-2 border-studojo-ink/10 grid grid-cols-2 gap-4 text-center">
+          {[
+            { label: "Secure payment", sub: "Razorpay & Dodo Payments" },
+            { label: "No spam risk", sub: "Gradual send protects your Gmail" },
+            { label: "Cancel anytime", sub: "Before campaign starts" },
+            { label: "Real emails only", sub: "Verified before sending" },
+          ].map(({ label, sub }) => (
+            <div key={label} className="flex flex-col gap-0.5">
+              <span className="font-satoshi font-bold text-sm text-studojo-ink">{label}</span>
+              <span className="font-satoshi text-xs text-studojo-muted">{sub}</span>
+            </div>
+          ))}
+        </div>
       </div>
+
       <Footer />
 
-      {/* Dodo Payments checkout modal */}
       {dodoCheckoutUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/60" onClick={() => { closeDodoModal(); setPaying(false); }} />
@@ -395,11 +437,7 @@ export default function EnrichmentPage() {
             >
               &times;
             </button>
-            <iframe
-              src={dodoCheckoutUrl}
-              className="w-full h-full border-0"
-              allow="payment"
-            />
+            <iframe src={dodoCheckoutUrl} className="w-full h-full border-0" allow="payment" />
           </div>
         </div>
       )}
