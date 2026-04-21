@@ -436,22 +436,29 @@ function ProfileContent() {
                         : score >= 40
                           ? "bg-amber-100 text-amber-800 border-amber-300"
                           : "bg-neutral-100 text-neutral-700 border-neutral-300";
+                  const localLabel = typeof window !== "undefined"
+                    ? (localStorage.getItem(`rsb:label:${s.id}`) ?? null)
+                    : null;
+                  const displayName = localLabel ?? s.target_role ?? "Untitled resume";
+                  const updatedDate = s.updated_at
+                    ? new Date(s.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                    : null;
                   return (
                     <Link
                       key={s.id}
                       to={`/rsb/session/${s.id}`}
                       className="flex items-center justify-between p-3 rounded-xl border-2 border-neutral-200 hover:border-violet-400 hover:bg-violet-50 transition-all group"
                     >
-                      <div>
-                        <div className="font-['Satoshi'] text-sm font-semibold text-neutral-900 group-hover:text-violet-700">
-                          {s.target_role ?? "Resume draft"}
+                      <div className="min-w-0">
+                        <div className="font-['Satoshi'] text-sm font-semibold text-neutral-900 group-hover:text-violet-700 truncate">
+                          {displayName}
                         </div>
-                        {s.experience_band && (
-                          <div className="font-['Satoshi'] text-xs text-neutral-500">{s.experience_band}</div>
-                        )}
+                        <div className="font-['Satoshi'] text-xs text-neutral-500">
+                          {s.experience_band ? `${s.experience_band}${updatedDate ? ` · ${updatedDate}` : ""}` : (updatedDate ?? "In progress")}
+                        </div>
                       </div>
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${scoreColor} font-['Satoshi']`}
+                        className={`ml-3 shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${scoreColor} font-['Satoshi']`}
                       >
                         {score > 0 ? `ATS ${score}` : "In progress"}
                       </span>

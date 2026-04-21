@@ -3,6 +3,7 @@ import { FiUploadCloud, FiCheck, FiArrowRight, FiArrowLeft } from "react-icons/f
 
 export type IntakeSubmit = {
   full_name: string;
+  resume_label?: string;
   linkedin_url?: string;
   pdf?: File;
   resumePdf?: File;
@@ -22,6 +23,7 @@ export function LinkedInIntake({
   const [step, setStep] = useState<Step>("ask");
   const [hasLinkedIn, setHasLinkedIn] = useState<boolean | null>(null);
   const [fullName, setFullName] = useState("");
+  const [resumeLabel, setResumeLabel] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [pdf, setPdf] = useState<File | null>(null);
   const [resumePdf, setResumePdf] = useState<File | null>(null);
@@ -35,6 +37,7 @@ export function LinkedInIntake({
     if (!canSubmit) return;
     onSubmit({
       full_name: fullName.trim(),
+      resume_label: resumeLabel.trim() || undefined,
       linkedin_url: linkedinUrl.trim() || undefined,
       pdf: pdf ?? undefined,
       resumePdf: resumePdf ?? undefined,
@@ -171,9 +174,20 @@ export function LinkedInIntake({
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
               placeholder="Kavya Sharma"
               autoFocus
+              className="w-full px-4 py-3 border-2 border-neutral-900 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] mb-5"
+            />
+
+            <label className="block text-sm font-bold text-neutral-900 mb-2">
+              Resume name <span className="font-normal text-neutral-500">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={resumeLabel}
+              onChange={(e) => setResumeLabel(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+              placeholder="e.g. Google SWE Intern, Summer 2025"
               className="w-full px-4 py-3 border-2 border-neutral-900 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] mb-5"
             />
 

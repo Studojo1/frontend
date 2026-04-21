@@ -44,6 +44,9 @@ export default function RsbRoot() {
           }),
         });
         const sessionId = res.session.id;
+        if (p.resume_label) {
+          try { localStorage.setItem(`rsb:label:${sessionId}`, p.resume_label); } catch {}
+        }
         if (p.pdf) {
           try {
             await rsbUpload(`/session/${sessionId}/linkedin`, p.pdf);
