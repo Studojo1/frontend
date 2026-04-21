@@ -1,31 +1,31 @@
 import { FiDownload, FiCopy, FiLock } from "react-icons/fi";
-import type { Ats, ResumeDoc } from "~/lib/rsb/types";
+import type { ResumeDoc } from "~/lib/rsb/types";
 
-function canExport(doc: ResumeDoc, ats: Ats): { ok: boolean; reason?: string } {
-  if (!doc.contact.full_name) return { ok: false, reason: "Add your full name first." };
-  if (!doc.contact.email) return { ok: false, reason: "Add a contact email." };
-  if (doc.experience.length === 0 && doc.projects.length === 0)
-    return { ok: false, reason: "Add at least one experience or project." };
-  if ((ats?.score ?? 0) < 40) return { ok: false, reason: "Keep going. Fill a bit more before exporting." };
+function canExport(doc: ResumeDoc): { ok: boolean; reason?: string } {
+  if (!doc.contact.full_name) return { ok: false, reason: "Add your full name to export." };
+  if (
+    doc.experience.length === 0 &&
+    doc.projects.length === 0 &&
+    doc.education.length === 0
+  )
+    return { ok: false, reason: "Add at least one experience, project, or education entry." };
   return { ok: true };
 }
 
 export function ExportBar({
   doc,
-  ats,
   exporting,
   onExport,
   onCopyPlain,
   lastSaved,
 }: {
   doc: ResumeDoc;
-  ats: Ats;
   exporting: boolean;
   onExport: () => void;
   onCopyPlain: () => void;
   lastSaved?: Date | null;
 }) {
-  const gate = canExport(doc, ats);
+  const gate = canExport(doc);
   return (
     <div className="font-['Satoshi']">
       {!gate.ok && (

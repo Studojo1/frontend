@@ -271,7 +271,7 @@ export default function RsbSessionRoute() {
                   }}
                 />
               </div>
-              <ExportBar doc={doc} ats={ats} exporting={exporting} onExport={onExport} onCopyPlain={onCopyPlain} lastSaved={lastSaved} />
+              <ExportBar doc={doc} exporting={exporting} onExport={onExport} onCopyPlain={onCopyPlain} lastSaved={lastSaved} />
             </div>
           </div>
         </div>
