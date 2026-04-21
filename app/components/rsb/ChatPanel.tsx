@@ -203,11 +203,12 @@ export function ChatPanel({
 }
 
 function Bubble({ role, text }: { role: "user" | "assistant"; text: string }) {
+  const display = role === "assistant" ? text.replace(/\u2014/g, "-").replace(/\u2013/g, "-") : text;
   if (role === "user") {
     return (
       <div className="flex justify-end">
         <div className="max-w-[80%] bg-violet-500 text-white px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-br-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
-          {text}
+          {display}
         </div>
       </div>
     );
@@ -217,7 +218,7 @@ function Bubble({ role, text }: { role: "user" | "assistant"; text: string }) {
       <div className="max-w-[85%]">
         <div className="text-[10px] font-bold text-neutral-400 mb-0.5 ml-1 font-['Satoshi']">studojo</div>
         <div className="bg-white text-neutral-900 px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-bl-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
-          {text}
+          {display}
         </div>
       </div>
     </div>
