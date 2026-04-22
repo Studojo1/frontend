@@ -334,6 +334,25 @@ export default function EnrichmentPage() {
       <Header />
       <div className="mx-auto max-w-5xl px-4 py-10 md:px-8">
 
+        {/* Free consultation CTA — top */}
+        <div className="rounded-2xl border-2 border-studojo-ink bg-amber-50 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-2xl mx-auto mb-8">
+          <div className="flex items-start gap-3">
+            <FiCalendar className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-clash text-sm font-bold text-studojo-ink">Free 1:1 Internship Strategy Call</p>
+              <p className="text-xs text-studojo-muted font-satoshi mt-0.5">Not sure which plan fits? Book a quick 20-min call with the team — we'll map out your outreach.</p>
+            </div>
+          </div>
+          <a
+            href={CONSULTATION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 h-9 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-bold border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center gap-1.5"
+          >
+            Book free call <FiArrowRight className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink">Contact Hiring Managers Directly</h1>
@@ -471,25 +490,6 @@ export default function EnrichmentPage() {
         </div>
 
         {error && <p className="text-red-600 text-sm text-center mb-4 font-satoshi">{error}</p>}
-
-        {/* Free consultation CTA */}
-        <div className="rounded-2xl border-2 border-studojo-ink bg-amber-50 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-2xl mx-auto">
-          <div className="flex items-start gap-3">
-            <FiCalendar className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-clash text-sm font-bold text-studojo-ink">Free 1:1 Internship Strategy Call</p>
-              <p className="text-xs text-studojo-muted font-satoshi mt-0.5">Not sure which plan fits? Book a quick 20-min call with the team — we'll map out your outreach.</p>
-            </div>
-          </div>
-          <a
-            href={CONSULTATION_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 h-9 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-bold border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center gap-1.5"
-          >
-            Book free call <FiArrowRight className="w-3.5 h-3.5" />
-          </a>
-        </div>
 
         <p className="text-xs text-studojo-muted font-satoshi text-center mt-6">
           Emails sent gradually over several days. Most students get their first reply within a week.
