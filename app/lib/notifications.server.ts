@@ -20,7 +20,7 @@ export async function sendInternshipApplicationNotification(
     return;
   }
 
-  const from = process.env.RESEND_FROM_EMAIL?.trim() || "Studojo <applications@studojo.com>";
+  const from = process.env.RESEND_FROM_EMAIL?.trim() || "Studojo <onboarding@resend.dev>";
   const to = process.env.INTERNSHIP_APPLICATIONS_NOTIFY_EMAIL?.trim() || "vanshikastudojo@gmail.com";
 
   const maverickBase = process.env.MAVERICK_BASE_URL?.trim() || "https://maverick.studojo.com";
