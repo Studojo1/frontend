@@ -267,22 +267,49 @@ export default function EnrichmentPage() {
       name: "Starter",
       tagline: "Test the waters",
       fallbackPrice: "$20",
-      features: ["200 verified hiring manager emails", "200 personalised cold emails", "Sent over 5-7 days", "Replies to your Gmail inbox"],
+      features: [
+        "200 verified hiring manager contacts",
+        "200 AI-written personalised cold emails",
+        "Resume-matched messaging for each company",
+        "Emails drip-sent over 5-7 days",
+        "Replies land straight in your Gmail",
+        "Automatic follow-up sequence",
+      ],
     },
     {
       value: 350 as const,
       name: "Growth",
-      tagline: "Recommended",
+      tagline: "Most students pick this",
       fallbackPrice: "$27",
       recommended: true,
-      features: ["350 verified hiring manager emails", "350 personalised cold emails", "Sent over 5-7 days", "Replies to your Gmail inbox", "Open and click tracking"],
+      features: [
+        "350 verified hiring manager contacts",
+        "350 AI-written personalised cold emails",
+        "Resume-matched messaging for each company",
+        "Emails drip-sent over 5-7 days",
+        "Replies land straight in your Gmail",
+        "Automatic follow-up sequence",
+        "Open and click tracking",
+        "LinkedIn cross-reference verification",
+      ],
     },
     {
       value: 500 as const,
       name: "Scale",
       tagline: "Maximum reach",
       fallbackPrice: "$40",
-      features: ["500 verified hiring manager emails", "500 personalised cold emails", "Sent over 5-7 days", "Replies to your Gmail inbox", "Open and click tracking"],
+      features: [
+        "500 verified hiring manager contacts",
+        "500 AI-written personalised cold emails",
+        "Resume-matched messaging for each company",
+        "Emails drip-sent over 5-7 days",
+        "Replies land straight in your Gmail",
+        "Automatic follow-up sequence",
+        "Open and click tracking",
+        "LinkedIn cross-reference verification",
+        "Weekly send performance report",
+        "Priority support",
+      ],
     },
   ];
 
@@ -292,9 +319,9 @@ export default function EnrichmentPage() {
     const match = pricing.find((p) => p.tier === tierValue);
     if (match) {
       const discounted = couponResult?.valid && selectedTier === tierValue ? couponResult.discounted_amount : null;
-      const raw = match.amount;
+      const raw = match.amount_cents;
       return {
-        display: `${currSymbol}${(raw / 100).toFixed(0)}`,
+        display: match.display_price || `${currSymbol}${(raw / 100).toFixed(0)}`,
         discounted: discounted ? `${currSymbol}${(discounted / 100).toFixed(0)}` : null,
       };
     }
