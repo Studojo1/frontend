@@ -340,7 +340,7 @@ export default function EnrichmentPage() {
             <FiCalendar className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="font-clash text-sm font-bold text-studojo-ink">Free 1:1 Internship Strategy Call</p>
-              <p className="text-xs text-studojo-muted font-satoshi mt-0.5">Not sure which plan fits? Book a quick 20-min call with the team — we'll map out your outreach.</p>
+              <p className="text-xs text-studojo-muted font-satoshi mt-0.5">Not sure which plan fits? Book a quick 20-min call with the team. We'll map out your outreach.</p>
             </div>
           </div>
           <a
