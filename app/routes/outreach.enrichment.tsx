@@ -265,7 +265,7 @@ export default function EnrichmentPage() {
     `We scrape 20,000+ databases and sites to find ${count} hiring decision makers for the exact role you are targeting`,
     "Filtered based on your company and industry preferences",
     "Professionally written, personalised emails for each contact to land you the role",
-    "Emails sent periodically so they land in the primary inbox — your email health stays intact",
+    "Emails sent periodically so they land in the primary inbox. Your email health stays intact",
     "Fully custom dashboard to track your emails",
     "Email support",
   ];
@@ -281,17 +281,19 @@ export default function EnrichmentPage() {
     {
       value: 350 as const,
       name: "Growth",
-      tagline: "150 more emails, 150 more shots at a reply.",
+      tagline: "Everything in Starter, plus 150 more emails.",
       fallbackPrice: "$27",
       recommended: true,
       features: SHARED_FEATURES(350),
+      upsell: true,
     },
     {
       value: 500 as const,
       name: "Scale",
-      tagline: "Maximum reach across your target market.",
+      tagline: "Everything in Starter, plus 300 more emails.",
       fallbackPrice: "$40",
       features: SHARED_FEATURES(500),
+      upsell: true,
     },
   ];
 
@@ -403,12 +405,25 @@ export default function EnrichmentPage() {
                 </div>
 
                 <ul className="space-y-2.5 mb-6 flex-1">
-                  {tier.features.map((feat) => (
-                    <li key={feat} className="flex items-start gap-2 text-sm font-satoshi text-studojo-ink">
-                      <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
-                      {feat}
-                    </li>
-                  ))}
+                  {tier.upsell ? (
+                    <>
+                      <li className="flex items-start gap-2 text-sm font-satoshi text-studojo-ink">
+                        <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
+                        Everything in Starter
+                      </li>
+                      <li className="flex items-start gap-2 text-sm font-satoshi font-bold text-studojo-purple">
+                        <FiCheckCircle className="w-4 h-4 text-studojo-purple mt-0.5 flex-shrink-0" />
+                        {tier.value - 200} more emails = {tier.value - 200} more chances at a reply
+                      </li>
+                    </>
+                  ) : (
+                    tier.features.map((feat) => (
+                      <li key={feat} className="flex items-start gap-2 text-sm font-satoshi text-studojo-ink">
+                        <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
+                        {feat}
+                      </li>
+                    ))
+                  )}
                 </ul>
 
                 <button
