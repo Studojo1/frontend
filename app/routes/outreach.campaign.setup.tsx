@@ -49,6 +49,14 @@ export default function CampaignSetupPage() {
     updateOrder({ status: "campaign_setup", log_entry: "Entered campaign setup" });
   }, [candidateId]);
 
+  // If Gmail not connected, redirect back to connect page instead of silently failing
+  useEffect(() => {
+    if (authLoading) return;
+    if (!emailAccountId) {
+      navigate("/outreach/connect/gmail");
+    }
+  }, [authLoading, emailAccountId]);
+
   const loadTestEmails = async () => {
     if (!candidateId || !emailAccountId) return;
     setTestEmailsLoading(true);
@@ -104,7 +112,11 @@ export default function CampaignSetupPage() {
   };
 
   const handleLaunch = async () => {
-    if (!candidateId || !emailAccountId) return;
+    if (!candidateId || !emailAccountId) {
+      setError("Gmail not connected. Please connect your Gmail account first.");
+      navigate("/outreach/connect/gmail");
+      return;
+    }
     setLaunching(true);
     setError("");
     try {
