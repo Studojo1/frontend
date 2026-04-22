@@ -263,7 +263,7 @@ export default function EnrichmentPage() {
 
   const SHARED_FEATURES = (count: number) => [
     `We scrape 20,000+ databases and sites to find ${count} hiring decision makers for the exact role you are targeting`,
-    "Filtered based on your company and industry preferences",
+    "Tailored based on your company and industry preferences",
     "Professionally written, personalised emails for each contact to land you the role",
     "Emails sent periodically so they land in the primary inbox. Your email health stays intact",
     "Fully custom dashboard to track your emails",
@@ -285,7 +285,6 @@ export default function EnrichmentPage() {
       fallbackPrice: "$27",
       recommended: true,
       features: SHARED_FEATURES(350),
-      upsell: true,
     },
     {
       value: 500 as const,
@@ -293,7 +292,6 @@ export default function EnrichmentPage() {
       tagline: "Everything in Starter, plus 300 more emails.",
       fallbackPrice: "$40",
       features: SHARED_FEATURES(500),
-      upsell: true,
     },
   ];
 
@@ -405,25 +403,12 @@ export default function EnrichmentPage() {
                 </div>
 
                 <ul className="space-y-2.5 mb-6 flex-1">
-                  {tier.upsell ? (
-                    <>
-                      <li className="flex items-start gap-2 text-sm font-satoshi text-studojo-ink">
-                        <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
-                        Everything in Starter
-                      </li>
-                      <li className="flex items-start gap-2 text-sm font-satoshi font-bold text-studojo-purple">
-                        <FiCheckCircle className="w-4 h-4 text-studojo-purple mt-0.5 flex-shrink-0" />
-                        {tier.value - 200} more emails = {tier.value - 200} more chances at a reply
-                      </li>
-                    </>
-                  ) : (
-                    tier.features.map((feat) => (
-                      <li key={feat} className="flex items-start gap-2 text-sm font-satoshi text-studojo-ink">
-                        <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
-                        {feat}
-                      </li>
-                    ))
-                  )}
+                  {tier.features.map((feat) => (
+                    <li key={feat} className="flex items-start gap-2 text-sm font-satoshi text-studojo-ink">
+                      <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
+                      {feat}
+                    </li>
+                  ))}
                 </ul>
 
                 <button
