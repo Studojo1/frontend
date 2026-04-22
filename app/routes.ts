@@ -89,6 +89,7 @@ export default [
   route("brand/tagline", "routes/brand.tagline.tsx"),
   route("reports/internships-15k-india-2026", "routes/reports.internships-15k-india-2026.tsx"),
   route("reports/hiring-calendar-india-2026", "routes/reports.hiring-calendar-india-2026.tsx"),
+  route("reports/job-search-2026", "routes/reports.job-search-2026.tsx"),
   route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("api/outreach/email-chat", "routes/api.outreach.email-chat.tsx"),
   route("lab/email", "routes/lab.email.tsx"),

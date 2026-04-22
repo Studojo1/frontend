@@ -12,6 +12,7 @@ export async function loader() {
     { loc: "/reports/finance-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/sales-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/cs-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/job-search-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
     { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },

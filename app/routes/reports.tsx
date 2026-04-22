@@ -144,6 +144,17 @@ const REPORTS = [
     color: "bg-amber-500",
     badge: "New",
   },
+  {
+    slug: "job-search-2026",
+    title: "Job Boards Are Dead: How Students Actually Get Hired in 2026",
+    subtitle: "Q2 2026",
+    excerpt: "Job board callback rates sit at 2-7%. 75% of roles are filled through the hidden market. A referral makes you 5x more likely to get an interview. Here is the data and the system that actually works.",
+    category: "Internships",
+    date: "April 2026",
+    findings: 8,
+    color: "bg-violet-500",
+    badge: "New",
+  },
 ];
 
 function RequestForm() {
