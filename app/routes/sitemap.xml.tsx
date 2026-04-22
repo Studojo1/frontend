@@ -8,9 +8,7 @@ export async function loader() {
   const staticPages = [
     { loc: "/", priority: "1.0", changefreq: "weekly" },
     { loc: "/blog", priority: "0.8", changefreq: "daily" },
-    { loc: "/reports", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/finance-india-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/sales-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports", priority: "0.9", changefreq: "weekly" },
     { loc: "/reports/cs-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/job-search-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
@@ -38,12 +36,30 @@ export async function loader() {
 
   const today = new Date().toISOString().split("T")[0];
 
+  // Report pages have a fixed publish date — use it so Google sees accurate lastmod
+  const reportLastmod: Record<string, string> = {
+    "/reports/cs-india-2026": "2026-04-01",
+    "/reports/finance-india-2026": "2026-04-01",
+    "/reports/marketing-india-2026": "2026-04-01",
+    "/reports/sales-india-2026": "2026-04-01",
+    "/reports/ops-india-2026": "2026-04-01",
+    "/reports/internships-ai-india-2026": "2026-04-01",
+    "/reports/internships-15k-india-2026": "2026-04-01",
+    "/reports/hiring-calendar-india-2026": "2026-04-01",
+    "/reports/pune-jobs-2026": "2026-04-01",
+    "/reports/flame-marketing-2026": "2026-04-01",
+    "/reports/internships-germany-2026": "2026-04-20",
+    "/reports/internships-uk-2026": "2026-04-20",
+    "/reports/internships-australia-2026": "2026-04-20",
+    "/reports/skills-ai-entry-level-2026": "2026-04-20",
+  };
+
   const urls = [
     ...staticPages.map(
       (page) => `
   <url>
     <loc>${baseUrl}${page.loc}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${reportLastmod[page.loc] ?? today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>`

@@ -24,6 +24,16 @@ export function meta() {
   ];
 }
 
+type ReportType = "Sector" | "Internships" | "Cities" | "Colleges" | "Hiring Calendar";
+
+const TYPE_COLORS: Record<ReportType, string> = {
+  "Sector":          "bg-blue-500",
+  "Internships":     "bg-amber-500",
+  "Cities":          "bg-emerald-500",
+  "Colleges":        "bg-violet-500",
+  "Hiring Calendar": "bg-orange-500",
+};
+
 const REPORTS = [
   {
     slug: "ops-india-2026",
@@ -32,9 +42,9 @@ const REPORTS = [
     excerpt:
       "12,400+ ops intern openings. Only 19% of applicants work-ready. The Excel crisis, the SOP gap, and why Notion fluency is now the deciding factor in ops intern hiring across India.",
     category: "Operations",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-orange-500",
     badge: "New",
   },
   {
@@ -44,9 +54,9 @@ const REPORTS = [
     excerpt:
       "48% of applicants were ghosted last year. AI/ML intern stipends now run 3x higher than traditional roles. Here is what is actually shifting in internship hiring, which categories are collapsing, and what the AI-era intern looks like.",
     category: "Internships",
+    type: "Internships" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-amber-500",
     badge: "New",
   },
   {
@@ -56,9 +66,9 @@ const REPORTS = [
     excerpt:
       "135,000 IT hires projected for FY26. A 12x salary gap at Year 0 based purely on which company you join. And the one skill gap (DSA fluency) keeping 94.5% of engineering graduates out of the roles worth having.",
     category: "Tech",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-blue-500",
     badge: "New",
   },
   {
@@ -68,9 +78,9 @@ const REPORTS = [
     excerpt:
       "28,600+ entry-level openings. A ₹12 LPA ceiling that almost nobody in their first year reaches. And the one skill gap (CRM fluency) that ends 60% of sales interviews before they start.",
     category: "Sales",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-emerald-500",
     badge: "",
   },
   {
@@ -80,9 +90,9 @@ const REPORTS = [
     excerpt:
       "1,400+ entry-level openings. A 20 LPA ceiling at global banks that almost nobody reaches. And the one skill gap that sends 75% of finance graduates home before the first round.",
     category: "Finance",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-violet-500",
     badge: "",
   },
   {
@@ -92,9 +102,9 @@ const REPORTS = [
     excerpt:
       "22,000+ listings. A 6x stipend gap between niche and generic roles. And the reason 90% of students apply to the wrong ones — and get nothing back.",
     category: "Marketing",
+    type: "Sector" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-emerald-600",
     badge: "New",
   },
   {
@@ -104,9 +114,9 @@ const REPORTS = [
     excerpt:
       "4,800+ openings. A 3x salary gap between niche and generic roles. And why Hinjewadi isn't the only game in town anymore.",
     category: "City Report",
+    type: "Cities" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-blue-700",
     badge: "New",
   },
   {
@@ -114,10 +124,10 @@ const REPORTS = [
     title: "Roles That Land You Above ₹15k: The Internship Map India 2026",
     subtitle: "Q2 2026",
     excerpt: "48 roles mapped across 8 domains. Which categories own the ₹30k+ bracket, which skills unlock the floor, and which roles will never pay ₹15k no matter who you are.",
-    category: "Market Report",
+    category: "Internships",
+    type: "Internships" as ReportType,
     date: "April 2026",
     findings: 3,
-    color: "bg-amber-600",
     badge: "New",
   },
   {
@@ -126,10 +136,10 @@ const REPORTS = [
     subtitle: "Q1 2026",
     excerpt:
       "7 role tracks. A 1.7x salary gap between campus and off-campus. And the one skill that moves a Flame grad into the top 20% of marketing applicants immediately.",
-    category: "University Report",
+    category: "Colleges",
+    type: "Colleges" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-violet-700",
     badge: "New",
   },
   {
@@ -139,9 +149,57 @@ const REPORTS = [
     excerpt:
       "80+ companies mapped with exact application windows. HUL opens 8 months before start. Goldman opens in August for a March internship. Miss the window and you wait a year.",
     category: "Hiring Calendar",
+    type: "Hiring Calendar" as ReportType,
     date: "April 2026",
     findings: 8,
-    color: "bg-amber-500",
+    badge: "New",
+  },
+  {
+    slug: "internships-germany-2026",
+    title: "Do Interns in Germany Get Paid? Stipends, Laws and What to Expect",
+    subtitle: "Q1 2026",
+    excerpt:
+      "Germany's minimum wage is EUR 13.90/hour from Jan 2026 but mandatory internships are legally exempt. DAX 40 companies pay EUR 1,500 to 3,000/month. The exact rules, city data, and how international students qualify.",
+    category: "Cities",
+    type: "Cities" as ReportType,
+    date: "April 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
+    slug: "internships-uk-2026",
+    title: "Do Interns in the UK Get Paid? NLW Rules, Sector Rates and What to Expect",
+    subtitle: "Q1 2026",
+    excerpt:
+      "The UK National Living Wage hits £12.71/hr in April 2026 and applies to most interns — unpaid placements are largely illegal. Goldman pays £5,000/month. Here's what every sector actually pays and how to get in.",
+    category: "Cities",
+    type: "Cities" as ReportType,
+    date: "April 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
+    slug: "skills-ai-entry-level-2026",
+    title: "Breaking Into AI in 2026: The Skills, Roles and Hiring Reality for Entry-Level Candidates",
+    subtitle: "Q2 2026",
+    excerpt:
+      "94% of AI job postings want Python. 42% of roles are application-layer, not model-building. A deployed project scores 9.2/10 with hiring managers; a certificate scores 4.2. The exact stack, real salaries, and a 90-day path to your first AI role.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "April 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
+    slug: "internships-australia-2026",
+    title: "Do Interns in Australia Get Paid? Minimum Wage, Sector Rates and How to Apply",
+    subtitle: "Q1 2026",
+    excerpt:
+      "Australia's minimum wage is AUD $24.95/hr from July 2025 and unpaid internships are tightly regulated under the Fair Work Act. Canva pays AUD $90,000+ annualised. Here's what the market actually looks like.",
+    category: "Cities",
+    type: "Cities" as ReportType,
+    date: "April 2026",
+    findings: 8,
     badge: "New",
   },
   {
@@ -156,6 +214,8 @@ const REPORTS = [
     badge: "New",
   },
 ];
+
+const FILTERS: Array<"All" | ReportType> = ["All", "Sector", "Internships", "Cities", "Colleges", "Hiring Calendar"];
 
 function RequestForm() {
   const [topic, setTopic] = useState("");
@@ -252,6 +312,9 @@ function RequestForm() {
 }
 
 export default function Reports() {
+  const [activeFilter, setActiveFilter] = useState<"All" | ReportType>("All");
+  const visibleReports = activeFilter === "All" ? REPORTS : REPORTS.filter((r) => r.type === activeFilter);
+
   return (
     <>
       <Header />
@@ -271,17 +334,38 @@ export default function Reports() {
           </div>
         </section>
 
+        {/* Filter tabs */}
+        <section className="border-b-2 border-neutral-900 bg-white px-4 md:px-8">
+          <div className="mx-auto max-w-5xl">
+            <div className="flex gap-1 overflow-x-auto py-3">
+              {FILTERS.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setActiveFilter(f)}
+                  className={`whitespace-nowrap rounded-full border-2 px-4 py-1.5 font-['Satoshi'] text-sm font-semibold transition-colors ${
+                    activeFilter === f
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Reports grid */}
         <section className="mx-auto max-w-5xl px-4 py-12 md:px-8">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {REPORTS.map((report) => (
+            {visibleReports.map((report) => (
               <Link
                 key={report.slug}
                 to={`/reports/${report.slug}`}
                 className="group flex flex-col rounded-2xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
               >
                 {/* Card top */}
-                <div className={`${report.color} rounded-t-xl border-b-2 border-neutral-900 p-6`}>
+                <div className={`${TYPE_COLORS[report.type]} rounded-t-xl border-b-2 border-neutral-900 p-6`}>
                   <div className="flex items-start justify-between">
                     <span className="rounded-full border-2 border-white/40 bg-white/20 px-3 py-1 font-['Satoshi'] text-xs font-bold text-white">
                       {report.category}

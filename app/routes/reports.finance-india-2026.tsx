@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Finance in India: What Graduates Actually Face — Studojo Report 2026" },
-    {
-      name: "description",
-      content:
-        "1,400+ entry-level finance openings. Salary benchmarks across global banks, fintechs, and Big 4. Skills that command a premium. Data-driven analysis for students entering finance in India.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/finance-india-2026` },
+    { title: "Entry-Level Finance Jobs India 2026: Salary Benchmarks and Skill Gaps | Studojo" },
+    { name: "description", content: "1,400+ entry-level finance openings across global banks, Big 4 and fintechs. Salary ranges, the skills gap screening 75% of applicants, and where the real opportunities are in India in 2026." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "entry level finance jobs india 2026, finance fresher salary india, investment banking internship india, ca fresher salary, finance graduate jobs india" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/finance-india-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Finance in India: What Graduates Actually Face" },
-    { property: "og:description", content: "1,400+ entry-level finance openings. Salary benchmarks across global banks, fintechs, and Big 4. Skills that command a premium. Data-driven analysis for students entering finance in India." },
-    { property: "og:url", content: `${BASE_URL}/reports/finance-india-2026` },
+    { property: "og:title", content: "Entry-Level Finance Jobs India 2026: Salary Benchmarks and Skill Gaps" },
+    { property: "og:description", content: "1,400+ entry-level finance openings across global banks, Big 4 and fintechs. Salary ranges, the skills gap screening 75% of applicants, and where the real opportunities are in India in 2026." },
+    { property: "og:url", content: "https://studojo.com/reports/finance-india-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Finance in India: What Graduates Actually Face — Studojo 2026" },
-    { name: "twitter:description", content: "1,400+ entry-level finance openings. Salary benchmarks, skill gaps, and hiring trends. Free report for students entering finance in India." },
+    { name: "twitter:title", content: "Entry-Level Finance Jobs India 2026: Salary Benchmarks and Skill Gaps | Studojo" },
+    { name: "twitter:description", content: "1,400+ finance openings. Salary benchmarks across global banks, Big 4 and fintechs. Free data-driven report for finance freshers in India." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -37,9 +42,9 @@ function initCharts() {
   Chart.defaults.font.family = "Satoshi, sans-serif";
   Chart.defaults.color = "#171717";
 
-  const VIOLET = "#8b5cf6";
-  const VIOLET2 = "#a78bfa";
-  const VIOLET3 = "#c4b5fd";
+  const VIOLET = "#3b82f6";
+  const VIOLET2 = "#60a5fa";
+  const VIOLET3 = "#93c5fd";
   const GREEN = "#10b981";
   const GREEN2 = "#34d399";
   const ORANGE = "#f59e0b";
@@ -178,6 +183,9 @@ export default function FinanceIndiaReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Entry-Level Finance Jobs India 2026: Salary Benchmarks and Skill Gaps", "description": "1,400+ entry-level finance openings across global banks, Big 4 and fintechs. Salary ranges, the skills gap screening 75% of applicants, and where the real opportunities are in India in 2026.", "url": "https://studojo.com/reports/finance-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/finance-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Finance Jobs India 2026", "item": "https://studojo.com/reports/finance-india-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: reportCSS }} />
       <main>
@@ -282,7 +290,7 @@ export default function FinanceIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 320 }}><canvas id="salaryChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The chart above shows both median starting and top-quartile salaries. <strong>Global banks are the outlier</strong> — median starting pay is 18 to 22 LPA, roughly 3x what Big 4 entry roles pay. But global banks hire 12 to 15 graduates per city per quarter. Big 4 firms hire hundreds. Most people end up in the second column, not the first.</p>
+            <p className="rpt-prose">The chart above shows both median starting and top-quartile salaries. <strong>Global banks are the outlier</strong>: median starting pay is 18 to 22 LPA, roughly 3x what Big 4 entry roles pay. But global banks hire 12 to 15 graduates per city per quarter. Big 4 firms hire hundreds. Most people end up in the second column, not the first.</p>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-v">20 LPA</div><div className="rpt-lbl">Median year-1 comp at global investment banks (Goldman, JPM, Citi)</div></div>
@@ -366,7 +374,7 @@ export default function FinanceIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 360 }}><canvas id="roleChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">The orange bars show year-on-year growth rates. Traditional accounting and audit roles are growing at 8%. Financial data analytics is growing at 67%. Fintech product finance is growing at 72%. The purple bars show current volume — traditional roles still dominate headcount, but the <strong>growth is entirely in hybrid roles</strong> that require both finance and technical skills.</p>
+            <p className="rpt-prose">The orange bars show year-on-year growth rates. Traditional accounting and audit roles are growing at 8%. Financial data analytics is growing at 67%. Fintech product finance is growing at 72%. The purple bars show current volume: traditional roles still dominate headcount, but the <strong>growth is entirely in hybrid roles</strong> that require both finance and technical skills.</p>
 
             <div className="rpt-pill-row">
               {["Financial Analysis / FP&A", "Investment Research", "Corporate Treasury"].map(p => <span key={p} className="rpt-pill rpt-pv">{p}</span>)}
@@ -425,7 +433,7 @@ export default function FinanceIndiaReport() {
             <p className="rpt-prose" style={{ marginTop: 24 }}>Frequency tells you what is expected. What moves the needle on salary is the combination. Here is what the data shows when you look at skill stacks and their median year-1 pay outcomes.</p>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Salary premium by skill stack — median year-1 CTC (LPA)</div>
+              <div className="rpt-card-label">Salary premium by skill stack: median year-1 CTC (LPA)</div>
               <div className="rpt-chart-wrap" style={{ height: 240 }}><canvas id="skillPremiumChart"></canvas></div>
             </div>
 
@@ -540,7 +548,7 @@ export default function FinanceIndiaReport() {
               <div className="rpt-inline-cta-inner">
                 <div>
                   <div className="rpt-inline-cta-title">Find your first finance internship</div>
-                  <div className="rpt-inline-cta-sub">FP&A, investment research, fintech analytics — curated weekly. Apply directly from Studojo.</div>
+                  <div className="rpt-inline-cta-sub">FP&A, investment research, fintech analytics: curated weekly. Apply directly from Studojo.</div>
                 </div>
                 <Link to="/outreach" className="rpt-btn-primary">Find Finance Internships</Link>
               </div>
@@ -559,19 +567,19 @@ export default function FinanceIndiaReport() {
             <div className="rpt-two-col">
               <div>
                 <div className="rpt-card" style={{ padding: 20 }}>
-                  <div className="rpt-card-label">Work mode split — finance roles</div>
+                  <div className="rpt-card-label">Work mode split: finance roles</div>
                   <div className="rpt-chart-wrap" style={{ height: 200 }}><canvas id="locationChart"></canvas></div>
                 </div>
               </div>
               <div>
                 <div className="rpt-card" style={{ padding: 20 }}>
-                  <div className="rpt-card-label">Work mode split — tech roles (for comparison)</div>
+                  <div className="rpt-card-label">Work mode split: tech roles (for comparison)</div>
                   <div className="rpt-chart-wrap" style={{ height: 200 }}><canvas id="locationTechChart"></canvas></div>
                 </div>
               </div>
             </div>
 
-            <p className="rpt-prose" style={{ marginTop: 20 }}>Finance is dramatically more in-office than tech. 64% of entry-level finance roles are fully on-site. The 9% that are fully remote are almost entirely in financial data, research writing, and compliance roles at smaller firms. If you are planning your career around remote flexibility, finance is the wrong starting point — or you need to target a very specific niche within it.</p>
+            <p className="rpt-prose" style={{ marginTop: 20 }}>Finance is dramatically more in-office than tech. 64% of entry-level finance roles are fully on-site. The 9% that are fully remote are almost entirely in financial data, research writing, and compliance roles at smaller firms. If you are planning your career around remote flexibility, finance is the wrong starting point, or you need to target a very specific niche within it.</p>
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">Where the remote roles actually are in finance</div>
@@ -583,7 +591,7 @@ export default function FinanceIndiaReport() {
           {/* Final CTA block */}
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
-            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the finance roles this report is talking about — FP&A, analytics, fintech, and investment research openings across India, curated weekly.</p>
+            <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the finance roles this report is talking about: FP&A, analytics, fintech, and investment research openings across India, curated weekly.</p>
             <div className="rpt-final-cta-btns">
               <Link to="/outreach" className="rpt-btn-white">Browse Finance Internships</Link>
               <Link to="/dojos/careers" className="rpt-btn-outline">Build Your Resume Free</Link>
@@ -610,8 +618,8 @@ const reportCSS = `
   .rpt-badge {
     display: inline-flex;
     align-items: center;
-    background: #8b5cf6;
-    border: 2px solid #a78bfa;
+    background: #3b82f6;
+    border: 2px solid #60a5fa;
     border-radius: 999px;
     padding: 4px 14px;
     font-size: 11px;
@@ -629,7 +637,7 @@ const reportCSS = `
     color: #737373;
     margin-bottom: 14px;
   }
-  .rpt-breadcrumb-link { color: #a78bfa; text-decoration: none; }
+  .rpt-breadcrumb-link { color: #93c5fd; text-decoration: none; }
   .rpt-breadcrumb-link:hover { text-decoration: underline; }
   .rpt-breadcrumb-sep { color: #525252; }
   .rpt-h1 {
@@ -640,19 +648,19 @@ const reportCSS = `
     color: #fff;
     margin-bottom: 16px;
   }
-  .rpt-h1 em { font-style: italic; color: #dab2ff; }
+  .rpt-h1 em { font-style: italic; color: #bfdbfe; }
   .rpt-hero-sub { font-size: 16px; color: #a3a3a3; line-height: 1.7; max-width: 600px; margin-bottom: 28px; }
   .rpt-hero-stats { display: flex; gap: 40px; flex-wrap: wrap; padding-top: 24px; border-top: 1px solid #333; }
-  .rpt-hval { font-family: 'Clash Display', sans-serif; font-size: 26px; font-weight: 700; color: #dab2ff; }
+  .rpt-hval { font-family: 'Clash Display', sans-serif; font-size: 26px; font-weight: 700; color: #bfdbfe; }
   .rpt-hlbl { font-size: 12px; color: #737373; margin-top: 2px; }
 
-  .rpt-cta-strip { background: #faf5fe; border-bottom: 2px solid #171717; padding: 12px 24px; }
+  .rpt-cta-strip { background: #eff6ff; border-bottom: 2px solid #171717; padding: 12px 24px; }
   .rpt-cta-strip-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .rpt-cta-strip-text { font-size: 14px; font-weight: 500; color: #525252; }
   .rpt-cta-pill {
     display: inline-flex;
     align-items: center;
-    background: #8b5cf6;
+    background: #3b82f6;
     color: #fff;
     border: 2px solid #171717;
     border-radius: 999px;
@@ -730,7 +738,7 @@ const reportCSS = `
   .rpt-dn { background: #f5f5f5; color: #737373; border: 1px solid #e5e5e5; }
 
   .rpt-callout { border: 2px solid #171717; border-radius: 16px; padding: 20px 22px; margin-top: 20px; }
-  .rpt-cp { background: #faf5fe; border-color: #8b5cf6; }
+  .rpt-cp { background: #eff6ff; border-color: #8b5cf6; }
   .rpt-cg { background: #d0fae4; border-color: #10b981; }
   .rpt-co { background: #fef3c6; border-color: #f59e0b; }
   .rpt-cd { background: #171717; border-color: #171717; color: #fff; }
@@ -738,15 +746,15 @@ const reportCSS = `
   .rpt-cp .rpt-cl { color: #8b5cf6; }
   .rpt-cg .rpt-cl { color: #065f46; }
   .rpt-co .rpt-cl { color: #92400e; }
-  .rpt-cd .rpt-cl { color: #dab2ff; }
+  .rpt-cd .rpt-cl { color: #bfdbfe; }
   .rpt-callout p { font-size: 14px; line-height: 1.7; }
   .rpt-callout strong { font-weight: 700; }
 
   .rpt-pullquote {
-    border-left: 4px solid #8b5cf6;
+    border-left: 4px solid #3b82f6;
     padding: 16px 20px;
     margin: 24px 0;
-    background: #faf5fe;
+    background: #eff6ff;
     border-radius: 0 12px 12px 0;
   }
   .rpt-pullquote p {
@@ -784,12 +792,12 @@ const reportCSS = `
 
   .rpt-pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
   .rpt-pill { border: 2px solid #171717; border-radius: 999px; padding: 5px 14px; font-size: 12px; font-weight: 700; }
-  .rpt-pv { background: #faf5fe; color: #8b5cf6; border-color: #8b5cf6; }
+  .rpt-pv { background: #eff6ff; color: #8b5cf6; border-color: #8b5cf6; }
   .rpt-pg { background: #d0fae4; color: #065f46; border-color: #10b981; }
   .rpt-po { background: #fef3c6; color: #92400e; border-color: #f59e0b; }
 
   .rpt-inline-cta {
-    background: #faf5fe;
+    background: #eff6ff;
     border: 2px solid #171717;
     border-radius: 20px;
     padding: 24px 28px;
@@ -806,7 +814,7 @@ const reportCSS = `
     justify-content: center;
     height: 44px;
     padding: 0 24px;
-    background: #8b5cf6;
+    background: #3b82f6;
     color: #fff;
     border: 2px solid #171717;
     border-radius: 14px;
@@ -840,7 +848,7 @@ const reportCSS = `
 
   .rpt-final-cta {
     margin-top: 64px;
-    background: #8b5cf6;
+    background: #3b82f6;
     border: 2px solid #171717;
     border-radius: 24px;
     padding: 48px 40px;

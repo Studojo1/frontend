@@ -25,6 +25,23 @@ export async function rsbFetch<T = unknown>(
   return (await res.json()) as T;
 }
 
+export async function rsbUpload<T = unknown>(path: string, file: File): Promise<T> {
+  const token = await getToken();
+  if (!token) throw new ControlPlaneError("Not authenticated", 401);
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new ControlPlaneError(body || res.statusText, res.status);
+  }
+  return (await res.json()) as T;
+}
+
 export async function rsbStreamFetch(
   path: string,
   body: unknown,
@@ -42,6 +59,16 @@ export async function rsbStreamFetch(
   });
 }
 
+function findEventEnd(buffer: string): { idx: number; sepLen: number } | null {
+  // SSE events are separated by a blank line, which may be \n\n or \r\n\r\n.
+  const a = buffer.indexOf("\r\n\r\n");
+  const b = buffer.indexOf("\n\n");
+  if (a === -1 && b === -1) return null;
+  if (a === -1) return { idx: b, sepLen: 2 };
+  if (b === -1) return { idx: a, sepLen: 4 };
+  return a < b ? { idx: a, sepLen: 4 } : { idx: b, sepLen: 2 };
+}
+
 export async function* parseSSE(res: Response): AsyncGenerator<{ event: string; data: string }> {
   if (!res.body) return;
   const reader = res.body.getReader();
@@ -51,16 +78,16 @@ export async function* parseSSE(res: Response): AsyncGenerator<{ event: string; 
     const { value, done } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
-    let idx: number;
-    // Events are separated by a blank line.
-    while ((idx = buffer.indexOf("\n\n")) !== -1) {
-      const rawEvent = buffer.slice(0, idx);
-      buffer = buffer.slice(idx + 2);
+    let hit: { idx: number; sepLen: number } | null;
+    while ((hit = findEventEnd(buffer)) !== null) {
+      const rawEvent = buffer.slice(0, hit.idx);
+      buffer = buffer.slice(hit.idx + hit.sepLen);
       let event = "message";
       const dataLines: string[] = [];
-      for (const line of rawEvent.split("\n")) {
+      for (const rawLine of rawEvent.split(/\r?\n/)) {
+        const line = rawLine;
         if (line.startsWith("event:")) event = line.slice(6).trim();
-        else if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+        else if (line.startsWith("data:")) dataLines.push(line.slice(5).replace(/^ /, ""));
       }
       yield { event, data: dataLines.join("\n") };
     }

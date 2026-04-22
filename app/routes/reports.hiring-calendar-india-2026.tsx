@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "India Hiring Calendar 2026: Which Companies Hire in Which Month | Studojo" },
-    {
-      name: "description",
-      content:
-        "Month-by-month breakdown of when India's top companies open internship and fresher applications. HUL, Goldman Sachs, Google, McKinsey, Flipkart, Amazon - exact windows mapped.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/hiring-calendar-india-2026` },
+    { title: "India Internship and Fresher Hiring Calendar 2026: When Every Company Opens | Studojo" },
+    { name: "description", content: "HUL opens 8 months before joining. Goldman Sachs opens in August for March. 80+ companies mapped with exact application windows across 3 annual hiring waves. Miss the window and you wait a year." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "india hiring calendar 2026, when does hul hire interns, campus recruitment calendar india 2026, goldman sachs india internship deadline, fresher hiring timeline india" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/hiring-calendar-india-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "India Hiring Calendar 2026: Which Companies Hire in Which Month" },
-    { property: "og:description", content: "Month-by-month map of when top Indian and global companies open applications for interns and freshers. Miss the window and you wait a year." },
-    { property: "og:url", content: `${BASE_URL}/reports/hiring-calendar-india-2026` },
+    { property: "og:title", content: "India Internship and Fresher Hiring Calendar 2026: When Every Company Opens Applications" },
+    { property: "og:description", content: "HUL opens 8 months before joining. Goldman Sachs opens in August for March. 80+ companies mapped with exact application windows across 3 annual hiring waves. Miss the window and you wait a year." },
+    { property: "og:url", content: "https://studojo.com/reports/hiring-calendar-india-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "India Hiring Calendar 2026 - Studojo" },
-    { name: "twitter:description", content: "When exactly do HUL, Goldman, Google, McKinsey, Flipkart open applications? The full month-by-month map." },
+    { name: "twitter:title", content: "India Fresher Hiring Calendar 2026: When Every Company Opens | Studojo" },
+    { name: "twitter:description", content: "When do HUL, Goldman, Google, McKinsey, Flipkart open applications? 80+ companies mapped with exact windows. Miss it and you wait a year." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -35,9 +40,9 @@ function initCharts() {
   Chart.defaults.font.family = "Satoshi, sans-serif";
   Chart.defaults.color = "#171717";
 
-  const ORANGE  = "#f59e0b";
-  const ORANGE2 = "#fbbf24";
-  const ORANGE3 = "#fcd34d";
+  const ORANGE  = "#f97316";
+  const ORANGE2 = "#fb923c";
+  const ORANGE3 = "#fed7aa";
   const RED     = "#ef4444";
   const GREEN   = "#10b981";
   const GREY    = "#e5e5e5";
@@ -183,6 +188,9 @@ export default function HiringCalendarReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "India Internship and Fresher Hiring Calendar 2026: When Every Company Opens Applications", "description": "HUL opens 8 months before joining. Goldman Sachs opens in August for March. 80+ companies mapped with exact application windows across 3 annual hiring waves. Miss the window and you wait a year.", "url": "https://studojo.com/reports/hiring-calendar-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/hiring-calendar-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "India Hiring Calendar 2026", "item": "https://studojo.com/reports/hiring-calendar-india-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
       <main>

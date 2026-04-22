@@ -6,21 +6,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Pune Job Market 2026: What Students and Freshers Actually Face | Studojo" },
-    {
-      name: "description",
-      content:
-        "4,800+ entry-level openings in Pune. The sectors growing fastest, the salary gap between colleges, and why Pune is quietly becoming India's best city for early-career tech, ops, and product roles.",
-    },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/pune-jobs-2026` },
+    { title: "Pune Jobs for Freshers 2026: Salary Data, Top Sectors and Hiring Trends | Studojo" },
+    { name: "description", content: "4,800+ entry-level openings in Pune. IT, product, ops and fintech are growing fastest. A 3x salary gap between role types. What freshers and students are actually walking into in Pune in 2026." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "pune jobs freshers 2026, entry level jobs pune, pune it jobs 2026, jobs in pune for freshers, hinjewadi jobs freshers, pune startup jobs" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/pune-jobs-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Pune Job Market 2026: What Students and Freshers Actually Face" },
-    { property: "og:description", content: "4,800+ entry-level openings. The sectors growing fastest, salary data, and the skills gap that screens out 70% of applicants before a human reads their resume." },
-    { property: "og:url", content: `${BASE_URL}/reports/pune-jobs-2026` },
+    { property: "og:title", content: "Pune Jobs for Freshers 2026: Salary Data, Top Sectors and Hiring Trends" },
+    { property: "og:description", content: "4,800+ entry-level openings in Pune. IT, product, ops and fintech are growing fastest. A 3x salary gap between role types. What freshers and students are actually walking into in Pune in 2026." },
+    { property: "og:url", content: "https://studojo.com/reports/pune-jobs-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Pune Job Market 2026 - Studojo" },
-    { name: "twitter:description", content: "4,800+ entry-level openings in Pune. Sectors, salaries, skill gaps, and what actually gets freshers hired in 2026." },
+    { name: "twitter:title", content: "Pune Jobs for Freshers 2026: Salary Data and Hiring Trends | Studojo" },
+    { name: "twitter:description", content: "4,800+ entry-level openings in Pune. Sectors, salary data, skill gaps, and what actually gets freshers hired in 2026." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -35,9 +40,9 @@ function initCharts() {
   Chart.defaults.font.family = "Satoshi, sans-serif";
   Chart.defaults.color = "#171717";
 
-  const BLUE   = "#3b82f6";
-  const BLUE2  = "#60a5fa";
-  const BLUE3  = "#93c5fd";
+  const BLUE   = "#10b981";
+  const BLUE2  = "#34d399";
+  const BLUE3  = "#6ee7b7";
   const ORANGE = "#f59e0b";
   const RED    = "#ef4444";
   const GREEN  = "#10b981";
@@ -182,6 +187,9 @@ export default function PuneJobsReport() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Pune Jobs for Freshers 2026: Salary Data, Top Sectors and Hiring Trends", "description": "4,800+ entry-level openings in Pune. IT, product, ops and fintech are growing fastest. A 3x salary gap between role types. What freshers and students are actually walking into in Pune in 2026.", "url": "https://studojo.com/reports/pune-jobs-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/pune-jobs-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Pune Jobs for Freshers 2026", "item": "https://studojo.com/reports/pune-jobs-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
       <main>
@@ -561,10 +569,10 @@ export default function PuneJobsReport() {
 
 const rptCSS = `
   .rpt-hero { background:#171717; color:#fff; padding:56px 24px 48px; }
-  .rpt-hero-blue { background:#0f172a; }
+  .rpt-hero-blue { background:#052e16; }
   .rpt-hero-inner { max-width:800px; margin:0 auto; }
   .rpt-badge { display:inline-flex; align-items:center; border:2px solid; border-radius:999px; padding:4px 14px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#fff; margin-bottom:12px; }
-  .rpt-badge-blue { background:#3b82f6; border-color:#60a5fa; }
+  .rpt-badge-blue { background:#10b981; border-color:#34d399; }
   .rpt-breadcrumb { display:flex; align-items:center; gap:6px; font-size:13px; color:#737373; margin-bottom:14px; }
   .rpt-breadcrumb-link { text-decoration:none; }
   .rpt-breadcrumb-link-blue { color:#60a5fa; }
@@ -579,7 +587,7 @@ const rptCSS = `
   .rpt-hval-blue { color:#60a5fa; }
   .rpt-hlbl { font-family:'Satoshi',sans-serif; font-size:11px; color:rgba(255,255,255,0.55); max-width:160px; line-height:1.4; }
   .rpt-cta-strip { border-top:2px solid #171717; border-bottom:2px solid #171717; padding:12px 24px; }
-  .rpt-cta-strip-blue { background:#eff6ff; }
+  .rpt-cta-strip-blue { background:#f0fdf4; }
   .rpt-cta-strip-inner { max-width:800px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
   .rpt-cta-strip-text { font-family:'Satoshi',sans-serif; font-size:13px; font-weight:600; color:#1e3a5f; }
   .rpt-cta-pill { font-family:'Satoshi',sans-serif; font-size:12px; font-weight:700; text-decoration:none; padding:6px 14px; border-radius:999px; border:2px solid #171717; }
@@ -612,19 +620,19 @@ const rptCSS = `
   .rpt-card-label { font-family:'Satoshi',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#737373; margin-bottom:12px; }
   .rpt-chart-wrap { position:relative; }
   .rpt-callout { border-left:4px solid; border-radius:0 8px 8px 0; padding:14px 18px; margin:24px 0; }
-  .rpt-cb { background:#eff6ff; border-color:#3b82f6; }
+  .rpt-cb { background:#f0fdf4; border-color:#3b82f6; }
   .rpt-co { background:#fffbeb; border-color:#f59e0b; }
   .rpt-cl { font-family:'Satoshi',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#1e40af; margin-bottom:6px; }
   .rpt-co .rpt-cl { color:#92400e; }
   .rpt-callout p { font-family:'Satoshi',sans-serif; font-size:13px; line-height:1.7; color:#404040; margin:0; }
-  .rpt-pullquote { border-left:4px solid #3b82f6; margin:28px 0; padding:12px 20px; }
+  .rpt-pullquote { border-left:4px solid #10b981; margin:28px 0; padding:12px 20px; }
   .rpt-pullquote p { font-family:'Clash Display',sans-serif; font-size:18px; color:#171717; font-style:italic; margin:0; line-height:1.5; }
   .rpt-two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:20px 0; }
   @media(max-width:600px) { .rpt-two-col { grid-template-columns:1fr; } }
   .rpt-col-head { font-family:'Satoshi',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#737373; margin-bottom:8px; }
   .rpt-pill-row { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
   .rpt-pill { font-family:'Satoshi',sans-serif; font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; border:1.5px solid; }
-  .rpt-pb { background:#dbeafe; color:#1e40af; border-color:#93c5fd; }
+  .rpt-pb { background:#dbeafe; color:#1e40af; border-color:#6ee7b7; }
   .rpt-po { background:#fffbeb; color:#92400e; border-color:#fcd34d; }
   .rpt-pr { background:#fee2e2; color:#991b1b; border-color:#fca5a5; }
   .rpt-bar-list { display:flex; flex-direction:column; gap:8px; }
@@ -638,7 +646,7 @@ const rptCSS = `
   .rpt-mini-total-label { font-family:'Satoshi',sans-serif; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
   .rpt-mini-total-sub { font-family:'Satoshi',sans-serif; font-size:10px; color:#737373; margin-top:2px; }
   .rpt-inline-cta { border:2px solid #171717; border-radius:16px; padding:24px; margin:40px 0; }
-  .rpt-inline-cta-blue { background:#eff6ff; }
+  .rpt-inline-cta-blue { background:#f0fdf4; }
   .rpt-inline-cta-inner { display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; }
   .rpt-inline-cta-title { font-family:'Clash Display',sans-serif; font-size:18px; font-weight:700; color:#171717; }
   .rpt-inline-cta-sub { font-family:'Satoshi',sans-serif; font-size:13px; color:#525252; margin-top:4px; }

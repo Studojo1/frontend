@@ -1,18 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { Header } from "~/components/common/header";
 import { ChatPanel } from "~/components/rsb/ChatPanel";
 import { ResumePreview } from "~/components/rsb/ResumePreview";
 import { AtsMeter } from "~/components/rsb/AtsMeter";
 import { ExportBar } from "~/components/rsb/ExportBar";
-import { rsbFetch, rsbStreamFetch, parseSSE } from "~/lib/rsb/api";
+import { rsbFetch } from "~/lib/rsb/api";
 import { getToken } from "~/lib/control-plane";
-import type { Ats, ChatMsg, ResumeDoc, RsbSession } from "~/lib/rsb/types";
+import type { Ats, ChatMsg, ChatResponse, ResumeDoc, RsbSession, StepInfo } from "~/lib/rsb/types";
 
 type SessionResponse = {
   session: RsbSession;
   transcript: ChatMsg[];
+  current_step: StepInfo;
 };
 
 const EMPTY_DOC: ResumeDoc = {
@@ -35,14 +36,16 @@ export default function RsbSessionRoute() {
   const { data: auth, isPending } = authClient.useSession();
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
-  const [streaming, setStreaming] = useState("");
   const [sending, setSending] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [doc, setDoc] = useState<ResumeDoc>(EMPTY_DOC);
   const [ats, setAts] = useState<Ats>(EMPTY_ATS);
+  const [step, setStep] = useState<StepInfo | null>(null);
   const [session, setSession] = useState<RsbSession | null>(null);
   const [exporting, setExporting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const streamingRef = useRef("");
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState<"chat" | "preview">("chat");
 
   useEffect(() => {
     if (!isPending && !auth?.user) navigate(`/auth?mode=signin&redirect=/rsb/session/${id}`);
@@ -59,7 +62,7 @@ export default function RsbSessionRoute() {
         setDoc(res.session.resume_doc || EMPTY_DOC);
         setAts(res.session.ats || EMPTY_ATS);
         setMessages(res.transcript);
-        if (typeof window !== "undefined") localStorage.setItem("rsb:lastSessionId", res.session.id);
+        setStep(res.current_step);
       } catch (e) {
         console.error(e);
         navigate("/rsb", { replace: true });
@@ -76,71 +79,57 @@ export default function RsbSessionRoute() {
     async (text: string) => {
       if (!id || sending) return;
       setSending(true);
-      streamingRef.current = "";
-      setStreaming("");
-      const userMsg: ChatMsg = {
-        id: `local-${Date.now()}`,
-        role: "user",
-        content: text,
-      };
+      const userMsg: ChatMsg = { id: `local-${Date.now()}`, role: "user", content: text };
       setMessages((prev) => [...prev, userMsg]);
-
       try {
-        const res = await rsbStreamFetch(`/session/${id}/chat`, { message: text });
-        if (!res.ok) throw new Error(`chat failed: ${res.status}`);
-
-        let finalAssistant = "";
-        for await (const ev of parseSSE(res)) {
-          if (ev.event === "token") {
-            const tok = ev.data;
-            streamingRef.current += tok;
-            setStreaming(streamingRef.current);
-          } else if (ev.event === "resume_patch") {
-            try {
-              const payload = JSON.parse(ev.data);
-              if (payload.merged) setDoc(payload.merged);
-            } catch {}
-          } else if (ev.event === "ats_update") {
-            try {
-              setAts(JSON.parse(ev.data));
-            } catch {}
-          } else if (ev.event === "done") {
-            try {
-              const payload = JSON.parse(ev.data);
-              finalAssistant = payload.assistant_text || streamingRef.current;
-              if (payload.resume_doc) setDoc(payload.resume_doc);
-              if (payload.ats) setAts(payload.ats);
-            } catch {}
-          } else if (ev.event === "error") {
-            console.error("SSE error event:", ev.data);
-          }
-        }
-
+        const res = await rsbFetch<ChatResponse>(`/session/${id}/chat`, {
+          method: "POST",
+          body: JSON.stringify({ message: text }),
+        });
         setMessages((prev) => [
           ...prev,
-          {
-            id: `assistant-${Date.now()}`,
-            role: "assistant",
-            content: finalAssistant || streamingRef.current,
-          },
+          { id: `a-${Date.now()}`, role: "assistant", content: res.assistant_message },
         ]);
+        setDoc(res.session.resume_doc || EMPTY_DOC);
+        setAts(res.session.ats || EMPTY_ATS);
+        setStep(res.next_step);
+        setLastSaved(new Date());
       } catch (e) {
         console.error(e);
         setMessages((prev) => [
           ...prev,
-          {
-            id: `err-${Date.now()}`,
-            role: "assistant",
-            content: "Something glitched on my end. Try that again?",
-          },
+          { id: `err-${Date.now()}`, role: "assistant", content: "Couldn't save that, please try again." },
         ]);
       } finally {
-        setStreaming("");
         setSending(false);
       }
     },
     [id, sending],
   );
+
+  const onGenerate = useCallback(async () => {
+    if (!id || generating) return;
+    setGenerating(true);
+    try {
+      const res = await rsbFetch<{ session: RsbSession }>(`/session/${id}/generate`, { method: "POST" });
+      setDoc(res.session.resume_doc || EMPTY_DOC);
+      setAts(res.session.ats || EMPTY_ATS);
+      setLastSaved(new Date());
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `gen-${Date.now()}`,
+          role: "assistant",
+          content: "Polished your resume. Check the preview and hit Export when you're happy.",
+        },
+      ]);
+    } catch (e) {
+      console.error(e);
+      alert("Couldn't build the polished resume. Try again in a moment.");
+    } finally {
+      setGenerating(false);
+    }
+  }, [id, generating]);
 
   const onExport = useCallback(async () => {
     if (!id) return;
@@ -201,20 +190,109 @@ export default function RsbSessionRoute() {
   return (
     <>
       <Header />
-      <div className="bg-gradient-to-br from-violet-50 via-white to-amber-50 min-h-[calc(100vh-80px)] px-4 md:px-6 py-4">
-        <div className="max-w-[1400px] mx-auto grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-4">
-          <div className="flex flex-col gap-3 min-h-[70vh]">
-            <ChatPanel
-              messages={messages}
-              streamingText={streaming}
-              onSend={send}
-              sending={sending}
-            />
-            <AtsMeter ats={ats} />
-          </div>
-          <div className="flex flex-col gap-3 min-h-[70vh]">
-            <ResumePreview doc={doc} />
-            <ExportBar doc={doc} ats={ats} exporting={exporting} onExport={onExport} onCopyPlain={onCopyPlain} />
+      <div className="h-[calc(100vh-96px)] flex flex-col bg-gradient-to-br from-violet-50 via-white to-amber-50">
+        {/* Top bar */}
+        <div className="border-b-2 border-neutral-900 bg-white px-4 md:px-6 py-2 flex items-center gap-4 shrink-0">
+          <Link
+            to="/profile"
+            className="text-xs font-bold text-neutral-500 hover:text-neutral-700 font-['Satoshi']"
+          >
+            ← My Profile
+          </Link>
+          {session?.target_role && (
+            <span className="text-xs font-semibold text-neutral-700 font-['Satoshi'] hidden sm:block">
+              {session.target_role}
+            </span>
+          )}
+        </div>
+
+        {/* Mobile tab bar */}
+        <div className="md:hidden flex border-b-2 border-neutral-200 bg-white shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab("chat")}
+            className={`flex-1 py-2 text-sm font-bold font-['Satoshi'] transition-colors ${
+              activeTab === "chat"
+                ? "text-violet-600 border-b-2 border-violet-500"
+                : "text-neutral-500"
+            }`}
+          >
+            Chat
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("preview")}
+            className={`flex-1 py-2 text-sm font-bold font-['Satoshi'] transition-colors ${
+              activeTab === "preview"
+                ? "text-violet-600 border-b-2 border-violet-500"
+                : "text-neutral-500"
+            }`}
+          >
+            Preview
+          </button>
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 min-h-0 px-4 md:px-6 py-4 overflow-hidden">
+          <div className="h-full max-w-[1400px] mx-auto grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-4">
+            {/* Left: chat + ats */}
+            <div className={`flex flex-col gap-3 min-h-0 ${activeTab !== "chat" ? "hidden md:flex" : "flex"}`}>
+              <div className="flex-1 min-h-0">
+                <ChatPanel
+                  messages={messages}
+                  step={step}
+                  onSend={send}
+                  sending={sending}
+                  onGenerate={onGenerate}
+                  generating={generating}
+                />
+              </div>
+              <AtsMeter ats={ats} />
+            </div>
+
+            {/* Right: preview + export */}
+            <div className={`flex flex-col gap-3 min-h-0 ${activeTab !== "preview" ? "hidden md:flex" : "flex"}`}>
+              <div className="flex-1 min-h-0">
+                <ResumePreview
+                  doc={doc}
+                  editable={step?.is_complete === true}
+                  onEdit={async (next) => {
+                    setDoc(next);
+                    try {
+                      const res = await rsbFetch<{ resume_doc: ResumeDoc; ats: Ats }>(
+                        `/session/${id}/doc`,
+                        { method: "PUT", body: JSON.stringify(next) },
+                      );
+                      setAts(res.ats);
+                      setLastSaved(new Date());
+                    } catch (e) {
+                      console.error("save failed", e);
+                    }
+                  }}
+                />
+              </div>
+              <ExportBar
+  doc={doc}
+  exporting={exporting}
+  onExport={onExport}
+  onCopyPlain={onCopyPlain}
+  lastSaved={lastSaved}
+  onPatchContact={async (patch) => {
+    const next: ResumeDoc = { ...doc, contact: { ...doc.contact, ...patch } };
+    setDoc(next);
+    try {
+      const res = await rsbFetch<{ resume_doc: ResumeDoc; ats: Ats }>(
+        `/session/${id}/doc`,
+        { method: "PUT", body: JSON.stringify(next) },
+      );
+      setAts(res.ats);
+      setLastSaved(new Date());
+    } catch (e) {
+      console.error("patch contact failed", e);
+    }
+  }}
+/>
+            </div>
           </div>
         </div>
       </div>

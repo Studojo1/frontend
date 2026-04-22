@@ -5,13 +5,26 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Internship Roles That Pay Above ₹15k in India | Studojo 2026" },
-    { name: "description", content: "A role-by-role map of internships paying above ₹15,000/month in India in 2026. Which roles, which companies, which skills unlock the bracket." },
-    { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/internships-15k-india-2026` },
+    { title: "Internships Paying Above 15000 Per Month in India 2026 | Studojo" },
+    { name: "description", content: "48 internship roles mapped across 8 domains. ML Engineering interns earn Rs 50k-100k/month. Quant Trading interns earn Rs 150k. Which roles, which skills, and which companies break the Rs 15k floor." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "high paying internships india 2026, internships above 15000 india, ml internship stipend india, best paying internships students india, internship salary india" },
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/internships-15k-india-2026" },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "Internship Roles That Pay Above ₹15k in India 2026" },
-    { property: "og:url", content: `${BASE_URL}/reports/internships-15k-india-2026` },
+    { property: "og:title", content: "Internships Paying Above Rs 15,000 Per Month in India 2026" },
+    { property: "og:description", content: "48 internship roles mapped across 8 domains. ML Engineering interns earn Rs 50k-100k/month. Quant Trading interns earn Rs 150k. Which roles, which skills, and which companies break the Rs 15k floor." },
+    { property: "og:url", content: "https://studojo.com/reports/internships-15k-india-2026" },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:locale", content: "en_IN" },
+    { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
+    { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
+    { property: "article:author", content: "Studojo" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Internships Paying Above Rs 15,000 Per Month in India 2026 | Studojo" },
+    { name: "twitter:description", content: "48 roles mapped across 8 domains. ML interns earn Rs 50k-100k. Quant Trading up to Rs 150k. Find out which roles and skills break the Rs 15k floor." },
+    { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
+    { name: "twitter:site", content: "@studojo_com" },
   ];
 }
 
@@ -77,6 +90,9 @@ const BRACKET = {
 export default function Internships15kReport() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Internships Paying Above Rs 15,000 Per Month in India 2026", "description": "48 internship roles mapped across 8 domains. ML Engineering interns earn Rs 50k-100k/month. Quant Trading interns earn Rs 150k. Which roles, which skills, and which companies break the Rs 15k floor.", "url": "https://studojo.com/reports/internships-15k-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/internships-15k-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Internships Paying Above Rs 15k in India 2026", "item": "https://studojo.com/reports/internships-15k-india-2026"}]}` }} />
+
       <Header />
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <main>
@@ -91,7 +107,7 @@ export default function Internships15kReport() {
             </nav>
             <h1 className="r15-h1">Roles That Land You<br /><em>Above ₹15k</em></h1>
             <p className="r15-sub">
-              Most students apply everywhere and wonder why the callbacks don't come. This report maps exactly which roles break the ₹15k floor — and which ones never will, no matter how good your resume is.
+              Most students apply everywhere and wonder why the callbacks don't come. This report maps exactly which roles break the ₹15k floor: and which ones never will, no matter how good your resume is.
             </p>
             <div className="r15-hero-stats">
               <div className="r15-hstat"><div className="r15-hval">20 roles</div><div className="r15-hlbl">Mapped across 5 domains</div></div>
@@ -115,7 +131,7 @@ export default function Internships15kReport() {
           <div className="r15-finding">
             <span className="r15-fnum">The Role Map</span>
             <h2 className="r15-h2">20 roles. 5 domains. One map showing exactly where the money is.</h2>
-            <p className="r15-lead">Every cell is a real role category. Color shows typical stipend bracket based on Glassdoor India, Internshala, Unstop, and LinkedIn live listings (Q1–Q2 2026). Ranges reflect what a credible applicant realistically lands — not the advertised ceiling.</p>
+            <p className="r15-lead">Every cell is a real role category. Color shows typical stipend bracket based on Glassdoor India, Internshala, Unstop, and LinkedIn live listings (Q1–Q2 2026). Ranges reflect what a credible applicant realistically lands: not the advertised ceiling.</p>
 
             {/* Legend */}
             <div className="r15-legend">
@@ -168,7 +184,7 @@ export default function Internships15kReport() {
             <div className="r15-inline-cta-inner">
               <div>
                 <div className="r15-inline-cta-title">Find the amber and violet roles before everyone else</div>
-                <div className="r15-inline-cta-sub">Studojo surfaces niche, high-stipend internships across India — before job boards catch up.</div>
+                <div className="r15-inline-cta-sub">Studojo surfaces niche, high-stipend internships across India: before job boards catch up.</div>
               </div>
               <Link to="/dojos/internships" className="r15-btn-primary">Browse Internships</Link>
             </div>
@@ -178,7 +194,7 @@ export default function Internships15kReport() {
           <div className="r15-finding">
             <span className="r15-fnum">Finding 01</span>
             <h2 className="r15-h2">Three domains own the ₹40k+ bracket. Everything else is competing for ₹15k–25k at best.</h2>
-            <p className="r15-lead">AI/ML, Quant Finance, and Software Engineering at MNCs are the only domains where ₹40k+ is a realistic outcome. Strategy Consulting at MBB joins them at the top. Across every other domain, ₹15k–25k is where strong applicants land — and that ceiling is structural, not about effort.</p>
+            <p className="r15-lead">AI/ML, Quant Finance, and Software Engineering at MNCs are the only domains where ₹40k+ is a realistic outcome. Strategy Consulting at MBB joins them at the top. Across every other domain, ₹15k–25k is where strong applicants land, and that ceiling is structural, not about effort.</p>
 
             <div className="r15-stat-row r15-c3">
               <div className="r15-stat">
@@ -200,7 +216,7 @@ export default function Internships15kReport() {
 
             <div className="r15-callout r15-co">
               <div className="r15-cl">The 3x rule</div>
-              <p>The difference between a ₹10k internship and a ₹40k internship is almost never luck. It is domain selection made 6 to 12 months earlier. Students who land the top bracket started building the right skill profile before placement season opened — not during it.</p>
+              <p>The difference between a ₹10k internship and a ₹40k internship is almost never luck. It is domain selection made 6 to 12 months earlier. Students who land the top bracket started building the right skill profile before placement season opened: not during it.</p>
             </div>
           </div>
 
@@ -217,7 +233,7 @@ export default function Internships15kReport() {
                   {[
                     ["Funding stage", "Series A+ startups pay to compete. Pre-seed rarely can afford to.", "#f59e0b"],
                     ["Role category", "Tech and quant roles pay 2–3x non-tech at the same company.", "#f59e0b"],
-                    ["Skill scarcity", "ML, Quant, DevOps — supply is far below demand in India.", "#8b5cf6"],
+                    ["Skill scarcity", "ML, Quant, DevOps: supply is far below demand in India.", "#8b5cf6"],
                     ["Company type", "Product-led companies pay more than service-led. B2B SaaS beats agencies.", "#8b5cf6"],
                   ].map(([label, desc, color]) => (
                     <div key={label as string} className="r15-bar-item" style={{ borderLeftColor: color as string }}>
@@ -250,7 +266,7 @@ export default function Internships15kReport() {
           <div className="r15-finding">
             <span className="r15-fnum">Finding 03</span>
             <h2 className="r15-h2">Five skills unlock the ₹15k+ bracket across almost every domain. Most students have none at a demonstrable level.</h2>
-            <p className="r15-lead">The ₹15k floor is not about degree or grades. It is about a small set of applied skills in short supply. Students getting amber and gold roles have at least two of these at project level — not just listed on a resume.</p>
+            <p className="r15-lead">The ₹15k floor is not about degree or grades. It is about a small set of applied skills in short supply. Students getting amber and gold roles have at least two of these at project level: not just listed on a resume.</p>
 
             <div className="r15-skills-grid">
               {[
@@ -270,7 +286,7 @@ export default function Internships15kReport() {
 
             <div className="r15-callout r15-cg">
               <div className="r15-cl">The minimum viable profile for ₹15k+</div>
-              <p>One domain you know well. One of the five skills above at project level. One application tailored to the company. That combination gets callbacks — not a perfect CGPA, not a premium certification.</p>
+              <p>One domain you know well. One of the five skills above at project level. One application tailored to the company. That combination gets callbacks: not a perfect CGPA, not a premium certification.</p>
             </div>
             <p className="r15-source">Source: Internshala JD analysis Q1 2026; NASSCOM skills demand report 2025; Glassdoor India intern salary data; Levels.fyi India 2026</p>
           </div>
@@ -301,7 +317,7 @@ const css = `
   .r15-hero { background: #171717; color: #fff; padding: 56px 24px 48px; }
   .r15-badge { display: inline-flex; align-items: center; background: #f59e0b; border: 2px solid #92400e; border-radius: 999px; padding: 4px 14px; font-family: 'Satoshi', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #171717; margin-bottom: 12px; }
   .r15-breadcrumb { display: flex; align-items: center; gap: 6px; font-family: 'Satoshi', sans-serif; font-size: 13px; color: #737373; margin-bottom: 14px; }
-  .r15-bc-link { color: #dab2ff; text-decoration: none; } .r15-bc-link:hover { text-decoration: underline; }
+  .r15-bc-link { color: #fde68a; text-decoration: none; } .r15-bc-link:hover { text-decoration: underline; }
   .r15-bc-sep { color: #525252; }
   .r15-h1 { font-family: 'Clash Display', sans-serif; font-size: clamp(28px, 5vw, 52px); font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 16px; letter-spacing: -1px; }
   .r15-h1 em { font-style: italic; color: #fde68a; }
@@ -312,10 +328,10 @@ const css = `
   .r15-hlbl { font-family: 'Satoshi', sans-serif; font-size: 12px; color: #737373; margin-top: 2px; max-width: 180px; }
 
   /* ── cta strip ── */
-  .r15-cta-strip { background: #faf5fe; border-bottom: 2px solid #171717; padding: 12px 24px; }
+  .r15-cta-strip { background: #fffbeb; border-bottom: 2px solid #171717; padding: 12px 24px; }
   .r15-cta-strip-inner { max-width: 860px; margin: 0 auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .r15-cta-strip-text { font-family: 'Satoshi', sans-serif; font-size: 14px; font-weight: 500; color: #525252; }
-  .r15-cta-pill { display: inline-flex; align-items: center; background: #8b5cf6; color: #fff; border: 2px solid #171717; border-radius: 999px; padding: 5px 16px; font-family: 'Satoshi', sans-serif; font-size: 12px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .r15-cta-pill { display: inline-flex; align-items: center; background: #f59e0b; color: #fff; border: 2px solid #171717; border-radius: 999px; padding: 5px 16px; font-family: 'Satoshi', sans-serif; font-size: 12px; font-weight: 700; text-decoration: none; white-space: nowrap; }
 
   /* ── findings ── */
   .r15-finding { padding: 52px 0; border-bottom: 1px solid #e5e5e5; }
@@ -385,10 +401,10 @@ const css = `
   .r15-inline-cta-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
   .r15-inline-cta-title { font-family: 'Clash Display', sans-serif; font-size: 18px; font-weight: 700; color: #171717; margin-bottom: 4px; }
   .r15-inline-cta-sub { font-family: 'Satoshi', sans-serif; font-size: 13px; color: #737373; }
-  .r15-btn-primary { background: #8b5cf6; color: #fff; border: 2px solid #171717; border-radius: 8px; padding: 10px 20px; font-family: 'Satoshi', sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .r15-btn-primary { background: #f59e0b; color: #fff; border: 2px solid #171717; border-radius: 8px; padding: 10px 20px; font-family: 'Satoshi', sans-serif; font-size: 14px; font-weight: 700; text-decoration: none; white-space: nowrap; }
 
   /* ── final cta ── */
-  .r15-final-cta { background: #8b5cf6; padding: 72px 24px; text-align: center; }
+  .r15-final-cta { background: #f59e0b; padding: 72px 24px; text-align: center; }
   .r15-final-title { font-family: 'Clash Display', sans-serif; font-size: clamp(28px, 5vw, 48px); font-weight: 700; color: #fff; margin-bottom: 14px; }
   .r15-final-sub { font-family: 'Satoshi', sans-serif; font-size: 16px; color: rgba(255,255,255,0.75); max-width: 520px; margin: 0 auto 32px; line-height: 1.7; }
   .r15-final-btns { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }

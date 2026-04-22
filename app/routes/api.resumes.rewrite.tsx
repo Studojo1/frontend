@@ -4,15 +4,14 @@ import type { Route } from "./+types/api.resumes.rewrite";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama:11434";
 
+const CONTENT_RULES =
+  "STRICT RULES: Only use information present in the provided text. Do not add new tools, technologies, skills, metrics, or achievements that are not explicitly mentioned. Do not invent or guess any details. Never use em dashes. Return only the rewritten text, no explanations.";
+
 const PROMPTS: Record<string, string> = {
-  rephrase:
-    "Rephrase the following resume text to sound more professional and impactful. Use strong action verbs. Keep it concise. Return only the rewritten text, no explanations.",
-  polish:
-    "Polish the following resume text to improve clarity, grammar, and professionalism. Keep the same meaning and length. Return only the polished text, no explanations.",
-  shorten:
-    "Shorten the following resume text to roughly half its length while keeping the most impactful points. Return only the shortened text, no explanations.",
-  improve:
-    "Improve the following resume bullet point to be more achievement-focused. Add quantifiable results if possible based on context. Return only the improved text, no explanations.",
+  rephrase: `Rephrase the following resume text to sound more professional and impactful. Use strong action verbs. Keep it concise. ${CONTENT_RULES}`,
+  polish: `Polish the following resume text to improve clarity, grammar, and professionalism. Keep the same meaning and length. ${CONTENT_RULES}`,
+  shorten: `Shorten the following resume text to roughly half its length while keeping the most impactful points. ${CONTENT_RULES}`,
+  improve: `Improve the following resume bullet point to be more achievement-focused and impactful. Strengthen the wording without adding any information not already present. ${CONTENT_RULES}`,
 };
 
 export async function action({ request }: Route.ActionArgs) {

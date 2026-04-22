@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiArrowRight } from "react-icons/fi";
+import { FiArrowRight, FiArrowLeft } from "react-icons/fi";
 
 const BANDS = [
   { id: "fresher", label: "Fresher (no work yet)" },
@@ -19,9 +19,11 @@ export type IntakePayload = {
 export function RoleIntake({
   submitting,
   onSubmit,
+  onBack,
 }: {
   submitting: boolean;
   onSubmit: (p: IntakePayload) => void;
+  onBack?: () => void;
 }) {
   const [role, setRole] = useState("");
   const [industry, setIndustry] = useState("");
@@ -33,7 +35,18 @@ export function RoleIntake({
 
   return (
     <div className="min-h-[calc(100vh-80px)] bg-gradient-to-br from-violet-50 via-white to-amber-50 px-6 py-12">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-xl mx-auto">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-1 text-xs font-bold text-neutral-500 hover:text-neutral-700 mb-6 font-['Satoshi']"
+          >
+            <FiArrowLeft className="w-3.5 h-3.5" />
+            Back
+          </button>
+        )}
+
         <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 leading-tight mb-3 font-['Clash_Display']">
           First, who are we building this for?
         </h1>
@@ -69,7 +82,7 @@ export function RoleIntake({
                   onClick={() => setBand(b.id)}
                   className={`px-3 py-3 border-2 border-neutral-900 rounded-xl font-semibold text-sm text-left transition-all ${
                     band === b.id
-                      ? "bg-violet-500 text-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+                      ? "bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
                       : "bg-white text-neutral-800 hover:bg-violet-50"
                   }`}
                 >
@@ -112,7 +125,7 @@ export function RoleIntake({
                   .slice(0, 3),
               })
             }
-            className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-violet-500 text-neutral-900 font-bold text-lg border-2 border-neutral-900 rounded-2xl shadow-[5px_5px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[5px_5px_0px_0px_rgba(25,26,35,1)]"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-violet-500 text-white font-bold text-lg border-2 border-neutral-900 rounded-2xl shadow-[5px_5px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[5px_5px_0px_0px_rgba(25,26,35,1)]"
           >
             {submitting ? "Creating your draft..." : "Start the interview"}
             <FiArrowRight className="w-5 h-5" />
