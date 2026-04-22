@@ -261,55 +261,37 @@ export default function EnrichmentPage() {
   const currSymbol = currency === "INR" ? "₹" : "$";
   const hasEnoughCredits = credits ? credits.available_credits >= selectedTier : false;
 
+  const SHARED_FEATURES = (count: number) => [
+    `We scrape 20,000+ databases and sites to find ${count} hiring decision makers for the exact role you are targeting`,
+    "Filtered based on your company and industry preferences",
+    "Professionally written, personalised emails for each contact to land you the role",
+    "Emails sent periodically so they land in the primary inbox — your email health stays intact",
+    "Fully custom dashboard to track your emails",
+    "Email support",
+  ];
+
   const TIERS = [
     {
       value: 200 as const,
       name: "Starter",
-      tagline: "Test the waters",
+      tagline: "200 decision makers. 200 chances.",
       fallbackPrice: "$20",
-      features: [
-        "200 verified hiring manager contacts",
-        "200 AI-written personalised cold emails",
-        "Resume-matched messaging for each company",
-        "Emails drip-sent over 5-7 days",
-        "Replies land straight in your Gmail",
-        "Automatic follow-up sequence",
-      ],
+      features: SHARED_FEATURES(200),
     },
     {
       value: 350 as const,
       name: "Growth",
-      tagline: "Most students pick this",
+      tagline: "150 more emails, 150 more shots at a reply.",
       fallbackPrice: "$27",
       recommended: true,
-      features: [
-        "350 verified hiring manager contacts",
-        "350 AI-written personalised cold emails",
-        "Resume-matched messaging for each company",
-        "Emails drip-sent over 5-7 days",
-        "Replies land straight in your Gmail",
-        "Automatic follow-up sequence",
-        "Open and click tracking",
-        "LinkedIn cross-reference verification",
-      ],
+      features: SHARED_FEATURES(350),
     },
     {
       value: 500 as const,
       name: "Scale",
-      tagline: "Maximum reach",
+      tagline: "Maximum reach across your target market.",
       fallbackPrice: "$40",
-      features: [
-        "500 verified hiring manager contacts",
-        "500 AI-written personalised cold emails",
-        "Resume-matched messaging for each company",
-        "Emails drip-sent over 5-7 days",
-        "Replies land straight in your Gmail",
-        "Automatic follow-up sequence",
-        "Open and click tracking",
-        "LinkedIn cross-reference verification",
-        "Weekly send performance report",
-        "Priority support",
-      ],
+      features: SHARED_FEATURES(500),
     },
   ];
 
