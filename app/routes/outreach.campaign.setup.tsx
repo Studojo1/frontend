@@ -28,6 +28,7 @@ export default function CampaignSetupPage() {
   const [campaignName, setCampaignName] = useState("My Outreach Campaign");
   const [launching, setLaunching] = useState(false);
   const [error, setError] = useState("");
+  const [gmailRequired, setGmailRequired] = useState(false);
 
   // Test launch state
   const [testEmails, setTestEmails] = useState<TestEmail[]>([]);
@@ -49,13 +50,6 @@ export default function CampaignSetupPage() {
     updateOrder({ status: "campaign_setup", log_entry: "Entered campaign setup" });
   }, [candidateId]);
 
-  // If Gmail not connected, redirect back to connect page instead of silently failing
-  useEffect(() => {
-    if (authLoading) return;
-    if (!emailAccountId) {
-      navigate("/outreach/connect/gmail");
-    }
-  }, [authLoading, emailAccountId]);
 
   const loadTestEmails = async () => {
     if (!candidateId || !emailAccountId) return;
@@ -112,11 +106,12 @@ export default function CampaignSetupPage() {
   };
 
   const handleLaunch = async () => {
-    if (!candidateId || !emailAccountId) {
-      setError("Gmail not connected. Please connect your Gmail account first.");
-      navigate("/outreach/connect/gmail");
+    if (!emailAccountId) {
+      setError("Connect your Gmail first to launch. Click here to connect →");
+      setGmailRequired(true);
       return;
     }
+    if (!candidateId) return;
     setLaunching(true);
     setError("");
     try {
@@ -267,7 +262,20 @@ export default function CampaignSetupPage() {
             )}
           </div>
 
-          {error && <p className="text-red-600 text-sm text-center font-satoshi">{error}</p>}
+          {gmailRequired ? (
+            <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-4 text-center">
+              <p className="text-sm font-bold text-red-700 font-satoshi mb-2">Gmail not connected</p>
+              <p className="text-sm text-red-600 font-satoshi mb-3">You need to connect your Gmail account before launching.</p>
+              <button
+                onClick={() => navigate("/outreach/connect/gmail")}
+                className="h-9 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              >
+                Connect Gmail →
+              </button>
+            </div>
+          ) : error ? (
+            <p className="text-red-600 text-sm text-center font-satoshi">{error}</p>
+          ) : null}
         </div>
       </div>
       <Footer />
