@@ -203,7 +203,7 @@ export default function JobSearchReport() {
             </p>
             <div className="rpt-hero-stats">
               <div className="rpt-hero-stat"><div className="rpt-hval">2-7%</div><div className="rpt-hlbl">Callback rate for cold job board applications (Jobvite / LinkedIn Talent, 2025)</div></div>
-              <div className="rpt-hero-stat"><div className="rpt-hval">75%</div><div className="rpt-hlbl">Of roles filled through the hidden market: referrals, outreach, and unadvertised openings</div></div>
+              <div className="rpt-hero-stat"><div className="rpt-hval">~70-80%</div><div className="rpt-hlbl">Estimated share of roles filled through referrals, direct outreach, and unadvertised openings (industry estimate)</div></div>
               <div className="rpt-hero-stat"><div className="rpt-hval">8 findings</div><div className="rpt-hlbl">Callback data, the hidden market, referral strategy, cold outreach, LinkedIn, and a weekly system</div></div>
             </div>
           </div>
@@ -233,7 +233,7 @@ export default function JobSearchReport() {
             </div>
 
             <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-v">40%</div><div className="rpt-lbl">Callback rate for referred candidates. A referral from someone inside the company is the single highest-leverage action in a job search. (Jobvite Recruiter Nation, 2025)</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-v">40%</div><div className="rpt-lbl">Hire rate for referred candidates once interviewed. A referral from inside a company is the single highest-leverage action in a job search. (Jobvite Recruiter Nation, 2025)</div></div>
               <div className="rpt-stat"><div className="rpt-val">2-7%</div><div className="rpt-lbl">Callback rate for cold job board applications on Indeed, Naukri, LinkedIn Easy Apply. Volume required for one interview: 50-67 applications.</div></div>
               <div className="rpt-stat"><div className="rpt-val rpt-o">9%</div><div className="rpt-lbl">Callback rate for targeted cold outreach (personalised email to hiring manager or team lead, with a relevant project attached). High effort, high return.</div></div>
             </div>
@@ -246,12 +246,12 @@ export default function JobSearchReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 02</span>
-              <h2 className="rpt-h2">75% of roles are filled without ever being publicly posted. The "hidden job market" is not a myth. It is where most hiring actually happens.</h2>
+              <h2 className="rpt-h2">The majority of roles are filled without ever being publicly posted. The "hidden job market" is not a myth. It is where most hiring actually happens.</h2>
               <p className="rpt-lead">This is the most consistently misunderstood fact about job markets. The majority of roles at most organisations are filled before they reach a job board. Understanding why changes how you search.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Estimated share of roles by how they are filled (based on LinkedIn Economic Graph and SHRM data, 2025)</div>
+              <div className="rpt-card-label">Estimated share of roles by how they are filled (widely cited industry estimate; exact figures vary by sector and company size)</div>
               <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="hiddenChart"></canvas></div>
             </div>
 
@@ -322,13 +322,13 @@ export default function JobSearchReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 03</span>
-              <h2 className="rpt-h2">A referral from inside a company makes you 5x more likely to get an interview and 9x more likely to get hired. The mechanics of how to actually get one.</h2>
+              <h2 className="rpt-h2">A referral from inside a company makes you 5x more likely to get an interview and 7x more likely to get hired. The mechanics of how to actually get one.</h2>
               <p className="rpt-lead">Everyone knows referrals matter. Almost nobody knows how to get them without already knowing someone at every target company. Here is the actual playbook.</p>
             </div>
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-v">5x</div><div className="rpt-lbl">More likely to get an interview if referred (vs cold application). Referred candidates skip early screening rounds. (Jobvite 2025)</div></div>
-              <div className="rpt-stat"><div className="rpt-val">9x</div><div className="rpt-lbl">More likely to be hired if referred (vs cold application). Referred candidates are pre-trusted and pre-vouched. (LinkedIn Talent 2025)</div></div>
+              <div className="rpt-stat"><div className="rpt-val">7x</div><div className="rpt-lbl">More likely to be hired if referred (vs cold application). Referred candidates are pre-trusted and pre-vouched. (Pinpoint analysis, 4.5M applications)</div></div>
               <div className="rpt-stat"><div className="rpt-val rpt-o">29 days</div><div className="rpt-lbl">Median time to hire via referral vs 55 days via job board. Referrals move faster through every stage. (SHRM 2025)</div></div>
             </div>
 
@@ -348,7 +348,7 @@ export default function JobSearchReport() {
                   },
                   {
                     step: "Step 3: Have the conversation well",
-                    detail: "Prepare 3 specific questions about their experience. Show genuine curiosity. Do not pitch yourself. Do not ask for a job. At the end: 'Is there anyone else you think I should speak to?' This question either extends the network or, if the conversation went well, often leads to 'Actually, we might be hiring soon — I can flag your profile.'",
+                    detail: "Prepare 3 specific questions about their experience. Show genuine curiosity. Do not pitch yourself. Do not ask for a job. At the end: 'Is there anyone else you think I should speak to?' This question either extends the network or, if the conversation went well, often leads to 'Actually, we might be hiring soon, and I can flag your profile.'",
                     color: "#a78bfa",
                   },
                   {
@@ -412,12 +412,12 @@ export default function JobSearchReport() {
             <div className="rpt-stat-row rpt-c3" style={{ marginTop: 20 }}>
               <div className="rpt-stat"><div className="rpt-val rpt-v">9%</div><div className="rpt-lbl">Cold outreach callback rate with a relevant project attached. Highest of any non-referral channel. (LinkedIn InMail benchmark data 2025)</div></div>
               <div className="rpt-stat"><div className="rpt-val">Under 1%</div><div className="rpt-lbl">Cold outreach callback rate without a project or specific hook. Equivalent to cold applying on a job board.</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-o">3 lines</div><div className="rpt-lbl">Optimal length for cold outreach. Emails under 100 words have 3x the response rate of emails over 200 words. (Boomerang email study, 2025)</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-o">3 lines</div><div className="rpt-lbl">Optimal length for cold outreach. Emails of 75-100 words consistently outperform longer emails in response rate. (Boomerang email research, 2016)</div></div>
             </div>
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">Who to email and how to find them</div>
-              <p>Do not email HR or generic info@ addresses. Find the hiring manager or team lead directly. On LinkedIn: search the company + the function you want (e.g. "growth" at a startup). On company websites, About or Team pages often name department leads. Use Hunter.io or Apollo to find email formats (first.last@company.com is correct for ~60% of companies). One targeted email to the right person beats 50 applications to a black-hole inbox.</p>
+              <p>Do not email HR or generic info@ addresses. Find the hiring manager or team lead directly. On LinkedIn: search the company + the function you want (e.g. "growth" at a startup). On company websites, About or Team pages often name department leads. Use Hunter.io or Apollo to find the correct email format for each company. One targeted email to the right person beats 50 applications to a black-hole inbox.</p>
             </div>
             <p className="rpt-source">Source: LinkedIn InMail benchmark data 2025, Boomerang by Robinhood email response research 2025, Yesware cold email study 2025, Hunter.io email format data</p>
           </div>
@@ -473,7 +473,7 @@ export default function JobSearchReport() {
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Median days to first response by application channel (fewer is better)</div>
+              <div className="rpt-card-label">Estimated days to first response by application channel (fewer is better; figures are indicative and vary by industry)</div>
               <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="speedChart"></canvas></div>
             </div>
 
@@ -578,7 +578,7 @@ export default function JobSearchReport() {
             <blockquote className="rpt-pullquote">
               <p>"We found our last three interns through their GitHub profiles, a Substack piece, and a Kaggle notebook. None of them applied."</p>
             </blockquote>
-            <p className="rpt-source">Source: Triplebyte hiring signals survey 2025, GitHub talent insights report 2025, LinkedIn content algorithm research 2025, Stack Overflow developer hiring survey 2025</p>
+            <p className="rpt-source">Source: Stack Overflow Developer Survey 2025, GitHub Octoverse talent insights 2025, LinkedIn content algorithm research 2025, Karat engineering hiring data 2025</p>
           </div>
 
           {/* Finding 8 */}

@@ -37,6 +37,7 @@ const TYPE_COLORS: Record<ReportType, string> = {
 const REPORTS = [
   {
     slug: "ops-india-2026",
+    publishDate: "2026-04-12",
     title: "Operations Interns in India: The Skill Gap Nobody Talks About",
     subtitle: "Q1 2026",
     excerpt:
@@ -49,6 +50,7 @@ const REPORTS = [
   },
   {
     slug: "internships-ai-india-2026",
+    publishDate: "2026-04-08",
     title: "How Internships Are Changing Post-AI",
     subtitle: "Q1 2026",
     excerpt:
@@ -61,6 +63,7 @@ const REPORTS = [
   },
   {
     slug: "cs-india-2026",
+    publishDate: "2026-04-01",
     title: "CS in India: What Freshers Are Actually Getting Into",
     subtitle: "Q1 2026",
     excerpt:
@@ -73,6 +76,7 @@ const REPORTS = [
   },
   {
     slug: "sales-india-2026",
+    publishDate: "2026-04-01",
     title: "Sales in India: What Freshers Actually Face",
     subtitle: "Q1 2026",
     excerpt:
@@ -85,6 +89,7 @@ const REPORTS = [
   },
   {
     slug: "finance-india-2026",
+    publishDate: "2026-04-01",
     title: "Finance in India: What Graduates Actually Face",
     subtitle: "Q1 2026",
     excerpt:
@@ -97,10 +102,11 @@ const REPORTS = [
   },
   {
     slug: "marketing-india-2026",
+    publishDate: "2026-04-05",
     title: "Marketing Internships in India: Where the Good Roles Actually Are",
     subtitle: "Q1 2026",
     excerpt:
-      "22,000+ listings. A 6x stipend gap between niche and generic roles. And the reason 90% of students apply to the wrong ones — and get nothing back.",
+      "22,000+ listings. A 6x stipend gap between niche and generic roles. And the reason 90% of students apply to the wrong ones, and get nothing back.",
     category: "Marketing",
     type: "Sector" as ReportType,
     date: "April 2026",
@@ -109,6 +115,7 @@ const REPORTS = [
   },
   {
     slug: "pune-jobs-2026",
+    publishDate: "2026-04-05",
     title: "Pune's Job Market in 2026: What Students Are Actually Walking Into",
     subtitle: "Q1 2026",
     excerpt:
@@ -121,6 +128,7 @@ const REPORTS = [
   },
   {
     slug: "internships-15k-india-2026",
+    publishDate: "2026-04-10",
     title: "Roles That Land You Above ₹15k: The Internship Map India 2026",
     subtitle: "Q2 2026",
     excerpt: "48 roles mapped across 8 domains. Which categories own the ₹30k+ bracket, which skills unlock the floor, and which roles will never pay ₹15k no matter who you are.",
@@ -132,6 +140,7 @@ const REPORTS = [
   },
   {
     slug: "flame-marketing-2026",
+    publishDate: "2026-04-15",
     title: "Flame University & Marketing Roles: Where Flame Grads Actually Land",
     subtitle: "Q1 2026",
     excerpt:
@@ -144,6 +153,7 @@ const REPORTS = [
   },
   {
     slug: "hiring-calendar-india-2026",
+    publishDate: "2026-04-10",
     title: "India Hiring Calendar 2026: Which Companies Hire in Which Month",
     subtitle: "Q2 2026",
     excerpt:
@@ -156,6 +166,7 @@ const REPORTS = [
   },
   {
     slug: "internships-germany-2026",
+    publishDate: "2026-04-20",
     title: "Do Interns in Germany Get Paid? Stipends, Laws and What to Expect",
     subtitle: "Q1 2026",
     excerpt:
@@ -168,10 +179,11 @@ const REPORTS = [
   },
   {
     slug: "internships-uk-2026",
+    publishDate: "2026-04-20",
     title: "Do Interns in the UK Get Paid? NLW Rules, Sector Rates and What to Expect",
     subtitle: "Q1 2026",
     excerpt:
-      "The UK National Living Wage hits £12.71/hr in April 2026 and applies to most interns — unpaid placements are largely illegal. Goldman pays £5,000/month. Here's what every sector actually pays and how to get in.",
+      "The UK National Living Wage hits £12.71/hr in April 2026 and applies to most interns. Unpaid placements are largely illegal. Goldman pays £5,000/month. Here's what every sector actually pays and how to get in.",
     category: "Cities",
     type: "Cities" as ReportType,
     date: "April 2026",
@@ -180,6 +192,7 @@ const REPORTS = [
   },
   {
     slug: "skills-ai-entry-level-2026",
+    publishDate: "2026-04-20",
     title: "Breaking Into AI in 2026: The Skills, Roles and Hiring Reality for Entry-Level Candidates",
     subtitle: "Q2 2026",
     excerpt:
@@ -192,6 +205,7 @@ const REPORTS = [
   },
   {
     slug: "internships-australia-2026",
+    publishDate: "2026-04-20",
     title: "Do Interns in Australia Get Paid? Minimum Wage, Sector Rates and How to Apply",
     subtitle: "Q1 2026",
     excerpt:
@@ -204,6 +218,7 @@ const REPORTS = [
   },
   {
     slug: "job-search-2026",
+    publishDate: "2026-04-22",
     title: "Job Boards Are Dead: How Students Actually Get Hired in 2026",
     subtitle: "Q2 2026",
     excerpt: "Job board callback rates sit at 2-7%. 75% of roles are filled through the hidden market. A referral makes you 5x more likely to get an interview. Here is the data and the system that actually works.",
@@ -284,7 +299,7 @@ function RequestForm() {
 
       <div className="mb-6">
         <label className="mb-1.5 block font-['Satoshi'] text-sm font-semibold text-neutral-800">
-          Email <span className="text-neutral-400 font-normal">(optional — we will notify you when it is live)</span>
+          Email <span className="text-neutral-400 font-normal">(optional, we will notify you when it is live)</span>
         </label>
         <input
           type="email"
@@ -313,7 +328,8 @@ function RequestForm() {
 
 export default function Reports() {
   const [activeFilter, setActiveFilter] = useState<"All" | ReportType>("All");
-  const visibleReports = activeFilter === "All" ? REPORTS : REPORTS.filter((r) => r.type === activeFilter);
+  const sorted = [...REPORTS].sort((a, b) => b.publishDate.localeCompare(a.publishDate));
+  const visibleReports = activeFilter === "All" ? sorted : sorted.filter((r) => r.type === activeFilter);
 
   return (
     <>
