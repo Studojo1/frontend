@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiMail, FiCheckCircle, FiTag, FiCreditCard } from "react-icons/fi";
+import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiCalendar, FiArrowRight } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TierSelector } from "~/components/outreach/TierSelector";
@@ -258,129 +258,215 @@ export default function EnrichmentPage() {
     return null;
   }
 
-  const selectedPricing = pricing.find((p) => p.tier === selectedTier);
-  const displayPrice = couponResult?.valid
-    ? `${currency === "INR" ? "₹" : "$"}${(couponResult.discounted_amount / 100).toFixed(0)}`
-    : selectedPricing?.display_price || (selectedTier === 200 ? "$20" : selectedTier === 350 ? "$27" : "$40");
-
+  const currSymbol = currency === "INR" ? "₹" : "$";
   const hasEnoughCredits = credits ? credits.available_credits >= selectedTier : false;
+
+  const TIERS = [
+    {
+      value: 200 as const,
+      name: "Starter",
+      tagline: "Test the waters",
+      fallbackPrice: "$20",
+      features: ["200 verified hiring manager emails", "200 personalised cold emails", "Sent over 5-7 days", "Replies to your Gmail inbox"],
+    },
+    {
+      value: 350 as const,
+      name: "Growth",
+      tagline: "Recommended",
+      fallbackPrice: "$27",
+      recommended: true,
+      features: ["350 verified hiring manager emails", "350 personalised cold emails", "Sent over 5-7 days", "Replies to your Gmail inbox", "Open and click tracking"],
+    },
+    {
+      value: 500 as const,
+      name: "Scale",
+      tagline: "Maximum reach",
+      fallbackPrice: "$40",
+      features: ["500 verified hiring manager emails", "500 personalised cold emails", "Sent over 5-7 days", "Replies to your Gmail inbox", "Open and click tracking"],
+    },
+  ];
+
+  const CONSULTATION_URL = "https://cal.com/studojo/internship-strategy";
+
+  const getTierPrice = (tierValue: number) => {
+    const match = pricing.find((p) => p.tier === tierValue);
+    if (match) {
+      const discounted = couponResult?.valid && selectedTier === tierValue ? couponResult.discounted_amount : null;
+      const raw = match.amount;
+      return {
+        display: `${currSymbol}${(raw / 100).toFixed(0)}`,
+        discounted: discounted ? `${currSymbol}${(discounted / 100).toFixed(0)}` : null,
+      };
+    }
+    const fallback = TIERS.find((t) => t.value === tierValue)?.fallbackPrice ?? "—";
+    return { display: fallback, discounted: null };
+  };
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
-        <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center mx-auto text-studojo-purple mb-6">
-            <FiMail className="w-7 h-7" />
-          </div>
-          <h1 className="font-clash text-2xl font-bold text-studojo-ink">Contact Your Hiring Managers</h1>
-          <p className="text-sm text-studojo-muted mt-2 font-satoshi">Choose how many to reach out to. We'll handle everything else.</p>
+      <div className="mx-auto max-w-5xl px-4 py-10 md:px-8">
+
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink">Contact Hiring Managers Directly</h1>
+          <p className="text-base text-studojo-muted mt-3 font-satoshi max-w-xl mx-auto">
+            Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
+          </p>
         </div>
 
-        {/* Value checklist — what they're getting */}
-        <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg/30 p-5 mb-8">
-          <p className="font-clash text-sm font-bold text-studojo-ink mb-3">Here's what you get:</p>
-          <ul className="space-y-2">
-            {[
-              "Verified email addresses for your hiring managers",
-              "A personalised email written for each one (based on your resume)",
-              "Emails sent gradually over several days, protecting your Gmail reputation",
-              "Replies land straight in your inbox",
-            ].map((item) => (
-              <li key={item} className="flex items-start gap-2.5 text-sm font-satoshi text-studojo-ink">
-                <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
+        {/* Credits banner */}
         {credits && credits.total_credits > 0 && (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-4 mb-6 flex items-center justify-between">
+          <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg/30 p-4 mb-8 flex items-center justify-between max-w-md mx-auto">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center">
-                <span className="text-studojo-green text-sm font-bold">$</span>
+              <div className="w-8 h-8 rounded-xl bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center">
+                <span className="text-studojo-green text-sm font-bold">{currSymbol}</span>
               </div>
               <div>
-                <p className="text-sm font-bold font-satoshi text-studojo-ink">Your Credits</p>
-                <p className="text-xs text-studojo-muted font-satoshi">{credits.available_credits} available / {credits.total_credits} total</p>
+                <p className="text-sm font-bold font-satoshi text-studojo-ink">You have credits</p>
+                <p className="text-xs text-studojo-muted font-satoshi">{credits.available_credits} available</p>
               </div>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium bg-studojo-green-bg text-studojo-green border border-studojo-green/30">
+            <span className="px-3 py-1 rounded-full text-xs font-satoshi font-bold bg-studojo-green-bg text-studojo-green border-2 border-studojo-ink">
               {credits.available_credits} credits
             </span>
           </div>
         )}
 
-        <TierSelector
-          selected={selectedTier}
-          onSelect={(tier) => { setSelectedTier(tier); setCouponResult(null); setCouponError(""); }}
-          pricing={pricing}
-        />
+        {/* Tier cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+          {TIERS.map((tier) => {
+            const price = getTierPrice(tier.value);
+            const isSelected = selectedTier === tier.value;
+            const hasCredits = credits ? credits.available_credits >= tier.value : false;
 
-        {!hasEnoughCredits && (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6 mt-6">
-            <div className="flex items-center gap-3 mb-4">
-              <FiTag className="w-5 h-5 text-studojo-purple" />
-              <h3 className="font-clash text-base font-bold text-studojo-ink">Have a coupon?</h3>
-            </div>
-            <div className="flex gap-3">
-              <input
-                value={couponCode}
-                onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); setCouponError(""); }}
-                placeholder="Enter coupon code"
-                className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
-              />
-              <button
-                onClick={validateCoupon}
-                disabled={couponLoading}
-                className="h-10 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50"
+            return (
+              <div
+                key={tier.value}
+                onClick={() => { setSelectedTier(tier.value); setCouponResult(null); setCouponError(""); }}
+                className={`relative rounded-2xl border-2 p-6 cursor-pointer transition-all flex flex-col ${
+                  tier.recommended
+                    ? "border-studojo-purple bg-studojo-purple-bg/20 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)]"
+                    : isSelected
+                    ? "border-studojo-ink bg-white shadow-brutal"
+                    : "border-studojo-ink/30 bg-white hover:border-studojo-ink/60"
+                }`}
               >
-                {couponLoading ? "..." : "Apply"}
-              </button>
-            </div>
-            {couponError && <p className="text-red-600 text-xs mt-2 font-satoshi">{couponError}</p>}
-            {couponResult?.valid && (
-              <div className="mt-3 p-3 bg-studojo-green-bg rounded-xl border-2 border-studojo-ink/20">
-                <p className="text-sm text-studojo-green font-bold font-satoshi">
-                  {couponResult.discount_type === "percent"
-                    ? `${couponResult.discount_value}% off`
-                    : `${currency === "INR" ? "₹" : "$"}${(couponResult.discount_value / 100).toFixed(0)} off`}
-                  {couponResult.distributor && <span className="text-studojo-muted font-normal"> via {couponResult.distributor}</span>}
-                </p>
-                <p className="text-xs text-studojo-muted font-satoshi mt-1">
-                  <span className="line-through">{currency === "INR" ? "₹" : "$"}{(couponResult.original_amount / 100).toFixed(0)}</span>
-                  {" → "}
-                  <span className="text-studojo-green font-bold">{currency === "INR" ? "₹" : "$"}{(couponResult.discounted_amount / 100).toFixed(0)}</span>
-                </p>
+                {tier.recommended && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="px-3 py-1 rounded-full bg-studojo-purple text-white text-xs font-bold font-satoshi border-2 border-studojo-ink whitespace-nowrap">
+                      Most Popular
+                    </span>
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <p className="font-clash text-xs font-bold text-studojo-muted uppercase tracking-wider mb-1">{tier.name}</p>
+                  <div className="flex items-end gap-2">
+                    <span className="font-clash text-4xl font-black text-studojo-ink">{price.display}</span>
+                    {price.discounted && (
+                      <span className="text-base line-through text-studojo-muted font-satoshi mb-1">{price.display}</span>
+                    )}
+                  </div>
+                  {price.discounted && (
+                    <span className="font-clash text-4xl font-black text-studojo-green">{price.discounted}</span>
+                  )}
+                  <p className="text-xs text-studojo-muted font-satoshi mt-1">{tier.tagline}</p>
+                </div>
+
+                <ul className="space-y-2.5 mb-6 flex-1">
+                  {tier.features.map((feat) => (
+                    <li key={feat} className="flex items-start gap-2 text-sm font-satoshi text-studojo-ink">
+                      <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTier(tier.value);
+                    handlePayAndContinue();
+                  }}
+                  disabled={paying && isSelected}
+                  className={`w-full h-11 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-2 ${
+                    tier.recommended
+                      ? "bg-studojo-purple text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                      : "bg-white text-studojo-ink shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                  } disabled:opacity-50 disabled:pointer-events-none`}
+                >
+                  {paying && isSelected ? (
+                    "Processing..."
+                  ) : hasCredits ? (
+                    <>Use Credits <FiArrowRight className="w-3.5 h-3.5" /></>
+                  ) : (
+                    <>Get Started <FiArrowRight className="w-3.5 h-3.5" /></>
+                  )}
+                </button>
               </div>
-            )}
-          </div>
-        )}
-
-        {error && <p className="text-red-600 text-sm text-center mt-6 font-satoshi">{error}</p>}
-
-        <div className="flex flex-col items-center gap-3 mt-10">
-          {hasEnoughCredits ? (
-            <button
-              onClick={() => onPaymentSuccess()}
-              className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
-            >
-              Contact {selectedTier} Hiring Managers (Use Credits)
-            </button>
-          ) : (
-            <button
-              onClick={handlePayAndContinue}
-              disabled={paying}
-              className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-50 disabled:pointer-events-none"
-            >
-              <FiCreditCard className="w-5 h-5 mr-2" /> {paying ? "Processing..." : `Pay ${displayPrice} · Contact ${selectedTier} Hiring Managers`}
-            </button>
-          )}
-          <p className="text-xs text-studojo-muted font-satoshi text-center max-w-md">
-            Your emails go out automatically over several days. Most students get their first reply within a week.
-          </p>
+            );
+          })}
         </div>
+
+        {/* Coupon */}
+        <div className="rounded-2xl border-2 border-studojo-ink/20 bg-white p-5 mb-6 max-w-md mx-auto">
+          <div className="flex items-center gap-2 mb-3">
+            <FiTag className="w-4 h-4 text-studojo-purple" />
+            <p className="font-satoshi text-sm font-bold text-studojo-ink">Have a coupon?</p>
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={couponCode}
+              onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); setCouponError(""); }}
+              placeholder="Enter code"
+              className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+            />
+            <button
+              onClick={validateCoupon}
+              disabled={couponLoading}
+              className="h-10 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50"
+            >
+              {couponLoading ? "..." : "Apply"}
+            </button>
+          </div>
+          {couponError && <p className="text-red-600 text-xs mt-2 font-satoshi">{couponError}</p>}
+          {couponResult?.valid && (
+            <div className="mt-3 p-3 bg-studojo-green-bg rounded-xl border border-studojo-green/30">
+              <p className="text-sm text-studojo-green font-bold font-satoshi">
+                {couponResult.discount_type === "percent"
+                  ? `${couponResult.discount_value}% off`
+                  : `${currSymbol}${(couponResult.discount_value / 100).toFixed(0)} off`}
+                {couponResult.distributor && <span className="text-studojo-muted font-normal"> via {couponResult.distributor}</span>}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {error && <p className="text-red-600 text-sm text-center mb-4 font-satoshi">{error}</p>}
+
+        {/* Free consultation CTA */}
+        <div className="rounded-2xl border-2 border-studojo-ink bg-amber-50 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-2xl mx-auto">
+          <div className="flex items-start gap-3">
+            <FiCalendar className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-clash text-sm font-bold text-studojo-ink">Free 1:1 Internship Strategy Call</p>
+              <p className="text-xs text-studojo-muted font-satoshi mt-0.5">Not sure which plan fits? Book a quick 20-min call with the team — we'll map out your outreach.</p>
+            </div>
+          </div>
+          <a
+            href={CONSULTATION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 h-9 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-bold border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center gap-1.5"
+          >
+            Book free call <FiArrowRight className="w-3.5 h-3.5" />
+          </a>
+        </div>
+
+        <p className="text-xs text-studojo-muted font-satoshi text-center mt-6">
+          Emails sent gradually over several days. Most students get their first reply within a week.
+        </p>
       </div>
       <Footer />
 
