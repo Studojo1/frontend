@@ -1,4 +1,5 @@
 import { redirect } from "react-router";
+import { useEffect, useRef } from "react";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/extension-auth";
 
@@ -12,8 +13,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const url = new URL(request.url);
   const extId = url.searchParams.get("ext") ?? "";
-
-  // Use the session token directly as Bearer token — avoids getAccessToken throwing
   const token = (session as any).session?.token ?? (session as any).session?.id ?? null;
 
   return { token, extId, name: session.user.name };
@@ -21,93 +20,62 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function ExtensionAuth({ loaderData }: Route.ComponentProps) {
   const { token, extId, name } = loaderData;
+  const statusRef = useRef<HTMLDivElement>(null);
+
+  function setStatus(ok: boolean, msg: string) {
+    const el = statusRef.current;
+    if (!el) return;
+    el.className = ok
+      ? "inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 border-2 border-neutral-900 rounded-xl bg-green-50 text-green-700"
+      : "inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 border-2 border-neutral-900 rounded-xl bg-red-50 text-red-600";
+    el.innerHTML = `<span class="w-2 h-2 rounded-full bg-current flex-shrink-0"></span>${msg}`;
+  }
+
+  useEffect(() => {
+    if (!extId || !token) {
+      setStatus(false, "Missing extension ID or token. Retry from the extension.");
+      return;
+    }
+
+    const cr = (window as any).chrome;
+    if (!cr?.runtime?.sendMessage) {
+      setStatus(false, "Chrome extension API not available.");
+      return;
+    }
+
+    try {
+      cr.runtime.sendMessage(extId, { type: "SAVE_TOKEN", token }, (res: any) => {
+        if (cr.runtime.lastError) {
+          setStatus(false, "Extension not found. Make sure it is installed and enabled.");
+        } else if (res?.ok) {
+          setStatus(true, "Connected! You can close this tab.");
+          setTimeout(() => window.close(), 1500);
+        } else {
+          setStatus(false, "Connection failed. Try again.");
+        }
+      });
+    } catch (e: any) {
+      setStatus(false, "Could not reach extension: " + e.message);
+    }
+  }, [extId, token]);
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="UTF-8" />
-        <title>Connect Extension – Studojo</title>
-        <style>{`
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f9fafb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-          }
-          .card {
-            background: #fff;
-            border: 2px solid #1a1a1a;
-            border-radius: 16px;
-            box-shadow: 5px 5px 0 #1a1a1a;
-            padding: 32px;
-            max-width: 360px;
-            width: 100%;
-            text-align: center;
-          }
-          .icon { font-size: 40px; margin-bottom: 12px; }
-          h1 { font-size: 20px; font-weight: 800; color: #1a1a1a; margin-bottom: 6px; }
-          p { font-size: 14px; color: #6b7280; margin-bottom: 20px; line-height: 1.5; }
-          .status {
-            display: inline-flex; align-items: center; gap: 8px;
-            font-size: 14px; font-weight: 600; padding: 10px 20px;
-            border: 2px solid #1a1a1a; border-radius: 10px;
-            background: #f0fdf4; color: #059669;
-          }
-          .error { background: #fef2f2; color: #dc2626; }
-          .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-        `}</style>
-      </head>
-      <body>
-        <div className="card">
-          <div className="icon">⚡</div>
-          <h1>Connecting AutoApply</h1>
-          <p>Signed in as <strong>{name}</strong>.<br />Sending your credentials to the extension…</p>
-          <div id="status" className="status">
-            <div className="dot" />
-            Connecting...
-          </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white border-2 border-neutral-900 rounded-2xl shadow-[5px_5px_0px_#1a1a1a] p-8 max-w-sm w-full text-center">
+        <div className="text-4xl mb-3">⚡</div>
+        <h1 className="text-xl font-extrabold text-neutral-900 mb-1.5">Connecting AutoApply</h1>
+        <p className="text-sm text-gray-500 mb-5 leading-relaxed">
+          Signed in as <strong className="text-neutral-900">{name}</strong>.
+          <br />Sending your credentials to the extension…
+        </p>
+        <div
+          ref={statusRef}
+          className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 border-2 border-neutral-900 rounded-xl bg-green-50 text-green-700"
+        >
+          <span className="w-2 h-2 rounded-full bg-current flex-shrink-0" />
+          Connecting...
         </div>
-
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                const extId = ${JSON.stringify(extId)};
-                const token = ${JSON.stringify(token)};
-                const el = document.getElementById('status');
-
-                function setStatus(ok, msg) {
-                  el.className = 'status' + (ok ? '' : ' error');
-                  el.innerHTML = '<div class="dot"></div>' + msg;
-                }
-
-                if (!extId || !token) {
-                  setStatus(false, 'Missing extension ID or token. Please retry from the extension.');
-                  return;
-                }
-
-                try {
-                  chrome.runtime.sendMessage(extId, { type: 'SAVE_TOKEN', token }, (res) => {
-                    if (chrome.runtime.lastError) {
-                      setStatus(false, 'Extension not found. Make sure it is installed and enabled.');
-                    } else if (res?.ok) {
-                      setStatus(true, 'Connected! You can close this tab.');
-                      setTimeout(() => window.close(), 1500);
-                    } else {
-                      setStatus(false, 'Connection failed. Try again.');
-                    }
-                  });
-                } catch (e) {
-                  setStatus(false, 'Could not reach extension: ' + e.message);
-                }
-              })();
-            `,
-          }}
-        />
-      </body>
-    </html>
+      </div>
+    </div>
   );
 }
