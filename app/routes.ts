@@ -112,6 +112,7 @@ export default [
   route(".well-known/*", "routes/well-known.$.tsx"),
   route("sitemap.xml", "routes/sitemap.xml.tsx"),
   route("robots.txt", "routes/robots.txt.tsx"),
+  route("test123", "routes/test123.tsx"),
 
   // ── Outreach ──────────────────────────────────────────────────────
   route("outreach", "routes/outreach.tsx"),
