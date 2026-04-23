@@ -4,22 +4,36 @@
 import { eq } from "drizzle-orm";
 import { auth } from "~/lib/auth";
 import db from "./db";
-import { userProfile, user, newsletterSubscriptions } from "../../auth-schema";
+import { userProfile, user, newsletterSubscriptions, session as sessionTable } from "../../auth-schema";
 
 export async function getSessionFromRequest(request: { headers: Headers }) {
   // Try cookie-based session first
   const session = await auth.api.getSession({ headers: request.headers });
   if (session) return session;
 
-  // Fallback: Bearer JWT sent by the browser extension
+  // Fallback: Bearer token sent by the browser extension
   const authHeader = request.headers.get("Authorization");
   if (authHeader?.startsWith("Bearer ")) {
     const token = authHeader.slice(7);
+
+    // 1. Try JWT verification
     try {
       const verified = await (auth.api as any).verifyToken?.({ token });
       if (verified?.session) return verified.session;
-      // Some BetterAuth versions expose the user directly
       if (verified?.user) return { user: verified.user, session: verified };
+    } catch {}
+
+    // 2. Fallback: look up session token directly in DB (session ID or token field)
+    try {
+      const [row] = await db
+        .select({ sessionId: sessionTable.id, sessionToken: sessionTable.token, userId: sessionTable.userId, expiresAt: sessionTable.expiresAt })
+        .from(sessionTable)
+        .where(eq(sessionTable.token, token))
+        .limit(1);
+      if (row && row.expiresAt > new Date()) {
+        const [userRow] = await db.select().from(user).where(eq(user.id, row.userId)).limit(1);
+        if (userRow) return { user: userRow, session: { id: row.sessionId, token: row.sessionToken, userId: row.userId, expiresAt: row.expiresAt } };
+      }
     } catch {}
   }
   return null;
