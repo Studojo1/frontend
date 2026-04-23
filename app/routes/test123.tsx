@@ -68,6 +68,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
   const [workType, setWorkType] = useState<"remote" | "hybrid" | "onsite" | "any">("any");
   const [dailyLimit, setDailyLimit] = useState(20);
   const [dragOver, setDragOver] = useState(false);
+  const [parsing, setParsing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const toggleItem = (arr: string[], setArr: (v: string[]) => void, val: string) => {
@@ -81,18 +82,68 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file) readFile(file);
+    if (file) handleFile(file);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) readFile(file);
+    if (file) handleFile(file);
+    e.target.value = "";
   };
 
-  const readFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => setCvText((e.target?.result as string) || "");
-    reader.readAsText(file);
+  const handleFile = async (file: File) => {
+    if (file.name.endsWith(".pdf") || file.type === "application/pdf") {
+      setParsing(true);
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/resumes/parse", { method: "POST", body: fd });
+        if (!res.ok) throw new Error("Parse failed");
+        const { resumeData } = await res.json();
+        setCvText(resumeDataToText(resumeData));
+      } catch {
+        setCvText("Failed to parse PDF. Please paste your CV text below.");
+      } finally {
+        setParsing(false);
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => setCvText((e.target?.result as string) || "");
+      reader.readAsText(file);
+    }
+  };
+
+  const resumeDataToText = (d: any): string => {
+    const lines: string[] = [];
+    if (d.contact_info?.name) lines.push(d.contact_info.name);
+    if (d.contact_info?.email) lines.push(d.contact_info.email);
+    if (d.contact_info?.location) lines.push(d.contact_info.location);
+    if (d.summary) { lines.push("", "SUMMARY", d.summary); }
+    if (d.work_experiences?.length) {
+      lines.push("", "EXPERIENCE");
+      for (const e of d.work_experiences) {
+        lines.push(`${e.role} at ${e.company} (${e.start_date} - ${e.end_date || "Present"})`);
+        if (e.description) lines.push(e.description);
+      }
+    }
+    if (d.educations?.length) {
+      lines.push("", "EDUCATION");
+      for (const e of d.educations) {
+        lines.push(`${e.degree} ${e.field_of_study} - ${e.institution} (${e.start_date} - ${e.end_date || "Present"})`);
+      }
+    }
+    if (d.skills?.length) {
+      lines.push("", "SKILLS");
+      lines.push(d.skills.map((s: any) => s.name).join(", "));
+    }
+    if (d.projects?.length) {
+      lines.push("", "PROJECTS");
+      for (const p of d.projects) {
+        lines.push(`${p.title}`);
+        if (p.description) lines.push(p.description);
+      }
+    }
+    return lines.join("\n").trim();
   };
 
   const stepNum = step === "resume" ? 1 : step === "prefs" ? 2 : step === "launch" ? 3 : 3;
@@ -164,19 +215,30 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleFileDrop}
-              onClick={() => fileRef.current?.click()}
+              onClick={() => !parsing && fileRef.current?.click()}
               className={`mb-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-5 transition-colors ${
-                dragOver
+                parsing
+                  ? "border-violet-400 bg-violet-50 cursor-wait"
+                  : dragOver
                   ? "border-violet-600 bg-violet-50"
                   : "border-neutral-300 bg-neutral-50 hover:border-violet-400 hover:bg-violet-50"
               }`}
             >
-              <FiUpload className="mb-2 h-6 w-6 text-neutral-400" />
-              <p className="font-['Satoshi'] text-sm text-gray-500">
-                Drop file here or <span className="font-semibold text-violet-600">click to upload</span>
-              </p>
-              <p className="mt-1 font-['Satoshi'] text-xs text-gray-400">.txt or .md — plain text only</p>
-              <input ref={fileRef} type="file" accept=".txt,.md" className="hidden" onChange={handleFileChange} />
+              {parsing ? (
+                <>
+                  <div className="mb-2 h-6 w-6 animate-spin rounded-full border-2 border-violet-600 border-t-transparent" />
+                  <p className="font-['Satoshi'] text-sm font-medium text-violet-700">Parsing PDF...</p>
+                </>
+              ) : (
+                <>
+                  <FiUpload className="mb-2 h-6 w-6 text-neutral-400" />
+                  <p className="font-['Satoshi'] text-sm text-gray-500">
+                    Drop file here or <span className="font-semibold text-violet-600">click to upload</span>
+                  </p>
+                  <p className="mt-1 font-['Satoshi'] text-xs text-gray-400">.pdf, .txt, or .md</p>
+                </>
+              )}
+              <input ref={fileRef} type="file" accept=".pdf,.txt,.md" className="hidden" onChange={handleFileChange} />
             </div>
 
             <textarea
