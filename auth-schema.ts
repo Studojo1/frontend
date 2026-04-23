@@ -800,3 +800,59 @@ export const reportRequests = pgTable(
     index("report_requests_created_at_idx").on(table.createdAt),
   ],
 );
+
+// ── AutoApply ─────────────────────────────────────────────────────────────────
+
+export const autoapplyConfigs = pgTable(
+  "autoapply_configs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    cvText: text("cv_text").notNull(),
+    roles: jsonb("roles").$type<string[]>().notNull().default([]),
+    locations: jsonb("locations").$type<string[]>().notNull().default([]),
+    platforms: jsonb("platforms").$type<string[]>().notNull().default([]),
+    workType: text("work_type").notNull().default("any"),
+    dailyLimit: integer("daily_limit").notNull().default(20),
+    status: text("status").notNull().default("active"), // active | paused
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => [
+    index("autoapply_configs_user_id_idx").on(table.userId),
+    unique("autoapply_configs_user_unique").on(table.userId), // one config per user
+  ],
+);
+
+export const autoapplyJobs = pgTable(
+  "autoapply_jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    configId: uuid("config_id").notNull().references(() => autoapplyConfigs.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    company: text("company").notNull(),
+    roleTitle: text("role_title").notNull(),
+    location: text("location").notNull().default(""),
+    platform: text("platform").notNull().default(""),
+    applyUrl: text("apply_url").notNull().default(""),
+    matchScore: integer("match_score"),
+    status: text("status").notNull().default("queued"), // queued | applied | failed | skipped
+    appliedAt: timestamp("applied_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("autoapply_jobs_user_id_idx").on(table.userId),
+    index("autoapply_jobs_config_id_idx").on(table.configId),
+    index("autoapply_jobs_status_idx").on(table.status),
+  ],
+);
+
+export const autoapplyConfigsRelations = relations(autoapplyConfigs, ({ one, many }) => ({
+  user: one(user, { fields: [autoapplyConfigs.userId], references: [user.id] }),
+  jobs: many(autoapplyJobs),
+}));
+
+export const autoapplyJobsRelations = relations(autoapplyJobs, ({ one }) => ({
+  config: one(autoapplyConfigs, { fields: [autoapplyJobs.configId], references: [autoapplyConfigs.id] }),
+  user: one(user, { fields: [autoapplyJobs.userId], references: [user.id] }),
+}));

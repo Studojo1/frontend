@@ -113,6 +113,8 @@ export default [
   route("sitemap.xml", "routes/sitemap.xml.tsx"),
   route("robots.txt", "routes/robots.txt.tsx"),
   route("test123", "routes/test123.tsx"),
+  route("api/autoapply/config", "routes/api.autoapply.config.tsx"),
+  route("api/autoapply/jobs", "routes/api.autoapply.jobs.tsx"),
 
   // ── Outreach ──────────────────────────────────────────────────────
   route("outreach", "routes/outreach.tsx"),
