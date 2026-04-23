@@ -873,6 +873,7 @@ export const userLinkedinSessions = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
     liAtEncrypted: text("li_at_encrypted").notNull(),
+    cookiesEncrypted: text("cookies_encrypted"),   // full cookie jar encrypted (optional, improves anti-detection)
     userAgent: text("user_agent"),
     locale: text("locale").default("en-US"),
     timezone: text("timezone").default("Asia/Kolkata"),

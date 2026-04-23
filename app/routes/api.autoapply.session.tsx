@@ -13,8 +13,9 @@ export async function action({ request }: Route.ActionArgs) {
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { liAt, userAgent, locale, timezone } = body as {
+  const { liAt, cookies, userAgent, locale, timezone } = body as {
     liAt?: string;
+    cookies?: string;   // full cookie string from DevTools — strongly recommended
     userAgent?: string;
     locale?: string;
     timezone?: string;
@@ -24,6 +25,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   const { encrypt } = await import("~/lib/encrypt.server");
   const liAtEncrypted = await encrypt(liAt);
+  const cookiesEncrypted = cookies ? await encrypt(cookies) : null;
 
   const [existing] = await db
     .select({ id: userLinkedinSessions.id })
@@ -36,6 +38,7 @@ export async function action({ request }: Route.ActionArgs) {
       .update(userLinkedinSessions)
       .set({
         liAtEncrypted,
+        ...(cookiesEncrypted ? { cookiesEncrypted } : {}),
         ...(userAgent ? { userAgent } : {}),
         ...(locale ? { locale } : {}),
         ...(timezone ? { timezone } : {}),
@@ -49,6 +52,7 @@ export async function action({ request }: Route.ActionArgs) {
     await db.insert(userLinkedinSessions).values({
       userId: session.user.id,
       liAtEncrypted,
+      cookiesEncrypted: cookiesEncrypted ?? null,
       userAgent: userAgent ?? null,
       locale: locale ?? "en-US",
       timezone: timezone ?? "Asia/Kolkata",
