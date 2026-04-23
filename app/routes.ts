@@ -119,6 +119,10 @@ export default [
   route("api/autoapply/answers", "routes/api.autoapply.answers.tsx"),
   route("api/autoapply/report", "routes/api.autoapply.report.tsx"),
   route("api/autoapply/session", "routes/api.autoapply.session.tsx"),
+  route("autoapply", "routes/autoapply.tsx"),
+  route("api/autoapply/stream", "routes/api.autoapply.stream.tsx"),
+  route("api/autoapply/campaigns", "routes/api.autoapply.campaigns.tsx"),
+  route("api/webhooks/stripe", "routes/api.webhooks.stripe.tsx"),
 
   // ── Outreach ──────────────────────────────────────────────────────
   route("outreach", "routes/outreach.tsx"),
