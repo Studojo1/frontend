@@ -118,6 +118,7 @@ export default [
   route("extension-auth", "routes/extension-auth.tsx"),
   route("api/autoapply/answers", "routes/api.autoapply.answers.tsx"),
   route("api/autoapply/report", "routes/api.autoapply.report.tsx"),
+  route("api/autoapply/session", "routes/api.autoapply.session.tsx"),
 
   // ── Outreach ──────────────────────────────────────────────────────
   route("outreach", "routes/outreach.tsx"),
