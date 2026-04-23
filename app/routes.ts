@@ -115,6 +115,8 @@ export default [
   route("test123", "routes/test123.tsx"),
   route("api/autoapply/config", "routes/api.autoapply.config.tsx"),
   route("api/autoapply/jobs", "routes/api.autoapply.jobs.tsx"),
+  route("api/autoapply/answers", "routes/api.autoapply.answers.tsx"),
+  route("api/autoapply/report", "routes/api.autoapply.report.tsx"),
 
   // ── Outreach ──────────────────────────────────────────────────────
   route("outreach", "routes/outreach.tsx"),
