@@ -7,9 +7,22 @@ import db from "./db";
 import { userProfile, user, newsletterSubscriptions } from "../../auth-schema";
 
 export async function getSessionFromRequest(request: { headers: Headers }) {
-  return auth.api.getSession({
-    headers: request.headers,
-  });
+  // Try cookie-based session first
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (session) return session;
+
+  // Fallback: Bearer JWT sent by the browser extension
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    try {
+      const verified = await (auth.api as any).verifyToken?.({ token });
+      if (verified?.session) return verified.session;
+      // Some BetterAuth versions expose the user directly
+      if (verified?.user) return { user: verified.user, session: verified };
+    } catch {}
+  }
+  return null;
 }
 
 export async function getProfileStatus(userId: string) {
