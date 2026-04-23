@@ -123,6 +123,7 @@ export default [
   route("api/autoapply/stream", "routes/api.autoapply.stream.tsx"),
   route("api/autoapply/campaigns", "routes/api.autoapply.campaigns.tsx"),
   route("api/webhooks/stripe", "routes/api.webhooks.stripe.tsx"),
+  route("api/webhooks/razorpay", "routes/api.webhooks.razorpay.tsx"),
 
   // ── Outreach ──────────────────────────────────────────────────────
   route("outreach", "routes/outreach.tsx"),

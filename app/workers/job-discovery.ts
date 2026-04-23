@@ -1,10 +1,11 @@
 // Job discovery worker — fetches matching jobs from multiple sources
 // Called every 6h per active user via BullMQ scheduler
 
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import db from "~/lib/db";
 import { autoapplyConfigs, userLinkedinSessions, jobQueue } from "../../auth-schema";
 import { prescreenJob } from "./prescreen";
+import { scrapeLinkedInJobs, type JobResult } from "./linkedin-scraper";
 
 const JSEARCH_KEY = process.env.JSEARCH_RAPIDAPI_KEY ?? "";
 
@@ -21,19 +22,23 @@ export async function discoverJobsForUser(userId: string) {
 
   const roles = config.roles as string[];
   const locations = config.locations as string[];
-  const platforms = config.platforms as string[];
+  const platforms = (config.platforms as string[]) ?? ["linkedin"];
 
   console.log(`[discovery] User ${userId}: roles=${roles.join(",")}, locations=${locations.join(",")}`);
 
-  const discovered: JobListing[] = [];
+  const discovered: JobResult[] = [];
 
-  // Run all sources in parallel
-  const promises: Promise<JobListing[]>[] = [];
+  // Run all sources in parallel, one per role × location combination
+  const promises: Promise<JobResult[]>[] = [];
 
   for (const role of roles.slice(0, 3)) {
     for (const location of locations.slice(0, 3)) {
       if (platforms.includes("linkedin")) {
-        promises.push(fetchLinkedInJobs(role, location).catch(() => []));
+        // Authenticated Voyager search (returns descriptions inline) with public fallback
+        promises.push(
+          scrapeLinkedInJobs(userId, role, location, { fetchDescriptions: false })
+            .catch(() => [])
+        );
       }
       if (JSEARCH_KEY) {
         promises.push(fetchJSearchJobs(role, location).catch(() => []));
@@ -47,18 +52,23 @@ export async function discoverJobsForUser(userId: string) {
     }
   }
 
-  const results = await Promise.all(promises);
-  for (const batch of results) discovered.push(...batch);
+  const batches = await Promise.all(promises);
+  for (const batch of batches) {
+    for (const j of batch) {
+      // Normalise to internal JobResult shape
+      discovered.push(j);
+    }
+  }
 
   // Deduplicate by applyUrl
   const seen = new Set<string>();
   const unique = discovered.filter((j) => {
-    if (seen.has(j.applyUrl)) return false;
+    if (!j.applyUrl || seen.has(j.applyUrl)) return false;
     seen.add(j.applyUrl);
     return true;
   });
 
-  // Check which URLs are already queued to avoid re-queuing
+  // Skip URLs already in the queue
   const existingRows = await db
     .select({ applyUrl: jobQueue.applyUrl })
     .from(jobQueue)
@@ -72,12 +82,11 @@ export async function discoverJobsForUser(userId: string) {
     return;
   }
 
-  // Score each job against CV + prescreen
-  const cvText = config.cvText;
+  const cvText = (config as any).cvText ?? "";
   let queued = 0;
 
   for (const job of fresh.slice(0, 30)) {
-    const score = await scoreJob(job, roles, cvText);
+    const score = scoreJob(job, roles);
     if (score < 60) continue;
 
     const prescreenedAnswers = await prescreenJob(cvText, job.jobDescription ?? "").catch(() => ({}));
@@ -97,66 +106,12 @@ export async function discoverJobsForUser(userId: string) {
     queued++;
   }
 
-  console.log(`[discovery] User ${userId}: queued ${queued} new jobs (${fresh.length} candidates, ${unique.length} unique)`);
-}
-
-// ── LinkedIn public jobs API ──────────────────────────────────────────────────
-
-async function fetchLinkedInJobs(role: string, location: string): Promise<JobListing[]> {
-  const keywords = encodeURIComponent(role);
-  const loc = encodeURIComponent(location);
-  const url = `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${keywords}&location=${loc}&f_TPR=r604800&start=0`;
-
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      "Accept": "text/html,application/xhtml+xml",
-    },
-    signal: AbortSignal.timeout(15_000),
-  });
-
-  if (!res.ok) return [];
-  const html = await res.text();
-
-  // Parse job cards from HTML
-  const jobs: JobListing[] = [];
-  const cardPattern = /<div class="base-card[^"]*"[^>]*data-entity-urn="([^"]+)"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
-
-  // Simpler approach: parse JSON-LD or use regex to extract job info
-  const titlePattern = /<h3[^>]*class="[^"]*base-search-card__title[^"]*"[^>]*>([\s\S]*?)<\/h3>/g;
-  const companyPattern = /<h4[^>]*class="[^"]*base-search-card__subtitle[^"]*"[^>]*>([\s\S]*?)<\/h4>/g;
-  const locationPattern = /<span[^>]*class="[^"]*job-search-card__location[^"]*"[^>]*>([\s\S]*?)<\/span>/g;
-  const linkPattern = /href="(https:\/\/www\.linkedin\.com\/jobs\/view\/[^"?]+)/g;
-
-  const titles: string[] = [];
-  const companies: string[] = [];
-  const locations: string[] = [];
-  const links: string[] = [];
-
-  let m: RegExpExecArray | null;
-  while ((m = titlePattern.exec(html)) !== null) titles.push(stripHtml(m[1]));
-  while ((m = companyPattern.exec(html)) !== null) companies.push(stripHtml(m[1]));
-  while ((m = locationPattern.exec(html)) !== null) locations.push(stripHtml(m[1]));
-  while ((m = linkPattern.exec(html)) !== null) links.push(m[1]);
-
-  const count = Math.min(titles.length, companies.length, links.length, 25);
-  for (let i = 0; i < count; i++) {
-    jobs.push({
-      company: companies[i] ?? "Unknown",
-      roleTitle: titles[i] ?? role,
-      location: locations[i] ?? location,
-      platform: "linkedin",
-      applyUrl: links[i] ?? "",
-      jobDescription: "",
-    });
-  }
-
-  return jobs.filter((j) => j.applyUrl);
+  console.log(`[discovery] User ${userId}: queued ${queued} new jobs (${fresh.length} fresh, ${unique.length} unique)`);
 }
 
 // ── JSearch (RapidAPI Google Jobs aggregator) ─────────────────────────────────
 
-async function fetchJSearchJobs(role: string, location: string): Promise<JobListing[]> {
+async function fetchJSearchJobs(role: string, location: string): Promise<JobResult[]> {
   const query = encodeURIComponent(`${role} in ${location}`);
   const url = `https://jsearch.p.rapidapi.com/search?query=${query}&page=1&num_pages=1&date_posted=week`;
 
@@ -172,45 +127,48 @@ async function fetchJSearchJobs(role: string, location: string): Promise<JobList
   const data = (await res.json()) as any;
 
   return (data.data ?? []).slice(0, 20).map((j: any) => ({
+    jobId: j.job_id ?? "",
     company: j.employer_name ?? "Unknown",
     roleTitle: j.job_title ?? role,
     location: `${j.job_city ?? ""} ${j.job_country ?? ""}`.trim(),
-    platform: "indeed",
+    platform: "indeed" as const,
     applyUrl: j.job_apply_link ?? j.job_google_link ?? "",
-    jobDescription: j.job_description?.slice(0, 2000) ?? "",
-  })).filter((j: JobListing) => j.applyUrl);
+    isEasyApply: false,
+    jobDescription: j.job_description?.slice(0, 3000) ?? "",
+  })).filter((j: JobResult) => j.applyUrl);
 }
 
 // ── Internshala scraper ───────────────────────────────────────────────────────
 
-async function fetchInternshalaJobs(role: string): Promise<JobListing[]> {
+async function fetchInternshalaJobs(role: string): Promise<JobResult[]> {
   const keyword = role.toLowerCase().replace(/\s+/g, "-");
   const url = `https://internshala.com/internships/${keyword}-internship/`;
 
   const res = await fetch(url, {
-    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+    headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" },
     signal: AbortSignal.timeout(15_000),
   });
 
   if (!res.ok) return [];
   const html = await res.text();
-  const jobs: JobListing[] = [];
+  const jobs: JobResult[] = [];
 
-  // Extract internship cards
-  const cardPattern = /data-internship_id="(\d+)"[\s\S]*?<h3[^>]*class="heading_4_5[^"]*"[^>]*>([\s\S]*?)<\/h3>[\s\S]*?<h4[^>]*class="company-name[^"]*"[^>]*>([\s\S]*?)<\/h4>/g;
+  const cardRe = /data-internship_id="(\d+)"[\s\S]*?<h3[^>]*class="heading_4_5[^"]*"[^>]*>([\s\S]*?)<\/h3>[\s\S]*?<h4[^>]*class="company-name[^"]*"[^>]*>([\s\S]*?)<\/h4>/g;
   let m: RegExpExecArray | null;
 
-  while ((m = cardPattern.exec(html)) !== null) {
+  while ((m = cardRe.exec(html)) !== null) {
     const id = m[1];
     const title = stripHtml(m[2]);
     const company = stripHtml(m[3]);
     if (id && title) {
       jobs.push({
+        jobId: `internshala_${id}`,
         company,
         roleTitle: title,
         location: "India",
-        platform: "internshala",
+        platform: "internshala" as any,
         applyUrl: `https://internshala.com/internship/detail/${id}`,
+        isEasyApply: false,
         jobDescription: "",
       });
     }
@@ -222,13 +180,13 @@ async function fetchInternshalaJobs(role: string): Promise<JobListing[]> {
 
 // ── Naukri scraper ────────────────────────────────────────────────────────────
 
-async function fetchNaukriJobs(role: string): Promise<JobListing[]> {
+async function fetchNaukriJobs(role: string): Promise<JobResult[]> {
   const keyword = encodeURIComponent(role);
   const url = `https://www.naukri.com/jobapi/v3/search?noOfResults=20&urlType=search_by_keyword&searchType=adv&keyword=${keyword}&jobAge=7&src=jobsearchDesk`;
 
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
       "appid": "109",
       "systemid": "109",
     },
@@ -236,53 +194,39 @@ async function fetchNaukriJobs(role: string): Promise<JobListing[]> {
   });
 
   if (!res.ok) return [];
-
   const data = (await res.json()) as any;
-  const results = data?.jobDetails ?? [];
 
-  return results.slice(0, 20).map((j: any) => ({
+  return (data?.jobDetails ?? []).slice(0, 20).map((j: any) => ({
+    jobId: j.jobId ?? "",
     company: j.companyName ?? "Unknown",
     roleTitle: j.title ?? role,
-    location: (j.placeholders?.find((p: any) => p.type === "location")?.label ?? "India"),
-    platform: "naukri",
+    location: j.placeholders?.find((p: any) => p.type === "location")?.label ?? "India",
+    platform: "naukri" as any,
     applyUrl: j.jobUrl ?? `https://www.naukri.com/job-listings-${j.jobId}`,
-    jobDescription: j.jobDescription?.slice(0, 2000) ?? "",
-  })).filter((j: JobListing) => j.applyUrl);
+    isEasyApply: false,
+    jobDescription: j.jobDescription?.slice(0, 3000) ?? "",
+  })).filter((j: JobResult) => j.applyUrl);
 }
 
-// ── AI match scoring ──────────────────────────────────────────────────────────
+// ── Heuristic match scoring ───────────────────────────────────────────────────
 
-async function scoreJob(job: JobListing, targetRoles: string[], cvText: string): Promise<number> {
-  // Fast heuristic — no API call needed for basic scoring
+function scoreJob(job: JobResult, targetRoles: string[]): number {
   let score = 50;
-
   const title = job.roleTitle.toLowerCase();
+
   for (const role of targetRoles) {
-    const roleWords = role.toLowerCase().split(/\s+/);
-    const matches = roleWords.filter((w) => title.includes(w)).length;
-    if (matches > 0) score += matches * 15;
+    const words = role.toLowerCase().split(/\s+/);
+    const matches = words.filter((w) => w.length > 2 && title.includes(w)).length;
+    score += matches * 15;
   }
 
-  // Penalize very short descriptions
   if (job.jobDescription && job.jobDescription.length < 200) score -= 10;
-
-  // Boost for Easy Apply keywords in job description
   if (job.platform === "linkedin") score += 10;
+  if (job.isEasyApply) score += 5;
 
   return Math.min(100, Math.max(0, score));
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-}
-
-export interface JobListing {
-  company: string;
-  roleTitle: string;
-  location?: string;
-  platform: string;
-  applyUrl: string;
-  jobDescription?: string;
 }
