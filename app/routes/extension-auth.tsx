@@ -1,5 +1,4 @@
 import { redirect } from "react-router";
-import { auth } from "~/lib/auth";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/extension-auth";
 
@@ -7,15 +6,15 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) {
     const url = new URL(request.url);
-    throw redirect(`/auth?redirect=/extension-auth?ext=${url.searchParams.get("ext") ?? ""}`);
+    const ext = url.searchParams.get("ext") ?? "";
+    throw redirect(`/auth?redirect=${encodeURIComponent(`/extension-auth?ext=${ext}`)}`);
   }
 
   const url = new URL(request.url);
   const extId = url.searchParams.get("ext") ?? "";
 
-  // Get a JWT for the extension to use
-  const tokenRes = await auth.api.getAccessToken({ headers: request.headers });
-  const token = (tokenRes as any)?.token ?? (tokenRes as any)?.accessToken ?? null;
+  // Use the session token directly as Bearer token — avoids getAccessToken throwing
+  const token = (session as any).session?.token ?? (session as any).session?.id ?? null;
 
   return { token, extId, name: session.user.name };
 }
