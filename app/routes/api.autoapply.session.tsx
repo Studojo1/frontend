@@ -2,7 +2,6 @@ import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { eq } from "drizzle-orm";
 import db from "~/lib/db";
 import { userLinkedinSessions } from "../../auth-schema";
-import { encrypt, decrypt } from "~/lib/encrypt.server";
 import type { Route } from "./+types/api.autoapply.session";
 
 // POST /api/autoapply/session — store or refresh li_at + fingerprint
@@ -23,6 +22,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (!liAt) return Response.json({ error: "liAt is required" }, { status: 400 });
 
+  const { encrypt } = await import("~/lib/encrypt.server");
   const liAtEncrypted = await encrypt(liAt);
 
   const [existing] = await db
