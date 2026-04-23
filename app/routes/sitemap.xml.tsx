@@ -11,6 +11,7 @@ export async function loader() {
     { loc: "/reports", priority: "0.9", changefreq: "weekly" },
     { loc: "/reports/cs-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/job-search-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/christ-university-finance-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
     { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },
@@ -52,6 +53,7 @@ export async function loader() {
     "/reports/internships-uk-2026": "2026-04-20",
     "/reports/internships-australia-2026": "2026-04-20",
     "/reports/skills-ai-entry-level-2026": "2026-04-20",
+    "/reports/christ-university-finance-2026": "2026-04-23",
   };
 
   const urls = [
