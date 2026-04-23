@@ -59,11 +59,11 @@ export async function discoverJobsForUser(userId: string) {
   });
 
   // Check which URLs are already queued to avoid re-queuing
-  const existingUrls = new Set(
-    (await db.execute(sql`
-      SELECT apply_url FROM job_queue WHERE user_id = ${userId}
-    `)).map((r: any) => r.apply_url)
-  );
+  const existingRows = await db
+    .select({ applyUrl: jobQueue.applyUrl })
+    .from(jobQueue)
+    .where(eq(jobQueue.userId, userId));
+  const existingUrls = new Set(existingRows.map((r) => r.applyUrl));
 
   const fresh = unique.filter((j) => !existingUrls.has(j.applyUrl));
 

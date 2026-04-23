@@ -58,18 +58,18 @@ export async function checkFleetHealth(): Promise<boolean> {
   const oneHourAgo = new Date(Date.now() - 3_600_000);
 
   // Count recent LinkedIn errors
-  const [errorRow] = await db.execute(sql`
+  const errorResult = await db.execute(sql`
     SELECT COUNT(*) as cnt FROM system_events
     WHERE event_type IN ('linkedin_429', 'linkedin_999', 'linkedin_captcha')
       AND created_at > ${oneHourAgo}
   `);
-  const errorCount = Number((errorRow as any).cnt ?? 0);
+  const errorCount = Number((errorResult.rows[0] as any)?.cnt ?? 0);
 
   // Count active users
-  const [activeRow] = await db.execute(sql`
+  const activeResult = await db.execute(sql`
     SELECT COUNT(*) as cnt FROM autoapply_configs WHERE status = 'active'
   `);
-  const activeCount = Number((activeRow as any).cnt ?? 1);
+  const activeCount = Number((activeResult.rows[0] as any)?.cnt ?? 1);
 
   const errorRate = errorCount / activeCount;
 
@@ -105,7 +105,7 @@ export async function pauseAllUsers(reason: string) {
 export async function checkAcceptanceRate(userId: string): Promise<number | null> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 86_400_000);
 
-  const [row] = await db.execute(sql`
+  const result = await db.execute(sql`
     SELECT
       COUNT(*) as sent,
       SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) as accepted
@@ -113,9 +113,10 @@ export async function checkAcceptanceRate(userId: string): Promise<number | null
     WHERE user_id = ${userId}
       AND created_at > ${sevenDaysAgo}
   `);
+  const row = result.rows[0] as any;
 
-  const sent = Number((row as any).sent ?? 0);
-  const accepted = Number((row as any).accepted ?? 0);
+  const sent = Number(row?.sent ?? 0);
+  const accepted = Number(row?.accepted ?? 0);
 
   if (sent < 10) return null; // not enough data
 

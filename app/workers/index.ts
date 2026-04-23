@@ -2,7 +2,7 @@
 // Run with: bun app/workers/index.ts
 // This process handles all BullMQ queues — runs in autoapply-worker pod
 
-import { Queue, Worker, QueueScheduler } from "bullmq";
+import { Queue, Worker } from "bullmq";
 import { eq, and, lt, sql } from "drizzle-orm";
 import db from "~/lib/db";
 import {
