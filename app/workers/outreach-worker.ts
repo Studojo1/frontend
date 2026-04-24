@@ -17,18 +17,9 @@ async function getChromium() {
   return chromiumModule;
 }
 
-// Build residential proxy config for IPRoyal (sticky session per user = same IP every time)
-// BRIGHTDATA_* Browser API is NOT used here — it blocks li_at cookie injection for LinkedIn
-function getProxyConfig(userId: string, country: string, city: string) {
-  if (process.env.IPROYAL_PASSWORD && process.env.IPROYAL_USERNAME) {
-    return buildProxy(userId, country, city);
-  }
-  return undefined;
-}
-
 async function launchBrowser(userId: string, country: string, city: string, contextOptions: any): Promise<{ browser: any; ctx: any }> {
   const chromium = await getChromium();
-  const proxy = getProxyConfig(userId, country, city);
+  const proxy = buildProxy(userId, country, city); // undefined if DECODO_* not set
   const browser = await chromium.launch({
     headless: true,
     proxy,

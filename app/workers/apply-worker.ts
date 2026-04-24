@@ -19,9 +19,7 @@ async function getChromium() {
 
 async function launchBrowser(userId: string, country: string, city: string, contextOptions: any): Promise<{ browser: any; ctx: any }> {
   const chromium = await getChromium();
-  const proxy = process.env.IPROYAL_PASSWORD && process.env.IPROYAL_USERNAME
-    ? buildProxy(userId, country, city)
-    : undefined;
+  const proxy = buildProxy(userId, country, city); // undefined if DECODO_* not set
   const browser = await chromium.launch({
     headless: true,
     proxy,
