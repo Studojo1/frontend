@@ -354,8 +354,8 @@ export async function scrapeLinkedInJobs(
         usedAuth = true;
         console.log(`[linkedin] Voyager: ${results.length} jobs for "${role}" / "${location}"${proxyConfigured() ? " (proxied)" : " (no proxy)"}`);
       } catch (err: any) {
+        console.warn(`[linkedin] Voyager error (${err.message}) — falling back to public API`);
         if (err.message?.startsWith("LINKEDIN_RATE_LIMIT") || err.message?.startsWith("LINKEDIN_AUTH_FAILED")) throw err;
-        console.warn(`[linkedin] Voyager failed, using public API: ${err.message}`);
       }
     }
   }

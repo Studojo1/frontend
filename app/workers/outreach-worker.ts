@@ -50,6 +50,8 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
   }
 
   const chromium = await getChromium();
+  // Bright Data (BRIGHTDATA_*) blocks LinkedIn via policy_20090 — skip proxy for browser automation.
+  // Only enable proxy when IPRoyal is configured, which allows LinkedIn traffic.
   const proxyConfig = session.proxyCountry && process.env.IPROYAL_PASSWORD
     ? buildProxy(contact.userId, session.proxyCountry, session.proxyCity ?? "bangalore")
     : undefined;
@@ -184,33 +186,8 @@ async function sendConnectionRequest(page: any, contact: any, session: any, rate
 async function sendIntroMessage(page: any, contact: any, rateLimited: boolean): Promise<{ status: string; error?: string }> {
   if (rateLimited) return { status: "skipped", error: "rate_limited" };
 
-  try {
-    await page.goto(contact.linkedinUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
-    await page.waitForTimeout(1000);
-
-    const msgBtn = await findButton(page, ["Message"]);
-    if (!msgBtn) return { status: "skipped", error: "not_connected_yet" };
-
-    await msgBtn.click();
-    await page.waitForTimeout(1000);
-
-    const msgBox = await page.$(".msg-form__contenteditable");
-    if (!msgBox) return { status: "failed", error: "no_message_box" };
-
-    const message = `Hi ${contact.name?.split(" ")[0] ?? "there"}, thanks for connecting! I recently applied for a role at ${contact.company ?? "your company"} and wanted to reach out directly. Happy to share more context if helpful.`;
-    await msgBox.fill(message);
-    await page.waitForTimeout(500);
-
-    const sendBtn = await page.$('button.msg-form__send-button');
-    if (sendBtn) {
-      await sendBtn.click();
-      return { status: "sent" };
-    }
-
-    return { status: "failed", error: "no_send_button" };
-  } catch (err: any) {
-    return { status: "failed", error: err?.message?.slice(0, 100) };
-  }
+  const message = `Hi ${contact.name?.split(" ")[0] ?? "there"}, thanks for connecting! I recently applied for a role at ${contact.company ?? "your company"} and wanted to reach out directly. Happy to share more context if helpful.`;
+  return sendLinkedInMessage(page, contact, message);
 }
 
 // ── Follow-up ─────────────────────────────────────────────────────────────────
@@ -218,30 +195,81 @@ async function sendIntroMessage(page: any, contact: any, rateLimited: boolean): 
 async function sendFollowUp(page: any, contact: any, rateLimited: boolean): Promise<{ status: string; error?: string }> {
   if (rateLimited) return { status: "skipped", error: "rate_limited" };
 
+  const followUp = `Hi ${contact.name?.split(" ")[0] ?? "there"} — just a quick follow-up on my earlier message. Happy to connect on a call if you have 15 minutes. No pressure either way.`;
+  return sendLinkedInMessage(page, contact, followUp);
+}
+
+// ── Core message send (proven approach) ──────────────────────────────────────
+// 1. Search conversation list by name — avoids Premium modal interception
+// 2. Fallback: navigate to profile, JS-click Message, remove Premium modals
+
+async function sendLinkedInMessage(page: any, contact: any, message: string): Promise<{ status: string; error?: string }> {
   try {
-    await page.goto(contact.linkedinUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
-    await page.waitForTimeout(1000);
+    await page.goto("https://www.linkedin.com/messaging/", { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(2500);
 
-    const msgBtn = await findButton(page, ["Message"]);
-    if (!msgBtn) return { status: "skipped", error: "not_connected_yet" };
+    // Try conversation search first — more reliable than clicking Message on profile
+    const firstName = contact.name?.split(" ")[0] ?? "";
+    const lastName = contact.name?.split(" ").slice(-1)[0] ?? "";
+    const searchInput = await page.$('[placeholder="Search messages"]');
 
-    await msgBtn.click();
-    await page.waitForTimeout(1000);
+    if (searchInput && firstName) {
+      await searchInput.click();
+      await page.keyboard.type(firstName, { delay: 80 });
+      await page.waitForTimeout(2000);
 
-    const msgBox = await page.$(".msg-form__contenteditable");
-    if (!msgBox) return { status: "failed", error: "no_message_box" };
-
-    const followUp = `Hi ${contact.name?.split(" ")[0] ?? "there"} — just a quick follow-up on my earlier message. Happy to connect on a call if you have 15 minutes. No pressure either way.`;
-    await msgBox.fill(followUp);
-    await page.waitForTimeout(500);
-
-    const sendBtn = await page.$('button.msg-form__send-button');
-    if (sendBtn) {
-      await sendBtn.click();
-      return { status: "sent" };
+      const convItems = await page.$$(".msg-conversation-listitem");
+      for (const item of convItems) {
+        const text = await item.textContent().catch(() => "");
+        if (text?.includes(firstName) && (!lastName || text?.includes(lastName))) {
+          await item.click({ force: true });
+          await page.waitForTimeout(1500);
+          break;
+        }
+      }
     }
 
-    return { status: "failed", error: "no_send_button" };
+    let msgBox = await page.$(".msg-form__contenteditable");
+
+    // Fallback: navigate to profile and click Message via JS
+    if (!msgBox && contact.linkedinUrl) {
+      await page.goto(contact.linkedinUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+      await page.waitForTimeout(3000);
+
+      await page.evaluate(() => {
+        const btn = [...document.querySelectorAll("a, button")].find(
+          (b) => b.textContent?.trim() === "Message" || b.getAttribute("aria-label")?.includes("Message")
+        );
+        if (btn) (btn as HTMLElement).click();
+      });
+      await page.waitForTimeout(3000);
+
+      // Remove Premium and overlay elements that intercept clicks
+      await page.evaluate(() => {
+        document.querySelectorAll("[data-test-modal],.artdeco-modal,[role='dialog']").forEach((m) => {
+          if ((m.textContent ?? "").includes("Premium") || (m.textContent ?? "").includes("InMail")) m.remove();
+        });
+        document.querySelectorAll(".search-global-typeahead__overlay").forEach((e) => e.remove());
+      });
+      await page.waitForTimeout(500);
+
+      msgBox = await page.$(".msg-form__contenteditable")
+        ?? await page.$(".msg-overlay-conversation-bubble div[contenteditable='true']");
+    }
+
+    if (!msgBox) return { status: "skipped", error: "not_connected_yet" };
+
+    await msgBox.click({ force: true });
+    // Use keyboard.type — fill() doesn't trigger LinkedIn's input events
+    await page.keyboard.type(message);
+    await page.waitForTimeout(800);
+
+    const sendBtn = await page.$("button.msg-form__send-button") ?? await page.$('[aria-label="Send"]');
+    if (!sendBtn) return { status: "failed", error: "no_send_button" };
+
+    await sendBtn.click({ force: true });
+    await page.waitForTimeout(1000);
+    return { status: "sent" };
   } catch (err: any) {
     return { status: "failed", error: err?.message?.slice(0, 100) };
   }
