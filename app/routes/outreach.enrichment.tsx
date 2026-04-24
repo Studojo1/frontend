@@ -556,13 +556,18 @@ export default function EnrichmentPage() {
               </div>
             </div>
 
-            <a
-              href={consultRole && consultChallenge && consultTimeline ? CONSULTATION_URL : undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                if (!consultRole || !consultChallenge || !consultTimeline) { e.preventDefault(); return; }
+            <button
+              type="button"
+              disabled={!consultRole || !consultChallenge || !consultTimeline}
+              onClick={async () => {
+                if (!consultRole || !consultChallenge || !consultTimeline) return;
+                fetch("/api/consultation-signup", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ targetRole: consultRole, biggestChallenge: consultChallenge, timeline: consultTimeline }),
+                }).catch(() => {});
                 setShowConsultModal(false);
+                window.open(CONSULTATION_URL, "_blank", "noopener,noreferrer");
               }}
               className={`mt-6 w-full h-11 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink flex items-center justify-center gap-2 transition-all ${
                 consultRole && consultChallenge && consultTimeline
@@ -571,7 +576,7 @@ export default function EnrichmentPage() {
               }`}
             >
               Book my free call <FiArrowRight className="w-3.5 h-3.5" />
-            </a>
+            </button>
           </div>
         </div>
       )}
