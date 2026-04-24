@@ -429,10 +429,6 @@ export const auth = betterAuth({
       domain: ".studojo.com",
       sameSite: "lax",
       secure: true,
-    } : baseURL.includes("studojo.pro") ? {
-      domain: ".studojo.pro",
-      sameSite: "lax",
-      secure: true,
     } : undefined,
   },
 
