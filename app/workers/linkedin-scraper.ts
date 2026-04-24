@@ -11,7 +11,7 @@
 import { eq } from "drizzle-orm";
 import db from "~/lib/db";
 import { userLinkedinSessions } from "../../auth-schema";
-import { buildProxyUrl, proxyConfigured } from "~/lib/proxy.server";
+import { buildProxy, proxyConfigured } from "~/lib/proxy.server";
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
@@ -181,7 +181,10 @@ async function proxyFetch(
     return fetch(url, options);
   }
 
-  const proxyUrl = buildProxyUrl(session.userId, session.proxyCountry, session.proxyCity);
+  const proxyCfg = buildProxy(session.userId, session.proxyCountry ?? "IN", session.proxyCity ?? "bangalore");
+  const proxyUrl = proxyCfg
+    ? `http://${proxyCfg.username}:${proxyCfg.password}@${proxyCfg.server.replace("http://", "")}`
+    : undefined;
 
   // Node.js 18+ supports proxy via undici / experimental --experimental-fetch
   // Bun supports proxies via fetch options
