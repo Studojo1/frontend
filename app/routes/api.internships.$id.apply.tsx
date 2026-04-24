@@ -1,7 +1,8 @@
 import { eq, and } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
-import { internships, internshipApplications, resumes, internshipQuestions, userQuestionResponses } from "../../auth-schema";
+import { internships, internshipApplications, resumes, internshipQuestions, userQuestionResponses, user } from "../../auth-schema";
+import { sendInternshipApplicationNotification } from "~/lib/notifications.server";
 import type { Route } from "./+types/api.internships.$id.apply";
 
 // POST /api/internships/:id/apply - Submit application (authenticated)
@@ -234,6 +235,34 @@ export async function action({ request, params }: Route.ActionArgs) {
   } catch (error) {
     // Log but don't fail the request
     console.error("Failed to publish internship application event:", error);
+  }
+
+  // Send ops notification via Resend (non-blocking)
+  try {
+    const [applicant] = await db
+      .select({
+        name: user.name,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+      })
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .limit(1);
+
+    if (applicant) {
+      await sendInternshipApplicationNotification({
+        applicantName: applicant.name,
+        applicantEmail: applicant.email,
+        applicantPhone: applicant.phoneNumber,
+        internshipTitle: internship.title,
+        companyName: internship.companyName,
+        internshipId: internshipId,
+        applicationId: newApplication.id,
+        appliedAt: newApplication.createdAt,
+      });
+    }
+  } catch (error) {
+    console.error("Failed to send internship application notification email:", error);
   }
 
   return new Response(

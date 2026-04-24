@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoapply-worker
+  namespace: studojo
+  labels:
+    app: autoapply-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: autoapply-worker
+  template:
+    metadata:
+      labels:
+        app: autoapply-worker
+    spec:
+      containers:
+        - name: autoapply-worker
+          image: acrstudojo-dhfsdrfhf6a6bbg2.azurecr.io/autoapply-worker:latest
+          command: ["bun", "app/workers/index.ts"]
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "100m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: database-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: redis-url
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: redis-password
+            - name: LI_AT_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: li-at-encryption-key
+            - name: IPROYAL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: iproyal-username
+            - name: IPROYAL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: iproyal-password
+            - name: JSEARCH_RAPIDAPI_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: jsearch-rapidapi-key
+            - name: AZURE_OPENAI_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: azure-openai-endpoint
+            - name: AZURE_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: azure-openai-api-key
+            - name: AZURE_OPENAI_CHAT_DEPLOYMENT
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: azure-openai-chat-deployment
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: slack-webhook-url
+                  optional: true
+      imagePullSecrets:
+        - name: acr-secret
+      restartPolicy: Always

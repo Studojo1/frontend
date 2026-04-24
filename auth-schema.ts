@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, real, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -800,3 +800,194 @@ export const reportRequests = pgTable(
     index("report_requests_created_at_idx").on(table.createdAt),
   ],
 );
+
+// ── AutoApply ─────────────────────────────────────────────────────────────────
+
+export const autoapplyConfigs = pgTable(
+  "autoapply_configs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    cvText: text("cv_text").notNull(),
+    roles: jsonb("roles").$type<string[]>().notNull().default([]),
+    locations: jsonb("locations").$type<string[]>().notNull().default([]),
+    platforms: jsonb("platforms").$type<string[]>().notNull().default([]),
+    workType: text("work_type").notNull().default("any"),
+    dailyLimit: integer("daily_limit").notNull().default(20),
+    status: text("status").notNull().default("active"), // active | paused
+    // v2 fields
+    prescreenAnswers: jsonb("prescreen_answers").$type<Record<string, string>>().default({}),
+    companyPrefs: jsonb("company_prefs").$type<Record<string, string[]>>().default({}),
+    excludedCompanies: jsonb("excluded_companies").$type<string[]>().default([]),
+    resumeUrl: text("resume_url"),
+    scheduleStartHour: integer("schedule_start_hour").default(9),
+    scheduleEndHour: integer("schedule_end_hour").default(20),
+    warmupDay: integer("warmup_day").default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => [
+    index("autoapply_configs_user_id_idx").on(table.userId),
+    unique("autoapply_configs_user_unique").on(table.userId), // one config per user
+  ],
+);
+
+export const autoapplyJobs = pgTable(
+  "autoapply_jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    configId: uuid("config_id").notNull().references(() => autoapplyConfigs.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    company: text("company").notNull(),
+    roleTitle: text("role_title").notNull(),
+    location: text("location").notNull().default(""),
+    platform: text("platform").notNull().default(""),
+    applyUrl: text("apply_url").notNull().default(""),
+    matchScore: integer("match_score"),
+    status: text("status").notNull().default("queued"), // queued | applied | failed | skipped
+    appliedAt: timestamp("applied_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("autoapply_jobs_user_id_idx").on(table.userId),
+    index("autoapply_jobs_config_id_idx").on(table.configId),
+    index("autoapply_jobs_status_idx").on(table.status),
+  ],
+);
+
+export const autoapplyConfigsRelations = relations(autoapplyConfigs, ({ one, many }) => ({
+  user: one(user, { fields: [autoapplyConfigs.userId], references: [user.id] }),
+  jobs: many(autoapplyJobs),
+}));
+
+export const autoapplyJobsRelations = relations(autoapplyJobs, ({ one }) => ({
+  config: one(autoapplyConfigs, { fields: [autoapplyJobs.configId], references: [autoapplyConfigs.id] }),
+  user: one(user, { fields: [autoapplyJobs.userId], references: [user.id] }),
+}));
+
+// ── AutoApply v2: server-side workers ─────────────────────────────────────────
+
+export const userLinkedinSessions = pgTable(
+  "user_linkedin_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    liAtEncrypted: text("li_at_encrypted").notNull(),
+    cookiesEncrypted: text("cookies_encrypted"),   // full cookie jar encrypted (optional, improves anti-detection)
+    userAgent: text("user_agent"),
+    locale: text("locale").default("en-US"),
+    timezone: text("timezone").default("Asia/Kolkata"),
+    proxyCountry: text("proxy_country").default("IN"),
+    proxyCity: text("proxy_city").default("bangalore"),
+    proxySession: text("proxy_session"),
+    cookieRefreshedAt: timestamp("cookie_refreshed_at").defaultNow(),
+    isActive: boolean("is_active").default(true).notNull(),
+    warmupDay: integer("warmup_day").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    unique("user_linkedin_sessions_user_unique").on(table.userId),
+    index("user_linkedin_sessions_user_id_idx").on(table.userId),
+  ],
+);
+
+export const jobQueue = pgTable(
+  "job_queue",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    company: text("company").notNull(),
+    roleTitle: text("role_title").notNull(),
+    location: text("location").default(""),
+    platform: text("platform").notNull(),
+    applyUrl: text("apply_url").notNull(),
+    jobDescription: text("job_description").default(""),
+    matchScore: integer("match_score"),
+    prescreenedAnswers: jsonb("prescreened_answers").$type<Record<string, string>>(),
+    status: text("status").notNull().default("pending"), // pending | processing | applied | failed | skipped
+    error: text("error"),
+    appliedAt: timestamp("applied_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("job_queue_user_id_idx").on(table.userId),
+    index("job_queue_status_idx").on(table.status),
+    index("job_queue_user_status_idx").on(table.userId, table.status),
+  ],
+);
+
+export const outreachContacts = pgTable(
+  "outreach_contacts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    linkedinUrl: text("linkedin_url").notNull(),
+    name: text("name"),
+    title: text("title"),
+    company: text("company"),
+    recentPostSnippet: text("recent_post_snippet"),
+    mutualConnection: text("mutual_connection"),
+    sequenceStep: integer("sequence_step").default(0).notNull(),
+    status: text("status").notNull().default("pending"), // pending | requested | accepted | messaged | replied | done
+    acceptanceRateAtSend: real("acceptance_rate_at_send"),
+    connectedAt: timestamp("connected_at"),
+    lastActionAt: timestamp("last_action_at"),
+    replied: boolean("replied").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    unique("outreach_contacts_user_url_unique").on(table.userId, table.linkedinUrl),
+    index("outreach_contacts_user_id_idx").on(table.userId),
+    index("outreach_contacts_status_idx").on(table.status),
+  ],
+);
+
+export const outreachCampaigns = pgTable(
+  "outreach_campaigns",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    targetTitles: jsonb("target_titles").$type<string[]>().notNull().default([]),
+    targetCompanies: jsonb("target_companies").$type<string[]>().notNull().default([]),
+    connectionNote: text("connection_note"),
+    messageTemplate: text("message_template"),
+    followUpTemplate: text("follow_up_template"),
+    status: text("status").notNull().default("active"), // active | paused | done
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("outreach_campaigns_user_id_idx").on(table.userId),
+  ],
+);
+
+export const systemEvents = pgTable(
+  "system_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventType: text("event_type").notNull(),
+    userId: text("user_id"),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("system_events_type_created_idx").on(table.eventType, table.createdAt),
+    index("system_events_created_idx").on(table.createdAt),
+  ],
+);
+
+export const userLinkedinSessionsRelations = relations(userLinkedinSessions, ({ one }) => ({
+  user: one(user, { fields: [userLinkedinSessions.userId], references: [user.id] }),
+}));
+
+export const jobQueueRelations = relations(jobQueue, ({ one }) => ({
+  user: one(user, { fields: [jobQueue.userId], references: [user.id] }),
+}));
+
+export const outreachContactsRelations = relations(outreachContacts, ({ one }) => ({
+  user: one(user, { fields: [outreachContacts.userId], references: [user.id] }),
+}));
+
+export const outreachCampaignsRelations = relations(outreachCampaigns, ({ one }) => ({
+  user: one(user, { fields: [outreachCampaigns.userId], references: [user.id] }),
+}));

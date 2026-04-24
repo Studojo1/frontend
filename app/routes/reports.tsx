@@ -217,6 +217,19 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "christ-university-finance-2026",
+    publishDate: "2026-04-23",
+    title: "Christ University & Finance Roles: What the Data Actually Says",
+    subtitle: "Q2 2026",
+    excerpt:
+      "Bangalore has 600+ finance roles open right now. Most Christ students never see them. The 2x salary gap between campus and off-campus, the one skill separating 5 LPA from 10 LPA, and the companies worth targeting directly.",
+    category: "Colleges",
+    type: "Colleges" as ReportType,
+    date: "April 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
     slug: "job-search-2026",
     publishDate: "2026-04-22",
     title: "Job Boards Are Dead: How Students Actually Get Hired in 2026",

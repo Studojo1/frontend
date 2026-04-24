@@ -1,0 +1,105 @@
+name: Build and Deploy AutoApply Worker
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - "app/workers/**"
+      - "auth-schema.ts"
+      - "Dockerfile.worker"
+      - "k8s/autoapply-worker.yaml"
+      - ".github/workflows/deploy-worker.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  REGISTRY: acrstudojo-dhfsdrfhf6a6bbg2.azurecr.io
+  ACR_NAME: acrstudojo
+  APP_NAME: autoapply-worker
+  IMAGE_TAG: ${{ github.sha }}
+  NAMESPACE: studojo
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: |
+          TOKEN=$(az acr login --name ${{ env.ACR_NAME }} --expose-token --output tsv --query accessToken)
+          docker login ${{ env.REGISTRY }} -u 00000000-0000-0000-0000-000000000000 -p "$TOKEN"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.worker
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.APP_NAME }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group rg-studojo \
+            --name studojo-aks \
+            --overwrite-existing
+
+      - name: Apply K8s deployment manifest
+        run: |
+          kubectl apply -f k8s/autoapply-worker.yaml -n ${{ env.NAMESPACE }}
+
+      - name: Update worker image
+        run: |
+          kubectl set image deployment/${{ env.APP_NAME }} \
+            ${{ env.APP_NAME }}=${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ env.IMAGE_TAG }} \
+            -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/${{ env.APP_NAME }} \
+            -n ${{ env.NAMESPACE }} --timeout=10m || {
+            echo "Rollout failed. Checking pod status..."
+            kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.APP_NAME }} -o wide
+            LATEST_POD=$(kubectl get pods -n ${{ env.NAMESPACE }} \
+              -l app=${{ env.APP_NAME }} \
+              --sort-by=.metadata.creationTimestamp \
+              -o jsonpath='{.items[-1].metadata.name}' 2>/dev/null || echo "")
+            if [ -n "$LATEST_POD" ]; then
+              kubectl logs -n ${{ env.NAMESPACE }} $LATEST_POD --tail=50 || true
+            fi
+            exit 1
+          }
