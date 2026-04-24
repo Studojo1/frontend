@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, Fragment } from "react";
 import { useNavigate } from "react-router";
 import {
   FiSend, FiAlertCircle, FiBarChart2, FiPause, FiPlay, FiUsers,
   FiCheckCircle, FiXCircle, FiClock, FiMessageCircle, FiX,
   FiArrowRight, FiThumbsUp, FiThumbsDown, FiMinus,
   FiPlus, FiTrash2, FiMail, FiRefreshCw,
+  FiChevronRight, FiChevronDown, FiCornerDownRight,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
@@ -55,6 +56,8 @@ interface CampaignEmail {
   reply_received_at: string | null;
   bounce_reason: string | null;
   is_test: boolean;
+  followup_number?: number;
+  parent_email_id?: number | null;
 }
 
 interface TestRecipient {
@@ -129,6 +132,18 @@ function StatusBadge({ status, sentiment }: { status: string; sentiment?: string
       <span className="text-amber-600 font-bold text-sm">Sending</span>
     </div>
   );
+  if (status === "followup_pending") return (
+    <div className="flex items-center gap-1">
+      <FiClock className="w-4 h-4 text-studojo-muted" />
+      <span className="text-studojo-muted font-bold text-sm">Queued</span>
+    </div>
+  );
+  if (status === "cancelled_reply") return (
+    <div className="flex items-center gap-1">
+      <FiMinus className="w-4 h-4 text-studojo-muted" />
+      <span className="text-studojo-muted font-medium text-sm italic">Skipped</span>
+    </div>
+  );
   return (
     <div className="flex items-center gap-1">
       <FiClock className="w-4 h-4 text-studojo-muted" />
@@ -156,6 +171,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedEmail, setSelectedEmail] = useState<CampaignEmail | null>(null);
+  const [expandedThreads, setExpandedThreads] = useState<Set<number>>(new Set());
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showTestModal, setShowTestModal] = useState(false);
   const [testRecipients, setTestRecipients] = useState<TestRecipient[]>([{ first_name: "", company: "", email: "" }]);
@@ -306,6 +322,31 @@ export default function DashboardPage() {
     if (statusFilter === "pending") return !["sent", "replied", "bounced", "failed"].includes(email.status);
     return true;
   });
+
+  // Group emails by thread: parent email (Touch 1) + its follow-ups.
+  // Only the parent is shown at top level; follow-ups render as children when expanded.
+  const parentEmails = filteredEmails.filter((e) => !e.parent_email_id);
+  const followupsByParent = new Map<number, CampaignEmail[]>();
+  for (const e of emails) {
+    if (e.parent_email_id) {
+      const arr = followupsByParent.get(e.parent_email_id) || [];
+      arr.push(e);
+      followupsByParent.set(e.parent_email_id, arr);
+    }
+  }
+  // Sort follow-ups by followup_number ascending (Touch 2, then Touch 3)
+  for (const [, arr] of followupsByParent) {
+    arr.sort((a, b) => (a.followup_number || 0) - (b.followup_number || 0));
+  }
+
+  const toggleThread = (parentId: number) => {
+    setExpandedThreads((prev) => {
+      const next = new Set(prev);
+      if (next.has(parentId)) next.delete(parentId);
+      else next.add(parentId);
+      return next;
+    });
+  };
 
   // Row background color based on status + sentiment
   const getRowColor = (email: CampaignEmail) => {
@@ -756,39 +797,103 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredEmails.map((email) => (
-                        <tr
-                          key={email.id}
-                          onClick={() => setSelectedEmail(email)}
-                          className={`border-b border-studojo-ink/5 transition-colors cursor-pointer ${getRowColor(email)}`}
-                        >
-                          <td className="py-3 px-2 font-bold text-studojo-ink">
-                            {email.lead_name}
-                            {email.is_test && (
-                              <span className="ml-1 text-xs text-studojo-purple font-normal">(test)</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-2 text-studojo-muted truncate max-w-[200px]">{email.to_email}</td>
-                          <td className="py-3 px-2 text-studojo-muted hidden md:table-cell">{email.lead_company}</td>
-                          <td className="py-3 px-2">
-                            <StatusBadge status={email.status === "queued" ? "queued" : email.status} sentiment={email.reply_sentiment} />
-                          </td>
-                          <td className="py-3 px-2 text-sm">
-                            {email.status === "replied" && email.reply_received_at
-                              ? <span className="text-studojo-green text-xs">Replied {formatTimestamp(email.reply_received_at, tz)}</span>
-                              : email.status === "sent" && email.sent_at
-                                ? <span className="text-studojo-green text-xs">Sent {formatTimestamp(email.sent_at, tz)}</span>
-                                : email.status === "bounced"
-                                  ? <span className="text-red-600 text-xs" title={email.bounce_reason || ""}>Bounced</span>
-                                  : email.status === "failed"
-                                    ? <span className="text-red-600 text-xs">Failed</span>
-                                    : email.scheduled_at
-                                      ? <span className="text-studojo-purple text-xs font-medium">{formatTimestamp(email.scheduled_at, tz)}</span>
-                                      : <span className="text-studojo-muted text-xs">Queued</span>
-                            }
-                          </td>
-                        </tr>
-                      ))}
+                      {parentEmails.map((email) => {
+                        const children = followupsByParent.get(email.id) || [];
+                        const isExpanded = expandedThreads.has(email.id);
+                        const hasFollowups = children.length > 0;
+                        const sentFollowups = children.filter((c) => c.status === "sent").length;
+                        return (
+                          <Fragment key={email.id}>
+                            <tr
+                              onClick={() => setSelectedEmail(email)}
+                              className={`border-b border-studojo-ink/5 transition-colors cursor-pointer ${getRowColor(email)}`}
+                            >
+                              <td className="py-3 px-2 font-bold text-studojo-ink">
+                                <div className="flex items-center gap-2">
+                                  {hasFollowups ? (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleThread(email.id);
+                                      }}
+                                      className="p-0.5 rounded hover:bg-studojo-ink/10 text-studojo-muted"
+                                      title={isExpanded ? "Collapse follow-ups" : "Show follow-ups"}
+                                    >
+                                      {isExpanded ? <FiChevronDown className="w-4 h-4" /> : <FiChevronRight className="w-4 h-4" />}
+                                    </button>
+                                  ) : (
+                                    <span className="w-5" />
+                                  )}
+                                  <span>{email.lead_name}</span>
+                                  {email.is_test && (
+                                    <span className="ml-1 text-xs text-studojo-purple font-normal">(test)</span>
+                                  )}
+                                  {hasFollowups && (
+                                    <span className="ml-1 text-xs text-studojo-muted font-normal bg-studojo-ink/5 px-1.5 py-0.5 rounded">
+                                      +{sentFollowups}/{children.length} follow-ups
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-2 text-studojo-muted truncate max-w-[200px]">{email.to_email}</td>
+                              <td className="py-3 px-2 text-studojo-muted hidden md:table-cell">{email.lead_company}</td>
+                              <td className="py-3 px-2">
+                                <StatusBadge status={email.status === "queued" ? "queued" : email.status} sentiment={email.reply_sentiment} />
+                              </td>
+                              <td className="py-3 px-2 text-sm">
+                                {email.status === "replied" && email.reply_received_at
+                                  ? <span className="text-studojo-green text-xs">Replied {formatTimestamp(email.reply_received_at, tz)}</span>
+                                  : email.status === "sent" && email.sent_at
+                                    ? <span className="text-studojo-green text-xs">Sent {formatTimestamp(email.sent_at, tz)}</span>
+                                    : email.status === "bounced"
+                                      ? <span className="text-red-600 text-xs" title={email.bounce_reason || ""}>Bounced</span>
+                                      : email.status === "failed"
+                                        ? <span className="text-red-600 text-xs">Failed</span>
+                                        : email.scheduled_at
+                                          ? <span className="text-studojo-purple text-xs font-medium">{formatTimestamp(email.scheduled_at, tz)}</span>
+                                          : <span className="text-studojo-muted text-xs">Queued</span>
+                                }
+                              </td>
+                            </tr>
+                            {isExpanded && children.map((fu) => {
+                              const touchLabel = `Touch ${(fu.followup_number || 0) + 1}`;
+                              return (
+                                <tr
+                                  key={fu.id}
+                                  onClick={() => setSelectedEmail(fu)}
+                                  className="border-b border-studojo-ink/5 bg-studojo-surface-muted/40 hover:bg-studojo-surface-muted/70 cursor-pointer"
+                                >
+                                  <td className="py-2 px-2 pl-10">
+                                    <div className="flex items-center gap-2 text-studojo-muted">
+                                      <FiCornerDownRight className="w-3.5 h-3.5" />
+                                      <span className="text-xs font-bold">{touchLabel}</span>
+                                      <span className="text-xs">— follow-up</span>
+                                    </div>
+                                  </td>
+                                  <td className="py-2 px-2 text-studojo-muted text-xs truncate max-w-[200px]">{fu.to_email}</td>
+                                  <td className="py-2 px-2 text-studojo-muted hidden md:table-cell text-xs">{fu.lead_company}</td>
+                                  <td className="py-2 px-2">
+                                    <StatusBadge status={fu.status} sentiment={fu.reply_sentiment} />
+                                  </td>
+                                  <td className="py-2 px-2 text-sm">
+                                    {fu.status === "sent" && fu.sent_at
+                                      ? <span className="text-studojo-green text-xs">Sent {formatTimestamp(fu.sent_at, tz)}</span>
+                                      : fu.status === "cancelled_reply"
+                                        ? <span className="text-studojo-muted text-xs italic">Cancelled (reply received)</span>
+                                        : fu.status === "failed"
+                                          ? <span className="text-red-600 text-xs">Failed</span>
+                                          : fu.scheduled_at
+                                            ? <span className="text-studojo-purple text-xs font-medium">Queued for {formatTimestamp(fu.scheduled_at, tz)}</span>
+                                            : <span className="text-studojo-muted text-xs">Queued</span>
+                                    }
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
