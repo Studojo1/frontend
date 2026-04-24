@@ -17,6 +17,39 @@ async function getChromium() {
   return chromiumModule;
 }
 
+// Bright Data Browser API endpoint — residential IPs + fingerprint handling
+// Falls back to local Patchright launch if not configured
+function getBrowserApiWsUrl(): string | null {
+  const customerId = process.env.BRIGHTDATA_CUSTOMER_ID;
+  const zoneName = process.env.BRIGHTDATA_ZONE_NAME;
+  const zonePassword = process.env.BRIGHTDATA_ZONE_PASSWORD;
+  if (!customerId || !zoneName || !zonePassword) return null;
+  return `wss://brd-customer-${customerId}-zone-${zoneName}:${zonePassword}@brd.superproxy.io:9222`;
+}
+
+async function launchBrowser(contextOptions: any): Promise<{ browser: any; ctx: any }> {
+  const wsUrl = getBrowserApiWsUrl();
+  const chromium = await getChromium();
+
+  if (wsUrl) {
+    // Connect to Bright Data's managed browser — residential IP, no proxy needed locally
+    const browser = await chromium.connectOverCDP(wsUrl);
+    const ctx = await browser.newContext(contextOptions);
+    return { browser, ctx };
+  }
+
+  // Local fallback (Azure IP — only for dev/testing)
+  const proxyConfig = contextOptions._proxyConfig;
+  delete contextOptions._proxyConfig;
+  const browser = await chromium.launch({
+    headless: true,
+    proxy: proxyConfig,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  const ctx = await browser.newContext(contextOptions);
+  return { browser, ctx };
+}
+
 // ── Run outreach step for a contact ──────────────────────────────────────────
 
 export async function runOutreachStep(contactId: string): Promise<{ status: string; error?: string }> {
@@ -49,22 +82,14 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
     return { status: "failed", error: "decrypt_failed" };
   }
 
-  const chromium = await getChromium();
-  // Bright Data (BRIGHTDATA_*) blocks LinkedIn via policy_20090 — skip proxy for browser automation.
-  // Only enable proxy when IPRoyal is configured, which allows LinkedIn traffic.
   const proxyConfig = session.proxyCountry && process.env.IPROYAL_PASSWORD
     ? buildProxy(contact.userId, session.proxyCountry, session.proxyCity ?? "bangalore")
     : undefined;
 
-  let browser;
+  let browser: any, ctx: any;
   try {
-    browser = await chromium.launch({
-      headless: true,
-      proxy: proxyConfig,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
-
-    const ctx = await browser.newContext({
+    ({ browser, ctx } = await launchBrowser({
+      _proxyConfig: proxyConfig, // only used in local fallback path
       userAgent: session.userAgent ?? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       locale: session.locale ?? "en-US",
       timezoneId: session.timezone ?? "Asia/Kolkata",
@@ -72,7 +97,7 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
         cookies: [{ name: "li_at", value: liAt, domain: ".linkedin.com", path: "/", httpOnly: true, secure: true, sameSite: "None" }],
         origins: [],
       },
-    });
+    }));
 
     const page = await ctx.newPage();
     let rateLimited = false;

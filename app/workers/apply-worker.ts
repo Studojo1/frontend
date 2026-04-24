@@ -9,13 +9,41 @@ import { buildProxy } from "~/lib/proxy.server";
 import { pauseUser, logEvent, getWarmupLimit, incrementWarmupDay } from "./safety-manager";
 import { answerQuestion } from "./prescreen";
 
-// Dynamic import of patchright — only available in worker pod (Chromium installed)
 let chromiumModule: any = null;
 async function getChromium() {
   if (!chromiumModule) {
     chromiumModule = (await import("patchright")).chromium;
   }
   return chromiumModule;
+}
+
+function getBrowserApiWsUrl(): string | null {
+  const customerId = process.env.BRIGHTDATA_CUSTOMER_ID;
+  const zoneName = process.env.BRIGHTDATA_ZONE_NAME;
+  const zonePassword = process.env.BRIGHTDATA_ZONE_PASSWORD;
+  if (!customerId || !zoneName || !zonePassword) return null;
+  return `wss://brd-customer-${customerId}-zone-${zoneName}:${zonePassword}@brd.superproxy.io:9222`;
+}
+
+async function launchBrowser(contextOptions: any): Promise<{ browser: any; ctx: any }> {
+  const wsUrl = getBrowserApiWsUrl();
+  const chromium = await getChromium();
+
+  if (wsUrl) {
+    const browser = await chromium.connectOverCDP(wsUrl);
+    const ctx = await browser.newContext(contextOptions);
+    return { browser, ctx };
+  }
+
+  const proxyConfig = contextOptions._proxyConfig;
+  delete contextOptions._proxyConfig;
+  const browser = await chromium.launch({
+    headless: true,
+    proxy: proxyConfig,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+  });
+  const ctx = await browser.newContext(contextOptions);
+  return { browser, ctx };
 }
 
 // ── Apply to a single job ─────────────────────────────────────────────────────
@@ -77,21 +105,14 @@ export async function applyToJob(jobId: string): Promise<{ status: string; error
     return { status: "failed", error: "decrypt_failed" };
   }
 
-  const chromium = await getChromium();
-
   const proxyConfig = session.proxyCountry && process.env.IPROYAL_PASSWORD
     ? buildProxy(job.userId, session.proxyCountry, session.proxyCity ?? "bangalore")
     : undefined;
 
-  let browser;
+  let browser: any, ctx: any;
   try {
-    browser = await chromium.launch({
-      headless: true,
-      proxy: proxyConfig,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-    });
-
-    const ctx = await browser.newContext({
+    ({ browser, ctx } = await launchBrowser({
+      _proxyConfig: proxyConfig,
       userAgent: session.userAgent ?? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       viewport: { width: 1440, height: 900 },
       locale: session.locale ?? "en-US",
