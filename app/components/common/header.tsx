@@ -238,6 +238,32 @@ export function Header() {
                           </svg>
                           <span>My Orders</span>
                         </Link>
+                        {["admin@studojo.com", "jeremy@studojo.com", "jeremyabraham1411@gmail.com"].includes(session.user.email ?? "") && (
+                          <>
+                            <div className="my-1 border-t border-neutral-200"></div>
+                            <p className="px-4 pt-1 pb-0.5 font-['Satoshi'] text-[10px] font-semibold uppercase tracking-widest text-neutral-400">Admin</p>
+                            <Link
+                              to="/admin/report-requests"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2 font-['Satoshi'] text-sm text-neutral-700 hover:bg-neutral-50"
+                            >
+                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                              </svg>
+                              <span>Report Requests</span>
+                            </Link>
+                            <Link
+                              to="/admin/consultation-signups"
+                              onClick={() => setUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2 font-['Satoshi'] text-sm text-neutral-700 hover:bg-neutral-50"
+                            >
+                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <span>Free Call Signups</span>
+                            </Link>
+                          </>
+                        )}
                         <div className="my-1 border-t border-neutral-200"></div>
                         <Link
                           to="/settings"
