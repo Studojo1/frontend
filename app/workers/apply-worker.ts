@@ -131,7 +131,7 @@ export async function applyToJob(jobId: string): Promise<{ status: string; error
         ],
         origins: [],
       },
-    });
+    }));
 
     const page = await ctx.newPage();
 
