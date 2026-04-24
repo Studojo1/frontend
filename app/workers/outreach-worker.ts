@@ -19,16 +19,17 @@ async function getChromium() {
 
 // Bright Data Browser API endpoint — residential IPs + fingerprint handling
 // Falls back to local Patchright launch if not configured
-function getBrowserApiWsUrl(): string | null {
+function getBrowserApiWsUrl(userId: string): string | null {
   const customerId = process.env.BRIGHTDATA_CUSTOMER_ID;
   const zoneName = process.env.BRIGHTDATA_ZONE_NAME;
   const zonePassword = process.env.BRIGHTDATA_ZONE_PASSWORD;
   if (!customerId || !zoneName || !zonePassword) return null;
-  return `wss://brd-customer-${customerId}-zone-${zoneName}:${zonePassword}@brd.superproxy.io:9222`;
+  // Sticky session per user — same userId always routes to same residential IP
+  return `wss://brd-customer-${customerId}-zone-${zoneName}-session-usr_${userId}:${zonePassword}@brd.superproxy.io:9222`;
 }
 
-async function launchBrowser(contextOptions: any): Promise<{ browser: any; ctx: any }> {
-  const wsUrl = getBrowserApiWsUrl();
+async function launchBrowser(userId: string, contextOptions: any): Promise<{ browser: any; ctx: any }> {
+  const wsUrl = getBrowserApiWsUrl(userId);
   const chromium = await getChromium();
 
   if (wsUrl) {
@@ -88,7 +89,7 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
 
   let browser: any, ctx: any;
   try {
-    ({ browser, ctx } = await launchBrowser({
+    ({ browser, ctx } = await launchBrowser(contact.userId, {
       _proxyConfig: proxyConfig, // only used in local fallback path
       userAgent: session.userAgent ?? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       locale: session.locale ?? "en-US",
