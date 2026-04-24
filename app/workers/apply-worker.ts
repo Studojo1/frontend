@@ -17,29 +17,14 @@ async function getChromium() {
   return chromiumModule;
 }
 
-function getBrowserApiWsUrl(userId: string): string | null {
-  const customerId = process.env.BRIGHTDATA_CUSTOMER_ID;
-  const zoneName = process.env.BRIGHTDATA_ZONE_NAME;
-  const zonePassword = process.env.BRIGHTDATA_ZONE_PASSWORD;
-  if (!customerId || !zoneName || !zonePassword) return null;
-  return `wss://brd-customer-${customerId}-zone-${zoneName}-session-usr_${userId}:${zonePassword}@brd.superproxy.io:9222`;
-}
-
-async function launchBrowser(userId: string, contextOptions: any): Promise<{ browser: any; ctx: any }> {
-  const wsUrl = getBrowserApiWsUrl(userId);
+async function launchBrowser(userId: string, country: string, city: string, contextOptions: any): Promise<{ browser: any; ctx: any }> {
   const chromium = await getChromium();
-
-  if (wsUrl) {
-    const browser = await chromium.connectOverCDP(wsUrl);
-    const ctx = await browser.newContext(contextOptions);
-    return { browser, ctx };
-  }
-
-  const proxyConfig = contextOptions._proxyConfig;
-  delete contextOptions._proxyConfig;
+  const proxy = process.env.IPROYAL_PASSWORD && process.env.IPROYAL_USERNAME
+    ? buildProxy(userId, country, city)
+    : undefined;
   const browser = await chromium.launch({
     headless: true,
-    proxy: proxyConfig,
+    proxy,
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
   });
   const ctx = await browser.newContext(contextOptions);
@@ -105,14 +90,13 @@ export async function applyToJob(jobId: string): Promise<{ status: string; error
     return { status: "failed", error: "decrypt_failed" };
   }
 
-  const proxyConfig = session.proxyCountry && process.env.IPROYAL_PASSWORD
-    ? buildProxy(job.userId, session.proxyCountry, session.proxyCity ?? "bangalore")
-    : undefined;
-
   let browser: any, ctx: any;
   try {
-    ({ browser, ctx } = await launchBrowser(job.userId, {
-      _proxyConfig: proxyConfig,
+    ({ browser, ctx } = await launchBrowser(
+      job.userId,
+      session.proxyCountry ?? "IN",
+      session.proxyCity ?? "bangalore",
+      {
       userAgent: session.userAgent ?? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       viewport: { width: 1440, height: 900 },
       locale: session.locale ?? "en-US",
@@ -131,7 +115,8 @@ export async function applyToJob(jobId: string): Promise<{ status: string; error
         ],
         origins: [],
       },
-    }));
+    }
+    ));
 
     const page = await ctx.newPage();
 

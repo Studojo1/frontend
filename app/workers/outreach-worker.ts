@@ -17,34 +17,21 @@ async function getChromium() {
   return chromiumModule;
 }
 
-// Bright Data Browser API endpoint — residential IPs + fingerprint handling
-// Falls back to local Patchright launch if not configured
-function getBrowserApiWsUrl(userId: string): string | null {
-  const customerId = process.env.BRIGHTDATA_CUSTOMER_ID;
-  const zoneName = process.env.BRIGHTDATA_ZONE_NAME;
-  const zonePassword = process.env.BRIGHTDATA_ZONE_PASSWORD;
-  if (!customerId || !zoneName || !zonePassword) return null;
-  // Sticky session per user — same userId always routes to same residential IP
-  return `wss://brd-customer-${customerId}-zone-${zoneName}-session-usr_${userId}:${zonePassword}@brd.superproxy.io:9222`;
+// Build residential proxy config for IPRoyal (sticky session per user = same IP every time)
+// BRIGHTDATA_* Browser API is NOT used here — it blocks li_at cookie injection for LinkedIn
+function getProxyConfig(userId: string, country: string, city: string) {
+  if (process.env.IPROYAL_PASSWORD && process.env.IPROYAL_USERNAME) {
+    return buildProxy(userId, country, city);
+  }
+  return undefined;
 }
 
-async function launchBrowser(userId: string, contextOptions: any): Promise<{ browser: any; ctx: any }> {
-  const wsUrl = getBrowserApiWsUrl(userId);
+async function launchBrowser(userId: string, country: string, city: string, contextOptions: any): Promise<{ browser: any; ctx: any }> {
   const chromium = await getChromium();
-
-  if (wsUrl) {
-    // Connect to Bright Data's managed browser — residential IP, no proxy needed locally
-    const browser = await chromium.connectOverCDP(wsUrl);
-    const ctx = await browser.newContext(contextOptions);
-    return { browser, ctx };
-  }
-
-  // Local fallback (Azure IP — only for dev/testing)
-  const proxyConfig = contextOptions._proxyConfig;
-  delete contextOptions._proxyConfig;
+  const proxy = getProxyConfig(userId, country, city);
   const browser = await chromium.launch({
     headless: true,
-    proxy: proxyConfig,
+    proxy,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   const ctx = await browser.newContext(contextOptions);
@@ -83,22 +70,22 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
     return { status: "failed", error: "decrypt_failed" };
   }
 
-  const proxyConfig = session.proxyCountry && process.env.IPROYAL_PASSWORD
-    ? buildProxy(contact.userId, session.proxyCountry, session.proxyCity ?? "bangalore")
-    : undefined;
-
   let browser: any, ctx: any;
   try {
-    ({ browser, ctx } = await launchBrowser(contact.userId, {
-      _proxyConfig: proxyConfig, // only used in local fallback path
-      userAgent: session.userAgent ?? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      locale: session.locale ?? "en-US",
-      timezoneId: session.timezone ?? "Asia/Kolkata",
-      storageState: {
-        cookies: [{ name: "li_at", value: liAt, domain: ".linkedin.com", path: "/", httpOnly: true, secure: true, sameSite: "None" }],
-        origins: [],
-      },
-    }));
+    ({ browser, ctx } = await launchBrowser(
+      contact.userId,
+      session.proxyCountry ?? "IN",
+      session.proxyCity ?? "bangalore",
+      {
+        userAgent: session.userAgent ?? "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        locale: session.locale ?? "en-US",
+        timezoneId: session.timezone ?? "Asia/Kolkata",
+        storageState: {
+          cookies: [{ name: "li_at", value: liAt, domain: ".linkedin.com", path: "/", httpOnly: true, secure: true, sameSite: "None" }],
+          origins: [],
+        },
+      }
+    ));
 
     const page = await ctx.newPage();
     let rateLimited = false;
