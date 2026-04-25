@@ -299,7 +299,7 @@ export default function EnrichmentPage() {
     },
   ];
 
-  const CONSULTATION_URL = "https://cal.com/find-internships/15min?overlayCalendar=true";
+  const CONSULTATION_URL = "https://calendar.app.google/jApkk9UEptf3yHgc8";
 
   const getTierPrice = (tierValue: number) => {
     const match = pricing.find((p) => p.tier === tierValue);
