@@ -337,7 +337,6 @@ export function ImportResumeModal({
                       disabled={isProcessing}
                       className="hidden"
                       id="file-upload"
-                      capture="environment"
                     />
                     <motion.div
                       onDragOver={handleDragOver}
