@@ -49,14 +49,29 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
   const handleSubmit = () => {
     if (selected.length === 0) return;
 
-    const answers = selected.map((label) => {
+    // Build answers as separate array entries — never concatenate with " — ".
+    // Concatenation produced compound strings like "Bengaluru — Remote internationally"
+    // and "Software Engineer — AI Engineer" that broke downstream classifiers.
+    const answers: string[] = [];
+    selected.forEach((label) => {
       const opt = options.find((o) => o.label === label);
-      if (!opt) return label;
-      // For vague options, replace label with typed text; for others, append if provided
-      if (requiresDetail(opt) && extraText.trim()) return extraText.trim();
-      if (!requiresDetail(opt) && extraText.trim()) return `${opt.text} — ${extraText.trim()}`;
-      return opt.text;
+      if (!opt) {
+        answers.push(label);
+        return;
+      }
+      if (requiresDetail(opt) && extraText.trim()) {
+        // Vague option (e.g., "Other") — replace label with typed text
+        answers.push(extraText.trim());
+      } else {
+        answers.push(opt.text);
+      }
     });
+
+    // If user picked non-vague option(s) AND added extra detail, submit the
+    // detail as an additional separate entry (not concatenated with em-dash).
+    if (extraText.trim() && !hasVagueSelected) {
+      answers.push(extraText.trim());
+    }
 
     onSubmit(answers);
     setSelected([]);
