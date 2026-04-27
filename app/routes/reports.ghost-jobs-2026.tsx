@@ -7,7 +7,7 @@ const BASE_URL = "https://studojo.com";
 export function meta() {
   return [
     { title: "Why Companies Post Jobs Without Hiring: Ghost Jobs, SEO, and 11 Other Reasons | Studojo" },
-    { name: "description", content: "68% of managers have posted a job they weren't actively trying to fill. A documented breakdown of every reason a job posting exists that has nothing to do with actually hiring — ghost jobs, legal compliance, SEO, investor optics, and more." },
+    { name: "description", content: "68% of managers have posted a job they weren't actively trying to fill. A documented breakdown of every reason a job posting exists that has nothing to do with actually hiring: ghost jobs, legal compliance, SEO, investor optics, and more." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "ghost jobs 2026, why companies post fake jobs, job postings without hiring, ghost job listings, why companies dont respond to applications" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/ghost-jobs-2026` },
@@ -330,7 +330,7 @@ export default function GhostJobsReport() {
             <div className="sec-header">
               <div className="sec-num" style={{ background: "#171717" }}>≡</div>
               <div>
-                <div className="sec-title">All 11 Reasons — Prevalence Overview</div>
+                <div className="sec-title">All 11 Reasons: Prevalence Overview</div>
                 <div className="sec-sub">How common each reason is across companies, scored 1–5</div>
               </div>
             </div>
@@ -351,7 +351,7 @@ export default function GhostJobsReport() {
                 <div className="sec-sub">Listings that exist with no real intention of hiring in the near term</div>
               </div>
             </div>
-            <p>The most widely documented phenomenon is the "ghost job" — a posting that is either for a role that has already been filled, a role that doesn't exist yet, or a role where hiring is perpetually "on hold." These listings stay active on job boards for weeks or months, collecting applications that go unread.</p>
+            <p>The most widely documented phenomenon is the "ghost job": a posting that is either for a role that has already been filled, a role that doesn't exist yet, or a role where hiring is perpetually "on hold." These listings stay active on job boards for weeks or months, collecting applications that go unread.</p>
             <div className="highlight">
               A 2023 survey by ResumeBuilder found that <strong>1 in 3 job postings on major boards at any given time may be ghost listings</strong>. Of companies surveyed, 43% said they kept old listings up even after the position was filled.
             </div>
@@ -372,7 +372,7 @@ export default function GhostJobsReport() {
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>Already-filled roles:</strong> Company hired internally or promoted someone, chose not to take the posting down. The listing collects resumes used as a future pipeline.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Headcount freeze:</strong> Role was approved before a budget cut. Posting stays live to preserve the approved slot and signal to leadership that the team is actively recruiting.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Perpetual listings:</strong> High-turnover roles where companies keep a permanent listing live because they anticipate needing to fill it eventually — no specific candidate, no specific timeline.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Perpetual listings:</strong> High-turnover roles where companies keep a permanent listing live because they anticipate needing to fill it eventually. No specific candidate, no specific timeline..</span></div>
             </div>
             <div className="callout">
               <strong>What this means:</strong> A response rate under 5% on applications is often not about your profile. It can simply mean the role was never real to begin with. The job board showed it to you because the algorithm rewards active listings, not honest ones.
@@ -388,9 +388,9 @@ export default function GhostJobsReport() {
                 <div className="sec-sub">Job postings as a search engine and brand strategy</div>
               </div>
             </div>
-            <p>Job listings are among the highest-traffic pages on any company website. When a company posts to LinkedIn, Indeed, or Google Jobs, they don't just reach job seekers — they get crawled by Google, appear in branded search results, and build domain authority for the careers page.</p>
+            <p>Job listings are among the highest-traffic pages on any company website. When a company posts to LinkedIn, Indeed, or Google Jobs, they don't just reach job seekers. They get crawled by Google, appear in branded search results, and build domain authority for the careers page.</p>
             <div className="blist">
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Google for Jobs integration:</strong> Every structured job posting gets ingested by Google's job search feature. Posting 20 jobs means 20 entries appearing in search results for "[Company] jobs" — free, high-intent traffic that money can't directly buy.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Google for Jobs integration:</strong> Every structured job posting gets ingested by Google's job search feature. Posting 20 jobs means 20 entries appearing in search results for "[Company] jobs." Free, high-intent traffic that money can't directly buy.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>LinkedIn follower growth:</strong> Companies that post frequently get surfaced in LinkedIn's recommendation feed. A job posting drives page follows and brand awareness far beyond the candidate pool.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Indeed / Glassdoor profile richness:</strong> More job postings means a more complete profile, which means higher placement in employer search results. Companies game this actively.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>"We're always hiring" optics:</strong> A company with zero postings looks stagnant to talent, press, and investors who use job boards as a proxy for company health.</span></div>
@@ -410,7 +410,7 @@ export default function GhostJobsReport() {
                 <div className="sec-sub">When the law requires you to post before hiring the person you already chose</div>
               </div>
             </div>
-            <p>In multiple countries, labor law or immigration regulation explicitly requires companies to publicly advertise a position — even when the candidate is already identified — before they can proceed with the hire or the visa application.</p>
+            <p>In multiple countries, labor law or immigration regulation explicitly requires companies to publicly advertise a position, even when the candidate is already identified, before they can proceed with the hire or the visa application.</p>
             <table className="data-table">
               <thead>
                 <tr>
@@ -421,32 +421,32 @@ export default function GhostJobsReport() {
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>USA — PERM Labor Certification</strong></td>
+                  <td><strong>USA: PERM Labor Certification</strong></td>
                   <td>Must advertise the role for 30+ days and demonstrate no qualified US workers applied</td>
                   <td><span className="tag-pill pill-red">Performative</span> Employer typically already knows who they want to sponsor. The advertising is a legal checkbox.</td>
                 </tr>
                 <tr>
-                  <td><strong>USA — H-1B LCA Posting</strong></td>
+                  <td><strong>USA: H-1B LCA Posting</strong></td>
                   <td>Labor Condition Application requires notice posted at the worksite for 10 days</td>
                   <td><span className="tag-pill pill-amber">Mixed</span> Candidate already identified. Posting is a notice, not an invitation to apply.</td>
                 </tr>
                 <tr>
-                  <td><strong>UK — Skilled Worker Visa</strong></td>
+                  <td><strong>UK: Skilled Worker Visa</strong></td>
                   <td>Roles must be advertised for 28 days on DWP's Find a Job platform</td>
                   <td><span className="tag-pill pill-red">Performative</span> Sponsor already identified preferred candidate. Satisfies the Home Office requirement.</td>
                 </tr>
                 <tr>
-                  <td><strong>Canada — LMIA</strong></td>
+                  <td><strong>Canada: LMIA</strong></td>
                   <td>Employer must advertise on Government of Canada Job Bank for 4+ weeks</td>
                   <td><span className="tag-pill pill-red">Performative</span> Designed to prove Canadians were given a chance. Employer has their hire in mind already.</td>
                 </tr>
                 <tr>
-                  <td><strong>Australia — TSS Visa (482)</strong></td>
+                  <td><strong>Australia: TSS Visa (482)</strong></td>
                   <td>Must advertise on at least two platforms for 4 weeks within the past 4 months</td>
                   <td><span className="tag-pill pill-red">Performative</span> Sponsor identified. Advertising is procedural.</td>
                 </tr>
                 <tr>
-                  <td><strong>USA — OFCCP Compliance</strong></td>
+                  <td><strong>USA: OFCCP Compliance</strong></td>
                   <td>Federal contractors must list all openings with state employment agencies</td>
                   <td><span className="tag-pill pill-blue">Genuine Compliance</span> Real requirement, though depth of recruitment effort varies widely.</td>
                 </tr>
@@ -466,14 +466,14 @@ export default function GhostJobsReport() {
                 <div className="sec-sub">Collecting candidates for roles that don't exist yet</div>
               </div>
             </div>
-            <p>Many companies — especially in high-growth phases or industries with chronic talent shortages — run "always-on" job postings with no active search behind them. The goal is to build a database of warm candidates who can be contacted quickly when a real opening materializes.</p>
+            <p>Many companies, especially in high-growth phases or industries with chronic talent shortages, run "always-on" job postings with no active search behind them. The goal is to build a database of warm candidates who can be contacted quickly when a real opening materializes.</p>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>Continuous intake:</strong> Companies in fast-moving sectors (AI, biotech, defence tech) post engineering and research roles year-round even during hiring freezes. They want the pipeline warm the moment budget unlocks.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>ATS database building:</strong> Every application enriches the company's Applicant Tracking System with candidate data — skills, location, salary expectations, career history. This data has value independent of whether the role is filled.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>ATS database building:</strong> Every application enriches the company's Applicant Tracking System with candidate data: skills, location, salary expectations, career history. This data has value independent of whether the role is filled.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Competitive talent sourcing:</strong> Posting a "Senior Engineer" role at a competitive salary gets applications from people currently at your competitors. Even if you don't hire now, you know who's open to leaving.</span></div>
             </div>
             <div className="callout">
-              <strong>The asymmetry:</strong> A candidate spends 2–4 hours on a tailored application. The company spends 0 hours reviewing it if the role wasn't real. This asymmetry is the core ethical problem with pipeline-building postings — the cost is entirely externalized to applicants.
+              <strong>The asymmetry:</strong> A candidate spends 2–4 hours on a tailored application. The company spends 0 hours reviewing it if the role wasn't real. This asymmetry is the core ethical problem with pipeline-building postings. The cost is entirely externalized to applicants.
             </div>
           </div>
 
@@ -491,7 +491,7 @@ export default function GhostJobsReport() {
               <div className="blist-item"><div className="blist-dot" /><span><strong>Pre-fundraise posturing:</strong> Companies frequently post a burst of roles ahead of funding rounds to signal momentum. Investors track headcount growth as a leading indicator of traction.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Free press coverage:</strong> "Company X announces plans to hire 500 in [City]" is a reliable press hit that costs nothing except putting up a careers page with some listings. No hires required to generate the headline.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Analyst tracking:</strong> Firms like Thinknum, Revelio Labs, and Burning Glass sell job posting data to investors and hedge funds as alternative data. Companies in competitive industries know their hiring signals are being watched.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Post-layoff narrative management:</strong> After layoffs, companies post new roles quickly — even before offboarding is complete — to signal "right-sizing" rather than collapse. The new postings create a counter-narrative.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Post-layoff narrative management:</strong> After layoffs, companies post new roles quickly, even before offboarding is complete, to signal "right-sizing" rather than collapse. The new postings create a counter-narrative.</span></div>
             </div>
             <div className="pull-quote">
               <p>"After we let go of 200 people in Q3, our comms team pushed us to post 30 new roles within two weeks. Half of them weren't real. It was about controlling the narrative."</p>
@@ -508,12 +508,12 @@ export default function GhostJobsReport() {
                 <div className="sec-sub">Using applications to learn what competitors pay and who's available</div>
               </div>
             </div>
-            <p>Job postings generate data in both directions. The company posting learns from every application it receives — and from the act of posting itself.</p>
+            <p>Job postings generate data in both directions. The company posting learns from every application it receives, and from the act of posting itself.</p>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>Salary benchmarking:</strong> Post a role at $120k. See who applies and at what expected comp. Revise your compensation bands accordingly. This costs nothing and gives you real-market data your comp team would otherwise pay thousands for.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Skills gap mapping:</strong> The volume and quality of applications tells you how scarce specific skills are in your target market. Struggling to fill a Python role in Bangalore vs. San Francisco? Now you know.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Competitor employee intelligence:</strong> Applications reveal who is employed where and at what seniority. Even rejected candidates teach you about your competitors' org structure, tech stack, and retention.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Suppress internal salary pressure:</strong> The darkest variant — posting externally to "prove" to a current employee that their salary is market rate. The posting is a negotiation tactic, not a genuine search.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Suppress internal salary pressure:</strong> The darkest variant: posting externally to "prove" to a current employee that their salary is market rate. The posting is a negotiation tactic, not a genuine search.</span></div>
             </div>
           </div>
 
@@ -544,11 +544,11 @@ export default function GhostJobsReport() {
                 <div className="sec-sub">Reposting, refreshing, and inflating to stay visible</div>
               </div>
             </div>
-            <p>Indeed, LinkedIn, and other job boards surface listings based on recency and engagement. Older listings drop in rank. Companies have adapted by treating job postings as an SEO exercise — reposting and refreshing the same roles repeatedly.</p>
+            <p>Indeed, LinkedIn, and other job boards surface listings based on recency and engagement. Older listings drop in rank. Companies have adapted by treating job postings as an SEO exercise, reposting and refreshing the same roles repeatedly.</p>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>Reposting the same role:</strong> Taking down a 30-day-old listing and reposting it as new to reset the algorithm clock and appear at the top of search results. Candidates see the same role multiple times as "new." Endemic on LinkedIn and Indeed.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Volume posting for visibility:</strong> A staffing agency posts 200 positions when they have 20 real ones, because platforms surface high-volume companies more prominently to both candidates and employers.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Sponsored listing A/B testing:</strong> Companies use sponsored posts to test which job titles, locations, and keywords drive the most applications — even without a hire in mind. It's A/B testing the job market.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Sponsored listing A/B testing:</strong> Companies use sponsored posts to test which job titles, locations, and keywords drive the most applications, even without a hire in mind. It's A/B testing the job market.</span></div>
             </div>
             <div className="highlight">
               LinkedIn's terms of service prohibit posting jobs you don't intend to fill, but enforcement is effectively zero. The platform's incentive is engagement, not accuracy. <strong>More listings = more candidates = more employer clients = more revenue.</strong> The misaligned incentive is structural.
@@ -569,11 +569,11 @@ export default function GhostJobsReport() {
 
             <div className="divider" />
 
-            <p><strong>Staffing agency and recruiter dynamics.</strong> Contingency recruiters post roles speculatively — without a signed contract — betting they can deliver a candidate and negotiate a fee. The "role" may not have been formally opened by the hiring company. Agencies also reactivate dormant client listings to stay market-visible without any instruction from the client.</p>
+            <p><strong>Staffing agency and recruiter dynamics.</strong> Contingency recruiters post roles speculatively, without a signed contract, betting they can deliver a candidate and negotiate a fee. The "role" may not have been formally opened by the hiring company. Agencies also reactivate dormant client listings to stay market-visible without any instruction from the client.</p>
 
             <div className="divider" />
 
-            <p><strong>Government grant and funding compliance.</strong> Companies receiving economic development incentives, startup grants, or accelerator funding are frequently required to demonstrate hiring activity as a condition of the grant. The posting is created to satisfy the "jobs created" metric, not to fill a real vacancy. ESG and DEI reporting requirements can generate similar phantom postings — roles posted to generate application data that supports internal diversity dashboards.</p>
+            <p><strong>Government grant and funding compliance.</strong> Companies receiving economic development incentives, startup grants, or accelerator funding are frequently required to demonstrate hiring activity as a condition of the grant. The posting is created to satisfy the "jobs created" metric, not to fill a real vacancy. ESG and DEI reporting requirements can generate similar phantom postings: roles posted to generate application data that supports internal diversity dashboards.</p>
           </div>
 
           {/* Summary table */}
@@ -581,7 +581,7 @@ export default function GhostJobsReport() {
             <div className="sec-header">
               <div className="sec-num" style={{ background: "#171717" }}>≡</div>
               <div>
-                <div className="sec-title">All 11 Reasons — Summary</div>
+                <div className="sec-title">All 11 Reasons: Summary</div>
                 <div className="sec-sub">Frequency and candidate impact at a glance</div>
               </div>
             </div>
@@ -603,7 +603,7 @@ export default function GhostJobsReport() {
                   ["5", "Investor / press optics", "pill-amber", "High", "Applications collected but ignored"],
                   ["6", "Competitive / market intelligence", "pill-amber", "Medium", "Salary and skills data extracted from applicants"],
                   ["7", "Internal process theater", "pill-amber", "High", "External apps reviewed perfunctorily or not at all"],
-                  ["8", "Job board algorithm gaming", "pill-red", "Very High", "Duplicate effort — same role seen multiple times as 'new'"],
+                  ["8", "Job board algorithm gaming", "pill-red", "Very High", "Duplicate effort: same role seen multiple times as 'new'"],
                   ["9", "M&A / crisis management", "pill-green", "Lower", "Postings made during a hiring freeze period"],
                   ["10", "Staffing agency dynamics", "pill-amber", "Medium", "Role may not exist at the client company at all"],
                   ["11", "Govt grant / funding compliance", "pill-green", "Lower", "Role is a metric, not a genuine vacancy"],
@@ -648,7 +648,7 @@ export default function GhostJobsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Stop applying into the void.</h3>
-              <p>Studojo Outreach finds the hiring managers who actually have open roles and puts you in front of them directly — no ATS, no ghost jobs.</p>
+              <p>Studojo Outreach finds the hiring managers who actually have open roles and puts you in front of them directly. No ATS,, no ghost jobs.</p>
             </div>
             <Link to="/outreach" className="rpt-cta-btn">
               Try Studojo Outreach →
