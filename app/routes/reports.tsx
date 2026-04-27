@@ -230,6 +230,18 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "ghost-jobs-2026",
+    publishDate: "2026-04-27",
+    title: "Why Companies Post Jobs Without Planning to Hire",
+    subtitle: "Ghost Jobs Report 2026",
+    excerpt: "68% of managers have posted a job they weren't actively trying to fill. Ghost jobs, SEO theater, legal cover, investor optics — a documented breakdown of all 11 reasons a job posting exists with nothing to do with hiring.",
+    category: "Sector",
+    type: "Sector" as ReportType,
+    date: "April 2026",
+    findings: 11,
+    badge: "New",
+  },
+  {
     slug: "job-search-2026",
     publishDate: "2026-04-22",
     title: "Job Boards Are Dead: How Students Actually Get Hired in 2026",

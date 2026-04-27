@@ -100,6 +100,7 @@ export default [
   route("reports/internships-australia-2026", "routes/reports.internships-australia-2026.tsx"),
   route("reports/skills-ai-entry-level-2026", "routes/reports.skills-ai-entry-level-2026.tsx"),
   route("reports/christ-university-finance-2026", "routes/reports.christ-university-finance-2026.tsx"),
+  route("reports/ghost-jobs-2026", "routes/reports.ghost-jobs-2026.tsx"),
   route("api/outreach/email-chat", "routes/api.outreach.email-chat.tsx"),
   route("lab/email", "routes/lab.email.tsx"),
   route("api/ai-risk/analyse", "routes/api.ai-risk.analyse.tsx"),
