@@ -372,7 +372,7 @@ export default function GhostJobsReport() {
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>Already-filled roles:</strong> Company hired internally or promoted someone, chose not to take the posting down. The listing collects resumes used as a future pipeline.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Headcount freeze:</strong> Role was approved before a budget cut. Posting stays live to preserve the approved slot and signal to leadership that the team is actively recruiting.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Perpetual listings:</strong> High-turnover roles where companies keep a permanent listing live because they anticipate needing to fill it eventually. No specific candidate, no specific timeline..</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Perpetual listings:</strong> High-turnover roles where companies keep a permanent listing live because they anticipate needing to fill it eventually. No specific candidate, no specific timeline.</span></div>
             </div>
             <div className="callout">
               <strong>What this means:</strong> A response rate under 5% on applications is often not about your profile. It can simply mean the role was never real to begin with. The job board showed it to you because the algorithm rewards active listings, not honest ones.
@@ -648,7 +648,7 @@ export default function GhostJobsReport() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Stop applying into the void.</h3>
-              <p>Studojo Outreach finds the hiring managers who actually have open roles and puts you in front of them directly. No ATS,, no ghost jobs.</p>
+              <p>Studojo Outreach finds the hiring managers who actually have open roles and puts you in front of them directly. No ATS, no ghost jobs.</p>
             </div>
             <Link to="/outreach" className="rpt-cta-btn">
               Try Studojo Outreach →
