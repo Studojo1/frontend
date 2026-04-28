@@ -13,7 +13,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Resume Examples – Studojo" },
+    { title: "Resume Examples | Studojo" },
     {
       name: "description",
       content: "Browse example resumes by job type and template. Use them as starting points for your own resume.",

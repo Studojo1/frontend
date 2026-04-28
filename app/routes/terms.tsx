@@ -4,10 +4,10 @@ import type { Route } from "./+types/terms";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Terms of Service – Studojo" },
+    { title: "Terms of Service | Studojo" },
     {
       name: "description",
-      content: "Terms of Service for Studojo – please read carefully before using our platform.",
+      content: "Terms of Service for Studojo | please read carefully before using our platform.",
     },
   ];
 }
@@ -41,7 +41,7 @@ export default function Terms() {
                 {[
                   ["Full Legal Name", "Synovate People Solutions Private Limited"],
                   ["Trading Name", "Studojo"],
-                  ["Registered Address", "305, 2nd Floor, Glory Fields Apartment, Off Central Jail Road, Bengaluru, Karnataka – 560035"],
+                  ["Registered Address", "305, 2nd Floor, Glory Fields Apartment, Off Central Jail Road, Bengaluru, Karnataka | 560035"],
                   ["Business Structure", "Private Limited Company"],
                   ["Jurisdiction", "India (Karnataka)"],
                   ["Contact", "admin@studojo.com"],

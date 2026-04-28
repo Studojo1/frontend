@@ -20,7 +20,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "My Orders – Studojo" },
+    { title: "My Orders | Studojo" },
     {
       name: "description",
       content: "View your assignment generation and document humanization history and download completed orders.",

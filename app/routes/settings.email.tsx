@@ -21,7 +21,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Email Preferences – Studojo" },
+    { title: "Email Preferences | Studojo" },
     {
       name: "description",
       content: "Manage your email notification preferences.",

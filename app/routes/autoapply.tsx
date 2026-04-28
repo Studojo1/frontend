@@ -19,7 +19,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "AutoApply – Studojo" },
+    { title: "AutoApply | Studojo" },
     { name: "description", content: "Your personal job application agent. Applies 24/7 while you sleep." },
   ];
 }
@@ -307,10 +307,10 @@ export default function AutoApply({ loaderData }: Route.ComponentProps) {
         {/* Header */}
         <div className="mb-10 text-center">
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-neutral-900 bg-violet-100 px-4 py-1.5 font-['Satoshi'] text-sm font-semibold text-violet-700">
-            <FiZap className="h-3.5 w-3.5" /> Beta — Free Access
+            <FiZap className="h-3.5 w-3.5" /> Beta | Free Access
           </span>
           <h1 className="mt-4 font-['Clash_Display'] text-4xl font-bold text-neutral-900 md:text-5xl">AutoApply</h1>
-          <p className="mt-3 font-['Satoshi'] text-lg text-gray-600">Your personal job agent — applies 24/7 while you sleep.</p>
+          <p className="mt-3 font-['Satoshi'] text-lg text-gray-600">Your personal job agent | applies 24/7 while you sleep.</p>
         </div>
 
         {/* ── DASHBOARD ── */}
@@ -553,7 +553,7 @@ export default function AutoApply({ loaderData }: Route.ComponentProps) {
               })}
             </div>
 
-            {/* Step 1 — Resume */}
+            {/* Step 1 | Resume */}
             {step === "resume" && (
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
                 <h2 className="mb-1 font-['Clash_Display'] text-2xl font-bold">Your Resume</h2>
@@ -573,12 +573,12 @@ export default function AutoApply({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
-            {/* Step 2 — Preferences */}
+            {/* Step 2 | Preferences */}
             {step === "prefs" && (
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8 space-y-6">
                 <div>
                   <h2 className="mb-1 font-['Clash_Display'] text-2xl font-bold">Job Preferences</h2>
-                  <p className="font-['Satoshi'] text-sm text-gray-500">Be specific — it improves match quality.</p>
+                  <p className="font-['Satoshi'] text-sm text-gray-500">Be specific | it improves match quality.</p>
                 </div>
                 <div>
                   <label className="mb-2 flex items-center gap-2 font-['Satoshi'] text-sm font-semibold"><FiBriefcase className="h-4 w-4 text-violet-600" /> Role Types</label>
@@ -597,7 +597,7 @@ export default function AutoApply({ loaderData }: Route.ComponentProps) {
                   <div className="flex flex-wrap gap-2">{PLATFORMS.map((p) => <button key={p.id} onClick={() => setSelectedPlatforms(toggle(selectedPlatforms, p.id))} className={`rounded-lg border-2 border-neutral-900 px-3 py-1.5 font-['Satoshi'] text-sm font-medium transition-colors ${selectedPlatforms.includes(p.id) ? "bg-orange-400 text-white" : "bg-white hover:bg-orange-50"}`}>{p.flag} {p.label}</button>)}</div>
                 </div>
                 <div>
-                  <label className="mb-2 block font-['Satoshi'] text-sm font-semibold">Daily Limit — <span className="font-normal text-violet-600">{dailyLimit}/day</span></label>
+                  <label className="mb-2 block font-['Satoshi'] text-sm font-semibold">Daily Limit | <span className="font-normal text-violet-600">{dailyLimit}/day</span></label>
                   <input type="range" min={5} max={50} step={5} value={dailyLimit} onChange={(e) => setDailyLimit(Number(e.target.value))} className="w-full accent-violet-600" />
                 </div>
                 <div>
@@ -620,12 +620,12 @@ export default function AutoApply({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
-            {/* Step 3 — LinkedIn */}
+            {/* Step 3 | LinkedIn */}
             {step === "linkedin" && (
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8 space-y-5">
                 <div>
                   <h2 className="mb-1 font-['Clash_Display'] text-2xl font-bold">Connect LinkedIn</h2>
-                  <p className="font-['Satoshi'] text-sm text-gray-500">Your session cookie lets us apply from our regional servers — no password, full fingerprint match.</p>
+                  <p className="font-['Satoshi'] text-sm text-gray-500">Your session cookie lets us apply from our regional servers | no password, full fingerprint match.</p>
                 </div>
                 {sessionSaved ? (
                   <div className="flex items-start gap-3 rounded-xl border-2 border-emerald-500 bg-emerald-50 p-4">
@@ -659,7 +659,7 @@ export default function AutoApply({ loaderData }: Route.ComponentProps) {
                     <span className={`rounded-full px-2.5 py-1 font-['Satoshi'] text-xs font-bold ${healthPct >= 80 ? "bg-emerald-100 text-emerald-700" : healthPct >= 60 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>{healthPct}%</span>
                   </div>
                   <div className="space-y-2">{HEALTH_CHECKS.map((c) => (<label key={c.id} className="flex cursor-pointer items-start gap-3"><input type="checkbox" checked={!!healthChecks[c.id]} onChange={(e) => setHealthChecks({ ...healthChecks, [c.id]: e.target.checked })} className="mt-0.5 h-4 w-4 accent-violet-600" /><div><p className="font-['Satoshi'] text-sm font-medium">{c.label}</p><p className="font-['Satoshi'] text-xs text-gray-400">{c.detail}</p></div></label>))}</div>
-                  {healthPct < 60 && <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3"><FiAlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" /><p className="font-['Satoshi'] text-xs text-amber-700">Low score — recommend starting at 5 apps/day and warming up over 2 weeks.</p></div>}
+                  {healthPct < 60 && <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3"><FiAlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" /><p className="font-['Satoshi'] text-xs text-amber-700">Low score | recommend starting at 5 apps/day and warming up over 2 weeks.</p></div>}
                 </div>
                 <div className="flex items-center justify-between">
                   <button onClick={() => setStep("prefs")} className="font-['Satoshi'] text-sm text-gray-500 underline">Back</button>
@@ -670,7 +670,7 @@ export default function AutoApply({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
-            {/* Step 4 — Launch */}
+            {/* Step 4 | Launch */}
             {step === "launch" && (
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8 space-y-6">
                 <div>
@@ -691,10 +691,10 @@ export default function AutoApply({ loaderData }: Route.ComponentProps) {
                 </div>
                 <div className="rounded-xl border-2 border-neutral-200 bg-neutral-50 p-5">
                   <p className="mb-3 font-['Satoshi'] text-sm font-semibold">What happens next</p>
-                  <div className="space-y-2.5">{["Our servers scan your platforms for matching roles every 6 hours","Each job is scored against your CV — only strong fits get applications","Screening questions are pre-answered using your CV","Applications go out automatically up to your daily limit","Limits ramp over 14 days to protect your LinkedIn account"].map((item, i) => (<div key={i} className="flex items-start gap-3"><div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-600 font-['Satoshi'] text-xs font-bold text-white">{i + 1}</div><p className="font-['Satoshi'] text-sm text-neutral-700">{item}</p></div>))}</div>
+                  <div className="space-y-2.5">{["Our servers scan your platforms for matching roles every 6 hours","Each job is scored against your CV | only strong fits get applications","Screening questions are pre-answered using your CV","Applications go out automatically up to your daily limit","Limits ramp over 14 days to protect your LinkedIn account"].map((item, i) => (<div key={i} className="flex items-start gap-3"><div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-600 font-['Satoshi'] text-xs font-bold text-white">{i + 1}</div><p className="font-['Satoshi'] text-sm text-neutral-700">{item}</p></div>))}</div>
                 </div>
                 <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4">
-                  <p className="font-['Satoshi'] text-sm font-semibold text-amber-800">Beta — free for now</p>
+                  <p className="font-['Satoshi'] text-sm font-semibold text-amber-800">Beta | free for now</p>
                   <p className="mt-1 font-['Satoshi'] text-sm text-amber-700">Free while we're in beta. We'll notify you before anything changes.</p>
                 </div>
                 <div className="flex items-center justify-between">

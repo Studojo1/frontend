@@ -24,7 +24,7 @@ interface BlogPost {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Blog – Studojo | Career Tips, Internship Guides & Student Insights" },
+    { title: "Blog | Studojo | Career Tips, Internship Guides & Student Insights" },
     {
       name: "description",
       content:

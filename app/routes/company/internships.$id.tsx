@@ -6,7 +6,7 @@ import type { Route } from "./+types/internships.$id";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Company Review Panel – Studojo" },
+    { title: "Company Review Panel | Studojo" },
     {
       name: "description",
       content: "Review internship applications",

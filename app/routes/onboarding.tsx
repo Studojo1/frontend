@@ -111,7 +111,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Welcome to Studojo – Complete your profile" },
+    { title: "Welcome to Studojo | Complete your profile" },
     { name: "description", content: "Tell us a bit about yourself to personalize your experience." },
   ];
 }
@@ -192,7 +192,7 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
         credentials: "include",
       });
     } catch {
-      // Non-critical — field update failed but profile exists
+      // Non-critical | field update failed but profile exists
     }
   };
 
@@ -233,7 +233,7 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
 
   const handleSkip = async () => {
     if (step === TOTAL_STEPS - 1) {
-      // Last step — finish
+      // Last step | finish
       navigate("/", { replace: true });
     } else {
       goForward();

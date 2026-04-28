@@ -21,7 +21,7 @@ interface Stats {
 }
 
 export function meta() {
-  return [{ title: "Free Call Signups — Studojo Admin" }];
+  return [{ title: "Free Call Signups | Studojo Admin" }];
 }
 
 export default function AdminConsultationSignups() {

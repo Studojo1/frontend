@@ -82,7 +82,7 @@ function absoluteImageUrl(url: string | undefined): string | undefined {
 
 export function meta({ data }: Route.MetaArgs) {
   if (!data?.post) {
-    return [{ title: "Post Not Found – Studojo" }];
+    return [{ title: "Post Not Found | Studojo" }];
   }
 
   const post = data.post;
@@ -99,7 +99,7 @@ export function meta({ data }: Route.MetaArgs) {
     { name: "author", content: post.author_name },
     { tagName: "link", rel: "canonical", href: canonicalUrl },
 
-    // Open Graph — article type
+    // Open Graph | article type
     { property: "og:type", content: "article" },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
@@ -273,7 +273,7 @@ export default function BlogPost({ data }: Route.ComponentProps) {
 
       <Header />
 
-      {/* Hero image — eager + high priority for LCP */}
+      {/* Hero image | eager + high priority for LCP */}
       {normalizedImageUrl && !imageError && (
         <div className="h-64 w-full md:h-96">
           <img

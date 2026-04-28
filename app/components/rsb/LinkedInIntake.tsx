@@ -163,7 +163,7 @@ export function LinkedInIntake({
               <FiArrowLeft className="w-4 h-4" /> Back
             </button>
             <h1 className="font-['Clash_Display'] text-3xl md:text-4xl text-neutral-900 leading-tight mb-3">
-              Last thing — your name.
+              Last thing - your name.
             </h1>
             <p className="text-neutral-500 text-[15px] mb-7">
               We'll use this on your resume.

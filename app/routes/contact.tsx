@@ -8,7 +8,7 @@ import { FaWhatsapp } from "react-icons/fa6";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Contact Us – Studojo" },
+    { title: "Contact Us | Studojo" },
     { name: "description", content: "Get in touch with the Studojo team. We're here to help with any questions about our products and services." },
     { tagName: "link", rel: "canonical", href: "https://studojo.com/contact" },
   ];
@@ -39,7 +39,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "Is the resume builder really free?",
-    answer: "Yes. The Careers Dojo resume builder is completely free — no hidden charges, no credit card required. Build as many resumes as you need.",
+    answer: "Yes. The Careers Dojo resume builder is completely free | no hidden charges, no credit card required. Build as many resumes as you need.",
     link: { to: "/dojos/careers", label: "Try it now" },
   },
   {
@@ -329,7 +329,7 @@ export default function Contact() {
               Still need help?
             </h3>
             <p className="mb-6 font-['Satoshi'] text-base leading-7 text-white">
-              Our live chat is available — click the bubble in the bottom-right corner to start a conversation.
+              Our live chat is available | click the bubble in the bottom-right corner to start a conversation.
             </p>
             <Link
               to="/"

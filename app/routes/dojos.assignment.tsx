@@ -18,7 +18,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export function meta({}: Route.MetaArgs) {
   const BASE_URL = "https://studojo.com";
   return [
-    { title: "Assignment Dojo – AI-Powered Assignment Help for Students | Studojo" },
+    { title: "Assignment Dojo | AI-Powered Assignment Help for Students | Studojo" },
     {
       name: "description",
       content:
@@ -26,12 +26,12 @@ export function meta({}: Route.MetaArgs) {
     },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/dojos/assignment` },
     { property: "og:type", content: "website" },
-    { property: "og:title", content: "Assignment Dojo – AI-Powered Assignment Help for Students | Studojo" },
+    { property: "og:title", content: "Assignment Dojo | AI-Powered Assignment Help for Students | Studojo" },
     { property: "og:description", content: "Get well-structured, plagiarism-safe assignments for any subject. Answer 2-3 questions and get something ready to submit. Free for students." },
     { property: "og:url", content: `${BASE_URL}/dojos/assignment` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Assignment Dojo – AI-Powered Assignment Help | Studojo" },
+    { name: "twitter:title", content: "Assignment Dojo | AI-Powered Assignment Help | Studojo" },
     { name: "twitter:description", content: "Get well-structured, plagiarism-safe assignments for any subject. Answer 2-3 questions and get something ready to submit. Free." },
   ];
 }

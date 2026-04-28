@@ -6,20 +6,20 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "Career Market Reports – Studojo | Data-Driven Analyses for Students" },
+    { title: "Career Market Reports | Studojo | Data-Driven Analyses for Students" },
     {
       name: "description",
       content:
-        "Free career market reports for students. Entry-level salary benchmarks, hiring trends, skill gaps, and job data across Finance, Sales, CS, and more — India 2026.",
+        "Free career market reports for students. Entry-level salary benchmarks, hiring trends, skill gaps, and job data across Finance, Sales, CS, and more | India 2026.",
     },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports` },
     { property: "og:type", content: "website" },
-    { property: "og:title", content: "Career Market Reports – Studojo" },
+    { property: "og:title", content: "Career Market Reports | Studojo" },
     { property: "og:description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more." },
     { property: "og:url", content: `${BASE_URL}/reports` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Career Market Reports – Studojo" },
+    { name: "twitter:title", content: "Career Market Reports | Studojo" },
     { name: "twitter:description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more." },
   ];
 }
@@ -234,7 +234,7 @@ const REPORTS = [
     publishDate: "2026-04-27",
     title: "Why Companies Post Jobs Without Planning to Hire",
     subtitle: "Ghost Jobs Report 2026",
-    excerpt: "68% of managers have posted a job they weren't actively trying to fill. Ghost jobs, SEO theater, legal cover, investor optics — a documented breakdown of all 11 reasons a job posting exists with nothing to do with hiring.",
+    excerpt: "68% of managers have posted a job they weren't actively trying to fill. Ghost jobs, SEO theater, legal cover, investor optics | a documented breakdown of all 11 reasons a job posting exists with nothing to do with hiring.",
     category: "Sector",
     type: "Sector" as ReportType,
     date: "April 2026",

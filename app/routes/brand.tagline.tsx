@@ -1,5 +1,5 @@
 export function meta() {
-  return [{ title: "Studojo — Work on things that matter." }];
+  return [{ title: "Studojo | Work on things that matter." }];
 }
 
 export default function BrandTagline() {

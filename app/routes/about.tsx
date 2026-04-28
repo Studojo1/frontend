@@ -9,19 +9,19 @@ import type { Route } from "./+types/about";
 export function meta({}: Route.MetaArgs) {
   const BASE_URL = "https://studojo.com";
   return [
-    { title: "About Studojo – Work on Things That Matter" },
+    { title: "About Studojo | Work on Things That Matter" },
     {
       name: "description",
       content: "Studojo is a global student career platform helping 10,000+ students land internships, build standout resumes, and work on things that actually matter. Based in Bangalore, serving students worldwide.",
     },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/about` },
     { property: "og:type", content: "website" },
-    { property: "og:title", content: "About Studojo – Work on Things That Matter" },
+    { property: "og:title", content: "About Studojo | Work on Things That Matter" },
     { property: "og:description", content: "Studojo is a global student career platform helping 10,000+ students land internships, build standout resumes, and work on things that actually matter." },
     { property: "og:url", content: `${BASE_URL}/about` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "About Studojo – Work on Things That Matter" },
+    { name: "twitter:title", content: "About Studojo | Work on Things That Matter" },
     { name: "twitter:description", content: "Global student career platform helping 10,000+ students land internships, build standout resumes, and work on things that actually matter." },
   ];
 }

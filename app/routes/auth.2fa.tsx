@@ -6,7 +6,7 @@ import type { Route } from "./+types/auth.2fa";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Two-Factor Verification – Studojo" },
+    { title: "Two-Factor Verification | Studojo" },
     {
       name: "description",
       content: "Enter your verification code to complete sign in.",

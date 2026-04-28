@@ -18,7 +18,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "AutoApply Beta – Studojo" },
+    { title: "AutoApply Beta | Studojo" },
     { name: "description", content: "Upload your resume. Set your preferences. Studojo applies to 100+ jobs while you sleep." },
   ];
 }
@@ -326,7 +326,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
         <div className="mb-10 text-center">
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-neutral-900 bg-violet-100 px-4 py-1.5 font-['Satoshi'] text-sm font-semibold text-violet-700">
             <FiZap className="h-3.5 w-3.5" />
-            Beta — Free Access
+            Beta | Free Access
           </span>
           <h1 className="mt-4 font-['Clash_Display'] text-4xl font-bold text-neutral-900 md:text-5xl">
             AutoApply
@@ -502,7 +502,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
               })}
             </div>
 
-            {/* Step 1 — Resume */}
+            {/* Step 1 | Resume */}
             {step === "resume" && (
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
                 <h2 className="mb-1 font-['Clash_Display'] text-2xl font-bold text-neutral-900">Your Resume</h2>
@@ -540,7 +540,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
 
                 <div className="mt-2 flex items-center justify-between">
                   <p className="font-['Satoshi'] text-xs text-gray-400">
-                    {cvText.trim().length} characters{cvText.trim().length < 100 && cvText.trim().length > 0 ? " — too short" : ""}
+                    {cvText.trim().length} characters{cvText.trim().length < 100 && cvText.trim().length > 0 ? " | too short" : ""}
                   </p>
                   <button
                     disabled={!canProceedFromResume}
@@ -553,11 +553,11 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
-            {/* Step 2 — Preferences */}
+            {/* Step 2 | Preferences */}
             {step === "prefs" && (
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
                 <h2 className="mb-1 font-['Clash_Display'] text-2xl font-bold text-neutral-900">Job Preferences</h2>
-                <p className="mb-6 font-['Satoshi'] text-sm text-gray-500">Be specific — it improves match quality.</p>
+                <p className="mb-6 font-['Satoshi'] text-sm text-gray-500">Be specific | it improves match quality.</p>
 
                 <div className="mb-6">
                   <label className="mb-2 flex items-center gap-2 font-['Satoshi'] text-sm font-semibold text-neutral-800">
@@ -618,7 +618,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
 
                 <div className="mb-6">
                   <label className="mb-2 block font-['Satoshi'] text-sm font-semibold text-neutral-800">
-                    Daily Limit — <span className="font-normal text-violet-600">{dailyLimit} applications/day</span>
+                    Daily Limit | <span className="font-normal text-violet-600">{dailyLimit} applications/day</span>
                   </label>
                   <input type="range" min={5} max={50} step={5} value={dailyLimit} onChange={(e) => setDailyLimit(Number(e.target.value))} className="w-full accent-violet-600" />
                   <div className="mt-1 flex justify-between font-['Satoshi'] text-xs text-gray-400"><span>5</span><span>50</span></div>
@@ -697,12 +697,12 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
-            {/* Step 3 — LinkedIn Connect */}
+            {/* Step 3 | LinkedIn Connect */}
             {step === "linkedin" && (
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
                 <h2 className="mb-1 font-['Clash_Display'] text-2xl font-bold text-neutral-900">Connect LinkedIn</h2>
                 <p className="mb-6 font-['Satoshi'] text-sm text-gray-500">
-                  We use your LinkedIn session cookie to apply on your behalf from our regional servers — no password needed, and we match your browser fingerprint so it looks like you.
+                  We use your LinkedIn session cookie to apply on your behalf from our regional servers | no password needed, and we match your browser fingerprint so it looks like you.
                 </p>
 
                 {sessionSaved ? (
@@ -722,7 +722,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
                     <div className="mb-5 flex items-start gap-3 rounded-xl border-2 border-blue-200 bg-blue-50 p-4">
                       <FiZap className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
                       <p className="font-['Satoshi'] text-sm text-blue-700">
-                        <span className="font-semibold">Have the Studojo extension?</span> Your cookie was captured automatically when you connected. You may already be set — check below.
+                        <span className="font-semibold">Have the Studojo extension?</span> Your cookie was captured automatically when you connected. You may already be set | check below.
                       </p>
                     </div>
 
@@ -821,7 +821,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
-            {/* Step 4 — Launch */}
+            {/* Step 4 | Launch */}
             {step === "launch" && (
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
                 <h2 className="mb-1 font-['Clash_Display'] text-2xl font-bold text-neutral-900">Ready to launch</h2>
@@ -856,7 +856,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
                   <div className="space-y-2.5">
                     {[
                       "Our servers scan your chosen platforms for matching roles every 6 hours",
-                      "Each job is scored against your CV — only strong fits get applications",
+                      "Each job is scored against your CV | only strong fits get applications",
                       "We generate tailored answers to screening questions using your CV",
                       "Applications go out automatically up to your daily limit",
                       "Limits ramp up over 14 days to protect your LinkedIn account",
@@ -870,7 +870,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
                 </div>
 
                 <div className="mb-6 rounded-xl border-2 border-amber-400 bg-amber-50 p-4">
-                  <p className="font-['Satoshi'] text-sm font-semibold text-amber-800">Beta — free for now</p>
+                  <p className="font-['Satoshi'] text-sm font-semibold text-amber-800">Beta | free for now</p>
                   <p className="mt-1 font-['Satoshi'] text-sm text-amber-700">You're one of the first users. Free while we're in beta. We'll notify you before anything changes.</p>
                 </div>
 

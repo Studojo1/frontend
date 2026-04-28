@@ -67,7 +67,7 @@ function FloatShape({
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Sign In – Studojo" },
+    { title: "Sign In | Studojo" },
     {
       name: "description",
       content: "Sign in or create your Studojo account to get started.",
