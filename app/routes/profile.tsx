@@ -142,6 +142,7 @@ function ProfileContent() {
   const [classicResumes, setClassicResumes] = useState<ClassicResume[] | null>(null);
   const [applications, setApplications] = useState<Application[] | null>(null);
   const [outreachOrders, setOutreachOrders] = useState<OutreachOrder[] | null>(null);
+  const [outreachOrdersError, setOutreachOrdersError] = useState(false);
   const [jobs, setJobs] = useState<any[] | null>(null);
 
   // Edit state
@@ -200,7 +201,7 @@ function ProfileContent() {
         const raw = Array.isArray(d?.orders) ? d.orders : [];
         setOutreachOrders(raw.map((o) => (o as any).order ?? o));
       })
-      .catch(() => setOutreachOrders([]));
+      .catch(() => { setOutreachOrders([]); setOutreachOrdersError(true); });
 
     getJobs(undefined, 10)
       .then((j) => setJobs(Array.isArray(j) ? j : []))
@@ -407,6 +408,50 @@ function ProfileContent() {
             )}
           </div>
 
+          {/* Outreach Orders — first so it's visible above the fold on mobile */}
+          <Section title="Outreach Orders" cta="View in Outreach →" ctaHref="/outreach">
+            {outreachOrders === null ? (
+              <>
+                <Skeleton />
+                <Skeleton />
+              </>
+            ) : outreachOrdersError ? (
+              <p className="font-['Satoshi'] text-sm text-neutral-500 py-4 text-center">
+                Couldn't load orders. <a href="/outreach/orders" className="text-violet-600 font-semibold hover:underline">View in Outreach →</a>
+              </p>
+            ) : outreachOrders.length === 0 ? (
+              <div className="text-center py-4">
+                <p className="font-['Satoshi'] text-sm text-neutral-500 mb-3">No outreach orders yet.</p>
+                <a href="/outreach/onboarding/upload" className="inline-flex items-center gap-2 px-4 py-2 bg-violet-500 text-white font-bold text-sm border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all font-['Satoshi']">
+                  Start outreach
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(Array.isArray(outreachOrders) ? outreachOrders : []).map((o, i) => (
+                  <button
+                    key={o.id ?? i}
+                    type="button"
+                    onClick={() => handleOrderClick(o.id)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl border-2 border-neutral-200 hover:border-violet-400 hover:bg-violet-50 transition-all text-left group"
+                  >
+                    <div className="min-w-0">
+                      <span className="font-['Satoshi'] text-sm font-semibold text-neutral-900 group-hover:text-violet-700">
+                        Order #{o.id}
+                      </span>
+                      {o.created_at && (
+                        <div className="font-['Satoshi'] text-xs text-neutral-400">
+                          {new Date(o.created_at).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                    <StatusBadge status={o.status} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </Section>
+
           {/* AI Resume Drafts */}
           <Section title="AI Resume Drafts" cta="Build new resume →" ctaHref="/rsb">
             {rsbSessions === null ? (
@@ -508,43 +553,6 @@ function ProfileContent() {
                       </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </Section>
-
-          {/* Outreach Orders */}
-          <Section title="Outreach Orders" cta="View in Outreach →" ctaHref="/outreach">
-            {outreachOrders === null ? (
-              <>
-                <Skeleton />
-                <Skeleton />
-              </>
-            ) : outreachOrders.length === 0 ? (
-              <p className="font-['Satoshi'] text-sm text-neutral-500 py-4 text-center">
-                No outreach orders yet.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {(Array.isArray(outreachOrders) ? outreachOrders : []).map((o, i) => (
-                  <button
-                    key={o.id ?? i}
-                    type="button"
-                    onClick={() => handleOrderClick(o.id)}
-                    className="w-full flex items-center justify-between p-3 rounded-xl border-2 border-neutral-200 hover:border-violet-400 hover:bg-violet-50 transition-all text-left group"
-                  >
-                    <div>
-                      <span className="font-['Satoshi'] text-sm font-semibold text-neutral-900 group-hover:text-violet-700">
-                        Order #{o.id}
-                      </span>
-                      {o.created_at && (
-                        <div className="font-['Satoshi'] text-xs text-neutral-400">
-                          {new Date(o.created_at).toLocaleDateString()}
-                        </div>
-                      )}
-                    </div>
-                    <StatusBadge status={o.status} />
-                  </button>
                 ))}
               </div>
             )}
