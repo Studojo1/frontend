@@ -82,7 +82,7 @@ export function Hero() {
               </div>
               <div>
                 <p className="font-['Satoshi'] text-sm font-bold text-white">Rohan S.</p>
-                <p className="font-['Satoshi'] text-xs text-white/80">VP Engineering · PhonePe</p>
+                <p className="font-['Satoshi'] text-xs text-white/80">VP Engineering</p>
               </div>
             </div>
           </motion.div>
@@ -102,7 +102,7 @@ export function Hero() {
               </span>
             </div>
             <p className="font-['Satoshi'] text-xs leading-5 text-neutral-700">
-              Hi Rohan, I came across your work at PhonePe and was really impressed by the scale of problems you&apos;re solving...
+              Hi Rohan, I came across your recent work and was really impressed by the scale of problems you&apos;re solving...
             </p>
             <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
