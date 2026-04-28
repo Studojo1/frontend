@@ -17,7 +17,7 @@ const STEPS = [
     number: "01",
     icon: <FiUpload className="w-5 h-5" />,
     title: "Upload your resume",
-    desc: "Our AI reads your background and figures out which roles and companies fit you — in under a minute.",
+    desc: "Our AI reads your background and figures out which roles and companies fit you - in under a minute.",
   },
   {
     number: "02",
@@ -29,7 +29,7 @@ const STEPS = [
     number: "03",
     icon: <FiMail className="w-5 h-5" />,
     title: "A personal email goes out",
-    desc: "Written for each person, sent from your Gmail. It sounds like you — because we research them before writing it.",
+    desc: "Written for each person, sent from your Gmail. It sounds like you - because we research them before writing it.",
   },
 ];
 
@@ -90,15 +90,15 @@ const TESTIMONIALS = [
 const FAQS = [
   {
     q: "Is this spam? Will my Gmail get flagged?",
-    a: "No. Emails are sent one at a time, spaced out naturally, and written individually for each person. They come from your own Gmail account, look hand-typed, and hit inboxes — not spam folders. We cap send volume to protect your account's health.",
+    a: "No. Emails are sent one at a time, spaced out naturally, and written individually for each person. They come from your own Gmail account, look hand-typed, and hit inboxes - not spam folders. We cap send volume to protect your account's health.",
   },
   {
     q: "What fields does this work for?",
-    a: "Any field where hiring happens through people, not just portals. Engineering, product, finance, marketing, consulting, design — our students have landed roles in all of them. It works best for internships and early-career roles where hiring managers actually respond to direct outreach.",
+    a: "Any field where hiring happens through people, not just portals. Engineering, product, finance, marketing, consulting, design - our students have landed roles in all of them. It works best for internships and early-career roles where hiring managers actually respond to direct outreach.",
   },
   {
     q: "How personal are the emails, really?",
-    a: "Each email is written based on the hiring manager's role, their company's recent news or stage, and your specific background. No two emails are the same. We research each contact before writing — which is why the reply rate is much higher than templated outreach.",
+    a: "Each email is written based on the hiring manager's role, their company's recent news or stage, and your specific background. No two emails are the same. We research each contact before writing - which is why the reply rate is much higher than templated outreach.",
   },
   {
     q: "What happens after I pay?",
@@ -134,29 +134,49 @@ export default function OutreachLanding() {
       <Header />
 
       {/* Hero */}
-      <section className="border-b-2 border-studojo-ink bg-gradient-to-br from-violet-700 via-purple-700 to-violet-800">
-        <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-12 md:px-8 md:py-20">
-          <div className="flex flex-col gap-6 text-center md:gap-8 md:text-left">
+      <section className="relative border-b-2 border-studojo-ink bg-[#4c1d95] overflow-hidden">
+        {/* Background decoration */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-violet-500/30 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-purple-400/20 blur-3xl" />
+          <div className="absolute top-1/2 -left-12 w-64 h-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto max-w-[var(--section-max-width)] px-4 py-14 md:px-8 md:py-24">
+          <div className="flex flex-col gap-7 text-center md:gap-9 md:text-left">
             <div className="inline-flex items-center gap-2 justify-center md:justify-start">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-satoshi text-xs font-semibold text-white/80 uppercase tracking-widest">2026 recruiting is open</span>
+              <span className="font-satoshi text-xs font-semibold text-emerald-300 uppercase tracking-widest">2026 recruiting is open</span>
             </div>
-            <h1 className="max-w-3xl font-clash text-3xl font-semibold leading-tight tracking-tight text-white md:text-4xl lg:text-5xl">
-              Skip the job board queue. Email hiring managers directly.
+
+            <h1 className="max-w-3xl font-clash text-4xl font-black leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
+              Skip the job board queue.{" "}
+              <span className="relative inline-block">
+                <span className="relative z-10">Email</span>
+                <span className="absolute inset-x-0 bottom-1 h-3 bg-amber-400/70 -z-0 skew-x-[-2deg]" />
+              </span>{" "}
+              <span className="relative inline-block">
+                <span className="relative z-10">hiring managers</span>
+                <span className="absolute inset-x-0 bottom-1 h-3 bg-violet-400/50 -z-0 skew-x-[-1deg]" />
+              </span>{" "}
+              directly.
             </h1>
-            <p className="max-w-xl font-satoshi text-sm font-normal leading-6 text-white/90 md:text-base md:leading-7">
-              Upload your resume. We find who can actually hire you, write a personal email, and send it from your Gmail. Most students get their first reply within a week.
+
+            <p className="max-w-xl font-satoshi text-base font-normal leading-7 text-white/80 md:text-lg md:leading-8">
+              Upload your resume. We find who can actually hire you, write a personal email, and send it from your Gmail.{" "}
+              <span className="text-amber-300 font-semibold">Most students get their first reply within a week.</span>
             </p>
+
             <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
               <button
                 onClick={() => navigate("/outreach/onboarding/upload")}
-                className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-white text-studojo-ink font-satoshi font-bold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                className="inline-flex items-center justify-center h-13 px-7 rounded-2xl bg-amber-400 text-studojo-ink font-satoshi font-black text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(0,0,0,0.4)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
               >
                 Find My Hiring Managers <FiArrowRight className="w-5 h-5 ml-2" />
               </button>
               <button
                 onClick={() => navigate("/outreach/orders")}
-                className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-transparent text-white font-satoshi font-medium text-base border-2 border-white/40 transition-all hover:border-white/70"
+                className="inline-flex items-center justify-center h-13 px-7 rounded-2xl bg-white/10 text-white font-satoshi font-medium text-base border-2 border-white/30 transition-all hover:bg-white/20 hover:border-white/50 backdrop-blur-sm"
               >
                 View My Campaigns <FiClipboard className="w-5 h-5 ml-2" />
               </button>
@@ -165,13 +185,13 @@ export default function OutreachLanding() {
         </div>
 
         {/* Stats bar inside hero */}
-        <div className="border-t-2 border-white/20">
+        <div className="relative border-t-2 border-white/20">
           <div className="mx-auto max-w-[var(--section-max-width)] px-4 md:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 divide-x-0 md:divide-x-2 divide-white/20">
-              {STATS.map((s) => (
-                <div key={s.label} className="py-5 px-4 text-center md:text-left">
-                  <div className="font-clash text-2xl font-bold text-white">{s.value}</div>
-                  <div className="font-satoshi text-xs text-white/70 mt-0.5">{s.label}</div>
+            <div className="grid grid-cols-2 md:grid-cols-4">
+              {STATS.map((s, i) => (
+                <div key={s.label} className={`py-5 px-6 text-center md:text-left ${i < 3 ? "md:border-r-2 border-white/20" : ""}`}>
+                  <div className="font-clash text-2xl font-black text-amber-300">{s.value}</div>
+                  <div className="font-satoshi text-xs text-white/60 mt-0.5">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -234,13 +254,13 @@ export default function OutreachLanding() {
                 <span className="w-3 h-3 rounded-full bg-red-400 border border-red-500" />
                 <span className="w-3 h-3 rounded-full bg-yellow-400 border border-yellow-500" />
                 <span className="w-3 h-3 rounded-full bg-green-400 border border-green-500" />
-                <span className="ml-3 font-satoshi text-xs text-studojo-muted">Gmail — Compose</span>
+                <span className="ml-3 font-satoshi text-xs text-studojo-muted">Gmail - Compose</span>
               </div>
               <div className="p-6 flex flex-col gap-4">
                 <div className="flex flex-col gap-1 border-b border-neutral-100 pb-4">
                   <div className="flex gap-2 font-satoshi text-xs text-studojo-muted">
                     <span className="font-semibold w-10 shrink-0">To</span>
-                    <span className="text-studojo-ink font-medium">Sarah Chen — VP Engineering, Stripe</span>
+                    <span className="text-studojo-ink font-medium">Sarah Chen · VP Engineering, Stripe</span>
                   </div>
                   <div className="flex gap-2 font-satoshi text-xs text-studojo-muted">
                     <span className="font-semibold w-10 shrink-0">Subject</span>
@@ -249,8 +269,8 @@ export default function OutreachLanding() {
                 </div>
                 <div className="font-satoshi text-sm text-studojo-ink leading-relaxed space-y-3">
                   <p>Hi Sarah,</p>
-                  <p>I came across your post about Stripe's payment infrastructure redesign — the idempotency keys section was interesting, since I've been working on something similar for a side project.</p>
-                  <p>I'm finishing my CS degree at NUS in May. I've built a payments SDK for small merchants and an async job queue in Go — both things your team works on at scale.</p>
+                  <p>I came across your post about Stripe's payment infrastructure redesign - the idempotency keys section was interesting, since I've been working on something similar for a side project.</p>
+                  <p>I'm finishing my CS degree at NUS in May. I've built a payments SDK for small merchants and an async job queue in Go - both things your team works on at scale.</p>
                   <p>Would you be open to a quick 15-minute call? I'd love to hear more about what engineering at Stripe looks like right now.</p>
                   <p className="text-studojo-muted">Best,<br />Aisha</p>
                 </div>
