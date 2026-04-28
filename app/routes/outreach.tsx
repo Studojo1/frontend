@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router";
 import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
+import { TrustStrip } from "~/components";
 
 const FEATURES = [
   { icon: <FiUpload className="w-6 h-6" />, title: "Upload Your Resume", desc: "Our AI reads your background and figures out what roles fit you in under a minute." },
@@ -43,6 +44,8 @@ export default function OutreachLanding() {
           </div>
         </div>
       </section>
+
+      <TrustStrip />
 
       {/* Features */}
       <section className="border-b border-studojo-ink bg-white">
