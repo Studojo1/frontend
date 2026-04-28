@@ -13,7 +13,7 @@ const BTN_PRIMARY =
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Forgot Password – Studojo" },
+    { title: "Forgot Password | Studojo" },
     {
       name: "description",
       content: "Reset your Studojo account password.",

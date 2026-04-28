@@ -15,7 +15,7 @@ interface ReportRequest {
 }
 
 export function meta() {
-  return [{ title: "Report Requests — Studojo Admin" }];
+  return [{ title: "Report Requests | Studojo Admin" }];
 }
 
 export default function AdminReportRequests() {

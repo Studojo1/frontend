@@ -23,7 +23,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Settings – Studojo" },
+    { title: "Settings | Studojo" },
     {
       name: "description",
       content: "Manage your account security settings, passkeys, and two-factor authentication.",

@@ -3,7 +3,7 @@ import { Header, Footer } from "~/components";
 
 export function meta() {
   return [
-    { title: "Install the Studojo Extension — LinkedIn Connect" },
+    { title: "Install the Studojo Extension | LinkedIn Connect" },
     {
       name: "description",
       content:
@@ -16,7 +16,7 @@ const STEPS = [
   {
     num: 1,
     title: "Download the extension",
-    desc: 'Click the button below to download the extension ZIP. Unzip it — you\'ll get a folder called "linkedin-connect".',
+    desc: 'Click the button below to download the extension ZIP. Unzip it | you\'ll get a folder called "linkedin-connect".',
   },
   {
     num: 2,
@@ -51,7 +51,7 @@ export default function InstallExtension() {
             </h1>
             <p className="mx-auto mt-4 max-w-xl font-['Satoshi'] text-base leading-relaxed text-neutral-600">
               The Studojo extension reads your LinkedIn session securely so we
-              can find the right people for you to connect with — and write a
+              can find the right people for you to connect with | and write a
               personal note for each one. Install takes under 60 seconds.
             </p>
           </div>
@@ -121,7 +121,7 @@ export default function InstallExtension() {
                 },
                 {
                   q: "Will LinkedIn know I'm using this?",
-                  a: "We make normal LinkedIn searches at a human pace — the same searches you'd make manually. We add random delays and limit searches to avoid any issues.",
+                  a: "We make normal LinkedIn searches at a human pace | the same searches you'd make manually. We add random delays and limit searches to avoid any issues.",
                 },
                 {
                   q: "What does the extension actually access?",
@@ -129,7 +129,7 @@ export default function InstallExtension() {
                 },
                 {
                   q: "Can I disconnect LinkedIn later?",
-                  a: 'Yes — open the extension popup and click "Disconnect", or go to studojo.com/outreach/linkedin and disconnect from there.',
+                  a: 'Yes | open the extension popup and click "Disconnect", or go to studojo.com/outreach/linkedin and disconnect from there.',
                 },
               ].map((item) => (
                 <div

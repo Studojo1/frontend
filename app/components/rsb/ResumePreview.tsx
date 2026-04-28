@@ -3,7 +3,7 @@ import type { ResumeDoc } from "~/lib/rsb/types";
 function range(start?: string | null, end?: string | null, isCurrent?: boolean) {
   const s = start || "";
   const e = isCurrent ? "Present" : end || "";
-  return [s, e].filter(Boolean).join(" – ");
+  return [s, e].filter(Boolean).join(" - ");
 }
 
 type EditableProps = {
@@ -247,7 +247,7 @@ export function ResumePreview({
               as="span"
               value={doc.skills.technical.join(", ")}
               editable={editable}
-              placeholder="—"
+              placeholder="-"
               onCommit={(v) => setCsv("technical", v)}
             />
           </p>
@@ -270,7 +270,7 @@ export function ResumePreview({
               as="span"
               value={doc.skills.languages.join(", ")}
               editable={editable}
-              placeholder="—"
+              placeholder="-"
               onCommit={(v) => setCsv("languages", v)}
             />
           </p>
@@ -284,7 +284,7 @@ export function ResumePreview({
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-neutral-400">—</p>
+            <p className="text-sm text-neutral-400">-</p>
           )}
         </Section>
 
@@ -296,7 +296,7 @@ export function ResumePreview({
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-neutral-400">—</p>
+            <p className="text-sm text-neutral-400">-</p>
           )}
         </Section>
       </div>

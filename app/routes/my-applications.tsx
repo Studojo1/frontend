@@ -22,7 +22,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "My Applications – Studojo" },
+    { title: "My Applications | Studojo" },
     {
       name: "description",
       content: "Track your internship applications and their status.",

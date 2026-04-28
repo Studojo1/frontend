@@ -1075,7 +1075,7 @@ function ComposePanel({
                         : score.wordCount <= 110 ? "bg-amber-50 text-amber-700 border-amber-200"
                         : "bg-red-50 text-red-600 border-red-200"
                       }`}>
-                        {score.wordCount} words {score.wordCount <= 85 ? "✓" : score.wordCount <= 110 ? "— a bit long" : "— too long"}
+                        {score.wordCount} words {score.wordCount <= 85 ? "✓" : score.wordCount <= 110 ? "- a bit long" : "- too long"}
                       </span>
                       <ScoreBadge ok={score.youCount >= score.iCount} label={score.youCount >= score.iCount ? "Good you/I ratio" : `Too many "I"s`} />
                       <ScoreBadge ok={score.questionCount === 1} label={score.questionCount === 1 ? "1 CTA ✓" : score.questionCount === 0 ? "No CTA" : "Multiple CTAs"} />

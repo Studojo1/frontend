@@ -4,7 +4,7 @@ import type { Route } from "./+types/privacy";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Privacy Policy – Studojo" },
+    { title: "Privacy Policy | Studojo" },
     {
       name: "description",
       content: "How Studojo collects, uses, and protects your personal data.",

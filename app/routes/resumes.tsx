@@ -23,7 +23,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "My Resumes – Studojo" },
+    { title: "My Resumes | Studojo" },
     {
       name: "description",
       content: "Manage your saved resumes and optimize them for job applications.",

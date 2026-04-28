@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
   CTABanner,
+  CollegesBanner,
   FeaturedProductCard,
   Footer,
   FreeToolsSection,
@@ -30,7 +31,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export function meta({}: Route.MetaArgs) {
   const BASE_URL = "https://studojo.com";
   return [
-    { title: "Studojo — Land Your Next Internship or Job" },
+    { title: "Studojo | Land Your Next Internship or Job" },
     {
       name: "description",
       content:
@@ -38,12 +39,12 @@ export function meta({}: Route.MetaArgs) {
     },
     { tagName: "link", rel: "canonical", href: BASE_URL },
     { property: "og:type", content: "website" },
-    { property: "og:title", content: "Studojo — Land Your Next Internship or Job" },
+    { property: "og:title", content: "Studojo | Land Your Next Internship or Job" },
     { property: "og:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview. 138 students placed." },
     { property: "og:url", content: BASE_URL },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "Studojo — Land Your Next Internship or Job" },
+    { name: "twitter:title", content: "Studojo | Land Your Next Internship or Job" },
     { name: "twitter:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview." },
   ];
 }
@@ -185,13 +186,16 @@ export default function Home() {
           <Hero />
         </motion.div>
         <motion.div variants={sectionVariants}>
-          <TrustStrip />
+          <CollegesBanner />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <StepsSection />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <ProblemSolution />
+        </motion.div>
+        <motion.div variants={sectionVariants}>
+          <TrustStrip />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <FeaturedProductCard />

@@ -25,13 +25,13 @@ interface Internship {
 
 export function meta({ data }: Route.MetaArgs) {
   if (!data?.internship) {
-    return [{ title: "Internship Not Found – Studojo" }];
+    return [{ title: "Internship Not Found | Studojo" }];
   }
 
   const internship = data.internship;
   return [
     {
-      title: `${internship.title} at ${internship.company_name} – Studojo`,
+      title: `${internship.title} at ${internship.company_name} | Studojo`,
     },
     {
       name: "description",

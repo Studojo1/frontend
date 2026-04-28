@@ -5,10 +5,10 @@ import type { Route } from "./+types/refund-policy";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Refund Policy – Studojo" },
+    { title: "Refund Policy | Studojo" },
     {
       name: "description",
-      content: "Studojo's refund policy – please read before making a purchase.",
+      content: "Studojo's refund policy | please read before making a purchase.",
     },
   ];
 }

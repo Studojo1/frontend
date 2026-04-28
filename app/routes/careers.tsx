@@ -5,7 +5,7 @@ import type { Route } from "./+types/apply";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Careers Apply – Studojo" },
+    { title: "Careers Apply | Studojo" },
     {
       name: "description",
       content:

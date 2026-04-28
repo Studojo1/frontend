@@ -22,7 +22,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Humanizer Dojo – Studojo" },
+    { title: "Humanizer Dojo | Studojo" },
     {
       name: "description",
       content:
