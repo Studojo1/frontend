@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiCheck, FiSearch, FiUsers, FiBarChart2, FiBriefcase, FiMapPin } from "react-icons/fi";
+import { FiCheck, FiSearch, FiUsers, FiBarChart2, FiBriefcase } from "react-icons/fi";
 import { RiRobot2Fill } from "react-icons/ri";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -242,8 +242,8 @@ export default function DiscoveryPage() {
                         <p className="text-xs font-satoshi text-studojo-muted truncate">{lead.title}</p>
                       </div>
                       <div className="flex items-center gap-1">
-                        <FiMapPin className="w-3 h-3 text-studojo-muted flex-shrink-0" />
-                        <p className="text-xs font-satoshi text-studojo-muted truncate">{lead.company} · {lead.location}</p>
+                        <FiBriefcase className="w-3 h-3 text-studojo-muted flex-shrink-0 opacity-0" />
+                        <p className="text-xs font-satoshi text-studojo-muted truncate">{lead.company}</p>
                       </div>
                     </>
                   ) : (

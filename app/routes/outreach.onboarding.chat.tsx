@@ -11,7 +11,7 @@ import { outreachFetch, outreachStreamFetch } from "~/lib/outreach/api";
 import type { ChatMessage, AgentResponse } from "~/lib/outreach/types";
 
 const STEPS = ["Upload Resume", "AI Chat", "Your Profile"];
-const TOTAL_QUESTIONS = 13;
+const TOTAL_QUESTIONS = 14;
 
 
 /**
@@ -52,6 +52,8 @@ export default function ChatPage() {
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
   const [streamingText, setStreamingText] = useState<string | null>(null);
+  const [showCompensation, setShowCompensation] = useState(false);
+  const [compensationInput, setCompensationInput] = useState("");
   const autoStarted = useRef(false);
 
   // Serve Q1 instantly on mount — no API call
@@ -63,7 +65,7 @@ export default function ChatPage() {
     }
   }, [candidateId]);
 
-  const questionsAsked = currentResponse?.questions_asked_so_far ?? 0;
+  const questionsAsked = showCompensation ? TOTAL_QUESTIONS : (currentResponse?.questions_asked_so_far ?? 0);
   const quizProgress = (questionsAsked / TOTAL_QUESTIONS) * 100;
   const sidebarStep = currentResponse?.is_complete ? 3 : 2;
 
@@ -176,8 +178,9 @@ export default function ChatPage() {
             }).catch(() => {});
           }
 
-          // Navigate to loading page — it polls until profile is ready, then goes to profile
-          navigate("/outreach/onboarding/loading");
+          // Show compensation question before navigating
+          setShowCompensation(true);
+          addChatMessage({ role: "assistant", content: "One last thing — what compensation are you expecting? (e.g. ₹15,000/month, $25/hour, open to discussion)" });
         } else {
           setLoading(false);
         }
@@ -189,6 +192,12 @@ export default function ChatPage() {
       addChatMessage({ role: "assistant", content: "Something went wrong. Please try again." });
       setLoading(false);
     }
+  };
+
+  const handleCompensationSubmit = () => {
+    const val = compensationInput.trim() || "Not specified";
+    addChatMessage({ role: "user", content: val });
+    navigate("/outreach/onboarding/loading");
   };
 
   const handleMCQSubmit = (selected: string[]) => {
@@ -220,7 +229,25 @@ export default function ChatPage() {
   }
 
   // Input area for chat — hidden while streaming or loading
-  const inputArea = streamingText !== null ? null
+  const inputArea = showCompensation ? (
+    <div className="flex gap-2 items-end">
+      <textarea
+        value={compensationInput}
+        onChange={(e: any) => setCompensationInput(e.target.value)}
+        placeholder="e.g. ₹15,000/month, $25/hour, open to discussion..."
+        onKeyDown={(e: any) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleCompensationSubmit())}
+        rows={2}
+        autoFocus
+        className="flex-1 px-4 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
+      />
+      <button
+        onClick={handleCompensationSubmit}
+        className="h-10 w-10 rounded-xl bg-studojo-purple text-white flex items-center justify-center border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none flex-shrink-0"
+      >
+        <FiSend className="w-4 h-4" />
+      </button>
+    </div>
+  ) : streamingText !== null ? null
     : currentResponse?.is_complete ? null
     : currentResponse?.mcq ? (
       <MCQSelector
