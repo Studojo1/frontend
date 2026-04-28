@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
   CTABanner,
+  CollegesBanner,
   FeaturedProductCard,
   Footer,
   FreeToolsSection,
@@ -183,6 +184,9 @@ export default function Home() {
       >
         <motion.div variants={sectionVariants}>
           <Hero />
+        </motion.div>
+        <motion.div variants={sectionVariants}>
+          <CollegesBanner />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <TrustStrip />

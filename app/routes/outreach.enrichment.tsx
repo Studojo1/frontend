@@ -318,6 +318,28 @@ export default function EnrichmentPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
+      {/* Colleges marquee */}
+      <div className="py-5 bg-studojo-surface-muted border-b-2 border-studojo-ink overflow-hidden">
+        <p className="font-satoshi text-xs font-bold uppercase tracking-widest text-studojo-muted text-center mb-4">
+          Students from these colleges use Studojo
+        </p>
+        {[
+          ["IIT Bombay","NUS Singapore","BITS Pilani","UCL London","IIT Delhi","NTU Singapore","VIT Vellore","University of Toronto","IIT Madras","Symbiosis Pune","NYU","NIT Trichy","King's College London","Manipal University","University of Melbourne","NMIMS Mumbai","IIT Kharagpur","Christ University","UNSW Sydney","Amity University"],
+          ["Delhi University","NIT Warangal","Monash University","SRM University","University of Manchester","BITS Hyderabad","SMU Singapore","Anna University","University of Dubai","Jadavpur University","Panjab University","University of Warwick","Thapar University","Northeastern University","PSG Tech","Loughborough University","Shiv Nadar University","University of Bath","KIIT University","Hult International"],
+        ].map((row, ri) => (
+          <div key={ri} className="overflow-hidden mb-3 last:mb-0">
+            <div className={`flex gap-3 w-max ${ri === 1 ? "animate-marquee-reverse" : "animate-marquee"}`}>
+              {[...row, ...row].map((c, i) => (
+                <span key={i} className="shrink-0 px-4 py-1.5 rounded-full border-2 border-studojo-ink bg-white font-satoshi text-xs font-semibold text-studojo-ink whitespace-nowrap">
+                  {c}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="mx-auto max-w-5xl px-4 py-10 md:px-8">
 
         {/* Free consultation CTA — top */}

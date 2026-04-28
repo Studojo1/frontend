@@ -8,6 +8,7 @@ export { ConfirmModal } from "./confirm-modal";
 
 // Home page components
 export { Hero } from "./home/hero";
+export { CollegesBanner } from "./home/colleges-banner";
 export { DojoCards, FeaturedProductCard } from "./home/dojo-cards";
 export { StepsSection } from "./home/steps-section";
 export { PricingSection } from "./home/pricing-section";
