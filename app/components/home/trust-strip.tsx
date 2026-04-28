@@ -1,34 +1,29 @@
 const COMPANIES = [
-  "Google",
-  "Goldman Sachs",
-  "McKinsey",
-  "Stripe",
-  "Figma",
-  "BCG",
-  "Deloitte",
-  "Amazon",
-  "Monzo",
-  "PhonePe",
+  "Google", "Goldman Sachs", "Stripe", "McKinsey", "PhonePe", "Figma",
+  "BCG", "Amazon", "Monzo", "Razorpay", "Deloitte", "Microsoft",
+  "CRED", "Bain & Company", "Revolut", "Zepto", "JP Morgan", "Spotify",
+  "Groww", "Notion", "PwC", "Swiggy", "Airbnb", "InMobi", "Morgan Stanley",
+  "Wise", "Freshworks", "Klarna", "Meesho", "EY", "Zomato", "Anthropic",
+  "Browserstack", "Deel", "slice", "Netflix", "Navi", "Vercel",
 ];
 
 export function TrustStrip() {
+  const doubled = [...COMPANIES, ...COMPANIES];
   return (
-    <section className="border-b border-neutral-900 bg-neutral-100 px-4 py-4 md:px-8">
-      <div className="mx-auto max-w-[var(--section-max-width)]">
-        <div className="flex flex-wrap items-center gap-3 md:gap-6">
-          <span className="font-['Satoshi'] text-xs font-semibold uppercase tracking-widest text-neutral-400 shrink-0">
-            Positive replies from
-          </span>
-          <div className="flex flex-wrap items-center gap-2 md:gap-4">
-            {COMPANIES.map((company) => (
-              <span
-                key={company}
-                className="font-['Satoshi'] text-xs font-semibold text-neutral-600 md:text-sm"
-              >
-                {company}
-              </span>
-            ))}
-          </div>
+    <section className="py-6 bg-white border-y-2 border-studojo-ink overflow-hidden">
+      <p className="font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-studojo-muted text-center mb-4">
+        Positive replies from
+      </p>
+      <div className="overflow-hidden">
+        <div className="flex gap-4 w-max animate-marquee">
+          {doubled.map((company, i) => (
+            <span
+              key={i}
+              className="shrink-0 px-4 py-2 rounded-full border-2 border-studojo-ink bg-studojo-purple-bg font-['Satoshi'] text-xs font-bold text-studojo-ink whitespace-nowrap"
+            >
+              {company}
+            </span>
+          ))}
         </div>
       </div>
     </section>

@@ -189,13 +189,13 @@ export default function Home() {
           <CollegesBanner />
         </motion.div>
         <motion.div variants={sectionVariants}>
-          <TrustStrip />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
           <StepsSection />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <ProblemSolution />
+        </motion.div>
+        <motion.div variants={sectionVariants}>
+          <TrustStrip />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <FeaturedProductCard />
