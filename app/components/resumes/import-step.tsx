@@ -133,7 +133,7 @@ export function ImportStep({ onImport, onSkip }: ImportStepProps) {
           >
             {progressSteps[progressStep]}
           </motion.p>
-          <p className="text-sm text-emerald-600 mt-2">Usually takes 1–2 seconds</p>
+          <p className="text-sm text-emerald-600 mt-2">Usually takes 1-2 seconds</p>
           <div className="flex justify-center gap-1.5 mt-5">
             {progressSteps.map((_, idx) => (
               <div

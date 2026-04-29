@@ -12,7 +12,7 @@ export const INTENTS: Intent[] = [
     id: "greeting",
     keywords: ["hi", "hello", "hey", "sup", "yo", "hola", "good morning", "good evening", "howdy", "what's up", "wassup"],
     patterns: ["hi there", "hello there", "hey there", "how are you", "whats up", "how's it going", "how are things"],
-    response: "Hey! Good to hear from you.\n\nI can help with anything Studojo related — our tools, your account, billing, or just figuring out what's right for you.\n\nWhat do you need?",
+    response: "Hey! Good to hear from you.\n\nI can help with anything Studojo related - our tools, your account, billing, or just figuring out what's right for you.\n\nWhat do you need?",
   },
 
   // -- Assignment Dojo --
@@ -32,7 +32,7 @@ export const INTENTS: Intent[] = [
       "assignment generator",
       "will it pass turnitin",
     ],
-    response: "Assignment Dojo generates AI-powered assignments that are formatted, properly referenced, and plagiarism-safe.\n\nHere's how it works:\n1. Pick your subject and topic\n2. Set your academic level and word count\n3. Get a ready-to-use document in minutes\n\nIt's built as a strong starting point — structured, cited, formatted. You review it, tweak what you want, and submit. Most students use it to get unstuck fast rather than starting from a blank page.\n\nPricing is per assignment, no subscription needed.",
+    response: "Assignment Dojo generates AI-powered assignments that are formatted, properly referenced, and plagiarism-safe.\n\nHere's how it works:\n1. Pick your subject and topic\n2. Set your academic level and word count\n3. Get a ready-to-use document in minutes\n\nIt's built as a strong starting point - structured, cited, formatted. You review it, tweak what you want, and submit. Most students use it to get unstuck fast rather than starting from a blank page.\n\nPricing is per assignment, no subscription needed.",
     links: [{ label: "Try Assignment Dojo", url: "/dojos/assignment" }],
   },
 
@@ -55,7 +55,7 @@ export const INTENTS: Intent[] = [
       "internship search",
       "how to get an internship",
     ],
-    response: "Internship Dojo finds real internship opportunities and reaches out to hiring managers on your behalf using AI-written emails from your own Gmail.\n\nHere's the flow:\n1. Upload your resume — we pull your skills automatically\n2. Tell us what kind of roles you want and where\n3. AI finds relevant hiring managers at matching companies\n4. Writes personalised emails and sends them from your connected Gmail\n\nYou stay in full control — you can review leads and approve before anything goes out. Some students have gotten interview calls within 48 hours.\n\nCredits are used for lead discovery, enrichment, and sending campaigns.",
+    response: "Internship Dojo finds real internship opportunities and reaches out to hiring managers on your behalf using AI-written emails from your own Gmail.\n\nHere's the flow:\n1. Upload your resume - we pull your skills automatically\n2. Tell us what kind of roles you want and where\n3. AI finds relevant hiring managers at matching companies\n4. Writes personalised emails and sends them from your connected Gmail\n\nYou stay in full control - you can review leads and approve before anything goes out. Some students have gotten interview calls within 48 hours.\n\nCredits are used for lead discovery, enrichment, and sending campaigns.",
     links: [{ label: "Explore Internship Dojo", url: "/dojos/internships" }],
   },
 
@@ -77,7 +77,7 @@ export const INTENTS: Intent[] = [
       "professional resume",
       "resume for free",
     ],
-    response: "The resume builder is completely free. No credit card, no trial period, no hidden catch.\n\nWhat you get:\n- Professional ATS-optimised templates\n- Import from an existing PDF or build from scratch\n- Download instantly as a PDF\n- Unlimited resumes, unlimited edits\n\nATS-optimised means your resume is structured the way applicant tracking systems actually parse it — so it clears the filters before a human even sees it.\n\nTakes about 10 minutes to get something that looks properly done.",
+    response: "The resume builder is completely free. No credit card, no trial period, no hidden catch.\n\nWhat you get:\n- Professional ATS-optimised templates\n- Import from an existing PDF or build from scratch\n- Download instantly as a PDF\n- Unlimited resumes, unlimited edits\n\nATS-optimised means your resume is structured the way applicant tracking systems actually parse it - so it clears the filters before a human even sees it.\n\nTakes about 10 minutes to get something that looks properly done.",
     links: [{ label: "Build your resume free", url: "/dojos/careers" }],
   },
 
@@ -97,7 +97,7 @@ export const INTENTS: Intent[] = [
       "lower ai score",
       "ai writing detection",
     ],
-    response: "The AI Risk checker scans your text and gives you a risk score section by section, so you can see exactly which parts might get flagged.\n\nIt's a detection checker, not a bypass tool. The idea is: you run your draft through it, see what's high risk, then rephrase those parts in your own words.\n\nIt won't humanize text for you automatically — it's designed to show you where to focus your edits so the final version genuinely reflects your voice.",
+    response: "The AI Risk checker scans your text and gives you a risk score section by section, so you can see exactly which parts might get flagged.\n\nIt's a detection checker, not a bypass tool. The idea is: you run your draft through it, see what's high risk, then rephrase those parts in your own words.\n\nIt won't humanize text for you automatically - it's designed to show you where to focus your edits so the final version genuinely reflects your voice.",
     links: [{ label: "Try AI Risk checker", url: "/dojos/ai-risk" }],
   },
 
@@ -119,7 +119,7 @@ export const INTENTS: Intent[] = [
       "how much for outreach",
       "is it free to use",
     ],
-    response: "Here's the breakdown:\n\nResume builder — completely free, no limits.\n\nAssignment Dojo — pay per assignment. No subscription. You pay for what you need.\n\nInternship Dojo — credit-based. Credits are spent on lead discovery (finding companies), enrichment (getting contact details), and sending email campaigns.\n\nAll payments go through Razorpay, so UPI, debit/credit cards, and net banking all work fine.\n\nNo subscriptions anywhere — you only pay when you actually use something.",
+    response: "Here's the breakdown:\n\nResume builder - completely free, no limits.\n\nAssignment Dojo - pay per assignment. No subscription. You pay for what you need.\n\nInternship Dojo - credit-based. Credits are spent on lead discovery (finding companies), enrichment (getting contact details), and sending email campaigns.\n\nAll payments go through Razorpay, so UPI, debit/credit cards, and net banking all work fine.\n\nNo subscriptions anywhere - you only pay when you actually use something.",
     links: [{ label: "View Internship Dojo pricing", url: "/dojos/internships" }],
   },
 
@@ -139,7 +139,7 @@ export const INTENTS: Intent[] = [
       "get money back",
       "dispute a charge",
     ],
-    response: "Here's the refund policy:\n\nInternship Dojo credits — refundable within 7 days if no leads have been processed yet. Once discovery or enrichment has run, those credits are used.\n\nAssignment Dojo — refundable within 24 hours if you haven't downloaded the document yet. Once downloaded, it's non-refundable.\n\nAnything already used or delivered — non-refundable.\n\nTo request a refund, email admin@studojo.com with your order ID and what happened. We'll get back to you within 24 hours.",
+    response: "Here's the refund policy:\n\nInternship Dojo credits - refundable within 7 days if no leads have been processed yet. Once discovery or enrichment has run, those credits are used.\n\nAssignment Dojo - refundable within 24 hours if you haven't downloaded the document yet. Once downloaded, it's non-refundable.\n\nAnything already used or delivered - non-refundable.\n\nTo request a refund, email admin@studojo.com with your order ID and what happened. We'll get back to you within 24 hours.",
     links: [{ label: "Full refund policy", url: "/refund-policy" }],
   },
 
@@ -162,7 +162,7 @@ export const INTENTS: Intent[] = [
       "cant access my account",
       "password reset not working",
     ],
-    response: "Here's how to handle common account issues:\n\nForgot password — hit \"Forgot password\" on the login page and you'll get a reset link by email. Check spam if it doesn't show up within a couple minutes.\n\nCan't log in — try clearing cache or using an incognito window first. If that doesn't help, email admin@studojo.com.\n\nAccount deletion — email admin@studojo.com and we'll handle it. We'll confirm before anything is deleted.\n\nGeneral account questions — admin@studojo.com is the fastest way to get a real answer.",
+    response: "Here's how to handle common account issues:\n\nForgot password - hit \"Forgot password\" on the login page and you'll get a reset link by email. Check spam if it doesn't show up within a couple minutes.\n\nCan't log in - try clearing cache or using an incognito window first. If that doesn't help, email admin@studojo.com.\n\nAccount deletion - email admin@studojo.com and we'll handle it. We'll confirm before anything is deleted.\n\nGeneral account questions - admin@studojo.com is the fastest way to get a real answer.",
     links: [{ label: "Go to login", url: "/auth" }],
   },
 
@@ -182,7 +182,7 @@ export const INTENTS: Intent[] = [
       "data privacy",
       "personal information",
     ],
-    response: "Your data is encrypted and we never sell it to third parties. Period.\n\nWe only use your data to run the services you've signed up for — nothing else.\n\nWhat we store: your account info, resume data (if you build one), and usage data to improve the product.\n\nIf you want your data deleted, just email admin@studojo.com with the subject \"Data Deletion Request\" and we'll handle it fully.\n\nFull details are in the privacy policy if you want the specifics.",
+    response: "Your data is encrypted and we never sell it to third parties. Period.\n\nWe only use your data to run the services you've signed up for - nothing else.\n\nWhat we store: your account info, resume data (if you build one), and usage data to improve the product.\n\nIf you want your data deleted, just email admin@studojo.com with the subject \"Data Deletion Request\" and we'll handle it fully.\n\nFull details are in the privacy policy if you want the specifics.",
     links: [{ label: "Privacy policy", url: "/privacy" }],
   },
 
@@ -205,7 +205,7 @@ export const INTENTS: Intent[] = [
       "error message",
       "site not working",
     ],
-    response: "Sorry about that — let's get it sorted.\n\nQuick things to try first:\n1. Hard refresh the page (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows)\n2. Clear your browser cache\n3. Try Chrome if you're on a different browser\n4. Check your internet connection\n\nIf none of that fixes it, reach out through the contact form with:\n- What you were trying to do\n- What happened instead\n- Any error message you saw\n- Screenshots if you have them\n\nWe'll investigate and get back to you.",
+    response: "Sorry about that - let's get it sorted.\n\nQuick things to try first:\n1. Hard refresh the page (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows)\n2. Clear your browser cache\n3. Try Chrome if you're on a different browser\n4. Check your internet connection\n\nIf none of that fixes it, reach out through the contact form with:\n- What you were trying to do\n- What happened instead\n- Any error message you saw\n- Screenshots if you have them\n\nWe'll investigate and get back to you.",
     links: [{ label: "Contact support", url: "/contact" }],
   },
 
@@ -224,7 +224,7 @@ export const INTENTS: Intent[] = [
       "how did studojo start",
       "about the company",
     ],
-    response: "Studojo is a career platform built for ambitious students — people who want to work on things that actually matter, not just tick boxes.\n\nWe've helped over 10,000 students with resumes, internship applications, and AI-powered outreach to hiring managers.\n\nThe tools we've built:\n- Careers Dojo — free ATS resume builder\n- Internship Dojo — AI-powered internship discovery and outreach\n- Assignment Dojo — AI assignment help\n- AI Risk Dojo — AI detection checker\n- Revision Dojo — coming soon\n\nBased in Bangalore, India. Serving students across India, US, UK, UAE, Singapore, and beyond.",
+    response: "Studojo is a career platform built for ambitious students - people who want to work on things that actually matter, not just tick boxes.\n\nWe've helped over 10,000 students with resumes, internship applications, and AI-powered outreach to hiring managers.\n\nThe tools we've built:\n- Careers Dojo - free ATS resume builder\n- Internship Dojo - AI-powered internship discovery and outreach\n- Assignment Dojo - AI assignment help\n- AI Risk Dojo - AI detection checker\n- Revision Dojo - coming soon\n\nBased in Bangalore, India. Serving students across India, US, UK, UAE, Singapore, and beyond.",
     links: [{ label: "About us", url: "/about" }],
   },
 
@@ -243,7 +243,7 @@ export const INTENTS: Intent[] = [
       "revision tool",
       "when is revision dojo",
     ],
-    response: "Revision Dojo is coming soon.\n\nIt'll generate custom study notes, practice questions, flashcards, and mind maps based on whatever you're studying — tailored to your syllabus and level.\n\nKeep an eye on the site for the launch. If you want to be notified when it goes live, drop a message to admin@studojo.com.",
+    response: "Revision Dojo is coming soon.\n\nIt'll generate custom study notes, practice questions, flashcards, and mind maps based on whatever you're studying - tailored to your syllabus and level.\n\nKeep an eye on the site for the launch. If you want to be notified when it goes live, drop a message to admin@studojo.com.",
   },
 
   // -- Contact / Human --
@@ -262,7 +262,7 @@ export const INTENTS: Intent[] = [
       "contact the team",
       "need human help",
     ],
-    response: "You can reach the team directly through a few ways:\n\nEmail: admin@studojo.com\nContact form: studojo.com/contact\nWhatsApp community group (link in the footer)\n\nEmail is usually the fastest for account or billing stuff. The contact form works well for anything technical — it lets you attach screenshots.\n\nWe typically get back within 24 hours.",
+    response: "You can reach the team directly through a few ways:\n\nEmail: admin@studojo.com\nContact form: studojo.com/contact\nWhatsApp community group (link in the footer)\n\nEmail is usually the fastest for account or billing stuff. The contact form works well for anything technical - it lets you attach screenshots.\n\nWe typically get back within 24 hours.",
     links: [{ label: "Contact form", url: "/contact" }],
   },
 
@@ -271,7 +271,7 @@ export const INTENTS: Intent[] = [
     id: "farewell",
     keywords: ["bye", "goodbye", "thanks", "thank you", "cheers", "thats all", "done", "sorted", "all good", "got it", "perfect", "great"],
     patterns: ["thanks for the help", "that helps", "got it thanks", "perfect thanks", "all good", "that's sorted", "thanks a lot", "appreciate it"],
-    response: "Glad that helped! Good luck with everything.\n\nFeel free to come back anytime — I'm always here.",
+    response: "Glad that helped! Good luck with everything.\n\nFeel free to come back anytime - I'm always here.",
   },
 ];
 
@@ -282,7 +282,7 @@ Products:
 - Assignment Dojo: AI-generated assignments, plagiarism-safe, formatted, referenced. Paid per assignment.
 - Internship Dojo: Global internship discovery + AI outreach to hiring managers via Gmail. Credit-based. Credits used for lead generation, enrichment, email campaigns.
 - Careers Dojo: Free ATS-optimised resume builder. Unlimited use, no credit card needed.
-- AI Risk Dojo: AI detection risk checker for text. Not a bypass tool — shows you where to rephrase.
+- AI Risk Dojo: AI detection risk checker for text. Not a bypass tool - shows you where to rephrase.
 - Revision Dojo: Coming soon (study notes, practice questions, flashcards, mind maps).
 
 Refunds:
@@ -303,9 +303,9 @@ Stats: 10,000+ students helped, 5,000+ resumes built, 95% satisfaction rate.
 Contact: admin@studojo.com. Response within 24 hours. Contact form at /contact.
 Privacy: Data encrypted, never sold. Deletion available on request.
 
-Tone rules — CRITICAL:
+Tone rules - CRITICAL:
 - Casual and direct, like a knowledgeable friend. Not corporate.
-- Never use em dashes (—). Use commas or line breaks instead.
+- Never use em dashes (-). Use commas or line breaks instead.
 - No phrases like "I'd be happy to", "Certainly!", "Of course!", "As an AI..."
 - Keep it short. If you can say it in 3 lines, don't use 6.
 - If you genuinely don't know something, say so and point to admin@studojo.com.

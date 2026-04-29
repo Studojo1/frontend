@@ -84,7 +84,7 @@ export const SECTORS: Record<string, SectorProfile> = {
       "LLMs generate SQL queries, dashboards, and insight summaries from natural language",
     ],
     human_edges: [
-      "Framing the right business question — knowing what to measure and why",
+      "Framing the right business question - knowing what to measure and why",
       "Communicating nuanced data stories to non-technical stakeholders who make decisions",
       "Judgment on data quality, model limitations, and when not to trust a number",
     ],
@@ -110,8 +110,8 @@ export const SECTORS: Record<string, SectorProfile> = {
       "Security and compliance decision-making that carries regulatory accountability",
     ],
     pivots: [
-      { role: "Cloud Security Architect", why: "Secure cloud-native architectures — demand outpaces talent supply significantly.", skills: ["Zero trust", "IAM design", "Cloud security (AWS/Azure/GCP)", "Compliance frameworks"], timeline: "6-12 months", difficulty: 2 },
-      { role: "FinOps Engineer", why: "Optimise cloud spend at scale — a growing discipline as cloud bills balloon.", skills: ["Cloud cost management", "FinOps framework", "Tagging strategy", "Reservation planning"], timeline: "3-6 months", difficulty: 1 },
+      { role: "Cloud Security Architect", why: "Secure cloud-native architectures - demand outpaces talent supply significantly.", skills: ["Zero trust", "IAM design", "Cloud security (AWS/Azure/GCP)", "Compliance frameworks"], timeline: "6-12 months", difficulty: 2 },
+      { role: "FinOps Engineer", why: "Optimise cloud spend at scale - a growing discipline as cloud bills balloon.", skills: ["Cloud cost management", "FinOps framework", "Tagging strategy", "Reservation planning"], timeline: "3-6 months", difficulty: 1 },
       { role: "AI Infrastructure Engineer", why: "Build GPU clusters and ML pipelines that the AI wave demands.", skills: ["GPU infrastructure", "Vector databases", "Distributed computing", "MLOps tooling"], timeline: "4-8 months", difficulty: 2 },
     ],
   },
@@ -126,13 +126,13 @@ export const SECTORS: Record<string, SectorProfile> = {
       "LLMs conduct synthetic user research and generate competitive analyses",
     ],
     human_edges: [
-      "Vision and conviction about what to build — the judgment to say no to good ideas",
+      "Vision and conviction about what to build - the judgment to say no to good ideas",
       "Cross-functional alignment across engineering, design, and business stakeholders",
       "Reading market timing and the founder instinct for what matters now vs later",
     ],
     pivots: [
       { role: "Chief Product Officer", why: "Product leadership is the direct path to CPO, where vision is the moat.", skills: ["Product strategy", "P&L ownership", "Executive leadership", "Company building"], timeline: "2-5 years", difficulty: 3 },
-      { role: "AI Product Manager", why: "Own AI product development — a specialism with severe talent shortage.", skills: ["LLM capabilities", "Evaluation design", "AI product strategy", "Responsible AI"], timeline: "4-8 months", difficulty: 2 },
+      { role: "AI Product Manager", why: "Own AI product development - a specialism with severe talent shortage.", skills: ["LLM capabilities", "Evaluation design", "AI product strategy", "Responsible AI"], timeline: "4-8 months", difficulty: 2 },
       { role: "Venture Capital Investor", why: "Your product judgment is exactly what early-stage investors need to evaluate startups.", skills: ["Startup evaluation", "Market sizing", "Founder assessment", "Investment thesis"], timeline: "1-3 years", difficulty: 3 },
     ],
   },
@@ -147,14 +147,14 @@ export const SECTORS: Record<string, SectorProfile> = {
       "LLMs write UX copy, microcopy, and design briefs faster than human iteration",
     ],
     human_edges: [
-      "Design judgment — knowing what looks and feels right beyond what's technically possible",
+      "Design judgment - knowing what looks and feels right beyond what's technically possible",
       "User empathy and the qualitative insight that makes design feel human",
       "Creative direction and the ability to brief, inspire, and evaluate creative teams",
     ],
     pivots: [
-      { role: "Design Director", why: "Lead creative teams and set design vision — judgment that AI cannot replicate.", skills: ["Creative leadership", "Design systems", "Strategic vision", "Team management"], timeline: "1-2 years", difficulty: 3 },
-      { role: "AI-Augmented Designer", why: "Master AI design tools to produce 10x output — the new baseline for senior designers.", skills: ["Figma AI", "Midjourney/DALL-E", "Prompt engineering for design", "AI prototyping"], timeline: "2-4 months", difficulty: 1 },
-      { role: "Design Technologist", why: "Bridge the gap between design and engineering — a role that is growing as AI tools blur the boundary.", skills: ["Framer/Webflow", "Design systems", "Frontend basics", "Prototyping"], timeline: "4-8 months", difficulty: 2 },
+      { role: "Design Director", why: "Lead creative teams and set design vision - judgment that AI cannot replicate.", skills: ["Creative leadership", "Design systems", "Strategic vision", "Team management"], timeline: "1-2 years", difficulty: 3 },
+      { role: "AI-Augmented Designer", why: "Master AI design tools to produce 10x output - the new baseline for senior designers.", skills: ["Figma AI", "Midjourney/DALL-E", "Prompt engineering for design", "AI prototyping"], timeline: "2-4 months", difficulty: 1 },
+      { role: "Design Technologist", why: "Bridge the gap between design and engineering - a role that is growing as AI tools blur the boundary.", skills: ["Framer/Webflow", "Design systems", "Frontend basics", "Prototyping"], timeline: "4-8 months", difficulty: 2 },
     ],
   },
 
@@ -170,11 +170,11 @@ export const SECTORS: Record<string, SectorProfile> = {
     human_edges: [
       "Complex enterprise negotiations with multiple stakeholders and long decision cycles",
       "Executive relationships built over years that form the bedrock of large deal flow",
-      "Reading the room in live sales situations — improvising when the script fails",
+      "Reading the room in live sales situations - improvising when the script fails",
     ],
     pivots: [
       { role: "Enterprise Account Executive", why: "Move upmarket to complex deals where AI cannot replace the relationship.", skills: ["Enterprise sales methodology", "Multi-stakeholder navigation", "Contract negotiation", "Executive relationships"], timeline: "6-12 months", difficulty: 2 },
-      { role: "Revenue Operations Manager", why: "Build and own the revenue stack — the AI tools, data, and processes that make sales work.", skills: ["CRM (Salesforce/HubSpot)", "Sales analytics", "Revenue forecasting", "Process design"], timeline: "4-8 months", difficulty: 2 },
+      { role: "Revenue Operations Manager", why: "Build and own the revenue stack - the AI tools, data, and processes that make sales work.", skills: ["CRM (Salesforce/HubSpot)", "Sales analytics", "Revenue forecasting", "Process design"], timeline: "4-8 months", difficulty: 2 },
       { role: "Customer Success Manager", why: "Expand existing accounts through relationship depth that AI cannot replicate.", skills: ["Account management", "Renewal management", "QBR facilitation", "Upsell identification"], timeline: "3-6 months", difficulty: 1 },
     ],
   },
@@ -194,9 +194,9 @@ export const SECTORS: Record<string, SectorProfile> = {
       "Tax strategy and planning requiring deep regulatory knowledge and client relationships",
     ],
     pivots: [
-      { role: "Financial Controller", why: "Move from operational finance to oversight and control — less automatable than transactional work.", skills: ["IFRS/GAAP", "Internal controls", "Financial reporting", "Audit management"], timeline: "6-12 months", difficulty: 2 },
+      { role: "Financial Controller", why: "Move from operational finance to oversight and control - less automatable than transactional work.", skills: ["IFRS/GAAP", "Internal controls", "Financial reporting", "Audit management"], timeline: "6-12 months", difficulty: 2 },
       { role: "FP&A Manager", why: "Strategic financial planning and scenario modelling that drives business decisions.", skills: ["Financial modelling", "Business partnering", "Scenario analysis", "Board communication"], timeline: "4-8 months", difficulty: 2 },
-      { role: "CFO", why: "Finance leadership is permanently human — capital allocation and investor trust cannot be automated.", skills: ["Capital markets", "M&A", "Investor relations", "Financial strategy"], timeline: "3-7 years", difficulty: 3 },
+      { role: "CFO", why: "Finance leadership is permanently human - capital allocation and investor trust cannot be automated.", skills: ["Capital markets", "M&A", "Investor relations", "Financial strategy"], timeline: "3-7 years", difficulty: 3 },
     ],
   },
 
@@ -210,13 +210,13 @@ export const SECTORS: Record<string, SectorProfile> = {
       "People analytics platforms surface insights on attrition, engagement, and productivity automatically",
     ],
     human_edges: [
-      "Sensitive employee relations conversations — redundancy, discipline, mental health — requiring empathy and judgment",
+      "Sensitive employee relations conversations - redundancy, discipline, mental health - requiring empathy and judgment",
       "Organisational design and culture-building that defines how companies attract and retain talent",
       "Executive hiring where relationships, network, and judgment about people are the whole job",
     ],
     pivots: [
-      { role: "People Operations Lead", why: "Own the systems, data, and processes that make HR scalable — a growing operational role.", skills: ["HRIS platforms", "People analytics", "Process automation", "HR tech evaluation"], timeline: "3-6 months", difficulty: 1 },
-      { role: "Chief People Officer", why: "HR leadership is the path to CPO — culture, values, and executive hiring are permanently human.", skills: ["Org design", "Executive team management", "Culture strategy", "Board advisory"], timeline: "2-5 years", difficulty: 3 },
+      { role: "People Operations Lead", why: "Own the systems, data, and processes that make HR scalable - a growing operational role.", skills: ["HRIS platforms", "People analytics", "Process automation", "HR tech evaluation"], timeline: "3-6 months", difficulty: 1 },
+      { role: "Chief People Officer", why: "HR leadership is the path to CPO - culture, values, and executive hiring are permanently human.", skills: ["Org design", "Executive team management", "Culture strategy", "Board advisory"], timeline: "2-5 years", difficulty: 3 },
       { role: "HR Business Partner (Senior)", why: "Strategic partnering with business units on org design, talent strategy, and change management.", skills: ["Business partnering", "OD methodology", "Executive coaching basics", "Change management"], timeline: "4-8 months", difficulty: 2 },
     ],
   },
@@ -231,14 +231,14 @@ export const SECTORS: Record<string, SectorProfile> = {
       "AI tools (Jasper, Copy.ai) produce SEO content and blog posts faster than human writers",
     ],
     human_edges: [
-      "Brand judgment — the cultural intuition for what will resonate vs what will fall flat",
+      "Brand judgment - the cultural intuition for what will resonate vs what will fall flat",
       "Campaign strategy that requires understanding of market context, timing, and competitive dynamics",
       "Creative direction and the ability to recognise and brief great human creative work",
     ],
     pivots: [
-      { role: "Growth Lead", why: "Own full-funnel growth strategy — a role that blends marketing with product and data.", skills: ["Growth experimentation", "Funnel analytics", "A/B testing", "Cross-channel strategy"], timeline: "4-8 months", difficulty: 2 },
+      { role: "Growth Lead", why: "Own full-funnel growth strategy - a role that blends marketing with product and data.", skills: ["Growth experimentation", "Funnel analytics", "A/B testing", "Cross-channel strategy"], timeline: "4-8 months", difficulty: 2 },
       { role: "AI Marketing Specialist", why: "Master AI marketing tools and become the person who teaches others to use them.", skills: ["Generative AI for marketing", "Prompt engineering", "Marketing automation", "AI analytics"], timeline: "2-4 months", difficulty: 1 },
-      { role: "Head of Marketing", why: "Marketing leadership is the path to CMO — strategy and brand judgment are the moat.", skills: ["Marketing strategy", "Team leadership", "Budget management", "Board communication"], timeline: "1-3 years", difficulty: 3 },
+      { role: "Head of Marketing", why: "Marketing leadership is the path to CMO - strategy and brand judgment are the moat.", skills: ["Marketing strategy", "Team leadership", "Budget management", "Board communication"], timeline: "1-3 years", difficulty: 3 },
     ],
   },
 
@@ -257,9 +257,9 @@ export const SECTORS: Record<string, SectorProfile> = {
       "Novel legal arguments in emerging areas (AI law, crypto regulation) with no established precedent",
     ],
     pivots: [
-      { role: "Legal Tech Specialist", why: "Implement and govern AI legal tools — your domain knowledge makes you the critical bridge.", skills: ["Contract management platforms", "eDiscovery tools", "Legal AI governance", "Process design"], timeline: "3-6 months", difficulty: 1 },
+      { role: "Legal Tech Specialist", why: "Implement and govern AI legal tools - your domain knowledge makes you the critical bridge.", skills: ["Contract management platforms", "eDiscovery tools", "Legal AI governance", "Process design"], timeline: "3-6 months", difficulty: 1 },
       { role: "In-house Counsel", why: "Move from private practice to corporate in-house, where relationships with the business are the whole job.", skills: ["Commercial contracts", "Risk management", "Stakeholder advisory", "Business partnering"], timeline: "4-8 months", difficulty: 2 },
-      { role: "Regulatory Affairs Manager", why: "Navigate complex regulatory environments in regulated industries — judgment-intensive and growing.", skills: ["Regulatory strategy", "Government affairs", "Compliance frameworks", "Policy monitoring"], timeline: "6-12 months", difficulty: 2 },
+      { role: "Regulatory Affairs Manager", why: "Navigate complex regulatory environments in regulated industries - judgment-intensive and growing.", skills: ["Regulatory strategy", "Government affairs", "Compliance frameworks", "Policy monitoring"], timeline: "6-12 months", difficulty: 2 },
     ],
   },
 
@@ -299,7 +299,7 @@ export const SECTORS: Record<string, SectorProfile> = {
       "Strategic planning in resource-constrained public health systems",
     ],
     pivots: [
-      { role: "Healthcare Strategy Manager", why: "Advise health systems on transformation programmes — your operational knowledge is essential.", skills: ["Healthcare strategy", "Service design", "Stakeholder engagement", "Business case development"], timeline: "6-12 months", difficulty: 2 },
+      { role: "Healthcare Strategy Manager", why: "Advise health systems on transformation programmes - your operational knowledge is essential.", skills: ["Healthcare strategy", "Service design", "Stakeholder engagement", "Business case development"], timeline: "6-12 months", difficulty: 2 },
       { role: "Digital Health Product Manager", why: "Build digital health products using your understanding of how healthcare actually works.", skills: ["Health product management", "Regulatory pathways (MDR, FDA)", "Clinical workflow mapping", "User research"], timeline: "6-12 months", difficulty: 2 },
       { role: "Health Economist", why: "Model the value of healthcare interventions for payers, governments, and industry.", skills: ["Health economic modelling", "QALY analysis", "Budget impact models", "Pharmacoeconomics"], timeline: "1-2 years", difficulty: 3 },
     ],
@@ -317,12 +317,12 @@ export const SECTORS: Record<string, SectorProfile> = {
     human_edges: [
       "Mentoring, motivation, and the relationships that make students believe they can succeed",
       "Classroom management and creating psychologically safe learning environments",
-      "Identifying students in crisis — emotional, social, or safeguarding — before problems escalate",
+      "Identifying students in crisis - emotional, social, or safeguarding - before problems escalate",
     ],
     pivots: [
       { role: "Instructional Designer", why: "Design the learning experiences that AI tools and platforms execute.", skills: ["E-learning design", "Learning science", "LMS platforms", "UX for learning"], timeline: "3-6 months", difficulty: 1 },
       { role: "EdTech Product Manager", why: "Build AI-powered learning tools using your deep pedagogical knowledge.", skills: ["Product management", "Learning analytics", "Curriculum design", "Stakeholder management"], timeline: "6-12 months", difficulty: 2 },
-      { role: "Corporate L&D Lead", why: "Design and run learning programmes for organisations — well-funded, growing, and underserved.", skills: ["Needs analysis", "Workshop facilitation", "LMS administration", "ROI measurement"], timeline: "3-6 months", difficulty: 1 },
+      { role: "Corporate L&D Lead", why: "Design and run learning programmes for organisations - well-funded, growing, and underserved.", skills: ["Needs analysis", "Workshop facilitation", "LMS administration", "ROI measurement"], timeline: "3-6 months", difficulty: 1 },
     ],
   },
 
@@ -342,8 +342,8 @@ export const SECTORS: Record<string, SectorProfile> = {
     ],
     pivots: [
       { role: "Content Strategist", why: "Own the editorial strategy above the content generation layer.", skills: ["Content strategy", "Editorial planning", "SEO", "Distribution channels"], timeline: "3-6 months", difficulty: 1 },
-      { role: "Podcast/Audio Producer", why: "Long-form human conversation and storytelling remains deeply engaging — and hard to automate.", skills: ["Audio production", "Storytelling", "Guest booking", "Audience development"], timeline: "3-6 months", difficulty: 1 },
-      { role: "Communications Director", why: "Strategic comms leadership — reputation management, crisis, and executive messaging.", skills: ["Corporate communications", "Crisis management", "Speechwriting", "Media relations"], timeline: "1-2 years", difficulty: 3 },
+      { role: "Podcast/Audio Producer", why: "Long-form human conversation and storytelling remains deeply engaging - and hard to automate.", skills: ["Audio production", "Storytelling", "Guest booking", "Audience development"], timeline: "3-6 months", difficulty: 1 },
+      { role: "Communications Director", why: "Strategic comms leadership - reputation management, crisis, and executive messaging.", skills: ["Corporate communications", "Crisis management", "Speechwriting", "Media relations"], timeline: "1-2 years", difficulty: 3 },
     ],
   },
 
@@ -359,12 +359,12 @@ export const SECTORS: Record<string, SectorProfile> = {
     human_edges: [
       "Physical work in unstructured real-world environments that robots cannot yet navigate",
       "Fault diagnosis using tactile feedback, visual inspection, and contextual judgment",
-      "Licensed work carrying legal liability — regulatory frameworks require qualified humans",
+      "Licensed work carrying legal liability - regulatory frameworks require qualified humans",
     ],
     pivots: [
-      { role: "Renewable Energy Technician", why: "Solar, wind, and EV infrastructure is booming — your technical skills transfer directly.", skills: ["Solar PV installation", "Battery storage", "EV charging infrastructure", "Smart systems"], timeline: "3-6 months", difficulty: 1 },
+      { role: "Renewable Energy Technician", why: "Solar, wind, and EV infrastructure is booming - your technical skills transfer directly.", skills: ["Solar PV installation", "Battery storage", "EV charging infrastructure", "Smart systems"], timeline: "3-6 months", difficulty: 1 },
       { role: "Building Automation Specialist", why: "Smart building systems need technical installers who understand both buildings and data.", skills: ["BMS systems", "HVAC controls", "IoT sensors", "Building data analytics"], timeline: "4-8 months", difficulty: 2 },
-      { role: "Technical Inspector / Surveyor", why: "Inspection work grows as regulation increases — and needs physical presence AI cannot provide.", skills: ["Inspection methodology", "Regulatory standards", "Report writing", "Client communication"], timeline: "4-8 months", difficulty: 2 },
+      { role: "Technical Inspector / Surveyor", why: "Inspection work grows as regulation increases - and needs physical presence AI cannot provide.", skills: ["Inspection methodology", "Regulatory standards", "Report writing", "Client communication"], timeline: "4-8 months", difficulty: 2 },
     ],
   },
 
@@ -378,14 +378,14 @@ export const SECTORS: Record<string, SectorProfile> = {
       "Some strategic analysis and planning work is being augmented by AI scenario tools",
     ],
     human_edges: [
-      "Leading people through uncertainty, setbacks, and conflict — requiring empathy and authority",
+      "Leading people through uncertainty, setbacks, and conflict - requiring empathy and authority",
       "Building organisational culture and the psychological safety that enables performance",
       "Stakeholder management at board and executive level where trust and relationships dominate",
     ],
     pivots: [
       { role: "Strategy Consultant", why: "Advise on complex strategic problems at multiple companies simultaneously.", skills: ["Strategic frameworks", "Business case development", "Executive communication", "Problem structuring"], timeline: "6-12 months", difficulty: 2 },
-      { role: "Executive Coach", why: "Coach C-suite and senior leaders — a human-only craft in high demand as management complexity grows.", skills: ["Coaching methodology (ICF)", "Active listening", "Feedback frameworks", "Leadership psychology"], timeline: "9-18 months", difficulty: 3 },
-      { role: "Board Director (Non-Executive)", why: "Governance and oversight are permanently human — your management experience is the credential.", skills: ["Corporate governance", "Board dynamics", "Risk oversight", "Stakeholder accountability"], timeline: "2-5 years", difficulty: 3 },
+      { role: "Executive Coach", why: "Coach C-suite and senior leaders - a human-only craft in high demand as management complexity grows.", skills: ["Coaching methodology (ICF)", "Active listening", "Feedback frameworks", "Leadership psychology"], timeline: "9-18 months", difficulty: 3 },
+      { role: "Board Director (Non-Executive)", why: "Governance and oversight are permanently human - your management experience is the credential.", skills: ["Corporate governance", "Board dynamics", "Risk oversight", "Stakeholder accountability"], timeline: "2-5 years", difficulty: 3 },
     ],
   },
 
@@ -404,7 +404,7 @@ export const SECTORS: Record<string, SectorProfile> = {
       "Cultural relevance and the ability to read and respond to the moment",
     ],
     pivots: [
-      { role: "Creative Director", why: "Direct and curate creative output — the judgment layer above AI production.", skills: ["Creative strategy", "Brief writing", "Talent management", "Brand vision"], timeline: "1-2 years", difficulty: 3 },
+      { role: "Creative Director", why: "Direct and curate creative output - the judgment layer above AI production.", skills: ["Creative strategy", "Brief writing", "Talent management", "Brand vision"], timeline: "1-2 years", difficulty: 3 },
       { role: "AI Creative Producer", why: "Use AI tools to produce at 10x scale while maintaining artistic vision.", skills: ["Midjourney/DALL-E/Sora", "Prompt engineering for creatives", "Creative direction", "Production management"], timeline: "2-4 months", difficulty: 1 },
       { role: "IP Licensor / Creative Entrepreneur", why: "Monetise your creative IP through licensing, merchandise, and platforms rather than hourly production.", skills: ["IP law basics", "Brand building", "Platform strategy", "Licensing negotiation"], timeline: "6-18 months", difficulty: 2 },
     ],
@@ -426,7 +426,7 @@ export const SECTORS: Record<string, SectorProfile> = {
     ],
     pivots: [
       { role: "Research Engineer (AI)", why: "Apply scientific rigour to building and evaluating AI systems.", skills: ["Python", "ML research methods", "Academic writing", "Experiment design"], timeline: "6-12 months", difficulty: 2 },
-      { role: "Science Communicator", why: "Translate complex research into public understanding — an irreplaceable human skill.", skills: ["Science writing", "Video production", "Public speaking", "Social media for science"], timeline: "4-8 months", difficulty: 2 },
+      { role: "Science Communicator", why: "Translate complex research into public understanding - an irreplaceable human skill.", skills: ["Science writing", "Video production", "Public speaking", "Social media for science"], timeline: "4-8 months", difficulty: 2 },
       { role: "Clinical Trials Manager", why: "Manage the human-facing complexity of clinical research that cannot be automated.", skills: ["GCP certification", "Protocol management", "Site coordination", "Regulatory submissions"], timeline: "4-8 months", difficulty: 2 },
     ],
   },
@@ -446,9 +446,9 @@ export const SECTORS: Record<string, SectorProfile> = {
       "Local market knowledge and the pattern recognition built from years of transacting in a specific area",
     ],
     pivots: [
-      { role: "PropTech Consultant", why: "Help real estate firms adopt AI tools — your domain knowledge is the critical ingredient.", skills: ["PropTech landscape", "Digital transformation", "Change management", "Client advisory"], timeline: "4-8 months", difficulty: 2 },
+      { role: "PropTech Consultant", why: "Help real estate firms adopt AI tools - your domain knowledge is the critical ingredient.", skills: ["PropTech landscape", "Digital transformation", "Change management", "Client advisory"], timeline: "4-8 months", difficulty: 2 },
       { role: "Commercial Real Estate Analyst", why: "Move into investment analysis for commercial property where complexity resists automation.", skills: ["DCF modelling", "Market research", "Investment appraisal", "Lease analysis"], timeline: "4-8 months", difficulty: 2 },
-      { role: "Property Developer", why: "Identify, acquire, and develop property — higher-value work that AI cannot lead.", skills: ["Development appraisal", "Planning and permitting", "Project management", "Development finance"], timeline: "1-3 years", difficulty: 3 },
+      { role: "Property Developer", why: "Identify, acquire, and develop property - higher-value work that AI cannot lead.", skills: ["Development appraisal", "Planning and permitting", "Project management", "Development finance"], timeline: "1-3 years", difficulty: 3 },
     ],
   },
 
@@ -467,9 +467,9 @@ export const SECTORS: Record<string, SectorProfile> = {
       "Implementation leadership for complex public programmes that require organisational change",
     ],
     pivots: [
-      { role: "Policy Adviser", why: "Advise Ministers or C-suite on policy design — judgment, relationships, and political acumen.", skills: ["Policy analysis", "Stakeholder engagement", "Brief writing", "Parliamentary processes"], timeline: "4-8 months", difficulty: 2 },
-      { role: "Digital Government Consultant", why: "Help governments adopt digital and AI tools — the market is large and growing.", skills: ["Digital transformation", "Agile delivery", "Public sector procurement", "Change management"], timeline: "4-8 months", difficulty: 2 },
-      { role: "Think Tank Researcher", why: "Produce policy-relevant research that shapes public debate — a human intellectual craft.", skills: ["Policy research", "Report writing", "Media engagement", "Stakeholder convening"], timeline: "4-8 months", difficulty: 2 },
+      { role: "Policy Adviser", why: "Advise Ministers or C-suite on policy design - judgment, relationships, and political acumen.", skills: ["Policy analysis", "Stakeholder engagement", "Brief writing", "Parliamentary processes"], timeline: "4-8 months", difficulty: 2 },
+      { role: "Digital Government Consultant", why: "Help governments adopt digital and AI tools - the market is large and growing.", skills: ["Digital transformation", "Agile delivery", "Public sector procurement", "Change management"], timeline: "4-8 months", difficulty: 2 },
+      { role: "Think Tank Researcher", why: "Produce policy-relevant research that shapes public debate - a human intellectual craft.", skills: ["Policy research", "Report writing", "Media engagement", "Stakeholder convening"], timeline: "4-8 months", difficulty: 2 },
     ],
   },
 };
@@ -508,7 +508,7 @@ export const ROLE_MAP: Record<string, OntologyRole> = {
   "game developer": { sector: "software_engineering", risk_pct: 36, timeline_years: 9 },
   "embedded software engineer": { sector: "software_engineering", risk_pct: 30, timeline_years: 10 },
   "firmware engineer": { sector: "software_engineering", risk_pct: 28, timeline_years: 11 },
-  "qa engineer": { sector: "software_engineering", risk_pct: 52, timeline_years: 5, risk_drivers: ["AI testing tools write and run test suites automatically", "LLM-powered bug detection catches regressions before humans see them", "No-code testing platforms enable business users to write tests"], human_edges: ["Edge case intuition developed from deep product and user knowledge", "Exploratory testing that finds bugs no specification anticipated", "Quality advocacy across the organisation"], pivots: [{ role: "Software Engineer in Test (SET)", why: "Build the test infrastructure and frameworks that AI tools run on.", skills: ["Test automation frameworks", "CI/CD pipelines", "Python/JavaScript", "Performance testing"], timeline: "3-6 months", difficulty: 1 }, { role: "AI Quality Engineer", why: "Evaluate and validate AI model outputs — a growing discipline with specialist demand.", skills: ["LLM evaluation", "Adversarial testing", "Bias detection", "Model validation"], timeline: "4-8 months", difficulty: 2 }, { role: "Engineering Manager", why: "QA leadership and the people management layer are permanently human.", skills: ["Team leadership", "Engineering processes", "Stakeholder management", "Career development"], timeline: "6-12 months", difficulty: 2 }] },
+  "qa engineer": { sector: "software_engineering", risk_pct: 52, timeline_years: 5, risk_drivers: ["AI testing tools write and run test suites automatically", "LLM-powered bug detection catches regressions before humans see them", "No-code testing platforms enable business users to write tests"], human_edges: ["Edge case intuition developed from deep product and user knowledge", "Exploratory testing that finds bugs no specification anticipated", "Quality advocacy across the organisation"], pivots: [{ role: "Software Engineer in Test (SET)", why: "Build the test infrastructure and frameworks that AI tools run on.", skills: ["Test automation frameworks", "CI/CD pipelines", "Python/JavaScript", "Performance testing"], timeline: "3-6 months", difficulty: 1 }, { role: "AI Quality Engineer", why: "Evaluate and validate AI model outputs - a growing discipline with specialist demand.", skills: ["LLM evaluation", "Adversarial testing", "Bias detection", "Model validation"], timeline: "4-8 months", difficulty: 2 }, { role: "Engineering Manager", why: "QA leadership and the people management layer are permanently human.", skills: ["Team leadership", "Engineering processes", "Stakeholder management", "Career development"], timeline: "6-12 months", difficulty: 2 }] },
   "sdet": { sector: "software_engineering", risk_pct: 50, timeline_years: 6 },
   "test engineer": { sector: "software_engineering", risk_pct: 52, timeline_years: 5 },
   "automation engineer": { sector: "software_engineering", risk_pct: 48, timeline_years: 6 },
@@ -596,7 +596,7 @@ export const ROLE_MAP: Record<string, OntologyRole> = {
   "account executive": { sector: "sales", risk_pct: 48, timeline_years: 6 },
   "ae": { sector: "sales", risk_pct: 48, timeline_years: 6 },
   "enterprise account executive": { sector: "sales", risk_pct: 35, timeline_years: 8 },
-  "sales development representative": { sector: "sales", risk_pct: 72, timeline_years: 4, risk_drivers: ["AI outreach tools write and send personalised cold sequences at scale", "AI lead scoring removes the manual qualification work SDRs do", "Automated dialers and email tools run entire outbound motions unattended"], human_edges: ["Live prospect calls requiring improvisation and genuine rapport", "Creative multi-touch strategies for hard-to-reach prospects", "Building the early relationship that transitions into a long-term account"], pivots: [{ role: "Account Executive", why: "Graduate from prospecting to owning the full sales cycle.", skills: ["Discovery methodology", "Demo skills", "Contract negotiation", "Forecasting"], timeline: "6-12 months", difficulty: 2 }, { role: "Revenue Operations Analyst", why: "Build the sales tech stack and data systems — your pipeline knowledge is the advantage.", skills: ["Salesforce/HubSpot", "SQL", "Sales analytics", "Process design"], timeline: "4-8 months", difficulty: 1 }, { role: "Growth Marketing Manager", why: "Shift from outbound sales to building inbound pipelines that scale without headcount.", skills: ["Demand generation", "Performance marketing", "Marketing automation", "Content strategy"], timeline: "6-12 months", difficulty: 2 }] },
+  "sales development representative": { sector: "sales", risk_pct: 72, timeline_years: 4, risk_drivers: ["AI outreach tools write and send personalised cold sequences at scale", "AI lead scoring removes the manual qualification work SDRs do", "Automated dialers and email tools run entire outbound motions unattended"], human_edges: ["Live prospect calls requiring improvisation and genuine rapport", "Creative multi-touch strategies for hard-to-reach prospects", "Building the early relationship that transitions into a long-term account"], pivots: [{ role: "Account Executive", why: "Graduate from prospecting to owning the full sales cycle.", skills: ["Discovery methodology", "Demo skills", "Contract negotiation", "Forecasting"], timeline: "6-12 months", difficulty: 2 }, { role: "Revenue Operations Analyst", why: "Build the sales tech stack and data systems - your pipeline knowledge is the advantage.", skills: ["Salesforce/HubSpot", "SQL", "Sales analytics", "Process design"], timeline: "4-8 months", difficulty: 1 }, { role: "Growth Marketing Manager", why: "Shift from outbound sales to building inbound pipelines that scale without headcount.", skills: ["Demand generation", "Performance marketing", "Marketing automation", "Content strategy"], timeline: "6-12 months", difficulty: 2 }] },
   "sdr": { sector: "sales", risk_pct: 72, timeline_years: 4 },
   "bdr": { sector: "sales", risk_pct: 70, timeline_years: 4 },
   "business development representative": { sector: "sales", risk_pct: 70, timeline_years: 4 },
@@ -834,7 +834,7 @@ export const ROLE_MAP: Record<string, OntologyRole> = {
   "public health officer": { sector: "public_sector", risk_pct: 25, timeline_years: 10 },
   "diplomat": { sector: "public_sector", risk_pct: 10, timeline_years: 99 },
   "military officer": { sector: "public_sector", risk_pct: 12, timeline_years: 14 },
-  "police officer": { sector: "public_sector", risk_pct: 22, timeline_years: 11, risk_drivers: ["Predictive policing AI tools flag high-risk individuals and locations", "Automated surveillance and facial recognition reduce beat patrol requirements", "AI processes crime data, generates reports, and manages evidence"], human_edges: ["De-escalation, physical presence, and the human authority that maintains public order", "Community policing relationships and trust that prevent crime before it happens", "Moral and legal judgment in complex situations where discretion is essential"], pivots: [{ role: "Cybercrime Investigator", why: "Apply your investigation skills to digital crime — the fastest growing category of criminal offending.", skills: ["Digital forensics", "OSINT", "Network analysis", "Cyber law"], timeline: "6-12 months", difficulty: 2 }, { role: "Security Consultant", why: "Private sector security roles pay significantly more and use your risk assessment expertise.", skills: ["Physical security assessment", "Risk management", "Client advisory", "Report writing"], timeline: "4-8 months", difficulty: 1 }, { role: "Intelligence Analyst", why: "Analytical skills and investigative judgment are in high demand in intelligence and corporate risk.", skills: ["Intelligence analysis methods", "Data analysis", "Report writing", "OSINT"], timeline: "4-8 months", difficulty: 2 }] },
+  "police officer": { sector: "public_sector", risk_pct: 22, timeline_years: 11, risk_drivers: ["Predictive policing AI tools flag high-risk individuals and locations", "Automated surveillance and facial recognition reduce beat patrol requirements", "AI processes crime data, generates reports, and manages evidence"], human_edges: ["De-escalation, physical presence, and the human authority that maintains public order", "Community policing relationships and trust that prevent crime before it happens", "Moral and legal judgment in complex situations where discretion is essential"], pivots: [{ role: "Cybercrime Investigator", why: "Apply your investigation skills to digital crime - the fastest growing category of criminal offending.", skills: ["Digital forensics", "OSINT", "Network analysis", "Cyber law"], timeline: "6-12 months", difficulty: 2 }, { role: "Security Consultant", why: "Private sector security roles pay significantly more and use your risk assessment expertise.", skills: ["Physical security assessment", "Risk management", "Client advisory", "Report writing"], timeline: "4-8 months", difficulty: 1 }, { role: "Intelligence Analyst", why: "Analytical skills and investigative judgment are in high demand in intelligence and corporate risk.", skills: ["Intelligence analysis methods", "Data analysis", "Report writing", "OSINT"], timeline: "4-8 months", difficulty: 2 }] },
   "detective": { sector: "public_sector", risk_pct: 20, timeline_years: 12 },
   "social policy analyst": { sector: "public_sector", risk_pct: 30, timeline_years: 9 },
   "urban planner": { sector: "public_sector", risk_pct: 28, timeline_years: 10 },

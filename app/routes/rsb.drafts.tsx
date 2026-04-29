@@ -53,7 +53,7 @@ export default function RsbDrafts() {
                     <div>
                       <div className="font-bold text-neutral-900">{s.target_role}</div>
                       <div className="text-xs text-neutral-600">
-                        {s.target_industry || "—"} · {s.experience_band || "—"} ·{" "}
+                        {s.target_industry || "-"} · {s.experience_band || "-"} ·{" "}
                         {s.updated_at ? new Date(s.updated_at).toLocaleDateString() : ""}
                       </div>
                     </div>

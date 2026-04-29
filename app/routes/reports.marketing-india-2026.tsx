@@ -61,7 +61,7 @@ function initCharts() {
   make("stipendChart", {
     type: "bar",
     data: {
-      labels: ["D2C / Consumer\nStartup (Series A–C)", "B2B SaaS\n(Growth Stage)", "FMCG / MNC\n(Summer Program)", "Agency /\nConsultancy", "Edtech\nPlatform", "Early-stage\nStartup (pre-seed)"],
+      labels: ["D2C / Consumer\nStartup (Series A-C)", "B2B SaaS\n(Growth Stage)", "FMCG / MNC\n(Summer Program)", "Agency /\nConsultancy", "Edtech\nPlatform", "Early-stage\nStartup (pre-seed)"],
       datasets: [
         { label: "Stipend: low (₹/month)", data: [12000, 15000, 10000, 8000, 8000, 5000], backgroundColor: GREEN3, borderRadius: 4, borderWidth: 0 },
         { label: "Stipend: high (₹/month)", data: [25000, 40000, 30000, 18000, 15000, 12000], backgroundColor: GREEN, borderRadius: 4, borderWidth: 0 },
@@ -273,7 +273,7 @@ export default function MarketingIndiaReport() {
 
             <div className="rpt-stat-row rpt-c3">
               <div className="rpt-stat"><div className="rpt-val rpt-g">₹8,000</div><div className="rpt-lbl">Median listed stipend, all marketing interns (Internshala, April 2026)</div></div>
-              <div className="rpt-stat"><div className="rpt-val">₹15,000</div><div className="rpt-lbl">Median stipend, funded startup marketing intern (Series A–C)</div></div>
+              <div className="rpt-stat"><div className="rpt-val">₹15,000</div><div className="rpt-lbl">Median stipend, funded startup marketing intern (Series A-C)</div></div>
               <div className="rpt-stat"><div className="rpt-val rpt-g">₹40,000</div><div className="rpt-lbl">Top-end stipend, B2B SaaS or growth-stage company (Bengaluru / Mumbai)</div></div>
             </div>
 
@@ -318,7 +318,7 @@ export default function MarketingIndiaReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">Why niche roles pay more and get fewer applicants</div>
-              <p>A "growth marketing intern" requires knowledge of paid acquisition funnels, A/B testing, and analytics tools. Most students cannot demonstrate this credibly, so competition is lower and stipends are higher. The skill gap is addressable in 4–6 weeks of deliberate practice - running a ₹500 Meta campaign on a test account, learning GA4, building a small SEO content calendar. That practice, documented publicly, is worth more than a BBA degree on a marketing application.</p>
+              <p>A "growth marketing intern" requires knowledge of paid acquisition funnels, A/B testing, and analytics tools. Most students cannot demonstrate this credibly, so competition is lower and stipends are higher. The skill gap is addressable in 4-6 weeks of deliberate practice - running a ₹500 Meta campaign on a test account, learning GA4, building a small SEO content calendar. That practice, documented publicly, is worth more than a BBA degree on a marketing application.</p>
             </div>
             <p className="rpt-source">Source: Internshala listing data April 2026, LinkedIn Jobs India, Wellfound, Studojo role analysis</p>
           </div>
@@ -336,7 +336,7 @@ export default function MarketingIndiaReport() {
               <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="funnelChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">A generic "Social Media Intern" post at a recognised company attracts 200–400 applications. A "Growth Marketing Intern" post at a Series B SaaS company attracts 30–60 applications. A founder's LinkedIn post hiring a marketing intern directly gets 10–25 applications. The callback rate on the founder post is 41% - because every candidate who finds it has already demonstrated initiative by finding it. <strong>The single highest-leverage thing you can do is apply to roles that most students never see.</strong></p>
+            <p className="rpt-prose">A generic "Social Media Intern" post at a recognised company attracts 200-400 applications. A "Growth Marketing Intern" post at a Series B SaaS company attracts 30-60 applications. A founder's LinkedIn post hiring a marketing intern directly gets 10-25 applications. The callback rate on the founder post is 41% - because every candidate who finds it has already demonstrated initiative by finding it. <strong>The single highest-leverage thing you can do is apply to roles that most students never see.</strong></p>
 
             <div className="rpt-two-col">
               <div>
@@ -344,10 +344,10 @@ export default function MarketingIndiaReport() {
                 <div className="rpt-card" style={{ padding: 20 }}>
                   <div className="rpt-bar-list">
                     {[
-                      ["HUL / ITC summer intern", 95, "#ef4444", "300–500 applicants"],
-                      ["Generic social media intern", 80, "#ef4444", "200–350 applicants"],
-                      ["Agency coordinator", 60, "#f59e0b", "80–150 applicants"],
-                      ["FMCG brand intern", 55, "#f59e0b", "100–200 applicants"],
+                      ["HUL / ITC summer intern", 95, "#ef4444", "300-500 applicants"],
+                      ["Generic social media intern", 80, "#ef4444", "200-350 applicants"],
+                      ["Agency coordinator", 60, "#f59e0b", "80-150 applicants"],
+                      ["FMCG brand intern", 55, "#f59e0b", "100-200 applicants"],
                     ].map(([name, pct, bg, sub]) => (
                       <div key={name as string} className="rpt-bar-row rpt-narrow">
                         <div className="rpt-bar-label">{name}<small>{sub}</small></div>
@@ -357,7 +357,7 @@ export default function MarketingIndiaReport() {
                   </div>
                   <div className="rpt-mini-total" style={{ background: "#fee2e2", border: "1px solid #ef4444" }}>
                     <div className="rpt-mini-total-label" style={{ color: "#991b1b" }}>Average callback rate</div>
-                    <div style={{ fontFamily: "'Clash Display', sans-serif", fontSize: 22, fontWeight: 700, color: "#991b1b" }}>3–8%</div>
+                    <div style={{ fontFamily: "'Clash Display', sans-serif", fontSize: 22, fontWeight: 700, color: "#991b1b" }}>3-8%</div>
                     <div className="rpt-mini-total-sub">High volume, standardised screening</div>
                   </div>
                 </div>
@@ -367,10 +367,10 @@ export default function MarketingIndiaReport() {
                 <div className="rpt-card" style={{ padding: 20 }}>
                   <div className="rpt-bar-list">
                     {[
-                      ["Founder LinkedIn post", 90, "#10b981", "10–25 applicants"],
-                      ["Growth / Perf. mktg intern", 80, "#10b981", "30–60 applicants"],
-                      ["Product marketing intern", 65, "#34d399", "25–50 applicants"],
-                      ["SEO / Content strategy", 55, "#34d399", "40–80 applicants"],
+                      ["Founder LinkedIn post", 90, "#10b981", "10-25 applicants"],
+                      ["Growth / Perf. mktg intern", 80, "#10b981", "30-60 applicants"],
+                      ["Product marketing intern", 65, "#34d399", "25-50 applicants"],
+                      ["SEO / Content strategy", 55, "#34d399", "40-80 applicants"],
                     ].map(([name, pct, bg, sub]) => (
                       <div key={name as string} className="rpt-bar-row rpt-narrow">
                         <div className="rpt-bar-label">{name}<small>{sub}</small></div>
@@ -380,7 +380,7 @@ export default function MarketingIndiaReport() {
                   </div>
                   <div className="rpt-mini-total" style={{ background: "#d0fae4", border: "1px solid #10b981" }}>
                     <div className="rpt-mini-total-label" style={{ color: "#065f46" }}>Average callback rate</div>
-                    <div style={{ fontFamily: "'Clash Display', sans-serif", fontSize: 22, fontWeight: 700, color: "#065f46" }}>22–41%</div>
+                    <div style={{ fontFamily: "'Clash Display', sans-serif", fontSize: 22, fontWeight: 700, color: "#065f46" }}>22-41%</div>
                     <div className="rpt-mini-total-sub">Low volume, skills-first screening</div>
                   </div>
                 </div>
@@ -512,7 +512,7 @@ export default function MarketingIndiaReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">How to find founder-direct hiring posts before they get aggregated</div>
-              <p>Search LinkedIn with: "marketing intern" "hiring" posted in the last 7 days - filter for India, sort by most recent. Set up a Google Alert for: site:linkedin.com "marketing intern" "India". Founder posts on LinkedIn typically appear 3–7 days before any aggregator picks them up. Those 3–7 days are your advantage.</p>
+              <p>Search LinkedIn with: "marketing intern" "hiring" posted in the last 7 days - filter for India, sort by most recent. Set up a Google Alert for: site:linkedin.com "marketing intern" "India". Founder posts on LinkedIn typically appear 3-7 days before any aggregator picks them up. Those 3-7 days are your advantage.</p>
             </div>
             <p className="rpt-source">Source: LinkedIn Jobs India April 2026, Wellfound, Internshala, Studojo curated listings</p>
           </div>
@@ -526,7 +526,7 @@ export default function MarketingIndiaReport() {
             </div>
 
             <div className="rpt-stat-row rpt-c3">
-              <div className="rpt-stat"><div className="rpt-val rpt-g">78%</div><div className="rpt-lbl">Intern-to-offer conversion rate at funded startups (Series A–C, Studojo data 2025)</div><span className="rpt-delta rpt-du">Highest among all internship types</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-g">78%</div><div className="rpt-lbl">Intern-to-offer conversion rate at funded startups (Series A-C, Studojo data 2025)</div><span className="rpt-delta rpt-du">Highest among all internship types</span></div>
               <div className="rpt-stat"><div className="rpt-val">31%</div><div className="rpt-lbl">Conversion rate at marketing agencies</div><span className="rpt-delta rpt-dn">Exposure is high, headcount is flat</span></div>
               <div className="rpt-stat"><div className="rpt-val rpt-o">22%</div><div className="rpt-lbl">Conversion rate at MNCs and large companies</div><span className="rpt-delta rpt-dn">Structured but competitive for full-time roles</span></div>
             </div>
@@ -571,9 +571,9 @@ export default function MarketingIndiaReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">The 3-minute ATS fix</div>
-              <p>Paste the job description into a word frequency tool. Find the 5–8 most-repeated marketing terms. Check whether those exact words appear anywhere in your resume. If not, add them - naturally, in context. This alone improves ATS pass-through rate by 30–40% based on our analysis of 800+ student resumes.</p>
+              <p>Paste the job description into a word frequency tool. Find the 5-8 most-repeated marketing terms. Check whether those exact words appear anywhere in your resume. If not, add them - naturally, in context. This alone improves ATS pass-through rate by 30-40% based on our analysis of 800+ student resumes.</p>
             </div>
-            <p className="rpt-source">Source: Studojo resume analysis data 2025–2026, Jobscan ATS research, Greenhouse applicant tracking research</p>
+            <p className="rpt-source">Source: Studojo resume analysis data 2025-2026, Jobscan ATS research, Greenhouse applicant tracking research</p>
           </div>
 
           {/* Final CTA */}
