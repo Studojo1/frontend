@@ -1,4 +1,4 @@
-// Outreach automation — LinkedIn connection requests + drip message sequences
+// Outreach automation - LinkedIn connection requests + drip message sequences
 // Day 0: connect, Day 3: message, Day 7: follow-up, Day 14: done
 
 import { eq, and, lt, sql } from "drizzle-orm";
@@ -199,12 +199,12 @@ async function sendIntroMessage(page: any, contact: any, rateLimited: boolean): 
 async function sendFollowUp(page: any, contact: any, rateLimited: boolean): Promise<{ status: string; error?: string }> {
   if (rateLimited) return { status: "skipped", error: "rate_limited" };
 
-  const followUp = `Hi ${contact.name?.split(" ")[0] ?? "there"} — just a quick follow-up on my earlier message. Happy to connect on a call if you have 15 minutes. No pressure either way.`;
+  const followUp = `Hi ${contact.name?.split(" ")[0] ?? "there"} - just a quick follow-up on my earlier message. Happy to connect on a call if you have 15 minutes. No pressure either way.`;
   return sendLinkedInMessage(page, contact, followUp);
 }
 
 // ── Core message send (proven approach) ──────────────────────────────────────
-// 1. Search conversation list by name — avoids Premium modal interception
+// 1. Search conversation list by name - avoids Premium modal interception
 // 2. Fallback: navigate to profile, JS-click Message, remove Premium modals
 
 async function sendLinkedInMessage(page: any, contact: any, message: string): Promise<{ status: string; error?: string }> {
@@ -212,7 +212,7 @@ async function sendLinkedInMessage(page: any, contact: any, message: string): Pr
     await page.goto("https://www.linkedin.com/messaging/", { waitUntil: "domcontentloaded", timeout: 30_000 });
     await page.waitForTimeout(2500);
 
-    // Try conversation search first — more reliable than clicking Message on profile
+    // Try conversation search first - more reliable than clicking Message on profile
     const firstName = contact.name?.split(" ")[0] ?? "";
     const lastName = contact.name?.split(" ").slice(-1)[0] ?? "";
     const searchInput = await page.$('[placeholder="Search messages"]');
@@ -264,7 +264,7 @@ async function sendLinkedInMessage(page: any, contact: any, message: string): Pr
     if (!msgBox) return { status: "skipped", error: "not_connected_yet" };
 
     await msgBox.click({ force: true });
-    // Use keyboard.type — fill() doesn't trigger LinkedIn's input events
+    // Use keyboard.type - fill() doesn't trigger LinkedIn's input events
     await page.keyboard.type(message);
     await page.waitForTimeout(800);
 

@@ -1,9 +1,9 @@
 /**
- * EmailComposer — 3-phase AI-powered cold email writer
+ * EmailComposer - 3-phase AI-powered cold email writer
  *
- * Phase 1: Style Profile  — 3-step wizard, stored locally
- * Phase 2: Recipient Setup — per-email context
- * Phase 3: Compose        — 3-panel editor with live scoring + AI chat
+ * Phase 1: Style Profile  - 3-step wizard, stored locally
+ * Phase 2: Recipient Setup - per-email context
+ * Phase 3: Compose        - 3-panel editor with live scoring + AI chat
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -104,7 +104,7 @@ const CONTENT_BLOCKS: ContentBlock[] = [
     label: "Achievement",
     description: "A result with a number",
     icon: <FiStar className="w-3.5 h-3.5" />,
-    template: "\n\nMost recently, [specific achievement — e.g. grew X by Y%].",
+    template: "\n\nMost recently, [specific achievement - e.g. grew X by Y%].",
   },
   {
     id: "linkedin",
@@ -341,7 +341,7 @@ function StyleProfileSetup({
           <div className="space-y-5">
             <div>
               <label className="text-xs font-bold text-studojo-muted font-satoshi uppercase block mb-1.5">
-                Your #1 credential — one result with a number if possible
+                Your #1 credential - one result with a number if possible
               </label>
               <input
                 autoFocus
@@ -398,7 +398,7 @@ function StyleProfileSetup({
                 className="flex items-center gap-2 text-sm font-satoshi text-studojo-muted hover:text-studojo-ink transition-colors"
               >
                 <FiChevronDown className={`w-4 h-4 transition-transform ${showSample ? "rotate-180" : ""}`} />
-                Paste a cold email you've sent before (optional — we'll match your voice)
+                Paste a cold email you've sent before (optional - we'll match your voice)
               </button>
               {showSample && (
                 <textarea
@@ -480,7 +480,7 @@ function RecipientSetup({
 
   const COMPANY_TYPES = [
     { id: "startup" as const, label: "Startup", desc: "Pre-seed to seed" },
-    { id: "scaleup" as const, label: "Scale-up", desc: "Series A–C" },
+    { id: "scaleup" as const, label: "Scale-up", desc: "Series A-C" },
     { id: "enterprise" as const, label: "Enterprise", desc: "Large corp / MNC" },
     { id: "agency" as const, label: "Agency", desc: "Agency / consultancy" },
   ];
@@ -543,7 +543,7 @@ function RecipientSetup({
             </div>
           </div>
 
-          {/* Specific hook — most important field */}
+          {/* Specific hook - most important field */}
           <div>
             <label className="text-xs font-bold text-studojo-muted font-satoshi uppercase block mb-1.5">
               What do you know about them specifically?
@@ -801,8 +801,8 @@ function ComposePanel({
     { label: "More casual", prompt: "Make the tone more casual and conversational" },
     { label: "Punchier opener", prompt: "Rewrite just the opening line to be more specific and attention-grabbing" },
     { label: "Softer close", prompt: "Make the closing ask feel lower-pressure and more conversational" },
-    { label: "New subject", prompt: "Give me a completely different, better subject line — keep the body" },
-    { label: "New angle", prompt: "Try a completely different approach — same facts, different structure and tone" },
+    { label: "New subject", prompt: "Give me a completely different, better subject line - keep the body" },
+    { label: "New angle", prompt: "Try a completely different approach - same facts, different structure and tone" },
   ];
 
   const sendChatMessage = async (promptOverride?: string) => {
