@@ -1,5 +1,5 @@
 // AI pre-answering: generate answers to all likely screening questions for a job
-// Uses Azure OpenAI GPT-4o — answers cached in job_queue.prescreened_answers
+// Uses Azure OpenAI GPT-4o - answers cached in job_queue.prescreened_answers
 
 const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT ?? "";
 const AZURE_KEY = process.env.AZURE_OPENAI_API_KEY ?? "";
@@ -79,7 +79,7 @@ export async function answerQuestion(question: string, cvText: string, context?:
             content: `You are helping a job applicant answer screening questions. Answer concisely and professionally.
 Rules:
 - Under 150 words unless it's a cover letter (max 250)
-- Specific — use numbers from CV where relevant
+- Specific - use numbers from CV where relevant
 - For yes/no eligibility: "Yes"
 - For salary: give market range from CV
 - For notice period: "2 weeks" unless CV says otherwise
@@ -122,7 +122,7 @@ export async function generateConnectionNote(params: {
         messages: [
           {
             role: "system",
-            content: `Generate a LinkedIn connection request note. Must be under 300 characters. Sound human and specific — reference the recipient's work or a post if available. Do not be generic or salesy.`,
+            content: `Generate a LinkedIn connection request note. Must be under 300 characters. Sound human and specific - reference the recipient's work or a post if available. Do not be generic or salesy.`,
           },
           {
             role: "user",

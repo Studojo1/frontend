@@ -19,7 +19,7 @@ These emails need to show genuine intent, specific research, and a relevant cred
 They are NOT sales emails. They are one person writing to another person they genuinely admire.
 
 ═══════════════════════════════════════════════
-STRUCTURE — follow this every time:
+STRUCTURE - follow this every time:
 
 1. OPENER (1-2 sentences)
    → Something SPECIFIC about their work, post, company, or decision
@@ -28,12 +28,12 @@ STRUCTURE — follow this every time:
 
 2. BRIDGE (2-3 sentences)
    → Who you are, in one line
-   → Your #1 credential — woven in naturally, as evidence not a claim
+   → Your #1 credential - woven in naturally, as evidence not a claim
    → Connect your background to something relevant about their work
 
 3. WHY YOU / WHY NOW (1 sentence)
    → Why this person specifically, or why this company right now
-   → Not generic — reference the hook or something about their stage
+   → Not generic - reference the hook or something about their stage
 
 4. ASK (1 sentence)
    → One low-friction question
@@ -44,27 +44,27 @@ STRUCTURE — follow this every time:
 WORD COUNT: 110-150 words in the body.
 Long enough to show genuine intent.
 Short enough to respect their time.
-Student cold emails need to do more work than SDR emails — you have no existing relationship.
+Student cold emails need to do more work than SDR emails - you have no existing relationship.
 
 ═══════════════════════════════════════════════
-SUBJECT LINE — this is critical:
+SUBJECT LINE - this is critical:
 
 GOOD patterns (use one):
 • [Credential] → [Company]: "fintech newsletter → Stripe"
 • [Specific trigger]: "your developer marketing post"
 • [University connection]: "BITS Pilani → Stripe"
-• [Specific role + company]: "growth internship — Stripe"
+• [Specific role + company]: "growth internship - Stripe"
 • [Curious / intriguing]: "something I noticed about Stripe's India push"
 
 BAD patterns (NEVER use):
-• "Internship opportunities at [company]" — sounds like a mass email
-• "Following up on [company]" — too vague
-• "Quick question" — overused, spam-flagged
-• "Reaching out about [role]" — generic
+• "Internship opportunities at [company]" - sounds like a mass email
+• "Following up on [company]" - too vague
+• "Quick question" - overused, spam-flagged
+• "Reaching out about [role]" - generic
 • Any subject that could be sent to 100 companies unchanged
 
 ═══════════════════════════════════════════════
-OPENER — this is where most people fail:
+OPENER - this is where most people fail:
 
 FORBIDDEN openers:
 • "I admire how [company] is shaping/disrupting/revolutionising..."
@@ -77,8 +77,8 @@ FORBIDDEN openers:
 • "[Company] is one of the most exciting companies in [industry]"
 
 GOOD opener patterns:
-• "[Specific thing they wrote/said/did] — [what you noticed about it]"
-• "Saw your post on [specific topic] — [one genuine reaction to it]"
+• "[Specific thing they wrote/said/did] - [what you noticed about it]"
+• "Saw your post on [specific topic] - [one genuine reaction to it]"
 • "[Specific decision or move their company made] caught my attention because [why]"
 • "Your [specific piece of work] made me think about [relevant connection to your work]"
 
@@ -89,14 +89,14 @@ VOICE AND TONE:
 
 • Write like a smart person talking to someone they genuinely respect
 • Not desperate. Not obsequious. Confident but humble.
-• Use "you/your" more than "I/my" — lead sentences with their world, not yours
+• Use "you/your" more than "I/my" - lead sentences with their world, not yours
 • Max 3 uses of "I" in the entire body
 • No bullet points in cold emails
-• No em dashes — use commas or hyphens
+• No em dashes - use commas or hyphens
 • No corporate words: leverage, synergy, passionate, driven, excited to, thrilled to, love what you're doing, amazing work, impactful, innovative, game-changing
 
 ═══════════════════════════════════════════════
-EXAMPLE — BAD email:
+EXAMPLE - BAD email:
 
 Subject: internship opportunities at stripe
 
@@ -109,15 +109,15 @@ Thanks
 [WHY IT'S BAD: Generic opener, subject is mass-email, credential mentioned without context, ask is too transactional]
 
 ═══════════════════════════════════════════════
-EXAMPLE — GOOD email:
+EXAMPLE - GOOD email:
 
 Subject: fintech newsletter → Stripe growth team
 
 Hi Manoj,
 
-Your post on Stripe's approach to developer adoption in India stuck with me — specifically the point about building for UPI-first users before adapting for card rails. That's a problem I've been covering from the outside.
+Your post on Stripe's approach to developer adoption in India stuck with me - specifically the point about building for UPI-first users before adapting for card rails. That's a problem I've been covering from the outside.
 
-I run a fintech newsletter (4,200 subscribers, 3 months) and most of what I write about is exactly this — how payments infrastructure shapes product decisions in emerging markets.
+I run a fintech newsletter (4,200 subscribers, 3 months) and most of what I write about is exactly this - how payments infrastructure shapes product decisions in emerging markets.
 
 I'm a 3rd-year student at BITS Pilani finishing a business degree, actively looking to go deeper on this from the inside.
 
@@ -137,17 +137,17 @@ function buildStyleContext(p: any): string {
   if (p.university) lines.push(`University: ${p.university}`);
   if (p.lookingFor) lines.push(`Looking for: ${p.lookingFor}`);
   if (p.targetRoles) lines.push(`Target roles/industries: ${p.targetRoles}`);
-  if (p.topCredential) lines.push(`Best credential — use this, it's specific and real: "${p.topCredential}"`);
+  if (p.topCredential) lines.push(`Best credential - use this, it's specific and real: "${p.topCredential}"`);
   if (p.tone) {
     const t: Record<string, string> = {
-      direct: "Direct and punchy — confident, no filler, short sentences",
-      warm: "Warm and conversational — reads like a real human, genuine curiosity",
-      formal: "Professional — polished, precise, still personal",
+      direct: "Direct and punchy - confident, no filler, short sentences",
+      warm: "Warm and conversational - reads like a real human, genuine curiosity",
+      formal: "Professional - polished, precise, still personal",
     };
     lines.push(`Preferred tone: ${t[p.tone] || p.tone}`);
   }
   if (p.sampleEmail) {
-    lines.push(`Voice reference — match this style:\n"${p.sampleEmail.slice(0, 300)}"`);
+    lines.push(`Voice reference - match this style:\n"${p.sampleEmail.slice(0, 300)}"`);
   }
   return lines.join("\n");
 }
@@ -159,26 +159,26 @@ function buildRecipientContext(r: any): string {
   if (r.recipientTitle) lines.push(`Role: ${r.recipientTitle}`);
   if (r.company) lines.push(`Company: ${r.company}`);
   const ct: Record<string, string> = {
-    startup: "Early-stage startup — likely founder or small team, personal emails land well",
-    scaleup: "Series A-C — growing fast, specific roles, show you know the stage",
-    enterprise: "Large enterprise — more formal, route through right person",
-    agency: "Agency — project-based, show portfolio awareness",
+    startup: "Early-stage startup - likely founder or small team, personal emails land well",
+    scaleup: "Series A-C - growing fast, specific roles, show you know the stage",
+    enterprise: "Large enterprise - more formal, route through right person",
+    agency: "Agency - project-based, show portfolio awareness",
   };
   if (r.companyType) lines.push(`Company context: ${ct[r.companyType] || r.companyType}`);
 
   const conn: Record<string, string> = {
-    alumni: "SHARED UNIVERSITY ALUMNI — this is your strongest hook. Use it in the first line.",
-    referral: "MUTUAL REFERRAL — mention the person's name who referred you, early.",
-    founder_post: "SAW THEIR LINKEDIN/SOCIAL POST — reference the specific post in the opener.",
+    alumni: "SHARED UNIVERSITY ALUMNI - this is your strongest hook. Use it in the first line.",
+    referral: "MUTUAL REFERRAL - mention the person's name who referred you, early.",
+    founder_post: "SAW THEIR LINKEDIN/SOCIAL POST - reference the specific post in the opener.",
   };
   if (r.connectionType && r.connectionType !== "none") {
     lines.push(`Connection (USE THIS): ${conn[r.connectionType]}`);
   }
 
   if (r.specificHook) {
-    lines.push(`Specific research — THIS MUST GO IN THE OPENER: "${r.specificHook}"`);
+    lines.push(`Specific research - THIS MUST GO IN THE OPENER: "${r.specificHook}"`);
   } else {
-    lines.push(`No specific hook provided — open with an observation about their role or company stage instead.`);
+    lines.push(`No specific hook provided - open with an observation about their role or company stage instead.`);
   }
 
   const goals: Record<string, string> = {
@@ -226,12 +226,12 @@ const INTENT_GUIDE = `
 CLASSIFY the user's instruction into one of:
 - subject_only     → change only the subject line
 - opener_only      → rewrite only the first 1-2 sentences
-- shorten          → cut the body down (keep opener, credential, ask — cut filler)
+- shorten          → cut the body down (keep opener, credential, ask - cut filler)
 - lengthen         → add more substance and intent
 - tone_shift       → change tone/feel/style
 - cta_only         → change only the closing ask
 - full_rewrite     → start completely fresh
-- improve          → vague "make it better" — ACTUALLY fix the biggest problems. Look for: generic opener, missing credential context, weak subject, too short on intent, too many I's, soft CTA. Fix all of them.
+- improve          → vague "make it better" - ACTUALLY fix the biggest problems. Look for: generic opener, missing credential context, weak subject, too short on intent, too many I's, soft CTA. Fix all of them.
 - general          → any other specific change
 
 For "improve": be aggressive. Rewrite the opener to be specific. Add context. Make the credential land. This is not a minor edit.`;
@@ -262,7 +262,7 @@ ${buildRecipientContext(recipient)}
 
 ---
 
-CURRENT EMAIL (reference — only edit what the instruction requires):
+CURRENT EMAIL (reference - only edit what the instruction requires):
 Subject: ${subject || "(none)"}
 Body:
 ${body || "(empty)"}
@@ -296,7 +296,7 @@ Return ONLY this JSON:
 
 function sanitise(s: any): string {
   return String(s || "")
-    .replace(/[–—]/g, "-")
+    .replace(/[--]/g, "-")
     .trim();
 }
 
@@ -318,7 +318,7 @@ async function callOpenAI(userPrompt: string): Promise<any | null> {
           {
             role: "system",
             content:
-              "You are an expert cold email coach for student job seekers. You write specific, researched, human emails. Return valid JSON only — no markdown, no text outside JSON.",
+              "You are an expert cold email coach for student job seekers. You write specific, researched, human emails. Return valid JSON only - no markdown, no text outside JSON.",
           },
           { role: "user", content: userPrompt },
         ],
