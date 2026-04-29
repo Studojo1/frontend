@@ -153,7 +153,7 @@ export default function ChatPage() {
           setShowCompensation(true);
           addChatMessage({
             role: "assistant",
-            content: "One quick thing — what compensation are you expecting? (e.g. ₹15,000/month, $25/hour, open to discussion)",
+            content: "One quick thing: what compensation are you expecting? (e.g. ₹15,000/month, $25/hour, open to discussion)",
           });
           setLoading(false);
         } else if (finalResponse.is_complete) {
