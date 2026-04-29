@@ -55,6 +55,8 @@ export default function ChatPage() {
   const [showCompensation, setShowCompensation] = useState(false);
   const [compensationInput, setCompensationInput] = useState("");
   const autoStarted = useRef(false);
+  const compensationShownRef = useRef(false);
+  const pendingQ5Ref = useRef<AgentResponse | null>(null);
 
   // Serve Q1 instantly on mount — no API call
   useEffect(() => {
@@ -65,7 +67,9 @@ export default function ChatPage() {
     }
   }, [candidateId]);
 
-  const questionsAsked = showCompensation ? TOTAL_QUESTIONS : (currentResponse?.questions_asked_so_far ?? 0);
+  const questionsAsked = showCompensation
+    ? (pendingQ5Ref.current?.questions_asked_so_far ?? TOTAL_QUESTIONS)
+    : (currentResponse?.questions_asked_so_far ?? 0);
   const quizProgress = (questionsAsked / TOTAL_QUESTIONS) * 100;
   const sidebarStep = currentResponse?.is_complete ? 3 : 2;
 
@@ -138,21 +142,30 @@ export default function ChatPage() {
       setStreamingText(null);
 
       if (finalResponse) {
-        addChatMessage({ role: "assistant", content: finalResponse.message });
-        setCurrentResponse(finalResponse);
+        // After Q4 (company_stage), questions_asked_so_far === 5 — intercept to show
+        // compensation question before revealing Q5 to the user.
+        if (finalResponse.questions_asked_so_far === 5 && !compensationShownRef.current) {
+          compensationShownRef.current = true;
+          pendingQ5Ref.current = finalResponse;
+          setShowCompensation(true);
+          addChatMessage({
+            role: "assistant",
+            content: "One quick thing — what compensation are you expecting? (e.g. ₹15,000/month, $25/hour, open to discussion)",
+          });
+          setLoading(false);
+        } else if (finalResponse.is_complete) {
+          addChatMessage({ role: "assistant", content: finalResponse.message });
+          setCurrentResponse(finalResponse);
 
-        if (finalResponse.is_complete) {
           const historyForPayload = [
             ...fullHistory,
             { role: "assistant" as const, content: finalResponse.message },
           ];
 
-          // Store psychometric data so profile page can show it immediately
           if (finalResponse.psychometric) {
             setPsychResult(finalResponse.psychometric);
           }
 
-          // Fire payload generation in background (LLM runs async 5–15s)
           outreachFetch(`/candidate/${candidateId}/generate-payload`, {
             method: "POST",
             body: JSON.stringify({
@@ -167,7 +180,6 @@ export default function ChatPage() {
             has_psychometric: !!finalResponse.psychometric,
           });
 
-          // Send segmentation email (non-blocking)
           if (user?.id) {
             import("~/lib/events").then(({ publishEmailEvent }) => {
               publishEmailEvent("event.funnel.segmentation_v1", {
@@ -178,10 +190,10 @@ export default function ChatPage() {
             }).catch(() => {});
           }
 
-          // Show compensation question before navigating
-          setShowCompensation(true);
-          addChatMessage({ role: "assistant", content: "One last thing — what compensation are you expecting? (e.g. ₹15,000/month, $25/hour, open to discussion)" });
+          navigate("/outreach/onboarding/loading");
         } else {
+          addChatMessage({ role: "assistant", content: finalResponse.message });
+          setCurrentResponse(finalResponse);
           setLoading(false);
         }
       } else {
@@ -197,7 +209,19 @@ export default function ChatPage() {
   const handleCompensationSubmit = () => {
     const val = compensationInput.trim() || "Not specified";
     addChatMessage({ role: "user", content: val });
-    navigate("/outreach/onboarding/loading");
+    setShowCompensation(false);
+    setCompensationInput("");
+
+    if (pendingQ5Ref.current) {
+      // Resume from Q5 — reveal the stored Q5 question
+      const q5 = pendingQ5Ref.current;
+      pendingQ5Ref.current = null;
+      addChatMessage({ role: "assistant", content: q5.message });
+      setCurrentResponse(q5);
+    } else {
+      // Fallback: compensation was at the end (shouldn't happen anymore)
+      navigate("/outreach/onboarding/loading");
+    }
   };
 
   const handleMCQSubmit = (selected: string[]) => {
