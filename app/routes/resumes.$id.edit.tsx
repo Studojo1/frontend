@@ -139,7 +139,7 @@ export default function ResumeEditorPage() {
   // Track last successful preview generation to prevent infinite loops
   const lastPreviewHashRef = useRef<string>("");
   const previewGenerationBlockedRef = useRef<boolean>(false);
-  // Don't auto-generate preview on initial load — only on subsequent user edits
+  // Don't auto-generate preview on initial load - only on subsequent user edits
   const isFirstLoadRef = useRef<boolean>(true);
 
 
@@ -166,7 +166,7 @@ export default function ResumeEditorPage() {
         // Block future attempts if auth fails
         if (response.status === 401 || errorMessage.includes("token") || errorMessage.includes("Authentication")) {
           previewGenerationBlockedRef.current = true;
-          toast.error("Preview unavailable — please refresh and sign in again.");
+          toast.error("Preview unavailable - please refresh and sign in again.");
           setPreviewLoading(false);
           return;
         }
@@ -195,12 +195,12 @@ export default function ResumeEditorPage() {
       // Block future attempts if auth fails
       if (error.message?.includes("token") || error.message?.includes("Authentication") || error.status === 401) {
         previewGenerationBlockedRef.current = true;
-        toast.error("Preview unavailable — please refresh and sign in again.");
+        toast.error("Preview unavailable - please refresh and sign in again.");
         return;
       }
       
       const isNetworkError = !error.message || error.message === "fetch failed" || error.message === "Failed to fetch" || error.message.includes("ECONNREFUSED");
-      toast.error(isNetworkError ? "Preview unavailable — click Generate Preview to retry." : (error.message || "Failed to generate preview"));
+      toast.error(isNetworkError ? "Preview unavailable - click Generate Preview to retry." : (error.message || "Failed to generate preview"));
     }
   }, [document, previewUrl]);
 
