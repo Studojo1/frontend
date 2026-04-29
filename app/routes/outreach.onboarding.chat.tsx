@@ -54,6 +54,7 @@ export default function ChatPage() {
   const [streamingText, setStreamingText] = useState<string | null>(null);
   const [showCompensation, setShowCompensation] = useState(false);
   const [compensationInput, setCompensationInput] = useState("");
+  const [compensationAnswered, setCompensationAnswered] = useState(false);
   const autoStarted = useRef(false);
   const compensationShownRef = useRef(false);
   const pendingQ5Ref = useRef<AgentResponse | null>(null);
@@ -68,7 +69,9 @@ export default function ChatPage() {
   }, [candidateId]);
 
   const questionsAsked = showCompensation
-    ? (pendingQ5Ref.current?.questions_asked_so_far ?? TOTAL_QUESTIONS)
+    ? 5
+    : compensationAnswered
+    ? (currentResponse?.questions_asked_so_far ?? 0) + 1
     : (currentResponse?.questions_asked_so_far ?? 0);
   const quizProgress = (questionsAsked / TOTAL_QUESTIONS) * 100;
   const sidebarStep = currentResponse?.is_complete ? 3 : 2;
@@ -211,6 +214,7 @@ export default function ChatPage() {
     addChatMessage({ role: "user", content: val });
     setShowCompensation(false);
     setCompensationInput("");
+    setCompensationAnswered(true);
 
     if (pendingQ5Ref.current) {
       // Resume from Q5 — reveal the stored Q5 question
