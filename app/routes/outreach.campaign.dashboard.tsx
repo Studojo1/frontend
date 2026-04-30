@@ -4,7 +4,7 @@ import {
   FiSend, FiAlertCircle, FiBarChart2, FiPause, FiPlay, FiUsers,
   FiCheckCircle, FiXCircle, FiClock, FiMessageCircle, FiX,
   FiArrowRight, FiThumbsUp, FiThumbsDown, FiMinus,
-  FiPlus, FiTrash2, FiMail, FiRefreshCw,
+  FiPlus, FiTrash2, FiMail, FiRefreshCw, FiGlobe,
   FiChevronRight, FiChevronDown, FiCornerDownRight,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
@@ -152,6 +152,26 @@ function StatusBadge({ status, sentiment }: { status: string; sentiment?: string
   );
 }
 
+const TIMEZONES = [
+  { value: "America/Los_Angeles", label: "PST / PDT — US West Coast" },
+  { value: "America/Denver", label: "MST / MDT — US Mountain" },
+  { value: "America/Chicago", label: "CST / CDT — US Central" },
+  { value: "America/New_York", label: "EST / EDT — US East Coast" },
+  { value: "America/Toronto", label: "EST / EDT — Canada East" },
+  { value: "America/Vancouver", label: "PST / PDT — Canada West" },
+  { value: "Europe/London", label: "GMT / BST — United Kingdom" },
+  { value: "Europe/Dublin", label: "GMT / IST — Ireland" },
+  { value: "Europe/Paris", label: "CET / CEST — France" },
+  { value: "Europe/Berlin", label: "CET / CEST — Germany" },
+  { value: "Asia/Dubai", label: "GST — UAE" },
+  { value: "Asia/Kolkata", label: "IST — India" },
+  { value: "Asia/Singapore", label: "SGT — Singapore" },
+  { value: "Asia/Tokyo", label: "JST — Japan" },
+  { value: "Asia/Seoul", label: "KST — South Korea" },
+  { value: "Australia/Sydney", label: "AEST / AEDT — Australia East" },
+  { value: "Pacific/Auckland", label: "NZST / NZDT — New Zealand" },
+];
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
@@ -182,6 +202,12 @@ export default function DashboardPage() {
   const [showReauthBanner, setShowReauthBanner] = useState(false);
   const [reauthLoading, setReauthLoading] = useState(false);
   const [gmailTokenValid, setGmailTokenValid] = useState(true);
+
+  // Timezone change state (shown when paused)
+  const [showTzPanel, setShowTzPanel] = useState(false);
+  const [pendingTz, setPendingTz] = useState("");
+  const [tzSaving, setTzSaving] = useState(false);
+  const [tzError, setTzError] = useState("");
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initialLoaded = useRef(false);
@@ -309,6 +335,24 @@ export default function DashboardPage() {
       fetchCampaignData();
     } catch (err: any) {
       setError(err?.body?.detail || "Failed to update campaign");
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!campaignId || !pendingTz) return;
+    setTzSaving(true);
+    setTzError("");
+    try {
+      await outreachFetch(`/campaign/${campaignId}/reschedule`, {
+        method: "POST",
+        body: JSON.stringify({ user_timezone: pendingTz }),
+      });
+      setShowTzPanel(false);
+      fetchCampaignData();
+    } catch (err: any) {
+      setTzError(err?.body?.detail || "Failed to update timezone");
+    } finally {
+      setTzSaving(false);
     }
   };
 
@@ -621,9 +665,69 @@ export default function DashboardPage() {
             {metrics.status === "running" && metrics.sent_count < metrics.total_leads && (
               <div className="rounded-2xl border-2 border-studojo-ink/20 bg-amber-50 p-4 flex items-start gap-3">
                 <span className="text-lg mt-0.5">📬</span>
-                <p className="text-sm font-satoshi text-studojo-ink">
-                  <span className="font-bold">Your emails go out gradually</span> (5–7 per day) to protect your Gmail reputation. Check back tomorrow. Most replies come within 3–5 days.
-                </p>
+                <div className="flex-1">
+                  <p className="text-sm font-satoshi text-studojo-ink">
+                    <span className="font-bold">Your emails go out gradually</span> (5–7 per day) to protect your Gmail reputation. Check back tomorrow. Most replies come within 3–5 days.
+                  </p>
+                  {metrics.user_timezone && (
+                    <p className="text-xs text-studojo-muted font-satoshi mt-1 flex items-center gap-1">
+                      <FiGlobe className="w-3 h-3" />
+                      Sending 9am–5pm {metrics.user_timezone}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Paused — show timezone change option */}
+            {metrics.status === "paused" && (
+              <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <FiGlobe className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold font-satoshi text-studojo-ink">
+                        Sending timezone: {metrics.user_timezone || "Asia/Kolkata"}
+                      </p>
+                      <p className="text-xs text-studojo-muted font-satoshi">Emails go out 9am–5pm in this timezone</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setPendingTz(metrics.user_timezone || "Asia/Kolkata"); setShowTzPanel(!showTzPanel); setTzError(""); }}
+                    className="h-8 px-3 rounded-lg border-2 border-amber-300 bg-white text-xs font-satoshi font-medium text-amber-700 hover:bg-amber-50 transition-colors flex-shrink-0"
+                  >
+                    Change
+                  </button>
+                </div>
+                {showTzPanel && (
+                  <div className="mt-4 pt-4 border-t border-amber-200 space-y-3">
+                    <select
+                      value={pendingTz}
+                      onChange={(e) => setPendingTz(e.target.value)}
+                      className="w-full h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple bg-white"
+                    >
+                      {TIMEZONES.some((t) => t.value === pendingTz) ? null : (
+                        <option value={pendingTz}>{pendingTz}</option>
+                      )}
+                      {TIMEZONES.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                    {tzError && <p className="text-xs text-red-600 font-satoshi">{tzError}</p>}
+                    <button
+                      onClick={handleReschedule}
+                      disabled={tzSaving || !pendingTz || pendingTz === metrics.user_timezone}
+                      className="h-9 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none inline-flex items-center"
+                    >
+                      {tzSaving ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      ) : (
+                        <FiGlobe className="w-4 h-4 mr-2" />
+                      )}
+                      Save &amp; Reschedule
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

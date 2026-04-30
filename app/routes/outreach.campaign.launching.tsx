@@ -37,7 +37,7 @@ export default function CampaignLaunchingPage() {
       return;
     }
 
-    const { campaignName, selectedStyles, selectedTemplate } = JSON.parse(launchData);
+    const { campaignName, userTimezone, selectedStyles, selectedTemplate } = JSON.parse(launchData);
 
     const timers: ReturnType<typeof setTimeout>[] = [];
     let elapsed = 0;
@@ -56,6 +56,7 @@ export default function CampaignLaunchingPage() {
             candidate_id: candidateId,
             email_account_id: emailAccountId,
             name: campaignName || "My Outreach Campaign",
+            user_timezone: userTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata",
             selected_styles: selectedStyles?.length > 0 ? selectedStyles : ["value_prop"],
             lead_limit: selectedTier || undefined,
             ...((!selectedStyles || selectedStyles.length === 0) && selectedTemplate && {
