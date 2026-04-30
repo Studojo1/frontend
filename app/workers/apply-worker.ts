@@ -366,13 +366,17 @@ async function getTodayCount(userId: string): Promise<number> {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const [row] = await db.execute(sql`
-    SELECT COUNT(*) as cnt FROM job_queue
-    WHERE user_id = ${userId}
-      AND status = 'applied'
-      AND applied_at >= ${todayStart}
-  `);
-  return Number((row as any).cnt ?? 0);
+  const rows = await db
+    .select({ cnt: sql<number>`COUNT(*)` })
+    .from(jobQueue)
+    .where(
+      and(
+        eq(jobQueue.userId, userId),
+        eq(jobQueue.status, "applied"),
+        sql`${jobQueue.appliedAt} >= ${todayStart}`,
+      )
+    );
+  return Number(rows[0]?.cnt ?? 0);
 }
 
 function getUserLocalHour(timezone: string): number {
