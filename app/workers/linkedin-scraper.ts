@@ -11,7 +11,7 @@
 import { eq } from "drizzle-orm";
 import db from "~/lib/db";
 import { userLinkedinSessions } from "../../auth-schema";
-import { buildProxy, proxyConfigured } from "~/lib/proxy.server";
+import { buildProxy } from "~/lib/proxy.server";
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
@@ -166,33 +166,18 @@ function voyagerHeaders(session: LinkedInSession): Record<string, string> {
   };
 }
 
-// ── Proxy-aware fetch ─────────────────────────────────────────────────────────
-// Routes through Bright Data residential proxy when configured.
-// Falls back to direct fetch if no proxy is set up (fine for low-volume use).
+// ── Direct fetch for Voyager API calls ───────────────────────────────────────
+// Voyager calls are authenticated with li_at + CSRF — LinkedIn already knows
+// who's calling, so datacenter IP adds no meaningful detection risk for reads.
+// Residential proxy is critical for BROWSER automation (Patchright) but
+// Bun's fetch() proxy auth (407) doesn't reliably work with Decodo.
 
 async function proxyFetch(
   url: string,
   options: RequestInit,
-  session: LinkedInSession,
+  _session: LinkedInSession,
 ): Promise<Response> {
-  if (!proxyConfigured()) {
-    // No proxy — direct fetch. Works fine for dev/testing but datacenter IP
-    // will be seen by LinkedIn. Use a VPN or set up Bright Data for production.
-    return fetch(url, options);
-  }
-
-  const proxyCfg = buildProxy(session.userId, session.proxyCountry ?? "IN", session.proxyCity ?? "bangalore");
-  const proxyUrl = proxyCfg
-    ? `http://${proxyCfg.username}:${proxyCfg.password}@${proxyCfg.server.replace("http://", "")}`
-    : undefined;
-
-  // Node.js 18+ supports proxy via undici / experimental --experimental-fetch
-  // Bun supports proxies via fetch options
-  return fetch(url, {
-    ...options,
-    // @ts-ignore — Bun-specific proxy option
-    proxy: proxyUrl,
-  });
+  return fetch(url, options);
 }
 
 // Jitter delay — human-like gaps between requests
@@ -286,7 +271,7 @@ async function searchJobsVoyager(
 async function searchJobsPublic(
   role: string,
   location: string,
-  userId?: string,
+  _userId?: string,
 ): Promise<JobResult[]> {
   const url = [
     "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
@@ -296,26 +281,14 @@ async function searchJobsPublic(
     `&start=0`,
   ].join("");
 
-  const fetchOpts: RequestInit = {
+  const res = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
       "Accept": "text/html,application/xhtml+xml",
       "Accept-Language": "en-US,en;q=0.9",
     },
     signal: AbortSignal.timeout(15_000),
-  };
-
-  // Route through residential proxy when running from datacenter (AKS)
-  // LinkedIn blocks datacenter IPs on the public API
-  if (userId && proxyConfigured()) {
-    const proxyCfg = buildProxy(userId, "IN");
-    if (proxyCfg) {
-      const proxyUrl = `http://${proxyCfg.username}:${proxyCfg.password}@${proxyCfg.server.replace("http://", "")}`;
-      (fetchOpts as any).proxy = proxyUrl;
-    }
-  }
-
-  const res = await fetch(url, fetchOpts);
+  });
 
   if (!res.ok) return [];
   const html = await res.text();
