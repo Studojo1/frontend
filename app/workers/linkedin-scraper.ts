@@ -212,11 +212,11 @@ async function searchJobsVoyager(
   }, session);
 
   if (res.status === 429 || res.status === 999) throw new Error(`LINKEDIN_RATE_LIMIT:${res.status}`);
-  if (res.status === 401 || res.status === 403) throw new Error(`LINKEDIN_AUTH_FAILED:${res.status}`);
   if (!res.ok) {
-    const snippet = await res.text().catch(() => "").then((t) => t.slice(0, 300));
+    const snippet = await res.text().catch(() => "").then((t) => t.slice(0, 200));
     console.warn(`[linkedin] Voyager non-ok status=${res.status} for "${role}" / "${location}" body="${snippet}"`);
-    return [];
+    // Throw so caller falls back to public API (usedAuth stays false)
+    throw new Error(`LINKEDIN_VOYAGER_ERROR:${res.status}`);
   }
 
   let data: any;
