@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Studojo LinkedIn Connect",
-  "version": "1.1.0",
-  "description": "Connect your LinkedIn to Studojo — find the right people to message for any role you want.",
-  "permissions": ["cookies", "storage"],
+  "name": "Studojo AutoApply",
+  "version": "2.0.0",
+  "description": "Connect your LinkedIn to Studojo — auto-applies to jobs and runs outreach while you're offline.",
+  "permissions": ["cookies", "storage", "alarms"],
   "host_permissions": [
     "https://www.linkedin.com/*",
     "https://linkedin.com/*",
@@ -15,7 +15,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://studojo.com/outreach/linkedin*", "https://studojo.pro/outreach/linkedin*"],
+      "matches": [
+        "https://studojo.com/autoapply*",
+        "https://studojo.pro/autoapply*",
+        "https://studojo.com/outreach/linkedin*",
+        "https://studojo.pro/outreach/linkedin*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
