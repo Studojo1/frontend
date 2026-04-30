@@ -308,7 +308,7 @@ async function searchJobsPublic(
   const titleRe  = /<h3[^>]*class="[^"]*base-search-card__title[^"]*"[^>]*>([\s\S]*?)<\/h3>/g;
   const compRe   = /<h4[^>]*class="[^"]*base-search-card__subtitle[^"]*"[^>]*>([\s\S]*?)<\/h4>/g;
   const locRe    = /<span[^>]*class="[^"]*job-search-card__location[^"]*"[^>]*>([\s\S]*?)<\/span>/g;
-  const linkRe   = /href="(https:\/\/www\.linkedin\.com\/jobs\/view\/[^"?]+)/g;
+  const linkRe   = /href="(https:\/\/[a-z.-]*linkedin\.com\/jobs\/view\/[^"?&]+)/g;
   const idRe     = /data-entity-urn="urn:li:jobPosting:(\d+)"/g;
 
   while ((m = titleRe.exec(html))  !== null) titles.push(cleanText(m[1]));
