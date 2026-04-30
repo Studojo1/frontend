@@ -290,8 +290,13 @@ async function searchJobsPublic(
     signal: AbortSignal.timeout(15_000),
   });
 
-  if (!res.ok) return [];
+  if (!res.ok) {
+    const snippet = await res.text().catch(() => "").then((t) => t.slice(0, 200));
+    console.warn(`[linkedin] Public API status=${res.status} for "${role}" / "${location}" snippet="${snippet}"`);
+    return [];
+  }
   const html = await res.text();
+  console.log(`[linkedin] Public API status=200 html_len=${html.length} for "${role}" / "${location}"`);
 
   const titles: string[] = [];
   const companies: string[] = [];
