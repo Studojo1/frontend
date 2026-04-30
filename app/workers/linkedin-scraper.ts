@@ -230,7 +230,15 @@ async function searchJobsVoyager(
     return [];
   }
 
-  const data = await res.json() as any;
+  let data: any;
+  try {
+    data = await res.json();
+  } catch {
+    // LinkedIn returned non-JSON (e.g. redirect to login page) — session likely expired
+    console.warn(`[linkedin] Voyager returned non-JSON for "${role}" / "${location}" — li_at may be expired`);
+    throw new Error("LINKEDIN_AUTH_FAILED:session_expired");
+  }
+
   const elements: any[] = data?.elements ?? data?.data?.elements ?? [];
   // Log first element structure so we can see what LinkedIn actually returns
   if (elements.length > 0) {
@@ -241,7 +249,7 @@ async function searchJobsVoyager(
     console.log(`[linkedin] Voyager first jv title=${firstJv?.title} id=${firstJv?.jobPostingId}`);
   } else {
     const topKeys = Object.keys(data ?? {}).join(", ");
-    console.warn(`[linkedin] Voyager empty elements. Top-level keys: ${topKeys}`);
+    console.warn(`[linkedin] Voyager empty elements. Response keys: ${topKeys}`);
   }
 
   return elements.slice(0, 25).flatMap((el: any) => {
