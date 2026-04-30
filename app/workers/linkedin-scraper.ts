@@ -215,7 +215,7 @@ async function searchJobsVoyager(
     `&q=search`,
     `&keywords=${encodeURIComponent(role)}`,
     `&locationFallback=${encodeURIComponent(location)}`,
-    `&filters=List(timePostedRange-r604800,easyApply-true)`,
+    `&filters=List(timePostedRange-r604800)`,   // no easyApply-only — too restrictive for India
   ].join("");
 
   const res = await proxyFetch(url, {
@@ -261,24 +261,39 @@ async function searchJobsVoyager(
 
 // ── Jobs: public guest API (no auth fallback) ─────────────────────────────────
 
-async function searchJobsPublic(role: string, location: string): Promise<JobResult[]> {
+async function searchJobsPublic(
+  role: string,
+  location: string,
+  userId?: string,
+): Promise<JobResult[]> {
   const url = [
     "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
     `?keywords=${encodeURIComponent(role)}`,
     `&location=${encodeURIComponent(location)}`,
-    `&f_AL=true`,       // Easy Apply only
-    `&f_TPR=r604800`,   // past week
+    `&f_TPR=r604800`,   // past week (no Easy Apply filter — too restrictive for India)
     `&start=0`,
   ].join("");
 
-  const res = await fetch(url, {
+  const fetchOpts: RequestInit = {
     headers: {
       "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
       "Accept": "text/html,application/xhtml+xml",
       "Accept-Language": "en-US,en;q=0.9",
     },
     signal: AbortSignal.timeout(15_000),
-  });
+  };
+
+  // Route through residential proxy when running from datacenter (AKS)
+  // LinkedIn blocks datacenter IPs on the public API
+  if (userId && proxyConfigured()) {
+    const proxyCfg = buildProxy(userId, "IN");
+    if (proxyCfg) {
+      const proxyUrl = `http://${proxyCfg.username}:${proxyCfg.password}@${proxyCfg.server.replace("http://", "")}`;
+      (fetchOpts as any).proxy = proxyUrl;
+    }
+  }
+
+  const res = await fetch(url, fetchOpts);
 
   if (!res.ok) return [];
   const html = await res.text();
@@ -364,7 +379,7 @@ export async function scrapeLinkedInJobs(
   }
 
   if (!usedAuth) {
-    results = await searchJobsPublic(role, location);
+    results = await searchJobsPublic(role, location, userId ?? undefined);
     console.log(`[linkedin] Public API: ${results.length} jobs for "${role}" / "${location}"`);
   }
 
