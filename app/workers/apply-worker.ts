@@ -6,7 +6,7 @@ import db from "~/lib/db";
 import { jobQueue, userLinkedinSessions, autoapplyConfigs } from "../../auth-schema";
 import { decrypt } from "~/lib/encrypt.server";
 import { buildProxy } from "~/lib/proxy.server";
-import { pauseUser, logEvent, getWarmupLimit, incrementWarmupDay } from "./safety-manager";
+import { pauseUser, logEvent, getWarmupLimit } from "./safety-manager";
 import { answerQuestion } from "./prescreen";
 
 let chromiumModule: any = null;
@@ -147,7 +147,7 @@ export async function applyToJob(jobId: string): Promise<{ status: string; error
 
     if (result.status === "applied") {
       await db.update(jobQueue).set({ status: "applied", appliedAt: new Date(), error: null }).where(eq(jobQueue.id, jobId));
-      await incrementWarmupDay(job.userId);
+      // warmup_day increments once daily via scheduler, not per application
     } else {
       await db.update(jobQueue).set({ status: result.status, error: result.error ?? null }).where(eq(jobQueue.id, jobId));
     }

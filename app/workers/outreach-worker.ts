@@ -3,7 +3,7 @@
 
 import { eq, and, lt, sql } from "drizzle-orm";
 import db from "~/lib/db";
-import { outreachContacts, userLinkedinSessions, outreachCampaigns } from "../../auth-schema";
+import { outreachContacts, userLinkedinSessions, outreachCampaigns, user as userTable } from "../../auth-schema";
 import { decrypt } from "~/lib/encrypt.server";
 import { buildProxy } from "~/lib/proxy.server";
 import { pauseOutreach, logEvent, getWarmupLimit, checkAcceptanceRate } from "./safety-manager";
@@ -131,33 +131,38 @@ async function sendConnectionRequest(page: any, contact: any, session: any, rate
 
   try {
     await page.goto(contact.linkedinUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+
+    // Wait for LinkedIn SPA to render — domcontentloaded fires before h1/buttons appear
+    await page.waitForSelector("h1, .pv-text-details__left-panel, .artdeco-card", { timeout: 10_000 }).catch(() => {});
     await page.waitForTimeout(1500);
 
-    // Check if already connected
-    const connected = await page.$('span:has-text("1st")');
-    if (connected) {
+    // Check if already connected (1st degree badge)
+    const alreadyConnected = await page.evaluate(() =>
+      !![...document.querySelectorAll("span")].find((s) => s.textContent?.trim() === "1st")
+    );
+    if (alreadyConnected) {
       await db.update(outreachContacts).set({ status: "accepted", connectedAt: new Date(), sequenceStep: 1 }).where(eq(outreachContacts.id, contact.id));
       return { status: "already_connected" };
     }
 
-    // Find connect button
-    const connectBtn = await findButton(page, ["Connect", "Follow"]);
-    if (!connectBtn) return { status: "skipped", error: "no_connect_button" };
+    // Get sender's real name for the connection note
+    const [senderRow] = await db.select({ name: userTable.name }).from(userTable).where(eq(userTable.id, contact.userId)).limit(1);
+    const senderName = senderRow?.name ?? "Job seeker";
 
-    const btnText = await connectBtn.textContent().catch(() => "");
-    if (!btnText?.toLowerCase().includes("connect")) return { status: "skipped", error: "not_connect_button" };
+    // Try to click Connect — handles standard profile, 2nd-degree, and Creator Mode
+    const connectClicked = await clickConnectButton(page);
+    if (!connectClicked) return { status: "skipped", error: "no_connect_button" };
 
-    await connectBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500);
 
-    // "Add a note" flow
+    // "Add a note" modal — optionally attach personalized note
     const addNoteBtn = await page.$('button[aria-label*="Add a note"]');
     if (addNoteBtn) {
       await addNoteBtn.click();
       await page.waitForTimeout(500);
 
       const note = await generateConnectionNote({
-        senderName: session.user?.name ?? "Job seeker",
+        senderName,
         recipientName: contact.name ?? "there",
         recipientTitle: contact.title ?? "",
         recipientCompany: contact.company ?? "",
@@ -171,18 +176,76 @@ async function sendConnectionRequest(page: any, contact: any, session: any, rate
       }
     }
 
-    // Send
-    const sendBtn = await page.$('button[aria-label="Send now"], button[aria-label="Send invitation"]');
-    if (sendBtn) {
-      await sendBtn.click();
-      await page.waitForTimeout(1000);
-      return { status: "requested" };
+    // Click Send
+    for (const sel of ['button[aria-label="Send without a note"]', 'button[aria-label="Send now"]', 'button[aria-label="Send invitation"]']) {
+      const btn = await page.$(sel);
+      if (btn) { await btn.click(); await page.waitForTimeout(1000); return { status: "requested" }; }
+    }
+    // Text fallback inside dialog
+    const modal = await page.$('[role="dialog"], .artdeco-modal');
+    if (modal) {
+      for (const btn of await modal.$$("button")) {
+        const t = (await btn.textContent().catch(() => "")).trim().toLowerCase();
+        if (t === "send" || t.includes("send without") || t.includes("send now")) {
+          await btn.click();
+          await page.waitForTimeout(1000);
+          return { status: "requested" };
+        }
+      }
     }
 
     return { status: "failed", error: "no_send_button" };
   } catch (err: any) {
     return { status: "failed", error: err?.message?.slice(0, 100) };
   }
+}
+
+// Click the Connect button — handles standard profiles AND Creator Mode (More → Connect)
+async function clickConnectButton(page: any): Promise<boolean> {
+  // Strategy 1: aria-label with "Invite" + "connect"
+  const inviteBtn = await page.$('button[aria-label*="Invite"][aria-label*="connect"]').catch(() => null);
+  if (inviteBtn) { await inviteBtn.click(); return true; }
+
+  // Strategy 2: exact text "Connect" in profile card (not in "People you may know")
+  const directClicked = await page.evaluate(() => {
+    for (const btn of document.querySelectorAll("button")) {
+      if (btn.textContent?.trim() !== "Connect") continue;
+      const section = btn.closest("section");
+      const heading = section?.querySelector("h2, h3")?.textContent ?? "";
+      if (!heading.includes("People you may") && !heading.includes("You might")) {
+        btn.click();
+        return true;
+      }
+    }
+    return false;
+  });
+  if (directClicked) return true;
+
+  // Strategy 3: Creator Mode — click "More" then "Connect" in dropdown
+  const moreClicked = await page.evaluate(() => {
+    const btns = [...document.querySelectorAll("button")].slice(0, 20);
+    const more = btns.find((b) => b.textContent?.trim() === "More");
+    if (more) { more.click(); return true; }
+    return false;
+  });
+
+  if (!moreClicked) return false;
+
+  await page.waitForTimeout(1000);
+
+  const dropdownClicked = await page.evaluate(() => {
+    const dd = document.querySelector(".artdeco-dropdown__content, [class*='dropdown__content']");
+    if (!dd) return false;
+    for (const el of dd.querySelectorAll("span, button, li")) {
+      if (el.textContent?.trim() === "Connect") {
+        (el.closest("button") ?? el as HTMLElement).click();
+        return true;
+      }
+    }
+    return false;
+  });
+
+  return dropdownClicked;
 }
 
 // ── Intro message (after acceptance) ─────────────────────────────────────────
