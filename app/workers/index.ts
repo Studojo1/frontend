@@ -15,6 +15,7 @@ import { discoverJobsForUser } from "./job-discovery";
 import { applyToJob } from "./apply-worker";
 import { runOutreachStep, withdrawStaleInvitations } from "./outreach-worker";
 import { checkFleetHealth, incrementWarmupDay, logEvent } from "./safety-manager";
+import { pollAllUsers } from "./acceptance-poller";
 import {
   outreachQueue,
   applyQueue,
@@ -116,6 +117,9 @@ const maintenanceWorker = new Worker(
       case "increment_warmup":
         await incrementAllWarmupDays();
         break;
+      case "poll_acceptances":
+        await pollAllUsers();
+        break;
     }
   },
   { connection, concurrency: 1 }
@@ -143,6 +147,13 @@ async function setupSchedules() {
     "schedule_outreach",
     { task: "schedule_outreach" },
     { repeat: { pattern: "0 */4 * * *" }, jobId: "schedule_outreach" }
+  );
+
+  // Acceptance poller every 2 hours — checks Voyager API for new connections
+  await maintenanceQueue.add(
+    "poll_acceptances",
+    { task: "poll_acceptances" },
+    { repeat: { pattern: "0 */2 * * *" }, jobId: "poll_acceptances" }
   );
 
   // Daily warmup increment at midnight UTC
