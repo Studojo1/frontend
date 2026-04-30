@@ -8,6 +8,7 @@ import { decrypt } from "~/lib/encrypt.server";
 import { buildProxy } from "~/lib/proxy.server";
 import { pauseOutreach, logEvent, getWarmupLimit, checkAcceptanceRate } from "./safety-manager";
 import { generateConnectionNote } from "./prescreen";
+import { blockHeavyResources, withWatchdog, jitter as jitterMs } from "./browser-utils";
 
 let chromiumModule: any = null;
 async function getChromium() {
@@ -26,6 +27,7 @@ async function launchBrowser(userId: string, country: string, city: string, cont
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   const ctx = await browser.newContext(contextOptions);
+  await blockHeavyResources(ctx);
   return { browser, ctx };
 }
 
@@ -91,19 +93,15 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
 
     let result: { status: string; error?: string };
 
-    switch (contact.sequenceStep) {
-      case 0:
-        result = await sendConnectionRequest(page, contact, session, rateLimited);
-        break;
-      case 1:
-        result = await sendIntroMessage(page, contact, rateLimited);
-        break;
-      case 2:
-        result = await sendFollowUp(page, contact, rateLimited);
-        break;
-      default:
-        result = { status: "done" };
-    }
+    const stepFn = contact.sequenceStep === 0
+      ? () => sendConnectionRequest(page, contact, session, rateLimited)
+      : contact.sequenceStep === 1
+        ? () => sendIntroMessage(page, contact, rateLimited)
+        : contact.sequenceStep === 2
+          ? () => sendFollowUp(page, contact, rateLimited)
+          : () => Promise.resolve({ status: "done" });
+
+    result = await withWatchdog(stepFn, browser, 8 * 60_000, `outreach:${contactId}:step${contact.sequenceStep}`);
 
     await browser.close();
 
@@ -172,7 +170,8 @@ async function sendConnectionRequest(page: any, contact: any, session: any, rate
 
       const noteTextarea = await page.$("textarea#custom-message");
       if (noteTextarea && note) {
-        await noteTextarea.fill(note.slice(0, 300));
+        await noteTextarea.click().catch(() => {});
+        await noteTextarea.type(note.slice(0, 300), { delay: 40 + Math.random() * 80 });
       }
     }
 
@@ -327,9 +326,9 @@ async function sendLinkedInMessage(page: any, contact: any, message: string): Pr
     if (!msgBox) return { status: "skipped", error: "not_connected_yet" };
 
     await msgBox.click({ force: true });
-    // Use keyboard.type - fill() doesn't trigger LinkedIn's input events
-    await page.keyboard.type(message);
-    await page.waitForTimeout(800);
+    // type() with per-character delay — triggers LinkedIn's input events + looks human
+    await page.keyboard.type(message, { delay: 40 + Math.random() * 80 });
+    await jitterMs(600, 1200);
 
     const sendBtn = await page.$("button.msg-form__send-button") ?? await page.$('[aria-label="Send"]');
     if (!sendBtn) return { status: "failed", error: "no_send_button" };

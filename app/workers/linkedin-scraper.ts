@@ -339,20 +339,30 @@ async function searchJobsPublic(
 }
 
 // ── Job detail: fetch full description ────────────────────────────────────────
+// Accepts an optional Playwright page — if provided, uses in-page fetch()
+// which inherits the full browser fingerprint (TLS, cookies, UA) automatically.
 
-export async function getJobDescription(userId: string, jobId: string): Promise<string> {
+export async function getJobDescription(userId: string, jobId: string, page?: any): Promise<string> {
   const session = await getLinkedInSession(userId);
   if (!session) return "";
   await jitter(500, 1200);
 
   const url = `https://www.linkedin.com/voyager/api/jobs/jobPostings/${jobId}?decorationId=com.linkedin.voyager.deco.jobs.web.shared.WebFullJobPosting-14`;
-  const res = await proxyFetch(url, {
-    headers: voyagerHeaders(session),
-    signal: AbortSignal.timeout(10_000),
-  }, session);
 
-  if (!res.ok) return "";
-  const data = await res.json() as any;
+  let data: any;
+  if (page) {
+    // In-page fetch: fingerprint matches the live browser session exactly
+    const { voyagerFetch } = await import("./browser-utils");
+    data = await voyagerFetch(page, url, session.jsessionId).catch(() => null);
+  } else {
+    const res = await proxyFetch(url, {
+      headers: voyagerHeaders(session),
+      signal: AbortSignal.timeout(10_000),
+    }, session);
+    if (!res.ok) return "";
+    data = await res.json().catch(() => null);
+  }
+
   return (data?.description?.text ?? data?.data?.description?.text ?? "").slice(0, 5000);
 }
 

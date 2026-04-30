@@ -8,6 +8,7 @@ import { decrypt } from "~/lib/encrypt.server";
 import { buildProxy } from "~/lib/proxy.server";
 import { pauseUser, logEvent, getWarmupLimit } from "./safety-manager";
 import { answerQuestion } from "./prescreen";
+import { blockHeavyResources, withWatchdog, humanTypeLocator, jitter as jitterMs } from "./browser-utils";
 
 let chromiumModule: any = null;
 async function getChromium() {
@@ -26,6 +27,7 @@ async function launchBrowser(userId: string, country: string, city: string, cont
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
   });
   const ctx = await browser.newContext(contextOptions);
+  await blockHeavyResources(ctx);
   return { browser, ctx };
 }
 
@@ -138,7 +140,12 @@ export async function applyToJob(jobId: string): Promise<{ status: string; error
     let result: { status: string; error?: string };
 
     if (job.platform === "linkedin") {
-      result = await applyLinkedIn(page, job, config.cvText, rateLimited);
+      result = await withWatchdog(
+        () => applyLinkedIn(page, job, config.cvText, rateLimited),
+        browser,
+        10 * 60_000,  // 10 min max per application
+        `apply:${jobId}`,
+      );
     } else {
       result = { status: "skipped", error: "unsupported_platform" };
     }
@@ -279,8 +286,11 @@ async function fillFormFields(page: any, prescreened: Record<string, string>, cv
       ?? await answerQuestion(label, cvText, jobContext);
 
     if (answer) {
-      await input.fill(answer.slice(0, 1000));
-      await page.waitForTimeout(300);
+      // Human-like typing: character-by-character with randomized delay
+      await input.click().catch(() => {});
+      await input.fill("").catch(() => {});
+      await input.type(answer.slice(0, 1000), { delay: 50 + Math.random() * 120 });
+      await jitterMs(200, 600);
     }
   }
 
