@@ -1,13 +1,8 @@
 // Residential proxy — Evomi Core Residential
 //
-// Credentials from dashboard → Residential Core → Proxy Generator:
-//   EVOMI_USERNAME   jeremyzac1
-//   EVOMI_PASSWORD   your password
-//
-// Sticky session format:
-//   username: USERNAME_country-CC_session-SESSIONID
-//   host: core-residential.evomi.com
-//   port: 1000 (HTTP)
+// Free trial: plain credentials only (no country/session suffix).
+// Paid plan: sticky session format is USERNAME_country-CC_session-SESSIONID
+// Upgrade at dashboard → Residential Core → Proxy Generator, then re-enable suffix below.
 
 export interface ProxyConfig {
   server: string;
@@ -18,18 +13,16 @@ export interface ProxyConfig {
 const EVOMI_HOST = "core-residential.evomi.com";
 const EVOMI_PORT = 1000;
 
-export function buildProxy(userId: string, country = "IN", _city = "bangalore"): ProxyConfig | undefined {
+export function buildProxy(userId: string, _country = "IN", _city = "bangalore"): ProxyConfig | undefined {
   const username = process.env.EVOMI_USERNAME;
   const password = process.env.EVOMI_PASSWORD;
   if (!username || !password) return undefined;
 
-  // Sticky session key — same userId always gets the same residential IP
-  const sessionId = `s${userId.slice(-8)}`;
-  const cc = country.toUpperCase();
-
+  // TODO: on paid plan, replace with sticky format:
+  // `${username}_country-${country.toUpperCase()}_session-s${userId.slice(-8)}`
   return {
     server: `http://${EVOMI_HOST}:${EVOMI_PORT}`,
-    username: `${username}_country-${cc}_session-${sessionId}`,
+    username,
     password,
   };
 }
