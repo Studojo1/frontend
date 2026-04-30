@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
-  FiShield, FiClock, FiMail, FiZap, FiCheckCircle, FiEdit2,
+  FiShield, FiClock, FiMail, FiZap, FiCheckCircle, FiEdit2, FiGlobe,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
@@ -20,12 +20,43 @@ interface TestEmail {
   body: string;
 }
 
+const TIMEZONES = [
+  { value: "America/Los_Angeles", label: "PST / PDT — US West Coast" },
+  { value: "America/Denver", label: "MST / MDT — US Mountain" },
+  { value: "America/Chicago", label: "CST / CDT — US Central" },
+  { value: "America/New_York", label: "EST / EDT — US East Coast" },
+  { value: "America/Toronto", label: "EST / EDT — Canada East" },
+  { value: "America/Vancouver", label: "PST / PDT — Canada West" },
+  { value: "Europe/London", label: "GMT / BST — United Kingdom" },
+  { value: "Europe/Dublin", label: "GMT / IST — Ireland" },
+  { value: "Europe/Paris", label: "CET / CEST — France" },
+  { value: "Europe/Berlin", label: "CET / CEST — Germany" },
+  { value: "Asia/Dubai", label: "GST — UAE" },
+  { value: "Asia/Kolkata", label: "IST — India" },
+  { value: "Asia/Singapore", label: "SGT — Singapore" },
+  { value: "Asia/Tokyo", label: "JST — Japan" },
+  { value: "Asia/Seoul", label: "KST — South Korea" },
+  { value: "Australia/Sydney", label: "AEST / AEDT — Australia East" },
+  { value: "Pacific/Auckland", label: "NZST / NZDT — New Zealand" },
+];
+
+function getDefaultTimezone(): string {
+  try {
+    const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (TIMEZONES.some((tz) => tz.value === detected)) return detected;
+    return detected;
+  } catch {
+    return "Asia/Kolkata";
+  }
+}
+
 export default function CampaignSetupPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
   const { candidateId, setCandidateId, emailAccountId, setEmailAccountId, setCampaignId, selectedTemplate, selectedStyles } = useOutreachStore();
   const { updateOrder } = useOrder();
   const [campaignName, setCampaignName] = useState("My Outreach Campaign");
+  const [userTimezone, setUserTimezone] = useState(() => getDefaultTimezone());
   const [launching, setLaunching] = useState(false);
   const [error, setError] = useState("");
   const [gmailRequired, setGmailRequired] = useState(false);
@@ -130,6 +161,7 @@ export default function CampaignSetupPage() {
     }
     sessionStorage.setItem("campaign_launch", JSON.stringify({
       campaignName,
+      userTimezone,
       selectedStyles: selectedStyles.length > 0 ? selectedStyles : [],
       selectedTemplate: selectedStyles.length === 0 ? selectedTemplate : null,
     }));
@@ -183,6 +215,32 @@ export default function CampaignSetupPage() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Sending Timezone */}
+          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-purple">
+                <FiGlobe className="w-5 h-5" />
+              </div>
+              <h3 className="font-clash text-lg font-bold text-studojo-ink">Sending Timezone</h3>
+            </div>
+            <p className="text-sm text-studojo-muted font-satoshi mb-4">
+              Emails go out 9am–5pm in this timezone. Set it to match where your recipients are located.
+            </p>
+            <select
+              value={userTimezone}
+              onChange={(e) => setUserTimezone(e.target.value)}
+              className="w-full h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple bg-white"
+            >
+              {TIMEZONES.some((tz) => tz.value === userTimezone) ? null : (
+                <option value={userTimezone}>{userTimezone} (detected)</option>
+              )}
+              {TIMEZONES.map(({ value, label }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+            <p className="text-xs text-studojo-muted font-satoshi mt-2">Auto-detected from your browser. Change to match your recipients' location.</p>
           </div>
 
           {/* Deliverability Test */}

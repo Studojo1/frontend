@@ -103,6 +103,7 @@ export interface CampaignMetrics {
   campaign_id: number;
   campaign_name: string;
   status: string;
+  user_timezone?: string;
   emails_total: number;
   emails_queued: number;
   emails_pending_enrichment?: number;
@@ -116,6 +117,8 @@ export interface CampaignMetrics {
   emails_negative: number;
   emails_neutral: number;
   reply_rate: number;
+  total_leads?: number;
+  sent_count?: number;
 }
 
 // ── Pricing / Tiers ──────────────────────────────────────────────────
