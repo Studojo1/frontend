@@ -177,7 +177,13 @@ async function applyLinkedIn(page: any, job: any, cvText: string, rateLimited: b
   if (rateLimited) return { status: "skipped", error: "rate_limited" };
 
   try {
-    await page.goto(job.applyUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.goto(job.applyUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
+
+    // Detect expired session — LinkedIn redirects to login page
+    if (page.url().includes("/login") || page.url().includes("/authwall")) {
+      await pauseUser(job.userId, 0, "session_expired");
+      return { status: "skipped", error: "session_expired" };
+    }
 
     // Check for CAPTCHA / challenge
     const captcha = await page.$('[data-test-id="challenge-redirect"], .captcha-challenge, #error-page');

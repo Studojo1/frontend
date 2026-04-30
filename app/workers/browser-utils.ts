@@ -27,25 +27,22 @@ const BLOCKED_URL_PATTERNS = [
 
 export async function blockHeavyResources(ctx: any): Promise<void> {
   await ctx.route("**/*", async (route: any) => {
-    try {
-      const req = route.request();
-      const type = req.resourceType();
-      const url = req.url();
+    const req = route.request();
+    const type = req.resourceType();
+    const url = req.url();
 
-      if (BLOCKED_RESOURCE_TYPES.has(type)) {
-        await route.abort();
-        return;
-      }
-
-      if (BLOCKED_URL_PATTERNS.some((re) => re.test(url))) {
-        await route.abort();
-        return;
-      }
-
-      await route.continue();
-    } catch {
-      // Route may already be handled (navigations cancel pending routes)
+    if (BLOCKED_RESOURCE_TYPES.has(type)) {
+      await route.abort().catch(() => {});
+      return;
     }
+
+    if (BLOCKED_URL_PATTERNS.some((re) => re.test(url))) {
+      await route.abort().catch(() => {});
+      return;
+    }
+
+    // Always continue — catch silently since navigation may cancel pending routes
+    await route.continue().catch(() => {});
   });
 }
 
