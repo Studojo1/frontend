@@ -2,7 +2,7 @@ name: Build and Deploy AutoApply Worker
 
 on:
   push:
-    branches: [staging]
+    branches: [main, staging]
     paths:
       - "app/workers/**"
       - "auth-schema.ts"
