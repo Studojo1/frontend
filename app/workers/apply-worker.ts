@@ -34,6 +34,8 @@ async function launchBrowser(userId: string, country: string, city: string, cont
 // ── Apply to a single job ─────────────────────────────────────────────────────
 
 export async function applyToJob(jobId: string): Promise<{ status: string; error?: string }> {
+  if (!jobId || typeof jobId !== "string") return { status: "failed", error: "invalid_job_id" };
+
   const [job] = await db
     .select()
     .from(jobQueue)

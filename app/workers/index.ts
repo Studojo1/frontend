@@ -216,7 +216,7 @@ async function incrementAllWarmupDays() {
 
 for (const worker of [discoveryWorker, applyWorker, outreachWorker, maintenanceWorker]) {
   worker.on("failed", (job, err) => {
-    console.error(`[worker] ${worker.name} job ${job?.id} failed:`, err?.message);
+    console.error(`[worker] ${worker.name} job ${job?.id} failed:`, err?.message, err?.stack?.split("\n")[1]);
     logEvent("worker_error", job?.data?.userId ?? null, {
       worker: worker.name,
       jobId: job?.id,
