@@ -15,8 +15,13 @@ import { discoverJobsForUser } from "./job-discovery";
 import { applyToJob } from "./apply-worker";
 import { runOutreachStep, withdrawStaleInvitations } from "./outreach-worker";
 import { checkFleetHealth, incrementWarmupDay, logEvent } from "./safety-manager";
+import {
+  outreachQueue,
+  applyQueue,
+  jobDiscoveryQueue,
+} from "~/lib/queues.server";
 
-// ── Redis connection ──────────────────────────────────────────────────────────
+// ── Redis connection (worker-only — for maintenanceQueue + Workers) ───────────
 
 const REDIS_URL = process.env.REDIS_URL ?? "redis://redis.studojo.svc.cluster.local:6379";
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? "";
@@ -34,10 +39,10 @@ function redisOpts() {
 const connection = redisOpts();
 
 // ── Queue definitions ─────────────────────────────────────────────────────────
+// outreachQueue / applyQueue / jobDiscoveryQueue imported from queues.server
+// (shared with web app so API routes can enqueue directly)
 
-export const jobDiscoveryQueue = new Queue("job-discovery", { connection });
-export const applyQueue = new Queue("apply", { connection });
-export const outreachQueue = new Queue("outreach", { connection });
+export { outreachQueue, applyQueue, jobDiscoveryQueue };
 export const maintenanceQueue = new Queue("maintenance", { connection });
 
 // ── Workers ───────────────────────────────────────────────────────────────────
