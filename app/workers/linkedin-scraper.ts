@@ -232,7 +232,14 @@ async function searchJobsVoyager(
 
   const data = await res.json() as any;
   const elements: any[] = data?.elements ?? data?.data?.elements ?? [];
-  if (elements.length === 0) {
+  // Log first element structure so we can see what LinkedIn actually returns
+  if (elements.length > 0) {
+    const firstEl = elements[0];
+    const firstJv = firstEl?.jobPostingResolutionResult ?? firstEl;
+    console.log(`[linkedin] Voyager first element keys: ${Object.keys(firstEl ?? {}).join(", ")}`);
+    console.log(`[linkedin] Voyager first jv keys: ${Object.keys(firstJv ?? {}).join(", ")}`);
+    console.log(`[linkedin] Voyager first jv title=${firstJv?.title} id=${firstJv?.jobPostingId}`);
+  } else {
     const topKeys = Object.keys(data ?? {}).join(", ");
     console.warn(`[linkedin] Voyager empty elements. Top-level keys: ${topKeys}`);
   }
