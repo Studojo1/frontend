@@ -46,6 +46,7 @@ interface LinkedInSession {
   proxyCountry: string;
   proxyCity: string;
   userId: string;
+  hasRealCsrf: boolean; // false = fallback JSESSIONID — Voyager will 400
 }
 
 async function getLinkedInSession(userId: string): Promise<LinkedInSession | null> {
@@ -76,6 +77,7 @@ async function getLinkedInSession(userId: string): Promise<LinkedInSession | nul
   // Extract real JSESSIONID from the cookie jar if available
   // JSESSIONID value IS the CSRF token — format: "ajax:XXXXXXXXXXXXXXXXXX"
   const jsessionMatch = fullCookies.match(/JSESSIONID="?(ajax:[^";,\s]+)"?/i);
+  const hasRealCsrf = !!jsessionMatch;
   const jsessionId = jsessionMatch?.[1] ?? generateFallbackJsessionId();
 
   // Build a clean cookie string — include all known LinkedIn session cookies
@@ -94,6 +96,7 @@ async function getLinkedInSession(userId: string): Promise<LinkedInSession | nul
     proxyCountry: row.proxyCountry ?? "IN",
     proxyCity: row.proxyCity ?? "bangalore",
     userId,
+    hasRealCsrf,
   };
 }
 
@@ -367,7 +370,7 @@ export async function scrapeLinkedInJobs(
 
   if (userId) {
     const session = await getLinkedInSession(userId);
-    if (session) {
+    if (session?.hasRealCsrf) {
       try {
         results = await searchJobsVoyager(session, role, location);
         usedAuth = true;
@@ -376,6 +379,8 @@ export async function scrapeLinkedInJobs(
         console.warn(`[linkedin] Voyager error (${err.message}) — falling back to public API`);
         if (err.message?.startsWith("LINKEDIN_RATE_LIMIT") || err.message?.startsWith("LINKEDIN_AUTH_FAILED")) throw err;
       }
+    } else if (session && !session.hasRealCsrf) {
+      console.log(`[linkedin] No real JSESSIONID for ${userId} — using public API`);
     }
   }
 
