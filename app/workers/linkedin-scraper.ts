@@ -225,10 +225,17 @@ async function searchJobsVoyager(
 
   if (res.status === 429 || res.status === 999) throw new Error(`LINKEDIN_RATE_LIMIT:${res.status}`);
   if (res.status === 401 || res.status === 403) throw new Error(`LINKEDIN_AUTH_FAILED:${res.status}`);
-  if (!res.ok) return [];
+  if (!res.ok) {
+    console.warn(`[linkedin] Voyager non-ok status ${res.status} for "${role}" / "${location}"`);
+    return [];
+  }
 
   const data = await res.json() as any;
   const elements: any[] = data?.elements ?? data?.data?.elements ?? [];
+  if (elements.length === 0) {
+    const topKeys = Object.keys(data ?? {}).join(", ");
+    console.warn(`[linkedin] Voyager empty elements. Top-level keys: ${topKeys}`);
+  }
 
   return elements.slice(0, 25).flatMap((el: any) => {
     const jv = el?.jobPostingResolutionResult ?? el;
