@@ -13,59 +13,69 @@ function seededRandom(slug: string) {
 
 const PALETTES: Record<string, {
   bg: string; bgB: string;
-  primary: string; primaryMid: string; primaryDim: string;
-  accent: string;
+  primary: string; primaryDim: string;
+  accent: string; accentLight: string;
   label: string;
 }> = {
   internships: {
-    bg: "#0A0614", bgB: "#100A22",
-    primary: "#8b5cf6", primaryMid: "#6d28d9", primaryDim: "#3b0764",
-    accent: "#dab2ff", label: "INTERNSHIP",
+    bg: "#08041A", bgB: "#0E0828",
+    primary: "#8b5cf6", primaryDim: "#3b0764",
+    accent: "#c4b5fd", accentLight: "#ede9fe",
+    label: "INTERNSHIP",
   },
   internship: {
-    bg: "#0A0614", bgB: "#100A22",
-    primary: "#8b5cf6", primaryMid: "#6d28d9", primaryDim: "#3b0764",
-    accent: "#dab2ff", label: "INTERNSHIP",
+    bg: "#08041A", bgB: "#0E0828",
+    primary: "#8b5cf6", primaryDim: "#3b0764",
+    accent: "#c4b5fd", accentLight: "#ede9fe",
+    label: "INTERNSHIP",
   },
   career: {
-    bg: "#021008", bgB: "#041A0E",
-    primary: "#10b981", primaryMid: "#059669", primaryDim: "#064e3b",
-    accent: "#6ee7b7", label: "CAREER",
+    bg: "#021208", bgB: "#031A0C",
+    primary: "#10b981", primaryDim: "#064e3b",
+    accent: "#6ee7b7", accentLight: "#d1fae5",
+    label: "CAREER",
   },
   careers: {
-    bg: "#021008", bgB: "#041A0E",
-    primary: "#10b981", primaryMid: "#059669", primaryDim: "#064e3b",
-    accent: "#6ee7b7", label: "CAREER",
+    bg: "#021208", bgB: "#031A0C",
+    primary: "#10b981", primaryDim: "#064e3b",
+    accent: "#6ee7b7", accentLight: "#d1fae5",
+    label: "CAREER",
   },
   resume: {
-    bg: "#021008", bgB: "#041A0E",
-    primary: "#10b981", primaryMid: "#059669", primaryDim: "#064e3b",
-    accent: "#6ee7b7", label: "RESUME",
+    bg: "#021208", bgB: "#031A0C",
+    primary: "#10b981", primaryDim: "#064e3b",
+    accent: "#6ee7b7", accentLight: "#d1fae5",
+    label: "RESUME",
   },
   ai: {
-    bg: "#010C14", bgB: "#021520",
-    primary: "#0ea5e9", primaryMid: "#0284c7", primaryDim: "#0c4a6e",
-    accent: "#7dd3fc", label: "AI",
+    bg: "#010E18", bgB: "#021824",
+    primary: "#0ea5e9", primaryDim: "#0c4a6e",
+    accent: "#7dd3fc", accentLight: "#e0f2fe",
+    label: "AI",
   },
   tech: {
-    bg: "#010C14", bgB: "#021520",
-    primary: "#0ea5e9", primaryMid: "#0284c7", primaryDim: "#0c4a6e",
-    accent: "#7dd3fc", label: "TECH",
+    bg: "#010E18", bgB: "#021824",
+    primary: "#0ea5e9", primaryDim: "#0c4a6e",
+    accent: "#7dd3fc", accentLight: "#e0f2fe",
+    label: "TECH",
   },
   assignment: {
-    bg: "#100800", bgB: "#1A1000",
-    primary: "#f59e0b", primaryMid: "#d97706", primaryDim: "#78350f",
-    accent: "#fde68a", label: "ASSIGNMENT",
+    bg: "#120A00", bgB: "#1C1000",
+    primary: "#f59e0b", primaryDim: "#78350f",
+    accent: "#fde68a", accentLight: "#fef9c3",
+    label: "ASSIGNMENT",
   },
   assignments: {
-    bg: "#100800", bgB: "#1A1000",
-    primary: "#f59e0b", primaryMid: "#d97706", primaryDim: "#78350f",
-    accent: "#fde68a", label: "ASSIGNMENT",
+    bg: "#120A00", bgB: "#1C1000",
+    primary: "#f59e0b", primaryDim: "#78350f",
+    accent: "#fde68a", accentLight: "#fef9c3",
+    label: "ASSIGNMENT",
   },
   default: {
-    bg: "#0A0614", bgB: "#100A22",
-    primary: "#8b5cf6", primaryMid: "#6d28d9", primaryDim: "#3b0764",
-    accent: "#dab2ff", label: "BLOG",
+    bg: "#08041A", bgB: "#0E0828",
+    primary: "#8b5cf6", primaryDim: "#3b0764",
+    accent: "#c4b5fd", accentLight: "#ede9fe",
+    label: "BLOG",
   },
 };
 
@@ -87,55 +97,35 @@ function wrapTitle(title: string, maxChars: number): string[] {
 }
 
 function getFontSize(title: string): number {
-  if (title.length < 28) return 74;
-  if (title.length < 42) return 62;
-  if (title.length < 58) return 52;
-  return 42;
+  if (title.length < 26) return 76;
+  if (title.length < 40) return 64;
+  if (title.length < 56) return 54;
+  return 44;
 }
 
 function approxW(text: string, size: number): number {
-  return text.length * size * 0.54;
+  return text.length * size * 0.545;
 }
 
 function safe(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-// Pick a meaningful word from a line to highlight (skip short stop words)
-const STOP = new Set(["the","a","an","to","for","and","or","of","in","on","at","how","why","what","when","your","you","is","are","was","were","that","this","with","from","by","its","it","if","but"]);
-function pickHighlightWord(line: string): string | null {
-  const words = line.split(" ");
-  // prefer last meaningful word that's long enough
-  for (let i = words.length - 1; i >= 0; i--) {
-    if (!STOP.has(words[i].toLowerCase()) && words[i].length > 3) return words[i];
-  }
-  return null;
-}
-
-// X offset of a word within a line
-function wordOffsetX(line: string, word: string, fontSize: number, lineStartX: number): number {
-  const idx = line.indexOf(word);
-  if (idx < 0) return lineStartX;
-  return lineStartX + approxW(line.slice(0, idx), fontSize);
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
   const { slug } = params;
   let title = "Studojo";
   let category = "internships";
+  let readingTime = 0;
 
   try {
     const result = await db.execute(
-      sql.raw(`SELECT title, categories FROM blog_posts WHERE slug = '${(slug ?? "").replace(/'/g, "''")}' AND status = 'published' LIMIT 1`)
+      sql.raw(`SELECT title, categories, reading_time FROM blog_posts WHERE slug = '${(slug ?? "").replace(/'/g, "''")}' AND status = 'published' LIMIT 1`)
     );
     if (result.rows.length > 0) {
       const row = result.rows[0] as any;
       title = row.title ?? title;
       category = (Array.isArray(row.categories) ? row.categories[0] : row.categories) ?? category;
+      readingTime = Number(row.reading_time) || 0;
     }
   } catch { /* fallback */ }
 
@@ -144,66 +134,65 @@ export async function loader({ params }: Route.LoaderArgs) {
   const rng = seededRandom(slug ?? title);
   const pal = getPalette(category);
   const FONT = `-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif`;
+  const year = new Date().getFullYear();
 
   // ── Title layout ──
   const fontSize = getFontSize(title);
-  const charsPerLine = Math.floor(840 / (fontSize * 0.54));
+  const charsPerLine = Math.floor(860 / (fontSize * 0.545));
   const lines = wrapTitle(title, charsPerLine);
-  const lineH = fontSize * 1.3;
+  const lineH = fontSize * 1.28;
+
+  // Split: first N-1 lines = white, last line = primary accent colour (reports-page style)
+  const whiteLines = lines.length > 1 ? lines.slice(0, -1) : lines;
+  const colourLine = lines.length > 1 ? lines[lines.length - 1] : null;
+
   const totalH = lines.length * lineH;
-  const titleX = 100;
-  const titleY = Math.max(145, (H - totalH) / 2 - 18);
+  const titleX = 96;
+  // Push title into middle-upper zone with good breathing room
+  const titleY = 158;
 
-  // Editorial index number (seeded, 01–96)
-  const editNum = String(1 + Math.floor(rng() * 96)).padStart(2, "0");
+  // Filled highlight box on the first meaningful word (homepage "Get contacted." style)
+  // — sits ON the first white line
+  const firstLine = whiteLines[0] ?? lines[0] ?? "";
+  const stopWords = new Set(["the","a","an","to","for","and","or","of","in","on","at","how","why","what","when","your","you","is","are","was","were","that","this","with","from","by","its","it","if","but"]);
+  const significantWords = firstLine.split(" ").filter(w => !stopWords.has(w.toLowerCase()) && w.length > 3);
+  const highlightWord = significantWords[0] ?? firstLine.split(" ")[0] ?? "";
+  const hlW = approxW(highlightWord, fontSize) + 24;
+  const hlX = titleX - 12;
+  const hlY = titleY - 8;
+  const hlH = fontSize * 1.16;
 
-  // ── Highlight boxes on title ──
-  // Box A: first word of line 1 — filled primary
-  const firstWord = (lines[0] ?? "").split(" ")[0] ?? "";
-  const boxAW = approxW(firstWord, fontSize) + 20;
-  const boxAX = titleX - 10;
-  const boxAY = titleY - 6;
-  const boxAH = fontSize * 1.14;
+  // Underline below coloured line (or last white line if no coloured)
+  const lastLineForUnderline = colourLine ?? (whiteLines[whiteLines.length - 1] ?? "");
+  const underlineY = titleY + lines.length * lineH + 8;
+  const underlineW = Math.min(approxW(lastLineForUnderline, fontSize), 860);
 
-  // Box B: last meaningful word on line 2 (if exists) — accent stroke style
-  const line2 = lines[1] ?? "";
-  const wordB = pickHighlightWord(line2);
-  const boxBW = wordB ? approxW(wordB, fontSize) + 20 : 0;
-  const boxBX = wordB ? wordOffsetX(line2, wordB, fontSize, titleX) - 10 : 0;
-  const boxBY = titleY + lineH - 6;
-  const boxBH = fontSize * 1.14;
+  // ── Badge ── "STUDOJO BLOG · INTERNSHIP · 2026"
+  const badgeText = `STUDOJO BLOG  ·  ${pal.label}  ·  ${year}`;
+  const badgeW = badgeText.length * 7.8 + 40;
+  const badgeX = 88;
 
-  // Box C (optional): last word of last line if ≥ 3 lines — outlined rotated shard
-  const lastLine = lines[lines.length - 1] ?? "";
-  const wordC = lines.length >= 3 ? pickHighlightWord(lastLine) : null;
-  const boxCW = wordC ? approxW(wordC, fontSize) + 20 : 0;
-  const boxCX = wordC ? wordOffsetX(lastLine, wordC, fontSize, titleX) - 10 : 0;
-  const boxCY = titleY + (lines.length - 1) * lineH - 6;
-  const boxCH = fontSize * 1.14;
+  // ── Meta row ── reading time + category (bottom of image, like reports page)
+  const metaItems = [
+    readingTime > 0 ? `${readingTime} MIN READ` : "QUICK READ",
+    pal.label,
+    "STUDOJO.COM",
+  ];
 
-  // Underline below last line
-  const underlineW = Math.min(approxW(lastLine, fontSize), 860);
-
-  // Category pill
-  const pillW = pal.label.length * 9 + 40;
-  const pillX = W - 80 - pillW;
-
-  // ── Seeded scatter dots ──
-  const scatterDots = Array.from({ length: 14 + Math.floor(rng() * 10) }, () => {
-    const dx = (580 + rng() * 600).toFixed(0);
+  // ── Seeded decoration ──
+  const dots = Array.from({ length: 18 + Math.floor(rng() * 12) }, () => {
+    const dx = (520 + rng() * 660).toFixed(0);
     const dy = (rng() * H).toFixed(0);
-    const dr = (0.8 + rng() * 2.8).toFixed(1);
-    const op = (0.12 + rng() * 0.30).toFixed(2);
-    const fill = rng() > 0.5 ? pal.accent : "#FFFFFF";
+    const dr = (0.7 + rng() * 2.6).toFixed(1);
+    const op = (0.10 + rng() * 0.28).toFixed(2);
+    const fill = rng() > 0.45 ? pal.accent : "#FFFFFF";
     return `<circle cx="${dx}" cy="${dy}" r="${dr}" fill="${fill}" opacity="${op}"/>`;
   });
 
-  // Seeded outline ring
-  const ringCx = (700 + rng() * 400).toFixed(0);
-  const ringCy = (rng() * H * 0.65).toFixed(0);
-  const ringR  = (70 + rng() * 150).toFixed(0);
-  const ringSW = (1 + rng() * 1.8).toFixed(1);
-  const ringOp = (0.09 + rng() * 0.13).toFixed(2);
+  const ringCx = (720 + rng() * 360).toFixed(0);
+  const ringCy = (50 + rng() * 400).toFixed(0);
+  const ringR  = (60 + rng() * 140).toFixed(0);
+  const ringSW = (0.8 + rng() * 1.6).toFixed(1);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
@@ -211,25 +200,27 @@ export async function loader({ params }: Route.LoaderArgs) {
       <stop offset="0%" stop-color="${pal.bg}"/>
       <stop offset="100%" stop-color="${pal.bgB}"/>
     </linearGradient>
-    <radialGradient id="glowR" cx="92%" cy="16%" r="58%" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="${pal.primary}" stop-opacity="0.24"/>
+    <!-- Large right glow -->
+    <radialGradient id="glowR" cx="90%" cy="15%" r="60%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="${pal.primary}" stop-opacity="0.26"/>
       <stop offset="100%" stop-color="${pal.primary}" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="glowL" cx="5%" cy="92%" r="50%" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="${pal.primaryDim}" stop-opacity="0.32"/>
+    <!-- Bottom-left glow -->
+    <radialGradient id="glowL" cx="4%" cy="94%" r="48%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="${pal.primaryDim}" stop-opacity="0.34"/>
       <stop offset="100%" stop-color="${pal.primaryDim}" stop-opacity="0"/>
     </radialGradient>
-    <!-- Title-area glow — makes title pop -->
-    <radialGradient id="titleGlow" cx="40%" cy="50%" r="40%" gradientUnits="objectBoundingBox">
-      <stop offset="0%" stop-color="${pal.primary}" stop-opacity="0.10"/>
+    <!-- Title area warm fill -->
+    <radialGradient id="titleGlow" cx="35%" cy="52%" r="45%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="${pal.primary}" stop-opacity="0.09"/>
       <stop offset="100%" stop-color="${pal.primary}" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="vig" cx="50%" cy="50%" r="70%" gradientUnits="objectBoundingBox">
+    <radialGradient id="vig" cx="50%" cy="50%" r="72%" gradientUnits="objectBoundingBox">
       <stop offset="0%" stop-color="transparent"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.54"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.56"/>
     </radialGradient>
-    <filter id="grain" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.70" numOctaves="3" stitchTiles="stitch" result="n"/>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="3" stitchTiles="stitch" result="n"/>
       <feColorMatrix type="saturate" values="0" in="n" result="g"/>
       <feBlend in="SourceGraphic" in2="g" mode="overlay" result="b"/>
       <feComposite in="b" in2="SourceGraphic" operator="in"/>
@@ -239,141 +230,127 @@ export async function loader({ params }: Route.LoaderArgs) {
 
   <g clip-path="url(#clip)">
 
-    <!-- ── BACKGROUND ── -->
+    <!-- Background layers -->
     <rect width="${W}" height="${H}" fill="url(#bg)"/>
     <rect width="${W}" height="${H}" fill="url(#glowR)"/>
     <rect width="${W}" height="${H}" fill="url(#glowL)"/>
-    <!-- Title area warm glow -->
     <rect width="${W}" height="${H}" fill="url(#titleGlow)"/>
 
-    <!-- ── RIGHT SIDE DECORATION ── -->
-    <circle cx="1080" cy="130" r="240" fill="${pal.primary}" opacity="0.10"/>
-    <circle cx="1080" cy="130" r="155" fill="${pal.primary}" opacity="0.07"/>
-    <circle cx="1020" cy="430" r="175" fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.13"/>
-    <circle cx="${ringCx}" cy="${ringCy}" r="${ringR}" fill="none" stroke="${pal.primary}" stroke-width="${ringSW}" opacity="${ringOp}"/>
-
-    <!-- Structured 5×4 dot grid -->
+    <!-- ── RIGHT DECORATION ── -->
+    <!-- Large primary circle -->
+    <circle cx="1090" cy="110" r="260" fill="${pal.primary}" opacity="0.09"/>
+    <circle cx="1090" cy="110" r="170" fill="${pal.primary}" opacity="0.07"/>
+    <!-- Outline rings -->
+    <circle cx="1040" cy="460" r="200" fill="none" stroke="${pal.accent}" stroke-width="1.2" opacity="0.12"/>
+    <circle cx="1040" cy="460" r="130" fill="none" stroke="${pal.accent}" stroke-width="0.8" opacity="0.08"/>
+    <!-- Seeded per-post ring -->
+    <circle cx="${ringCx}" cy="${ringCy}" r="${ringR}" fill="none" stroke="${pal.primary}" stroke-width="${ringSW}" opacity="0.10"/>
+    <!-- 5×4 dot grid -->
     ${Array.from({ length: 5 }, (_, c) =>
       Array.from({ length: 4 }, (_, r) =>
-        `<circle cx="${1022 + c * 26}" cy="${342 + r * 26}" r="2" fill="${pal.accent}" opacity="0.26"/>`
+        `<circle cx="${1030 + c * 24}" cy="${330 + r * 24}" r="1.8" fill="${pal.accent}" opacity="0.24"/>`
       ).join("\n    ")
     ).join("\n    ")}
+    <!-- Scatter -->
+    ${dots.join("\n    ")}
+    <!-- Diagonal line -->
+    <line x1="660" y1="0" x2="1200" y2="${H}" stroke="${pal.primary}" stroke-width="0.8" opacity="0.05"/>
 
-    <!-- Scatter dots -->
-    ${scatterDots.join("\n    ")}
-
-    <!-- Tension line -->
-    <line x1="680" y1="0" x2="1200" y2="${H}" stroke="${pal.primary}" stroke-width="1" opacity="0.05"/>
-
-    <!-- ── GRAIN + VIGNETTE ── -->
-    <rect width="${W}" height="${H}" fill="white" opacity="0.014" filter="url(#grain)"/>
+    <!-- Grain + vignette -->
+    <rect width="${W}" height="${H}" fill="white" opacity="0.013" filter="url(#grain)"/>
     <rect width="${W}" height="${H}" fill="url(#vig)"/>
 
-    <!-- ── LEFT STRIPE ── -->
-    <rect x="0" y="0" width="8" height="${H}" fill="${pal.primary}" opacity="0.88"/>
+    <!-- ══ LEFT STRIPE ══ -->
+    <rect x="0" y="0" width="8" height="${H}" fill="${pal.primary}" opacity="0.90"/>
 
-    <!-- ── TOP BAR ── -->
-    <line x1="80" y1="84" x2="${W - 80}" y2="84" stroke="${pal.accent}" stroke-width="0.75" opacity="0.20"/>
-    <!-- Wordmark -->
-    <circle cx="92" cy="52" r="7" fill="${pal.primary}"/>
-    <circle cx="92" cy="52" r="7" fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.55"/>
-    <text x="108" y="58" font-family="${FONT}" font-size="18" font-weight="700" fill="#FFFFFF" letter-spacing="0.07em" opacity="0.92">studojo</text>
-    <!-- Category pill -->
-    <rect x="${pillX}" y="34" width="${pillW}" height="32" rx="7" fill="${pal.primary}" opacity="0.22"/>
-    <rect x="${pillX}" y="34" width="${pillW}" height="32" rx="7" fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.70"/>
-    <text x="${(pillX + pillW / 2).toFixed(0)}" y="55" font-family="${FONT}" font-size="11" font-weight="700" fill="${pal.accent}" text-anchor="middle" letter-spacing="0.11em">${pal.label}</text>
+    <!-- ══ TOP ZONE ══ -->
 
-    <!-- ══════════════════════════════════
-         TITLE BLOCK — enhanced
-    ══════════════════════════════════ -->
+    <!-- Badge: "STUDOJO BLOG · INTERNSHIP · 2026" — styled like the reports research badge -->
+    <rect x="${badgeX}" y="28" width="${badgeW.toFixed(0)}" height="32" rx="16"
+          fill="${pal.primary}" opacity="0.18"/>
+    <rect x="${badgeX}" y="28" width="${badgeW.toFixed(0)}" height="32" rx="16"
+          fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.60"/>
+    <text x="${(badgeX + badgeW / 2).toFixed(0)}" y="49"
+          font-family="${FONT}" font-size="10.5" font-weight="700"
+          fill="${pal.accent}" text-anchor="middle" letter-spacing="0.12em">${badgeText}</text>
 
-    <!-- Editorial number — large faded behind title (magazine feel) -->
-    <text x="${(titleX - 14).toFixed(0)}" y="${(titleY + totalH * 0.85).toFixed(0)}"
-          font-family="${FONT}" font-size="220" font-weight="900"
-          fill="${pal.primary}" opacity="0.055"
-          letter-spacing="-0.06em">${editNum}</text>
+    <!-- Breadcrumb: "Blog › Category" — small, subtle, like reports page -->
+    <text x="${badgeX}" y="86"
+          font-family="${FONT}" font-size="12" font-weight="500"
+          fill="${pal.primary}" opacity="0.75" letter-spacing="0.03em">Blog</text>
+    <text x="${(badgeX + 28).toFixed(0)}" y="86"
+          font-family="${FONT}" font-size="12" font-weight="400"
+          fill="${pal.accent}" opacity="0.40">›</text>
+    <text x="${(badgeX + 40).toFixed(0)}" y="86"
+          font-family="${FONT}" font-size="12" font-weight="400"
+          fill="#6B7280" letter-spacing="0.02em">${safe(pal.label.charAt(0) + pal.label.slice(1).toLowerCase())}</text>
 
-    <!-- Outline "ghost" title — slightly offset behind, adds depth -->
-    ${lines.map((line, i) => {
-      const y = (titleY + i * lineH + fontSize).toFixed(0);
-      const ox = (titleX + 2).toFixed(0);
-      const oy = (titleY + i * lineH + fontSize + 2).toFixed(0);
-      return `<text x="${ox}" y="${oy}" font-family="${FONT}" font-size="${fontSize}" font-weight="800" fill="none" stroke="${pal.primary}" stroke-width="1" opacity="0.25" letter-spacing="-0.03em">${safe(line)}</text>`;
-    }).join("\n    ")}
+    <!-- Separator line -->
+    <line x1="80" y1="100" x2="${W - 80}" y2="100"
+          stroke="${pal.accent}" stroke-width="0.75" opacity="0.18"/>
 
-    <!-- Horizontal rule ABOVE title — brand-weight accent line -->
-    <line x1="${titleX}" y1="${(titleY - 14).toFixed(0)}" x2="${(titleX + Math.min(approxW(lines[0] ?? "", fontSize) * 0.85, 700)).toFixed(0)}" y2="${(titleY - 14).toFixed(0)}"
-          stroke="${pal.primary}" stroke-width="2" opacity="0.55"/>
-    <!-- Small diamond cap on above line -->
-    <rect x="${(titleX - 5).toFixed(0)}" y="${(titleY - 18).toFixed(0)}"
-          width="8" height="8" rx="1"
-          fill="${pal.primary}" opacity="0.80"
-          transform="rotate(45 ${titleX} ${(titleY - 14).toFixed(0)})"/>
+    <!-- ══ TITLE BLOCK ══ -->
 
-    <!-- Box A: first word, filled primary (brand highlight pill) -->
-    <rect x="${boxAX.toFixed(0)}" y="${boxAY.toFixed(0)}"
-          width="${boxAW.toFixed(0)}" height="${boxAH.toFixed(0)}"
-          rx="8" fill="${pal.primary}" opacity="0.20"/>
-    <rect x="${boxAX.toFixed(0)}" y="${boxAY.toFixed(0)}"
-          width="${boxAW.toFixed(0)}" height="${boxAH.toFixed(0)}"
-          rx="8" fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.45"/>
+    <!-- Filled highlight box on first significant word (homepage "Get contacted." style) -->
+    <rect x="${hlX.toFixed(0)}" y="${hlY.toFixed(0)}"
+          width="${hlW.toFixed(0)}" height="${hlH.toFixed(0)}"
+          rx="10" fill="${pal.primary}" opacity="0.28"/>
+    <rect x="${hlX.toFixed(0)}" y="${hlY.toFixed(0)}"
+          width="${hlW.toFixed(0)}" height="${hlH.toFixed(0)}"
+          rx="10" fill="none" stroke="${pal.accent}" stroke-width="2" opacity="0.55"/>
 
-    ${wordB ? `
-    <!-- Box B: key word on line 2, accent outline style -->
-    <rect x="${boxBX.toFixed(0)}" y="${boxBY.toFixed(0)}"
-          width="${boxBW.toFixed(0)}" height="${boxBH.toFixed(0)}"
-          rx="6" fill="${pal.accent}" opacity="0.12"/>
-    <rect x="${boxBX.toFixed(0)}" y="${boxBY.toFixed(0)}"
-          width="${boxBW.toFixed(0)}" height="${boxBH.toFixed(0)}"
-          rx="6" fill="none" stroke="${pal.accent}" stroke-width="1" opacity="0.55" stroke-dasharray="4 3"/>
-    ` : ""}
-
-    ${wordC ? `
-    <!-- Box C: key word on last line, rotated shard (neo-brutalist accent) -->
-    <rect x="${(boxCX - 2).toFixed(0)}" y="${(boxCY + 2).toFixed(0)}"
-          width="${boxCW.toFixed(0)}" height="${boxCH.toFixed(0)}"
-          rx="4" fill="${pal.primaryMid}" opacity="0.28"
-          transform="rotate(-1.5 ${(boxCX + boxCW / 2).toFixed(0)} ${(boxCY + boxCH / 2).toFixed(0)})"/>
-    ` : ""}
-
-    <!-- Left accent bar -->
-    <rect x="80" y="${(titleY - 8).toFixed(0)}"
-          width="6" height="${(totalH + fontSize * 0.3).toFixed(0)}"
+    <!-- Left accent bar spanning full title height -->
+    <rect x="80" y="${(titleY - 10).toFixed(0)}"
+          width="6" height="${(totalH + 16).toFixed(0)}"
           rx="3" fill="${pal.primary}" opacity="0.92"/>
 
-    <!-- Small arrow / chevron mark before first line (editorial detail) -->
-    <text x="${(titleX - 18).toFixed(0)}" y="${(titleY + fontSize * 0.72).toFixed(0)}"
-          font-family="${FONT}" font-size="${(fontSize * 0.38).toFixed(0)}" font-weight="700"
-          fill="${pal.accent}" opacity="0.70">›</text>
-
-    <!-- TITLE TEXT — main layer -->
-    ${lines.map((line, i) => {
+    <!-- WHITE lines of title -->
+    ${whiteLines.map((line, i) => {
       const y = (titleY + i * lineH + fontSize).toFixed(0);
       return `<text x="${titleX}" y="${y}" font-family="${FONT}" font-size="${fontSize}" font-weight="800" fill="#FFFFFF" letter-spacing="-0.03em">${safe(line)}</text>`;
     }).join("\n    ")}
 
-    <!-- Thick accent underline (last line) -->
-    <rect x="${titleX}" y="${(titleY + lines.length * lineH + fontSize * 0.08).toFixed(0)}"
-          width="${underlineW.toFixed(0)}" height="3.5" rx="2"
-          fill="${pal.primary}" opacity="0.65"/>
-    <!-- Thin secondary underline offset -->
-    <rect x="${titleX}" y="${(titleY + lines.length * lineH + fontSize * 0.08 + 7).toFixed(0)}"
-          width="${(underlineW * 0.45).toFixed(0)}" height="1.5" rx="1"
-          fill="${pal.accent}" opacity="0.40"/>
+    ${colourLine ? `
+    <!-- ACCENT-COLOURED last line — reports-page two-tone title effect -->
+    <text x="${titleX}" y="${(titleY + (lines.length - 1) * lineH + fontSize).toFixed(0)}"
+          font-family="${FONT}" font-size="${fontSize}" font-weight="800"
+          fill="${pal.primary}" letter-spacing="-0.03em">${safe(colourLine)}</text>
+    ` : ""}
 
-    <!-- ── BOTTOM BAR ── -->
-    <line x1="80" y1="${H - 54}" x2="${W - 80}" y2="${H - 54}"
+    <!-- Double underline under title -->
+    <rect x="${titleX}" y="${underlineY.toFixed(0)}"
+          width="${underlineW.toFixed(0)}" height="3" rx="1.5"
+          fill="${pal.primary}" opacity="0.70"/>
+    <rect x="${titleX}" y="${(underlineY + 7).toFixed(0)}"
+          width="${(underlineW * 0.4).toFixed(0)}" height="1.5" rx="1"
+          fill="${pal.accent}" opacity="0.38"/>
+
+    <!-- ══ BOTTOM META ROW ══ (reports-page metadata style) -->
+    <line x1="80" y1="${H - 80}" x2="${W - 80}" y2="${H - 80}"
           stroke="${pal.accent}" stroke-width="0.75" opacity="0.20"/>
-    <text x="96" y="${H - 26}" font-family="${FONT}" font-size="13" font-weight="500"
-          fill="#6B7280" letter-spacing="0.05em">studojo.com</text>
-    <text x="${W - 80}" y="${H - 26}" font-family="${FONT}" font-size="12" font-weight="500"
-          fill="${pal.accent}" opacity="0.62" text-anchor="end" letter-spacing="0.06em">Work on things that matter.</text>
 
-    <!-- Corner brackets -->
-    <path d="M${W - 80} 32 L${W - 80} 56 M${W - 102} 32 L${W - 80} 32"
-          stroke="${pal.accent}" stroke-width="1.5" opacity="0.35" fill="none"/>
-    <path d="M80 ${H - 32} L80 ${H - 56} M80 ${H - 32} L102 ${H - 32}"
-          stroke="${pal.accent}" stroke-width="1.5" opacity="0.35" fill="none"/>
+    <!-- Meta items with label/value style -->
+    ${metaItems.map((item, i) => {
+      const mx = 96 + i * 220;
+      return `<text x="${mx}" y="${H - 52}" font-family="${FONT}" font-size="9" font-weight="700" fill="${pal.primary}" opacity="0.60" letter-spacing="0.12em">${safe(item)}</text>`;
+    }).join("\n    ")}
+
+    <!-- Wordmark bottom-right -->
+    <circle cx="${W - 104}" cy="${H - 52}" r="5" fill="${pal.primary}" opacity="0.8"/>
+    <text x="${W - 96}" y="${H - 47}"
+          font-family="${FONT}" font-size="13" font-weight="700"
+          fill="#FFFFFF" opacity="0.50" letter-spacing="0.06em">studojo</text>
+
+    <!-- Tagline -->
+    <text x="96" y="${H - 26}"
+          font-family="${FONT}" font-size="12" font-weight="400"
+          fill="#6B7280" letter-spacing="0.04em">Work on things that matter.</text>
+
+    <!-- Corner brackets — neo-brutalist detail -->
+    <path d="M${W - 80} 24 L${W - 80} 50 M${W - 104} 24 L${W - 80} 24"
+          stroke="${pal.accent}" stroke-width="1.5" opacity="0.30" fill="none"/>
+    <path d="M80 ${H - 24} L80 ${H - 50} M80 ${H - 24} L104 ${H - 24}"
+          stroke="${pal.accent}" stroke-width="1.5" opacity="0.30" fill="none"/>
 
   </g>
 </svg>`;
