@@ -1,14 +1,15 @@
 // Outreach automation - LinkedIn connection requests + drip message sequences
 // Day 0: connect, Day 3: message, Day 7: follow-up, Day 14: done
 
-import { eq, and, lt, sql } from "drizzle-orm";
+import { eq, and, lt, sql, gte } from "drizzle-orm";
 import db from "~/lib/db";
-import { outreachContacts, userLinkedinSessions, outreachCampaigns, user as userTable } from "../../auth-schema";
+import { outreachContacts, userLinkedinSessions, outreachCampaigns, autoapplyConfigs, user as userTable } from "../../auth-schema";
 import { decrypt } from "~/lib/encrypt.server";
 import { buildProxy } from "~/lib/proxy.server";
 import { pauseOutreach, logEvent, getWarmupLimit, checkAcceptanceRate } from "./safety-manager";
 import { generateConnectionNote } from "./prescreen";
 import { blockHeavyResources, withWatchdog, jitter as jitterMs } from "./browser-utils";
+import { outreachQueue } from "~/lib/queues.server";
 
 let chromiumModule: any = null;
 async function getChromium() {
@@ -50,10 +51,39 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
 
   if (!session?.liAtEncrypted) return { status: "skipped", error: "no_session" };
 
-  // Check acceptance rate before sending
-  const acceptanceRate = await checkAcceptanceRate(contact.userId);
-  if (acceptanceRate !== null && acceptanceRate < 0.20) {
-    return { status: "skipped", error: "low_acceptance_rate" };
+  // ── Daily limit check (step 0 = connection requests only) ────────────────────
+  if (contact.sequenceStep === 0) {
+    const [config] = await db
+      .select({ dailyLimit: autoapplyConfigs.dailyLimit, status: autoapplyConfigs.status })
+      .from(autoapplyConfigs)
+      .where(eq(autoapplyConfigs.userId, contact.userId))
+      .limit(1);
+
+    if (config?.status === "paused") {
+      return { status: "skipped", error: "user_paused" };
+    }
+
+    const warmupLimit = getWarmupLimit(session.warmupDay, config?.dailyLimit ?? 20);
+    const todayCount = await getDailyConnectionCount(contact.userId);
+
+    if (todayCount >= warmupLimit) {
+      // Re-queue for tomorrow (randomised within first 4 hours of next day)
+      const msUntilMidnight = getMsUntilMidnight();
+      await outreachQueue.add(
+        "outreach",
+        { contactId },
+        { delay: msUntilMidnight + Math.random() * 4 * 60 * 60 * 1000, attempts: 2 }
+      );
+      return { status: "skipped", error: "daily_limit_reached" };
+    }
+  }
+
+  // ── Acceptance rate check (before messages, not connection requests) ──────────
+  if (contact.sequenceStep > 0) {
+    const acceptanceRate = await checkAcceptanceRate(contact.userId);
+    if (acceptanceRate !== null && acceptanceRate < 0.20) {
+      return { status: "skipped", error: "low_acceptance_rate" };
+    }
   }
 
   let liAt: string;
@@ -105,13 +135,19 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
 
     await browser.close();
 
-    if (result.status === "sent" || result.status === "requested") {
+    if (result.status === "replied") {
+      // Person replied — mark done, cancel follow-up
+      await db.update(outreachContacts).set({
+        replied: true,
+        status: "replied",
+        lastActionAt: new Date(),
+      }).where(eq(outreachContacts.id, contactId));
+    } else if (result.status === "sent" || result.status === "requested") {
       const nextStep = contact.sequenceStep + 1;
       await db.update(outreachContacts).set({
         sequenceStep: nextStep,
         status: contact.sequenceStep === 0 ? "requested" : "messaged",
         lastActionAt: new Date(),
-        ...(contact.sequenceStep === 0 ? {} : {}),
       }).where(eq(outreachContacts.id, contactId));
     }
 
@@ -261,6 +297,10 @@ async function sendIntroMessage(page: any, contact: any, rateLimited: boolean): 
 async function sendFollowUp(page: any, contact: any, rateLimited: boolean): Promise<{ status: string; error?: string }> {
   if (rateLimited) return { status: "skipped", error: "rate_limited" };
 
+  // Check for a reply before sending follow-up — skip if they already replied
+  const hasReplied = await checkForReply(page, contact);
+  if (hasReplied) return { status: "replied" };
+
   const followUp = `Hi ${contact.name?.split(" ")[0] ?? "there"} - just a quick follow-up on my earlier message. Happy to connect on a call if you have 15 minutes. No pressure either way.`;
   return sendLinkedInMessage(page, contact, followUp);
 }
@@ -400,6 +440,84 @@ export async function withdrawStaleInvitations(userId: string) {
     browser?.close().catch(() => {});
     console.error("[outreach] withdraw error:", err?.message);
   }
+}
+
+// ── Reply detection ───────────────────────────────────────────────────────────
+// Navigate to the messaging thread with this contact and check if the last
+// message was sent by someone other than the logged-in user.
+
+async function checkForReply(page: any, contact: any): Promise<boolean> {
+  try {
+    await page.goto("https://www.linkedin.com/messaging/", { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(2000);
+
+    const firstName = contact.name?.split(" ")[0] ?? "";
+    if (!firstName) return false;
+
+    const searchInput = await page.$('[placeholder="Search messages"]');
+    if (!searchInput) return false;
+
+    await searchInput.click();
+    await page.keyboard.type(firstName, { delay: 80 });
+    await page.waitForTimeout(2000);
+
+    const convItems = await page.$$(".msg-conversation-listitem");
+    for (const item of convItems) {
+      const text = await item.textContent().catch(() => "");
+      if (!text?.includes(firstName)) continue;
+
+      await item.click({ force: true });
+      await page.waitForTimeout(1500);
+
+      // Get all messages in the thread — check if any are from the other person
+      // LinkedIn marks sent messages with .msg-s-message-list__event--sent
+      // and received messages without that class
+      const hasReply = await page.evaluate(() => {
+        const received = document.querySelectorAll(
+          ".msg-s-event-listitem:not(.msg-s-message-list__event--sent) .msg-s-event__content"
+        );
+        return received.length > 0;
+      });
+
+      if (hasReply) {
+        console.log(`[outreach] Reply detected from ${contact.name}`);
+        return true;
+      }
+
+      return false;
+    }
+    return false;
+  } catch {
+    return false; // If check fails, proceed with follow-up (fail safe)
+  }
+}
+
+// ── Daily connection count ────────────────────────────────────────────────────
+
+async function getDailyConnectionCount(userId: string): Promise<number> {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const rows = await db
+    .select({ cnt: sql<number>`COUNT(*)` })
+    .from(outreachContacts)
+    .where(
+      and(
+        eq(outreachContacts.userId, userId),
+        eq(outreachContacts.status, "requested"),
+        gte(outreachContacts.lastActionAt, todayStart),
+      )
+    );
+  return Number(rows[0]?.cnt ?? 0);
+}
+
+// ── Re-queue timing ───────────────────────────────────────────────────────────
+
+function getMsUntilMidnight(): number {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  return midnight.getTime() - now.getTime();
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
