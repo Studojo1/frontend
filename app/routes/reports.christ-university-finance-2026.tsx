@@ -17,6 +17,7 @@ export function meta() {
     { property: "og:url", content: "https://studojo.com/reports/christ-university-finance-2026" },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:image:alt", content: "Studojo Career Market Report" },
     { property: "og:locale", content: "en_IN" },
     { property: "article:published_time", content: "2026-04-23T00:00:00+05:30" },
     { property: "article:modified_time", content: "2026-04-23T00:00:00+05:30" },
@@ -25,7 +26,7 @@ export function meta() {
     { name: "twitter:title", content: "Christ University Finance Roles 2026: Salaries, Companies and the Skills Gap | Studojo" },
     { name: "twitter:description", content: "Christ University finance graduates, Bangalore market data, salary benchmarks, and what separates a 4 LPA placement from a 10 LPA fintech offer." },
     { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
-    { name: "twitter:site", content: "@studojo_com" },
+    { name: "twitter:site", content: "" },
   ];
 }
 

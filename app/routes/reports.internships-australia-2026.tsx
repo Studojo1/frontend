@@ -15,6 +15,7 @@ export function meta() {
     { property: "og:url", content: "https://studojo.com/reports/internships-australia-2026" },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:image:alt", content: "Studojo Career Market Report" },
     { property: "og:locale", content: "en_IN" },
     { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
     { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
@@ -23,7 +24,7 @@ export function meta() {
     { name: "twitter:title", content: "Australia Internship Pay 2026: Salaries and Fair Work Rules | Studojo" },
     { name: "twitter:description", content: "AUD $24.95/hr minimum wage. Canva pays AUD $80-110k/yr. Rio Tinto AUD $30-35/hr. Fair Work unpaid internship rules and grad program timeline explained." },
     { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
-    { name: "twitter:site", content: "@studojo_com" },
+    { name: "twitter:site", content: "" },
   ];
 }
 

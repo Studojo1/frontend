@@ -9,10 +9,25 @@ export async function loader() {
     { loc: "/", priority: "1.0", changefreq: "weekly" },
     { loc: "/blog", priority: "0.8", changefreq: "daily" },
     { loc: "/reports", priority: "0.9", changefreq: "weekly" },
+    // Reports — all 17
+    { loc: "/reports/ops-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/internships-ai-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/cs-india-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/job-search-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/sales-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/finance-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/marketing-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/pune-jobs-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/internships-15k-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/flame-marketing-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/hiring-calendar-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/internships-germany-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/internships-uk-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/skills-ai-entry-level-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/internships-australia-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/christ-university-finance-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/ghost-jobs-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/job-search-2026", priority: "0.9", changefreq: "monthly" },
+    // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
     { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },
@@ -38,24 +53,25 @@ export async function loader() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Report pages have a fixed publish date — use it so Google sees accurate lastmod
+  // Report pages — accurate publish dates so Google sees correct lastmod
   const reportLastmod: Record<string, string> = {
+    "/reports/ops-india-2026": "2026-04-12",
+    "/reports/internships-ai-india-2026": "2026-04-08",
     "/reports/cs-india-2026": "2026-04-01",
-    "/reports/finance-india-2026": "2026-04-01",
-    "/reports/marketing-india-2026": "2026-04-01",
     "/reports/sales-india-2026": "2026-04-01",
-    "/reports/ops-india-2026": "2026-04-01",
-    "/reports/internships-ai-india-2026": "2026-04-01",
-    "/reports/internships-15k-india-2026": "2026-04-01",
-    "/reports/hiring-calendar-india-2026": "2026-04-01",
-    "/reports/pune-jobs-2026": "2026-04-01",
-    "/reports/flame-marketing-2026": "2026-04-01",
+    "/reports/finance-india-2026": "2026-04-01",
+    "/reports/marketing-india-2026": "2026-04-05",
+    "/reports/pune-jobs-2026": "2026-04-05",
+    "/reports/internships-15k-india-2026": "2026-04-10",
+    "/reports/flame-marketing-2026": "2026-04-15",
+    "/reports/hiring-calendar-india-2026": "2026-04-10",
     "/reports/internships-germany-2026": "2026-04-20",
     "/reports/internships-uk-2026": "2026-04-20",
-    "/reports/internships-australia-2026": "2026-04-20",
     "/reports/skills-ai-entry-level-2026": "2026-04-20",
+    "/reports/internships-australia-2026": "2026-04-20",
     "/reports/christ-university-finance-2026": "2026-04-23",
     "/reports/ghost-jobs-2026": "2026-04-27",
+    "/reports/job-search-2026": "2026-04-22",
   };
 
   const urls = [

@@ -17,6 +17,7 @@ export function meta() {
     { property: "og:url", content: "https://studojo.com/reports/internships-ai-india-2026" },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:image:alt", content: "Studojo Career Market Report" },
     { property: "og:locale", content: "en_IN" },
     { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
     { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
@@ -25,7 +26,7 @@ export function meta() {
     { name: "twitter:title", content: "How AI Is Changing Internships in India 2026 | Studojo" },
     { name: "twitter:description", content: "48% of applicants ghosted. AI and ML stipends 3x traditional. 8 findings on what is really changing in India internships post-AI." },
     { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
-    { name: "twitter:site", content: "@studojo_com" },
+    { name: "twitter:site", content: "" },
   ];
 }
 

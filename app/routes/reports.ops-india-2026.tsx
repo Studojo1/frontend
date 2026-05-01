@@ -17,6 +17,7 @@ export function meta() {
     { property: "og:url", content: "https://studojo.com/reports/ops-india-2026" },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:image:alt", content: "Studojo Career Market Report" },
     { property: "og:locale", content: "en_IN" },
     { property: "article:published_time", content: "2026-04-01T00:00:00+05:30" },
     { property: "article:modified_time", content: "2026-04-20T00:00:00+05:30" },
@@ -25,7 +26,7 @@ export function meta() {
     { name: "twitter:title", content: "Operations Internship India 2026: Skill Gaps and Stipend Data | Studojo" },
     { name: "twitter:description", content: "12,400+ ops intern openings. Only 19% work-ready. Skill gaps, stipend data and hiring trends for ops interns across India." },
     { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
-    { name: "twitter:site", content: "@studojo_com" },
+    { name: "twitter:site", content: "" },
   ];
 }
 

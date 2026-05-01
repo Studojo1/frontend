@@ -5,22 +5,25 @@ import { Header, Footer } from "~/components";
 const BASE_URL = "https://studojo.com";
 
 export function meta() {
+  const ogImage = `${BASE_URL}/og-reports.png`;
   return [
-    { title: "Career Market Reports | Studojo | Data-Driven Analyses for Students" },
-    {
-      name: "description",
-      content:
-        "Free career market reports for students. Entry-level salary benchmarks, hiring trends, skill gaps, and job data across Finance, Sales, CS, and more | India 2026.",
-    },
+    { title: "Career Market Reports | Studojo" },
+    { name: "description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, skill gaps, and job data across Finance, Sales, CS, and more | India 2026." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "career market report, entry level jobs india 2026, fresher salary india, internship market report, student career data" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports` },
     { property: "og:type", content: "website" },
     { property: "og:title", content: "Career Market Reports | Studojo" },
     { property: "og:description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more." },
     { property: "og:url", content: `${BASE_URL}/reports` },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: ogImage },
+    { property: "og:image:alt", content: "Studojo Career Market Reports — data-driven guides for students" },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:site", content: "@studojo" },
     { name: "twitter:title", content: "Career Market Reports | Studojo" },
     { name: "twitter:description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more." },
+    { name: "twitter:image", content: ogImage },
   ];
 }
 
@@ -351,6 +354,29 @@ function RequestForm() {
   );
 }
 
+const BASE_URL_COMPONENT = "https://studojo.com";
+
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Career Market Reports | Studojo",
+  "description": "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more.",
+  "url": `${BASE_URL_COMPONENT}/reports`,
+  "publisher": {
+    "@type": "Organization",
+    "name": "Studojo",
+    "url": BASE_URL_COMPONENT,
+    "logo": { "@type": "ImageObject", "url": `${BASE_URL_COMPONENT}/favicon.png` },
+  },
+  "hasPart": REPORTS.map((r) => ({
+    "@type": "Article",
+    "headline": r.title,
+    "url": `${BASE_URL_COMPONENT}/reports/${r.slug}`,
+    "datePublished": r.publishDate,
+    "author": { "@type": "Organization", "name": "Studojo" },
+  })),
+};
+
 export default function Reports() {
   const [activeFilter, setActiveFilter] = useState<"All" | ReportType>("All");
   const sorted = [...REPORTS].sort((a, b) => b.publishDate.localeCompare(a.publishDate));
@@ -358,6 +384,10 @@ export default function Reports() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
       <Header />
       <main className="min-h-screen bg-neutral-50">
         {/* Hero */}

@@ -96,6 +96,7 @@ export function meta({ data }: Route.MetaArgs) {
     { title: `${title} | Studojo Blog` },
     { name: "description", content: description },
     ...(keywords ? [{ name: "keywords", content: keywords }] : []),
+    { name: "robots", content: "index, follow" },
     { name: "author", content: post.author_name },
     { tagName: "link", rel: "canonical", href: canonicalUrl },
 

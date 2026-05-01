@@ -23,31 +23,25 @@ interface BlogPost {
 }
 
 export function meta({}: Route.MetaArgs) {
+  const ogImage = `${BASE_URL}/api/blog-og/studojo-blog?v=3`;
   return [
-    { title: "Blog | Studojo | Career Tips, Internship Guides & Student Insights" },
-    {
-      name: "description",
-      content:
-        "Practical advice for students: internship hunting, resume tips, career strategy, and more. Updated weekly by the Studojo team.",
-    },
+    { title: "Studojo Blog | Internship Tips, Resume Advice & Career Guides" },
+    { name: "description", content: "Practical advice for students: internship hunting, resume tips, career strategy, and more. Updated weekly by the Studojo team." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "internship tips, resume advice, career guide for students, how to get an internship, student career blog" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/blog` },
     { property: "og:type", content: "website" },
-    { property: "og:title", content: "Studojo Blog" },
-    {
-      property: "og:description",
-      content:
-        "Practical advice for students: internship hunting, resume tips, career strategy, and more.",
-    },
+    { property: "og:title", content: "Studojo Blog | Internship Tips & Career Guides" },
+    { property: "og:description", content: "Practical advice for students: internship hunting, resume tips, career strategy, and more." },
     { property: "og:url", content: `${BASE_URL}/blog` },
     { property: "og:site_name", content: "Studojo" },
-    { name: "twitter:card", content: "summary" },
+    { property: "og:image", content: ogImage },
+    { property: "og:image:alt", content: "Studojo Blog — career tips and internship guides for students" },
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:site", content: "@studojo" },
-    { name: "twitter:title", content: "Studojo Blog" },
-    {
-      name: "twitter:description",
-      content:
-        "Practical advice for students: internship hunting, resume tips, career strategy, and more.",
-    },
+    { name: "twitter:title", content: "Studojo Blog | Internship Tips & Career Guides" },
+    { name: "twitter:description", content: "Practical advice for students: internship hunting, resume tips, career strategy, and more." },
+    { name: "twitter:image", content: ogImage },
   ];
 }
 
