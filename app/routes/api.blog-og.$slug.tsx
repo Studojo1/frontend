@@ -270,7 +270,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   return new Response(svg, {
     headers: {
       "Content-Type": "image/svg+xml",
-      "Cache-Control": "public, max-age=86400",
+      "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
     },
   });
 }

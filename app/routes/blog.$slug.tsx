@@ -208,7 +208,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 export default function BlogPost({ data }: Route.ComponentProps) {
   const loaderData = useLoaderData() as { post: BlogPost } | undefined;
   const post = (loaderData?.post || data?.post) as BlogPost | undefined;
-  const posterUrl = post ? `/api/blog-og/${post.slug}` : undefined;
+  const posterUrl = post ? `/api/blog-og/${post.slug}?v=3` : undefined;
 
   if (!post) {
     return (
@@ -274,11 +274,11 @@ export default function BlogPost({ data }: Route.ComponentProps) {
 
       {/* Hero poster */}
       {posterUrl && (
-        <div className="h-64 w-full md:h-96 bg-[#0A0612]">
+        <div className="h-56 w-full md:h-[420px] bg-[#0A0612]">
           <img
             src={posterUrl}
             alt={post.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover object-center"
             loading="eager"
             fetchpriority="high"
             width="1200"
