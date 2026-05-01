@@ -72,7 +72,7 @@ function normalizeImageUrl(url: string | undefined): string | undefined {
 }
 
 export function BlogCard({ post }: BlogCardProps) {
-  const posterUrl = `/api/blog-og/${post.slug}`;
+  const posterUrl = normalizeImageUrl(post.featured_image) || `/api/blog-og/${post.slug}`;
 
   return (
     <Link

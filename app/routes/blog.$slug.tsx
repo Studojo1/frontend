@@ -208,7 +208,9 @@ export async function loader({ params }: Route.LoaderArgs) {
 export default function BlogPost({ data }: Route.ComponentProps) {
   const loaderData = useLoaderData() as { post: BlogPost } | undefined;
   const post = (loaderData?.post || data?.post) as BlogPost | undefined;
-  const posterUrl = post ? `/api/blog-og/${post.slug}` : undefined;
+  const posterUrl = post
+    ? (normalizeImageUrl(post.featured_image) || `/api/blog-og/${post.slug}`)
+    : undefined;
 
   if (!post) {
     return (
