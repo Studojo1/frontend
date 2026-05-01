@@ -2,6 +2,7 @@ import type { Route } from "./+types/api.blog-og.$slug";
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
 
+// Deterministic per-slug randomness — same slug = same image every time
 function seededRandom(slug: string) {
   let seed = 5381;
   for (const c of slug) seed = (((seed * 33) ^ c.charCodeAt(0)) >>> 0);
@@ -11,97 +12,106 @@ function seededRandom(slug: string) {
   };
 }
 
-// Brand-accurate palette per category — matches Studojo dojo color system
+// Exact Studojo brand palette per dojo/category
 const PALETTES: Record<string, {
   bg: string; bgB: string;
-  primary: string; primaryDim: string;
-  accent: string; accentDim: string;
+  primary: string; primaryMid: string; primaryDim: string;
+  accent: string;
   label: string;
 }> = {
   internships: {
-    bg: "#0D0920", bgB: "#130C2E",
-    primary: "#8b5cf6", primaryDim: "#4c1d95",
-    accent: "#c4b5fd", accentDim: "#6d28d9",
+    bg: "#0A0614", bgB: "#100A22",
+    primary: "#8b5cf6", primaryMid: "#6d28d9", primaryDim: "#3b0764",
+    accent: "#dab2ff",
     label: "INTERNSHIP",
   },
   internship: {
-    bg: "#0D0920", bgB: "#130C2E",
-    primary: "#8b5cf6", primaryDim: "#4c1d95",
-    accent: "#c4b5fd", accentDim: "#6d28d9",
+    bg: "#0A0614", bgB: "#100A22",
+    primary: "#8b5cf6", primaryMid: "#6d28d9", primaryDim: "#3b0764",
+    accent: "#dab2ff",
     label: "INTERNSHIP",
   },
   career: {
-    bg: "#051A10", bgB: "#082318",
-    primary: "#10b981", primaryDim: "#064e3b",
-    accent: "#6ee7b7", accentDim: "#065f46",
+    bg: "#021008", bgB: "#041A0E",
+    primary: "#10b981", primaryMid: "#059669", primaryDim: "#064e3b",
+    accent: "#6ee7b7",
     label: "CAREER",
   },
   careers: {
-    bg: "#051A10", bgB: "#082318",
-    primary: "#10b981", primaryDim: "#064e3b",
-    accent: "#6ee7b7", accentDim: "#065f46",
+    bg: "#021008", bgB: "#041A0E",
+    primary: "#10b981", primaryMid: "#059669", primaryDim: "#064e3b",
+    accent: "#6ee7b7",
     label: "CAREER",
   },
   resume: {
-    bg: "#051A10", bgB: "#082318",
-    primary: "#10b981", primaryDim: "#064e3b",
-    accent: "#6ee7b7", accentDim: "#065f46",
+    bg: "#021008", bgB: "#041A0E",
+    primary: "#10b981", primaryMid: "#059669", primaryDim: "#064e3b",
+    accent: "#6ee7b7",
     label: "RESUME",
   },
   ai: {
-    bg: "#021520", bgB: "#041D2C",
-    primary: "#0ea5e9", primaryDim: "#0369a1",
-    accent: "#7dd3fc", accentDim: "#0284c7",
+    bg: "#010C14", bgB: "#021520",
+    primary: "#0ea5e9", primaryMid: "#0284c7", primaryDim: "#0c4a6e",
+    accent: "#7dd3fc",
     label: "AI",
   },
   tech: {
-    bg: "#021520", bgB: "#041D2C",
-    primary: "#0ea5e9", primaryDim: "#0369a1",
-    accent: "#7dd3fc", accentDim: "#0284c7",
+    bg: "#010C14", bgB: "#021520",
+    primary: "#0ea5e9", primaryMid: "#0284c7", primaryDim: "#0c4a6e",
+    accent: "#7dd3fc",
     label: "TECH",
   },
   assignment: {
-    bg: "#1A1000", bgB: "#231500",
-    primary: "#f59e0b", primaryDim: "#92400e",
-    accent: "#fcd34d", accentDim: "#b45309",
+    bg: "#100800", bgB: "#1A1000",
+    primary: "#f59e0b", primaryMid: "#d97706", primaryDim: "#78350f",
+    accent: "#fde68a",
     label: "ASSIGNMENT",
   },
   assignments: {
-    bg: "#1A1000", bgB: "#231500",
-    primary: "#f59e0b", primaryDim: "#92400e",
-    accent: "#fcd34d", accentDim: "#b45309",
+    bg: "#100800", bgB: "#1A1000",
+    primary: "#f59e0b", primaryMid: "#d97706", primaryDim: "#78350f",
+    accent: "#fde68a",
     label: "ASSIGNMENT",
   },
   default: {
-    bg: "#0D0920", bgB: "#130C2E",
-    primary: "#8b5cf6", primaryDim: "#4c1d95",
-    accent: "#c4b5fd", accentDim: "#6d28d9",
-    label: "STUDOJO",
+    bg: "#0A0614", bgB: "#100A22",
+    primary: "#8b5cf6", primaryMid: "#6d28d9", primaryDim: "#3b0764",
+    accent: "#dab2ff",
+    label: "BLOG",
   },
 };
 
-function getPalette(category: string) {
-  return PALETTES[category.toLowerCase()] ?? PALETTES.default;
+function getPalette(cat: string) {
+  return PALETTES[cat.toLowerCase()] ?? PALETTES.default;
 }
 
-function wrapTitle(title: string, maxCharsPerLine: number): string[] {
+function wrapTitle(title: string, maxChars: number): string[] {
   const words = title.split(" ");
   const lines: string[] = [];
   let cur = "";
   for (const w of words) {
     const test = cur ? `${cur} ${w}` : w;
-    if (test.length <= maxCharsPerLine) { cur = test; }
+    if (test.length <= maxChars) { cur = test; }
     else { if (cur) lines.push(cur); cur = w; }
   }
   if (cur) lines.push(cur);
   return lines.slice(0, 4);
 }
 
-function getFontSize(title: string) {
-  if (title.length < 28) return 72;
-  if (title.length < 44) return 60;
-  if (title.length < 62) return 50;
-  return 40;
+function getFontSize(title: string): number {
+  if (title.length < 28) return 74;
+  if (title.length < 42) return 62;
+  if (title.length < 58) return 52;
+  return 42;
+}
+
+// Approx pixel width of a string in the heading font
+function approxTextWidth(text: string, size: number): number {
+  return text.length * size * 0.54;
+}
+
+function safe(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -125,206 +135,195 @@ export async function loader({ params }: Route.LoaderArgs) {
   const H = 630;
   const rng = seededRandom(slug ?? title);
   const pal = getPalette(category);
+  const FONT = `-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif`;
 
+  // Title layout
   const fontSize = getFontSize(title);
-  const charsPerLine = Math.floor(820 / (fontSize * 0.54));
+  const charsPerLine = Math.floor(840 / (fontSize * 0.54));
   const lines = wrapTitle(title, charsPerLine);
-  const lineH = fontSize * 1.25;
-  const totalTitleH = lines.length * lineH;
+  const lineH = fontSize * 1.3;
+  const totalH = lines.length * lineH;
+  const titleX = 96;
+  const titleY = Math.max(148, (H - totalH) / 2 - 20);
 
-  // Content block starts at a fixed Y — centred vertically with slight upward bias
-  const blockY = Math.max(140, (H - totalTitleH) / 2 - 40);
+  // First-word highlight box (brand signature highlight pill)
+  const firstLine = lines[0] ?? "";
+  const firstWord = firstLine.split(" ")[0] ?? "";
+  const highlightW = approxTextWidth(firstWord, fontSize) + 16;
+  const highlightX = titleX - 8;
+  const highlightY = titleY - 4;
+  const highlightH = fontSize * 1.14;
 
-  // --- Decorative geometry (seeded, brand-aligned) ---
-  const shapes: string[] = [];
+  // Accent underline width (under last line)
+  const lastLine = lines[lines.length - 1] ?? "";
+  const underlineW = Math.min(approxTextWidth(lastLine, fontSize), 860);
 
-  // 1. Large filled circle — primary colour, blurred feel via opacity layers
-  const cxA = 820 + rng() * 280;
-  const cyA = -40 + rng() * 260;
-  const rA = 160 + rng() * 180;
-  shapes.push(`<circle cx="${cxA}" cy="${cyA}" r="${rA}" fill="${pal.primary}" opacity="0.13"/>`);
-  shapes.push(`<circle cx="${cxA}" cy="${cyA}" r="${rA * 0.6}" fill="${pal.primary}" opacity="0.10"/>`);
-
-  // 2. Bottom-left accent blob
-  const cxB = -60 + rng() * 200;
-  const cyB = 380 + rng() * 220;
-  const rB = 120 + rng() * 160;
-  shapes.push(`<circle cx="${cxB}" cy="${cyB}" r="${rB}" fill="${pal.primaryDim}" opacity="0.22"/>`);
-
-  // 3. Outline ring — gives depth
-  const cxC = 400 + rng() * 500;
-  const cyC = -60 + rng() * 500;
-  const rC = 100 + rng() * 240;
-  const strokeW = (1.2 + rng() * 1.8).toFixed(1);
-  shapes.push(`<circle cx="${cxC}" cy="${cyC}" r="${rC}" fill="none" stroke="${pal.accent}" stroke-width="${strokeW}" opacity="${(0.12 + rng() * 0.14).toFixed(2)}"/>`);
-
-  // 4. Rotated rectangle — neo-brutalist shard
-  const rx = 200 + rng() * 600;
-  const ry = 40 + rng() * 420;
-  const rw = 180 + rng() * 320;
-  const rh = 60 + rng() * 160;
-  const angle = -40 + rng() * 80;
-  shapes.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="4" fill="${pal.accent}" opacity="${(0.04 + rng() * 0.05).toFixed(2)}" transform="rotate(${angle.toFixed(1)} ${(rx + rw / 2).toFixed(0)} ${(ry + rh / 2).toFixed(0)})"/>`);
-
-  // 5. Hard-shadow accent square (neo-brutalist) — only on right side
-  const sqX = 900 + rng() * 200;
-  const sqY = 300 + rng() * 200;
-  const sqS = 28 + rng() * 36;
-  const sqAngle = -45 + rng() * 90;
-  shapes.push(`<rect x="${sqX}" y="${sqY}" width="${sqS}" height="${sqS}" fill="none" stroke="${pal.accent}" stroke-width="2" opacity="0.5" transform="rotate(${sqAngle.toFixed(1)} ${(sqX + sqS / 2).toFixed(0)} ${(sqY + sqS / 2).toFixed(0)})"/>`);
-
-  // 6. Grid dot field — right quadrant, brand-accurate feel
-  const dotCols = 6;
-  const dotRows = 4;
-  const dotSpacing = 28;
-  const dotOriginX = W - 72 - dotCols * dotSpacing;
-  const dotOriginY = H / 2 - (dotRows * dotSpacing) / 2;
-  for (let col = 0; col < dotCols; col++) {
-    for (let row = 0; row < dotRows; row++) {
-      const dx = dotOriginX + col * dotSpacing;
-      const dy = dotOriginY + row * dotSpacing;
-      const opacity = (0.12 + rng() * 0.28).toFixed(2);
-      const r = (1.2 + rng() * 1.8).toFixed(1);
-      shapes.push(`<circle cx="${dx}" cy="${dy}" r="${r}" fill="${pal.accent}" opacity="${opacity}"/>`);
-    }
-  }
-
-  // 7. Thin diagonal lines — subtle tension
-  const numLines = 2 + Math.floor(rng() * 2);
-  for (let i = 0; i < numLines; i++) {
-    const lx1 = 600 + rng() * 600;
-    const ly1 = rng() * H;
-    const lx2 = 600 + rng() * 600;
-    const ly2 = rng() * H;
-    shapes.push(`<line x1="${lx1.toFixed(0)}" y1="${ly1.toFixed(0)}" x2="${lx2.toFixed(0)}" y2="${ly2.toFixed(0)}" stroke="${pal.primary}" stroke-width="1" opacity="${(0.07 + rng() * 0.09).toFixed(2)}"/>`);
-  }
-
-  // 8. Small constellation dots — scattered across canvas
-  const numDots = 10 + Math.floor(rng() * 8);
-  for (let i = 0; i < numDots; i++) {
-    const dx = rng() * W;
-    const dy = rng() * H;
-    const dr = (0.8 + rng() * 2.4).toFixed(1);
-    const op = (0.18 + rng() * 0.38).toFixed(2);
-    shapes.push(`<circle cx="${dx.toFixed(0)}" cy="${dy.toFixed(0)}" r="${dr}" fill="${rng() > 0.5 ? pal.accent : "#FFFFFF"}" opacity="${op}"/>`);
-  }
-
-  // --- Title lines ---
-  const titleSvg = lines.map((line, i) => {
-    const y = blockY + i * lineH + fontSize;
-    const safe = line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    return `<text x="88" y="${y.toFixed(0)}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="${fontSize}" font-weight="800" fill="#FFFFFF" letter-spacing="-0.03em">${safe}</text>`;
-  }).join("\n  ");
-
-  // Accent underline below last title line
-  const underlineY = (blockY + lines.length * lineH + fontSize * 0.12).toFixed(0);
-  const lastLineLen = lines[lines.length - 1].length;
-  const underlineW = Math.min(lastLineLen * fontSize * 0.52, 820).toFixed(0);
-
-  // Category pill width
-  const catLabel = pal.label;
-  const pillW = catLabel.length * 8.5 + 32;
+  // Category pill
+  const pillW = pal.label.length * 9 + 40;
   const pillX = W - 80 - pillW;
 
-  // Neo-brutalist accent bar — thicker, brand-accurate
-  const accentBarH = totalTitleH + fontSize * 0.25;
+  // ─── Seeded scatter dots (small, right-biased) ───
+  const scatterDots: string[] = [];
+  const numDots = 14 + Math.floor(rng() * 10);
+  for (let i = 0; i < numDots; i++) {
+    const dx = (600 + rng() * 580).toFixed(0);
+    const dy = (rng() * H).toFixed(0);
+    const dr = (0.8 + rng() * 2.6).toFixed(1);
+    const op = (0.14 + rng() * 0.32).toFixed(2);
+    const fill = rng() > 0.55 ? pal.accent : "#FFFFFF";
+    scatterDots.push(`<circle cx="${dx}" cy="${dy}" r="${dr}" fill="${fill}" opacity="${op}"/>`);
+  }
+
+  // ─── Seeded outline ring (per-post variation) ───
+  const ringCx = (720 + rng() * 380).toFixed(0);
+  const ringCy = (rng() * H * 0.7).toFixed(0);
+  const ringR  = (80 + rng() * 160).toFixed(0);
+  const ringSW = (1 + rng() * 1.5).toFixed(1);
+  const ringOp = (0.10 + rng() * 0.12).toFixed(2);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+
+    <!-- Background gradient -->
+    <linearGradient id="bg" x1="0" y1="0" x2="${W}" y2="${H}" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="${pal.bg}"/>
       <stop offset="100%" stop-color="${pal.bgB}"/>
     </linearGradient>
 
-    <!-- Right ambient glow -->
-    <radialGradient id="glowR" cx="88%" cy="20%" r="55%">
-      <stop offset="0%" stop-color="${pal.primary}" stop-opacity="0.20"/>
+    <!-- Right glow — primary hue -->
+    <radialGradient id="glowR" cx="92%" cy="18%" r="58%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="${pal.primary}" stop-opacity="0.22"/>
       <stop offset="100%" stop-color="${pal.primary}" stop-opacity="0"/>
     </radialGradient>
 
-    <!-- Bottom-left ambient glow -->
-    <radialGradient id="glowL" cx="8%" cy="88%" r="48%">
-      <stop offset="0%" stop-color="${pal.primaryDim}" stop-opacity="0.26"/>
+    <!-- Bottom-left glow — deeper hue -->
+    <radialGradient id="glowL" cx="5%" cy="90%" r="50%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="${pal.primaryDim}" stop-opacity="0.30"/>
       <stop offset="100%" stop-color="${pal.primaryDim}" stop-opacity="0"/>
     </radialGradient>
 
-    <!-- Soft vignette -->
-    <radialGradient id="vignette" cx="50%" cy="50%" r="72%">
+    <!-- Vignette -->
+    <radialGradient id="vig" cx="50%" cy="50%" r="70%" gradientUnits="objectBoundingBox">
       <stop offset="0%" stop-color="transparent"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.50"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.52"/>
     </radialGradient>
 
     <!-- Film grain -->
-    <filter id="grain" x="0%" y="0%" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="3" stitchTiles="stitch" result="noise"/>
-      <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
-      <feBlend in="SourceGraphic" in2="gray" mode="overlay" result="blended"/>
-      <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.70" numOctaves="3" stitchTiles="stitch" result="n"/>
+      <feColorMatrix type="saturate" values="0" in="n" result="g"/>
+      <feBlend in="SourceGraphic" in2="g" mode="overlay" result="b"/>
+      <feComposite in="b" in2="SourceGraphic" operator="in"/>
     </filter>
 
     <!-- Clip to canvas -->
-    <clipPath id="canvas">
-      <rect width="${W}" height="${H}"/>
-    </clipPath>
+    <clipPath id="clip"><rect width="${W}" height="${H}"/></clipPath>
   </defs>
 
-  <g clip-path="url(#canvas)">
+  <g clip-path="url(#clip)">
 
-    <!-- Background -->
-    <rect width="${W}" height="${H}" fill="url(#bgGrad)"/>
+    <!-- ── BACKGROUND ── -->
+    <rect width="${W}" height="${H}" fill="url(#bg)"/>
     <rect width="${W}" height="${H}" fill="url(#glowR)"/>
     <rect width="${W}" height="${H}" fill="url(#glowL)"/>
 
-    <!-- Decorative geometry -->
-    ${shapes.join("\n    ")}
+    <!-- ── LARGE DECORATION — right side ── -->
 
-    <!-- Film grain -->
-    <rect width="${W}" height="${H}" fill="white" opacity="0.016" filter="url(#grain)"/>
+    <!-- Big filled circle (anchored top-right) -->
+    <circle cx="1080" cy="140" r="240" fill="${pal.primary}" opacity="0.11"/>
+    <circle cx="1080" cy="140" r="160" fill="${pal.primary}" opacity="0.08"/>
 
-    <!-- Vignette -->
-    <rect width="${W}" height="${H}" fill="url(#vignette)"/>
+    <!-- Outline ring, large (overlaps big circle) -->
+    <circle cx="1020" cy="420" r="180" fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.14"/>
 
-    <!-- ─── TOP BAR ─── -->
-    <line x1="80" y1="86" x2="${W - 80}" y2="86" stroke="${pal.primary}" stroke-width="1" opacity="0.25"/>
+    <!-- Seeded per-post outline ring -->
+    <circle cx="${ringCx}" cy="${ringCy}" r="${ringR}" fill="none" stroke="${pal.primary}" stroke-width="${ringSW}" opacity="${ringOp}"/>
 
-    <!-- Wordmark: dot + logotype -->
-    <circle cx="54" cy="58" r="6" fill="${pal.primary}"/>
-    <circle cx="54" cy="58" r="6" fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.6"/>
-    <text x="70" y="65" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-size="17" font-weight="700" fill="#FFFFFF" letter-spacing="0.08em" opacity="0.95">studojo</text>
+    <!-- Structured grid dot cluster — 5 × 4, right zone -->
+    ${Array.from({ length: 5 }, (_, col) =>
+      Array.from({ length: 4 }, (_, row) => {
+        const gx = 1020 + col * 26;
+        const gy = 340 + row * 26;
+        return `<circle cx="${gx}" cy="${gy}" r="2" fill="${pal.accent}" opacity="0.28"/>`;
+      }).join("\n    ")
+    ).join("\n    ")}
 
-    <!-- Category pill — neo-brutalist: filled with primary, white text, rounded rect -->
-    <rect x="${pillX}" y="38" width="${pillW}" height="30" rx="6" fill="${pal.primary}" opacity="0.18"/>
-    <rect x="${pillX}" y="38" width="${pillW}" height="30" rx="6" fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.75"/>
-    <text x="${(pillX + pillW / 2).toFixed(0)}" y="58" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-size="11" font-weight="700" fill="${pal.accent}" text-anchor="middle" letter-spacing="0.10em">${catLabel}</text>
+    <!-- Scatter dots (seeded) -->
+    ${scatterDots.join("\n    ")}
 
-    <!-- ─── TITLE BLOCK ─── -->
+    <!-- Thin diagonal tension line -->
+    <line x1="700" y1="0" x2="1200" y2="${H}" stroke="${pal.primary}" stroke-width="1" opacity="0.06"/>
 
-    <!-- Neo-brutalist accent bar — left edge of title -->
-    <rect x="80" y="${(blockY - 4).toFixed(0)}" width="4" height="${accentBarH.toFixed(0)}" rx="2" fill="${pal.primary}" opacity="0.95"/>
+    <!-- ── GRAIN + VIGNETTE ── -->
+    <rect width="${W}" height="${H}" fill="white" opacity="0.015" filter="url(#grain)"/>
+    <rect width="${W}" height="${H}" fill="url(#vig)"/>
 
-    <!-- Subtle title backing — gives the text block a "card" feel -->
-    <rect x="72" y="${(blockY - 10).toFixed(0)}" width="860" height="${(accentBarH + 14).toFixed(0)}" rx="4" fill="#000000" opacity="0.18"/>
+    <!-- ── LEFT COLOR STRIPE — neo-brutalist dojo spine ── -->
+    <rect x="0" y="0" width="8" height="${H}" fill="${pal.primary}" opacity="0.85"/>
 
-    <!-- Title text -->
-    ${titleSvg}
+    <!-- ── TOP BAR ── -->
+    <line x1="80" y1="84" x2="${W - 80}" y2="84" stroke="${pal.accent}" stroke-width="0.75" opacity="0.20"/>
 
-    <!-- Accent underline -->
-    <rect x="88" y="${underlineY}" width="${underlineW}" height="2.5" rx="1.5" fill="${pal.primary}" opacity="0.55"/>
+    <!-- Wordmark — dot + logotype (matches brand header style) -->
+    <circle cx="92" cy="52" r="7" fill="${pal.primary}"/>
+    <circle cx="92" cy="52" r="7" fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.55"/>
+    <text x="108" y="58" font-family="${FONT}" font-size="18" font-weight="700" fill="#FFFFFF" letter-spacing="0.07em" opacity="0.92">studojo</text>
 
-    <!-- ─── BOTTOM BAR ─── -->
-    <line x1="80" y1="${H - 58}" x2="${W - 80}" y2="${H - 58}" stroke="${pal.primary}" stroke-width="1" opacity="0.25"/>
+    <!-- Category pill — filled primary, accent border, bold label -->
+    <rect x="${pillX}" y="34" width="${pillW}" height="32" rx="7"
+          fill="${pal.primary}" opacity="0.22"/>
+    <rect x="${pillX}" y="34" width="${pillW}" height="32" rx="7"
+          fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.70"/>
+    <text x="${(pillX + pillW / 2).toFixed(0)}" y="55"
+          font-family="${FONT}" font-size="11" font-weight="700"
+          fill="${pal.accent}" text-anchor="middle" letter-spacing="0.11em">${pal.label}</text>
+
+    <!-- ── TITLE BLOCK ── -->
+
+    <!-- Highlight box on first word (Studojo brand highlight pattern) -->
+    <rect x="${highlightX}" y="${highlightY.toFixed(0)}"
+          width="${highlightW.toFixed(0)}" height="${highlightH.toFixed(0)}"
+          rx="8" fill="${pal.primary}" opacity="0.18"/>
+    <rect x="${highlightX}" y="${highlightY.toFixed(0)}"
+          width="${highlightW.toFixed(0)}" height="${highlightH.toFixed(0)}"
+          rx="8" fill="none" stroke="${pal.accent}" stroke-width="1.5" opacity="0.40"/>
+
+    <!-- Accent bar — brand spine on title (neo-brutalist left edge) -->
+    <rect x="80" y="${(titleY - 6).toFixed(0)}"
+          width="6" height="${(totalH + fontSize * 0.3).toFixed(0)}"
+          rx="3" fill="${pal.primary}" opacity="0.90"/>
+
+    <!-- Title lines -->
+    ${lines.map((line, i) => {
+      const y = (titleY + i * lineH + fontSize).toFixed(0);
+      return `<text x="${titleX}" y="${y}" font-family="${FONT}" font-size="${fontSize}" font-weight="800" fill="#FFFFFF" letter-spacing="-0.03em">${safe(line)}</text>`;
+    }).join("\n    ")}
+
+    <!-- Accent underline (last title line) -->
+    <rect x="${titleX}" y="${(titleY + lines.length * lineH + fontSize * 0.1).toFixed(0)}"
+          width="${underlineW.toFixed(0)}" height="3" rx="1.5"
+          fill="${pal.primary}" opacity="0.60"/>
+
+    <!-- ── BOTTOM BAR ── -->
+    <line x1="80" y1="${H - 54}" x2="${W - 80}" y2="${H - 54}"
+          stroke="${pal.accent}" stroke-width="0.75" opacity="0.20"/>
 
     <!-- Domain -->
-    <text x="80" y="${H - 30}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-size="13" font-weight="500" fill="#6B7280" letter-spacing="0.05em">studojo.com</text>
+    <text x="96" y="${H - 26}"
+          font-family="${FONT}" font-size="13" font-weight="500"
+          fill="#6B7280" letter-spacing="0.05em">studojo.com</text>
 
-    <!-- Tagline — brand signature -->
-    <text x="${W - 80}" y="${H - 30}" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-size="12" fill="${pal.accent}" opacity="0.65" text-anchor="end" letter-spacing="0.06em">Work on things that matter.</text>
+    <!-- Tagline — always present, brand signature -->
+    <text x="${W - 80}" y="${H - 26}"
+          font-family="${FONT}" font-size="12" font-weight="500"
+          fill="${pal.accent}" opacity="0.62"
+          text-anchor="end" letter-spacing="0.06em">Work on things that matter.</text>
 
-    <!-- Corner bracket — top right (neo-brutalist detail) -->
-    <path d="M${W - 80} 36 L${W - 80} 58 M${W - 100} 36 L${W - 80} 36" stroke="${pal.accent}" stroke-width="1.5" opacity="0.40" fill="none"/>
-
-    <!-- Corner bracket — bottom left -->
-    <path d="M80 ${H - 36} L80 ${H - 58} M80 ${H - 36} L100 ${H - 36}" stroke="${pal.accent}" stroke-width="1.5" opacity="0.40" fill="none"/>
+    <!-- Corner brackets (neo-brutalist detail) — top-right & bottom-left -->
+    <path d="M${W - 80} 32 L${W - 80} 56 M${W - 102} 32 L${W - 80} 32"
+          stroke="${pal.accent}" stroke-width="1.5" opacity="0.35" fill="none"/>
+    <path d="M80 ${H - 32} L80 ${H - 56} M80 ${H - 32} L102 ${H - 32}"
+          stroke="${pal.accent}" stroke-width="1.5" opacity="0.35" fill="none"/>
 
   </g>
 </svg>`;
