@@ -233,6 +233,18 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "application-response-rate-2026",
+    publishDate: "2026-05-01",
+    title: "Why 80% of Applications Get No Response",
+    subtitle: "Application Response Rate Report 2026",
+    excerpt: "75% of resumes are filtered before a human sees them. A documented breakdown of every reason applications disappear: ATS filtering, volume, timing, ghost jobs, and the referral wall.",
+    category: "Sector",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
     slug: "ghost-jobs-2026",
     publishDate: "2026-04-27",
     title: "Why Companies Post Jobs Without Planning to Hire",

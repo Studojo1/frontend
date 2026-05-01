@@ -26,6 +26,7 @@ export async function loader() {
     { loc: "/reports/internships-australia-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/christ-university-finance-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/ghost-jobs-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/application-response-rate-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/job-search-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
@@ -71,6 +72,7 @@ export async function loader() {
     "/reports/internships-australia-2026": "2026-04-20",
     "/reports/christ-university-finance-2026": "2026-04-23",
     "/reports/ghost-jobs-2026": "2026-04-27",
+    "/reports/application-response-rate-2026": "2026-05-01",
     "/reports/job-search-2026": "2026-04-22",
   };
 
