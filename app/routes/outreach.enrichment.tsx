@@ -56,6 +56,22 @@ export default function EnrichmentPage() {
     }
   }, [orderId, candidateId]);
 
+  // Funnel: stamp "payment_page_reached" the first time the user lands on
+  // this page. This page is where pricing is shown, so it's the true
+  // "saw paywall" signal — much more accurate than only counting users
+  // who later clicked Pay (which already lives in PaymentOrder.created_at).
+  // Idempotent on the server; safe to fire on every mount. Fire-and-forget.
+  const funnelPingedRef = useRef(false);
+  useEffect(() => {
+    if (funnelPingedRef.current) return;
+    if (authLoading || !user) return;
+    funnelPingedRef.current = true;
+    outreachFetch("/orders/funnel/mark", {
+      method: "POST",
+      body: JSON.stringify({ stage: "payment_page_reached" }),
+    }).catch(() => { /* never break the page */ });
+  }, [authLoading, user]);
+
   const [pricing, setPricing] = useState<TierPricing[]>([]);
   const [currency, setCurrency] = useState("USD");
   const [credits, setCredits] = useState<{ total_credits: number; used_credits: number; available_credits: number } | null>(null);
