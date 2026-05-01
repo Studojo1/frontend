@@ -112,6 +112,7 @@ export default [
   route("admin/consultation-signups", "routes/admin.consultation-signups.tsx"),
   route("api/blog/:slug", "routes/api.blog.$slug.tsx"),
   route("api/blog", "routes/api.blog.tsx"),
+  route("api/blog-og/:slug", "routes/api.blog-og.$slug.tsx"),
   route("api/images/*", "routes/api.images.$.tsx"),
   route(".well-known/*", "routes/well-known.$.tsx"),
   route("sitemap.xml", "routes/sitemap.xml.tsx"),

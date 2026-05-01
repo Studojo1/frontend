@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router";
 import { FiClock, FiEye, FiCalendar } from "react-icons/fi";
 
@@ -73,30 +72,21 @@ function normalizeImageUrl(url: string | undefined): string | undefined {
 }
 
 export function BlogCard({ post }: BlogCardProps) {
-  const [imageError, setImageError] = useState(false);
-  const normalizedImageUrl = normalizeImageUrl(post.featured_image);
+  const posterUrl = `/api/blog-og/${post.slug}`;
 
   return (
     <Link
       to={`/blog/${post.slug}`}
       className="group block rounded-2xl border-2 border-neutral-900 bg-white overflow-hidden shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
     >
-      {normalizedImageUrl && !imageError && (
-        <div className="relative h-48 w-full overflow-hidden bg-neutral-100">
-          <img
-            src={normalizedImageUrl}
-            alt={post.title}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
-            onError={() => setImageError(true)}
-            loading="lazy"
-          />
-        </div>
-      )}
-      {imageError && (
-        <div className="relative h-48 w-full overflow-hidden bg-neutral-200 flex items-center justify-center">
-          <span className="font-['Satoshi'] text-sm text-neutral-400">Image not available</span>
-        </div>
-      )}
+      <div className="relative h-48 w-full overflow-hidden bg-[#0A0612]">
+        <img
+          src={posterUrl}
+          alt={post.title}
+          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          loading="lazy"
+        />
+      </div>
       <div className="p-6 md:p-8">
         {post.categories && post.categories.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
