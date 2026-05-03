@@ -233,6 +233,18 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "startup-vs-mnc-2026",
+    publishDate: "2026-05-03",
+    title: "Startup vs MNC: A Real Comparison for Early-Career Talent",
+    subtitle: "Startup vs MNC Report 2026",
+    excerpt: "Salary, learning speed, brand name value, job security, and career velocity — compared across five dimensions with actual data. Neither is universally better. Here is how to decide.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "linkedin-profile-2026",
     publishDate: "2026-05-02",
     title: "The LinkedIn Profile Report: What Hiring Managers Actually Look At",

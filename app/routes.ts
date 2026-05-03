@@ -103,6 +103,7 @@ export default [
   route("reports/ghost-jobs-2026", "routes/reports.ghost-jobs-2026.tsx"),
   route("reports/application-response-rate-2026", "routes/reports.application-response-rate-2026.tsx"),
   route("reports/linkedin-profile-2026", "routes/reports.linkedin-profile-2026.tsx"),
+  route("reports/startup-vs-mnc-2026", "routes/reports.startup-vs-mnc-2026.tsx"),
   route("api/outreach/email-chat", "routes/api.outreach.email-chat.tsx"),
   route("lab/email", "routes/lab.email.tsx"),
   route("api/ai-risk/analyse", "routes/api.ai-risk.analyse.tsx"),
