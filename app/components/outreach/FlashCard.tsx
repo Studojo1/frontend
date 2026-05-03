@@ -2,11 +2,23 @@ import { useState, useEffect } from "react";
 import { FiMapPin, FiBriefcase, FiExternalLink } from "react-icons/fi";
 import { BsBuilding } from "react-icons/bs";
 import { ScoreGauge } from "./ScoreGauge";
-import type { Lead, LeadScore } from "~/lib/outreach/types";
+import type { Lead, LeadScore, LeadJustification } from "~/lib/outreach/types";
 
 interface FlashCardProps {
   lead: Lead;
 }
+
+const SIGNAL_BADGE: Record<LeadJustification["signal_strength"], string> = {
+  high: "bg-studojo-purple text-white border-studojo-purple",
+  medium: "bg-studojo-surface-muted text-studojo-ink border-studojo-ink/30",
+  low: "bg-white text-studojo-muted border-studojo-ink/20",
+};
+
+const SIGNAL_LABEL: Record<LeadJustification["signal_strength"], string> = {
+  high: "Strong signal",
+  medium: "Solid match",
+  low: "Worth a shot",
+};
 
 function buildContactReason(lead: Lead): string {
   const title = lead.title || "";
@@ -70,7 +82,8 @@ export function FlashCard({ lead }: FlashCardProps) {
     setIsTouch(window.matchMedia("(hover: none)").matches);
   }, []);
 
-  const reason = buildContactReason(lead);
+  const justification = lead.score?.justification ?? null;
+  const reason = justification ? null : buildContactReason(lead);
 
   return (
     <div
@@ -139,15 +152,38 @@ export function FlashCard({ lead }: FlashCardProps) {
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
           <div className="flex-1 min-h-0">
-            <div className="flex items-center gap-1.5 mb-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-studojo-purple" />
-              <h4 className="text-[11px] font-bold text-studojo-purple uppercase tracking-wide font-satoshi">
-                Why contact them
-              </h4>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-studojo-purple" />
+                <h4 className="text-[11px] font-bold text-studojo-purple uppercase tracking-wide font-satoshi">
+                  Why contact them
+                </h4>
+              </div>
+              {justification && (
+                <span
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-satoshi font-bold uppercase tracking-wide border ${SIGNAL_BADGE[justification.signal_strength]}`}
+                >
+                  {SIGNAL_LABEL[justification.signal_strength]}
+                </span>
+              )}
             </div>
-            <p className="text-xs font-satoshi text-studojo-ink leading-relaxed line-clamp-[7]">
-              {reason}
-            </p>
+            {justification ? (
+              <div className="space-y-1.5">
+                <p className="text-xs font-satoshi font-bold text-studojo-ink leading-snug line-clamp-2">
+                  {justification.headline}
+                </p>
+                <p className="text-[11px] font-satoshi text-studojo-ink leading-relaxed line-clamp-4">
+                  {justification.fit_reason}
+                </p>
+                <p className="text-[10px] font-satoshi italic text-studojo-muted leading-relaxed line-clamp-2">
+                  {justification.talk_track}
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs font-satoshi text-studojo-ink leading-relaxed line-clamp-[7]">
+                {reason}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-studojo-ink/8">

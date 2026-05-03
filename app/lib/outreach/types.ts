@@ -65,6 +65,13 @@ export interface CandidateProfile {
 
 // ── Leads ────────────────────────────────────────────────────────────
 
+export interface LeadJustification {
+  headline: string;
+  fit_reason: string;
+  talk_track: string;
+  signal_strength: "high" | "medium" | "low";
+}
+
 export interface LeadScore {
   overall: number;
   title_relevance: number;
@@ -73,6 +80,7 @@ export interface LeadScore {
   seniority_relevance: number;
   location_relevance: number;
   explanation: string | null;
+  justification: LeadJustification | null;
 }
 
 export interface Lead {
