@@ -233,6 +233,18 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "linkedin-profile-2026",
+    publishDate: "2026-05-02",
+    title: "The LinkedIn Profile Report: What Hiring Managers Actually Look At",
+    subtitle: "LinkedIn Profile Report 2026",
+    excerpt: "Hiring managers spend 7 seconds on your LinkedIn. A data-backed breakdown of what gets seen, what gets skipped, why referrals convert 4x, and the exact profile fixes that change your odds.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 7,
+    badge: "New",
+  },
+  {
     slug: "application-response-rate-2026",
     publishDate: "2026-05-01",
     title: "Why 80% of Applications Get No Response",
