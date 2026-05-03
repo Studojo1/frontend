@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  FiMapPin, FiBriefcase, FiTarget, FiZap,
-  FiArrowRight, FiAward, FiStar, FiCheck, FiUser,
+  FiMapPin, FiBriefcase, FiTarget, FiZap, FiArrowRight,
+  FiAward, FiCheck, FiUser, FiSearch, FiTrendingUp, FiTool, FiHome,
 } from "react-icons/fi";
 import { BsBuilding } from "react-icons/bs";
 import { Header } from "~/components/common/header";
@@ -12,149 +12,58 @@ import { outreachFetch } from "~/lib/outreach/api";
 
 const STEPS = ["Upload Resume", "AI Chat", "Your Profile"];
 
-// ── Dimension metadata — all 8 dims ──────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
-const DIM_META: Record<string, {
-  label: string; chart: string;
-  color: string; bg: string; text: string;
-  dot: string;
-  desc: string;
-}> = {
-  analytical:    { label: "Analytical",    chart: "Analytical",    dot: "#8b5cf6", color: "bg-[#8b5cf6]", bg: "bg-[#8b5cf6]/10", text: "text-[#8b5cf6]",  desc: "Data-driven thinking, problem-solving, logical reasoning" },
-  creative:      { label: "Creative",      chart: "Creative",      dot: "#f97316", color: "bg-[#f97316]", bg: "bg-[#f97316]/10", text: "text-[#f97316]",  desc: "Ideation, innovation, design thinking, originality" },
-  execution:     { label: "Execution",     chart: "Execution",     dot: "#10b981", color: "bg-[#10b981]", bg: "bg-[#10b981]/10", text: "text-[#10b981]",  desc: "Getting things done, reliability, follow-through" },
-  social:        { label: "Social",        chart: "Social",        dot: "#ec4899", color: "bg-[#ec4899]", bg: "bg-[#ec4899]/10", text: "text-[#ec4899]",  desc: "Communication, teamwork, relationship-building" },
-  leadership:    { label: "Leadership",    chart: "Leadership",    dot: "#3b82f6", color: "bg-[#3b82f6]", bg: "bg-[#3b82f6]/10", text: "text-[#3b82f6]",  desc: "Guiding teams, decision-making, inspiring others" },
-  strategic:     { label: "Strategic",     chart: "Strategic",     dot: "#f59e0b", color: "bg-[#f59e0b]", bg: "bg-[#f59e0b]/10", text: "text-[#d97706]",  desc: "Long-term planning, vision, business acumen" },
-  technical:     { label: "Technical",     chart: "Technical",     dot: "#06b6d4", color: "bg-[#06b6d4]", bg: "bg-[#06b6d4]/10", text: "text-[#0891b2]",  desc: "Engineering, coding, system design, technical depth" },
-  communication: { label: "Communication", chart: "Communication", dot: "#e11d48", color: "bg-[#e11d48]", bg: "bg-[#e11d48]/10", text: "text-[#e11d48]",  desc: "Writing, presenting, storytelling, articulation" },
-};
+function inferRoleCluster(text: string): "engineering" | "data" | "product" | "design" | "marketing" | "sales" | "finance" | "consulting" | "general" {
+  const t = (text || "").toLowerCase();
+  if (/\b(engineer|developer|backend|frontend|full[- ]?stack|sde|swe|sre|devops)\b/.test(t)) return "engineering";
+  if (/\b(data scientist|data analyst|analytics|ml engineer|machine learning)\b/.test(t)) return "data";
+  if (/\b(product manager|product owner|associate pm|apm)\b/.test(t)) return "product";
+  if (/\b(designer|design lead|ux|ui[/ ]ux)\b/.test(t)) return "design";
+  if (/\b(growth|marketing|brand|content|seo|gtm)\b/.test(t)) return "marketing";
+  if (/\b(sales|account executive|business development|bdr|sdr)\b/.test(t)) return "sales";
+  if (/\b(financ|investment|valuation|equity research|fp&a)\b/.test(t)) return "finance";
+  if (/\b(consultant|consulting|strategy|advisory)\b/.test(t)) return "consulting";
+  return "general";
+}
 
-// ── Animated radar chart (same as Career DNA step) ───────────────────────────
+// Map a role cluster + the candidate's stated target_role to the manager titles
+// the backend will actually search for. This mirrors decision_maker_engine on the
+// server side — kept loose so the user just sees a clear summary.
+function inferManagerTitles(targetRole: string, cluster: string): string[] {
+  const r = (targetRole || "").toLowerCase();
+  if (cluster === "engineering" || /engineer|developer|sde|swe/.test(r)) {
+    return ["Engineering Manager", "Head of Engineering", "Director of Engineering", "VP Engineering", "CTO"];
+  }
+  if (cluster === "data" || /data|analyst|analytics|scientist/.test(r)) {
+    return ["Head of Data", "Director of Data", "Analytics Manager", "Data Science Manager", "VP Data"];
+  }
+  if (cluster === "product" || /product/.test(r)) {
+    return ["Head of Product", "Director of Product", "VP Product", "Group Product Manager", "Chief Product Officer"];
+  }
+  if (cluster === "design" || /design|ux|ui/.test(r)) {
+    return ["Head of Design", "Design Lead", "Design Manager", "Director of Design", "VP Design"];
+  }
+  if (cluster === "marketing" || /marketing|growth|brand|content/.test(r)) {
+    return ["Head of Growth", "Marketing Manager", "Director of Marketing", "VP Marketing", "Chief Marketing Officer"];
+  }
+  if (cluster === "sales" || /sales|account|business dev/.test(r)) {
+    return ["Sales Manager", "Head of Sales", "Director of Sales", "VP Sales", "Chief Revenue Officer"];
+  }
+  if (cluster === "finance" || /financ|investment|fp&a/.test(r)) {
+    return ["Finance Manager", "Head of Finance", "Director of Finance", "VP Finance", "CFO"];
+  }
+  if (cluster === "consulting" || /consult|strategy/.test(r)) {
+    return ["Engagement Manager", "Project Lead", "Principal Consultant", "Director of Strategy"];
+  }
+  return ["Hiring Manager", "Department Head", "Director", "Operations Manager"];
+}
 
-function RadarChart({ scores }: { scores: Record<string, number> }) {
-  const [t, setT] = useState(0);
-
-  useEffect(() => {
-    const start = performance.now();
-    const dur = 1500;
-    let raf = 0;
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / dur, 1);
-      setT(1 - Math.pow(1 - p, 3));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  const dims = Object.keys(scores);
-  const N = dims.length;
-  if (N < 3) return null;
-
-  const VW = 600, VH = 460;
-  const cx = VW / 2, cy = VH / 2;
-  const maxR = 145;
-  const labelGap = 56;
-
-  const angle = (i: number) => -90 + (360 / N) * i;
-  const toXY = (deg: number, r: number) => ({
-    x: cx + r * Math.cos((deg * Math.PI) / 180),
-    y: cy + r * Math.sin((deg * Math.PI) / 180),
-  });
-
-  const maxScore = Math.max(...dims.map((d) => scores[d]), 1);
-  const FLOOR_R = maxR * 0.35;
-  const CEIL_R  = maxR * 0.92;
-  const dispR   = (score: number) => FLOOR_R + (score / maxScore) * (CEIL_R - FLOOR_R);
-
-  const gridLevels = [0.25, 0.50, 0.75, 1.00];
-  const gridColors = ["#e8e4ff", "#d4caf9", "#bfaff3", "#a78bfa"];
-
-  const dataPoints = dims.map((dim, i) => toXY(angle(i), dispR(scores[dim]) * t));
-  const dataPoly = dataPoints.map((p) => `${p.x},${p.y}`).join(" ");
-
-  return (
-    <svg viewBox={`0 0 ${VW} ${VH}`} className="w-full" style={{ display: "block" }}>
-      <defs>
-        <linearGradient id="prf-rf" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stopColor="#7c3aed" stopOpacity="0.50" />
-          <stop offset="100%" stopColor="#db2777" stopOpacity="0.35" />
-        </linearGradient>
-        <radialGradient id="prf-rbg" cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stopColor="#ede9fe" stopOpacity="0.65" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0"    />
-        </radialGradient>
-        <filter id="prf-ds" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="1" stdDeviation="2.5" floodOpacity="0.22" />
-        </filter>
-        <filter id="prf-pg" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="5" result="b" />
-          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-
-      <circle cx={cx} cy={cy} r={maxR + 15} fill="url(#prf-rbg)" />
-
-      <polygon
-        points={dims.map((_, i) => { const p = toXY(angle(i), gridLevels[0] * maxR); return `${p.x},${p.y}`; }).join(" ")}
-        fill="rgba(124,58,237,0.06)" stroke="none"
-      />
-
-      {gridLevels.map((fr, gi) => (
-        <polygon key={fr}
-          points={dims.map((_, i) => { const p = toXY(angle(i), fr * maxR); return `${p.x},${p.y}`; }).join(" ")}
-          fill="none" stroke={gridColors[gi]}
-          strokeWidth={gi === 3 ? "1.8" : "1"}
-          strokeDasharray={gi < 3 ? "6,4" : undefined}
-        />
-      ))}
-
-      {dims.map((dim, i) => {
-        const end = toXY(angle(i), maxR);
-        return <line key={`sp-${i}`} x1={cx} y1={cy} x2={end.x} y2={end.y}
-          stroke={DIM_META[dim]?.dot ?? "#a78bfa"} strokeWidth="1" strokeOpacity="0.30" />;
-      })}
-
-      <polygon points={dataPoly} fill="none" stroke="#7c3aed" strokeWidth="10"
-        strokeLinejoin="round" opacity="0.10" filter="url(#prf-pg)" />
-
-      <polygon points={dataPoly} fill="url(#prf-rf)" stroke="#6d28d9"
-        strokeWidth="2.8" strokeLinejoin="round" />
-
-      {dataPoints.map((p, i) => {
-        const c = DIM_META[dims[i]]?.dot ?? "#8b5cf6";
-        return (
-          <g key={`dot-${i}`} filter="url(#prf-ds)">
-            <circle cx={p.x} cy={p.y} r="9"   fill={c} opacity="0.18" />
-            <circle cx={p.x} cy={p.y} r="5.5" fill="white" stroke={c} strokeWidth="2.8" />
-          </g>
-        );
-      })}
-
-      {dims.map((dim, i) => {
-        const deg = angle(i);
-        const lp  = toXY(deg, maxR + labelGap);
-        const meta = DIM_META[dim] ?? { chart: dim, dot: "#8b5cf6", text: "text-[#8b5cf6]" };
-        const score = Math.round(scores[dim] * t);
-        const EPS = 18;
-        const anchor = lp.x < cx - EPS ? "end" : lp.x > cx + EPS ? "start" : "middle";
-        return (
-          <g key={`lbl-${dim}`}>
-            <text x={lp.x} y={lp.y - 9} textAnchor={anchor}
-              fontSize="11.5" fontWeight="700" fill={DIM_META[dim]?.dot ?? "#8b5cf6"}
-              style={{ letterSpacing: "0.3px" }}>
-              {meta.chart}
-            </text>
-            <text x={lp.x} y={lp.y + 9} textAnchor={anchor}
-              fontSize="16" fontWeight="700" fill="#0f172a">
-              {score}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
+function formatSizeBand(band: string | undefined | null): string {
+  if (!band) return "";
+  // Apollo-style "51,200" → "51-200"
+  if (/^\d+,\d+$/.test(band)) return band.replace(",", "-");
+  return band;
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -162,17 +71,14 @@ function RadarChart({ scores }: { scores: Record<string, number> }) {
 export default function ProfilePage() {
   const navigate = useNavigate();
   useOutreachAuth();
-  const { candidateId, psychResult: storedPsych, profileData, setProfileData } = useOutreachStore();
+  const { candidateId, profileData, setProfileData } = useOutreachStore();
   const [profile, setProfile] = useState<any>(profileData ?? null);
   const [loading, setLoading] = useState(!profileData);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Already have data from loading page — render instantly, no fetch needed
     if (profileData || !candidateId) return;
-
     let cancelled = false;
-
     outreachFetch<any>(`/candidate/${candidateId}/profile`)
       .then((data) => {
         if (!cancelled) { setProfile(data); setProfileData(data); setLoading(false); }
@@ -183,7 +89,6 @@ export default function ProfilePage() {
           setLoading(false);
         }
       });
-
     return () => { cancelled = true; };
   }, [candidateId, profileData]);
 
@@ -208,32 +113,33 @@ export default function ProfilePage() {
   const personalInfo = parsed.personal_info || {};
   const preferences = parsed.preferences || {};
   const career = parsed.career_analysis || {};
-  // Use stored psychometric data from chat (available immediately) or fall back to profile fetch
-  const psych = storedPsych || (profile as any)?.psychometric || null;
   const skills = personalInfo.skills_detected || [];
   const name = personalInfo.name || personalInfo.full_name || "";
   const initials = name
     ? name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
     : "";
 
-  // All 8 dimensions, sorted by score
-  const DIM_ORDER = ["analytical", "creative", "execution", "social", "leadership", "strategic", "technical", "communication"];
-  const dimScores: Record<string, number> = psych?.dimension_scores
-    ? Object.fromEntries(
-        DIM_ORDER
-          .filter((k) => psych.dimension_scores[k] != null)
-          .map((k) => [k, psych.dimension_scores[k]])
-      )
-    : {};
-  const dimEntries = Object.entries(dimScores).sort(([, a], [, b]) => b - a);
-  const topDim = dimEntries[0]?.[0];
+  // ── Derived fields for Ideal Hiring Manager / What we know panels ─────────
+  const recommendedRoles = career.recommended_roles || [];
+  const targetRole = recommendedRoles[0]?.title || profile?.target_roles?.[0] || "";
+  const cluster = inferRoleCluster(targetRole + " " + (parsed.profile_summary || ""));
+  const managerTitles = inferManagerTitles(targetRole, cluster);
+
+  const locations: string[] = preferences.locations || [];
+  const nicheKeywords: string[] = preferences.niche_keywords || [];
+  const techStack: string[] = preferences.tech_stack || [];
+  const workMode: string = preferences.work_mode || "";
+  const companySize: string = preferences.company_size || "";
+  const dreamCompanies: string[] = profile?.dream_companies || [];
+
+  const seniority = recommendedRoles[0]?.seniority || "";
+  const sizeBands = companySize === "any" ? ["1-200", "201-2000", "2001+"] : [formatSizeBand(companySize)];
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-studojo-surface-muted/50">
       <Header />
 
       <div className="flex-1 flex overflow-hidden">
-
         {/* ── Persistent sidebar — same as chat page ── */}
         <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center justify-center flex-shrink-0">
           <div className="flex flex-col" style={{ alignItems: "flex-start" }}>
@@ -275,9 +181,9 @@ export default function ProfilePage() {
 
         {/* ── Main scrollable content ── */}
         <div className="flex-1 overflow-y-auto">
-      <div className="mx-auto max-w-2xl px-4 py-5 md:px-8 pb-28">
+        <div className="mx-auto max-w-2xl px-4 py-5 md:px-8 pb-28">
 
-        {loading && !psych ? (
+        {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-10 h-10 border-[3px] border-studojo-purple/20 border-t-studojo-purple rounded-full animate-spin mb-4" />
             <p className="text-sm text-studojo-muted font-satoshi">Building your profile...</p>
@@ -295,7 +201,7 @@ export default function ProfilePage() {
         ) : (
           <div className="mt-5 space-y-4 animate-fade-in">
 
-            {/* ── Hero card — always visible, skeletons while loading ──────── */}
+            {/* ── Hero card ──────────────────────────────────────────────────── */}
             <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
               <div className="h-1.5 bg-gradient-to-r from-studojo-purple via-studojo-pink to-studojo-orange" />
               <div className="p-5">
@@ -308,129 +214,177 @@ export default function ProfilePage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    {name ? (
-                      <h1 className="font-clash text-lg font-bold text-studojo-ink truncate">{name}</h1>
-                    ) : loading ? (
-                      <div className="h-5 w-40 rounded-full bg-studojo-ink/8 animate-pulse mt-0.5" />
-                    ) : null}
-                    {parsed.profile_summary ? (
+                    {name && <h1 className="font-clash text-lg font-bold text-studojo-ink truncate">{name}</h1>}
+                    {parsed.profile_summary && (
                       <p className="text-sm text-studojo-muted font-satoshi mt-0.5 leading-relaxed line-clamp-2">
                         {parsed.profile_summary}
                       </p>
-                    ) : loading ? (
-                      <div className="h-3 w-64 rounded-full bg-studojo-ink/6 animate-pulse mt-2" />
-                    ) : null}
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
-                  {preferences.locations?.length > 0 && (
+                  {locations.length > 0 && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-muted">
                       <FiMapPin className="w-3 h-3" />
-                      {preferences.locations.slice(0, 2).join(", ")}
+                      {locations.slice(0, 2).join(", ")}
                     </span>
                   )}
-                  {preferences.industry_interests?.length > 0 && (
+                  {workMode && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-muted capitalize">
+                      <FiHome className="w-3 h-3" />
+                      {workMode}
+                    </span>
+                  )}
+                  {nicheKeywords.length > 0 && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-muted">
                       <BsBuilding className="w-3 h-3" />
-                      {preferences.industry_interests.slice(0, 2).join(", ")}
+                      {nicheKeywords.slice(0, 2).join(", ")}
                     </span>
-                  )}
-                  {topDim && DIM_META[topDim] && (
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-satoshi font-semibold ${DIM_META[topDim].bg} ${DIM_META[topDim].text}`}>
-                      <FiStar className="w-3 h-3" />
-                      {DIM_META[topDim].label} dominant
-                    </span>
-                  )}
-                  {psych?.confidence_score != null && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-studojo-green/10 text-xs font-satoshi font-semibold text-studojo-green border border-studojo-green/20">
-                      <FiAward className="w-3 h-3" />
-                      {Math.round(psych.confidence_score)}% match confidence
-                    </span>
-                  )}
-                  {loading && !topDim && (
-                    <div className="h-6 w-28 rounded-lg bg-studojo-ink/6 animate-pulse" />
                   )}
                 </div>
               </div>
             </div>
 
-            {/* ── Career DNA — radar + all 8 dimension bars ──────────────────── */}
-            {Object.keys(dimScores).length >= 3 && (
-              <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
-                <div className="p-5 pb-3 border-b border-studojo-ink/8">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-studojo-purple/10 flex items-center justify-center">
-                      <FiZap className="w-3.5 h-3.5 text-studojo-purple" />
-                    </div>
-                    <div>
-                      <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">Career DNA</h3>
-                      <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Your psychometric profile</p>
-                    </div>
+            {/* ── Ideal Hiring Manager — the new headline panel ─────────────── */}
+            <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
+              <div className="h-1.5 bg-gradient-to-r from-studojo-purple to-studojo-pink" />
+              <div className="p-5 pb-3 border-b border-studojo-ink/8">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-studojo-purple/10 flex items-center justify-center">
+                    <FiSearch className="w-3.5 h-3.5 text-studojo-purple" />
+                  </div>
+                  <div>
+                    <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">Who we'll be looking for</h3>
+                    <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Your ideal hiring manager profile</p>
                   </div>
                 </div>
+              </div>
 
-                <div className="p-5">
-                  <RadarChart scores={dimScores} />
-
-                  <div className="mt-4 space-y-3">
-                    {dimEntries.map(([dim, score]) => {
-                      const meta = DIM_META[dim];
-                      if (!meta) return null;
-                      return (
-                        <div key={dim}>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: meta.dot }} />
-                              <span className={`text-sm font-satoshi font-semibold ${meta.text}`}>{meta.label}</span>
-                              {dim === topDim && (
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-satoshi font-bold ${meta.bg} ${meta.text}`}>
-                                  Top trait
-                                </span>
-                              )}
-                            </div>
-                            <span className={`text-base font-clash font-bold ${meta.text}`}>{Math.round(score)}</span>
-                          </div>
-                          <div className={`h-2 rounded-full ${meta.bg} overflow-hidden`}>
-                            <div className={`h-full rounded-full ${meta.color} transition-all duration-700`} style={{ width: `${Math.max(score, 2)}%` }} />
-                          </div>
-                          <p className="text-[11px] text-studojo-muted font-satoshi mt-1">{meta.desc}</p>
-                        </div>
-                      );
-                    })}
+              <div className="p-5 space-y-4">
+                {/* Manager titles */}
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">Manager titles</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {managerTitles.map((t) => (
+                      <span key={t} className="px-2.5 py-1 rounded-lg text-xs font-satoshi font-semibold bg-studojo-purple/10 text-studojo-purple border border-studojo-purple/20">
+                        {t}
+                      </span>
+                    ))}
                   </div>
-
-                  {psych?.traits?.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-studojo-ink/8">
-                      <p className="text-[11px] text-studojo-muted font-satoshi font-semibold uppercase tracking-wide mb-2">Identified traits</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {psych.traits.map((t: string) => (
-                          <span key={t} className="px-2.5 py-1 rounded-lg text-xs font-satoshi font-semibold bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/15">{t}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {psych?.reasoning && (
-                    <div className="mt-3 pt-3 border-t border-studojo-ink/8">
-                      <p className="text-[12px] font-satoshi text-studojo-muted leading-relaxed italic">"{psych.reasoning}"</p>
-                    </div>
+                  {targetRole && (
+                    <p className="text-[11px] text-studojo-muted font-satoshi mt-2">
+                      Plus managers who came up through your role (e.g. were once a {targetRole.toLowerCase()}).
+                    </p>
                   )}
                 </div>
-              </div>
-            )}
 
-            {/* ── Loading skeleton while full profile fetches ─────────────────── */}
-            {loading && (
-              <div className="rounded-2xl border-2 border-studojo-ink/10 bg-white p-5 space-y-3 animate-pulse">
-                <div className="h-3 w-1/3 rounded-full bg-studojo-ink/8" />
-                <div className="h-2 w-2/3 rounded-full bg-studojo-ink/6" />
-                <div className="h-2 w-1/2 rounded-full bg-studojo-ink/6" />
+                {/* Where */}
+                {locations.length > 0 && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">Where</p>
+                    <p className="text-sm font-satoshi text-studojo-ink">
+                      {locations.join(", ")}{workMode ? ` — ${workMode} roles` : ""}
+                    </p>
+                  </div>
+                )}
+
+                {/* Company kind */}
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">At companies that look like</p>
+                  <ul className="text-sm font-satoshi text-studojo-ink space-y-1">
+                    <li>• {sizeBands.length > 0 && sizeBands[0] ? `Size band: ${sizeBands.join(", ")} employees` : "Any company size"}</li>
+                    {nicheKeywords.length > 0 && <li>• Niche: {nicheKeywords.join(", ")}</li>}
+                    {techStack.length > 0 && <li>• Stack overlaps with: {techStack.join(", ")}</li>}
+                    <li>• Currently posting jobs for {targetRole || "your target role"} (last 30 days)</li>
+                  </ul>
+                </div>
+
+                {/* Dream company callout */}
+                {dreamCompanies.length > 0 && (
+                  <div className="rounded-xl bg-studojo-pink/5 border border-studojo-pink/20 p-3">
+                    <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-pink mb-1">Plus your dream list</p>
+                    <p className="text-xs font-satoshi text-studojo-ink">
+                      {dreamCompanies.slice(0, 8).join(" · ")}
+                    </p>
+                    <p className="text-[10px] text-studojo-muted font-satoshi mt-1">
+                      Searched separately so they always show up regardless of other filters.
+                    </p>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-studojo-muted font-satoshi italic pt-1">
+                  We'll fall back gracefully if a filter cuts volume too low — never below 500 leads if we can help it.
+                </p>
               </div>
-            )}
+            </div>
+
+            {/* ── What we know about you — the input-side panel ─────────────── */}
+            <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
+              <div className="p-5 pb-3 border-b border-studojo-ink/8">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-studojo-green/10 flex items-center justify-center">
+                    <FiZap className="w-3.5 h-3.5 text-studojo-green" />
+                  </div>
+                  <div>
+                    <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">What we know about you</h3>
+                    <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">From your resume + the quiz</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm font-satoshi">
+                {targetRole && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiTarget className="w-3 h-3" /> Target role</p>
+                    <p className="text-studojo-ink">{targetRole}{seniority ? ` · ${seniority}` : ""}</p>
+                  </div>
+                )}
+                {locations.length > 0 && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiMapPin className="w-3 h-3" /> Location</p>
+                    <p className="text-studojo-ink">{locations.join(", ")}</p>
+                  </div>
+                )}
+                {workMode && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiHome className="w-3 h-3" /> Work mode</p>
+                    <p className="text-studojo-ink capitalize">{workMode}</p>
+                  </div>
+                )}
+                {companySize && companySize !== "any" && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><BsBuilding className="w-3 h-3" /> Company size</p>
+                    <p className="text-studojo-ink">{formatSizeBand(companySize)} employees</p>
+                  </div>
+                )}
+                {nicheKeywords.length > 0 && (
+                  <div className="sm:col-span-2">
+                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiTrendingUp className="w-3 h-3" /> Niches</p>
+                    <p className="text-studojo-ink">{nicheKeywords.join(", ")}</p>
+                  </div>
+                )}
+                {techStack.length > 0 && (
+                  <div className="sm:col-span-2">
+                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiTool className="w-3 h-3" /> Tech stack</p>
+                    <div className="flex flex-wrap gap-1">
+                      {techStack.map((t) => (
+                        <span key={t} className="px-2 py-0.5 rounded-md text-[11px] bg-studojo-surface-muted text-studojo-ink/80 border border-studojo-ink/10">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {dreamCompanies.length > 0 && (
+                  <div className="sm:col-span-2">
+                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiAward className="w-3 h-3" /> Dream companies</p>
+                    <p className="text-studojo-ink">{dreamCompanies.join(", ")}</p>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* ── Recommended Roles ──────────────────────────────────────────── */}
-            {career.recommended_roles?.length > 0 && (
+            {recommendedRoles.length > 0 && (
               <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
                 <div className="p-5 pb-3 border-b border-studojo-ink/8">
                   <div className="flex items-center gap-2.5">
@@ -445,12 +399,11 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="p-4 space-y-3">
-                  {career.recommended_roles.map((role: any, i: number) => {
+                  {recommendedRoles.map((role: any, i: number) => {
                     const score = Math.round((role.fit_score ?? 0.75) * 100);
                     const isBest = i === 0;
                     const isStrong = score >= 85;
                     const scoreColor = isBest ? "text-studojo-green" : isStrong ? "text-studojo-purple" : "text-studojo-muted";
-                    const scoreBg = isBest ? "bg-studojo-green" : isStrong ? "bg-studojo-purple" : "bg-studojo-ink/30";
                     const matchingSkills: string[] = role.matching_skills ?? [];
 
                     return (
@@ -482,7 +435,6 @@ export default function ProfilePage() {
                             )}
                           </div>
 
-                          {/* Score ring */}
                           <div className="flex-shrink-0 flex flex-col items-center gap-0.5">
                             <div className="relative w-10 h-10">
                               <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
@@ -506,7 +458,6 @@ export default function ProfilePage() {
                           </div>
                         </div>
 
-                        {/* Matching skills */}
                         {matchingSkills.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2.5">
                             {matchingSkills.map((skill: string) => (
