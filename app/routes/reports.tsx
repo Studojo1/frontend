@@ -233,6 +233,18 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "remote-internships-2026",
+    publishDate: "2026-05-03",
+    title: "Remote Internships 2026: Which Ones Are Real",
+    subtitle: "Behavioural Report 2026",
+    excerpt: "Around 35% of remote internship listings show at least one major fake signal. Red flags, green flags, pay as a signal, platform quality comparison, and a 4-step verification checklist.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "startup-vs-mnc-2026",
     publishDate: "2026-05-03",
     title: "Startup vs MNC: A Real Comparison for Early-Career Talent",
