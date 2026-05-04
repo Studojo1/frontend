@@ -362,17 +362,26 @@ export default function LkotPage() {
                       <p className="text-[#555] text-sm text-center max-w-xs">
                         One click — the extension opens LinkedIn and captures your session automatically.
                       </p>
-                      <button
-                        onClick={handleConnect}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] text-white rounded-lg text-sm font-medium transition-colors"
-                      >
-                        <LinkedInIcon /> Connect LinkedIn
-                      </button>
-                      <p className="text-[#333] text-xs">
-                        Requires the{" "}
-                        <a href="/install-extension" className="underline hover:text-[#888] transition-colors">Studojo extension</a>
-                        {" "}— one-time install
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={handleConnect}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <LinkedInIcon /> Connect LinkedIn
+                        </button>
+                        <a
+                          href="/install-extension"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-1.5 px-4 py-2.5 border border-[#2a2a2a] hover:border-[#444] text-[#888] hover:text-white rounded-lg text-sm font-medium transition-colors"
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                          </svg>
+                          Download extension
+                        </a>
+                      </div>
+                      <p className="text-[#333] text-xs">Install once — works on all Studojo pages</p>
                     </div>
 
                     <div className="border-t border-[#111] pt-4 space-y-3">
