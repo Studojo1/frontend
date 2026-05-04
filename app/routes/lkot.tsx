@@ -12,10 +12,8 @@ import { Header } from "~/components/common/header";
 
 type ConnectState =
   | "idle"
-  | "generating_token"   // fetching one-time token
-  | "awaiting_script"    // script shown, polling for completion
-  | "logging_in"         // server-side Patchright running
-  | "awaiting_otp"       // 2FA triggered
+  | "logging_in"
+  | "awaiting_otp"
   | "connected"
   | "error";
 
@@ -51,12 +49,6 @@ export default function LkotPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
-  // Local script flow
-  const [scriptCommand, setScriptCommand] = useState("");
-  const [copied, setCopied] = useState(false);
-
-  // Server-side login flow
-  const [showServerLogin, setShowServerLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -87,47 +79,7 @@ export default function LkotPage() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [logs]);
 
-  // ── Poll session status (used by both flows) ──────────────────────────────
-
-  function startSessionPoll(maxSeconds = 300) {
-    if (pollRef.current) clearInterval(pollRef.current);
-    let attempts = 0;
-    const MAX = maxSeconds / 2;
-
-    pollRef.current = setInterval(async () => {
-      attempts++;
-      if (attempts > MAX) {
-        clearInterval(pollRef.current!);
-        setConnectState("error");
-        setErrorMsg("Timed out. Run the command again or try another method.");
-        addLog("Polling timed out", "error");
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/autoapply/session/status");
-        if (res.status === 401) {
-          clearInterval(pollRef.current!);
-          setConnectState("error");
-          setErrorMsg("Not logged into Studojo.");
-          return;
-        }
-        const data = await res.json();
-        if (data.connected) {
-          clearInterval(pollRef.current!);
-          setSessionInfo({ warmupDay: data.warmupDay, proxyCountry: data.proxyCountry, cookieAgeDays: data.cookieAgeDays });
-          setConnectState("connected");
-          addLog("Session confirmed — cookies encrypted and stored.", "success");
-        } else if (attempts % 5 === 0) {
-          addLog(`Waiting… (${attempts * 2}s)`, "poll");
-        }
-      } catch {
-        // transient — keep polling
-      }
-    }, 2000);
-  }
-
-  // ── Poll login job status (server-side Patchright) ────────────────────────
+  // ── Poll login job status ─────────────────────────────────────────────────
 
   function startLoginPoll(jid: string) {
     if (pollRef.current) clearInterval(pollRef.current);
@@ -175,39 +127,6 @@ export default function LkotPage() {
   }
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
-
-  // ── Option 1: local script ────────────────────────────────────────────────
-
-  async function handleLocalScript() {
-    setConnectState("generating_token");
-    setErrorMsg("");
-    addLog("Generating one-time capture token…");
-
-    try {
-      const res = await fetch("/api/autoapply/capture-token", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to generate token");
-
-      const scriptUrl = `${window.location.origin}/api/autoapply/local-capture-script?token=${data.token}`;
-      const cmd = `python3 <(curl -fsSL '${scriptUrl}')`;
-      setScriptCommand(cmd);
-      setConnectState("awaiting_script");
-      addLog("Token generated. Waiting for script to complete…", "info");
-      startSessionPoll(1800); // 30-min window
-    } catch (e: any) {
-      setConnectState("error");
-      setErrorMsg(e.message);
-      addLog(`Error: ${e.message}`, "error");
-    }
-  }
-
-  async function copyCommand() {
-    await navigator.clipboard.writeText(scriptCommand);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  // ── Option 2: server-side login ───────────────────────────────────────────
 
   async function handleServerLogin() {
     if (!email.trim() || !password.trim()) return;
@@ -261,8 +180,6 @@ export default function LkotPage() {
     setErrorMsg("");
     setJobId(null);
     setOtp("");
-    setScriptCommand("");
-    setShowServerLogin(false);
     if (pollRef.current) clearInterval(pollRef.current);
   }
 
@@ -349,72 +266,46 @@ export default function LkotPage() {
 
               <div className="px-5 py-6">
 
-                {/* ── Idle ── */}
+                {/* ── Idle: credentials form ── */}
                 {connectState === "idle" && (
-                  <div className="space-y-5">
-                    {/* Option 1 — local script (primary) */}
-                    <div className="border border-[#1e1e1e] rounded-xl p-4 space-y-3">
-                      <div className="flex items-start gap-3">
-                        <span className="text-base mt-0.5">💻</span>
-                        <div>
-                          <p className="text-sm font-medium">Run on your machine <span className="text-[#4ade80] text-xs font-normal ml-1">recommended</span></p>
-                          <p className="text-xs text-[#555] mt-0.5">Opens a browser on your PC. Your real IP, zero server detection.</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleLocalScript}
-                        className="w-full py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-[#e5e5e5] transition-colors"
-                      >
-                        Generate command →
-                      </button>
+                  <div className="space-y-4 max-w-sm">
+                    <p className="text-[#555] text-sm">Enter your LinkedIn credentials. We log in on our server and capture your session — stored encrypted, never plain text.</p>
+                    <div>
+                      <label className="text-xs text-[#555] block mb-1">LinkedIn email</label>
+                      <input
+                        type="email"
+                        className={inputCls}
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleServerLogin()}
+                      />
                     </div>
-
-                    {/* Option 2 — server login (secondary) */}
-                    {!showServerLogin ? (
-                      <button
-                        onClick={() => setShowServerLogin(true)}
-                        className="text-xs text-[#444] hover:text-white transition-colors"
-                      >
-                        Or log in with credentials (server-side) →
-                      </button>
-                    ) : (
-                      <div className="border border-[#1e1e1e] rounded-xl p-4 space-y-3">
-                        <div className="flex items-start gap-3">
-                          <span className="text-base mt-0.5">🖥</span>
-                          <div>
-                            <p className="text-sm font-medium">Server-side login</p>
-                            <p className="text-xs text-[#555] mt-0.5">We log in on our server via Patchright. Routes through residential proxy.</p>
-                          </div>
-                        </div>
-                        <input type="email" className={inputCls} placeholder="LinkedIn email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                        <div className="relative">
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            className={`${inputCls} pr-14`}
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleServerLogin()}
-                          />
-                          <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">
-                            {showPassword ? "hide" : "show"}
-                          </button>
-                        </div>
-                        <button
-                          onClick={handleServerLogin}
-                          disabled={!email.trim() || !password.trim()}
-                          className="w-full py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
-                        >
-                          Log in via server →
+                    <div>
+                      <label className="text-xs text-[#555] block mb-1">Password</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          className={`${inputCls} pr-14`}
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleServerLogin()}
+                        />
+                        <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">
+                          {showPassword ? "hide" : "show"}
                         </button>
                       </div>
-                    )}
-
-                    {/* Option 3 — manual paste */}
-                    <details className="group">
-                      <summary className="text-xs text-[#333] hover:text-[#555] cursor-pointer transition-colors list-none">
-                        Paste cookies manually →
-                      </summary>
+                    </div>
+                    <button
+                      onClick={handleServerLogin}
+                      disabled={!email.trim() || !password.trim()}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <LinkedInIcon /> Connect LinkedIn
+                    </button>
+                    <details className="pt-1">
+                      <summary className="text-xs text-[#333] hover:text-[#555] cursor-pointer transition-colors list-none">Paste cookies manually instead →</summary>
                       <div className="mt-3">
                         <ManualSessionForm
                           onSuccess={() => { setConnectState("connected"); addLog("Session saved manually", "success"); }}
@@ -425,41 +316,7 @@ export default function LkotPage() {
                   </div>
                 )}
 
-                {/* ── Generating token ── */}
-                {connectState === "generating_token" && (
-                  <div className="flex items-center gap-3 py-6 text-[#666] text-sm">
-                    <Spinner /> Generating token…
-                  </div>
-                )}
-
-                {/* ── Script ready ── */}
-                {connectState === "awaiting_script" && (
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-2 p-3 bg-[#0a1a0a] border border-[#1a3a1a] rounded-lg">
-                      <span className="text-[#4ade80] text-xs mt-0.5">1.</span>
-                      <p className="text-[#aaa] text-xs">Open a terminal and paste this command. A browser window will open — log in and come back.</p>
-                    </div>
-                    <div className="relative">
-                      <pre className="bg-[#0d0d0d] border border-[#222] rounded-lg px-4 py-3 text-xs font-mono text-[#ccc] overflow-x-auto whitespace-pre-wrap break-all select-all">
-                        {scriptCommand}
-                      </pre>
-                      <button
-                        onClick={copyCommand}
-                        className="absolute top-2 right-2 px-2 py-1 bg-[#1a1a1a] hover:bg-[#2a2a2a] border border-[#333] rounded text-[10px] text-[#888] hover:text-white transition-colors"
-                      >
-                        {copied ? "✓ copied" : "copy"}
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-3 text-[#555] text-xs">
-                      <Spinner />
-                      Waiting for script to complete…
-                      <button onClick={handleRetry} className="ml-auto hover:text-white transition-colors">cancel</button>
-                    </div>
-                    <p className="text-[#2a2a2a] text-xs">Requires Python 3 + pip. Script installs playwright automatically.</p>
-                  </div>
-                )}
-
-                {/* ── Server login in progress ── */}
+                {/* ── Logging in ── */}
                 {connectState === "logging_in" && (
                   <div className="flex flex-col items-center gap-4 py-6">
                     <div className="relative w-14 h-14">
