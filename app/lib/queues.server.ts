@@ -21,3 +21,4 @@ const connection = redisConnection();
 export const outreachQueue = new Queue("outreach", { connection });
 export const applyQueue    = new Queue("apply",    { connection });
 export const jobDiscoveryQueue = new Queue("job-discovery", { connection });
+export const linkedinLoginQueue = new Queue("linkedin-login", { connection });

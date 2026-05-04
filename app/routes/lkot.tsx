@@ -1,6 +1,6 @@
 "use client";
 // LinkedIn Outreach Test — /lkot
-// Option C connect flow: one click → LinkedIn tab opens → extension auto-captures → done.
+// Credentials-based server-side login via Patchright (primary) + manual cookie paste (fallback)
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Header } from "~/components/common/header";
@@ -8,13 +8,11 @@ import { Header } from "~/components/common/header";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type ConnectState =
-  | "idle"           // before anything
-  | "detecting"      // checking if extension installed (2s window)
-  | "no_extension"   // extension not found — show manual fallback
-  | "opening"        // background opened LinkedIn tab
-  | "waiting"        // polling backend for session
-  | "connected"      // session confirmed
-  | "error";         // something went wrong
+  | "idle"          // nothing started
+  | "logging_in"    // worker is filling LinkedIn credentials
+  | "awaiting_otp"  // 2FA triggered — waiting for user to enter code
+  | "connected"     // session confirmed
+  | "error";        // something went wrong
 
 interface SessionInfo {
   warmupDay?: number;
@@ -42,11 +40,17 @@ export default function LkotPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
-  const addLog = useCallback((text: string, type: LogEntry["type"] = "info") => {
-    setLogs((prev) => [...prev, { ts: nowStr(), text, type }]);
-  }, []);
+  // Credentials form
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [jobId, setJobId] = useState<string | null>(null);
 
-  // ── Step 2: campaign + leads ────────────────────────────────────────────────
+  // OTP form
+  const [otp, setOtp] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  // Step 2
   const [campaignId, setCampaignId] = useState("");
   const [campaignName, setCampaignName] = useState("LKOT Test Campaign");
   const [connectionNote, setConnectionNote] = useState(
@@ -59,145 +63,142 @@ export default function LkotPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
+  const addLog = useCallback((text: string, type: LogEntry["type"] = "info") => {
+    setLogs((prev) => [...prev, { ts: nowStr(), text, type }]);
+  }, []);
+
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [logs]);
 
-  // ── Extension detection ─────────────────────────────────────────────────────
+  // ── Poll login job status ─────────────────────────────────────────────────
 
-  function detectExtension(): Promise<boolean> {
-    return new Promise((resolve) => {
-      const timer = setTimeout(() => resolve(false), 2000);
-      function onMsg(e: MessageEvent) {
-        if (e.data?.type === "STUDOJO_EXTENSION_READY" || e.data?.type === "STUDOJO_STATUS_RESULT") {
-          clearTimeout(timer);
-          window.removeEventListener("message", onMsg);
-          resolve(true);
-        }
-      }
-      window.addEventListener("message", onMsg);
-      window.postMessage({ type: "STUDOJO_CHECK_STATUS" }, "*");
-    });
-  }
-
-  // ── Poll backend for session ────────────────────────────────────────────────
-
-  function startPolling() {
+  function startLoginPoll(jid: string) {
     if (pollRef.current) clearInterval(pollRef.current);
     let attempts = 0;
-    const MAX = 90; // 3 min @ 2s
+    const MAX = 150; // 5 min @ 2s
 
     pollRef.current = setInterval(async () => {
       attempts++;
       if (attempts > MAX) {
         clearInterval(pollRef.current!);
         setConnectState("error");
-        setErrorMsg("Timed out after 3 minutes. Did the extension fire?");
-        addLog("Polling timed out", "error");
+        setErrorMsg("Login timed out after 5 minutes.");
+        addLog("Login polling timed out", "error");
         return;
       }
 
       try {
-        const res = await fetch("/api/autoapply/session/status");
-        if (res.status === 401) {
-          clearInterval(pollRef.current!);
-          setConnectState("error");
-          setErrorMsg("Not logged in to Studojo. Sign in first.");
-          addLog("Not authenticated", "error");
+        const res = await fetch(`/api/autoapply/linkedin-login/status?jobId=${jid}`);
+        if (!res.ok) {
+          if (res.status === 401) {
+            clearInterval(pollRef.current!);
+            setConnectState("error");
+            setErrorMsg("Not logged into Studojo — sign in first.");
+          }
           return;
         }
         const data = await res.json();
-        if (data.connected) {
+
+        if (data.status === "awaiting_otp") {
           clearInterval(pollRef.current!);
-          setSessionInfo({ warmupDay: data.warmupDay, proxyCountry: data.proxyCountry, cookieAgeDays: data.cookieAgeDays });
-          setConnectState("connected");
-          addLog(`Connected — warmup day ${data.warmupDay ?? 0}, proxy ${data.proxyCountry ?? "IN"}`, "success");
-        } else {
-          if (attempts % 5 === 0) addLog(`Still waiting… (${attempts * 2}s)`, "poll");
+          setConnectState("awaiting_otp");
+          addLog("2FA required — check your phone/email for a code.", "info");
+          return;
         }
+
+        if (data.status === "success") {
+          clearInterval(pollRef.current!);
+          // Fetch session info
+          const sess = await fetch("/api/autoapply/session/status").then((r) => r.json()).catch(() => ({}));
+          setSessionInfo({ warmupDay: sess.warmupDay, proxyCountry: sess.proxyCountry, cookieAgeDays: sess.cookieAgeDays });
+          setConnectState("connected");
+          addLog("LinkedIn connected — cookies captured and encrypted.", "success");
+          return;
+        }
+
+        if (data.status === "failed") {
+          clearInterval(pollRef.current!);
+          setConnectState("error");
+          setErrorMsg(data.error ?? "Login failed. Check your credentials.");
+          addLog(`Login failed: ${data.error}`, "error");
+          return;
+        }
+
+        if (attempts % 5 === 0) addLog(`Logging in… (${attempts * 2}s)`, "poll");
       } catch {
-        // network hiccup — keep polling
+        // transient error — keep polling
       }
     }, 2000);
   }
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
-  // ── Extension push notifications ────────────────────────────────────────────
-
-  useEffect(() => {
-    function onMsg(e: MessageEvent) {
-      if (e.data?.type === "STUDOJO_SESSION_CAPTURED") {
-        addLog("Extension: session captured!", "success");
-      }
-      if (e.data?.type === "STUDOJO_SESSION_CAPTURE_FAILED") {
-        const err = e.data.error as string;
-        const msg =
-          err === "not_logged_in_linkedin" ? "Not logged into LinkedIn — log in first."
-          : err === "not_logged_in_studojo" ? "Not logged into Studojo — sign in first."
-          : `Extension error: ${err}`;
-        setErrorMsg(msg);
-        setConnectState("error");
-        addLog(msg, "error");
-        if (pollRef.current) clearInterval(pollRef.current);
-      }
-    }
-    window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
-  }, [addLog]);
-
   // ── Connect handler ─────────────────────────────────────────────────────────
 
-  async function handleConnect() {
-    setConnectState("detecting");
+  async function handleLogin() {
+    if (!email.trim() || !password.trim()) return;
+    setConnectState("logging_in");
     setErrorMsg("");
-    addLog("Checking for extension…", "info");
+    setJobId(null);
+    addLog(`Starting server-side login for ${email}…`);
 
-    const present = await detectExtension();
-
-    if (!present) {
-      setConnectState("no_extension");
-      addLog("Extension not found — showing manual fallback", "error");
-      return;
+    try {
+      const res = await fetch("/api/autoapply/linkedin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to start login");
+      setJobId(data.jobId);
+      addLog(`Job started — polling for result…`, "info");
+      startLoginPoll(data.jobId);
+    } catch (e: any) {
+      setConnectState("error");
+      setErrorMsg(e.message);
+      addLog(`Error: ${e.message}`, "error");
     }
+  }
 
-    addLog("Extension found. Opening LinkedIn…", "info");
-    setConnectState("opening");
-
-    window.postMessage({ type: "STUDOJO_OPEN_LINKEDIN" }, "*");
-
-    // Wait for tab-opened ack (or proceed after 3s fallback)
-    await new Promise<void>((resolve) => {
-      const t = setTimeout(resolve, 3000);
-      function onAck(e: MessageEvent) {
-        if (e.data?.type === "STUDOJO_LINKEDIN_OPENED") {
-          clearTimeout(t);
-          window.removeEventListener("message", onAck);
-          resolve();
-        }
-      }
-      window.addEventListener("message", onAck);
-    });
-
-    addLog("LinkedIn tab opened. Polling for session…", "info");
-    setConnectState("waiting");
-    startPolling();
+  async function handleOtpSubmit() {
+    if (!otp.trim() || !jobId) return;
+    setOtpLoading(true);
+    addLog(`Submitting OTP…`);
+    try {
+      const res = await fetch("/api/autoapply/linkedin-login/otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId, otp: otp.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to submit OTP");
+      addLog("OTP submitted — completing login…", "info");
+      setConnectState("logging_in");
+      startLoginPoll(jobId);
+    } catch (e: any) {
+      addLog(`OTP error: ${e.message}`, "error");
+    } finally {
+      setOtpLoading(false);
+      setOtp("");
+    }
   }
 
   function handleRetry() {
     setConnectState("idle");
     setErrorMsg("");
+    setJobId(null);
+    setOtp("");
     if (pollRef.current) clearInterval(pollRef.current);
   }
 
-  // ── Step 2: campaign + leads ────────────────────────────────────────────────
+  // ── Step 2 ────────────────────────────────────────────────────────────────
 
   async function handleLaunch() {
     setStep2Loading(true);
     addLog("Setting up campaign…", "info");
     try {
       let cid = campaignId;
-
       if (!cid) {
         const res = await fetch("/api/autoapply/campaigns", {
           method: "POST",
@@ -229,7 +230,6 @@ export default function LkotPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Lead injection failed");
-
       setStep2Result({ queued: data.queued, skipped: data.skipped });
       addLog(`Leads queued: ${data.queued}, skipped: ${data.skipped}`, "success");
     } catch (e: any) {
@@ -242,6 +242,7 @@ export default function LkotPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   const inputCls = "w-full bg-[#0d0d0d] border border-[#222] rounded-lg px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#555]";
+  const connected = connectState === "connected";
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-satoshi">
@@ -260,10 +261,10 @@ export default function LkotPage() {
             <div className="border border-[#1e1e1e] rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-[#1a1a1a] flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <StepBadge n={1} done={connectState === "connected"} />
+                  <StepBadge n={1} done={connected} />
                   <span className="text-sm font-medium">Connect LinkedIn</span>
                 </div>
-                {connectState === "connected" && sessionInfo && (
+                {connected && sessionInfo && (
                   <div className="flex items-center gap-3 text-xs text-[#444]">
                     {sessionInfo.proxyCountry && <span>proxy {sessionInfo.proxyCountry}</span>}
                     <span>day {sessionInfo.warmupDay ?? 0}/15</span>
@@ -273,33 +274,67 @@ export default function LkotPage() {
               </div>
 
               <div className="px-5 py-6">
+
+                {/* ── Idle: credentials form ── */}
                 {connectState === "idle" && (
-                  <div className="flex flex-col items-center gap-4 py-2">
-                    <p className="text-[#555] text-sm text-center max-w-xs">
-                      We'll open LinkedIn in a new tab. The extension captures your session automatically — nothing to copy.
+                  <div className="space-y-4 max-w-sm">
+                    <p className="text-[#555] text-sm">
+                      Enter your LinkedIn credentials. We log in server-side and capture your session — nothing is stored in plain text.
                     </p>
+                    <div>
+                      <label className="text-xs text-[#555] block mb-1">LinkedIn email</label>
+                      <input
+                        type="email"
+                        className={inputCls}
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-[#555] block mb-1">Password</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          className={`${inputCls} pr-10`}
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white transition-colors text-xs"
+                        >
+                          {showPassword ? "hide" : "show"}
+                        </button>
+                      </div>
+                    </div>
                     <button
-                      onClick={handleConnect}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] text-white rounded-lg text-sm font-medium transition-colors"
+                      onClick={handleLogin}
+                      disabled={!email.trim() || !password.trim()}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white rounded-lg text-sm font-medium transition-colors"
                     >
                       <LinkedInIcon /> Connect LinkedIn
                     </button>
-                    <p className="text-[#333] text-xs">
-                      Requires the{" "}
-                      <a href="/install-extension" className="underline hover:text-white">Studojo extension</a>
-                    </p>
+                    <div className="border-t border-[#1a1a1a] pt-4">
+                      <p className="text-[#333] text-xs mb-2">Or paste cookies manually</p>
+                      <ManualSessionForm
+                        onSuccess={() => {
+                          setConnectState("connected");
+                          addLog("Session saved manually", "success");
+                        }}
+                        addLog={addLog}
+                      />
+                    </div>
                   </div>
                 )}
 
-                {(connectState === "detecting" || connectState === "opening") && (
-                  <div className="flex items-center justify-center gap-3 py-6 text-[#666] text-sm">
-                    <Spinner />
-                    {connectState === "detecting" ? "Checking for extension…" : "Opening LinkedIn tab…"}
-                  </div>
-                )}
-
-                {connectState === "waiting" && (
-                  <div className="flex flex-col items-center gap-4 py-4">
+                {/* ── Logging in ── */}
+                {connectState === "logging_in" && (
+                  <div className="flex flex-col items-center gap-4 py-6">
                     <div className="relative w-14 h-14">
                       <div className="absolute inset-0 rounded-full bg-[#0a66c2]/10 border border-[#0a66c2]/20 flex items-center justify-center">
                         <LinkedInIcon size={22} />
@@ -307,14 +342,53 @@ export default function LkotPage() {
                       <div className="absolute inset-0 rounded-full border-2 border-[#0a66c2] border-t-transparent animate-spin" />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-white font-medium">Waiting for LinkedIn…</p>
-                      <p className="text-xs text-[#444] mt-1">Log in if prompted. Extension grabs cookies automatically.</p>
+                      <p className="text-sm text-white font-medium">Logging in…</p>
+                      <p className="text-xs text-[#444] mt-1">Our server is navigating LinkedIn on your behalf.</p>
                     </div>
                     <button onClick={handleRetry} className="text-xs text-[#444] hover:text-white transition-colors">cancel</button>
                   </div>
                 )}
 
-                {connectState === "connected" && (
+                {/* ── Awaiting OTP ── */}
+                {connectState === "awaiting_otp" && (
+                  <div className="flex flex-col items-center gap-5 py-4 max-w-xs mx-auto">
+                    <div className="w-12 h-12 rounded-full bg-[#fbbf24]/10 border border-[#fbbf24]/20 flex items-center justify-center text-xl">
+                      🔐
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-white font-medium">Two-factor verification</p>
+                      <p className="text-xs text-[#555] mt-1">LinkedIn sent a code to your phone or email. Enter it below.</p>
+                    </div>
+                    <div className="w-full">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className={`${inputCls} text-center text-xl tracking-widest font-mono`}
+                        placeholder="000000"
+                        maxLength={8}
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                        onKeyDown={(e) => e.key === "Enter" && handleOtpSubmit()}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex gap-3 w-full">
+                      <button
+                        onClick={handleOtpSubmit}
+                        disabled={otp.length < 4 || otpLoading}
+                        className="flex-1 py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        {otpLoading ? "Submitting…" : "Submit code"}
+                      </button>
+                      <button onClick={handleRetry} className="px-3 py-2 border border-[#222] text-[#555] hover:text-white rounded-lg text-sm transition-colors">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Connected ── */}
+                {connected && (
                   <div className="flex flex-col items-center gap-3 py-2">
                     <div className="w-11 h-11 rounded-full bg-[#4ade80]/10 border border-[#4ade80]/20 flex items-center justify-center">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -330,24 +404,7 @@ export default function LkotPage() {
                   </div>
                 )}
 
-                {connectState === "no_extension" && (
-                  <div className="space-y-4">
-                    <div className="p-3 bg-[#1a1200] border border-[#3a2800] rounded-lg flex items-start gap-2">
-                      <span className="text-[#fbbf24] text-xs mt-0.5">⚠</span>
-                      <div>
-                        <p className="text-[#fbbf24] text-xs font-medium">Extension not detected</p>
-                        <p className="text-[#666] text-xs mt-0.5">
-                          <a href="/install-extension" className="underline hover:text-white">Install it</a> then refresh, or paste cookies manually.
-                        </p>
-                      </div>
-                    </div>
-                    <ManualSessionForm
-                      onSuccess={() => { setConnectState("connected"); addLog("Session saved manually", "success"); }}
-                      addLog={addLog}
-                    />
-                  </div>
-                )}
-
+                {/* ── Error ── */}
                 {connectState === "error" && (
                   <div className="space-y-3">
                     <div className="p-3 bg-[#1a0000] border border-[#3a0000] rounded-lg flex items-start gap-2">
@@ -357,11 +414,12 @@ export default function LkotPage() {
                     <button onClick={handleRetry} className="text-xs text-[#555] hover:text-white transition-colors">← Try again</button>
                   </div>
                 )}
+
               </div>
             </div>
 
             {/* ── Step 2 ── */}
-            <div className={`border border-[#1e1e1e] rounded-xl overflow-hidden transition-opacity duration-200 ${connectState !== "connected" ? "opacity-30 pointer-events-none select-none" : ""}`}>
+            <div className={`border border-[#1e1e1e] rounded-xl overflow-hidden transition-opacity duration-200 ${!connected ? "opacity-30 pointer-events-none select-none" : ""}`}>
               <div className="px-5 py-4 border-b border-[#1a1a1a] flex items-center gap-3">
                 <StepBadge n={2} done={!!step2Result} />
                 <span className="text-sm font-medium">Launch Campaign</span>
@@ -444,15 +502,6 @@ function StepBadge({ n, done }: { n: number; done: boolean }) {
   );
 }
 
-function Spinner() {
-  return (
-    <svg className="animate-spin shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" stroke="#2a2a2a" strokeWidth="3"/>
-      <path d="M12 2a10 10 0 0 1 10 10" stroke="#666" strokeWidth="3" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
 function LinkedInIcon({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -492,17 +541,17 @@ function ManualSessionForm({ onSuccess, addLog }: { onSuccess: () => void; addLo
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div>
-        <label className="text-xs text-[#555] block mb-1">li_at *</label>
-        <textarea className={`${inputCls} h-14 resize-none`} placeholder="AQEDATxxxxxxx…" value={liAt} onChange={(e) => setLiAt(e.target.value)} />
+        <label className="text-xs text-[#444] block mb-1">li_at *</label>
+        <textarea className={`${inputCls} h-12 resize-none`} placeholder="AQEDATxxxxxxx…" value={liAt} onChange={(e) => setLiAt(e.target.value)} />
       </div>
       <div>
-        <label className="text-xs text-[#555] block mb-1">JSESSIONID (optional)</label>
+        <label className="text-xs text-[#444] block mb-1">JSESSIONID (optional)</label>
         <input className={inputCls} placeholder='"ajax:123456789"' value={jsessionId} onChange={(e) => setJsessionId(e.target.value)} />
       </div>
       {error && <p className="text-[#f87171] text-xs">{error}</p>}
-      <button onClick={submit} disabled={loading} className="px-3 py-1.5 border border-[#333] text-white text-xs rounded-lg hover:border-[#555] transition-colors disabled:opacity-40">
+      <button onClick={submit} disabled={loading} className="px-3 py-1.5 border border-[#333] text-[#888] text-xs rounded-lg hover:border-[#555] hover:text-white transition-colors disabled:opacity-40">
         {loading ? "Saving…" : "Save manually"}
       </button>
     </div>

@@ -20,7 +20,9 @@ import {
   outreachQueue,
   applyQueue,
   jobDiscoveryQueue,
+  linkedinLoginQueue,
 } from "~/lib/queues.server";
+import { runLinkedinLogin } from "./linkedin-login-worker";
 
 // ── Redis connection (worker-only — for maintenanceQueue + Workers) ───────────
 
@@ -43,7 +45,7 @@ const connection = redisOpts();
 // outreachQueue / applyQueue / jobDiscoveryQueue imported from queues.server
 // (shared with web app so API routes can enqueue directly)
 
-export { outreachQueue, applyQueue, jobDiscoveryQueue };
+export { outreachQueue, applyQueue, jobDiscoveryQueue, linkedinLoginQueue };
 export const maintenanceQueue = new Queue("maintenance", { connection });
 
 // ── Workers ───────────────────────────────────────────────────────────────────
@@ -95,6 +97,16 @@ const outreachWorker = new Worker(
     return result;
   },
   { connection, concurrency: 1 } // sequential for safety
+);
+
+const linkedinLoginWorker = new Worker(
+  "linkedin-login",
+  async (job) => {
+    const { jobId, userId, email, password } = job.data;
+    console.log(`[worker] linkedin-login job ${jobId} for user ${userId}`);
+    await runLinkedinLogin(jobId, userId, email, password);
+  },
+  { connection, concurrency: 2 }
 );
 
 const maintenanceWorker = new Worker(
@@ -230,7 +242,7 @@ async function incrementAllWarmupDays() {
 
 // ── Error handling ────────────────────────────────────────────────────────────
 
-for (const worker of [discoveryWorker, applyWorker, outreachWorker, maintenanceWorker]) {
+for (const worker of [discoveryWorker, applyWorker, outreachWorker, linkedinLoginWorker, maintenanceWorker]) {
   worker.on("failed", (job, err) => {
     console.error(`[worker] ${worker.name} job ${job?.id} failed:`, err?.message, err?.stack?.split("\n")[1]);
     logEvent("worker_error", job?.data?.userId ?? null, {
