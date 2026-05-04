@@ -3,7 +3,19 @@ import { useSearchParams, useNavigate } from "react-router";
 import { verifyDodoPayment } from "~/lib/payments";
 import { outreachFetch } from "~/lib/outreach/api";
 import { capturePostHog } from "~/lib/posthog";
-import { Loader2, CheckCircle, XCircle, Clock } from "lucide-react";
+// Inline SVG replacements for lucide-react icons (not installed)
+const Loader2 = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+);
+const CheckCircle = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+);
+const XCircle = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+);
+const Clock = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+);
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
