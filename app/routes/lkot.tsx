@@ -4,6 +4,9 @@
 //                 (2) server-side Patchright — credentials login
 //                 (3) manual cookie paste — fallback
 
+import { redirect } from "react-router";
+import { getSessionFromRequest } from "~/lib/onboarding.server";
+import type { Route } from "./+types/lkot";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Header } from "~/components/common/header";
 
@@ -30,6 +33,14 @@ interface LogEntry {
 
 function nowStr() {
   return new Date().toLocaleTimeString("en-GB", { hour12: false });
+}
+
+// ── Auth guard ────────────────────────────────────────────────────────────────
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSessionFromRequest(request);
+  if (!session) throw redirect("/auth?redirect=/lkot");
+  return null;
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
