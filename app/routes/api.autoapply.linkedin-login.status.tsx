@@ -23,6 +23,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return Response.json({
     status: state.status,
+    tfaType: state.tfaType ?? null,
     error: state.error ?? null,
   });
 }

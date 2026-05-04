@@ -14,7 +14,8 @@ const REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? "";
 const JOB_TTL = 600; // 10 min in seconds
 
 export interface LoginJobState {
-  status: "pending" | "logging_in" | "awaiting_otp" | "success" | "failed";
+  status: "pending" | "logging_in" | "awaiting_otp" | "awaiting_app_push" | "success" | "failed";
+  tfaType?: "otp" | "app_push";
   error?: string;
   userId: string;
 }
@@ -126,56 +127,93 @@ export async function runLinkedinLogin(jobId: string, userId: string, email: str
     }
 
     // ── 2FA / checkpoint detection ────────────────────────────────────────
-    // LinkedIn may redirect to a checkpoint URL OR inject a PIN field inline
-    // on the same /login page without a navigation.
-    const needs2fa =
+    const on2faPage =
       url.includes("/checkpoint") ||
       url.includes("/challenge") ||
       url.includes("/two-step-verification") ||
       url.includes("/uas/login-submit") ||
       (await page.$("input[name='pin'], input[id*='verification_pin'], input[autocomplete='one-time-code']") !== null);
 
-    if (needs2fa) {
-      await setState(jobId, { status: "awaiting_otp" });
-
-      const otp = await waitForOtp(jobId, 300_000); // 5-min window
-      if (!otp) {
-        await setState(jobId, { status: "failed", error: "OTP timeout — user did not enter code" });
-        await closeBrowser();
-        return;
-      }
-
-      // LinkedIn OTP input can appear under several selectors depending on flow
-      const otpInput = page.locator([
+    if (on2faPage) {
+      // ── Determine 2FA type ──────────────────────────────────────────────
+      // App push: LinkedIn shows "We sent a notification to your LinkedIn app"
+      // with no PIN input field present. SMS/email: PIN input is present.
+      const pinInput = await page.$([
         "input[name='pin']",
         "input[id*='verification_pin']",
         "input[id*='input__phone_verification']",
         "input[autocomplete='one-time-code']",
-        "input[aria-label*='verification']",
         "input[aria-label*='PIN']",
-      ].join(", ")).first();
+      ].join(", "));
 
-      await otpInput.waitFor({ state: "visible", timeout: 10_000 });
-      await otpInput.fill(otp);
+      const isAppPush = !pinInput;
 
-      // Try submit button first; fall back to Enter
-      const submitBtn = page.locator("button[type='submit'], button[aria-label*='Submit'], button[data-litms-control-urn*='submit']").first();
-      const btnVisible = await submitBtn.isVisible().catch(() => false);
-      if (btnVisible) {
-        await submitBtn.click();
+      if (isAppPush) {
+        // ── App push: tell frontend to show "check your app" UI ──────────
+        await setState(jobId, { status: "awaiting_app_push", tfaType: "app_push" });
+
+        // Poll the page until LinkedIn redirects to feed (user approved on phone)
+        // or timeout after 5 minutes
+        const deadline = Date.now() + 300_000;
+        let approved = false;
+        while (Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 3000));
+          const currentUrl = page.url();
+          if (
+            currentUrl.includes("linkedin.com/feed") ||
+            currentUrl.includes("linkedin.com/mynetwork") ||
+            currentUrl.includes("linkedin.com/in/")
+          ) {
+            approved = true;
+            break;
+          }
+        }
+
+        if (!approved) {
+          await setState(jobId, { status: "failed", error: "App push timed out — request was not approved on the LinkedIn mobile app." });
+          await closeBrowser();
+          return;
+        }
       } else {
-        await page.keyboard.press("Enter");
-      }
+        // ── SMS / email OTP: wait for user to submit code ─────────────────
+        await setState(jobId, { status: "awaiting_otp", tfaType: "otp" });
 
-      await page.waitForLoadState("domcontentloaded", { timeout: 15_000 });
+        const otp = await waitForOtp(jobId, 300_000);
+        if (!otp) {
+          await setState(jobId, { status: "failed", error: "OTP timed out — code was not entered in time." });
+          await closeBrowser();
+          return;
+        }
 
-      // Check if OTP was rejected
-      const otpError = await page.$(".alert-content, [data-test-id='error-for-pin'], .form__label--error");
-      if (otpError) {
-        const msg = await otpError.textContent();
-        await setState(jobId, { status: "failed", error: msg?.trim() ?? "OTP rejected by LinkedIn" });
-        await closeBrowser();
-        return;
+        const otpLocator = page.locator([
+          "input[name='pin']",
+          "input[id*='verification_pin']",
+          "input[id*='input__phone_verification']",
+          "input[autocomplete='one-time-code']",
+          "input[aria-label*='verification']",
+          "input[aria-label*='PIN']",
+        ].join(", ")).first();
+
+        await otpLocator.waitFor({ state: "visible", timeout: 10_000 });
+        await otpLocator.fill(otp);
+
+        const submitBtn = page.locator("button[type='submit'], button[aria-label*='Submit']").first();
+        const btnVisible = await submitBtn.isVisible().catch(() => false);
+        if (btnVisible) {
+          await submitBtn.click();
+        } else {
+          await page.keyboard.press("Enter");
+        }
+
+        await page.waitForLoadState("domcontentloaded", { timeout: 15_000 });
+
+        const otpError = await page.$(".alert-content, [data-test-id='error-for-pin'], .form__label--error");
+        if (otpError) {
+          const msg = await otpError.textContent();
+          await setState(jobId, { status: "failed", error: msg?.trim() ?? "OTP rejected by LinkedIn" });
+          await closeBrowser();
+          return;
+        }
       }
     }
 

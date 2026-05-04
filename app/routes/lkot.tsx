@@ -22,12 +22,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 type ConnectState =
   | "idle"
-  | "detecting"       // 2s window to check if extension is present
-  | "no_extension"    // extension not found
-  | "opening"         // extension opening LinkedIn tab
-  | "waiting"         // polling for session (extension flow)
-  | "logging_in"      // server-side Patchright
-  | "awaiting_otp"    // 2FA
+  | "detecting"
+  | "no_extension"
+  | "opening"
+  | "waiting"
+  | "logging_in"
+  | "awaiting_otp"       // SMS / email code
+  | "awaiting_app_push"  // LinkedIn mobile app push
   | "connected"
   | "error";
 
@@ -139,6 +140,14 @@ export default function LkotPage() {
         const res = await fetch(`/api/autoapply/linkedin-login/status?jobId=${jid}`);
         if (!res.ok) return;
         const data = await res.json();
+        if (data.status === "awaiting_app_push") {
+          clearInterval(pollRef.current!);
+          setConnectState("awaiting_app_push");
+          addLog("App push sent — approve the login on your LinkedIn mobile app.", "info");
+          // No user input needed — restart polling for success/failed
+          startLoginPoll(jid);
+          return;
+        }
         if (data.status === "awaiting_otp") {
           clearInterval(pollRef.current!);
           setConnectState("awaiting_otp");
@@ -456,6 +465,27 @@ export default function LkotPage() {
                       <p className="text-xs text-[#444] mt-1">Our server is navigating LinkedIn via residential proxy.</p>
                     </div>
                     <button onClick={handleRetry} className="text-xs text-[#444] hover:text-white transition-colors">cancel</button>
+                  </div>
+                )}
+
+                {connectState === "awaiting_app_push" && (
+                  <div className="flex flex-col items-center gap-5 py-6">
+                    <div className="relative w-16 h-16">
+                      <div className="absolute inset-0 rounded-2xl bg-[#0a66c2]/10 border border-[#0a66c2]/20 flex items-center justify-center text-2xl">
+                        📱
+                      </div>
+                      <div className="absolute inset-0 rounded-2xl border-2 border-[#0a66c2] border-t-transparent animate-spin" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Check your LinkedIn app</p>
+                      <p className="text-xs text-[#555] mt-1 max-w-[220px] mx-auto">
+                        LinkedIn sent a push notification to your mobile app. Open it and tap <strong className="text-white">Approve</strong>.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 text-[#444] text-xs">
+                      <Spinner /> Waiting for approval…
+                    </div>
+                    <button onClick={handleRetry} className="text-xs text-[#333] hover:text-white transition-colors">cancel</button>
                   </div>
                 )}
 
