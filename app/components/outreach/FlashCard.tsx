@@ -169,15 +169,36 @@ export function FlashCard({ lead }: FlashCardProps) {
             </div>
             {justification ? (
               <div className="space-y-1.5">
-                <p className="text-xs font-satoshi font-bold text-studojo-ink leading-snug line-clamp-2">
+                <p className="text-[11px] font-satoshi font-bold text-studojo-ink leading-snug line-clamp-2">
                   {justification.headline}
                 </p>
-                <p className="text-[11px] font-satoshi text-studojo-ink leading-relaxed line-clamp-4">
-                  {justification.fit_reason}
-                </p>
-                <p className="text-[10px] font-satoshi italic text-studojo-muted leading-relaxed line-clamp-2">
-                  {justification.talk_track}
-                </p>
+                {justification.bullets && justification.bullets.length > 0 ? (
+                  <ul className="space-y-1">
+                    {justification.bullets.slice(0, 3).map((b, i) => (
+                      <li
+                        key={i}
+                        className="text-[11px] font-satoshi text-studojo-ink leading-snug flex gap-1.5"
+                      >
+                        <span className="text-studojo-purple flex-shrink-0">•</span>
+                        <span className="line-clamp-2">{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  // Backwards-compat: old persisted schema with fit_reason + talk_track
+                  <>
+                    {justification.fit_reason && (
+                      <p className="text-[11px] font-satoshi text-studojo-ink leading-snug line-clamp-3">
+                        {justification.fit_reason}
+                      </p>
+                    )}
+                    {justification.talk_track && (
+                      <p className="text-[10px] font-satoshi italic text-studojo-muted leading-snug line-clamp-2">
+                        {justification.talk_track}
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
             ) : (
               <p className="text-xs font-satoshi text-studojo-ink leading-relaxed line-clamp-[7]">
