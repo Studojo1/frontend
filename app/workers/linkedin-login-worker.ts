@@ -116,8 +116,26 @@ export async function runLinkedinLogin(jobId: string, userId: string, email: str
 
     const url = page.url();
 
-    // ── 2FA / checkpoint ──────────────────────────────────────────────────
-    if (url.includes("/checkpoint") || url.includes("/challenge") || url.includes("/two-step-verification")) {
+    // ── Wrong password check (before 2FA) ────────────────────────────────
+    const errorEl = await page.$(".alert-content, #error-for-password, .form__label--error");
+    if (errorEl) {
+      const errText = await errorEl.textContent();
+      await setState(jobId, { status: "failed", error: errText?.trim() ?? "Login failed" });
+      await closeBrowser();
+      return;
+    }
+
+    // ── 2FA / checkpoint detection ────────────────────────────────────────
+    // LinkedIn may redirect to a checkpoint URL OR inject a PIN field inline
+    // on the same /login page without a navigation.
+    const needs2fa =
+      url.includes("/checkpoint") ||
+      url.includes("/challenge") ||
+      url.includes("/two-step-verification") ||
+      url.includes("/uas/login-submit") ||
+      (await page.$("input[name='pin'], input[id*='verification_pin'], input[autocomplete='one-time-code']") !== null);
+
+    if (needs2fa) {
       await setState(jobId, { status: "awaiting_otp" });
 
       const otp = await waitForOtp(jobId, 300_000); // 5-min window
@@ -127,20 +145,38 @@ export async function runLinkedinLogin(jobId: string, userId: string, email: str
         return;
       }
 
-      // Try to find OTP input and submit
-      const otpInput = page.locator("input[name='pin'], input[aria-label*='verification'], input[id*='input__phone_verification'], input[autocomplete='one-time-code']").first();
-      await otpInput.fill(otp, { timeout: 10_000 });
-      await page.keyboard.press("Enter");
-      await page.waitForLoadState("domcontentloaded", { timeout: 15_000 });
-    }
+      // LinkedIn OTP input can appear under several selectors depending on flow
+      const otpInput = page.locator([
+        "input[name='pin']",
+        "input[id*='verification_pin']",
+        "input[id*='input__phone_verification']",
+        "input[autocomplete='one-time-code']",
+        "input[aria-label*='verification']",
+        "input[aria-label*='PIN']",
+      ].join(", ")).first();
 
-    // ── Check for wrong password / error page ─────────────────────────────
-    const errorEl = await page.$(".alert-content, #error-for-password, .form__label--error");
-    if (errorEl) {
-      const errText = await errorEl.textContent();
-      await setState(jobId, { status: "failed", error: errText?.trim() ?? "Login failed" });
-      await closeBrowser();
-      return;
+      await otpInput.waitFor({ state: "visible", timeout: 10_000 });
+      await otpInput.fill(otp);
+
+      // Try submit button first; fall back to Enter
+      const submitBtn = page.locator("button[type='submit'], button[aria-label*='Submit'], button[data-litms-control-urn*='submit']").first();
+      const btnVisible = await submitBtn.isVisible().catch(() => false);
+      if (btnVisible) {
+        await submitBtn.click();
+      } else {
+        await page.keyboard.press("Enter");
+      }
+
+      await page.waitForLoadState("domcontentloaded", { timeout: 15_000 });
+
+      // Check if OTP was rejected
+      const otpError = await page.$(".alert-content, [data-test-id='error-for-pin'], .form__label--error");
+      if (otpError) {
+        const msg = await otpError.textContent();
+        await setState(jobId, { status: "failed", error: msg?.trim() ?? "OTP rejected by LinkedIn" });
+        await closeBrowser();
+        return;
+      }
     }
 
     // ── Confirm we're on the feed / home ──────────────────────────────────
