@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { FiMapPin, FiBriefcase, FiExternalLink } from "react-icons/fi";
 import { BsBuilding } from "react-icons/bs";
-import { ScoreGauge } from "./ScoreGauge";
-import type { Lead, LeadScore, LeadJustification } from "~/lib/outreach/types";
+import type { Lead, LeadJustification } from "~/lib/outreach/types";
 
 interface FlashCardProps {
   lead: Lead;
@@ -111,7 +110,6 @@ export function FlashCard({ lead }: FlashCardProps) {
                 <h3 className="text-sm font-bold text-studojo-ink truncate font-satoshi">{lead.name}</h3>
                 <p className="text-xs text-studojo-muted mt-0.5 truncate font-satoshi">{lead.title}</p>
               </div>
-              {lead.score && <ScoreGauge score={lead.score.overall} size={36} />}
             </div>
             <div className="flex flex-col gap-1 text-xs text-studojo-muted font-satoshi">
               <div className="flex items-center gap-1.5">
@@ -220,11 +218,6 @@ export function FlashCard({ lead }: FlashCardProps) {
               </a>
             ) : (
               <span />
-            )}
-            {lead.score && (
-              <span className="text-[10px] font-satoshi text-studojo-muted">
-                Match score: <span className="font-bold text-studojo-ink">{Math.round(lead.score.overall)}</span>
-              </span>
             )}
           </div>
         </div>
