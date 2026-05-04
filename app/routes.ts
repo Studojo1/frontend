@@ -159,4 +159,11 @@ export default [
   route("rsb", "routes/rsb.tsx"),
   route("rsb/drafts", "routes/rsb.drafts.tsx"),
   route("rsb/session/:id", "routes/rsb.session.$id.tsx"),
+
+  // ── LinkedIn Outreach Tool ────────────────────────────────────────
+  route("lkot", "routes/lkot.tsx"),
+  route("autoapply/outreach", "routes/autoapply.outreach.tsx"),
+  route("api/outreach/stats", "routes/api.outreach.stats.tsx"),
+  route("api/autoapply/leads", "routes/api.autoapply.leads.tsx"),
+  route("api/autoapply/poll-acceptances", "routes/api.autoapply.poll-acceptances.tsx"),
 ] satisfies RouteConfig;
