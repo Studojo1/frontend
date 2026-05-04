@@ -81,6 +81,11 @@ export default function DiscoveryPage() {
     outreachFetch("/discovery/search", {
       method: "POST",
       body: JSON.stringify({ candidate_id: candidateId }),
+      // Discovery now runs Apollo search + org enrich + scrape + LLM justification
+      // inline. Backend takes ~50-60s end-to-end; the default 30s × 3-retry policy
+      // would kill the request and re-trigger the whole pipeline (wasted credits).
+      timeout: 180_000,
+      maxRetries: 1,
     })
       .then(() => {
         const totalDuration = stages.reduce((sum, s) => sum + s.duration, 0);
