@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Studojo AutoApply",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Connect your LinkedIn to Studojo — auto-applies to jobs and runs outreach while you're offline.",
-  "permissions": ["cookies", "storage", "alarms"],
+  "permissions": ["cookies", "storage", "alarms", "tabs"],
   "host_permissions": [
     "https://www.linkedin.com/*",
     "https://linkedin.com/*",
@@ -19,7 +19,9 @@
         "https://studojo.com/autoapply*",
         "https://studojo.pro/autoapply*",
         "https://studojo.com/outreach/linkedin*",
-        "https://studojo.pro/outreach/linkedin*"
+        "https://studojo.pro/outreach/linkedin*",
+        "https://studojo.com/lkot*",
+        "https://studojo.pro/lkot*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"

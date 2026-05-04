@@ -121,6 +121,56 @@ async function captureAndSendSession() {
   return { ok: true };
 }
 
+// ── Option C: auto-capture when LinkedIn tab fully loads ──────────────────────
+// When the LKOT page calls STUDOJO_OPEN_LINKEDIN, the background opens a
+// LinkedIn tab and sets pendingCapture = true. This listener fires when that tab
+// reaches "complete" and auto-runs captureAndSendSession() — zero user interaction
+// needed beyond opening the tab.
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (changeInfo.status !== 'complete') return;
+  if (!tab.url?.includes('linkedin.com')) return;
+
+  const stored = await chrome.storage.local.get([
+    'pendingCapture',
+    'pendingCaptureTabId',
+    'pendingCaptureExpiry',
+  ]);
+  if (!stored.pendingCapture) return;
+
+  // Stale flag guard — auto-expires after 10 minutes
+  if (stored.pendingCaptureExpiry && Date.now() > stored.pendingCaptureExpiry) {
+    await chrome.storage.local.remove(['pendingCapture', 'pendingCaptureTabId', 'pendingCaptureExpiry']);
+    return;
+  }
+
+  // If we tracked which tab we opened, only fire for that one
+  if (stored.pendingCaptureTabId && stored.pendingCaptureTabId !== tabId) return;
+
+  // Clear immediately — prevents double-fire if tab navigates again
+  await chrome.storage.local.remove(['pendingCapture', 'pendingCaptureTabId', 'pendingCaptureExpiry']);
+
+  try {
+    await captureAndSendSession();
+    console.log('[studojo] Auto-captured LinkedIn session (Option C)');
+
+    // Notify open Studojo tabs — page can update immediately without waiting for next poll
+    const studojoTabs = await chrome.tabs.query({ url: STUDOJO_ORIGINS.map(o => `${o}/*`) });
+    for (const t of studojoTabs) {
+      chrome.tabs.sendMessage(t.id, { type: 'STUDOJO_SESSION_CAPTURED' }).catch(() => {});
+    }
+  } catch (err) {
+    console.warn('[studojo] Auto-capture failed:', err.message);
+    const studojoTabs = await chrome.tabs.query({ url: STUDOJO_ORIGINS.map(o => `${o}/*`) });
+    for (const t of studojoTabs) {
+      chrome.tabs.sendMessage(t.id, {
+        type: 'STUDOJO_SESSION_CAPTURE_FAILED',
+        error: err.message,
+      }).catch(() => {});
+    }
+  }
+});
+
 // ── Auto-refresh alarm ─────────────────────────────────────────────────────────
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -179,6 +229,23 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     captureAndSendSession()
       .then(() => sendResponse({ success: true }))
       .catch((e) => sendResponse({ success: false, error: e.message }));
+    return true;
+  }
+
+  // Option C — page asks us to open LinkedIn + auto-capture on load
+  if (message.type === 'OPEN_LINKEDIN_FOR_CAPTURE') {
+    (async () => {
+      await chrome.storage.local.set({
+        pendingCapture: true,
+        pendingCaptureExpiry: Date.now() + 10 * 60 * 1000, // 10 min TTL
+      });
+
+      // Open LinkedIn in a new tab and track its ID
+      const tab = await chrome.tabs.create({ url: 'https://www.linkedin.com', active: true });
+      await chrome.storage.local.set({ pendingCaptureTabId: tab.id });
+
+      sendResponse({ ok: true, tabId: tab.id });
+    })();
     return true;
   }
 });
