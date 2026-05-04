@@ -1,18 +1,20 @@
 "use client";
 // LinkedIn Outreach Test — /lkot
-// Credentials-based server-side login via Patchright (primary) + manual cookie paste (fallback)
+// Connect options: (1) local Python script — real browser, real IP
+//                 (2) server-side Patchright — credentials login
+//                 (3) manual cookie paste — fallback
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Header } from "~/components/common/header";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 type ConnectState =
-  | "idle"          // nothing started
-  | "logging_in"    // worker is filling LinkedIn credentials
-  | "awaiting_otp"  // 2FA triggered — waiting for user to enter code
-  | "connected"     // session confirmed
-  | "error";        // something went wrong
+  | "idle"
+  | "generating_token"   // fetching one-time token
+  | "awaiting_script"    // script shown, polling for completion
+  | "logging_in"         // server-side Patchright running
+  | "awaiting_otp"       // 2FA triggered
+  | "connected"
+  | "error";
 
 interface SessionInfo {
   warmupDay?: number;
@@ -26,8 +28,6 @@ interface LogEntry {
   type: "info" | "success" | "error" | "poll";
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function nowStr() {
   return new Date().toLocaleTimeString("en-GB", { hour12: false });
 }
@@ -40,13 +40,18 @@ export default function LkotPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
-  // Credentials form
+  // Local script flow
+  const [scriptCommand, setScriptCommand] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  // Server-side login flow
+  const [showServerLogin, setShowServerLogin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
 
-  // OTP form
+  // OTP
   const [otp, setOtp] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
 
@@ -71,76 +76,132 @@ export default function LkotPage() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [logs]);
 
-  // ── Poll login job status ─────────────────────────────────────────────────
+  // ── Poll session status (used by both flows) ──────────────────────────────
 
-  function startLoginPoll(jid: string) {
+  function startSessionPoll(maxSeconds = 300) {
     if (pollRef.current) clearInterval(pollRef.current);
     let attempts = 0;
-    const MAX = 150; // 5 min @ 2s
+    const MAX = maxSeconds / 2;
 
     pollRef.current = setInterval(async () => {
       attempts++;
       if (attempts > MAX) {
         clearInterval(pollRef.current!);
         setConnectState("error");
-        setErrorMsg("Login timed out after 5 minutes.");
-        addLog("Login polling timed out", "error");
+        setErrorMsg("Timed out. Run the command again or try another method.");
+        addLog("Polling timed out", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/autoapply/session/status");
+        if (res.status === 401) {
+          clearInterval(pollRef.current!);
+          setConnectState("error");
+          setErrorMsg("Not logged into Studojo.");
+          return;
+        }
+        const data = await res.json();
+        if (data.connected) {
+          clearInterval(pollRef.current!);
+          setSessionInfo({ warmupDay: data.warmupDay, proxyCountry: data.proxyCountry, cookieAgeDays: data.cookieAgeDays });
+          setConnectState("connected");
+          addLog("Session confirmed — cookies encrypted and stored.", "success");
+        } else if (attempts % 5 === 0) {
+          addLog(`Waiting… (${attempts * 2}s)`, "poll");
+        }
+      } catch {
+        // transient — keep polling
+      }
+    }, 2000);
+  }
+
+  // ── Poll login job status (server-side Patchright) ────────────────────────
+
+  function startLoginPoll(jid: string) {
+    if (pollRef.current) clearInterval(pollRef.current);
+    let attempts = 0;
+    const MAX = 150;
+
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      if (attempts > MAX) {
+        clearInterval(pollRef.current!);
+        setConnectState("error");
+        setErrorMsg("Login timed out.");
         return;
       }
 
       try {
         const res = await fetch(`/api/autoapply/linkedin-login/status?jobId=${jid}`);
-        if (!res.ok) {
-          if (res.status === 401) {
-            clearInterval(pollRef.current!);
-            setConnectState("error");
-            setErrorMsg("Not logged into Studojo — sign in first.");
-          }
-          return;
-        }
+        if (!res.ok) return;
         const data = await res.json();
 
         if (data.status === "awaiting_otp") {
           clearInterval(pollRef.current!);
           setConnectState("awaiting_otp");
-          addLog("2FA required — check your phone/email for a code.", "info");
+          addLog("2FA required — enter the code LinkedIn sent you.", "info");
           return;
         }
-
         if (data.status === "success") {
           clearInterval(pollRef.current!);
-          // Fetch session info
           const sess = await fetch("/api/autoapply/session/status").then((r) => r.json()).catch(() => ({}));
           setSessionInfo({ warmupDay: sess.warmupDay, proxyCountry: sess.proxyCountry, cookieAgeDays: sess.cookieAgeDays });
           setConnectState("connected");
-          addLog("LinkedIn connected — cookies captured and encrypted.", "success");
+          addLog("Logged in — cookies captured and encrypted.", "success");
           return;
         }
-
         if (data.status === "failed") {
           clearInterval(pollRef.current!);
           setConnectState("error");
-          setErrorMsg(data.error ?? "Login failed. Check your credentials.");
+          setErrorMsg(data.error ?? "Login failed.");
           addLog(`Login failed: ${data.error}`, "error");
           return;
         }
-
         if (attempts % 5 === 0) addLog(`Logging in… (${attempts * 2}s)`, "poll");
-      } catch {
-        // transient error — keep polling
-      }
+      } catch { /* keep polling */ }
     }, 2000);
   }
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
-  // ── Connect handler ─────────────────────────────────────────────────────────
+  // ── Option 1: local script ────────────────────────────────────────────────
 
-  async function handleLogin() {
+  async function handleLocalScript() {
+    setConnectState("generating_token");
+    setErrorMsg("");
+    addLog("Generating one-time capture token…");
+
+    try {
+      const res = await fetch("/api/autoapply/capture-token", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to generate token");
+
+      const scriptUrl = `${window.location.origin}/api/autoapply/local-capture-script?token=${data.token}`;
+      const cmd = `python3 <(curl -fsSL '${scriptUrl}')`;
+      setScriptCommand(cmd);
+      setConnectState("awaiting_script");
+      addLog("Token generated. Waiting for script to complete…", "info");
+      startSessionPoll(1800); // 30-min window
+    } catch (e: any) {
+      setConnectState("error");
+      setErrorMsg(e.message);
+      addLog(`Error: ${e.message}`, "error");
+    }
+  }
+
+  async function copyCommand() {
+    await navigator.clipboard.writeText(scriptCommand);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  // ── Option 2: server-side login ───────────────────────────────────────────
+
+  async function handleServerLogin() {
     if (!email.trim() || !password.trim()) return;
     setConnectState("logging_in");
     setErrorMsg("");
-    setJobId(null);
     addLog(`Starting server-side login for ${email}…`);
 
     try {
@@ -152,7 +213,7 @@ export default function LkotPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to start login");
       setJobId(data.jobId);
-      addLog(`Job started — polling for result…`, "info");
+      addLog("Job started — polling…", "info");
       startLoginPoll(data.jobId);
     } catch (e: any) {
       setConnectState("error");
@@ -164,7 +225,7 @@ export default function LkotPage() {
   async function handleOtpSubmit() {
     if (!otp.trim() || !jobId) return;
     setOtpLoading(true);
-    addLog(`Submitting OTP…`);
+    addLog("Submitting OTP…");
     try {
       const res = await fetch("/api/autoapply/linkedin-login/otp", {
         method: "POST",
@@ -172,7 +233,7 @@ export default function LkotPage() {
         body: JSON.stringify({ jobId, otp: otp.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to submit OTP");
+      if (!res.ok) throw new Error(data.error ?? "Failed");
       addLog("OTP submitted — completing login…", "info");
       setConnectState("logging_in");
       startLoginPoll(jobId);
@@ -189,6 +250,8 @@ export default function LkotPage() {
     setErrorMsg("");
     setJobId(null);
     setOtp("");
+    setScriptCommand("");
+    setShowServerLogin(false);
     if (pollRef.current) clearInterval(pollRef.current);
   }
 
@@ -231,7 +294,7 @@ export default function LkotPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Lead injection failed");
       setStep2Result({ queued: data.queued, skipped: data.skipped });
-      addLog(`Leads queued: ${data.queued}, skipped: ${data.skipped}`, "success");
+      addLog(`Queued ${data.queued} leads`, "success");
     } catch (e: any) {
       addLog(`Error: ${e.message}`, "error");
     } finally {
@@ -251,7 +314,7 @@ export default function LkotPage() {
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-10">
           <h1 className="font-clash text-2xl font-semibold tracking-tight">LinkedIn Outreach — Test</h1>
-          <p className="text-[#555] text-sm mt-1">Connect your LinkedIn, then inject leads. Two steps.</p>
+          <p className="text-[#555] text-sm mt-1">Connect your LinkedIn, then inject leads.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
@@ -275,64 +338,117 @@ export default function LkotPage() {
 
               <div className="px-5 py-6">
 
-                {/* ── Idle: credentials form ── */}
+                {/* ── Idle ── */}
                 {connectState === "idle" && (
-                  <div className="space-y-4 max-w-sm">
-                    <p className="text-[#555] text-sm">
-                      Enter your LinkedIn credentials. We log in server-side and capture your session — nothing is stored in plain text.
-                    </p>
-                    <div>
-                      <label className="text-xs text-[#555] block mb-1">LinkedIn email</label>
-                      <input
-                        type="email"
-                        className={inputCls}
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                      />
+                  <div className="space-y-5">
+                    {/* Option 1 — local script (primary) */}
+                    <div className="border border-[#1e1e1e] rounded-xl p-4 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <span className="text-base mt-0.5">💻</span>
+                        <div>
+                          <p className="text-sm font-medium">Run on your machine <span className="text-[#4ade80] text-xs font-normal ml-1">recommended</span></p>
+                          <p className="text-xs text-[#555] mt-0.5">Opens a browser on your PC. Your real IP, zero server detection.</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleLocalScript}
+                        className="w-full py-2.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-[#e5e5e5] transition-colors"
+                      >
+                        Generate command →
+                      </button>
                     </div>
-                    <div>
-                      <label className="text-xs text-[#555] block mb-1">Password</label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          className={`${inputCls} pr-10`}
-                          placeholder="••••••••"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                        />
+
+                    {/* Option 2 — server login (secondary) */}
+                    {!showServerLogin ? (
+                      <button
+                        onClick={() => setShowServerLogin(true)}
+                        className="text-xs text-[#444] hover:text-white transition-colors"
+                      >
+                        Or log in with credentials (server-side) →
+                      </button>
+                    ) : (
+                      <div className="border border-[#1e1e1e] rounded-xl p-4 space-y-3">
+                        <div className="flex items-start gap-3">
+                          <span className="text-base mt-0.5">🖥</span>
+                          <div>
+                            <p className="text-sm font-medium">Server-side login</p>
+                            <p className="text-xs text-[#555] mt-0.5">We log in on our server via Patchright. Routes through residential proxy.</p>
+                          </div>
+                        </div>
+                        <input type="email" className={inputCls} placeholder="LinkedIn email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            className={`${inputCls} pr-14`}
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleServerLogin()}
+                          />
+                          <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">
+                            {showPassword ? "hide" : "show"}
+                          </button>
+                        </div>
                         <button
-                          type="button"
-                          onClick={() => setShowPassword((v) => !v)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white transition-colors text-xs"
+                          onClick={handleServerLogin}
+                          disabled={!email.trim() || !password.trim()}
+                          className="w-full py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
                         >
-                          {showPassword ? "hide" : "show"}
+                          Log in via server →
                         </button>
                       </div>
-                    </div>
-                    <button
-                      onClick={handleLogin}
-                      disabled={!email.trim() || !password.trim()}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <LinkedInIcon /> Connect LinkedIn
-                    </button>
-                    <div className="border-t border-[#1a1a1a] pt-4">
-                      <p className="text-[#333] text-xs mb-2">Or paste cookies manually</p>
-                      <ManualSessionForm
-                        onSuccess={() => {
-                          setConnectState("connected");
-                          addLog("Session saved manually", "success");
-                        }}
-                        addLog={addLog}
-                      />
-                    </div>
+                    )}
+
+                    {/* Option 3 — manual paste */}
+                    <details className="group">
+                      <summary className="text-xs text-[#333] hover:text-[#555] cursor-pointer transition-colors list-none">
+                        Paste cookies manually →
+                      </summary>
+                      <div className="mt-3">
+                        <ManualSessionForm
+                          onSuccess={() => { setConnectState("connected"); addLog("Session saved manually", "success"); }}
+                          addLog={addLog}
+                        />
+                      </div>
+                    </details>
                   </div>
                 )}
 
-                {/* ── Logging in ── */}
+                {/* ── Generating token ── */}
+                {connectState === "generating_token" && (
+                  <div className="flex items-center gap-3 py-6 text-[#666] text-sm">
+                    <Spinner /> Generating token…
+                  </div>
+                )}
+
+                {/* ── Script ready ── */}
+                {connectState === "awaiting_script" && (
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-2 p-3 bg-[#0a1a0a] border border-[#1a3a1a] rounded-lg">
+                      <span className="text-[#4ade80] text-xs mt-0.5">1.</span>
+                      <p className="text-[#aaa] text-xs">Open a terminal and paste this command. A browser window will open — log in and come back.</p>
+                    </div>
+                    <div className="relative">
+                      <pre className="bg-[#0d0d0d] border border-[#222] rounded-lg px-4 py-3 text-xs font-mono text-[#ccc] overflow-x-auto whitespace-pre-wrap break-all select-all">
+                        {scriptCommand}
+                      </pre>
+                      <button
+                        onClick={copyCommand}
+                        className="absolute top-2 right-2 px-2 py-1 bg-[#1a1a1a] hover:bg-[#2a2a2a] border border-[#333] rounded text-[10px] text-[#888] hover:text-white transition-colors"
+                      >
+                        {copied ? "✓ copied" : "copy"}
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-3 text-[#555] text-xs">
+                      <Spinner />
+                      Waiting for script to complete…
+                      <button onClick={handleRetry} className="ml-auto hover:text-white transition-colors">cancel</button>
+                    </div>
+                    <p className="text-[#2a2a2a] text-xs">Requires Python 3 + pip. Script installs playwright automatically.</p>
+                  </div>
+                )}
+
+                {/* ── Server login in progress ── */}
                 {connectState === "logging_in" && (
                   <div className="flex flex-col items-center gap-4 py-6">
                     <div className="relative w-14 h-14">
@@ -342,36 +458,32 @@ export default function LkotPage() {
                       <div className="absolute inset-0 rounded-full border-2 border-[#0a66c2] border-t-transparent animate-spin" />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-white font-medium">Logging in…</p>
-                      <p className="text-xs text-[#444] mt-1">Our server is navigating LinkedIn on your behalf.</p>
+                      <p className="text-sm font-medium">Logging in via server…</p>
+                      <p className="text-xs text-[#444] mt-1">Patchright is navigating LinkedIn through a residential proxy.</p>
                     </div>
                     <button onClick={handleRetry} className="text-xs text-[#444] hover:text-white transition-colors">cancel</button>
                   </div>
                 )}
 
-                {/* ── Awaiting OTP ── */}
+                {/* ── OTP ── */}
                 {connectState === "awaiting_otp" && (
                   <div className="flex flex-col items-center gap-5 py-4 max-w-xs mx-auto">
-                    <div className="w-12 h-12 rounded-full bg-[#fbbf24]/10 border border-[#fbbf24]/20 flex items-center justify-center text-xl">
-                      🔐
-                    </div>
+                    <div className="w-12 h-12 rounded-full bg-[#fbbf24]/10 border border-[#fbbf24]/20 flex items-center justify-center text-xl">🔐</div>
                     <div className="text-center">
-                      <p className="text-sm text-white font-medium">Two-factor verification</p>
-                      <p className="text-xs text-[#555] mt-1">LinkedIn sent a code to your phone or email. Enter it below.</p>
+                      <p className="text-sm font-medium">Two-factor code</p>
+                      <p className="text-xs text-[#555] mt-1">LinkedIn sent a code to your phone or email.</p>
                     </div>
-                    <div className="w-full">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className={`${inputCls} text-center text-xl tracking-widest font-mono`}
-                        placeholder="000000"
-                        maxLength={8}
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                        onKeyDown={(e) => e.key === "Enter" && handleOtpSubmit()}
-                        autoFocus
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      className={`${inputCls} text-center text-xl tracking-widest font-mono`}
+                      placeholder="000000"
+                      maxLength={8}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                      onKeyDown={(e) => e.key === "Enter" && handleOtpSubmit()}
+                      autoFocus
+                    />
                     <div className="flex gap-3 w-full">
                       <button
                         onClick={handleOtpSubmit}
@@ -432,12 +544,7 @@ export default function LkotPage() {
                 </div>
                 <div>
                   <label className="text-xs text-[#555] block mb-1">Connection note (max 300 chars)</label>
-                  <textarea
-                    className={`${inputCls} h-16 resize-none text-xs`}
-                    value={connectionNote}
-                    onChange={(e) => setConnectionNote(e.target.value)}
-                    maxLength={300}
-                  />
+                  <textarea className={`${inputCls} h-16 resize-none text-xs`} value={connectionNote} onChange={(e) => setConnectionNote(e.target.value)} maxLength={300} />
                   <p className="text-[#333] text-xs text-right mt-0.5">{connectionNote.length}/300</p>
                 </div>
                 <div>
@@ -449,17 +556,10 @@ export default function LkotPage() {
                     onChange={(e) => setLeadsRaw(e.target.value)}
                   />
                 </div>
-
                 {step2Result ? (
-                  <p className="text-[#4ade80] text-sm">
-                    ✓ Queued {step2Result.queued} leads{step2Result.skipped > 0 ? `, ${step2Result.skipped} already existed` : ""}
-                  </p>
+                  <p className="text-[#4ade80] text-sm">✓ Queued {step2Result.queued} leads{step2Result.skipped > 0 ? `, ${step2Result.skipped} already existed` : ""}</p>
                 ) : (
-                  <button
-                    onClick={handleLaunch}
-                    disabled={step2Loading}
-                    className="px-4 py-2 bg-white text-black rounded-lg text-sm font-medium hover:bg-[#e5e5e5] transition-colors disabled:opacity-40"
-                  >
+                  <button onClick={handleLaunch} disabled={step2Loading} className="px-4 py-2 bg-white text-black rounded-lg text-sm font-medium hover:bg-[#e5e5e5] transition-colors disabled:opacity-40">
                     {step2Loading ? "Launching…" : "Create + inject leads →"}
                   </button>
                 )}
@@ -499,6 +599,15 @@ function StepBadge({ n, done }: { n: number; done: boolean }) {
     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${done ? "bg-[#4ade80] text-black" : "bg-[#1a1a1a] text-[#555]"}`}>
       {done ? "✓" : n}
     </span>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg className="animate-spin shrink-0" width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="#2a2a2a" strokeWidth="3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="#666" strokeWidth="3" strokeLinecap="round"/>
+    </svg>
   );
 }
 
