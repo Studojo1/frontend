@@ -1,37 +1,14 @@
 "use client";
 // LinkedIn Outreach Test — /lkot
-// Connect options: (1) local Python script — real browser, real IP
-//                 (2) server-side Patchright — credentials login
-//                 (3) manual cookie paste — fallback
+// Primary: Chrome extension (Option C — opens LinkedIn tab, auto-captures)
+// Fallback: email + password (server-side Patchright)
+// Last resort: manual cookie paste
 
 import { redirect } from "react-router";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/lkot";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Header } from "~/components/common/header";
-
-type ConnectState =
-  | "idle"
-  | "logging_in"
-  | "awaiting_otp"
-  | "connected"
-  | "error";
-
-interface SessionInfo {
-  warmupDay?: number;
-  proxyCountry?: string;
-  cookieAgeDays?: number;
-}
-
-interface LogEntry {
-  ts: string;
-  text: string;
-  type: "info" | "success" | "error" | "poll";
-}
-
-function nowStr() {
-  return new Date().toLocaleTimeString("en-GB", { hour12: false });
-}
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 
@@ -41,6 +18,24 @@ export async function loader({ request }: Route.LoaderArgs) {
   return null;
 }
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+type ConnectState =
+  | "idle"
+  | "detecting"       // 2s window to check if extension is present
+  | "no_extension"    // extension not found
+  | "opening"         // extension opening LinkedIn tab
+  | "waiting"         // polling for session (extension flow)
+  | "logging_in"      // server-side Patchright
+  | "awaiting_otp"    // 2FA
+  | "connected"
+  | "error";
+
+interface SessionInfo { warmupDay?: number; proxyCountry?: string; cookieAgeDays?: number; }
+interface LogEntry { ts: string; text: string; type: "info" | "success" | "error" | "poll"; }
+
+function nowStr() { return new Date().toLocaleTimeString("en-GB", { hour12: false }); }
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function LkotPage() {
@@ -49,12 +44,11 @@ export default function LkotPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
+  // Credentials fallback
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
-
-  // OTP
   const [otp, setOtp] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
 
@@ -79,61 +73,161 @@ export default function LkotPage() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [logs]);
 
-  // ── Poll login job status ─────────────────────────────────────────────────
+  // ── Extension detection ───────────────────────────────────────────────────
+
+  function detectExtension(): Promise<boolean> {
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => resolve(false), 2000);
+      function onMsg(e: MessageEvent) {
+        if (e.data?.type === "STUDOJO_EXTENSION_READY" || e.data?.type === "STUDOJO_STATUS_RESULT") {
+          clearTimeout(timer);
+          window.removeEventListener("message", onMsg);
+          resolve(true);
+        }
+      }
+      window.addEventListener("message", onMsg);
+      window.postMessage({ type: "STUDOJO_CHECK_STATUS" }, "*");
+    });
+  }
+
+  // ── Session poll (extension flow) ─────────────────────────────────────────
+
+  function startSessionPoll() {
+    if (pollRef.current) clearInterval(pollRef.current);
+    let attempts = 0;
+
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      if (attempts > 90) { // 3 min
+        clearInterval(pollRef.current!);
+        setConnectState("error");
+        setErrorMsg("Timed out waiting for LinkedIn session.");
+        addLog("Timed out", "error");
+        return;
+      }
+      try {
+        const res = await fetch("/api/autoapply/session/status");
+        if (res.status === 401) { clearInterval(pollRef.current!); return; }
+        const data = await res.json();
+        if (data.connected) {
+          clearInterval(pollRef.current!);
+          setSessionInfo({ warmupDay: data.warmupDay, proxyCountry: data.proxyCountry, cookieAgeDays: data.cookieAgeDays });
+          setConnectState("connected");
+          addLog("Session confirmed.", "success");
+        } else if (attempts % 5 === 0) {
+          addLog(`Waiting… (${attempts * 2}s)`, "poll");
+        }
+      } catch { /* keep polling */ }
+    }, 2000);
+  }
+
+  // ── Login job poll (credentials flow) ────────────────────────────────────
 
   function startLoginPoll(jid: string) {
     if (pollRef.current) clearInterval(pollRef.current);
     let attempts = 0;
-    const MAX = 150;
 
     pollRef.current = setInterval(async () => {
       attempts++;
-      if (attempts > MAX) {
+      if (attempts > 150) {
         clearInterval(pollRef.current!);
         setConnectState("error");
         setErrorMsg("Login timed out.");
         return;
       }
-
       try {
         const res = await fetch(`/api/autoapply/linkedin-login/status?jobId=${jid}`);
         if (!res.ok) return;
         const data = await res.json();
-
         if (data.status === "awaiting_otp") {
           clearInterval(pollRef.current!);
           setConnectState("awaiting_otp");
           addLog("2FA required — enter the code LinkedIn sent you.", "info");
-          return;
-        }
-        if (data.status === "success") {
+        } else if (data.status === "success") {
           clearInterval(pollRef.current!);
           const sess = await fetch("/api/autoapply/session/status").then((r) => r.json()).catch(() => ({}));
           setSessionInfo({ warmupDay: sess.warmupDay, proxyCountry: sess.proxyCountry, cookieAgeDays: sess.cookieAgeDays });
           setConnectState("connected");
           addLog("Logged in — cookies captured and encrypted.", "success");
-          return;
-        }
-        if (data.status === "failed") {
+        } else if (data.status === "failed") {
           clearInterval(pollRef.current!);
           setConnectState("error");
           setErrorMsg(data.error ?? "Login failed.");
-          addLog(`Login failed: ${data.error}`, "error");
-          return;
+          addLog(`Failed: ${data.error}`, "error");
+        } else if (attempts % 5 === 0) {
+          addLog(`Logging in… (${attempts * 2}s)`, "poll");
         }
-        if (attempts % 5 === 0) addLog(`Logging in… (${attempts * 2}s)`, "poll");
       } catch { /* keep polling */ }
     }, 2000);
   }
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
+  // ── Extension push events ─────────────────────────────────────────────────
+
+  useEffect(() => {
+    function onMsg(e: MessageEvent) {
+      if (e.data?.type === "STUDOJO_SESSION_CAPTURED") {
+        addLog("Extension: session captured!", "success");
+        // poll will pick it up within 2s
+      }
+      if (e.data?.type === "STUDOJO_SESSION_CAPTURE_FAILED") {
+        const err = e.data.error as string;
+        const msg =
+          err === "not_logged_in_linkedin" ? "Not logged into LinkedIn — log in first."
+          : err === "not_logged_in_studojo" ? "Not logged into Studojo."
+          : `Extension error: ${err}`;
+        if (pollRef.current) clearInterval(pollRef.current);
+        setConnectState("error");
+        setErrorMsg(msg);
+        addLog(msg, "error");
+      }
+    }
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [addLog]);
+
+  // ── Extension connect ─────────────────────────────────────────────────────
+
+  async function handleConnect() {
+    setConnectState("detecting");
+    setErrorMsg("");
+    addLog("Checking for extension…");
+
+    const present = await detectExtension();
+
+    if (!present) {
+      setConnectState("no_extension");
+      addLog("Extension not found.", "error");
+      return;
+    }
+
+    addLog("Extension found — opening LinkedIn…");
+    setConnectState("opening");
+    window.postMessage({ type: "STUDOJO_OPEN_LINKEDIN" }, "*");
+
+    await new Promise<void>((resolve) => {
+      const t = setTimeout(resolve, 3000);
+      function onAck(e: MessageEvent) {
+        if (e.data?.type === "STUDOJO_LINKEDIN_OPENED") {
+          clearTimeout(t); window.removeEventListener("message", onAck); resolve();
+        }
+      }
+      window.addEventListener("message", onAck);
+    });
+
+    setConnectState("waiting");
+    addLog("LinkedIn tab opened — waiting for auto-capture…");
+    startSessionPoll();
+  }
+
+  // ── Credentials connect ───────────────────────────────────────────────────
+
   async function handleServerLogin() {
     if (!email.trim() || !password.trim()) return;
     setConnectState("logging_in");
     setErrorMsg("");
     addLog(`Starting server-side login for ${email}…`);
-
     try {
       const res = await fetch("/api/autoapply/linkedin-login", {
         method: "POST",
@@ -141,9 +235,8 @@ export default function LkotPage() {
         body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to start login");
+      if (!res.ok) throw new Error(data.error ?? "Failed");
       setJobId(data.jobId);
-      addLog("Job started — polling…", "info");
       startLoginPoll(data.jobId);
     } catch (e: any) {
       setConnectState("error");
@@ -155,7 +248,6 @@ export default function LkotPage() {
   async function handleOtpSubmit() {
     if (!otp.trim() || !jobId) return;
     setOtpLoading(true);
-    addLog("Submitting OTP…");
     try {
       const res = await fetch("/api/autoapply/linkedin-login/otp", {
         method: "POST",
@@ -164,7 +256,7 @@ export default function LkotPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed");
-      addLog("OTP submitted — completing login…", "info");
+      addLog("OTP submitted…", "info");
       setConnectState("logging_in");
       startLoginPoll(jobId);
     } catch (e: any) {
@@ -187,7 +279,7 @@ export default function LkotPage() {
 
   async function handleLaunch() {
     setStep2Loading(true);
-    addLog("Setting up campaign…", "info");
+    addLog("Setting up campaign…");
     try {
       let cid = campaignId;
       if (!cid) {
@@ -209,11 +301,9 @@ export default function LkotPage() {
         setCampaignId(cid);
         addLog(`Campaign created — ${cid}`, "success");
       }
-
       const urls = leadsRaw.split("\n").map((l) => l.trim()).filter((l) => l.includes("linkedin.com/in/"));
-      if (urls.length === 0) { addLog("No valid LinkedIn URLs found", "error"); return; }
-
-      addLog(`Injecting ${urls.length} lead(s)…`, "info");
+      if (!urls.length) { addLog("No valid LinkedIn URLs", "error"); return; }
+      addLog(`Injecting ${urls.length} lead(s)…`);
       const res = await fetch("/api/autoapply/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -238,7 +328,6 @@ export default function LkotPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-satoshi">
       <Header />
-
       <div className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-10">
           <h1 className="font-clash text-2xl font-semibold tracking-tight">LinkedIn Outreach — Test</h1>
@@ -248,17 +337,17 @@ export default function LkotPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
           <div className="space-y-4">
 
-            {/* ── Step 1: Connect ── */}
+            {/* ── Step 1 ── */}
             <div className="border border-[#1e1e1e] rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-[#1a1a1a] flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <StepBadge n={1} done={connected} />
                   <span className="text-sm font-medium">Connect LinkedIn</span>
                 </div>
-                {connected && sessionInfo && (
+                {connected && (
                   <div className="flex items-center gap-3 text-xs text-[#444]">
-                    {sessionInfo.proxyCountry && <span>proxy {sessionInfo.proxyCountry}</span>}
-                    <span>day {sessionInfo.warmupDay ?? 0}/15</span>
+                    {sessionInfo?.proxyCountry && <span>proxy {sessionInfo.proxyCountry}</span>}
+                    {sessionInfo?.warmupDay != null && <span>day {sessionInfo.warmupDay}/15</span>}
                     <button onClick={handleRetry} className="hover:text-white transition-colors">reconnect</button>
                   </div>
                 )}
@@ -266,58 +355,70 @@ export default function LkotPage() {
 
               <div className="px-5 py-6">
 
-                {/* ── Idle: credentials form ── */}
                 {connectState === "idle" && (
-                  <div className="space-y-4 max-w-sm">
-                    <p className="text-[#555] text-sm">Enter your LinkedIn credentials. We log in on our server and capture your session — stored encrypted, never plain text.</p>
-                    <div>
-                      <label className="text-xs text-[#555] block mb-1">LinkedIn email</label>
-                      <input
-                        type="email"
-                        className={inputCls}
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleServerLogin()}
-                      />
+                  <div className="space-y-5">
+                    {/* Primary: extension */}
+                    <div className="flex flex-col items-center gap-4 py-2">
+                      <p className="text-[#555] text-sm text-center max-w-xs">
+                        One click — the extension opens LinkedIn and captures your session automatically.
+                      </p>
+                      <button
+                        onClick={handleConnect}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        <LinkedInIcon /> Connect LinkedIn
+                      </button>
+                      <p className="text-[#333] text-xs">
+                        Requires the{" "}
+                        <a href="/install-extension" className="underline hover:text-[#888] transition-colors">Studojo extension</a>
+                        {" "}— one-time install
+                      </p>
                     </div>
-                    <div>
-                      <label className="text-xs text-[#555] block mb-1">Password</label>
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          className={`${inputCls} pr-14`}
-                          placeholder="••••••••"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleServerLogin()}
-                        />
-                        <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">
-                          {showPassword ? "hide" : "show"}
-                        </button>
-                      </div>
+
+                    <div className="border-t border-[#111] pt-4 space-y-3">
+                      {/* Fallback: credentials */}
+                      <details>
+                        <summary className="text-xs text-[#333] hover:text-[#555] cursor-pointer transition-colors list-none">No extension? Log in with email + password →</summary>
+                        <div className="mt-3 space-y-3">
+                          <input type="email" className={inputCls} placeholder="LinkedIn email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                          <div className="relative">
+                            <input
+                              type={showPassword ? "text" : "password"}
+                              className={`${inputCls} pr-14`}
+                              placeholder="Password"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              onKeyDown={(e) => e.key === "Enter" && handleServerLogin()}
+                            />
+                            <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">
+                              {showPassword ? "hide" : "show"}
+                            </button>
+                          </div>
+                          <button onClick={handleServerLogin} disabled={!email.trim() || !password.trim()} className="w-full py-2 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors">
+                            Log in via server →
+                          </button>
+                        </div>
+                      </details>
+
+                      {/* Last resort: manual paste */}
+                      <details>
+                        <summary className="text-xs text-[#333] hover:text-[#555] cursor-pointer transition-colors list-none">Paste cookies manually →</summary>
+                        <div className="mt-3">
+                          <ManualSessionForm onSuccess={() => { setConnectState("connected"); addLog("Session saved manually", "success"); }} addLog={addLog} />
+                        </div>
+                      </details>
                     </div>
-                    <button
-                      onClick={handleServerLogin}
-                      disabled={!email.trim() || !password.trim()}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white rounded-lg text-sm font-medium transition-colors"
-                    >
-                      <LinkedInIcon /> Connect LinkedIn
-                    </button>
-                    <details className="pt-1">
-                      <summary className="text-xs text-[#333] hover:text-[#555] cursor-pointer transition-colors list-none">Paste cookies manually instead →</summary>
-                      <div className="mt-3">
-                        <ManualSessionForm
-                          onSuccess={() => { setConnectState("connected"); addLog("Session saved manually", "success"); }}
-                          addLog={addLog}
-                        />
-                      </div>
-                    </details>
                   </div>
                 )}
 
-                {/* ── Logging in ── */}
-                {connectState === "logging_in" && (
+                {(connectState === "detecting" || connectState === "opening") && (
+                  <div className="flex items-center justify-center gap-3 py-8 text-[#666] text-sm">
+                    <Spinner />
+                    {connectState === "detecting" ? "Checking for extension…" : "Opening LinkedIn tab…"}
+                  </div>
+                )}
+
+                {connectState === "waiting" && (
                   <div className="flex flex-col items-center gap-4 py-6">
                     <div className="relative w-14 h-14">
                       <div className="absolute inset-0 rounded-full bg-[#0a66c2]/10 border border-[#0a66c2]/20 flex items-center justify-center">
@@ -326,14 +427,29 @@ export default function LkotPage() {
                       <div className="absolute inset-0 rounded-full border-2 border-[#0a66c2] border-t-transparent animate-spin" />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-medium">Logging in via server…</p>
-                      <p className="text-xs text-[#444] mt-1">Patchright is navigating LinkedIn through a residential proxy.</p>
+                      <p className="text-sm font-medium">Waiting for LinkedIn…</p>
+                      <p className="text-xs text-[#444] mt-1">Log in if prompted. Extension grabs cookies automatically.</p>
                     </div>
                     <button onClick={handleRetry} className="text-xs text-[#444] hover:text-white transition-colors">cancel</button>
                   </div>
                 )}
 
-                {/* ── OTP ── */}
+                {connectState === "logging_in" && (
+                  <div className="flex flex-col items-center gap-4 py-8">
+                    <div className="relative w-14 h-14">
+                      <div className="absolute inset-0 rounded-full bg-[#0a66c2]/10 border border-[#0a66c2]/20 flex items-center justify-center">
+                        <LinkedInIcon size={22} />
+                      </div>
+                      <div className="absolute inset-0 rounded-full border-2 border-[#0a66c2] border-t-transparent animate-spin" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Logging in…</p>
+                      <p className="text-xs text-[#444] mt-1">Our server is navigating LinkedIn via residential proxy.</p>
+                    </div>
+                    <button onClick={handleRetry} className="text-xs text-[#444] hover:text-white transition-colors">cancel</button>
+                  </div>
+                )}
+
                 {connectState === "awaiting_otp" && (
                   <div className="flex flex-col items-center gap-5 py-4 max-w-xs mx-auto">
                     <div className="w-12 h-12 rounded-full bg-[#fbbf24]/10 border border-[#fbbf24]/20 flex items-center justify-center text-xl">🔐</div>
@@ -342,32 +458,22 @@ export default function LkotPage() {
                       <p className="text-xs text-[#555] mt-1">LinkedIn sent a code to your phone or email.</p>
                     </div>
                     <input
-                      type="text"
-                      inputMode="numeric"
+                      type="text" inputMode="numeric"
                       className={`${inputCls} text-center text-xl tracking-widest font-mono`}
-                      placeholder="000000"
-                      maxLength={8}
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                      placeholder="000000" maxLength={8}
+                      value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                       onKeyDown={(e) => e.key === "Enter" && handleOtpSubmit()}
                       autoFocus
                     />
                     <div className="flex gap-3 w-full">
-                      <button
-                        onClick={handleOtpSubmit}
-                        disabled={otp.length < 4 || otpLoading}
-                        className="flex-1 py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white rounded-lg text-sm font-medium transition-colors"
-                      >
+                      <button onClick={handleOtpSubmit} disabled={otp.length < 4 || otpLoading} className="flex-1 py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white rounded-lg text-sm font-medium transition-colors">
                         {otpLoading ? "Submitting…" : "Submit code"}
                       </button>
-                      <button onClick={handleRetry} className="px-3 py-2 border border-[#222] text-[#555] hover:text-white rounded-lg text-sm transition-colors">
-                        Cancel
-                      </button>
+                      <button onClick={handleRetry} className="px-3 border border-[#222] text-[#555] hover:text-white rounded-lg text-sm transition-colors">Cancel</button>
                     </div>
                   </div>
                 )}
 
-                {/* ── Connected ── */}
                 {connected && (
                   <div className="flex flex-col items-center gap-3 py-2">
                     <div className="w-11 h-11 rounded-full bg-[#4ade80]/10 border border-[#4ade80]/20 flex items-center justify-center">
@@ -384,7 +490,32 @@ export default function LkotPage() {
                   </div>
                 )}
 
-                {/* ── Error ── */}
+                {connectState === "no_extension" && (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-[#1a1200] border border-[#3a2800] rounded-lg flex items-start gap-2">
+                      <span className="text-[#fbbf24] text-xs mt-0.5">⚠</span>
+                      <div>
+                        <p className="text-[#fbbf24] text-xs font-medium">Extension not detected</p>
+                        <p className="text-[#666] text-xs mt-1">
+                          <a href="/install-extension" className="underline hover:text-white">Install the Studojo extension</a>
+                          {" "}and refresh, or use a fallback below.
+                        </p>
+                      </div>
+                    </div>
+                    <details open>
+                      <summary className="text-xs text-[#555] cursor-pointer list-none mb-3">Log in with email + password →</summary>
+                      <div className="space-y-3">
+                        <input type="email" className={inputCls} placeholder="LinkedIn email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        <div className="relative">
+                          <input type={showPassword ? "text" : "password"} className={`${inputCls} pr-14`} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleServerLogin()} />
+                          <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">{showPassword ? "hide" : "show"}</button>
+                        </div>
+                        <button onClick={handleServerLogin} disabled={!email.trim() || !password.trim()} className="w-full py-2 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors">Log in via server →</button>
+                      </div>
+                    </details>
+                  </div>
+                )}
+
                 {connectState === "error" && (
                   <div className="space-y-3">
                     <div className="p-3 bg-[#1a0000] border border-[#3a0000] rounded-lg flex items-start gap-2">
@@ -394,7 +525,6 @@ export default function LkotPage() {
                     <button onClick={handleRetry} className="text-xs text-[#555] hover:text-white transition-colors">← Try again</button>
                   </div>
                 )}
-
               </div>
             </div>
 
@@ -404,7 +534,6 @@ export default function LkotPage() {
                 <StepBadge n={2} done={!!step2Result} />
                 <span className="text-sm font-medium">Launch Campaign</span>
               </div>
-
               <div className="px-5 py-5 space-y-4">
                 <div>
                   <label className="text-xs text-[#555] block mb-1">Campaign name</label>
@@ -417,12 +546,7 @@ export default function LkotPage() {
                 </div>
                 <div>
                   <label className="text-xs text-[#555] block mb-1">LinkedIn URLs — one per line</label>
-                  <textarea
-                    className={`${inputCls} h-28 resize-none font-mono text-xs`}
-                    placeholder={"https://www.linkedin.com/in/person-a/\nhttps://www.linkedin.com/in/person-b/"}
-                    value={leadsRaw}
-                    onChange={(e) => setLeadsRaw(e.target.value)}
-                  />
+                  <textarea className={`${inputCls} h-28 resize-none font-mono text-xs`} placeholder={"https://www.linkedin.com/in/person-a/\nhttps://www.linkedin.com/in/person-b/"} value={leadsRaw} onChange={(e) => setLeadsRaw(e.target.value)} />
                 </div>
                 {step2Result ? (
                   <p className="text-[#4ade80] text-sm">✓ Queued {step2Result.queued} leads{step2Result.skipped > 0 ? `, ${step2Result.skipped} already existed` : ""}</p>
@@ -447,9 +571,7 @@ export default function LkotPage() {
               {logs.map((e, i) => (
                 <div key={i} className="flex gap-2">
                   <span className="text-[#2a2a2a] shrink-0">{e.ts}</span>
-                  <span className={e.type === "success" ? "text-[#4ade80]" : e.type === "error" ? "text-[#f87171]" : e.type === "poll" ? "text-[#444]" : "text-[#888]"}>
-                    {e.text}
-                  </span>
+                  <span className={e.type === "success" ? "text-[#4ade80]" : e.type === "error" ? "text-[#f87171]" : e.type === "poll" ? "text-[#444]" : "text-[#888]"}>{e.text}</span>
                 </div>
               ))}
             </div>
@@ -492,13 +614,11 @@ function ManualSessionForm({ onSuccess, addLog }: { onSuccess: () => void; addLo
   const [jsessionId, setJsessionId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const inputCls = "w-full bg-[#0d0d0d] border border-[#222] rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-[#333] focus:outline-none focus:border-[#444]";
 
   async function submit() {
     if (!liAt.trim()) { setError("li_at is required"); return; }
     setLoading(true); setError("");
-    addLog("Saving session manually…");
     try {
       const cookieJar = [`li_at=${liAt.trim()}`, jsessionId.trim() ? `JSESSIONID=${jsessionId.trim()}` : ""].filter(Boolean).join("; ");
       const res = await fetch("/api/autoapply/session", {
