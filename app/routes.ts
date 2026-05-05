@@ -1,16 +1,12 @@
 import { type RouteConfig, route } from "@react-router/dev/routes";
 import { flatRoutes } from "@react-router/fs-routes";
 
-// File-based route discovery: any file added to app/routes/ is automatically
-// registered. No need to manually edit this file for new routes.
+// File-based route discovery handles most routes automatically.
 //
-// Three routes stay explicit because their paths can't be expressed in the
-// flat-file naming convention (dots in path segments, leading dot, .xml/.txt):
-//   .well-known/*    → /.well-known/* (leading dot not representable)
-//   sitemap.xml      → /sitemap.xml  (dot inside path segment)
-//   robots.txt       → /robots.txt   (dot inside path segment)
-//
-// All other routes: create app/routes/<name>.tsx and it will be picked up.
+// Report detail pages (reports.*.tsx) are excluded from flatRoutes and declared
+// explicitly below. This is required because flatRoutes treats reports.tsx as a
+// layout parent and would nest all reports.*.tsx files inside it as children.
+// Since reports.tsx has no <Outlet>, child content would never render.
 
 export default [
   ...(await flatRoutes({
@@ -18,9 +14,36 @@ export default [
       "**/well-known.$.tsx",
       "**/sitemap.xml.tsx",
       "**/robots.txt.tsx",
+      "**/reports.*.tsx",
     ],
   })),
+
+  // ── Special path segments ──────────────────────────────────────────────
   route(".well-known/*", "routes/well-known.$.tsx"),
   route("sitemap.xml", "routes/sitemap.xml.tsx"),
   route("robots.txt", "routes/robots.txt.tsx"),
+
+  // ── Reports (explicit to avoid nesting under reports.tsx layout) ───────
+  route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
+  route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),
+  route("reports/cs-india-2026", "routes/reports.cs-india-2026.tsx"),
+  route("reports/sales-india-2026", "routes/reports.sales-india-2026.tsx"),
+  route("reports/finance-india-2026", "routes/reports.finance-india-2026.tsx"),
+  route("reports/marketing-india-2026", "routes/reports.marketing-india-2026.tsx"),
+  route("reports/pune-jobs-2026", "routes/reports.pune-jobs-2026.tsx"),
+  route("reports/internships-15k-india-2026", "routes/reports.internships-15k-india-2026.tsx"),
+  route("reports/flame-marketing-2026", "routes/reports.flame-marketing-2026.tsx"),
+  route("reports/hiring-calendar-india-2026", "routes/reports.hiring-calendar-india-2026.tsx"),
+  route("reports/internships-germany-2026", "routes/reports.internships-germany-2026.tsx"),
+  route("reports/internships-uk-2026", "routes/reports.internships-uk-2026.tsx"),
+  route("reports/skills-ai-entry-level-2026", "routes/reports.skills-ai-entry-level-2026.tsx"),
+  route("reports/internships-australia-2026", "routes/reports.internships-australia-2026.tsx"),
+  route("reports/christ-university-finance-2026", "routes/reports.christ-university-finance-2026.tsx"),
+  route("reports/ghost-jobs-2026", "routes/reports.ghost-jobs-2026.tsx"),
+  route("reports/application-response-rate-2026", "routes/reports.application-response-rate-2026.tsx"),
+  route("reports/linkedin-profile-2026", "routes/reports.linkedin-profile-2026.tsx"),
+  route("reports/startup-vs-mnc-2026", "routes/reports.startup-vs-mnc-2026.tsx"),
+  route("reports/remote-internships-2026", "routes/reports.remote-internships-2026.tsx"),
+  route("reports/job-search-2026", "routes/reports.job-search-2026.tsx"),
+  route("reports/degree-vs-skills-2026", "routes/reports.degree-vs-skills-2026.tsx"),
 ] satisfies RouteConfig;

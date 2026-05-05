@@ -245,6 +245,18 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "degree-vs-skills-2026",
+    publishDate: "2026-05-03",
+    title: "Degree vs Skills: What Hirers Actually Look at in 2026",
+    subtitle: "Degree vs Skills Report 2026",
+    excerpt: "55% of employers dropped degree requirements. But 65% of recruiters still filter by degree. A data-backed breakdown of what hirers actually rank, where degrees still gate, and how to position yourself either way.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "remote-internships-2026",
     publishDate: "2026-05-03",
     title: "Remote Internships 2026: Which Ones Are Real",
