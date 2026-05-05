@@ -47,4 +47,5 @@ export default [
   route("reports/job-search-2026", "routes/reports.job-search-2026.tsx"),
   route("reports/degree-vs-skills-2026", "routes/reports.degree-vs-skills-2026.tsx"),
   route("reports/test-report-vanshika", "routes/reports.test-report-vanshika.tsx"),
+  route("reports/unpaid-internship-trap-2026", "routes/reports.unpaid-internship-trap-2026.tsx"),
 ] satisfies RouteConfig;

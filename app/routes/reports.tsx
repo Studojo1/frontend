@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "unpaid-internship-trap-2026",
+    publishDate: "2026-05-05",
+    title: "The Unpaid Internship Trap: Is It Ever Worth It?",
+    subtitle: "Unpaid Internships 2026",
+    excerpt: "A practical 2026 framework to evaluate unpaid internships: the real upside, hidden costs, and the minimum conditions that make an unpaid role worth considering.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "May 2026",
+    findings: 4,
+    badge: "New",
+  },
+  {
     slug: "test-report-vanshika",
     publishDate: "2026-05-04",
     title: "Example Report: A Research Finding",
