@@ -31,6 +31,7 @@ export async function loader() {
     { loc: "/reports/startup-vs-mnc-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/remote-internships-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/job-search-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/test-report-vanshika", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },

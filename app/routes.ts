@@ -23,4 +23,5 @@ export default [
   route(".well-known/*", "routes/well-known.$.tsx"),
   route("sitemap.xml", "routes/sitemap.xml.tsx"),
   route("robots.txt", "routes/robots.txt.tsx"),
+  route("reports/test-report-vanshika", "routes/reports.test-report-vanshika.tsx"),
 ] satisfies RouteConfig;

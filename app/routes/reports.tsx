@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "test-report-vanshika",
+    publishDate: "2026-05-04",
+    title: "Example Report: A Research Finding",
+    subtitle: "Example Report 2026",
+    excerpt: "Two sentence description shown on the /reports index card. Should be specific and compelling.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 4,
+    badge: "New",
+  },
+  {
     slug: "ops-india-2026",
     publishDate: "2026-04-12",
     title: "Operations Interns in India: The Skill Gap Nobody Talks About",
