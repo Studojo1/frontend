@@ -45,7 +45,8 @@ export default function LkotPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
-  // Credentials fallback
+  // Credentials
+  const [connectTab, setConnectTab] = useState<"extension" | "credentials">("extension");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -365,67 +366,90 @@ export default function LkotPage() {
               <div className="px-5 py-6">
 
                 {connectState === "idle" && (
-                  <div className="space-y-5">
-                    {/* Primary: extension */}
-                    <div className="flex flex-col items-center gap-4 py-2">
-                      <p className="text-[#555] text-sm text-center max-w-xs">
-                        One click — the extension opens LinkedIn and captures your session automatically.
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={handleConnect}
-                          className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] text-white rounded-lg text-sm font-medium transition-colors"
-                        >
-                          <LinkedInIcon /> Connect LinkedIn
-                        </button>
-                        <a
-                          href="/install-extension"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-1.5 px-4 py-2.5 border border-[#2a2a2a] hover:border-[#444] text-[#888] hover:text-white rounded-lg text-sm font-medium transition-colors"
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                          </svg>
-                          Download extension
-                        </a>
-                      </div>
-                      <p className="text-[#333] text-xs">Install once — works on all Studojo pages</p>
+                  <div className="space-y-4">
+                    {/* Tab switcher */}
+                    <div className="flex gap-1 bg-[#0d0d0d] rounded-lg p-1">
+                      <button
+                        onClick={() => setConnectTab("extension")}
+                        className={`flex-1 py-2 rounded-md text-xs font-medium transition-colors ${connectTab === "extension" ? "bg-[#1a1a1a] text-white" : "text-[#444] hover:text-[#888]"}`}
+                      >
+                        Chrome Extension
+                      </button>
+                      <button
+                        onClick={() => setConnectTab("credentials")}
+                        className={`flex-1 py-2 rounded-md text-xs font-medium transition-colors ${connectTab === "credentials" ? "bg-[#1a1a1a] text-white" : "text-[#444] hover:text-[#888]"}`}
+                      >
+                        Email + Password
+                      </button>
                     </div>
 
-                    <div className="border-t border-[#111] pt-4 space-y-3">
-                      {/* Fallback: credentials */}
-                      <details>
-                        <summary className="text-xs text-[#333] hover:text-[#555] cursor-pointer transition-colors list-none">No extension? Log in with email + password →</summary>
-                        <div className="mt-3 space-y-3">
-                          <input type="email" className={inputCls} placeholder="LinkedIn email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                          <div className="relative">
-                            <input
-                              type={showPassword ? "text" : "password"}
-                              className={`${inputCls} pr-14`}
-                              placeholder="Password"
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && handleServerLogin()}
-                            />
-                            <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">
-                              {showPassword ? "hide" : "show"}
-                            </button>
-                          </div>
-                          <button onClick={handleServerLogin} disabled={!email.trim() || !password.trim()} className="w-full py-2 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors">
-                            Log in via server →
+                    {connectTab === "extension" && (
+                      <div className="flex flex-col items-center gap-4 py-3">
+                        <p className="text-[#555] text-sm text-center max-w-xs">
+                          One click — the extension opens LinkedIn and captures your session automatically.
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={handleConnect}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-[#0a66c2] hover:bg-[#004182] text-white rounded-lg text-sm font-medium transition-colors"
+                          >
+                            <LinkedInIcon /> Connect LinkedIn
+                          </button>
+                          <a
+                            href="/install-extension"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1.5 px-4 py-2.5 border border-[#2a2a2a] hover:border-[#444] text-[#888] hover:text-white rounded-lg text-sm font-medium transition-colors"
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Download extension
+                          </a>
+                        </div>
+                        <p className="text-[#333] text-xs">Install once — works on all Studojo pages</p>
+                      </div>
+                    )}
+
+                    {connectTab === "credentials" && (
+                      <div className="space-y-3 pt-1">
+                        <p className="text-[#555] text-xs">We log into LinkedIn on a secure server using your credentials. Your password is never stored.</p>
+                        <input
+                          type="email"
+                          className={inputCls}
+                          placeholder="LinkedIn email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          autoFocus
+                        />
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            className={`${inputCls} pr-14`}
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleServerLogin()}
+                          />
+                          <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">
+                            {showPassword ? "hide" : "show"}
                           </button>
                         </div>
-                      </details>
-
-                      {/* Last resort: manual paste */}
-                      <details>
-                        <summary className="text-xs text-[#333] hover:text-[#555] cursor-pointer transition-colors list-none">Paste cookies manually →</summary>
-                        <div className="mt-3">
-                          <ManualSessionForm onSuccess={() => { setConnectState("connected"); addLog("Session saved manually", "success"); }} addLog={addLog} />
-                        </div>
-                      </details>
-                    </div>
+                        <button
+                          onClick={handleServerLogin}
+                          disabled={!email.trim() || !password.trim()}
+                          className="w-full py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
+                        >
+                          Log in →
+                        </button>
+                        <details className="mt-1">
+                          <summary className="text-xs text-[#333] hover:text-[#555] cursor-pointer transition-colors list-none">Paste cookies manually instead →</summary>
+                          <div className="mt-3">
+                            <ManualSessionForm onSuccess={() => { setConnectState("connected"); addLog("Session saved manually", "success"); }} addLog={addLog} />
+                          </div>
+                        </details>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -537,21 +561,18 @@ export default function LkotPage() {
                         <p className="text-[#fbbf24] text-xs font-medium">Extension not detected</p>
                         <p className="text-[#666] text-xs mt-1">
                           <a href="/install-extension" className="underline hover:text-white">Install the Studojo extension</a>
-                          {" "}and refresh, or use a fallback below.
+                          {" "}and refresh, or log in with email + password.
                         </p>
                       </div>
                     </div>
-                    <details open>
-                      <summary className="text-xs text-[#555] cursor-pointer list-none mb-3">Log in with email + password →</summary>
-                      <div className="space-y-3">
-                        <input type="email" className={inputCls} placeholder="LinkedIn email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                        <div className="relative">
-                          <input type={showPassword ? "text" : "password"} className={`${inputCls} pr-14`} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleServerLogin()} />
-                          <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">{showPassword ? "hide" : "show"}</button>
-                        </div>
-                        <button onClick={handleServerLogin} disabled={!email.trim() || !password.trim()} className="w-full py-2 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors">Log in via server →</button>
+                    <div className="space-y-3">
+                      <input type="email" className={inputCls} placeholder="LinkedIn email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
+                      <div className="relative">
+                        <input type={showPassword ? "text" : "password"} className={`${inputCls} pr-14`} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleServerLogin()} />
+                        <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444] hover:text-white text-xs transition-colors">{showPassword ? "hide" : "show"}</button>
                       </div>
-                    </details>
+                      <button onClick={handleServerLogin} disabled={!email.trim() || !password.trim()} className="w-full py-2.5 bg-[#0a66c2] hover:bg-[#004182] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors">Log in →</button>
+                    </div>
                   </div>
                 )}
 
