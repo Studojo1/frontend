@@ -49,16 +49,16 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: li-at-encryption-key
-            - name: IPROYAL_USERNAME
+            - name: EVOMI_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
-                  key: iproyal-username
-            - name: IPROYAL_PASSWORD
+                  key: evomi-username
+            - name: EVOMI_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: app-secrets
-                  key: iproyal-password
+                  key: evomi-password
             - name: JSEARCH_RAPIDAPI_KEY
               valueFrom:
                 secretKeyRef:

@@ -59,7 +59,12 @@ Use `fetchWithRetry()` from `app/lib/fetch-with-retry.ts` with Bearer tokens fro
 
 ## Key Patterns
 
-- Routes: file-based in `app/routes/`. Register in `app/routes.ts`.
+- Routes: **file-based auto-discovery** via `@react-router/fs-routes`. Create a file in `app/routes/` and it is automatically registered — no need to edit `routes.ts`.
+  - Naming: dots become path segments (`api.autoapply.config.tsx` → `/api/autoapply/config`)
+  - Params: `$id` → `:id`, trailing `$` → `*` splat
+  - Index route: `_index.tsx` → `/`
+  - Break parent nesting: trailing `_` on segment (`autoapply_.lkot.tsx` → `/autoapply/lkot`, standalone)
+  - Three routes stay explicit in `routes.ts` (can't express dots in path segments): `.well-known/*`, `sitemap.xml`, `robots.txt`
 - Server-only code: use `.server.ts` suffix
 - Fonts: Satoshi (`font-satoshi`) and Clash Display (`font-clash`) via CSS
 - Design tokens: `text-studojo-ink`, `text-studojo-muted`, `text-studojo-purple`, `bg-studojo-surface`, `shadow-brutal`, etc.

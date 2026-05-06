@@ -15,8 +15,16 @@ import { discoverJobsForUser } from "./job-discovery";
 import { applyToJob } from "./apply-worker";
 import { runOutreachStep, withdrawStaleInvitations } from "./outreach-worker";
 import { checkFleetHealth, incrementWarmupDay, logEvent } from "./safety-manager";
+import { pollAllUsers } from "./acceptance-poller";
+import {
+  outreachQueue,
+  applyQueue,
+  jobDiscoveryQueue,
+  linkedinLoginQueue,
+} from "~/lib/queues.server";
+import { runLinkedinLogin } from "./linkedin-login-worker";
 
-// ── Redis connection ──────────────────────────────────────────────────────────
+// ── Redis connection (worker-only — for maintenanceQueue + Workers) ───────────
 
 const REDIS_URL = process.env.REDIS_URL ?? "redis://redis.studojo.svc.cluster.local:6379";
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? "";
@@ -34,10 +42,10 @@ function redisOpts() {
 const connection = redisOpts();
 
 // ── Queue definitions ─────────────────────────────────────────────────────────
+// outreachQueue / applyQueue / jobDiscoveryQueue imported from queues.server
+// (shared with web app so API routes can enqueue directly)
 
-export const jobDiscoveryQueue = new Queue("job-discovery", { connection });
-export const applyQueue = new Queue("apply", { connection });
-export const outreachQueue = new Queue("outreach", { connection });
+export { outreachQueue, applyQueue, jobDiscoveryQueue, linkedinLoginQueue };
 export const maintenanceQueue = new Queue("maintenance", { connection });
 
 // ── Workers ───────────────────────────────────────────────────────────────────
@@ -91,6 +99,16 @@ const outreachWorker = new Worker(
   { connection, concurrency: 1 } // sequential for safety
 );
 
+const linkedinLoginWorker = new Worker(
+  "linkedin-login",
+  async (job) => {
+    const { jobId, userId, email, password } = job.data;
+    console.log(`[worker] linkedin-login job ${jobId} for user ${userId}`);
+    await runLinkedinLogin(jobId, userId, email, password);
+  },
+  { connection, concurrency: 2 }
+);
+
 const maintenanceWorker = new Worker(
   "maintenance",
   async (job) => {
@@ -110,6 +128,9 @@ const maintenanceWorker = new Worker(
         break;
       case "increment_warmup":
         await incrementAllWarmupDays();
+        break;
+      case "poll_acceptances":
+        await pollAllUsers();
         break;
     }
   },
@@ -138,6 +159,13 @@ async function setupSchedules() {
     "schedule_outreach",
     { task: "schedule_outreach" },
     { repeat: { pattern: "0 */4 * * *" }, jobId: "schedule_outreach" }
+  );
+
+  // Acceptance poller every 2 hours — checks Voyager API for new connections
+  await maintenanceQueue.add(
+    "poll_acceptances",
+    { task: "poll_acceptances" },
+    { repeat: { pattern: "0 */2 * * *" }, jobId: "poll_acceptances" }
   );
 
   // Daily warmup increment at midnight UTC
@@ -214,9 +242,9 @@ async function incrementAllWarmupDays() {
 
 // ── Error handling ────────────────────────────────────────────────────────────
 
-for (const worker of [discoveryWorker, applyWorker, outreachWorker, maintenanceWorker]) {
+for (const worker of [discoveryWorker, applyWorker, outreachWorker, linkedinLoginWorker, maintenanceWorker]) {
   worker.on("failed", (job, err) => {
-    console.error(`[worker] ${worker.name} job ${job?.id} failed:`, err?.message);
+    console.error(`[worker] ${worker.name} job ${job?.id} failed:`, err?.message, err?.stack?.split("\n")[1]);
     logEvent("worker_error", job?.data?.userId ?? null, {
       worker: worker.name,
       jobId: job?.id,

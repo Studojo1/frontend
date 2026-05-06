@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Studojo LinkedIn Connect</title>
+  <title>Studojo AutoApply</title>
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
   <div id="app">
     <!-- State: checking -->
     <div id="state-checking" class="state">
-      <div class="logo">
-        <span class="logo-s">S</span>
-      </div>
+      <div class="logo"><span class="logo-s">S</span></div>
       <p class="checking-text">Checking status...</p>
     </div>
 
@@ -39,16 +37,16 @@
     <!-- State: ready to connect -->
     <div id="state-ready" class="state hidden">
       <div class="logo"><span class="logo-s">S</span></div>
-      <h2>Connect LinkedIn</h2>
+      <h2>Activate AutoApply</h2>
       <p>
-        Studojo will find relevant people to connect with for any role you're
-        targeting — and write a personal note for each one.
+        Studojo will apply to jobs and send connection requests on your behalf —
+        using your LinkedIn account, while you're offline.
       </p>
       <button id="btn-connect" class="btn btn-primary">
         Connect LinkedIn
       </button>
       <p class="fine-print">
-        Your session is encrypted and never shared.
+        Your session is encrypted end-to-end and never shared.
       </p>
     </div>
 
@@ -67,17 +65,23 @@
         </svg>
       </div>
       <h2>LinkedIn connected</h2>
-      <p>Head to Studojo to find people to connect with.</p>
-      <a
-        href="https://studojo.com/outreach/linkedin"
-        target="_blank"
-        class="btn btn-primary"
-      >
-        Find people to connect with
+      <p id="connected-since">AutoApply is active.</p>
+      <a href="https://studojo.com/autoapply" target="_blank" class="btn btn-primary">
+        Open AutoApply dashboard
       </a>
+      <button id="btn-refresh" class="btn btn-secondary">
+        Refresh session
+      </button>
       <button id="btn-disconnect" class="btn btn-ghost">
         Disconnect
       </button>
+    </div>
+
+    <!-- State: refreshing -->
+    <div id="state-refreshing" class="state hidden">
+      <div class="logo"><span class="logo-s">S</span></div>
+      <div class="spinner"></div>
+      <p>Refreshing session...</p>
     </div>
 
     <!-- State: error -->

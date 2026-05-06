@@ -11,7 +11,11 @@ import { outreachFetch, outreachStreamFetch } from "~/lib/outreach/api";
 import type { ChatMessage, AgentResponse } from "~/lib/outreach/types";
 
 const STEPS = ["Upload Resume", "AI Chat", "Your Profile"];
-const TOTAL_QUESTIONS = 14;
+
+// Soft estimate of total questions for the progress bar. The new quiz is
+// dynamic (8-10 questions depending on clarity score), so we estimate
+// generously and display "Q n" when n exceeds the estimate.
+const ESTIMATED_TOTAL = 10;
 
 
 /**
@@ -47,17 +51,12 @@ const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)/;
 export default function ChatPage() {
   const navigate = useNavigate();
   const { user } = useOutreachAuth();
-  const { candidateId, chatHistory, addChatMessage, setCurrentStep, setPsychResult } = useOutreachStore();
+  const { candidateId, chatHistory, addChatMessage } = useOutreachStore();
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
   const [streamingText, setStreamingText] = useState<string | null>(null);
-  const [showCompensation, setShowCompensation] = useState(false);
-  const [compensationInput, setCompensationInput] = useState("");
-  const [compensationAnswered, setCompensationAnswered] = useState(false);
   const autoStarted = useRef(false);
-  const compensationShownRef = useRef(false);
-  const pendingQ5Ref = useRef<AgentResponse | null>(null);
 
   // Serve Q1 instantly on mount — no API call
   useEffect(() => {
@@ -68,12 +67,9 @@ export default function ChatPage() {
     }
   }, [candidateId]);
 
-  const questionsAsked = showCompensation
-    ? 5
-    : compensationAnswered
-    ? (currentResponse?.questions_asked_so_far ?? 0) + 1
-    : (currentResponse?.questions_asked_so_far ?? 0);
-  const quizProgress = (questionsAsked / TOTAL_QUESTIONS) * 100;
+  const questionsAsked = currentResponse?.questions_asked_so_far ?? 0;
+  // Cap progress at 100% if the user is past the estimate (rare but possible for high-clarity flows)
+  const quizProgress = Math.min(100, (questionsAsked / ESTIMATED_TOTAL) * 100);
   const sidebarStep = currentResponse?.is_complete ? 3 : 2;
 
   const sendMessage = async (content: string) => {
@@ -145,18 +141,7 @@ export default function ChatPage() {
       setStreamingText(null);
 
       if (finalResponse) {
-        // After Q4 (company_stage), questions_asked_so_far === 5 — intercept to show
-        // compensation question before revealing Q5 to the user.
-        if (finalResponse.questions_asked_so_far === 5 && !compensationShownRef.current) {
-          compensationShownRef.current = true;
-          pendingQ5Ref.current = finalResponse;
-          setShowCompensation(true);
-          addChatMessage({
-            role: "assistant",
-            content: "One quick thing: what compensation are you expecting? (e.g. ₹15,000/month, $25/hour, open to discussion)",
-          });
-          setLoading(false);
-        } else if (finalResponse.is_complete) {
+        if (finalResponse.is_complete) {
           addChatMessage({ role: "assistant", content: finalResponse.message });
           setCurrentResponse(finalResponse);
 
@@ -164,10 +149,6 @@ export default function ChatPage() {
             ...fullHistory,
             { role: "assistant" as const, content: finalResponse.message },
           ];
-
-          if (finalResponse.psychometric) {
-            setPsychResult(finalResponse.psychometric);
-          }
 
           outreachFetch(`/candidate/${candidateId}/generate-payload`, {
             method: "POST",
@@ -180,7 +161,6 @@ export default function ChatPage() {
           capturePostHog("profile_quiz_completed", {
             candidate_id: candidateId,
             questions_asked: questionsAsked,
-            has_psychometric: !!finalResponse.psychometric,
           });
 
           if (user?.id) {
@@ -206,25 +186,6 @@ export default function ChatPage() {
       setStreamingText(null);
       addChatMessage({ role: "assistant", content: "Something went wrong. Please try again." });
       setLoading(false);
-    }
-  };
-
-  const handleCompensationSubmit = () => {
-    const val = compensationInput.trim() || "Not specified";
-    addChatMessage({ role: "user", content: val });
-    setShowCompensation(false);
-    setCompensationInput("");
-    setCompensationAnswered(true);
-
-    if (pendingQ5Ref.current) {
-      // Resume from Q5 — reveal the stored Q5 question
-      const q5 = pendingQ5Ref.current;
-      pendingQ5Ref.current = null;
-      addChatMessage({ role: "assistant", content: q5.message });
-      setCurrentResponse(q5);
-    } else {
-      // Fallback: compensation was at the end (shouldn't happen anymore)
-      navigate("/outreach/onboarding/loading");
     }
   };
 
@@ -257,25 +218,7 @@ export default function ChatPage() {
   }
 
   // Input area for chat — hidden while streaming or loading
-  const inputArea = showCompensation ? (
-    <div className="flex gap-2 items-end">
-      <textarea
-        value={compensationInput}
-        onChange={(e: any) => setCompensationInput(e.target.value)}
-        placeholder="e.g. ₹15,000/month, $25/hour, open to discussion..."
-        onKeyDown={(e: any) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleCompensationSubmit())}
-        rows={2}
-        autoFocus
-        className="flex-1 px-4 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
-      />
-      <button
-        onClick={handleCompensationSubmit}
-        className="h-10 w-10 rounded-xl bg-studojo-purple text-white flex items-center justify-center border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none flex-shrink-0"
-      >
-        <FiSend className="w-4 h-4" />
-      </button>
-    </div>
-  ) : streamingText !== null ? null
+  const inputArea = streamingText !== null ? null
     : currentResponse?.is_complete ? null
     : currentResponse?.mcq ? (
       <MCQSelector
@@ -347,7 +290,7 @@ export default function ChatPage() {
                       </p>
                       {active && num === 2 && questionsAsked > 0 && (
                         <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
-                          Q {questionsAsked}/{TOTAL_QUESTIONS}
+                          Q {questionsAsked}
                         </p>
                       )}
                     </div>
@@ -378,7 +321,7 @@ export default function ChatPage() {
             </div>
             {questionsAsked > 0 && (
               <span className="text-xs font-satoshi text-studojo-muted">
-                {questionsAsked}/{TOTAL_QUESTIONS}
+                Q{questionsAsked}
               </span>
             )}
           </div>
@@ -389,7 +332,7 @@ export default function ChatPage() {
               Quick Profile Setup
             </h1>
             <p className="text-sm text-studojo-muted font-satoshi mt-1">
-              3 quick questions so we can find the right hiring managers for you.
+              A few quick questions so we can find the right hiring managers for you.
             </p>
           </div>
 

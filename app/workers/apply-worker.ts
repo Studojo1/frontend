@@ -6,8 +6,9 @@ import db from "~/lib/db";
 import { jobQueue, userLinkedinSessions, autoapplyConfigs } from "../../auth-schema";
 import { decrypt } from "~/lib/encrypt.server";
 import { buildProxy } from "~/lib/proxy.server";
-import { pauseUser, logEvent, getWarmupLimit, incrementWarmupDay } from "./safety-manager";
+import { pauseUser, logEvent, getWarmupLimit } from "./safety-manager";
 import { answerQuestion } from "./prescreen";
+import { blockHeavyResources, withWatchdog, humanTypeLocator, jitter as jitterMs } from "./browser-utils";
 
 let chromiumModule: any = null;
 async function getChromium() {
@@ -26,12 +27,15 @@ async function launchBrowser(userId: string, country: string, city: string, cont
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
   });
   const ctx = await browser.newContext(contextOptions);
+  await blockHeavyResources(ctx);
   return { browser, ctx };
 }
 
 // ── Apply to a single job ─────────────────────────────────────────────────────
 
 export async function applyToJob(jobId: string): Promise<{ status: string; error?: string }> {
+  if (!jobId || typeof jobId !== "string") return { status: "failed", error: "invalid_job_id" };
+
   const [job] = await db
     .select()
     .from(jobQueue)
@@ -138,7 +142,12 @@ export async function applyToJob(jobId: string): Promise<{ status: string; error
     let result: { status: string; error?: string };
 
     if (job.platform === "linkedin") {
-      result = await applyLinkedIn(page, job, config.cvText, rateLimited);
+      result = await withWatchdog(
+        () => applyLinkedIn(page, job, config.cvText, rateLimited),
+        browser,
+        10 * 60_000,  // 10 min max per application
+        `apply:${jobId}`,
+      );
     } else {
       result = { status: "skipped", error: "unsupported_platform" };
     }
@@ -147,7 +156,7 @@ export async function applyToJob(jobId: string): Promise<{ status: string; error
 
     if (result.status === "applied") {
       await db.update(jobQueue).set({ status: "applied", appliedAt: new Date(), error: null }).where(eq(jobQueue.id, jobId));
-      await incrementWarmupDay(job.userId);
+      // warmup_day increments once daily via scheduler, not per application
     } else {
       await db.update(jobQueue).set({ status: result.status, error: result.error ?? null }).where(eq(jobQueue.id, jobId));
     }
@@ -168,7 +177,13 @@ async function applyLinkedIn(page: any, job: any, cvText: string, rateLimited: b
   if (rateLimited) return { status: "skipped", error: "rate_limited" };
 
   try {
-    await page.goto(job.applyUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.goto(job.applyUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
+
+    // Detect expired session — LinkedIn redirects to login page
+    if (page.url().includes("/login") || page.url().includes("/authwall")) {
+      await pauseUser(job.userId, 0, "session_expired");
+      return { status: "skipped", error: "session_expired" };
+    }
 
     // Check for CAPTCHA / challenge
     const captcha = await page.$('[data-test-id="challenge-redirect"], .captcha-challenge, #error-page');
@@ -279,8 +294,11 @@ async function fillFormFields(page: any, prescreened: Record<string, string>, cv
       ?? await answerQuestion(label, cvText, jobContext);
 
     if (answer) {
-      await input.fill(answer.slice(0, 1000));
-      await page.waitForTimeout(300);
+      // Human-like typing: character-by-character with randomized delay
+      await input.click().catch(() => {});
+      await input.fill("").catch(() => {});
+      await input.type(answer.slice(0, 1000), { delay: 50 + Math.random() * 120 });
+      await jitterMs(200, 600);
     }
   }
 
@@ -354,13 +372,17 @@ async function getTodayCount(userId: string): Promise<number> {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const [row] = await db.execute(sql`
-    SELECT COUNT(*) as cnt FROM job_queue
-    WHERE user_id = ${userId}
-      AND status = 'applied'
-      AND applied_at >= ${todayStart}
-  `);
-  return Number((row as any).cnt ?? 0);
+  const rows = await db
+    .select({ cnt: sql<number>`COUNT(*)` })
+    .from(jobQueue)
+    .where(
+      and(
+        eq(jobQueue.userId, userId),
+        eq(jobQueue.status, "applied"),
+        sql`${jobQueue.appliedAt} >= ${todayStart}`,
+      )
+    );
+  return Number(rows[0]?.cnt ?? 0);
 }
 
 function getUserLocalHour(timezone: string): number {

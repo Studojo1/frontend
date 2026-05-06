@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { useLoaderData } from "react-router";
 import { BlogContent } from "~/components/blog/blog-content";
 import { BlogCtaBar } from "~/components/blog/blog-cta-bar";
@@ -89,13 +89,14 @@ export function meta({ data }: Route.MetaArgs) {
   const title = post.seo_meta_title || post.title;
   const description = post.seo_meta_description || post.excerpt;
   const canonicalUrl = `${BASE_URL}/blog/${post.slug}`;
-  const ogImage = absoluteImageUrl(post.seo_og_image || post.featured_image);
+  const ogImage = absoluteImageUrl(post.seo_og_image) || `${BASE_URL}/api/blog-og/${post.slug}`;
   const keywords = post.seo_keywords?.join(", ") || post.tags?.join(", ");
 
   return [
     { title: `${title} | Studojo Blog` },
     { name: "description", content: description },
     ...(keywords ? [{ name: "keywords", content: keywords }] : []),
+    { name: "robots", content: "index, follow" },
     { name: "author", content: post.author_name },
     { tagName: "link", rel: "canonical", href: canonicalUrl },
 
@@ -208,8 +209,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 export default function BlogPost({ data }: Route.ComponentProps) {
   const loaderData = useLoaderData() as { post: BlogPost } | undefined;
   const post = (loaderData?.post || data?.post) as BlogPost | undefined;
-  const [imageError, setImageError] = useState(false);
-  const normalizedImageUrl = normalizeImageUrl(post?.featured_image);
+  const posterUrl = post ? `/api/blog-og/${post.slug}?v=3` : undefined;
 
   if (!post) {
     return (
@@ -222,7 +222,7 @@ export default function BlogPost({ data }: Route.ComponentProps) {
   }
 
   const canonicalUrl = `${BASE_URL}/blog/${post.slug}`;
-  const ogImage = absoluteImageUrl(post.seo_og_image || post.featured_image);
+  const ogImage = absoluteImageUrl(post.seo_og_image) || `${BASE_URL}/api/blog-og/${post.slug}`;
 
   // JSON-LD: BlogPosting schema
   const articleJsonLd = {
@@ -273,24 +273,18 @@ export default function BlogPost({ data }: Route.ComponentProps) {
 
       <Header />
 
-      {/* Hero image | eager + high priority for LCP */}
-      {normalizedImageUrl && !imageError && (
-        <div className="h-64 w-full md:h-96">
+      {/* Hero poster */}
+      {posterUrl && (
+        <div className="h-56 w-full md:h-[420px] bg-[#0A0612]">
           <img
-            src={normalizedImageUrl}
+            src={posterUrl}
             alt={post.title}
-            className="h-full w-full object-cover"
-            onError={() => setImageError(true)}
+            className="h-full w-full object-cover object-center"
             loading="eager"
             fetchpriority="high"
             width="1200"
             height="630"
           />
-        </div>
-      )}
-      {imageError && (
-        <div className="h-64 w-full md:h-96 bg-neutral-200 flex items-center justify-center">
-          <span className="font-['Satoshi'] text-base text-neutral-400">Image not available</span>
         </div>
       )}
 

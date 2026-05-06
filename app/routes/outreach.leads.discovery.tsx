@@ -8,11 +8,16 @@ import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 
+// Stage durations are tuned to match the real backend pipeline (~75-120s
+// for /discovery/search). The LAST stage is open-ended — it stays
+// "in progress" until the API call resolves, even if the timer expires.
 const stages = [
-  { icon: RiRobot2Fill, label: "Reading your resume...", duration: 2000 },
-  { icon: FiSearch, label: "Figuring out what roles fit you...", duration: 3000 },
-  { icon: FiUsers, label: "Searching for hiring managers...", duration: 8000 },
-  { icon: FiBarChart2, label: "Ranking the best matches for you...", duration: 4000 },
+  { icon: RiRobot2Fill, label: "Reading your resume...", duration: 4000 },
+  { icon: FiSearch, label: "Figuring out what roles fit you...", duration: 5000 },
+  { icon: FiUsers, label: "Searching for hiring managers across companies...", duration: 18000 },
+  { icon: FiBarChart2, label: "Ranking the best matches for you...", duration: 8000 },
+  { icon: FiBriefcase, label: "Reading their job postings + company sites...", duration: 25000 },
+  { icon: RiRobot2Fill, label: "Writing a tailored reason for each lead...", duration: 30000 },
 ];
 
 const PREVIEW_POOL = [
@@ -45,8 +50,10 @@ export default function DiscoveryPage() {
   const [error, setError] = useState("");
   const [leadCount, setLeadCount] = useState(0);
   const [previewOffset, setPreviewOffset] = useState(_startOffset);
+  const [apiDone, setApiDone] = useState(false);
   const counterRef = useRef<ReturnType<typeof setInterval>>();
   const cycleRef = useRef<ReturnType<typeof setInterval>>();
+  const apiDoneRef = useRef(false);
 
   // Cards visible as soon as we reach stage 3 (Searching for hiring managers)
   const cardsVisible = currentStage >= 2;
@@ -59,9 +66,17 @@ export default function DiscoveryPage() {
 
     const timers: ReturnType<typeof setTimeout>[] = [];
     let elapsed = 0;
+    // Advance through stages 1..N-1 on a timer. Stage N (the last one)
+    // only completes when the API resolves — see below.
+    const lastStageIndex = stages.length - 1;
     stages.forEach((stage, i) => {
       elapsed += stage.duration;
-      timers.push(setTimeout(() => setCurrentStage(i + 1), elapsed));
+      if (i < lastStageIndex) {
+        timers.push(setTimeout(() => setCurrentStage(i + 1), elapsed));
+      } else {
+        // Move INTO the last stage on schedule but DON'T mark it complete.
+        timers.push(setTimeout(() => setCurrentStage(lastStageIndex), elapsed - stage.duration));
+      }
     });
 
     // Counter starts at stage 2 — ramps up to 500
@@ -81,10 +96,22 @@ export default function DiscoveryPage() {
     outreachFetch("/discovery/search", {
       method: "POST",
       body: JSON.stringify({ candidate_id: candidateId }),
+      // The new round-2 pipeline (multi-page scrape + Apollo jobs + fact
+      // extractor + justifier) takes 75-150s end-to-end. 300s timeout with
+      // a single retry gives us slack for the long tail without hammering
+      // Apollo/LLM credits on duplicate runs.
+      timeout: 300_000,
+      maxRetries: 1,
     })
       .then(() => {
-        const totalDuration = stages.reduce((sum, s) => sum + s.duration, 0);
-        setTimeout(() => navigate("/outreach/leads/results"), Math.max(0, totalDuration - 1000));
+        // Backend done — advance to "complete" state and navigate.
+        // The current stage is the last one (open-ended); now we mark it
+        // done and move to the post-stage "Discovery Complete" view.
+        apiDoneRef.current = true;
+        setApiDone(true);
+        setCurrentStage(stages.length);
+        // Brief pause so the user sees the "complete" state, then navigate.
+        setTimeout(() => navigate("/outreach/leads/results"), 800);
       })
       .catch((err) => {
         setError(err?.body?.detail || err.message || "Lead discovery failed");
@@ -110,8 +137,12 @@ export default function DiscoveryPage() {
     return null;
   }
 
-  const progress = Math.min((currentStage / stages.length) * 100, 100);
-  const allDone = currentStage >= stages.length;
+  // Progress caps at 95% until the API actually resolves — the last 5%
+  // is the "we're really done" gap, so the user doesn't see a static
+  // 100% bar for 60s while the backend is still working.
+  const rawProgress = Math.min((currentStage / stages.length) * 100, 95);
+  const progress = apiDone ? 100 : rawProgress;
+  const allDone = apiDone;
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -169,7 +200,7 @@ export default function DiscoveryPage() {
             <p className="text-sm text-studojo-muted font-satoshi mb-5">
               {allDone
                 ? "Found your hiring managers. Redirecting..."
-                : "Hang tight. This takes about 30 seconds."
+                : "Worth the wait — we're researching every company so each card is specific to you. Takes about a minute or two."
               }
             </p>
 

@@ -15,6 +15,7 @@ export function meta() {
     { property: "og:url", content: "https://studojo.com/reports/job-search-2026" },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: "https://studojo.com/og-reports.png" },
+    { property: "og:image:alt", content: "Studojo Career Market Report" },
     { property: "og:locale", content: "en_IN" },
     { property: "article:published_time", content: "2026-04-22T00:00:00+05:30" },
     { property: "article:modified_time", content: "2026-04-22T00:00:00+05:30" },
@@ -23,7 +24,7 @@ export function meta() {
     { name: "twitter:title", content: "Job Boards Are Dead: What Actually Works for Students in 2026 | Studojo" },
     { name: "twitter:description", content: "2-7% callback rate on job boards. 70-80% of jobs never posted. Here is what actually gets students hired in 2026." },
     { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
-    { name: "twitter:site", content: "@studojo_com" },
+    { name: "twitter:site", content: "" },
   ];
 }
 

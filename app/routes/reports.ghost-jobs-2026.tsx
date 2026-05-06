@@ -24,7 +24,7 @@ export function meta() {
     { name: "twitter:title", content: "Why Companies Post Jobs Without Hiring | Studojo" },
     { name: "twitter:description", content: "68% of managers posted a job they weren't actively trying to fill. 11 documented reasons." },
     { name: "twitter:image", content: `${BASE_URL}/og-reports.png` },
-    { name: "twitter:site", content: "@studojo_com" },
+    { name: "twitter:site", content: "" },
   ];
 }
 

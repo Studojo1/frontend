@@ -81,6 +81,31 @@ export default function CampaignSetupPage() {
     updateOrder({ status: "campaign_setup", log_entry: "Entered campaign setup" });
   }, [candidateId]);
 
+  // Active Gmail check: the local store can drift out of sync with the
+  // backend (e.g. user connected Gmail in a different tab, the store still
+  // has emailAccountId=null). Refetch on mount so the "Gmail not connected"
+  // error doesn't show when the OAuth row actually exists.
+  useEffect(() => {
+    if (authLoading) return;
+    let cancelled = false;
+    outreachFetch<{ email_account_id?: number; token_valid?: boolean }>("/gmail/oauth/account")
+      .then((data) => {
+        if (cancelled) return;
+        if (data?.email_account_id && data.token_valid !== false) {
+          if (data.email_account_id !== emailAccountId) {
+            setEmailAccountId(data.email_account_id);
+          }
+        }
+      })
+      .catch(() => {
+        // 404 = no OAuth row → emailAccountId stays null → user prompted to connect.
+      });
+    return () => { cancelled = true; };
+    // run once on mount; we deliberately don't include emailAccountId so we
+    // refetch fresh state regardless of what's currently in the store.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading]);
+
 
   const loadTestEmails = async () => {
     if (!candidateId || !emailAccountId) return;

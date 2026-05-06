@@ -65,6 +65,17 @@ export interface CandidateProfile {
 
 // ── Leads ────────────────────────────────────────────────────────────
 
+export interface LeadJustification {
+  headline: string;
+  // New schema: 3 bullets. Old schema (fit_reason + talk_track) is kept as
+  // optional fallback so existing rows in lead_scores.justification_json
+  // don't break the UI until they're re-justified on next discovery.
+  bullets?: string[];
+  fit_reason?: string;
+  talk_track?: string;
+  signal_strength: "high" | "medium" | "low";
+}
+
 export interface LeadScore {
   overall: number;
   title_relevance: number;
@@ -73,6 +84,7 @@ export interface LeadScore {
   seniority_relevance: number;
   location_relevance: number;
   explanation: string | null;
+  justification: LeadJustification | null;
 }
 
 export interface Lead {

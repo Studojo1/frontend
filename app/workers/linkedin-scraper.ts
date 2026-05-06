@@ -11,7 +11,7 @@
 import { eq } from "drizzle-orm";
 import db from "~/lib/db";
 import { userLinkedinSessions } from "../../auth-schema";
-import { buildProxy, proxyConfigured } from "~/lib/proxy.server";
+import { buildProxy } from "~/lib/proxy.server";
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
@@ -46,6 +46,7 @@ interface LinkedInSession {
   proxyCountry: string;
   proxyCity: string;
   userId: string;
+  hasRealCsrf: boolean; // false = fallback JSESSIONID — Voyager will 400
 }
 
 async function getLinkedInSession(userId: string): Promise<LinkedInSession | null> {
@@ -76,6 +77,7 @@ async function getLinkedInSession(userId: string): Promise<LinkedInSession | nul
   // Extract real JSESSIONID from the cookie jar if available
   // JSESSIONID value IS the CSRF token — format: "ajax:XXXXXXXXXXXXXXXXXX"
   const jsessionMatch = fullCookies.match(/JSESSIONID="?(ajax:[^";,\s]+)"?/i);
+  const hasRealCsrf = !!jsessionMatch;
   const jsessionId = jsessionMatch?.[1] ?? generateFallbackJsessionId();
 
   // Build a clean cookie string — include all known LinkedIn session cookies
@@ -94,6 +96,7 @@ async function getLinkedInSession(userId: string): Promise<LinkedInSession | nul
     proxyCountry: row.proxyCountry ?? "IN",
     proxyCity: row.proxyCity ?? "bangalore",
     userId,
+    hasRealCsrf,
   };
 }
 
@@ -166,33 +169,18 @@ function voyagerHeaders(session: LinkedInSession): Record<string, string> {
   };
 }
 
-// ── Proxy-aware fetch ─────────────────────────────────────────────────────────
-// Routes through Bright Data residential proxy when configured.
-// Falls back to direct fetch if no proxy is set up (fine for low-volume use).
+// ── Direct fetch for Voyager API calls ───────────────────────────────────────
+// Voyager calls are authenticated with li_at + CSRF — LinkedIn already knows
+// who's calling, so datacenter IP adds no meaningful detection risk for reads.
+// Residential proxy is critical for BROWSER automation (Patchright) but
+// Bun's fetch() proxy auth (407) doesn't reliably work with Decodo.
 
 async function proxyFetch(
   url: string,
   options: RequestInit,
-  session: LinkedInSession,
+  _session: LinkedInSession,
 ): Promise<Response> {
-  if (!proxyConfigured()) {
-    // No proxy — direct fetch. Works fine for dev/testing but datacenter IP
-    // will be seen by LinkedIn. Use a VPN or set up Bright Data for production.
-    return fetch(url, options);
-  }
-
-  const proxyCfg = buildProxy(session.userId, session.proxyCountry ?? "IN", session.proxyCity ?? "bangalore");
-  const proxyUrl = proxyCfg
-    ? `http://${proxyCfg.username}:${proxyCfg.password}@${proxyCfg.server.replace("http://", "")}`
-    : undefined;
-
-  // Node.js 18+ supports proxy via undici / experimental --experimental-fetch
-  // Bun supports proxies via fetch options
-  return fetch(url, {
-    ...options,
-    // @ts-ignore — Bun-specific proxy option
-    proxy: proxyUrl,
-  });
+  return fetch(url, options);
 }
 
 // Jitter delay — human-like gaps between requests
@@ -215,7 +203,7 @@ async function searchJobsVoyager(
     `&q=search`,
     `&keywords=${encodeURIComponent(role)}`,
     `&locationFallback=${encodeURIComponent(location)}`,
-    `&filters=List(timePostedRange-r604800,easyApply-true)`,
+    `&filters=List(timePostedRange-r604800)`,   // no easyApply-only — too restrictive for India
   ].join("");
 
   const res = await proxyFetch(url, {
@@ -224,11 +212,34 @@ async function searchJobsVoyager(
   }, session);
 
   if (res.status === 429 || res.status === 999) throw new Error(`LINKEDIN_RATE_LIMIT:${res.status}`);
-  if (res.status === 401 || res.status === 403) throw new Error(`LINKEDIN_AUTH_FAILED:${res.status}`);
-  if (!res.ok) return [];
+  if (!res.ok) {
+    const snippet = await res.text().catch(() => "").then((t) => t.slice(0, 200));
+    console.warn(`[linkedin] Voyager non-ok status=${res.status} for "${role}" / "${location}" body="${snippet}"`);
+    // Throw so caller falls back to public API (usedAuth stays false)
+    throw new Error(`LINKEDIN_VOYAGER_ERROR:${res.status}`);
+  }
 
-  const data = await res.json() as any;
+  let data: any;
+  try {
+    data = await res.json();
+  } catch {
+    // LinkedIn returned non-JSON (e.g. redirect to login page) — session likely expired
+    console.warn(`[linkedin] Voyager returned non-JSON for "${role}" / "${location}" — li_at may be expired`);
+    throw new Error("LINKEDIN_AUTH_FAILED:session_expired");
+  }
+
   const elements: any[] = data?.elements ?? data?.data?.elements ?? [];
+  // Log first element structure so we can see what LinkedIn actually returns
+  if (elements.length > 0) {
+    const firstEl = elements[0];
+    const firstJv = firstEl?.jobPostingResolutionResult ?? firstEl;
+    console.log(`[linkedin] Voyager first element keys: ${Object.keys(firstEl ?? {}).join(", ")}`);
+    console.log(`[linkedin] Voyager first jv keys: ${Object.keys(firstJv ?? {}).join(", ")}`);
+    console.log(`[linkedin] Voyager first jv title=${firstJv?.title} id=${firstJv?.jobPostingId}`);
+  } else {
+    const topKeys = Object.keys(data ?? {}).join(", ");
+    console.warn(`[linkedin] Voyager empty elements. Response keys: ${topKeys}`);
+  }
 
   return elements.slice(0, 25).flatMap((el: any) => {
     const jv = el?.jobPostingResolutionResult ?? el;
@@ -261,13 +272,16 @@ async function searchJobsVoyager(
 
 // ── Jobs: public guest API (no auth fallback) ─────────────────────────────────
 
-async function searchJobsPublic(role: string, location: string): Promise<JobResult[]> {
+async function searchJobsPublic(
+  role: string,
+  location: string,
+  _userId?: string,
+): Promise<JobResult[]> {
   const url = [
     "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
     `?keywords=${encodeURIComponent(role)}`,
     `&location=${encodeURIComponent(location)}`,
-    `&f_AL=true`,       // Easy Apply only
-    `&f_TPR=r604800`,   // past week
+    `&f_TPR=r604800`,   // past week (no Easy Apply filter — too restrictive for India)
     `&start=0`,
   ].join("");
 
@@ -280,8 +294,13 @@ async function searchJobsPublic(role: string, location: string): Promise<JobResu
     signal: AbortSignal.timeout(15_000),
   });
 
-  if (!res.ok) return [];
+  if (!res.ok) {
+    const snippet = await res.text().catch(() => "").then((t) => t.slice(0, 200));
+    console.warn(`[linkedin] Public API status=${res.status} for "${role}" / "${location}" snippet="${snippet}"`);
+    return [];
+  }
   const html = await res.text();
+  console.log(`[linkedin] Public API status=200 html_len=${html.length} for "${role}" / "${location}"`);
 
   const titles: string[] = [];
   const companies: string[] = [];
@@ -293,7 +312,7 @@ async function searchJobsPublic(role: string, location: string): Promise<JobResu
   const titleRe  = /<h3[^>]*class="[^"]*base-search-card__title[^"]*"[^>]*>([\s\S]*?)<\/h3>/g;
   const compRe   = /<h4[^>]*class="[^"]*base-search-card__subtitle[^"]*"[^>]*>([\s\S]*?)<\/h4>/g;
   const locRe    = /<span[^>]*class="[^"]*job-search-card__location[^"]*"[^>]*>([\s\S]*?)<\/span>/g;
-  const linkRe   = /href="(https:\/\/www\.linkedin\.com\/jobs\/view\/[^"?]+)/g;
+  const linkRe   = /href="(https:\/\/[a-z.-]*linkedin\.com\/jobs\/view\/[^"?&]+)/g;
   const idRe     = /data-entity-urn="urn:li:jobPosting:(\d+)"/g;
 
   while ((m = titleRe.exec(html))  !== null) titles.push(cleanText(m[1]));
@@ -320,20 +339,30 @@ async function searchJobsPublic(role: string, location: string): Promise<JobResu
 }
 
 // ── Job detail: fetch full description ────────────────────────────────────────
+// Accepts an optional Playwright page — if provided, uses in-page fetch()
+// which inherits the full browser fingerprint (TLS, cookies, UA) automatically.
 
-export async function getJobDescription(userId: string, jobId: string): Promise<string> {
+export async function getJobDescription(userId: string, jobId: string, page?: any): Promise<string> {
   const session = await getLinkedInSession(userId);
   if (!session) return "";
   await jitter(500, 1200);
 
   const url = `https://www.linkedin.com/voyager/api/jobs/jobPostings/${jobId}?decorationId=com.linkedin.voyager.deco.jobs.web.shared.WebFullJobPosting-14`;
-  const res = await proxyFetch(url, {
-    headers: voyagerHeaders(session),
-    signal: AbortSignal.timeout(10_000),
-  }, session);
 
-  if (!res.ok) return "";
-  const data = await res.json() as any;
+  let data: any;
+  if (page) {
+    // In-page fetch: fingerprint matches the live browser session exactly
+    const { voyagerFetch } = await import("./browser-utils");
+    data = await voyagerFetch(page, url, session.jsessionId).catch(() => null);
+  } else {
+    const res = await proxyFetch(url, {
+      headers: voyagerHeaders(session),
+      signal: AbortSignal.timeout(10_000),
+    }, session);
+    if (!res.ok) return "";
+    data = await res.json().catch(() => null);
+  }
+
   return (data?.description?.text ?? data?.data?.description?.text ?? "").slice(0, 5000);
 }
 
@@ -351,20 +380,22 @@ export async function scrapeLinkedInJobs(
 
   if (userId) {
     const session = await getLinkedInSession(userId);
-    if (session) {
+    if (session?.hasRealCsrf) {
       try {
         results = await searchJobsVoyager(session, role, location);
         usedAuth = true;
-        console.log(`[linkedin] Voyager: ${results.length} jobs for "${role}" / "${location}"${proxyConfigured() ? " (proxied)" : " (no proxy)"}`);
+        console.log(`[linkedin] Voyager: ${results.length} jobs for "${role}" / "${location}"`);
       } catch (err: any) {
         console.warn(`[linkedin] Voyager error (${err.message}) — falling back to public API`);
         if (err.message?.startsWith("LINKEDIN_RATE_LIMIT") || err.message?.startsWith("LINKEDIN_AUTH_FAILED")) throw err;
       }
+    } else if (session && !session.hasRealCsrf) {
+      console.log(`[linkedin] No real JSESSIONID for ${userId} — using public API`);
     }
   }
 
   if (!usedAuth) {
-    results = await searchJobsPublic(role, location);
+    results = await searchJobsPublic(role, location, userId ?? undefined);
     console.log(`[linkedin] Public API: ${results.length} jobs for "${role}" / "${location}"`);
   }
 

@@ -5,22 +5,25 @@ import { Header, Footer } from "~/components";
 const BASE_URL = "https://studojo.com";
 
 export function meta() {
+  const ogImage = `${BASE_URL}/og-reports.png`;
   return [
-    { title: "Career Market Reports | Studojo | Data-Driven Analyses for Students" },
-    {
-      name: "description",
-      content:
-        "Free career market reports for students. Entry-level salary benchmarks, hiring trends, skill gaps, and job data across Finance, Sales, CS, and more | India 2026.",
-    },
+    { title: "Career Market Reports | Studojo" },
+    { name: "description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, skill gaps, and job data across Finance, Sales, CS, and more | India 2026." },
+    { name: "robots", content: "index, follow" },
+    { name: "keywords", content: "career market report, entry level jobs india 2026, fresher salary india, internship market report, student career data" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports` },
     { property: "og:type", content: "website" },
     { property: "og:title", content: "Career Market Reports | Studojo" },
     { property: "og:description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more." },
     { property: "og:url", content: `${BASE_URL}/reports` },
     { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: ogImage },
+    { property: "og:image:alt", content: "Studojo Career Market Reports — data-driven guides for students" },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:site", content: "@studojo" },
     { name: "twitter:title", content: "Career Market Reports | Studojo" },
     { name: "twitter:description", content: "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more." },
+    { name: "twitter:image", content: ogImage },
   ];
 }
 
@@ -35,6 +38,30 @@ const TYPE_COLORS: Record<ReportType, string> = {
 };
 
 const REPORTS = [
+  {
+    slug: "unpaid-internship-trap-2026",
+    publishDate: "2026-05-05",
+    title: "The Unpaid Internship Trap: Is It Ever Worth It?",
+    subtitle: "Unpaid Internships 2026",
+    excerpt: "A practical 2026 framework to evaluate unpaid internships: the real upside, hidden costs, and the minimum conditions that make an unpaid role worth considering.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "May 2026",
+    findings: 4,
+    badge: "New",
+  },
+  {
+    slug: "test-report-vanshika",
+    publishDate: "2026-05-04",
+    title: "Example Report: A Research Finding",
+    subtitle: "Example Report 2026",
+    excerpt: "Two sentence description shown on the /reports index card. Should be specific and compelling.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 4,
+    badge: "New",
+  },
   {
     slug: "ops-india-2026",
     publishDate: "2026-04-12",
@@ -230,6 +257,66 @@ const REPORTS = [
     badge: "New",
   },
   {
+    slug: "degree-vs-skills-2026",
+    publishDate: "2026-05-03",
+    title: "Degree vs Skills: What Hirers Actually Look at in 2026",
+    subtitle: "Degree vs Skills Report 2026",
+    excerpt: "55% of employers dropped degree requirements. But 65% of recruiters still filter by degree. A data-backed breakdown of what hirers actually rank, where degrees still gate, and how to position yourself either way.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
+    slug: "remote-internships-2026",
+    publishDate: "2026-05-03",
+    title: "Remote Internships 2026: Which Ones Are Real",
+    subtitle: "Behavioural Report 2026",
+    excerpt: "Around 35% of remote internship listings show at least one major fake signal. Red flags, green flags, pay as a signal, platform quality comparison, and a 4-step verification checklist.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
+    slug: "startup-vs-mnc-2026",
+    publishDate: "2026-05-03",
+    title: "Startup vs MNC: A Real Comparison for Early-Career Talent",
+    subtitle: "Startup vs MNC Report 2026",
+    excerpt: "Salary, learning speed, brand name value, job security, and career velocity — compared across five dimensions with actual data. Neither is universally better. Here is how to decide.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
+    slug: "linkedin-profile-2026",
+    publishDate: "2026-05-02",
+    title: "The LinkedIn Profile Report: What Hiring Managers Actually Look At",
+    subtitle: "LinkedIn Profile Report 2026",
+    excerpt: "Hiring managers spend 7 seconds on your LinkedIn. A data-backed breakdown of what gets seen, what gets skipped, why referrals convert 4x, and the exact profile fixes that change your odds.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 7,
+    badge: "New",
+  },
+  {
+    slug: "application-response-rate-2026",
+    publishDate: "2026-05-01",
+    title: "Why 80% of Applications Get No Response",
+    subtitle: "Application Response Rate Report 2026",
+    excerpt: "75% of resumes are filtered before a human sees them. A documented breakdown of every reason applications disappear: ATS filtering, volume, timing, ghost jobs, and the referral wall.",
+    category: "Sector",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
     slug: "ghost-jobs-2026",
     publishDate: "2026-04-27",
     title: "Why Companies Post Jobs Without Planning to Hire",
@@ -351,6 +438,29 @@ function RequestForm() {
   );
 }
 
+const BASE_URL_COMPONENT = "https://studojo.com";
+
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Career Market Reports | Studojo",
+  "description": "Free career market reports for students. Entry-level salary benchmarks, hiring trends, and skill gaps across Finance, Sales, CS, and more.",
+  "url": `${BASE_URL_COMPONENT}/reports`,
+  "publisher": {
+    "@type": "Organization",
+    "name": "Studojo",
+    "url": BASE_URL_COMPONENT,
+    "logo": { "@type": "ImageObject", "url": `${BASE_URL_COMPONENT}/favicon.png` },
+  },
+  "hasPart": REPORTS.map((r) => ({
+    "@type": "Article",
+    "headline": r.title,
+    "url": `${BASE_URL_COMPONENT}/reports/${r.slug}`,
+    "datePublished": r.publishDate,
+    "author": { "@type": "Organization", "name": "Studojo" },
+  })),
+};
+
 export default function Reports() {
   const [activeFilter, setActiveFilter] = useState<"All" | ReportType>("All");
   const sorted = [...REPORTS].sort((a, b) => b.publishDate.localeCompare(a.publishDate));
@@ -358,6 +468,10 @@ export default function Reports() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
       <Header />
       <main className="min-h-screen bg-neutral-50">
         {/* Hero */}

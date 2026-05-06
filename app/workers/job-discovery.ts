@@ -153,21 +153,23 @@ async function fetchInternshalaJobs(role: string): Promise<JobResult[]> {
   const html = await res.text();
   const jobs: JobResult[] = [];
 
-  const cardRe = /data-internship_id="(\d+)"[\s\S]*?<h3[^>]*class="heading_4_5[^"]*"[^>]*>([\s\S]*?)<\/h3>[\s\S]*?<h4[^>]*class="company-name[^"]*"[^>]*>([\s\S]*?)<\/h4>/g;
+  // Internshala changed to slug URLs: /internship/detail/{title-slug}{numericId}
+  // Extract href="/internship/detail/{slug}" + nearest heading_4_5 title + company-name
+  const slugRe = /href="\/internship\/detail\/([^"]+)"[\s\S]{0,800}?<h3[^>]*class="heading_4_5[^"]*"[^>]*>([\s\S]*?)<\/h3>[\s\S]{0,400}?<h4[^>]*class="company-name[^"]*"[^>]*>([\s\S]*?)<\/h4>/g;
   let m: RegExpExecArray | null;
 
-  while ((m = cardRe.exec(html)) !== null) {
-    const id = m[1];
+  while ((m = slugRe.exec(html)) !== null) {
+    const slug = m[1];
     const title = stripHtml(m[2]);
     const company = stripHtml(m[3]);
-    if (id && title) {
+    if (slug && title) {
       jobs.push({
-        jobId: `internshala_${id}`,
+        jobId: `internshala_${slug}`,
         company,
         roleTitle: title,
         location: "India",
         platform: "internshala" as any,
-        applyUrl: `https://internshala.com/internship/detail/${id}`,
+        applyUrl: `https://internshala.com/internship/${slug}`,
         isEasyApply: false,
         jobDescription: "",
       });

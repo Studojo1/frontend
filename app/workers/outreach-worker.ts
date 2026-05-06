@@ -1,13 +1,15 @@
 // Outreach automation - LinkedIn connection requests + drip message sequences
 // Day 0: connect, Day 3: message, Day 7: follow-up, Day 14: done
 
-import { eq, and, lt, sql } from "drizzle-orm";
+import { eq, and, lt, sql, gte } from "drizzle-orm";
 import db from "~/lib/db";
-import { outreachContacts, userLinkedinSessions, outreachCampaigns } from "../../auth-schema";
+import { outreachContacts, userLinkedinSessions, outreachCampaigns, autoapplyConfigs, user as userTable } from "../../auth-schema";
 import { decrypt } from "~/lib/encrypt.server";
 import { buildProxy } from "~/lib/proxy.server";
 import { pauseOutreach, logEvent, getWarmupLimit, checkAcceptanceRate } from "./safety-manager";
 import { generateConnectionNote } from "./prescreen";
+import { blockHeavyResources, withWatchdog, jitter as jitterMs } from "./browser-utils";
+import { outreachQueue } from "~/lib/queues.server";
 
 let chromiumModule: any = null;
 async function getChromium() {
@@ -26,6 +28,7 @@ async function launchBrowser(userId: string, country: string, city: string, cont
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   const ctx = await browser.newContext(contextOptions);
+  await blockHeavyResources(ctx);
   return { browser, ctx };
 }
 
@@ -48,10 +51,39 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
 
   if (!session?.liAtEncrypted) return { status: "skipped", error: "no_session" };
 
-  // Check acceptance rate before sending
-  const acceptanceRate = await checkAcceptanceRate(contact.userId);
-  if (acceptanceRate !== null && acceptanceRate < 0.20) {
-    return { status: "skipped", error: "low_acceptance_rate" };
+  // ── Daily limit check (step 0 = connection requests only) ────────────────────
+  if (contact.sequenceStep === 0) {
+    const [config] = await db
+      .select({ dailyLimit: autoapplyConfigs.dailyLimit, status: autoapplyConfigs.status })
+      .from(autoapplyConfigs)
+      .where(eq(autoapplyConfigs.userId, contact.userId))
+      .limit(1);
+
+    if (config?.status === "paused") {
+      return { status: "skipped", error: "user_paused" };
+    }
+
+    const warmupLimit = getWarmupLimit(session.warmupDay, config?.dailyLimit ?? 20);
+    const todayCount = await getDailyConnectionCount(contact.userId);
+
+    if (todayCount >= warmupLimit) {
+      // Re-queue for tomorrow (randomised within first 4 hours of next day)
+      const msUntilMidnight = getMsUntilMidnight();
+      await outreachQueue.add(
+        "outreach",
+        { contactId },
+        { delay: msUntilMidnight + Math.random() * 4 * 60 * 60 * 1000, attempts: 2 }
+      );
+      return { status: "skipped", error: "daily_limit_reached" };
+    }
+  }
+
+  // ── Acceptance rate check (before messages, not connection requests) ──────────
+  if (contact.sequenceStep > 0) {
+    const acceptanceRate = await checkAcceptanceRate(contact.userId);
+    if (acceptanceRate !== null && acceptanceRate < 0.20) {
+      return { status: "skipped", error: "low_acceptance_rate" };
+    }
   }
 
   let liAt: string;
@@ -91,29 +123,31 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
 
     let result: { status: string; error?: string };
 
-    switch (contact.sequenceStep) {
-      case 0:
-        result = await sendConnectionRequest(page, contact, session, rateLimited);
-        break;
-      case 1:
-        result = await sendIntroMessage(page, contact, rateLimited);
-        break;
-      case 2:
-        result = await sendFollowUp(page, contact, rateLimited);
-        break;
-      default:
-        result = { status: "done" };
-    }
+    const stepFn = contact.sequenceStep === 0
+      ? () => sendConnectionRequest(page, contact, session, rateLimited)
+      : contact.sequenceStep === 1
+        ? () => sendIntroMessage(page, contact, rateLimited)
+        : contact.sequenceStep === 2
+          ? () => sendFollowUp(page, contact, rateLimited)
+          : () => Promise.resolve({ status: "done" });
+
+    result = await withWatchdog(stepFn, browser, 8 * 60_000, `outreach:${contactId}:step${contact.sequenceStep}`);
 
     await browser.close();
 
-    if (result.status === "sent" || result.status === "requested") {
+    if (result.status === "replied") {
+      // Person replied — mark done, cancel follow-up
+      await db.update(outreachContacts).set({
+        replied: true,
+        status: "replied",
+        lastActionAt: new Date(),
+      }).where(eq(outreachContacts.id, contactId));
+    } else if (result.status === "sent" || result.status === "requested") {
       const nextStep = contact.sequenceStep + 1;
       await db.update(outreachContacts).set({
         sequenceStep: nextStep,
         status: contact.sequenceStep === 0 ? "requested" : "messaged",
         lastActionAt: new Date(),
-        ...(contact.sequenceStep === 0 ? {} : {}),
       }).where(eq(outreachContacts.id, contactId));
     }
 
@@ -131,33 +165,38 @@ async function sendConnectionRequest(page: any, contact: any, session: any, rate
 
   try {
     await page.goto(contact.linkedinUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+
+    // Wait for LinkedIn SPA to render — domcontentloaded fires before h1/buttons appear
+    await page.waitForSelector("h1, .pv-text-details__left-panel, .artdeco-card", { timeout: 10_000 }).catch(() => {});
     await page.waitForTimeout(1500);
 
-    // Check if already connected
-    const connected = await page.$('span:has-text("1st")');
-    if (connected) {
+    // Check if already connected (1st degree badge)
+    const alreadyConnected = await page.evaluate(() =>
+      !![...document.querySelectorAll("span")].find((s) => s.textContent?.trim() === "1st")
+    );
+    if (alreadyConnected) {
       await db.update(outreachContacts).set({ status: "accepted", connectedAt: new Date(), sequenceStep: 1 }).where(eq(outreachContacts.id, contact.id));
       return { status: "already_connected" };
     }
 
-    // Find connect button
-    const connectBtn = await findButton(page, ["Connect", "Follow"]);
-    if (!connectBtn) return { status: "skipped", error: "no_connect_button" };
+    // Get sender's real name for the connection note
+    const [senderRow] = await db.select({ name: userTable.name }).from(userTable).where(eq(userTable.id, contact.userId)).limit(1);
+    const senderName = senderRow?.name ?? "Job seeker";
 
-    const btnText = await connectBtn.textContent().catch(() => "");
-    if (!btnText?.toLowerCase().includes("connect")) return { status: "skipped", error: "not_connect_button" };
+    // Try to click Connect — handles standard profile, 2nd-degree, and Creator Mode
+    const connectClicked = await clickConnectButton(page);
+    if (!connectClicked) return { status: "skipped", error: "no_connect_button" };
 
-    await connectBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500);
 
-    // "Add a note" flow
+    // "Add a note" modal — optionally attach personalized note
     const addNoteBtn = await page.$('button[aria-label*="Add a note"]');
     if (addNoteBtn) {
       await addNoteBtn.click();
       await page.waitForTimeout(500);
 
       const note = await generateConnectionNote({
-        senderName: session.user?.name ?? "Job seeker",
+        senderName,
         recipientName: contact.name ?? "there",
         recipientTitle: contact.title ?? "",
         recipientCompany: contact.company ?? "",
@@ -167,22 +206,81 @@ async function sendConnectionRequest(page: any, contact: any, session: any, rate
 
       const noteTextarea = await page.$("textarea#custom-message");
       if (noteTextarea && note) {
-        await noteTextarea.fill(note.slice(0, 300));
+        await noteTextarea.click().catch(() => {});
+        await noteTextarea.type(note.slice(0, 300), { delay: 40 + Math.random() * 80 });
       }
     }
 
-    // Send
-    const sendBtn = await page.$('button[aria-label="Send now"], button[aria-label="Send invitation"]');
-    if (sendBtn) {
-      await sendBtn.click();
-      await page.waitForTimeout(1000);
-      return { status: "requested" };
+    // Click Send
+    for (const sel of ['button[aria-label="Send without a note"]', 'button[aria-label="Send now"]', 'button[aria-label="Send invitation"]']) {
+      const btn = await page.$(sel);
+      if (btn) { await btn.click(); await page.waitForTimeout(1000); return { status: "requested" }; }
+    }
+    // Text fallback inside dialog
+    const modal = await page.$('[role="dialog"], .artdeco-modal');
+    if (modal) {
+      for (const btn of await modal.$$("button")) {
+        const t = (await btn.textContent().catch(() => "")).trim().toLowerCase();
+        if (t === "send" || t.includes("send without") || t.includes("send now")) {
+          await btn.click();
+          await page.waitForTimeout(1000);
+          return { status: "requested" };
+        }
+      }
     }
 
     return { status: "failed", error: "no_send_button" };
   } catch (err: any) {
     return { status: "failed", error: err?.message?.slice(0, 100) };
   }
+}
+
+// Click the Connect button — handles standard profiles AND Creator Mode (More → Connect)
+async function clickConnectButton(page: any): Promise<boolean> {
+  // Strategy 1: aria-label with "Invite" + "connect"
+  const inviteBtn = await page.$('button[aria-label*="Invite"][aria-label*="connect"]').catch(() => null);
+  if (inviteBtn) { await inviteBtn.click(); return true; }
+
+  // Strategy 2: exact text "Connect" in profile card (not in "People you may know")
+  const directClicked = await page.evaluate(() => {
+    for (const btn of document.querySelectorAll("button")) {
+      if (btn.textContent?.trim() !== "Connect") continue;
+      const section = btn.closest("section");
+      const heading = section?.querySelector("h2, h3")?.textContent ?? "";
+      if (!heading.includes("People you may") && !heading.includes("You might")) {
+        btn.click();
+        return true;
+      }
+    }
+    return false;
+  });
+  if (directClicked) return true;
+
+  // Strategy 3: Creator Mode — click "More" then "Connect" in dropdown
+  const moreClicked = await page.evaluate(() => {
+    const btns = [...document.querySelectorAll("button")].slice(0, 20);
+    const more = btns.find((b) => b.textContent?.trim() === "More");
+    if (more) { more.click(); return true; }
+    return false;
+  });
+
+  if (!moreClicked) return false;
+
+  await page.waitForTimeout(1000);
+
+  const dropdownClicked = await page.evaluate(() => {
+    const dd = document.querySelector(".artdeco-dropdown__content, [class*='dropdown__content']");
+    if (!dd) return false;
+    for (const el of dd.querySelectorAll("span, button, li")) {
+      if (el.textContent?.trim() === "Connect") {
+        (el.closest("button") ?? el as HTMLElement).click();
+        return true;
+      }
+    }
+    return false;
+  });
+
+  return dropdownClicked;
 }
 
 // ── Intro message (after acceptance) ─────────────────────────────────────────
@@ -198,6 +296,10 @@ async function sendIntroMessage(page: any, contact: any, rateLimited: boolean): 
 
 async function sendFollowUp(page: any, contact: any, rateLimited: boolean): Promise<{ status: string; error?: string }> {
   if (rateLimited) return { status: "skipped", error: "rate_limited" };
+
+  // Check for a reply before sending follow-up — skip if they already replied
+  const hasReplied = await checkForReply(page, contact);
+  if (hasReplied) return { status: "replied" };
 
   const followUp = `Hi ${contact.name?.split(" ")[0] ?? "there"} - just a quick follow-up on my earlier message. Happy to connect on a call if you have 15 minutes. No pressure either way.`;
   return sendLinkedInMessage(page, contact, followUp);
@@ -264,9 +366,9 @@ async function sendLinkedInMessage(page: any, contact: any, message: string): Pr
     if (!msgBox) return { status: "skipped", error: "not_connected_yet" };
 
     await msgBox.click({ force: true });
-    // Use keyboard.type - fill() doesn't trigger LinkedIn's input events
-    await page.keyboard.type(message);
-    await page.waitForTimeout(800);
+    // type() with per-character delay — triggers LinkedIn's input events + looks human
+    await page.keyboard.type(message, { delay: 40 + Math.random() * 80 });
+    await jitterMs(600, 1200);
 
     const sendBtn = await page.$("button.msg-form__send-button") ?? await page.$('[aria-label="Send"]');
     if (!sendBtn) return { status: "failed", error: "no_send_button" };
@@ -338,6 +440,84 @@ export async function withdrawStaleInvitations(userId: string) {
     browser?.close().catch(() => {});
     console.error("[outreach] withdraw error:", err?.message);
   }
+}
+
+// ── Reply detection ───────────────────────────────────────────────────────────
+// Navigate to the messaging thread with this contact and check if the last
+// message was sent by someone other than the logged-in user.
+
+async function checkForReply(page: any, contact: any): Promise<boolean> {
+  try {
+    await page.goto("https://www.linkedin.com/messaging/", { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(2000);
+
+    const firstName = contact.name?.split(" ")[0] ?? "";
+    if (!firstName) return false;
+
+    const searchInput = await page.$('[placeholder="Search messages"]');
+    if (!searchInput) return false;
+
+    await searchInput.click();
+    await page.keyboard.type(firstName, { delay: 80 });
+    await page.waitForTimeout(2000);
+
+    const convItems = await page.$$(".msg-conversation-listitem");
+    for (const item of convItems) {
+      const text = await item.textContent().catch(() => "");
+      if (!text?.includes(firstName)) continue;
+
+      await item.click({ force: true });
+      await page.waitForTimeout(1500);
+
+      // Get all messages in the thread — check if any are from the other person
+      // LinkedIn marks sent messages with .msg-s-message-list__event--sent
+      // and received messages without that class
+      const hasReply = await page.evaluate(() => {
+        const received = document.querySelectorAll(
+          ".msg-s-event-listitem:not(.msg-s-message-list__event--sent) .msg-s-event__content"
+        );
+        return received.length > 0;
+      });
+
+      if (hasReply) {
+        console.log(`[outreach] Reply detected from ${contact.name}`);
+        return true;
+      }
+
+      return false;
+    }
+    return false;
+  } catch {
+    return false; // If check fails, proceed with follow-up (fail safe)
+  }
+}
+
+// ── Daily connection count ────────────────────────────────────────────────────
+
+async function getDailyConnectionCount(userId: string): Promise<number> {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const rows = await db
+    .select({ cnt: sql<number>`COUNT(*)` })
+    .from(outreachContacts)
+    .where(
+      and(
+        eq(outreachContacts.userId, userId),
+        eq(outreachContacts.status, "requested"),
+        gte(outreachContacts.lastActionAt, todayStart),
+      )
+    );
+  return Number(rows[0]?.cnt ?? 0);
+}
+
+// ── Re-queue timing ───────────────────────────────────────────────────────────
+
+function getMsUntilMidnight(): number {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  return midnight.getTime() - now.getTime();
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

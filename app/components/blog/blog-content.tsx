@@ -63,6 +63,12 @@ function processBlogContentHtml(html: string): string {
     }
   );
 
+  // 5. Ensure all img tags have an alt attribute (empty string if missing — required for accessibility + SEO)
+  processed = processed.replace(
+    /<img(?![^>]*\balt\s*=)([^>]*?)>/gi,
+    '<img alt=""$1>'
+  );
+
   return processed;
 }
 

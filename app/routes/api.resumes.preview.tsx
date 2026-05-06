@@ -15,11 +15,6 @@ export async function action({ params, request }: Route.ActionArgs) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const session = await getSessionFromRequest(request);
-  if (!session?.user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const body = await request.json();
   const { templateId } = body;
 

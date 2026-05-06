@@ -11,7 +11,6 @@ Disallow: /api/
 Disallow: /auth
 Disallow: /settings
 Disallow: /onboarding
-Disallow: /outreach
 `;
 
   return new Response(robotsTxt, {
