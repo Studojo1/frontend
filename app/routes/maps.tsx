@@ -9,28 +9,22 @@ interface Internship {
   id: string;
   title: string;
   location: string;
-  work_mode: string;
   stipend: string;
   duration: string;
   slug: string;
   deadline: string | null;
-  niche_score: number;
 }
 
 interface Company {
   id: string;
   name: string;
-  city: string;
-  country: string;
   market: string;
   lat: number;
   lng: number;
   logo_url: string | null;
-  sector: string | null;
-  stage: string | null;
   niche_score: number;
   website: string | null;
-  internship_count: string;
+  internship_count: number;
   internships: Internship[];
 }
 
@@ -49,12 +43,6 @@ const MARKETS = [
   { value: "Singapore", label: "Singapore", flag: "🇸🇬" },
 ];
 
-const WORK_MODES = [
-  { value: "all", label: "All" },
-  { value: "remote", label: "Remote" },
-  { value: "hybrid", label: "Hybrid" },
-  { value: "onsite", label: "On-site" },
-];
 
 const NICHE_COLORS: Record<number, string> = {
   5: "#22c55e",
@@ -77,18 +65,6 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-function WorkModeChip({ mode }: { mode: string }) {
-  const styles: Record<string, string> = {
-    remote: "bg-green-900/40 text-green-300 border-green-800",
-    hybrid: "bg-blue-900/40 text-blue-300 border-blue-800",
-    onsite: "bg-slate-800 text-slate-300 border-slate-700",
-  };
-  return (
-    <span className={`text-xs px-2 py-0.5 rounded-full border ${styles[mode] || styles.onsite}`}>
-      {mode}
-    </span>
-  );
-}
 
 function CompanyAvatar({ name, logoUrl, size = 36 }: { name: string; logoUrl: string | null; size?: number }) {
   const [imgError, setImgError] = useState(false);
@@ -140,7 +116,6 @@ export default function MapsPage() {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [hoveredCompany, setHoveredCompany] = useState<string | null>(null);
   const [market, setMarket] = useState("all");
-  const [workMode, setWorkMode] = useState("all");
   const [search, setSearch] = useState("");
   const [mapReady, setMapReady] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -148,14 +123,13 @@ export default function MapsPage() {
   // Load data
   useEffect(() => {
     loadData();
-  }, [market, workMode]);
+  }, [market]);
 
   async function loadData() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (market !== "all") params.set("market", market);
-      if (workMode !== "all") params.set("work_mode", workMode);
       const res = await fetch(`/api/maps?${params}`);
       const data = await res.json();
       setCompanies(data.companies || []);
@@ -226,7 +200,7 @@ export default function MapsPage() {
 
     filtered.forEach((company) => {
       if (!company.lat || !company.lng) return;
-      const count = parseInt(company.internship_count || "0");
+      const count = company.internship_count || 0;
       const color = getNicheColor(company.niche_score || 3);
 
       // Build marker element
@@ -343,7 +317,7 @@ export default function MapsPage() {
   });
 
   const totalVisible = filteredCompanies.reduce(
-    (sum, co) => sum + parseInt(co.internship_count || "0"),
+    (sum, co) => sum + (co.internship_count || 0),
     0
   );
 
@@ -443,22 +417,6 @@ export default function MapsPage() {
                 ))}
               </div>
 
-              {/* Work mode filter */}
-              <div className="flex gap-1.5">
-                {WORK_MODES.map((wm) => (
-                  <button
-                    key={wm.value}
-                    onClick={() => setWorkMode(wm.value)}
-                    className={`text-xs px-2.5 py-1 rounded-full border transition-all flex-1 text-center ${
-                      workMode === wm.value
-                        ? "bg-violet-600 border-violet-500 text-white"
-                        : "bg-white/5 border-white/10 text-white/50 hover:text-white hover:border-white/20"
-                    }`}
-                  >
-                    {wm.label}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Results count */}
@@ -495,12 +453,9 @@ export default function MapsPage() {
                   <Link key={intern.id} to={`/internships/${intern.slug}`} className="flex items-center justify-between gap-2 mt-2 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-white truncate">{intern.title}</p>
-                      <p className="text-xs text-white/40 mt-0.5">{intern.stipend}</p>
+                      <p className="text-xs text-white/40 mt-0.5 truncate">{intern.stipend || intern.location}</p>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <WorkModeChip mode={intern.work_mode} />
-                      <FiExternalLink size={11} className="text-white/20 group-hover:text-white/60 transition-colors" />
-                    </div>
+                    <FiExternalLink size={11} className="text-white/20 group-hover:text-white/60 transition-colors flex-shrink-0" />
                   </Link>
                 ))}
               </div>
@@ -540,7 +495,7 @@ export default function MapsPage() {
                             className="text-xs font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0"
                             style={{ background: `${getNicheColor(company.niche_score)}22`, color: getNicheColor(company.niche_score) }}
                           >
-                            {company.internship_count} role{parseInt(company.internship_count) !== 1 ? "s" : ""}
+                            {company.internship_count} role{company.internship_count !== 1 ? "s" : ""}
                           </span>
                         </div>
                         <p className="text-xs text-white/40 mt-0.5 flex items-center gap-1">
