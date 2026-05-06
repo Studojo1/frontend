@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router";
 import { FiMapPin, FiFilter, FiX, FiBriefcase, FiExternalLink, FiSearch } from "react-icons/fi";
 
-// Lazy-load maplibre so it's never imported server-side
 let maplibre: typeof import("maplibre-gl") | null = null;
 
 interface Internship {
@@ -26,6 +25,10 @@ interface Company {
   website: string | null;
   internship_count: number;
   internships: Internship[];
+  city?: string;
+  country?: string;
+  stage?: string;
+  sector?: string;
 }
 
 interface MapStats {
@@ -42,7 +45,6 @@ const MARKETS = [
   { value: "UAE", label: "UAE", flag: "🇦🇪" },
   { value: "Singapore", label: "Singapore", flag: "🇸🇬" },
 ];
-
 
 const NICHE_COLORS: Record<number, string> = {
   5: "#22c55e",
@@ -65,6 +67,25 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
+// Spread companies that share exact coordinates so they separate when zoomed in
+function jitterDuplicates(companies: Company[]): Company[] {
+  const seen = new Map<string, number>();
+  return companies.map((co) => {
+    if (!co.lat || !co.lng) return co;
+    const key = `${co.lat.toFixed(4)},${co.lng.toFixed(4)}`;
+    const idx = seen.get(key) ?? 0;
+    seen.set(key, idx + 1);
+    if (idx === 0) return co;
+    // Golden-angle spiral so pins spread in a neat circle ~300m radius
+    const angle = (idx * 137.508 * Math.PI) / 180;
+    const radius = 0.003 * Math.sqrt(idx);
+    return {
+      ...co,
+      lat: co.lat + radius * Math.sin(angle),
+      lng: co.lng + radius * Math.cos(angle),
+    };
+  });
+}
 
 function CompanyAvatar({ name, logoUrl, size = 36 }: { name: string; logoUrl: string | null; size?: number }) {
   const [imgError, setImgError] = useState(false);
@@ -108,9 +129,10 @@ export default function MapsPage() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
-  const popupRef = useRef<any>(null);
+  const superclusterRef = useRef<any>(null);
 
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [displayCompanies, setDisplayCompanies] = useState<Company[]>([]);
   const [stats, setStats] = useState<MapStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
@@ -120,7 +142,6 @@ export default function MapsPage() {
   const [mapReady, setMapReady] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Load data
   useEffect(() => {
     loadData();
   }, [market]);
@@ -132,7 +153,9 @@ export default function MapsPage() {
       if (market !== "all") params.set("market", market);
       const res = await fetch(`/api/maps?${params}`);
       const data = await res.json();
-      setCompanies(data.companies || []);
+      const raw: Company[] = data.companies || [];
+      setCompanies(raw);
+      setDisplayCompanies(jitterDuplicates(raw));
       setStats(data.stats || null);
     } finally {
       setLoading(false);
@@ -150,20 +173,16 @@ export default function MapsPage() {
 
       const map = new ml.Map({
         container: mapContainerRef.current,
-        // CARTO Positron – free, no API key
         style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
         center: [20, 20],
         zoom: 2,
         minZoom: 1,
-        maxZoom: 16,
+        maxZoom: 18,
         attributionControl: false,
       });
 
       map.addControl(new ml.NavigationControl({ showCompass: false }), "bottom-right");
-      map.addControl(
-        new ml.AttributionControl({ compact: true }),
-        "bottom-left"
-      );
+      map.addControl(new ml.AttributionControl({ compact: true }), "bottom-left");
 
       map.on("load", () => {
         if (!cancelled) setMapReady(true);
@@ -173,121 +192,195 @@ export default function MapsPage() {
     }
 
     initMap();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  // Re-render markers whenever companies or map state changes
-  const renderMarkers = useCallback(() => {
-    if (!mapRef.current || !maplibre || !mapReady) return;
-    const ml = maplibre;
-
-    // Clear old markers
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-    if (popupRef.current) { popupRef.current.remove(); popupRef.current = null; }
-
-    const filtered = companies.filter((co) => {
-      if (!search) return true;
-      const q = search.toLowerCase();
+  // Build Supercluster index whenever displayCompanies change
+  const buildClusterIndex = useCallback(async (cos: Company[], searchQuery: string) => {
+    const Supercluster = (await import("supercluster")).default;
+    const filtered = cos.filter((co) => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
       return (
         co.name.toLowerCase().includes(q) ||
-        co.city?.toLowerCase().includes(q) ||
         co.internships?.some((i) => i.title.toLowerCase().includes(q))
       );
     });
 
-    filtered.forEach((company) => {
-      if (!company.lat || !company.lng) return;
-      const count = company.internship_count || 0;
-      const color = getNicheColor(company.niche_score || 3);
-
-      // Build marker element
-      const el = document.createElement("div");
-      el.className = "map-marker";
-      el.style.cssText = `
-        width: ${count > 3 ? 48 : 38}px;
-        height: ${count > 3 ? 48 : 38}px;
-        border-radius: 50%;
-        border: 2.5px solid ${color};
-        background: #1e1e2e;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 700;
-        color: ${color};
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-        box-shadow: 0 0 0 0 ${color}55;
-        position: relative;
-        overflow: visible;
-      `;
-
-      // Count badge
-      if (count > 1) {
-        const badge = document.createElement("div");
-        badge.style.cssText = `
-          position: absolute;
-          top: -5px;
-          right: -5px;
-          background: ${color};
-          color: #0a0a14;
-          border-radius: 999px;
-          font-size: 9px;
-          font-weight: 800;
-          padding: 1px 5px;
-          min-width: 16px;
-          text-align: center;
-          line-height: 14px;
-        `;
-        badge.textContent = `${count}`;
-        el.appendChild(badge);
-      }
-
-      // Avatar inside pin
-      const avatar = document.createElement("div");
-      avatar.style.cssText = `
-        width: 24px; height: 24px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #7c3aed, #4f46e5);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 8px; font-weight: 700; color: white;
-        overflow: hidden;
-      `;
-      avatar.textContent = getInitials(company.name);
-      el.appendChild(avatar);
-
-      el.addEventListener("mouseenter", () => {
-        el.style.transform = "scale(1.2)";
-        el.style.boxShadow = `0 0 0 6px ${color}33`;
-        el.style.zIndex = "9999";
-        setHoveredCompany(company.id);
-      });
-      el.addEventListener("mouseleave", () => {
-        el.style.transform = "scale(1)";
-        el.style.boxShadow = "none";
-        el.style.zIndex = "1";
-        setHoveredCompany(null);
-      });
-      el.addEventListener("click", () => {
-        setSelectedCompany(company);
-        setSidebarOpen(true);
-        // Fly to marker
-        mapRef.current?.flyTo({ center: [company.lng, company.lat], zoom: Math.max(mapRef.current.getZoom(), 8), speed: 1.4 });
-      });
-
-      const marker = new ml.Marker({ element: el })
-        .setLngLat([company.lng, company.lat])
-        .addTo(mapRef.current);
-      markersRef.current.push(marker);
+    const sc = new Supercluster({
+      radius: 50,
+      maxZoom: 16,
+      minPoints: 2,
     });
-  }, [companies, mapReady, search]);
+
+    const points = filtered
+      .filter((co) => co.lat && co.lng)
+      .map((co) => ({
+        type: "Feature" as const,
+        geometry: { type: "Point" as const, coordinates: [co.lng, co.lat] },
+        properties: { company: co },
+      }));
+
+    sc.load(points);
+    superclusterRef.current = sc;
+  }, []);
 
   useEffect(() => {
+    buildClusterIndex(displayCompanies, search);
+  }, [displayCompanies, search, buildClusterIndex]);
+
+  // Render cluster + individual markers based on current viewport
+  const renderMarkers = useCallback(() => {
+    if (!mapRef.current || !maplibre || !mapReady || !superclusterRef.current) return;
+    const ml = maplibre;
+    const map = mapRef.current;
+
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    const zoom = Math.floor(map.getZoom());
+    const bounds = map.getBounds();
+    const bbox: [number, number, number, number] = [
+      bounds.getWest(),
+      bounds.getSouth(),
+      bounds.getEast(),
+      bounds.getNorth(),
+    ];
+
+    const clusters = superclusterRef.current.getClusters(bbox, zoom);
+
+    clusters.forEach((feature: any) => {
+      const [lng, lat] = feature.geometry.coordinates;
+      const { cluster, point_count, cluster_id } = feature.properties;
+
+      const el = document.createElement("div");
+
+      if (cluster) {
+        // --- Cluster pin ---
+        const size = Math.min(56, 34 + Math.log2(point_count) * 7);
+        el.style.cssText = `
+          width: ${size}px; height: ${size}px;
+          border-radius: 50%;
+          border: 2.5px solid #8b5cf6;
+          background: #1a1028;
+          cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          flex-direction: column;
+          box-shadow: 0 0 0 4px rgba(139,92,246,0.18), 0 2px 12px rgba(0,0,0,0.5);
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        `;
+
+        const label = document.createElement("span");
+        label.style.cssText = `font-size: ${size < 44 ? 11 : 13}px; font-weight: 800; color: #c4b5fd; line-height: 1;`;
+        label.textContent = point_count >= 1000 ? `${Math.floor(point_count / 1000)}k` : String(point_count);
+        el.appendChild(label);
+
+        const sub = document.createElement("span");
+        sub.style.cssText = `font-size: 8px; color: rgba(196,181,253,0.5); line-height: 1; margin-top: 1px;`;
+        sub.textContent = "companies";
+        el.appendChild(sub);
+
+        el.addEventListener("mouseenter", () => {
+          el.style.transform = "scale(1.15)";
+          el.style.boxShadow = "0 0 0 8px rgba(139,92,246,0.25), 0 4px 16px rgba(0,0,0,0.6)";
+        });
+        el.addEventListener("mouseleave", () => {
+          el.style.transform = "scale(1)";
+          el.style.boxShadow = "0 0 0 4px rgba(139,92,246,0.18), 0 2px 12px rgba(0,0,0,0.5)";
+        });
+        el.addEventListener("click", () => {
+          // Expand cluster by zooming to its expansion zoom
+          const expansionZoom = Math.min(
+            superclusterRef.current.getClusterExpansionZoom(cluster_id),
+            18
+          );
+          map.flyTo({ center: [lng, lat], zoom: expansionZoom + 0.5, speed: 1.4 });
+        });
+      } else {
+        // --- Individual company pin ---
+        const company: Company = feature.properties.company;
+        const count = company.internship_count || 0;
+        const color = getNicheColor(company.niche_score || 3);
+        const pinSize = count > 3 ? 46 : 36;
+
+        el.style.cssText = `
+          width: ${pinSize}px; height: ${pinSize}px;
+          border-radius: 50%;
+          border: 2.5px solid ${color};
+          background: #1e1e2e;
+          cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 11px; font-weight: 700; color: ${color};
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+          box-shadow: 0 0 0 0 ${color}55;
+          position: relative; overflow: visible;
+        `;
+
+        if (count > 1) {
+          const badge = document.createElement("div");
+          badge.style.cssText = `
+            position: absolute; top: -5px; right: -5px;
+            background: ${color}; color: #0a0a14;
+            border-radius: 999px; font-size: 9px; font-weight: 800;
+            padding: 1px 5px; min-width: 16px;
+            text-align: center; line-height: 14px;
+          `;
+          badge.textContent = String(count);
+          el.appendChild(badge);
+        }
+
+        const avatar = document.createElement("div");
+        avatar.style.cssText = `
+          width: 22px; height: 22px; border-radius: 50%;
+          background: linear-gradient(135deg, #7c3aed, #4f46e5);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 8px; font-weight: 700; color: white; overflow: hidden;
+        `;
+        avatar.textContent = getInitials(company.name);
+        el.appendChild(avatar);
+
+        el.addEventListener("mouseenter", () => {
+          el.style.transform = "scale(1.2)";
+          el.style.boxShadow = `0 0 0 6px ${color}33`;
+          el.style.zIndex = "9999";
+          setHoveredCompany(company.id);
+        });
+        el.addEventListener("mouseleave", () => {
+          el.style.transform = "scale(1)";
+          el.style.boxShadow = "none";
+          el.style.zIndex = "1";
+          setHoveredCompany(null);
+        });
+        el.addEventListener("click", () => {
+          // Find the original (non-jittered) company by id
+          setSelectedCompany(company);
+          setSidebarOpen(true);
+          map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 10), speed: 1.4 });
+        });
+      }
+
+      const marker = new ml.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
+      markersRef.current.push(marker);
+    });
+  }, [mapReady]);
+
+  // Re-render on data or search change
+  useEffect(() => {
     renderMarkers();
-  }, [renderMarkers]);
+  }, [renderMarkers, displayCompanies, search]);
+
+  // Re-render on map move/zoom
+  useEffect(() => {
+    if (!mapRef.current || !mapReady) return;
+    const map = mapRef.current;
+    const handler = () => renderMarkers();
+    map.on("moveend", handler);
+    map.on("zoomend", handler);
+    return () => {
+      map.off("moveend", handler);
+      map.off("zoomend", handler);
+    };
+  }, [mapReady, renderMarkers]);
 
   // Fly to market on filter change
   useEffect(() => {
@@ -311,15 +404,11 @@ export default function MapsPage() {
     const q = search.toLowerCase();
     return (
       co.name.toLowerCase().includes(q) ||
-      co.city?.toLowerCase().includes(q) ||
       co.internships?.some((i) => i.title.toLowerCase().includes(q))
     );
   });
 
-  const totalVisible = filteredCompanies.reduce(
-    (sum, co) => sum + (co.internship_count || 0),
-    0
-  );
+  const totalVisible = filteredCompanies.reduce((sum, co) => sum + (co.internship_count || 0), 0);
 
   return (
     <div className="h-screen w-full flex flex-col bg-[#0a0a14] overflow-hidden">
@@ -383,12 +472,11 @@ export default function MapsPage() {
           <div className="flex flex-col h-full min-w-80 sm:min-w-96">
             {/* Filters */}
             <div className="p-4 border-b border-white/10 flex-shrink-0">
-              {/* Search */}
               <div className="relative mb-3">
                 <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
                 <input
                   type="text"
-                  placeholder="Search companies, roles, cities…"
+                  placeholder="Search companies, roles…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/25 pl-9 pr-4 py-2 outline-none focus:border-violet-500 transition-colors"
@@ -400,8 +488,7 @@ export default function MapsPage() {
                 )}
               </div>
 
-              {/* Market filter */}
-              <div className="flex flex-wrap gap-1.5 mb-3">
+              <div className="flex flex-wrap gap-1.5">
                 {MARKETS.map((m) => (
                   <button
                     key={m.value}
@@ -416,7 +503,6 @@ export default function MapsPage() {
                   </button>
                 ))}
               </div>
-
             </div>
 
             {/* Results count */}
@@ -435,7 +521,7 @@ export default function MapsPage() {
                     <div>
                       <p className="text-sm font-semibold text-white leading-tight">{selectedCompany.name}</p>
                       <p className="text-xs text-white/40">
-                        {selectedCompany.city}{selectedCompany.city && selectedCompany.country ? ", " : ""}{selectedCompany.country}
+                        {selectedCompany.city}{selectedCompany.city && selectedCompany.country ? ", " : ""}{selectedCompany.country || selectedCompany.market}
                       </p>
                     </div>
                   </div>
@@ -479,8 +565,12 @@ export default function MapsPage() {
                       key={company.id}
                       onClick={() => {
                         setSelectedCompany(company);
-                        if (company.lat && company.lng) {
-                          mapRef.current?.flyTo({ center: [company.lng, company.lat], zoom: Math.max(mapRef.current?.getZoom() || 2, 8), speed: 1.4 });
+                        // Use jittered coordinates for flyTo if available
+                        const jittered = displayCompanies.find((c) => c.id === company.id);
+                        const lat = jittered?.lat ?? company.lat;
+                        const lng = jittered?.lng ?? company.lng;
+                        if (lat && lng) {
+                          mapRef.current?.flyTo({ center: [lng, lat], zoom: Math.max(mapRef.current?.getZoom() || 2, 11), speed: 1.4 });
                         }
                       }}
                       className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors flex items-start gap-3 ${
@@ -528,7 +618,7 @@ export default function MapsPage() {
           </div>
         </aside>
 
-        {/* Legend (bottom-left, above attribution) */}
+        {/* Legend */}
         {mapReady && (
           <div className="absolute bottom-8 left-4 z-10 bg-[#0e0e1a]/90 backdrop-blur border border-white/10 rounded-xl px-3 py-2 hidden sm:block">
             <p className="text-[10px] text-white/40 uppercase tracking-wider mb-1.5 font-semibold">Niche score</p>
@@ -546,6 +636,10 @@ export default function MapsPage() {
                 </div>
               ))}
             </div>
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/10">
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 border-2 border-violet-400 bg-[#1a1028]" />
+              <span className="text-xs text-white/50">Cluster (click to expand)</span>
+            </div>
           </div>
         )}
 
@@ -560,7 +654,6 @@ export default function MapsPage() {
         )}
       </div>
 
-      {/* MapLibre GL CSS */}
       <style>{`
         .maplibregl-canvas { outline: none; }
         .maplibregl-ctrl-bottom-right { bottom: 12px !important; right: 12px !important; }
@@ -571,7 +664,6 @@ export default function MapsPage() {
         .maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon { filter: invert(1) opacity(0.6); }
         .maplibregl-ctrl-attrib { background: rgba(10,10,20,0.8) !important; color: rgba(255,255,255,0.3) !important; font-size: 10px !important; border-radius: 6px !important; }
         .maplibregl-ctrl-attrib a { color: rgba(139,92,246,0.7) !important; }
-        .map-marker { z-index: 1; }
       `}</style>
     </div>
   );
