@@ -23,6 +23,9 @@ export default [
   route("sitemap.xml", "routes/sitemap.xml.tsx"),
   route("robots.txt", "routes/robots.txt.tsx"),
 
+  // ── LinkedIn connect (email link, no Studojo auth) ─────────────────────
+  route("connect-linkedin", "routes/connect-linkedin.tsx"),
+
   // ── Reports (explicit to avoid nesting under reports.tsx layout) ───────
   route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),

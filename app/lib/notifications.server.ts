@@ -1,5 +1,111 @@
 const RESEND_API_URL = "https://api.resend.com/emails";
 
+export async function sendLinkedInConnectEmail({
+  to,
+  connectUrl,
+  firstName,
+}: {
+  to: string;
+  connectUrl: string;
+  firstName?: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) {
+    console.warn("RESEND_API_KEY not set — skipping LinkedIn connect email");
+    return;
+  }
+
+  const from = process.env.RESEND_FROM_EMAIL?.trim() || "Studojo <onboarding@resend.dev>";
+  const greeting = firstName ? `Hi ${firstName},` : "Hi,";
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f0;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e5e5;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#0a0a0a;padding:28px 36px;">
+            <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">Studojo</span>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:36px 36px 28px;">
+            <p style="margin:0 0 8px;font-size:15px;color:#555555;">${escapeHtml(greeting)}</p>
+            <h1 style="margin:0 0 20px;font-size:22px;font-weight:700;color:#0a0a0a;line-height:1.3;">Connect your LinkedIn to Studojo</h1>
+            <p style="margin:0 0 28px;font-size:15px;color:#555555;line-height:1.6;">
+              Click the button below to securely connect your LinkedIn account. This link is valid for 24 hours and can only be used once.
+            </p>
+
+            <!-- CTA button -->
+            <table cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+              <tr>
+                <td style="background:#0a66c2;border-radius:8px;">
+                  <a href="${connectUrl}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;">
+                    Connect LinkedIn →
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0 0 8px;font-size:13px;color:#999999;">Or copy this link into your browser:</p>
+            <p style="margin:0;font-size:12px;color:#aaaaaa;word-break:break-all;">${connectUrl}</p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 36px;border-top:1px solid #f0f0f0;">
+            <p style="margin:0;font-size:12px;color:#aaaaaa;line-height:1.6;">
+              This link expires in 24 hours. If you didn't request this, you can safely ignore it.<br>
+              Studojo · Bangalore, India
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`.trim();
+
+  const text = [
+    greeting,
+    "",
+    "Connect your LinkedIn to Studojo",
+    "",
+    "Click this link to connect your LinkedIn account (valid for 24 hours):",
+    connectUrl,
+    "",
+    "If you didn't request this, you can safely ignore it.",
+    "",
+    "Studojo",
+  ].join("\n");
+
+  const res = await fetch(RESEND_API_URL, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject: "Connect your LinkedIn to Studojo",
+      html,
+      text,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Resend API ${res.status}: ${body}`);
+  }
+}
+
 interface InternshipApplicationNotification {
   applicantName: string;
   applicantEmail: string;

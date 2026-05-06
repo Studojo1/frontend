@@ -46,7 +46,10 @@ export default function LkotPage() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
 
   // Credentials
-  const [connectTab, setConnectTab] = useState<"extension" | "credentials">("extension");
+  const [connectTab, setConnectTab] = useState<"extension" | "credentials" | "email_link">("extension");
+  const [emailLinkTo, setEmailLinkTo] = useState("");
+  const [emailLinkSent, setEmailLinkSent] = useState(false);
+  const [emailLinkLoading, setEmailLinkLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -373,13 +376,19 @@ export default function LkotPage() {
                         onClick={() => setConnectTab("extension")}
                         className={`flex-1 py-2 rounded-md text-xs font-medium transition-colors ${connectTab === "extension" ? "bg-[#1a1a1a] text-white" : "text-[#444] hover:text-[#888]"}`}
                       >
-                        Chrome Extension
+                        Extension
                       </button>
                       <button
                         onClick={() => setConnectTab("credentials")}
                         className={`flex-1 py-2 rounded-md text-xs font-medium transition-colors ${connectTab === "credentials" ? "bg-[#1a1a1a] text-white" : "text-[#444] hover:text-[#888]"}`}
                       >
                         Email + Password
+                      </button>
+                      <button
+                        onClick={() => setConnectTab("email_link")}
+                        className={`flex-1 py-2 rounded-md text-xs font-medium transition-colors ${connectTab === "email_link" ? "bg-[#1a1a1a] text-white" : "text-[#444] hover:text-[#888]"}`}
+                      >
+                        Send Link
                       </button>
                     </div>
 
@@ -408,6 +417,73 @@ export default function LkotPage() {
                           </a>
                         </div>
                         <p className="text-[#333] text-xs">Install once — works on all Studojo pages</p>
+                      </div>
+                    )}
+
+                    {connectTab === "email_link" && (
+                      <div className="space-y-3 pt-1">
+                        <p className="text-[#555] text-xs">Send a magic link to an email address. The recipient clicks it and connects their LinkedIn — no Studojo login needed on their end.</p>
+                        {emailLinkSent ? (
+                          <div className="flex flex-col items-center gap-2 py-4">
+                            <div className="w-9 h-9 rounded-full bg-[#4ade80]/10 border border-[#4ade80]/20 flex items-center justify-center">
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <p className="text-[#4ade80] text-sm font-medium">Link sent to {emailLinkTo || "your email"}</p>
+                            <button onClick={() => { setEmailLinkSent(false); setEmailLinkTo(""); }} className="text-xs text-[#333] hover:text-white transition-colors">Send another</button>
+                          </div>
+                        ) : (
+                          <>
+                            <input
+                              type="email"
+                              className={inputCls}
+                              placeholder="Email address (leave blank to send to yourself)"
+                              value={emailLinkTo}
+                              onChange={(e) => setEmailLinkTo(e.target.value)}
+                              onKeyDown={async (e) => {
+                                if (e.key === "Enter") {
+                                  setEmailLinkLoading(true);
+                                  try {
+                                    const res = await fetch("/api/autoapply/send-connect-email", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ email: emailLinkTo.trim() || undefined }),
+                                    });
+                                    if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
+                                    setEmailLinkSent(true);
+                                    addLog(`Connect email sent${emailLinkTo ? ` to ${emailLinkTo}` : ""}`, "success");
+                                  } catch (err: any) {
+                                    addLog(`Email error: ${err.message}`, "error");
+                                  } finally {
+                                    setEmailLinkLoading(false);
+                                  }
+                                }
+                              }}
+                            />
+                            <button
+                              disabled={emailLinkLoading}
+                              onClick={async () => {
+                                setEmailLinkLoading(true);
+                                try {
+                                  const res = await fetch("/api/autoapply/send-connect-email", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ email: emailLinkTo.trim() || undefined }),
+                                  });
+                                  if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
+                                  setEmailLinkSent(true);
+                                  addLog(`Connect email sent${emailLinkTo ? ` to ${emailLinkTo}` : ""}`, "success");
+                                } catch (err: any) {
+                                  addLog(`Email error: ${err.message}`, "error");
+                                } finally {
+                                  setEmailLinkLoading(false);
+                                }
+                              }}
+                              className="w-full py-2.5 bg-white hover:bg-[#f0f0f0] disabled:opacity-40 text-black text-sm font-medium rounded-lg transition-colors"
+                            >
+                              {emailLinkLoading ? "Sending…" : "Send connect link →"}
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
 
