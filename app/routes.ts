@@ -69,6 +69,8 @@ export default [
   route("blog", "routes/blog.tsx"),
   route("api/blog/:slug", "routes/api.blog.$slug.tsx"),
   route("api/blog", "routes/api.blog.tsx"),
+  route("maps", "routes/maps.tsx"),
+  route("api/maps", "routes/api.maps.tsx"),
   route("api/images/*", "routes/api.images.$.tsx"),
   route(".well-known/*", "routes/well-known.$.tsx"),
 ] satisfies RouteConfig;
