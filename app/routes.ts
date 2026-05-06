@@ -15,6 +15,7 @@ export default [
       "**/sitemap.xml.tsx",
       "**/robots.txt.tsx",
       "**/reports.*.tsx",
+      "**/connect-linkedin.tsx",
     ],
   })),
 
