@@ -83,6 +83,7 @@ export async function loader() {
     "/reports/remote-internships-2026": "2026-05-03",
     "/reports/degree-vs-skills-2026": "2026-05-03",
     "/reports/job-search-2026": "2026-04-22",
+    "/reports/unpaid-internship-trap-2026": "2026-05-05",
   };
 
   const urls = [
