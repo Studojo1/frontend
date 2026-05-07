@@ -86,6 +86,7 @@ export async function loader() {
     "/reports/degree-vs-skills-2026": "2026-05-03",
     "/reports/job-search-2026": "2026-04-22",
     "/reports/unpaid-internship-trap-2026": "2026-05-05",
+    "/reports/tier-2-college-to-top-company-conversion-2026": "2026-05-07",
   };
 
   const urls = [

@@ -7,7 +7,7 @@ const BASE_URL = "https://studojo.com";
 export function meta() {
   return [
     { title: "Tier 2 College to Top Company: The Real Conversion Rate | Studojo" },
-    { name: "description", content: "A 2026 report on realistic conversion from Tier 2 colleges to top-tier companies: how campus funnels work, what off-campus paths change, and how to interpret placement stats honestly." },
+    { name: "description", content: "Tier 2 to top company hiring in 2026: realistic conversion math, campus vs off-campus funnels, and paths that actually move placement outcomes." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "tier 2 college to top company, placement conversion rate 2026, off campus placement tier 2, how to get into faang from tier 2 college" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/tier-2-college-to-top-company-conversion-2026` },
@@ -174,7 +174,7 @@ export default function Report_Tier2CollegeToTopCompanyConversion2026() {
         "@context": "https://schema.org",
         "@type": "Article",
         "headline": "Tier 2 College to Top Company: The Real Conversion Rate",
-        "description": "A 2026 report on realistic conversion from Tier 2 colleges to top-tier companies: how campus funnels work, what off-campus paths change, and how to interpret placement stats honestly.",
+        "description": "Tier 2 to top company hiring in 2026: realistic conversion math, campus vs off-campus funnels, and paths that actually move placement outcomes.",
         "url": `${BASE_URL}/reports/tier-2-college-to-top-company-conversion-2026`,
         "datePublished": "2026-05-07T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
@@ -230,12 +230,12 @@ export default function Report_Tier2CollegeToTopCompanyConversion2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">~0.5–3%</div>
-              <div className="sc-label">Illustrative full-cohort share who land a top-tier offer in the same cycle, when “conversion” means everyone enrolled</div>
+              <div className="sc-num">~0.5-3%</div>
+              <div className="sc-label">Illustrative full-cohort share who land a top-tier offer in the same cycle, when "conversion" means everyone enrolled</div>
               <div className="sc-source">Studojo synthesis of campus funnel patterns, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">5–15x</div>
+              <div className="sc-num">5-15x</div>
               <div className="sc-label">Typical relative lift when comparing serious off-campus applicants with proof versus a generic blast of applications</div>
               <div className="sc-source">Studojo hiring signal framework, 2026</div>
             </div>
