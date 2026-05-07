@@ -276,16 +276,23 @@ async function ensureScraperUser() {
 // ─── route handler ────────────────────────────────────────────────────────────
 
 export async function action({ request }: Route.ActionArgs) {
-  if (request.method !== "POST") {
-    return Response.json({ error: "POST only" }, { status: 405 });
-  }
-
   const secret = process.env.SCRAPE_SECRET;
   if (secret) {
     const auth = (request.headers.get("authorization") || "").replace("Bearer ", "").trim();
     if (auth !== secret) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+  }
+
+  // DELETE ?cleanup=1 — removes all scraper-inserted rows from the DB
+  const url = new URL(request.url);
+  if (url.searchParams.get("cleanup") === "1") {
+    const result = await db.execute(sql.raw(`
+      DELETE FROM internships WHERE created_by = 'scraper-system'
+    `));
+    const deleted = (result as any).rowCount ?? 0;
+    await db.execute(sql.raw(`DELETE FROM "user" WHERE id = 'scraper-system'`));
+    return Response.json({ cleaned: true, deleted });
   }
 
   // Bootstrap system user so scraped rows can reference a valid created_by
