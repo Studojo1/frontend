@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "why-80-percent-applications-get-no-response-2026",
+    publishDate: "2026-05-07",
+    title: "Why 80% of Applications Get No Response",
+    subtitle: "Application Silence 2026",
+    excerpt: "A 2026 breakdown of why job applications often get no response: automated filters, recruiter bandwidth, timing, weak role-fit signals, and practical ways to increase reply odds.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "unpaid-internship-trap-2026",
     publishDate: "2026-05-05",
     title: "The Unpaid Internship Trap: Is It Ever Worth It?",
