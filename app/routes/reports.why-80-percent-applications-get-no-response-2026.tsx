@@ -429,7 +429,7 @@ export default function Report_Why80PercentApplicationsGetNoResponse2026() {
               <p>Explore Studojo opportunities and career pathways built around clearer expectations, stronger role context, and work that helps you show evidence, not just interest.</p>
             </div>
             <Link to="/dojos/internships" className="rpt-cta-btn">
-              Browse Real Internships ->
+              Browse Real Internships →
             </Link>
           </div>
         </div>
