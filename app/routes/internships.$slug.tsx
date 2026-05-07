@@ -198,42 +198,63 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
         </div>
 
         {/* Outreach CTAs */}
-        <div className="mt-8 rounded-lg border-2 border-neutral-900 bg-white p-6">
-          <h2 className="mb-1 font-['Clash_Display'] text-xl font-bold text-neutral-900">
-            Get ahead on this application
-          </h2>
-          <p className="mb-5 font-['Satoshi'] text-sm text-gray-500">
-            Most applicants send a generic CV. Don't be most applicants.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <a
-              href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}
-              className="flex flex-1 items-center gap-3 rounded-lg border-2 border-neutral-900 bg-violet-600 px-5 py-4 font-['Satoshi'] font-bold text-white transition-colors hover:bg-violet-700"
-            >
-              <FiMail className="h-5 w-5 shrink-0" />
-              <div>
-                <div className="text-sm font-bold">Write a cold email</div>
-                <div className="text-xs font-normal opacity-80">AI outreach to the hiring team</div>
+        <div className="mt-8 space-y-4">
+          {/* Primary CTA — cold email, full width, high contrast */}
+          <a
+            href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}
+            className="flex w-full items-center justify-between rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-5 text-white transition-colors hover:bg-violet-700"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <FiMail className="h-5 w-5" />
               </div>
-            </a>
+              <div>
+                <div className="font-['Clash_Display'] text-lg font-bold leading-tight">
+                  Email the hiring team directly
+                </div>
+                <div className="font-['Satoshi'] text-sm opacity-85">
+                  Most applicants only fill the form. One cold email puts you in a different pile.
+                </div>
+              </div>
+            </div>
+            <div className="ml-4 shrink-0 rounded-md border-2 border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-bold whitespace-nowrap">
+              Write it free →
+            </div>
+          </a>
+
+          {/* Secondary CTAs — side by side */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <a
               href="/dojos/careers"
-              className="flex flex-1 items-center gap-3 rounded-lg border-2 border-neutral-900 bg-white px-5 py-4 font-['Satoshi'] font-bold text-neutral-900 transition-colors hover:bg-neutral-50"
+              className="flex items-center gap-4 rounded-lg border-2 border-neutral-900 bg-amber-50 px-5 py-4 transition-colors hover:bg-amber-100"
             >
-              <FiFileText className="h-5 w-5 shrink-0" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-amber-400">
+                <FiFileText className="h-5 w-5 text-neutral-900" />
+              </div>
               <div>
-                <div className="text-sm font-bold">Build your resume</div>
-                <div className="text-xs font-normal text-gray-500">ATS-optimised, 100% free</div>
+                <div className="font-['Clash_Display'] text-base font-bold text-neutral-900 leading-tight">
+                  Your resume won't clear the ATS
+                </div>
+                <div className="font-['Satoshi'] text-xs text-gray-600">
+                  Fix it in 5 minutes. Free, no sign-up needed.
+                </div>
               </div>
             </a>
+
             <a
-              href="/dojos/internships"
-              className="flex flex-1 items-center gap-3 rounded-lg border-2 border-neutral-900 bg-white px-5 py-4 font-['Satoshi'] font-bold text-neutral-900 transition-colors hover:bg-neutral-50"
+              href={`/dojos/internships`}
+              className="flex items-center gap-4 rounded-lg border-2 border-neutral-900 bg-neutral-50 px-5 py-4 transition-colors hover:bg-neutral-100"
             >
-              <FiSearch className="h-5 w-5 shrink-0" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-white">
+                <FiSearch className="h-5 w-5 text-neutral-900" />
+              </div>
               <div>
-                <div className="text-sm font-bold">Find similar roles</div>
-                <div className="text-xs font-normal text-gray-500">Browse all internships</div>
+                <div className="font-['Clash_Display'] text-base font-bold text-neutral-900 leading-tight">
+                  Don't put all your eggs in one role
+                </div>
+                <div className="font-['Satoshi'] text-xs text-gray-600">
+                  Browse 29 more internships worth applying to.
+                </div>
               </div>
             </a>
           </div>
