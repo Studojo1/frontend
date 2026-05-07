@@ -312,27 +312,21 @@ function ResumeComparator() {
   );
 }
 
-// ── Tool 2: Apollo Data Inspector ────────────────────────────────────────────
+// ── Tool 2: Lead Intelligence (DuckDuckGo + Google News RSS) ─────────────────
 
-function ApolloInspector() {
-  const [form, setForm] = useState({
-    first_name: "",
-    last_name: "",
-    title: "",
-    company: "",
-    linkedin_url: "",
-    apollo_id: "",
-  });
+function LeadIntelligence() {
+  const [form, setForm] = useState({ first_name: "", last_name: "", company_name: "" });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function run() {
+    if (!form.first_name || !form.last_name || !form.company_name) return;
     setLoading(true);
     setError(null);
     setResult(null);
     try {
-      const data = await apiPost("/leadstest/apollo-inspect", form);
+      const data = await apiPost("/leadstest/lead-intel", form);
       setResult(data);
     } catch (e: any) {
       setError(e.message);
@@ -341,25 +335,18 @@ function ApolloInspector() {
     }
   }
 
-  const signals = result?.scoring_signals_unlocked ?? {};
-
   return (
-    <Section title="TOOL 2 — Apollo Data Inspector">
+    <Section title="TOOL 2 — Lead Intelligence (Free: DuckDuckGo + Google News RSS)">
       <p style={{ fontFamily: "monospace", fontSize: 12, color: "#6b7280", marginTop: 0 }}>
-        Shows what Apollo People Match returns — split into currently-extracted vs currently-ignored fields.
+        Given a name and company, finds their LinkedIn, company domain, recent funding news, and open roles. No API keys, no credits.
       </p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 12 }}>
-        <Input label="First Name" value={form.first_name} onChange={(v) => setForm({ ...form, first_name: v })} placeholder="Nikhil" />
-        <Input label="Last Name" value={form.last_name} onChange={(v) => setForm({ ...form, last_name: v })} placeholder="Jain" />
-        <Input label="Title" value={form.title} onChange={(v) => setForm({ ...form, title: v })} placeholder="Engineering Manager" />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
+        <Input label="First Name" value={form.first_name} onChange={(v) => setForm({ ...form, first_name: v })} placeholder="Sai" />
+        <Input label="Last Name" value={form.last_name} onChange={(v) => setForm({ ...form, last_name: v })} placeholder="Gupta" />
+        <Input label="Company Name" value={form.company_name} onChange={(v) => setForm({ ...form, company_name: v })} placeholder="Razorpay" />
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 12 }}>
-        <Input label="Company" value={form.company} onChange={(v) => setForm({ ...form, company: v })} placeholder="Stripe" />
-        <Input label="LinkedIn URL (optional)" value={form.linkedin_url} onChange={(v) => setForm({ ...form, linkedin_url: v })} placeholder="linkedin.com/in/..." />
-        <Input label="Apollo ID (optional)" value={form.apollo_id} onChange={(v) => setForm({ ...form, apollo_id: v })} placeholder="6872c2be..." />
-      </div>
-      <Btn onClick={run} loading={loading}>Inspect Apollo Data</Btn>
+      <Btn onClick={run} loading={loading}>Find Intel</Btn>
 
       {error && (
         <div style={{ color: "#dc2626", fontFamily: "monospace", fontSize: 13, marginTop: 12 }}>
@@ -370,77 +357,94 @@ function ApolloInspector() {
       {result && (
         <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 16 }}>
 
-          {/* Scoring signals banner */}
-          <div style={{ background: "#1e1b4b", color: "#e0e7ff", borderRadius: 8, padding: 14, fontFamily: "monospace", fontSize: 12 }}>
-            <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 13 }}>Scoring Signals Unlocked</div>
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-              <span>
-                Hiring Urgency: <strong style={{ color: urgencyColor(signals.hiring_urgency_score) }}>{signals.hiring_urgency_score}/100</strong>
-                <span style={{ color: "#a5b4fc", marginLeft: 6 }}>({signals.hiring_urgency_reason})</span>
-              </span>
-              <span>
-                Email Reliability: <strong style={{ color: signals.email_reliability === "high" ? "#86efac" : "#fca5a5" }}>{signals.email_reliability}</strong>
-                <span style={{ color: "#a5b4fc", marginLeft: 6 }}>({signals.email_reliability_reason})</span>
-              </span>
-              <span>
-                Career Prestige: <strong style={{ color: "#fbbf24" }}>{signals.career_prestige_tier}</strong>
-                <span style={{ color: "#a5b4fc", marginLeft: 6 }}>({signals.career_prestige_reason})</span>
-              </span>
-            </div>
+          {/* Quick summary row */}
+          <div style={{ display: "flex", gap: 20, flexWrap: "wrap", background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 8, padding: 12, fontFamily: "monospace", fontSize: 12 }}>
+            <span>Person LinkedIn: {result.person_linkedin_url
+              ? <a href={result.person_linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2", fontWeight: 700 }}>{result.person_linkedin_url.replace("https://www.linkedin.com/in/", "linkedin.com/in/")}</a>
+              : <span style={{ color: "#dc2626" }}>not found</span>}
+            </span>
+            <span>Company Domain: {result.company_domain
+              ? <a href={`https://${result.company_domain}`} target="_blank" rel="noopener noreferrer" style={{ color: "#4f46e5", fontWeight: 700 }}>{result.company_domain}</a>
+              : <span style={{ color: "#dc2626" }}>not found</span>}
+            </span>
+            <span>Company LinkedIn: {result.company_linkedin_url
+              ? <a href={result.company_linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "#0a66c2", fontWeight: 700 }}>View page</a>
+              : <span style={{ color: "#dc2626" }}>not found</span>}
+            </span>
+            <span>News items: <strong>{result.funding_news?.length ?? 0}</strong></span>
+            <span>Open roles: <strong>{result.careers?.open_roles_count ?? (result.careers ? "scraped" : "no domain")}</strong></span>
           </div>
 
-          {/* Three-column comparison */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <FieldPanel title="Currently Extracted ✅" data={result.currently_extracted} accent="#16a34a" />
+          {/* Funding news */}
+          {result.funding_news?.length > 0 && (
             <div>
-              <FieldPanel title="Hidden Person Fields 🔥" data={result.hidden_person_fields} accent="#dc2626" />
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, color: "#dc2626", marginBottom: 6 }}>
-                  EMPLOYMENT HISTORY 🔥
-                </div>
-                {(result.hidden_person_career ?? []).map((job: any, i: number) => (
-                  <div key={i} style={{ fontFamily: "monospace", fontSize: 11, padding: "3px 0", borderBottom: "1px solid #f3f4f6" }}>
-                    <span style={{ color: job.current ? "#16a34a" : "#374151", fontWeight: job.current ? 700 : 400 }}>
-                      {job.title}
-                    </span>
-                    <span style={{ color: "#6b7280" }}> @ {job.company}</span>
-                    <span style={{ color: "#9ca3af" }}> {job.start}–{job.end ?? "now"}</span>
+              <div style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, color: "#7c3aed", marginBottom: 6 }}>
+                FUNDING & HIRING NEWS ({result.funding_news.length})
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {result.funding_news.map((item: any, i: number) => (
+                  <div key={i} style={{ border: "1px solid #e5e7eb", borderRadius: 4, padding: "6px 10px", fontFamily: "monospace", fontSize: 11, display: "flex", gap: 10, alignItems: "baseline" }}>
+                    <span style={{ color: "#9ca3af", flexShrink: 0, minWidth: 90 }}>{item.published_at ? item.published_at.slice(0, 16) : "—"}</span>
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ color: "#111827", textDecoration: "none", flex: 1 }}>
+                      {item.headline}
+                    </a>
+                    {item.source && <span style={{ color: "#6b7280", flexShrink: 0 }}>{item.source}</span>}
                   </div>
                 ))}
               </div>
             </div>
-            <FieldPanel title="Hidden Company Fields 🔥" data={result.hidden_company_fields} accent="#7c3aed" />
-          </div>
+          )}
+
+          {/* Career page results */}
+          {result.careers && (
+            <div>
+              <div style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, color: "#0369a1", marginBottom: 6 }}>
+                CAREER PAGE — <StatusBadge status={result.careers.status} />
+                {result.careers.careers_url && (
+                  <a href={result.careers.careers_url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 8, color: "#4f46e5", fontWeight: 400 }}>
+                    {result.careers.careers_url}
+                  </a>
+                )}
+                <span style={{ marginLeft: 10, fontWeight: 400, color: "#374151" }}>
+                  {result.careers.open_roles_count} roles · {result.careers.engineering_roles_count} engineering
+                </span>
+              </div>
+              {result.careers.status === "js_rendered" && (
+                <div style={{ background: "#fefce8", border: "1px solid #fde68a", borderRadius: 6, padding: 8, fontSize: 11, color: "#78350f", marginBottom: 8 }}>
+                  JS-rendered page — static scraper got empty shell. Company uses React/Next.js career site.
+                </div>
+              )}
+              {result.careers.open_roles?.length > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 5 }}>
+                  {result.careers.open_roles.slice(0, 20).map((r: any, i: number) => (
+                    <div key={i} style={{ border: "1px solid #e5e7eb", borderRadius: 4, padding: "5px 8px", fontSize: 11, fontFamily: "monospace" }}>
+                      <div style={{ fontWeight: 700, color: "#111827" }}>{r.title}</div>
+                      {r.department && <div style={{ color: "#6b7280" }}>{r.department}</div>}
+                      {r.location && <div style={{ color: "#9ca3af" }}>{r.location}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Search results used — for debugging */}
+          <details style={{ fontFamily: "monospace", fontSize: 11 }}>
+            <summary style={{ cursor: "pointer", color: "#6b7280" }}>Raw search results (debug)</summary>
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>Person LinkedIn search:</div>
+              {(result.person_linkedin_search_results ?? []).map((r: any, i: number) => (
+                <div key={i} style={{ padding: "3px 0", borderBottom: "1px solid #f3f4f6" }}>
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color: "#4f46e5" }}>{r.title}</a>
+                  <div style={{ color: "#9ca3af" }}>{r.snippet?.slice(0, 120)}</div>
+                </div>
+              ))}
+            </div>
+          </details>
         </div>
       )}
     </Section>
   );
-}
-
-function FieldPanel({ title, data, accent }: { title: string; data: Record<string, any>; accent: string }) {
-  return (
-    <div>
-      <div style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, color: accent, marginBottom: 6 }}>
-        {title}
-      </div>
-      <div style={{ border: `1px solid ${accent}`, borderRadius: 6, overflow: "hidden" }}>
-        {Object.entries(data).map(([k, v]) => (
-          <div key={k} style={{ display: "flex", gap: 6, padding: "4px 8px", borderBottom: "1px solid #f3f4f6", fontFamily: "monospace" }}>
-            <span style={{ fontSize: 10, color: "#9ca3af", width: 130, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis" }}>{k}</span>
-            <span style={{ fontSize: 11, color: "#111827", wordBreak: "break-all" }}>
-              {Array.isArray(v) ? v.join(", ") : v === null || v === undefined ? <span style={{ color: "#d1d5db" }}>null</span> : typeof v === "object" ? JSON.stringify(v).slice(0, 80) : String(v)}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function urgencyColor(score: number): string {
-  if (score >= 60) return "#86efac";
-  if (score >= 30) return "#fbbf24";
-  return "#fca5a5";
 }
 
 // ── Tool 3: Career Page Scraper ───────────────────────────────────────────────
@@ -591,7 +595,7 @@ export default function LeadsTest() {
       </div>
 
       <ResumeComparator />
-      <ApolloInspector />
+      <LeadIntelligence />
       <CareerPageTester />
       <LinkedInEnricher />
     </div>
