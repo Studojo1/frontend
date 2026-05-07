@@ -51,6 +51,6 @@ export default [
   route("reports/job-search-2026", "routes/reports.job-search-2026.tsx"),
   route("reports/degree-vs-skills-2026", "routes/reports.degree-vs-skills-2026.tsx"),
   route("reports/unpaid-internship-trap-2026", "routes/reports.unpaid-internship-trap-2026.tsx"),
-  route("reports/why-80-percent-applications-get-no-response-2026", "routes/reports.why-80-percent-applications-get-no-response-2026.tsx"),
   route("reports/tier-2-college-to-top-company-conversion-2026", "routes/reports.tier-2-college-to-top-company-conversion-2026.tsx"),
+  route("reports/why-80-percent-applications-get-no-response-2026", "routes/reports.why-80-percent-applications-get-no-response-2026.tsx"),
 ] satisfies RouteConfig;
