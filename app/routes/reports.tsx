@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "hidden-job-market-70-percent-never-posted-2026",
+    publishDate: "2026-05-07",
+    title: "The Hidden Job Market: How 70% of Roles Never Get Posted",
+    subtitle: "Hidden Hiring 2026",
+    excerpt: "A 2026 look at the hidden job market: why a large share of roles are filled through networks, referrals, and internal moves, what that means for board-only search, and how to build presence where hiring actually starts.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "why-80-percent-applications-get-no-response-2026",
     publishDate: "2026-05-07",
     title: "Why 80% of Applications Get No Response",
