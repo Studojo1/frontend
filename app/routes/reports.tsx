@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "linkedin-easy-apply-killing-chances-2026",
+    publishDate: "2026-05-07",
+    title: "Why LinkedIn Easy Apply Is Killing Your Chances",
+    subtitle: "Easy Apply 2026",
+    excerpt: "A 2026 breakdown of why LinkedIn Easy Apply often correlates with worse outcomes: volume incentives, thin signals, recruiter triage, and a practical playbook to use the button without becoming noise.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "hidden-job-market-70-percent-never-posted-2026",
     publishDate: "2026-05-07",
     title: "The Hidden Job Market: How 70% of Roles Never Get Posted",
