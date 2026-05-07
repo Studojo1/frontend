@@ -5,13 +5,10 @@ import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { eq, and } from "drizzle-orm";
 import { internshipApplications } from "../../auth-schema";
 
-// GET /api/internships/:id - Get single internship (public) or handle questions/apply
-// Note: Route is registered as :id but we handle both UUIDs and slugs
+// GET /api/internships/:slug - Get single internship by slug or UUID
 export async function loader({ params, request }: Route.LoaderArgs) {
   try {
-    // React Router passes it as 'id' from route definition, but we treat it as slug/UUID
-    // The route is registered as :id, so params.id will contain the value
-    const idOrSlug = params.id;
+    const idOrSlug = params.slug ?? params.id;
     if (!idOrSlug) {
       console.error("[api.internships.$slug] No id/slug parameter provided", { params });
       throw new Response("Internship ID or slug required", { status: 400 });
