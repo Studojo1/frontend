@@ -271,15 +271,17 @@ export default function MapsPage() {
           flex-direction: column;
           box-shadow: 0 0 0 4px rgba(139,92,246,0.18), 0 2px 12px rgba(0,0,0,0.5);
           transition: transform 0.15s ease, box-shadow 0.15s ease;
+          transform-origin: center center;
+          will-change: transform;
         `;
 
         const label = document.createElement("span");
-        label.style.cssText = `font-size: ${size < 44 ? 11 : 13}px; font-weight: 800; color: #c4b5fd; line-height: 1;`;
+        label.style.cssText = `font-size: ${size < 44 ? 11 : 13}px; font-weight: 800; color: #c4b5fd; line-height: 1; pointer-events: none;`;
         label.textContent = point_count >= 1000 ? `${Math.floor(point_count / 1000)}k` : String(point_count);
         el.appendChild(label);
 
         const sub = document.createElement("span");
-        sub.style.cssText = `font-size: 8px; color: rgba(196,181,253,0.5); line-height: 1; margin-top: 1px;`;
+        sub.style.cssText = `font-size: 8px; color: rgba(196,181,253,0.5); line-height: 1; margin-top: 1px; pointer-events: none;`;
         sub.textContent = "companies";
         el.appendChild(sub);
 
@@ -306,27 +308,38 @@ export default function MapsPage() {
         const color = getNicheColor(company.niche_score || 3);
         const pinSize = count > 3 ? 46 : 36;
 
+        // Wrapper holds the pin + badge without overflow hacks
         el.style.cssText = `
+          position: relative;
+          width: ${pinSize + 10}px; height: ${pinSize + 10}px;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer;
+          transform-origin: center center;
+          will-change: transform;
+          transition: transform 0.15s ease;
+        `;
+
+        const pin = document.createElement("div");
+        pin.style.cssText = `
           width: ${pinSize}px; height: ${pinSize}px;
           border-radius: 50%;
           border: 2.5px solid ${color};
           background: #1e1e2e;
-          cursor: pointer;
           display: flex; align-items: center; justify-content: center;
-          font-size: 11px; font-weight: 700; color: ${color};
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
           box-shadow: 0 0 0 0 ${color}55;
-          position: relative; overflow: visible;
+          transition: box-shadow 0.15s ease;
+          pointer-events: none;
         `;
 
         if (count > 1) {
           const badge = document.createElement("div");
           badge.style.cssText = `
-            position: absolute; top: -5px; right: -5px;
+            position: absolute; top: 0; right: 0;
             background: ${color}; color: #0a0a14;
             border-radius: 999px; font-size: 9px; font-weight: 800;
             padding: 1px 5px; min-width: 16px;
             text-align: center; line-height: 14px;
+            pointer-events: none;
           `;
           badge.textContent = String(count);
           el.appendChild(badge);
@@ -338,20 +351,20 @@ export default function MapsPage() {
           background: linear-gradient(135deg, #7c3aed, #4f46e5);
           display: flex; align-items: center; justify-content: center;
           font-size: 8px; font-weight: 700; color: white; overflow: hidden;
+          pointer-events: none;
         `;
         avatar.textContent = getInitials(company.name);
-        el.appendChild(avatar);
+        pin.appendChild(avatar);
+        el.appendChild(pin);
 
         el.addEventListener("mouseenter", () => {
           el.style.transform = "scale(1.2)";
-          el.style.boxShadow = `0 0 0 6px ${color}33`;
-          el.style.zIndex = "9999";
+          pin.style.boxShadow = `0 0 0 6px ${color}33`;
           setHoveredCompany(company.id);
         });
         el.addEventListener("mouseleave", () => {
           el.style.transform = "scale(1)";
-          el.style.boxShadow = "none";
-          el.style.zIndex = "1";
+          pin.style.boxShadow = "none";
           setHoveredCompany(null);
         });
         el.addEventListener("click", () => {
