@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiCalendar, FiArrowRight, FiX } from "react-icons/fi";
+import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiArrowRight } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TierSelector } from "~/components/outreach/TierSelector";
@@ -81,10 +81,6 @@ export default function EnrichmentPage() {
   const [couponError, setCouponError] = useState("");
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
-  const [showConsultModal, setShowConsultModal] = useState(false);
-  const [consultRole, setConsultRole] = useState("");
-  const [consultChallenge, setConsultChallenge] = useState("");
-  const [consultTimeline, setConsultTimeline] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [dodoCheckoutUrl, setDodoCheckoutUrl] = useState<string | null>(null);
   const dodoSessionRef = useRef<string>("");
@@ -315,7 +311,6 @@ export default function EnrichmentPage() {
     },
   ];
 
-  const CONSULTATION_URL = "https://calendar.app.google/jApkk9UEptf3yHgc8";
 
   const getTierPrice = (tierValue: number) => {
     const match = pricing.find((p) => p.tier === tierValue);
@@ -357,23 +352,6 @@ export default function EnrichmentPage() {
       </div>
 
       <div className="mx-auto max-w-5xl px-4 py-10 md:px-8">
-
-        {/* Free consultation CTA — top */}
-        <div className="rounded-2xl border-2 border-studojo-ink bg-amber-50 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-2xl mx-auto mb-8">
-          <div className="flex items-start gap-3">
-            <FiCalendar className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-clash text-sm font-bold text-studojo-ink">Free 1:1 Internship Strategy Call</p>
-              <p className="text-xs text-studojo-muted font-satoshi mt-0.5">Not sure which plan fits? Book a quick 20-min call with the team. We'll map out your outreach.</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowConsultModal(true)}
-            className="shrink-0 h-9 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-bold border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center gap-1.5"
-          >
-            Book free call <FiArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
 
         {/* Header */}
         <div className="text-center mb-10">
@@ -520,105 +498,6 @@ export default function EnrichmentPage() {
       <Footer />
 
       {/* Consultation qualifying modal */}
-      {showConsultModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowConsultModal(false)} />
-          <div className="relative bg-white rounded-2xl border-2 border-studojo-ink shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] w-full max-w-md p-6">
-            <button
-              onClick={() => setShowConsultModal(false)}
-              className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full hover:bg-neutral-100 text-studojo-muted"
-            >
-              <FiX className="w-4 h-4" />
-            </button>
-
-            <div className="flex items-center gap-2 mb-1">
-              <FiCalendar className="w-4 h-4 text-amber-600" />
-              <p className="font-clash text-xs font-bold text-studojo-muted uppercase tracking-wider">Free 15-min Call</p>
-            </div>
-            <h2 className="font-clash text-xl font-bold text-studojo-ink mb-1">Before we get on a call</h2>
-            <p className="text-xs text-studojo-muted font-satoshi mb-6">3 quick questions so we can make the most of your time.</p>
-
-            <div className="space-y-5">
-              {/* Q1 */}
-              <div>
-                <label className="block text-sm font-bold font-satoshi text-studojo-ink mb-2">What role are you targeting?</label>
-                <input
-                  type="text"
-                  value={consultRole}
-                  onChange={(e) => setConsultRole(e.target.value)}
-                  placeholder="e.g. Marketing Intern, Software Engineer..."
-                  className="w-full h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
-                />
-              </div>
-
-              {/* Q2 */}
-              <div>
-                <label className="block text-sm font-bold font-satoshi text-studojo-ink mb-2">What is your biggest challenge right now?</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Finding the right companies", "Getting replies to applications", "Writing cold emails", "Not sure where to start"].map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setConsultChallenge(opt)}
-                      className={`px-3 py-2 rounded-xl border-2 text-xs font-satoshi font-medium text-left transition-all ${
-                        consultChallenge === opt
-                          ? "border-studojo-purple bg-studojo-purple-bg/20 text-studojo-purple"
-                          : "border-studojo-ink/20 text-studojo-ink hover:border-studojo-ink/50"
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Q3 */}
-              <div>
-                <label className="block text-sm font-bold font-satoshi text-studojo-ink mb-2">When are you looking to start?</label>
-                <div className="flex gap-2">
-                  {["Right now", "Within a month", "In 2-3 months"].map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setConsultTimeline(opt)}
-                      className={`flex-1 px-3 py-2 rounded-xl border-2 text-xs font-satoshi font-medium transition-all ${
-                        consultTimeline === opt
-                          ? "border-studojo-purple bg-studojo-purple-bg/20 text-studojo-purple"
-                          : "border-studojo-ink/20 text-studojo-ink hover:border-studojo-ink/50"
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              disabled={!consultRole || !consultChallenge || !consultTimeline}
-              onClick={async () => {
-                if (!consultRole || !consultChallenge || !consultTimeline) return;
-                fetch("/api/consultation-signup", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ targetRole: consultRole, biggestChallenge: consultChallenge, timeline: consultTimeline }),
-                }).catch(() => {});
-                setShowConsultModal(false);
-                window.open(CONSULTATION_URL, "_blank", "noopener,noreferrer");
-              }}
-              className={`mt-6 w-full h-11 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink flex items-center justify-center gap-2 transition-all ${
-                consultRole && consultChallenge && consultTimeline
-                  ? "bg-studojo-purple text-white shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-                  : "bg-neutral-100 text-studojo-muted cursor-not-allowed"
-              }`}
-            >
-              Book my free call <FiArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Dodo Payments checkout modal */}
       {dodoCheckoutUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">

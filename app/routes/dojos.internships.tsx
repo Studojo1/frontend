@@ -163,11 +163,20 @@ export default function InternshipsDojo() {
           </a>
         </div>
 
-        {/* Job Board Section - Integrated */}
-        <div className="mb-6">
-          <h2 className="mb-2 font-['Clash_Display'] text-2xl font-medium leading-7 text-neutral-900 md:text-3xl">
-            Browse Opportunities
-          </h2>
+        {/* Map View CTA */}
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="mb-2 font-['Clash_Display'] text-2xl font-medium leading-7 text-neutral-900 md:text-3xl">
+              Browse Opportunities
+            </h2>
+          </div>
+          <Link
+            to="/maps"
+            className="inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-amber-400 px-4 py-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none flex-shrink-0"
+          >
+            <FiMapPin className="h-4 w-4" />
+            View Map
+          </Link>
         </div>
 
         <form onSubmit={handleSearch} className="mb-8">
