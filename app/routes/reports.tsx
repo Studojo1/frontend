@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "tier-2-college-to-top-company-conversion-2026",
+    publishDate: "2026-05-07",
+    title: "Tier 2 College to Top Company: The Real Conversion Rate",
+    subtitle: "Placement Math 2026",
+    excerpt: "A clear 2026 breakdown of how Tier 2 students actually reach top-tier employers: what campus conversion means, why headline percentages mislead, and which paths compress the funnel.",
+    category: "Career",
+    type: "Colleges" as ReportType,
+    date: "May 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "why-80-percent-applications-get-no-response-2026",
     publishDate: "2026-05-07",
     title: "Why 80% of Applications Get No Response",

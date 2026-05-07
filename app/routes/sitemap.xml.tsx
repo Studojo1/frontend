@@ -34,6 +34,7 @@ export async function loader() {
     { loc: "/reports/job-search-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/unpaid-internship-trap-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/why-80-percent-applications-get-no-response-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/tier-2-college-to-top-company-conversion-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
