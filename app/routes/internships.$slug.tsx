@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLoaderData, useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useLoaderData, useNavigate, useLocation } from "react-router";
 import { Header, Footer } from "~/components";
 import { FiMapPin, FiClock, FiCalendar, FiArrowLeft, FiMail, FiZap } from "react-icons/fi";
 import { authClient } from "~/lib/auth-client";
@@ -69,9 +69,17 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
   const loaderData = useLoaderData() as { internship: Internship } | undefined;
   const internship = (loaderData?.internship || data?.internship) as Internship | undefined;
   const navigate = useNavigate();
+  const location = useLocation();
   const [showApplicationFlow, setShowApplicationFlow] = useState(false);
+  const [justApplied, setJustApplied] = useState(false);
   const { data: session } = authClient.useSession();
   const isLoggedIn = !!session?.user;
+
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get("applied") === "true") {
+      setJustApplied(true);
+    }
+  }, [location.search]);
 
   if (!internship) {
     return (
@@ -108,7 +116,7 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
     ? new Date(internship.application_deadline) < new Date()
     : false;
   
-  const hasApplied = internship.hasApplied || false;
+  const hasApplied = internship.hasApplied || justApplied || false;
 
   return (
     <div className="min-h-screen bg-white">
@@ -195,49 +203,74 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row">
-          {hasApplied ? (
-            <div className="flex-1 rounded-lg border-2 border-neutral-900 bg-green-50 px-6 py-3 text-center">
-              <p className="font-['Satoshi'] font-bold text-green-700">
-                Already Applied
-              </p>
-              <p className="mt-1 text-sm font-['Satoshi'] text-green-600">
-                Your application has been submitted successfully
-              </p>
-            </div>
-          ) : (
-            <button
-              onClick={handleApplyClick}
-              disabled={isDeadlinePassed}
-              className="flex-1 rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-3 font-['Satoshi'] font-bold text-white transition-colors hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isDeadlinePassed ? "Application Deadline Passed" : "Apply Now"}
-            </button>
-          )}
-        </div>
-
-        {/* Bottom outreach CTA */}
-        <a
-          href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}
-          className="mt-4 flex w-full items-center justify-between rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-5 text-white transition-colors hover:bg-violet-700"
+        {/* Apply button — grey when applied */}
+        <button
+          onClick={handleApplyClick}
+          disabled={hasApplied || isDeadlinePassed}
+          className={`w-full rounded-lg border-2 border-neutral-900 px-6 py-3 font-['Satoshi'] font-bold transition-colors ${
+            hasApplied
+              ? "cursor-not-allowed bg-neutral-300 text-neutral-500"
+              : isDeadlinePassed
+              ? "cursor-not-allowed bg-neutral-300 text-neutral-500 opacity-50"
+              : "bg-violet-600 text-white hover:bg-violet-700"
+          }`}
         >
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
-              <FiMail className="h-5 w-5" />
+          {hasApplied ? "Applied" : isDeadlinePassed ? "Application Deadline Passed" : "Apply Now"}
+        </button>
+
+        {/* Post-apply acknowledgement */}
+        {hasApplied && (
+          <div className="mt-4 rounded-lg border-2 border-neutral-900 bg-neutral-900 p-6 text-white">
+            <div className="mb-4">
+              <div className="mb-1 font-['Clash_Display'] text-2xl font-bold">
+                Application submitted.
+              </div>
+              <p className="font-['Satoshi'] text-sm text-neutral-300">
+                You're in the pile. Now get to the top of it — email the team directly before anyone else does.
+              </p>
             </div>
-            <div>
-              <div className="font-['Clash_Display'] text-lg font-bold leading-tight">
-                Email the hiring team directly
-              </div>
-              <div className="font-['Satoshi'] text-sm opacity-85">
-                Most applicants only fill the form. One cold email puts you in a different pile.
-              </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <a
+                href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-amber-400 bg-amber-400 px-5 py-3 font-['Satoshi'] font-bold text-neutral-900 transition-colors hover:bg-amber-300"
+              >
+                <FiMail className="h-4 w-4 shrink-0" />
+                Email the hiring team
+              </a>
+              <a
+                href="/dojos/internships"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-white/30 bg-white/10 px-5 py-3 font-['Satoshi'] font-bold text-white transition-colors hover:bg-white/20"
+              >
+                Browse other internships
+              </a>
             </div>
           </div>
-          <div className="ml-4 shrink-0 rounded-md border-2 border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-bold whitespace-nowrap">
-            Use Outreach →
-          </div>
-        </a>
+        )}
+
+        {/* Bottom outreach CTA — only when not yet applied */}
+        {!hasApplied && (
+          <a
+            href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}
+            className="mt-4 flex w-full items-center justify-between rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-5 text-white transition-colors hover:bg-violet-700"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <FiMail className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="font-['Clash_Display'] text-lg font-bold leading-tight">
+                  Email the hiring team directly
+                </div>
+                <div className="font-['Satoshi'] text-sm opacity-85">
+                  Most applicants only fill the form. One cold email puts you in a different pile.
+                </div>
+              </div>
+            </div>
+            <div className="ml-4 shrink-0 rounded-md border-2 border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-bold whitespace-nowrap">
+              Use Outreach →
+            </div>
+          </a>
+        )}
 
         {showApplicationFlow && !hasApplied && (
           <ApplicationFlow
@@ -246,8 +279,8 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
             onClose={() => setShowApplicationFlow(false)}
             onSuccess={() => {
               setShowApplicationFlow(false);
-              // Show success message or redirect
-              navigate(`/internships/${internship.slug}?applied=true`);
+              setJustApplied(true);
+              navigate(`/internships/${internship.slug}?applied=true`, { replace: true });
             }}
           />
         )}
