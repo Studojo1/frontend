@@ -315,13 +315,13 @@ function ResumeComparator() {
 // ── Tool 2: Lead Intelligence (DuckDuckGo + Google News RSS) ─────────────────
 
 function LeadIntelligence() {
-  const [form, setForm] = useState({ first_name: "", last_name: "", company_name: "" });
+  const [form, setForm] = useState({ first_name: "", title: "", company_name: "" });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function run() {
-    if (!form.first_name || !form.last_name || !form.company_name) return;
+    if (!form.first_name || !form.title || !form.company_name) return;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -343,7 +343,7 @@ function LeadIntelligence() {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
         <Input label="First Name" value={form.first_name} onChange={(v) => setForm({ ...form, first_name: v })} placeholder="Sai" />
-        <Input label="Last Name" value={form.last_name} onChange={(v) => setForm({ ...form, last_name: v })} placeholder="Gupta" />
+        <Input label="Title / Position" value={form.title} onChange={(v) => setForm({ ...form, title: v })} placeholder="Head of Data Analytics" />
         <Input label="Company Name" value={form.company_name} onChange={(v) => setForm({ ...form, company_name: v })} placeholder="Razorpay" />
       </div>
       <Btn onClick={run} loading={loading}>Find Intel</Btn>
