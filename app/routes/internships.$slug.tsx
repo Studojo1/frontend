@@ -226,7 +226,7 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
                 Application submitted.
               </div>
               <p className="font-['Satoshi'] text-sm text-neutral-300">
-                You're in the pile. Now get to the top of it — email the team directly before anyone else does.
+                You're in the pile. Now get to the top of it. Email the team directly before anyone else does.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
