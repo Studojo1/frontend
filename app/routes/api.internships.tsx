@@ -13,7 +13,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const offset = (page - 1) * limit;
 
   // Build query with proper parameterization
-  let whereConditions: string[] = [`status = '${status}'`];
+  // Exclude scraper-inserted rows — map data only, not for the dojo listing
+  let whereConditions: string[] = [`status = '${status}'`, `(created_by IS NULL OR created_by != 'scraper-system')`];
   
   if (search) {
     const escapedSearch = search.replace(/'/g, "''");
