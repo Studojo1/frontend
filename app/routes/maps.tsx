@@ -44,6 +44,9 @@ const MARKETS = [
   { value: "UK", label: "United Kingdom", flag: "🇬🇧" },
   { value: "UAE", label: "UAE", flag: "🇦🇪" },
   { value: "Singapore", label: "Singapore", flag: "🇸🇬" },
+  { value: "Europe", label: "Europe", flag: "🇪🇺" },
+  { value: "APAC", label: "Asia Pacific", flag: "🌏" },
+  { value: "Canada", label: "Canada", flag: "🇨🇦" },
 ];
 
 const NICHE_COLORS: Record<number, string> = {
@@ -391,6 +394,9 @@ export default function MapsPage() {
       UK: { center: [-1.5, 52.5], zoom: 5 },
       UAE: { center: [54.0, 24.5], zoom: 6 },
       Singapore: { center: [103.82, 1.35], zoom: 10 },
+      Europe: { center: [15.0, 52.0], zoom: 3 },
+      APAC: { center: [120.0, 25.0], zoom: 3 },
+      Canada: { center: [-96.0, 55.0], zoom: 3 },
     };
     if (market !== "all" && marketCenters[market]) {
       mapRef.current.flyTo({ ...marketCenters[market], speed: 1.2 });

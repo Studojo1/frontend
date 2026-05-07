@@ -2,10 +2,10 @@ import type { Route } from "./+types/api.admin.scrape-internships";
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function slugify(s: string) {
-  return s
+  return String(s)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
@@ -13,11 +13,16 @@ function slugify(s: string) {
 }
 
 function makeSlug(company: string, title: string, sourceId: string) {
-  const tail = sourceId.replace(/[^a-z0-9]/gi, "").slice(-8).toLowerCase();
+  const tail = String(sourceId).replace(/[^a-z0-9]/gi, "").slice(-8).toLowerCase();
   return `${slugify(company)}-${slugify(title)}-${tail}`.slice(0, 100);
 }
 
-async function timedFetch(url: string, opts: RequestInit = {}, ms = 14000) {
+// Safe SQL string literal — escape single quotes, truncate to 5000 chars
+function s(str: unknown, maxLen = 5000): string {
+  return "'" + String(str ?? "").replace(/'/g, "''").slice(0, maxLen) + "'";
+}
+
+async function timedFetch(url: string, opts: RequestInit = {}, ms = 15000) {
   return fetch(url, { ...opts, signal: AbortSignal.timeout(ms) });
 }
 
@@ -36,7 +41,7 @@ interface ScrapedJob {
   source_url: string;
 }
 
-// ─── source 1: Remotive (free JSON API, remote roles) ────────────────────────
+// ─── Remotive — free JSON API, remote roles worldwide ─────────────────────────
 
 async function fromRemotive(): Promise<ScrapedJob[]> {
   const cats = ["marketing", "software-dev", "data", "design", "product", "finance"];
@@ -44,7 +49,9 @@ async function fromRemotive(): Promise<ScrapedJob[]> {
   await Promise.allSettled(
     cats.map(async (cat) => {
       try {
-        const r = await timedFetch(`https://remotive.com/api/remote-jobs?category=${cat}&limit=25`);
+        const r = await timedFetch(
+          `https://remotive.com/api/remote-jobs?category=${cat}&limit=25`
+        );
         if (!r.ok) return;
         const d = await r.json();
         for (const j of d.jobs ?? []) {
@@ -53,13 +60,13 @@ async function fromRemotive(): Promise<ScrapedJob[]> {
             title: j.title,
             company_name: j.company_name,
             location: j.candidate_required_location || "Remote / Worldwide",
-            stipend: j.salary || "Competitive — see listing",
+            stipend: j.salary || "Competitive",
             duration: "Full-time / Contract",
             description: stripTags(j.description || j.title),
             requirements: "See full listing for requirements.",
             deadline: null,
             source_id: `remotive-${j.id}`,
-            source_url: j.url || `https://remotive.com`,
+            source_url: j.url || "https://remotive.com",
           });
         }
       } catch {}
@@ -68,7 +75,7 @@ async function fromRemotive(): Promise<ScrapedJob[]> {
   return out;
 }
 
-// ─── source 2: Arbeitnow (free JSON API, EU + global) ────────────────────────
+// ─── Arbeitnow — free JSON API, EU + global ───────────────────────────────────
 
 async function fromArbeitnow(): Promise<ScrapedJob[]> {
   const out: ScrapedJob[] = [];
@@ -84,7 +91,7 @@ async function fromArbeitnow(): Promise<ScrapedJob[]> {
           title: j.title,
           company_name: j.company_name,
           location: j.location || "Remote",
-          stipend: "Competitive — see listing",
+          stipend: "Competitive",
           duration: j.job_types?.join(", ") || "Full-time",
           description: stripTags(j.description || j.title),
           requirements: "See full listing for requirements.",
@@ -98,7 +105,7 @@ async function fromArbeitnow(): Promise<ScrapedJob[]> {
   return out;
 }
 
-// ─── source 3: Jobicy (free JSON API, remote jobs) ───────────────────────────
+// ─── Jobicy — free JSON API, remote jobs ──────────────────────────────────────
 
 async function fromJobicy(): Promise<ScrapedJob[]> {
   const out: ScrapedJob[] = [];
@@ -113,7 +120,7 @@ async function fromJobicy(): Promise<ScrapedJob[]> {
       const pay =
         j.annualSalaryMin && j.annualSalaryMax
           ? `$${Math.round(j.annualSalaryMin / 1000)}k–$${Math.round(j.annualSalaryMax / 1000)}k/yr`
-          : "Competitive — see listing";
+          : "Competitive";
       out.push({
         title: j.jobTitle,
         company_name: j.companyName,
@@ -131,7 +138,7 @@ async function fromJobicy(): Promise<ScrapedJob[]> {
   return out;
 }
 
-// ─── source 4: The Muse (free API, internship level filter) ──────────────────
+// ─── The Muse — free API, internship filter ───────────────────────────────────
 
 async function fromMuse(): Promise<ScrapedJob[]> {
   const out: ScrapedJob[] = [];
@@ -150,7 +157,7 @@ async function fromMuse(): Promise<ScrapedJob[]> {
           title: j.name,
           company_name: j.company?.name || "Unknown",
           location: loc,
-          stipend: "See listing for compensation",
+          stipend: "See listing",
           duration: "Internship",
           description: stripTags(j.contents || j.name),
           requirements: "See full listing for requirements.",
@@ -164,7 +171,7 @@ async function fromMuse(): Promise<ScrapedJob[]> {
   return out;
 }
 
-// ─── source 5: Internshala (India focus, HTML scrape) ────────────────────────
+// ─── Internshala — India focus, HTML scrape ───────────────────────────────────
 
 async function fromInternshala(): Promise<ScrapedJob[]> {
   const out: ScrapedJob[] = [];
@@ -184,18 +191,18 @@ async function fromInternshala(): Promise<ScrapedJob[]> {
           {
             headers: {
               "User-Agent":
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124 Safari/537.36",
               Accept: "text/html,application/xhtml+xml",
               "Accept-Language": "en-US,en;q=0.9",
               Referer: "https://www.google.com/",
             },
           },
-          18000
+          20000
         );
         if (!r.ok) return;
         const html = await r.text();
 
-        // Internshala embeds internship data in a JS variable
+        // Internshala embeds data in a JS variable on the page
         const match =
           html.match(/internships_data\s*=\s*(\{[\s\S]*?\});(?:\s*var|\s*<\/script>)/) ||
           html.match(/window\.__NEXT_DATA__\s*=\s*(\{[\s\S]+?\})\s*<\/script>/);
@@ -212,16 +219,18 @@ async function fromInternshala(): Promise<ScrapedJob[]> {
                 Array.isArray(i.location_names) && i.location_names.length
                   ? i.location_names.join(", ")
                   : i.location || "India";
+              const title = i.title || i.profile_name || "Internship";
+              const company = i.company_name || i.organisation_name || "Company";
               out.push({
-                title: i.title || i.profile_name || "Internship",
-                company_name: i.company_name || i.organisation_name || "Company",
+                title,
+                company_name: company,
                 location: city,
                 stipend: i.stipend?.salary || i.stipend_type || "As per norms",
                 duration: i.duration || "3 months",
                 description:
                   i.other_details ||
                   i.profile_description ||
-                  `${i.title} internship at ${i.company_name}`,
+                  `${title} internship at ${company}.`,
                 requirements: i.perks || i.skills || "See full listing.",
                 deadline: i.application_deadline || null,
                 source_id: `internshala-${i.id || i.internship_id}`,
@@ -240,7 +249,9 @@ async function fromInternshala(): Promise<ScrapedJob[]> {
 // ─── utility ──────────────────────────────────────────────────────────────────
 
 function stripTags(html: string): string {
-  return html
+  return String(html)
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
     .replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
@@ -252,23 +263,35 @@ function stripTags(html: string): string {
     .slice(0, 5000);
 }
 
+// ─── ensure system user exists (idempotent) ───────────────────────────────────
+
+async function ensureScraperUser() {
+  await db.execute(sql.raw(`
+    INSERT INTO "user" (id, name, email, email_verified, phone_number_verified, created_at, updated_at)
+    VALUES ('scraper-system', 'Studojo Scraper', 'scraper@studojo.com', false, false, NOW(), NOW())
+    ON CONFLICT (id) DO NOTHING
+  `));
+}
+
 // ─── route handler ────────────────────────────────────────────────────────────
 
 export async function action({ request }: Route.ActionArgs) {
-  // Auth check
-  const secret = process.env.SCRAPE_SECRET;
-  if (secret) {
-    const auth = request.headers.get("authorization") || "";
-    if (auth.replace("Bearer ", "").trim() !== secret) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
-
   if (request.method !== "POST") {
     return Response.json({ error: "POST only" }, { status: 405 });
   }
 
-  // Collect from all sources concurrently
+  const secret = process.env.SCRAPE_SECRET;
+  if (secret) {
+    const auth = (request.headers.get("authorization") || "").replace("Bearer ", "").trim();
+    if (auth !== secret) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  // Bootstrap system user so scraped rows can reference a valid created_by
+  await ensureScraperUser();
+
+  // Fetch from all sources concurrently
   const [remotive, arbeitnow, jobicy, muse, internshala] = await Promise.allSettled([
     fromRemotive(),
     fromArbeitnow(),
@@ -302,37 +325,38 @@ export async function action({ request }: Route.ActionArgs) {
       const slug = makeSlug(job.company_name, job.title, job.source_id);
       const description = job.description || job.title;
       const requirements = job.requirements || "See full listing.";
+      const deadline = job.deadline ? `'${job.deadline}'::timestamp` : "NULL";
 
       const result = await db.execute(sql.raw(`
         INSERT INTO internships (
           id, title, company_name, description, requirements,
           location, duration, stipend, application_deadline,
-          status, slug, source_url, is_scraped, created_at, updated_at
+          status, slug, created_by, created_at, updated_at
         ) VALUES (
           gen_random_uuid(),
-          ${JSON.stringify(job.title)},
-          ${JSON.stringify(job.company_name)},
-          ${JSON.stringify(description)},
-          ${JSON.stringify(requirements)},
-          ${JSON.stringify(job.location)},
-          ${JSON.stringify(job.duration)},
-          ${JSON.stringify(job.stipend)},
-          ${job.deadline ? `'${job.deadline}'::timestamp` : "NULL"},
+          ${s(job.title)},
+          ${s(job.company_name)},
+          ${s(description)},
+          ${s(requirements)},
+          ${s(job.location)},
+          ${s(job.duration)},
+          ${s(job.stipend)},
+          ${deadline},
           'published',
-          ${JSON.stringify(slug)},
-          ${JSON.stringify(job.source_url)},
-          true,
+          ${s(slug)},
+          'scraper-system',
           NOW(),
           NOW()
         )
         ON CONFLICT (slug) DO NOTHING
+        RETURNING id
       `));
 
-      const rowCount = (result as any).rowCount ?? (result as any).count ?? 0;
-      if (Number(rowCount) > 0) inserted++;
+      if ((result as any).rows?.length > 0) inserted++;
       else skipped++;
     } catch (err: any) {
-      errors.push(`${job.source_id}: ${err?.message?.slice(0, 80)}`);
+      const msg = err?.message?.slice(0, 100) ?? "unknown error";
+      errors.push(`${job.source_id}: ${msg}`);
     }
   }
 
