@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { FiX, FiAlertCircle, FiUpload, FiCheckCircle } from "react-icons/fi";
+import { FiX, FiAlertCircle, FiUpload, FiMail } from "react-icons/fi";
 import { QuestionInput, type Question } from "./question-input";
 import { ImportResumeModal } from "~/components/resumes/import-resume-modal";
 import { fetchWithRetry } from "~/lib/fetch-with-retry";
@@ -18,6 +18,8 @@ interface Resume {
 interface ApplicationFlowProps {
   internshipId: string;
   internshipSlug?: string;
+  companyName?: string;
+  roleTitle?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -25,6 +27,8 @@ interface ApplicationFlowProps {
 export function ApplicationFlow({
   internshipId,
   internshipSlug,
+  companyName,
+  roleTitle,
   onClose,
   onSuccess,
 }: ApplicationFlowProps) {
@@ -442,31 +446,29 @@ export function ApplicationFlow({
             </h2>
 
             {submitted ? (
-              <div className="flex flex-col items-center gap-6 py-4 text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 border-2 border-green-500">
-                  <FiCheckCircle className="h-8 w-8 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-['Clash_Display'] text-2xl font-bold text-neutral-900">
-                    Application submitted
-                  </h3>
-                  <p className="mt-2 font-['Satoshi'] text-gray-500">
-                    You're in. The team will be in touch if it's a fit.
+              <div className="rounded-lg bg-neutral-900 p-6 text-white">
+                <div className="mb-4">
+                  <div className="mb-1 font-['Clash_Display'] text-2xl font-bold">
+                    Application submitted.
+                  </div>
+                  <p className="font-['Satoshi'] text-sm text-neutral-300">
+                    You're in the pile. Now get to the top of it. Email the team directly before anyone else does.
                   </p>
                 </div>
-                <div className="flex w-full flex-col gap-3">
+                <div className="flex flex-col gap-3">
                   <a
-                    href="/outreach"
-                    className="block w-full rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-3 font-['Satoshi'] font-bold text-white transition-colors hover:bg-violet-700 text-center"
+                    href={`/outreach${companyName ? `?company=${encodeURIComponent(companyName)}&role=${encodeURIComponent(roleTitle || "")}` : ""}`}
+                    className="flex items-center justify-center gap-2 rounded-lg border-2 border-amber-400 bg-amber-400 px-5 py-3 font-['Satoshi'] font-bold text-neutral-900 transition-colors hover:bg-amber-300"
                   >
-                    Don't just apply. Find who's hiring in your field.
+                    <FiMail className="h-4 w-4 shrink-0" />
+                    Email the hiring team
                   </a>
                   <button
                     type="button"
                     onClick={onClose}
-                    className="w-full rounded-lg border-2 border-neutral-900 px-6 py-3 font-['Satoshi'] font-medium text-neutral-900 transition-colors hover:bg-neutral-100"
+                    className="rounded-lg border-2 border-white/30 bg-white/10 px-5 py-3 font-['Satoshi'] font-bold text-white transition-colors hover:bg-white/20"
                   >
-                    Browse more internships
+                    Browse other internships
                   </button>
                 </div>
               </div>

@@ -276,6 +276,8 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
           <ApplicationFlow
             internshipId={internship.id}
             internshipSlug={internship.slug}
+            companyName={internship.company_name}
+            roleTitle={internship.title}
             onClose={() => setShowApplicationFlow(false)}
             onSuccess={() => {
               setShowApplicationFlow(false);
