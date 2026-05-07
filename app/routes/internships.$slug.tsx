@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLoaderData, useNavigate } from "react-router";
 import { Header, Footer } from "~/components";
-import { FiMapPin, FiClock, FiCalendar, FiArrowLeft, FiMail, FiFileText, FiSearch } from "react-icons/fi";
+import { FiMapPin, FiClock, FiCalendar, FiArrowLeft, FiMail, FiZap } from "react-icons/fi";
 import { authClient } from "~/lib/auth-client";
 import type { Route } from "./+types/internships.$slug";
 import { ApplicationFlow } from "~/components/internship/application-flow";
@@ -113,6 +113,25 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
   return (
     <div className="min-h-screen bg-white">
       <Header />
+      {/* Top warning banner */}
+      <div className="border-b-2 border-neutral-900 bg-amber-400 px-4 py-3">
+        <a
+          href={`/outreach`}
+          className="mx-auto flex max-w-4xl items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-3">
+            <FiZap className="h-5 w-5 shrink-0 text-neutral-900" />
+            <p className="font-['Satoshi'] text-sm font-bold text-neutral-900">
+              Applying cold gets you a <span className="underline">{"<"}1% callback rate.</span>
+              {" "}Emailing the hiring team directly changes that.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-md border-2 border-neutral-900 bg-neutral-900 px-4 py-1.5 font-['Satoshi'] text-sm font-bold text-white whitespace-nowrap">
+            Try Outreach →
+          </span>
+        </a>
+      </div>
+
       <article className="mx-auto max-w-4xl px-4 py-12 md:px-8">
         <header className="mb-8">
           <div className="mb-4 flex items-center gap-4">
@@ -197,68 +216,28 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
           )}
         </div>
 
-        {/* Outreach CTAs */}
-        <div className="mt-8 space-y-4">
-          {/* Primary CTA — cold email, full width, high contrast */}
-          <a
-            href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}
-            className="flex w-full items-center justify-between rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-5 text-white transition-colors hover:bg-violet-700"
-          >
-            <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
-                <FiMail className="h-5 w-5" />
+        {/* Bottom outreach CTA */}
+        <a
+          href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}
+          className="mt-4 flex w-full items-center justify-between rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-5 text-white transition-colors hover:bg-violet-700"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <FiMail className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="font-['Clash_Display'] text-lg font-bold leading-tight">
+                Email the hiring team directly
               </div>
-              <div>
-                <div className="font-['Clash_Display'] text-lg font-bold leading-tight">
-                  Email the hiring team directly
-                </div>
-                <div className="font-['Satoshi'] text-sm opacity-85">
-                  Most applicants only fill the form. One cold email puts you in a different pile.
-                </div>
+              <div className="font-['Satoshi'] text-sm opacity-85">
+                Most applicants only fill the form. One cold email puts you in a different pile.
               </div>
             </div>
-            <div className="ml-4 shrink-0 rounded-md border-2 border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-bold whitespace-nowrap">
-              Write it free →
-            </div>
-          </a>
-
-          {/* Secondary CTAs — side by side */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <a
-              href="/dojos/careers"
-              className="flex items-center gap-4 rounded-lg border-2 border-neutral-900 bg-amber-50 px-5 py-4 transition-colors hover:bg-amber-100"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-amber-400">
-                <FiFileText className="h-5 w-5 text-neutral-900" />
-              </div>
-              <div>
-                <div className="font-['Clash_Display'] text-base font-bold text-neutral-900 leading-tight">
-                  Your resume won't clear the ATS
-                </div>
-                <div className="font-['Satoshi'] text-xs text-gray-600">
-                  Fix it in 5 minutes. Free, no sign-up needed.
-                </div>
-              </div>
-            </a>
-
-            <a
-              href={`/dojos/internships`}
-              className="flex items-center gap-4 rounded-lg border-2 border-neutral-900 bg-neutral-50 px-5 py-4 transition-colors hover:bg-neutral-100"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-white">
-                <FiSearch className="h-5 w-5 text-neutral-900" />
-              </div>
-              <div>
-                <div className="font-['Clash_Display'] text-base font-bold text-neutral-900 leading-tight">
-                  Don't put all your eggs in one role
-                </div>
-                <div className="font-['Satoshi'] text-xs text-gray-600">
-                  Browse 29 more internships worth applying to.
-                </div>
-              </div>
-            </a>
           </div>
-        </div>
+          <div className="ml-4 shrink-0 rounded-md border-2 border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-bold whitespace-nowrap">
+            Use Outreach →
+          </div>
+        </a>
 
         {showApplicationFlow && !hasApplied && (
           <ApplicationFlow
