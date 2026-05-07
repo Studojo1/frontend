@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLoaderData, useNavigate } from "react-router";
 import { Header, Footer } from "~/components";
-import { FiMapPin, FiClock, FiCalendar, FiArrowLeft } from "react-icons/fi";
+import { FiMapPin, FiClock, FiCalendar, FiArrowLeft, FiMail, FiFileText, FiSearch } from "react-icons/fi";
 import { authClient } from "~/lib/auth-client";
 import type { Route } from "./+types/internships.$slug";
 import { ApplicationFlow } from "~/components/internship/application-flow";
@@ -195,6 +195,48 @@ export default function InternshipDetail({ data }: Route.ComponentProps) {
               {isDeadlinePassed ? "Application Deadline Passed" : "Apply Now"}
             </button>
           )}
+        </div>
+
+        {/* Outreach CTAs */}
+        <div className="mt-8 rounded-lg border-2 border-neutral-900 bg-white p-6">
+          <h2 className="mb-1 font-['Clash_Display'] text-xl font-bold text-neutral-900">
+            Get ahead on this application
+          </h2>
+          <p className="mb-5 font-['Satoshi'] text-sm text-gray-500">
+            Most applicants send a generic CV. Don't be most applicants.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <a
+              href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}
+              className="flex flex-1 items-center gap-3 rounded-lg border-2 border-neutral-900 bg-violet-600 px-5 py-4 font-['Satoshi'] font-bold text-white transition-colors hover:bg-violet-700"
+            >
+              <FiMail className="h-5 w-5 shrink-0" />
+              <div>
+                <div className="text-sm font-bold">Write a cold email</div>
+                <div className="text-xs font-normal opacity-80">AI outreach to the hiring team</div>
+              </div>
+            </a>
+            <a
+              href="/dojos/careers"
+              className="flex flex-1 items-center gap-3 rounded-lg border-2 border-neutral-900 bg-white px-5 py-4 font-['Satoshi'] font-bold text-neutral-900 transition-colors hover:bg-neutral-50"
+            >
+              <FiFileText className="h-5 w-5 shrink-0" />
+              <div>
+                <div className="text-sm font-bold">Build your resume</div>
+                <div className="text-xs font-normal text-gray-500">ATS-optimised, 100% free</div>
+              </div>
+            </a>
+            <a
+              href="/dojos/internships"
+              className="flex flex-1 items-center gap-3 rounded-lg border-2 border-neutral-900 bg-white px-5 py-4 font-['Satoshi'] font-bold text-neutral-900 transition-colors hover:bg-neutral-50"
+            >
+              <FiSearch className="h-5 w-5 shrink-0" />
+              <div>
+                <div className="text-sm font-bold">Find similar roles</div>
+                <div className="text-xs font-normal text-gray-500">Browse all internships</div>
+              </div>
+            </a>
+          </div>
         </div>
 
         {showApplicationFlow && !hasApplied && (
