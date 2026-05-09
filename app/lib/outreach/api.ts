@@ -32,20 +32,27 @@ export async function outreachFetch<T = unknown>(
   path: string,
   options: RequestInit & { maxRetries?: number; timeout?: number } = {},
 ): Promise<T> {
-  const token = await getToken();
-  if (!token) throw new ControlPlaneError("Not authenticated", 401);
+  // Token is optional — backend also accepts session cookies (same-origin).
+  // Don't block the request if getToken() fails.
+  let token: string | null = null;
+  try {
+    token = await getToken();
+  } catch {}
 
   const url = `/api/v1/outreach${path}`;
 
   const { maxRetries = 3, timeout = 30_000, ...fetchOpts } = options;
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...fetchOpts.headers as Record<string, string>,
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   const res = await fetchWithRetry(url, {
     ...fetchOpts,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...fetchOpts.headers,
-    },
+    credentials: "include",
+    headers,
     maxRetries,
     timeout,
   });
