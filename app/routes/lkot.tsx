@@ -287,7 +287,7 @@ export default function LkotPage() {
       setQuiz(savedQuiz);
       setCampaignId(savedCampaignId);
       if (savedStep === 6 && savedCampaignId) {
-        fetchDashboard(savedCampaignId).then(() => {
+        fetchDashboard(savedCampaignId, true).then(() => {
           setStep(6); setRestored(true);
           pollRef.current = setInterval(() => fetchDashboard(savedCampaignId), 30000);
         }).catch(() => { clearWizard(); setRestored(true); });
@@ -310,13 +310,22 @@ export default function LkotPage() {
 
   // ── API ───────────────────────────────────────────────────────────────────────
 
-  const fetchDashboard = async (id: number) => {
+  const fetchDashboard = async (id: number, checkAuth = false) => {
     const [c, s, r] = await Promise.all([
       outreachFetch<Campaign>(`/linkedin/automation/campaigns/${id}`),
       outreachFetch<CampaignStats>(`/linkedin/automation/campaigns/${id}/stats`),
       outreachFetch<Lead[]>(`/linkedin/automation/campaigns/${id}/requests?limit=200`),
     ]);
     setCampaign(c); setStats(s); setRequests(r);
+    // On first load of a running campaign, proactively verify the LinkedIn session
+    if (checkAuth && c.status === "running") {
+      try {
+        const authRes = await outreachFetch<{ auth_ok: boolean }>(`/linkedin/automation/campaigns/${id}/check-auth`, { method: "POST" });
+        if (!authRes.auth_ok) {
+          setCampaign(prev => prev ? { ...prev, status: "auth_failed" } : prev);
+        }
+      } catch {}
+    }
   };
 
   const startLeadSearch = async (id: number) => {
@@ -342,7 +351,7 @@ export default function LkotPage() {
   const proceedAfterLogin = async () => {
     if (campaignId && campaign?.status === "auth_failed") {
       await outreachFetch(`/linkedin/automation/campaigns/${campaignId}/resume`, { method: "POST" });
-      await fetchDashboard(campaignId);
+      await fetchDashboard(campaignId, true);
       setStep(6); saveWizard(6, quiz, campaignId);
       pollRef.current = setInterval(() => fetchDashboard(campaignId), 30000);
       return;
@@ -454,7 +463,7 @@ export default function LkotPage() {
         }),
       });
       await outreachFetch(`/linkedin/automation/campaigns/${campaignId}/launch`, { method: "POST" });
-      await fetchDashboard(campaignId);
+      await fetchDashboard(campaignId, true);
       setStep(6); saveWizard(6, quiz, campaignId);
       pollRef.current = setInterval(() => fetchDashboard(campaignId), 30000);
     } catch (e) { setLaunchError(errMsg(e)); }
