@@ -44,7 +44,7 @@ const REPORTS = [
     title: "Dubai Hiring Report 2026: Who's Actually Hiring and What They Pay",
     subtitle: "Dubai Labour Market 2026",
     excerpt: "Dubai remains a magnet for regional headquarters, finance, logistics, and digital operations. This report maps where hiring energy is concentrated in 2026, what early-career pay bands look like in AED, and how offers surface beyond public listings.",
-    category: "Career",
+    category: "Cities",
     type: "Sector" as ReportType,
     date: "May 2026",
     findings: 6,

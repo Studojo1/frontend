@@ -156,6 +156,11 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .rpt-cta-mid { margin: 20px 0; }
+  .rpt-cta-mid-inner { background: #8B5CF6; border: 2px solid #171717; border-radius: 16px; padding: 22px 26px; box-shadow: 3px 3px 0 #171717; }
+  .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
+  .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
+  .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
 `;
 
 export default function Report_DubaiHiringWhosHiringAndPay2026() {
@@ -198,7 +203,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
       <main>
         <div className="rpt-hero">
           <div className="rpt-hero-inner">
-            <div className="rpt-badge">Studojo Research · May 2026</div>
+            <div className="rpt-badge">Cities · May 2026</div>
             <nav className="rpt-breadcrumb" aria-label="Breadcrumb">
               <Link to="/reports" className="rpt-breadcrumb-link">Reports</Link>
               <span className="rpt-breadcrumb-sep">›</span>
@@ -256,8 +261,24 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
               </div>
             </div>
             <p>Many roles in Dubai exist because a company chose the city as a hub for the Middle East, Africa, or wider emerging markets. That decision creates clusters of finance, legal, compliance, technology, and commercial operations roles that do not map cleanly to one sector on a job board.</p>
+
+            <div className="rpt-cta-mid">
+              <div className="rpt-cta-mid-inner">
+                <h4>Map who actually owns the hire</h4>
+                <p>Studojo Outreach surfaces hiring managers and recruiters tied to real open roles so you can reach decision-makers, not only the careers portal.</p>
+                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+              </div>
+            </div>
             <p>DIFC and adjacent professional services remain a gravity well for analysts, associates, risk, and fintech roles. Separately, aviation, travel retail, and logistics still anchor large employer brands that hire in waves tied to capacity and season.</p>
             <p>Hospitality and retail hire at scale for customer-facing work, while technology hiring often sits inside enterprises modernising stacks or building regional products. The mistake is to treat Dubai as only luxury or only oil. The labour market is hybrid.</p>
+
+            <div className="rpt-cta-mid">
+              <div className="rpt-cta-mid-inner">
+                <h4>Search mandates, then route to people</h4>
+                <p>Once you know the function cluster, Outreach helps you land a credible intro with one proof link and clear visa and start constraints.</p>
+                <Link to="/outreach" className="rpt-cta-mid-btn">Open Outreach →</Link>
+              </div>
+            </div>
 
             <div className="chart-wrap">
               <div className="chart-label">Where new professional hiring activity concentrates in Dubai (illustrative mix, %)</div>
@@ -294,6 +315,14 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
             </div>
             <p>Employers with visible budgets in 2026 include regulated finance and payments players expanding in DIFC, airlines and ground-handling ecosystems, global technology vendors with regional delivery teams, and e-commerce or logistics operators routing Gulf volume through Dubai.</p>
             <p>Hospitality groups continue to rebuild management trainee and revenue roles as occupancy normalises. Engineering and construction hire in cycles tied to project awards, often through contractors and consultants rather than viral job posts alone.</p>
+
+            <div className="rpt-cta-mid">
+              <div className="rpt-cta-mid-inner">
+                <h4>Find the human behind the req</h4>
+                <p>Many Dubai roles close through agencies and insiders. Outreach routes you to the manager or recruiter who can move your profile today.</p>
+                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+              </div>
+            </div>
             <p>Government and semi-government digital programmes add roles in cloud, cybersecurity, and service design, frequently through partners. Those roles may never appear as a simple "apply now" button for externals.</p>
 
             <div className="highlight"><strong>Key insight:</strong> The same employer can hire aggressively in one function and freeze another. Function-level research beats company-level myth.</div>
@@ -362,6 +391,14 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
             </div>
             <p>UAE hiring involves work permits, medical checks, and employer quota logic. Candidates who can start faster, or transfer cleanly from an existing visa, often win tight races.</p>
             <p>Notice periods overseas can kill momentum. If you are abroad, be explicit about earliest start, relocation assumptions, and whether you need sponsorship. Ambiguity reads as risk.</p>
+
+            <div className="rpt-cta-mid">
+              <div className="rpt-cta-mid-inner">
+                <h4>Stay top of mind without spamming</h4>
+                <p>Use Outreach to send short, specific follow-ups with one new proof point so sponsors see you as organised, not noisy.</p>
+                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+              </div>
+            </div>
             <p>Ramadan hours, summer travel, and year-end budgeting can shift decision speed. A quiet week is not always rejection. Follow up with a single crisp note and a concrete data point you added since last touch.</p>
 
             <div className="highlight"><strong>Key insight:</strong> Treat compliance clarity as part of your personal brand. Hiring managers remember the candidate who made HR's job easier.</div>
@@ -389,6 +426,14 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
               </div>
             </div>
             <p>LinkedIn remains the default discovery layer for Dubai professional hiring. Profiles that state visa status, languages, and quantified outcomes get more serious passes than generic summaries.</p>
+
+            <div className="rpt-cta-mid">
+              <div className="rpt-cta-mid-inner">
+                <h4>Skip the apply-only lane</h4>
+                <p>Studojo Outreach helps you reach hiring managers with a tight brief and one flagship link, the pattern Dubai teams actually forward.</p>
+                <Link to="/outreach" className="rpt-cta-mid-btn">Open Outreach →</Link>
+              </div>
+            </div>
             <p>Regional job boards and aggregator alerts help for volume roles, but mid-tier professional hiring still routes through networks. Alumni groups, community meetups, and founder circles often surface roles pre-posting.</p>
             <p>When you message someone, lead with a specific problem you can solve for their team, not admiration for the brand. Busy managers forward messages that make them look smart, not long essays.</p>
 
@@ -468,11 +513,11 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
 
           <div className="rpt-cta">
             <div className="rpt-cta-left">
-              <h3>Build proof employers can verify in sixty seconds.</h3>
-              <p>Studojo helps students and early-career candidates sharpen portfolios and career paths so Dubai hiring teams see clear fit, not generic buzzwords.</p>
+              <h3>Reach hiring managers in Dubai, directly.</h3>
+              <p>Studojo Outreach finds the people behind real open roles and helps you land in their inbox with a personalised, credible intro. No resume builder rabbit hole.</p>
             </div>
-            <Link to="/dojos/careers" className="rpt-cta-btn">
-              Explore Career Paths →
+            <Link to="/outreach" className="rpt-cta-btn">
+              Try Studojo Outreach →
             </Link>
           </div>
         </div>
