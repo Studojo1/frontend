@@ -45,7 +45,7 @@ const REPORTS = [
     subtitle: "Dubai Labour Market 2026",
     excerpt: "Dubai remains a magnet for regional headquarters, finance, logistics, and digital operations. This report maps where hiring energy is concentrated in 2026, what early-career pay bands look like in AED, and how offers surface beyond public listings.",
     category: "Cities",
-    type: "Sector" as ReportType,
+    type: "Cities" as ReportType,
     date: "May 2026",
     findings: 6,
     badge: "New",
@@ -568,9 +568,15 @@ export default function Reports() {
                 className="group flex flex-col rounded-2xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
               >
                 {/* Card top */}
-                <div className={`${TYPE_COLORS[report.type]} rounded-t-xl border-b-2 border-neutral-900 p-6`}>
+                <div className={`${TYPE_COLORS[report.type]} flex h-[168px] shrink-0 flex-col justify-between rounded-t-xl border-b-2 border-neutral-900 p-6`}>
                   <div className="flex items-start justify-between">
-                    <span className="rounded-full border-2 border-white/40 bg-white/20 px-3 py-1 font-['Satoshi'] text-xs font-bold text-white">
+                    <span
+                      className={
+                        report.type === "Cities"
+                          ? "rounded-full border-2 border-emerald-100/90 bg-emerald-950/45 px-3 py-1 font-['Satoshi'] text-xs font-bold text-emerald-50"
+                          : "rounded-full border-2 border-white/40 bg-white/20 px-3 py-1 font-['Satoshi'] text-xs font-bold text-white"
+                      }
+                    >
                       {report.category}
                     </span>
                     {report.badge && (
@@ -579,7 +585,7 @@ export default function Reports() {
                       </span>
                     )}
                   </div>
-                  <div className="mt-6 font-['Satoshi'] text-xs font-semibold uppercase tracking-widest text-white/70">
+                  <div className="font-['Satoshi'] text-xs font-semibold uppercase tracking-widest text-white/70 line-clamp-2">
                     {report.findings} findings · {report.subtitle}
                   </div>
                 </div>
