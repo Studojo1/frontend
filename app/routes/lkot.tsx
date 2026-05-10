@@ -237,6 +237,8 @@ export default function LkotPage() {
   const [launching, setLaunching] = useState(false);
   const [launchError, setLaunchError] = useState("");
   const [toggling, setToggling] = useState(false);
+  const [sendingOne, setSendingOne] = useState(false);
+  const [sendOneResult, setSendOneResult] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"all" | "sent" | "accepted" | "replied">("all");
 
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -481,6 +483,19 @@ export default function LkotPage() {
       pollRef.current = setInterval(() => fetchDashboard(campaignId), 30000);
     } catch (e) { setLaunchError(errMsg(e)); }
     finally { setLaunching(false); }
+  };
+
+  const sendOne = async () => {
+    if (!campaignId) return;
+    setSendingOne(true); setSendOneResult("");
+    try {
+      const res = await outreachFetch<{ ok: boolean; result: string; lead_name: string }>(`/linkedin/automation/campaigns/${campaignId}/send-one`, { method: "POST" });
+      setSendOneResult(res.ok ? `Sent to ${res.lead_name}` : `Failed for ${res.lead_name}`);
+      await fetchDashboard(campaignId);
+    } catch (e) {
+      setSendOneResult(`Error: ${errMsg(e)}`);
+      await fetchDashboard(campaignId);
+    } finally { setSendingOne(false); }
   };
 
   const toggleCampaign = async () => {
@@ -961,22 +976,34 @@ export default function LkotPage() {
         {/* ── Step 6 ────────────────────────────────────────────────────── */}
         {step === 6 && campaign && stats && (
           <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-clash text-xl font-bold text-studojo-ink">{campaign.name}</h2>
                 <p className="font-satoshi text-sm text-studojo-muted">{campaign.target_role} · {campaign.daily_limit}/day</p>
               </div>
-              <Btn
-                onClick={toggleCampaign}
-                disabled={toggling || campaign.status === "auth_failed"}
-                variant={campaign.status === "running" ? "outline" : "primary"}
-              >
-                {campaign.status === "running"
-                  ? <><FiPause className="w-3.5 h-3.5" /> Pause</>
-                  : <><FiPlay className="w-3.5 h-3.5" /> Resume</>
-                }
-              </Btn>
+              <div className="flex items-center gap-2">
+                {campaign.status === "running" && (
+                  <Btn onClick={sendOne} disabled={sendingOne} variant="outline" className="text-xs px-3 py-2">
+                    {sendingOne ? <><FiRefreshCw className="w-3 h-3 animate-spin" /> Sending…</> : <><FiSend className="w-3 h-3" /> Send one</>}
+                  </Btn>
+                )}
+                <Btn
+                  onClick={toggleCampaign}
+                  disabled={toggling || campaign.status === "auth_failed"}
+                  variant={campaign.status === "running" ? "outline" : "primary"}
+                >
+                  {campaign.status === "running"
+                    ? <><FiPause className="w-3.5 h-3.5" /> Pause</>
+                    : <><FiPlay className="w-3.5 h-3.5" /> Resume</>
+                  }
+                </Btn>
+              </div>
             </div>
+            {sendOneResult && (
+              <div className={`mb-4 px-4 py-2.5 rounded-xl border-2 font-satoshi text-sm ${sendOneResult.startsWith("Sent") ? "border-green-300 bg-green-50 text-green-700" : "border-red-300 bg-red-50 text-red-700"}`}>
+                {sendOneResult}
+              </div>
+            )}
 
             {campaign.status === "auth_failed" && (
               <div className="border-2 border-amber-300 bg-amber-50 rounded-2xl p-4 mb-5 flex items-start gap-3">
