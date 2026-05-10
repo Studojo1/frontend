@@ -54,7 +54,7 @@ function initCharts() {
         labels: ["Finance, fintech, and professional services", "Technology and digital product", "Aviation, travel, and logistics", "Hospitality, retail, and consumer operations", "Real estate, construction, and engineering services", "Public sector and semi-government digital"],
         datasets: [{
           data: [24.0, 18.0, 16.0, 14.0, 15.0, 13.0],
-          backgroundColor: ["#0ea5e9", "#8B5CF6", "#f59e0b", "#10b981", "#6366f1", "#737373"],
+          backgroundColor: ["#10b981", "#8B5CF6", "#f59e0b", "#059669", "#6366f1", "#737373"],
           borderColor: "#fff",
           borderWidth: 3,
           hoverOffset: 8,
@@ -82,7 +82,7 @@ function initCharts() {
         datasets: [{
           label: "Illustrative gross monthly AED bands for early-career hires (midpoint index, 0 to 25 scale)",
           data: [18.5, 15.2, 16.8, 12.4, 11.0, 7.8],
-          backgroundColor: ["#0ea5e9", "#0ea5e9", "#8B5CF6", "#f59e0b", "#10b981", "#737373"],
+          backgroundColor: ["#10b981", "#059669", "#8B5CF6", "#f59e0b", "#34d399", "#737373"],
           borderRadius: 6,
           borderWidth: 0,
         }],
@@ -107,15 +107,15 @@ function initCharts() {
 
 const reportCSS = `
   .rpt-hero { background: #171717; padding: 64px 0 52px; border-bottom: 3px solid #171717; position: relative; overflow: hidden; }
-  .rpt-hero::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 10px; background: #0ea5e9; }
+  .rpt-hero::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 10px; background: #10b981; }
   .rpt-hero-inner { max-width: 860px; margin: 0 auto; padding: 0 24px; }
-  .rpt-badge { display: inline-block; background: #0ea5e9; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 14px; border-radius: 999px; margin-bottom: 24px; }
+  .rpt-badge { display: inline-block; background: #10b981; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 14px; border-radius: 999px; margin-bottom: 24px; }
   .rpt-breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; }
   .rpt-breadcrumb-link { color: #8B5CF6; text-decoration: none; font-weight: 600; }
   .rpt-breadcrumb-sep { color: #525252; }
   .rpt-breadcrumb span:last-child { color: #737373; }
   .rpt-hero h1 { font-size: 48px; font-weight: 700; color: #f8f6f1; line-height: 1.05; letter-spacing: -1.5px; margin-bottom: 18px; }
-  .rpt-hero h1 em { color: #0ea5e9; font-style: normal; }
+  .rpt-hero h1 em { color: #10b981; font-style: normal; }
   .rpt-hero-sub { font-size: 17px; color: #737373; font-weight: 500; line-height: 1.65; max-width: 600px; margin-bottom: 36px; }
   .rpt-meta { display: flex; gap: 32px; flex-wrap: wrap; }
   .rpt-meta-item { display: flex; flex-direction: column; gap: 3px; }
@@ -125,7 +125,7 @@ const reportCSS = `
   .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
   @media (max-width: 640px) { .stat-bar { grid-template-columns: 1fr; } .rpt-hero h1 { font-size: 32px; } }
   .stat-card { background: #fff; border: 2px solid #171717; border-radius: 16px; box-shadow: 4px 4px 0 #171717; padding: 24px 26px; }
-  .stat-card .sc-num { font-size: 42px; font-weight: 700; color: #0ea5e9; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
+  .stat-card .sc-num { font-size: 42px; font-weight: 700; color: #10b981; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
   .stat-card .sc-label { font-size: 13px; font-weight: 600; color: #171717; line-height: 1.4; margin-bottom: 6px; }
   .stat-card .sc-source { font-size: 10px; font-weight: 500; color: #a3a3a3; letter-spacing: 0.5px; }
   .rpt-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
@@ -152,15 +152,15 @@ const reportCSS = `
   .chart-label { font-size: 12px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
   .takeaway-section { background: #faf5fe; border: 2px solid #c4b5fd; border-radius: 20px; box-shadow: 4px 4px 0 #c4b5fd; padding: 40px 48px; }
   @media (max-width: 640px) { .takeaway-section { padding: 28px 20px; } }
-  .rpt-cta { background: #8B5CF6; border: 2px solid #171717; border-radius: 20px; padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; box-shadow: 4px 4px 0 #171717; }
+  .rpt-cta { background: #10b981; border: 2px solid #171717; border-radius: 20px; padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; box-shadow: 4px 4px 0 #171717; }
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
-  .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #10b981; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
   .rpt-cta-mid { margin: 20px 0; }
-  .rpt-cta-mid-inner { background: #8B5CF6; border: 2px solid #171717; border-radius: 16px; padding: 22px 26px; box-shadow: 3px 3px 0 #171717; }
+  .rpt-cta-mid-inner { background: #10b981; border: 2px solid #171717; border-radius: 16px; padding: 22px 26px; box-shadow: 3px 3px 0 #171717; }
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
-  .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #10b981; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
 `;
 
 export default function Report_DubaiHiringWhosHiringAndPay2026() {
@@ -254,31 +254,15 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0ea5e9" }}>1</div>
+              <div className="sec-num" style={{ background: "#10b981" }}>1</div>
               <div>
                 <div className="sec-title">Dubai is still a headquarters economy first</div>
                 <div className="sec-sub">Regional mandates drive finance, tech, and operations hiring more than any single industry headline</div>
               </div>
             </div>
             <p>Many roles in Dubai exist because a company chose the city as a hub for the Middle East, Africa, or wider emerging markets. That decision creates clusters of finance, legal, compliance, technology, and commercial operations roles that do not map cleanly to one sector on a job board.</p>
-
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Map who actually owns the hire</h4>
-                <p>Studojo Outreach surfaces hiring managers and recruiters tied to real open roles so you can reach decision-makers, not only the careers portal.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
-              </div>
-            </div>
             <p>DIFC and adjacent professional services remain a gravity well for analysts, associates, risk, and fintech roles. Separately, aviation, travel retail, and logistics still anchor large employer brands that hire in waves tied to capacity and season.</p>
             <p>Hospitality and retail hire at scale for customer-facing work, while technology hiring often sits inside enterprises modernising stacks or building regional products. The mistake is to treat Dubai as only luxury or only oil. The labour market is hybrid.</p>
-
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Search mandates, then route to people</h4>
-                <p>Once you know the function cluster, Outreach helps you land a credible intro with one proof link and clear visa and start constraints.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Open Outreach →</Link>
-              </div>
-            </div>
 
             <div className="chart-wrap">
               <div className="chart-label">Where new professional hiring activity concentrates in Dubai (illustrative mix, %)</div>
@@ -307,7 +291,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0ea5e9" }}>2</div>
+              <div className="sec-num" style={{ background: "#10b981" }}>2</div>
               <div>
                 <div className="sec-title">Who is actually hiring in 2026</div>
                 <div className="sec-sub">Fintech, enterprise tech, aviation services, and scaled operations lead visibility</div>
@@ -315,14 +299,6 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
             </div>
             <p>Employers with visible budgets in 2026 include regulated finance and payments players expanding in DIFC, airlines and ground-handling ecosystems, global technology vendors with regional delivery teams, and e-commerce or logistics operators routing Gulf volume through Dubai.</p>
             <p>Hospitality groups continue to rebuild management trainee and revenue roles as occupancy normalises. Engineering and construction hire in cycles tied to project awards, often through contractors and consultants rather than viral job posts alone.</p>
-
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Find the human behind the req</h4>
-                <p>Many Dubai roles close through agencies and insiders. Outreach routes you to the manager or recruiter who can move your profile today.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
-              </div>
-            </div>
             <p>Government and semi-government digital programmes add roles in cloud, cybersecurity, and service design, frequently through partners. Those roles may never appear as a simple "apply now" button for externals.</p>
 
             <div className="highlight"><strong>Key insight:</strong> The same employer can hire aggressively in one function and freeze another. Function-level research beats company-level myth.</div>
@@ -348,7 +324,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0ea5e9" }}>3</div>
+              <div className="sec-num" style={{ background: "#10b981" }}>3</div>
               <div>
                 <div className="sec-title">What they pay in AED, without fairy tales</div>
                 <div className="sec-sub">Bands vary by employer, visa package, and total reward, not only base</div>
@@ -357,6 +333,14 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
             <p>Early-career gross monthly base salaries in Dubai for professional roles often sit in a wide band from roughly 8,000 AED to 22,000 AED for many non-executive desk roles, with technology and strong finance paths skewing higher and some hospitality management trainees lower before service charge and allowances.</p>
             <p>Total reward includes housing allowance, flight home, schooling support, and bonuses in some packages, especially for expats. Two offers with the same base are not equal if one is all-in and the other splits allowances for tax and visa reasons.</p>
             <p>Remote-first global employers hiring UAE residents sometimes anchor to international scales, while local contracts anchor to regional norms. Both exist in the same city, which is why public salary threads disagree.</p>
+
+            <div className="rpt-cta-mid">
+              <div className="rpt-cta-mid-inner">
+                <h4>Turn bands into conversations</h4>
+                <p>When you know your function band, Studojo Outreach helps you reach the recruiter or manager who can confirm real numbers for your level, not forum gossip.</p>
+                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+              </div>
+            </div>
 
             <div className="chart-wrap">
               <div className="chart-label">Illustrative gross monthly AED bands for early-career hires (midpoint index, 0 to 25 scale)</div>
@@ -383,7 +367,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0ea5e9" }}>4</div>
+              <div className="sec-num" style={{ background: "#10b981" }}>4</div>
               <div>
                 <div className="sec-title">Visas, timing, and why offers stall</div>
                 <div className="sec-sub">The best candidate on paper still loses to the candidate who is paperwork-ready</div>
@@ -391,14 +375,6 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
             </div>
             <p>UAE hiring involves work permits, medical checks, and employer quota logic. Candidates who can start faster, or transfer cleanly from an existing visa, often win tight races.</p>
             <p>Notice periods overseas can kill momentum. If you are abroad, be explicit about earliest start, relocation assumptions, and whether you need sponsorship. Ambiguity reads as risk.</p>
-
-            <div className="rpt-cta-mid">
-              <div className="rpt-cta-mid-inner">
-                <h4>Stay top of mind without spamming</h4>
-                <p>Use Outreach to send short, specific follow-ups with one new proof point so sponsors see you as organised, not noisy.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
-              </div>
-            </div>
             <p>Ramadan hours, summer travel, and year-end budgeting can shift decision speed. A quiet week is not always rejection. Follow up with a single crisp note and a concrete data point you added since last touch.</p>
 
             <div className="highlight"><strong>Key insight:</strong> Treat compliance clarity as part of your personal brand. Hiring managers remember the candidate who made HR's job easier.</div>
@@ -419,23 +395,23 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0ea5e9" }}>5</div>
+              <div className="sec-num" style={{ background: "#10b981" }}>5</div>
               <div>
                 <div className="sec-title">Channels that still move interviews</div>
                 <div className="sec-sub">LinkedIn, specialist recruiters, referrals, and niche communities beat spray-and-pray</div>
               </div>
             </div>
             <p>LinkedIn remains the default discovery layer for Dubai professional hiring. Profiles that state visa status, languages, and quantified outcomes get more serious passes than generic summaries.</p>
+            <p>Regional job boards and aggregator alerts help for volume roles, but mid-tier professional hiring still routes through networks. Alumni groups, community meetups, and founder circles often surface roles pre-posting.</p>
+            <p>When you message someone, lead with a specific problem you can solve for their team, not admiration for the brand. Busy managers forward messages that make them look smart, not long essays.</p>
 
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
-                <h4>Skip the apply-only lane</h4>
+                <h4>Send the message that gets forwarded</h4>
                 <p>Studojo Outreach helps you reach hiring managers with a tight brief and one flagship link, the pattern Dubai teams actually forward.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Open Outreach →</Link>
+                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
               </div>
             </div>
-            <p>Regional job boards and aggregator alerts help for volume roles, but mid-tier professional hiring still routes through networks. Alumni groups, community meetups, and founder circles often surface roles pre-posting.</p>
-            <p>When you message someone, lead with a specific problem you can solve for their team, not admiration for the brand. Busy managers forward messages that make them look smart, not long essays.</p>
 
             <div className="blist">
 
@@ -455,7 +431,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0ea5e9" }}>6</div>
+              <div className="sec-num" style={{ background: "#10b981" }}>6</div>
               <div>
                 <div className="sec-title">Red flags and realism for 2026</div>
                 <div className="sec-sub">Fast promises, vague packages, and misclassified freelance gigs</div>
