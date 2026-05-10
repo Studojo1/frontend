@@ -498,6 +498,18 @@ export default function LkotPage() {
     } finally { setSendingOne(false); }
   };
 
+  const retryErrors = async () => {
+    if (!campaignId) return;
+    setSendOneResult("");
+    try {
+      const res = await outreachFetch<{ ok: boolean; reset: number }>(`/linkedin/automation/campaigns/${campaignId}/retry-errors`, { method: "POST" });
+      setSendOneResult(`${res.reset} lead${res.reset === 1 ? "" : "s"} queued for retry`);
+      await fetchDashboard(campaignId);
+    } catch (e) {
+      setSendOneResult(`Error: ${errMsg(e)}`);
+    }
+  };
+
   const toggleCampaign = async () => {
     if (!campaign || !campaignId) return;
     setToggling(true);
@@ -983,9 +995,16 @@ export default function LkotPage() {
               </div>
               <div className="flex items-center gap-2">
                 {campaign.status === "running" && (
-                  <Btn onClick={sendOne} disabled={sendingOne} variant="outline" className="text-xs px-3 py-2">
-                    {sendingOne ? <><FiRefreshCw className="w-3 h-3 animate-spin" /> Sending…</> : <><FiSend className="w-3 h-3" /> Send one</>}
-                  </Btn>
+                  <>
+                    {requests.some(r => r.status === "error") && !requests.some(r => r.status === "pending") && (
+                      <Btn onClick={retryErrors} variant="outline" className="text-xs px-3 py-2">
+                        <FiRefreshCw className="w-3 h-3" /> Retry errors
+                      </Btn>
+                    )}
+                    <Btn onClick={sendOne} disabled={sendingOne} variant="outline" className="text-xs px-3 py-2">
+                      {sendingOne ? <><FiRefreshCw className="w-3 h-3 animate-spin" /> Sending…</> : <><FiSend className="w-3 h-3" /> Send one</>}
+                    </Btn>
+                  </>
                 )}
                 <Btn
                   onClick={toggleCampaign}
