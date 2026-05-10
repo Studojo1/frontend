@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "product-management-internships-india-2026",
+    publishDate: "2026-05-10",
+    title: "Product Management Internships India 2026: Who Hires, What You Earn, and How Offers Actually Close",
+    subtitle: "PM Internships · India 2026",
+    excerpt: "Product internships in India sit at the intersection of consumer apps, B2B SaaS, fintech, and scaled marketplaces. This report maps where hiring energy is concentrated in 2026, what stipend bands look like for APM and PM-intern roles, and how students actually get shortlists when portals feel noisy.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "dubai-hiring-whos-hiring-and-pay-2026",
     publishDate: "2026-05-08",
     title: "Dubai Hiring Report 2026: Who's Actually Hiring and What They Pay",

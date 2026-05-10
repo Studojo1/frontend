@@ -56,4 +56,5 @@ export default [
   route("reports/hidden-job-market-70-percent-never-posted-2026", "routes/reports.hidden-job-market-70-percent-never-posted-2026.tsx"),
   route("reports/linkedin-easy-apply-killing-chances-2026", "routes/reports.linkedin-easy-apply-killing-chances-2026.tsx"),
   route("reports/dubai-hiring-whos-hiring-and-pay-2026", "routes/reports.dubai-hiring-whos-hiring-and-pay-2026.tsx"),
+  route("reports/product-management-internships-india-2026", "routes/reports.product-management-internships-india-2026.tsx"),
 ] satisfies RouteConfig;

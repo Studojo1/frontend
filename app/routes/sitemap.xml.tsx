@@ -38,6 +38,7 @@ export async function loader() {
     { loc: "/reports/hidden-job-market-70-percent-never-posted-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/linkedin-easy-apply-killing-chances-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/dubai-hiring-whos-hiring-and-pay-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/product-management-internships-india-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
@@ -94,6 +95,7 @@ export async function loader() {
     "/reports/hidden-job-market-70-percent-never-posted-2026": "2026-05-07",
     "/reports/linkedin-easy-apply-killing-chances-2026": "2026-05-07",
     "/reports/dubai-hiring-whos-hiring-and-pay-2026": "2026-05-08",
+    "/reports/product-management-internships-india-2026": "2026-05-10",
   };
 
   const urls = [
