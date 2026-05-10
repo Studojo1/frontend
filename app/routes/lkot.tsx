@@ -349,10 +349,23 @@ export default function LkotPage() {
   };
 
   const proceedAfterLogin = async () => {
-    if (campaignId && campaign?.status === "auth_failed") {
+    // If campaign state is missing (e.g. hard-refresh on step 4), fetch it first
+    // so we can decide whether to resume or create a new campaign.
+    let activeCampaign = campaign;
+    if (campaignId && !activeCampaign) {
+      try {
+        activeCampaign = await outreachFetch<Campaign>(`/linkedin/automation/campaigns/${campaignId}`);
+        setCampaign(activeCampaign);
+      } catch {}
+    }
+
+    if (campaignId && activeCampaign && ["auth_failed", "paused"].includes(activeCampaign.status)) {
       await outreachFetch(`/linkedin/automation/campaigns/${campaignId}/resume`, { method: "POST" });
-      await fetchDashboard(campaignId, true);
+      // Do NOT pass checkAuth here — Voyager calls from the server always fail
+      // on datacenter IPs, causing a false auth_failed loop.
+      await fetchDashboard(campaignId);
       setStep(6); saveWizard(6, quiz, campaignId);
+      if (pollRef.current) clearInterval(pollRef.current);
       pollRef.current = setInterval(() => fetchDashboard(campaignId), 30000);
       return;
     }
@@ -463,7 +476,7 @@ export default function LkotPage() {
         }),
       });
       await outreachFetch(`/linkedin/automation/campaigns/${campaignId}/launch`, { method: "POST" });
-      await fetchDashboard(campaignId, true);
+      await fetchDashboard(campaignId);
       setStep(6); saveWizard(6, quiz, campaignId);
       pollRef.current = setInterval(() => fetchDashboard(campaignId), 30000);
     } catch (e) { setLaunchError(errMsg(e)); }
