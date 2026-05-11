@@ -14,16 +14,21 @@ type Phase = "welcome" | "template" | "source" | "intake";
 export default function RsbRoot() {
   const { data: session, isPending } = authClient.useSession();
   const navigate = useNavigate();
+  const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState<Phase>("welcome");
   const [template, setTemplate] = useState<TemplateId>("classic");
   const [source, setSource] = useState<SourceChoice>("scratch");
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    if (!isPending && !session?.user) {
-      navigate("/auth?mode=signin&redirect=/rsb");
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isPending && !session?.user) {
+      navigate("/auth?mode=signin&redirect=/rsb", { replace: true });
     }
-  }, [isPending, session?.user, navigate]);
+  }, [mounted, isPending, session?.user, navigate]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -72,7 +77,7 @@ export default function RsbRoot() {
     [navigate, template],
   );
 
-  if (isPending || !session?.user) {
+  if (!mounted || isPending || !session?.user) {
     return (
       <>
         <Header />
