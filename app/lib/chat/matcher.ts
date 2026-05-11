@@ -119,8 +119,18 @@ export function matchIntent(userMessage: string): MatchResult {
   const tokens = tokenize(userMessage);
   const tokenSet = new Set(tokens);
 
+  // Pre-check: if message contains problem signals, bias toward technical intent
+  // before pattern matching so "resume not working" doesn't hit careers_resume
+  const PROBLEM_SIGNALS = ["not working", "isn't working", "doesnt work", "broken", "not loading",
+    "wont load", "won't load", "error", "stuck", "failed", "can't use", "cant use",
+    "not downloading", "wont download", "won't download", "keep", "continuously", "redirecting"];
+  const hasProblemSignal = PROBLEM_SIGNALS.some((s) => normalized.includes(s));
+
   // Phase 1: Pattern matching (highest confidence)
   for (const intent of INTENTS) {
+    // If there's a problem signal and this is NOT the technical intent, skip pattern match
+    // for intents that overlap (resume, account) so technical gets priority
+    if (hasProblemSignal && ["careers_resume", "account"].includes(intent.id)) continue;
     for (const pattern of intent.patterns) {
       if (patternMatch(normalized, pattern)) {
         return { intent, confidence: 0.95, source: "pattern" };
