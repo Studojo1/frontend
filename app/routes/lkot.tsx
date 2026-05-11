@@ -1067,12 +1067,14 @@ export default function LkotPage() {
                 )}
                 <Btn
                   onClick={toggleCampaign}
-                  disabled={toggling || campaign.status === "auth_failed"}
+                  disabled={toggling}
                   variant={campaign.status === "running" ? "outline" : "primary"}
                 >
-                  {campaign.status === "running"
-                    ? <><FiPause className="w-3.5 h-3.5" /> Pause</>
-                    : <><FiPlay className="w-3.5 h-3.5" /> Resume</>
+                  {toggling
+                    ? <><FiRefreshCw className="w-3.5 h-3.5 animate-spin" /> …</>
+                    : campaign.status === "running"
+                      ? <><FiPause className="w-3.5 h-3.5" /> Pause</>
+                      : <><FiPlay className="w-3.5 h-3.5" /> Resume</>
                   }
                 </Btn>
               </div>
