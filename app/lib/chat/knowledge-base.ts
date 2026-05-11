@@ -328,8 +328,6 @@ export const INTENTS: Intent[] = [
       "verification email",
       "cant access my account",
       "password reset not working",
-      "start interview",
-      "redirecting me",
     ],
     response: "For password reset, click 'Forgot password' on the login page and check your spam folder. Can't log in? Try incognito mode or clear your cache. Anything else, email admin@studojo.com.",
     links: [{ label: "Login", url: "/auth" }],
