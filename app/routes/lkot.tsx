@@ -491,8 +491,57 @@ export default function LkotPage() {
     if (!campaignId) return;
     setSendingOne(true); setSendOneResult("");
     try {
-      const res = await outreachFetch<{ ok: boolean; result: string; lead_name: string }>(`/linkedin/automation/campaigns/${campaignId}/send-one`, { method: "POST" });
-      setSendOneResult(res.ok ? `Sent to ${res.lead_name}` : `Failed for ${res.lead_name}`);
+      // Pull the next pending request from the backend
+      const next = await outreachFetch<{
+        pending: boolean; request_id?: number; profile_url?: string;
+        profile_urn?: string; connection_note?: string; name?: string;
+      }>(`/linkedin/automation/campaigns/${campaignId}/next-pending`);
+
+      if (!next.pending) {
+        setSendOneResult("No pending leads");
+        return;
+      }
+
+      if (!extInstalled) {
+        setSendOneResult("Extension not detected — install the Studojo LinkedIn Connector first");
+        return;
+      }
+
+      // Send via the Chrome extension (uses real browser session — no proxy issues)
+      const result = await new Promise<{ ok?: boolean; authToken?: string; error?: string; status?: number }>((resolve) => {
+        const handler = (e: Event) => {
+          window.removeEventListener("STUDOJO_INVITATION_RESULT", handler);
+          resolve((e as CustomEvent).detail);
+        };
+        window.addEventListener("STUDOJO_INVITATION_RESULT", handler);
+        window.dispatchEvent(new CustomEvent("STUDOJO_SEND_INVITATION", {
+          detail: {
+            profileUrl: next.profile_url,
+            profileUrn: next.profile_urn,
+            note: next.connection_note,
+          },
+        }));
+        // 30-second timeout
+        setTimeout(() => {
+          window.removeEventListener("STUDOJO_INVITATION_RESULT", handler);
+          resolve({ error: "timeout" });
+        }, 30000);
+      });
+
+      // Report result back to backend
+      await outreachFetch(`/linkedin/automation/campaigns/${campaignId}/requests/${next.request_id}/report`, {
+        method: "POST",
+        body: JSON.stringify({ ok: result.ok ?? false, auth_token: result.authToken ?? null, error: result.error ?? null }),
+      });
+
+      if (result.ok) {
+        setSendOneResult(`Sent to ${next.name}`);
+      } else if (result.error === "timeout") {
+        setSendOneResult(`Timeout — LinkedIn took too long to respond`);
+      } else {
+        setSendOneResult(`Failed for ${next.name} (status ${result.status ?? "unknown"})`);
+      }
+
       await fetchDashboard(campaignId);
     } catch (e) {
       setSendOneResult(`Error: ${errMsg(e)}`);
