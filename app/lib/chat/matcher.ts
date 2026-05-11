@@ -46,11 +46,19 @@ function tokenize(text: string): string[] {
 }
 
 /**
- * Check if normalized input contains a pattern (fuzzy substring match)
+ * Check if normalized input contains a pattern (fuzzy substring match).
+ * Single-token patterns use whole-word matching to prevent "hi" matching "internship".
  */
 function patternMatch(input: string, pattern: string): boolean {
   const normInput = normalize(input);
   const normPattern = normalize(pattern);
+
+  // Single-token patterns: require the token to appear as a whole word
+  const patternWords = normPattern.split(" ").filter((t) => t.length > 0);
+  if (patternWords.length === 1) {
+    const inputWords = new Set(normInput.split(" "));
+    return inputWords.has(patternWords[0]);
+  }
 
   // Exact substring
   if (normInput.includes(normPattern)) return true;
