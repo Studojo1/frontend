@@ -673,7 +673,7 @@ export default function LkotPage() {
                           <p className="font-satoshi text-xs text-studojo-muted">Reads your LinkedIn session automatically — no copy-pasting needed.</p>
                         </div>
                         <a
-                          href="/outreach/studojo-linkedin-connector.zip"
+                          href="/studojo-linkedin-connector.zip"
                           download
                           className="flex-shrink-0 inline-flex items-center gap-1.5 border-2 border-studojo-ink bg-studojo-ink text-white font-satoshi text-xs font-semibold px-3 py-2 rounded-lg shadow-brutal hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
                         >
