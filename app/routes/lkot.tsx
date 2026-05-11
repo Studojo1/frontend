@@ -543,8 +543,11 @@ export default function LkotPage() {
         setSendOneResult(`Sent to ${next.name}`);
       } else if (result.error === "timeout") {
         setSendOneResult(`Timeout — LinkedIn took too long to respond`);
+      } else if (result.error) {
+        setSendOneResult(`Failed for ${next.name}: ${result.error}`);
       } else {
-        setSendOneResult(`Failed for ${next.name} (status ${result.status ?? "unknown"})`);
+        const normInfo = (result as any).normStatus ? ` (norm=${(result as any).normStatus})` : "";
+        setSendOneResult(`Failed for ${next.name} (status ${result.status ?? "unknown"}${normInfo})`);
       }
 
       await fetchDashboard(campaignId);
