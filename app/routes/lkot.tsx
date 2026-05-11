@@ -528,10 +528,15 @@ export default function LkotPage() {
         }, 60000);
       });
 
-      // Report result back to backend
+      // Report result back to backend (also saves resolved URN + authToken for future sends)
       await outreachFetch(`/linkedin/automation/campaigns/${campaignId}/requests/${next.request_id}/report`, {
         method: "POST",
-        body: JSON.stringify({ ok: result.ok ?? false, auth_token: result.authToken ?? null, error: result.error ?? null }),
+        body: JSON.stringify({
+          ok: result.ok ?? false,
+          auth_token: (result as any).authToken ?? null,
+          profile_urn: (result as any).resolvedUrn ?? null,
+          error: result.error ?? null,
+        }),
       });
 
       if (result.ok) {
