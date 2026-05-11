@@ -16,7 +16,7 @@ export const INTENTS: Intent[] = [
       "hi there", "hello there", "hey there", "how are you", "whats up", "what's up",
       "how's it going", "how are things", "good morning", "good evening", "good afternoon",
     ],
-    response: "Hey! What can I help you with?\n\nI can tell you about our tools, pricing, your account, or just point you in the right direction.",
+    response: "Hey! Ask me about our tools, pricing, or your account and I'll point you in the right direction.",
   },
 
   // -- Outreach Tool (LEAD RECOMMENDATION — always recommend this first) --
@@ -81,7 +81,7 @@ export const INTENTS: Intent[] = [
       "intern",
       "internship",
     ],
-    response: "The Outreach Tool is the fastest way to get interview calls.\n\nHere's how it works:\n1. Upload your resume - we pull your skills and experience automatically\n2. Tell us what roles you want and where\n3. AI finds hiring managers at matching companies and writes personalised cold emails\n4. Emails go out from your own connected Gmail account\n\nYou control everything - review leads, edit emails, approve before anything sends. Students have gotten interview callbacks within 48 hours.\n\nCredits are used for lead discovery, contact enrichment, and sending campaigns. You only pay for what you use.",
+    response: "The Outreach Tool finds hiring managers at companies matching your target roles and sends personalised cold emails from your own Gmail. Upload your resume, pick your roles and location, and it handles the rest — you approve everything before it sends. Students have gotten callbacks within 48 hours.",
     links: [{ label: "Try the Outreach Tool", url: "/outreach" }],
   },
 
@@ -108,7 +108,7 @@ export const INTENTS: Intent[] = [
       "is outreach free",
       "do i get a free trial",
     ],
-    response: "The Outreach Tool is credit-based. You buy credits and spend them as you go.\n\nCredits are used for three things:\n- Lead discovery: finding hiring managers at companies you want to target\n- Enrichment: getting their verified contact info\n- Sending: dispatching the email campaigns from your Gmail\n\nYou can see the exact credit cost for each action before you commit. No subscriptions, no monthly charges. Top up when you need it.\n\nFor current prices, check the Outreach Tool page directly.",
+    response: "The Outreach Tool is credit-based — you buy credits and spend them on finding leads, getting contact info, and sending campaigns. No subscription, no monthly charge. Check exact pricing on the Outreach Tool page.",
     links: [{ label: "View outreach pricing", url: "/outreach" }],
   },
 
@@ -139,7 +139,7 @@ export const INTENTS: Intent[] = [
       "i can't access my campaign",
       "campaign failed",
     ],
-    response: "Sorry about that. Campaign issues are usually one of three things:\n\n1. Gmail disconnected - reconnect your Gmail in the Outreach Tool settings\n2. Credits ran out mid-campaign - top up and the campaign will continue\n3. A technical issue - email admin@studojo.com with your campaign name and what you're seeing\n\nInclude a screenshot if you can - it speeds things up a lot.",
+    response: "Usually a Gmail disconnect or credits running out. Reconnect Gmail in the Outreach Tool settings, or top up credits and the campaign will resume. If that's not it, email admin@studojo.com with your campaign name and a screenshot.",
     links: [{ label: "Contact support", url: "/contact" }],
   },
 
@@ -155,7 +155,7 @@ export const INTENTS: Intent[] = [
       "find internship listings",
       "internship map",
     ],
-    response: "Internship Dojo shows you real internship opportunities across India and globally - with an interactive map so you can browse by location.\n\nIt's the discovery layer. Use it to find what's out there, then use the Outreach Tool to actually contact hiring managers at those companies.\n\nThe two work well together.",
+    response: "Internship Dojo shows real internship listings globally with a map to browse by location. Use it to discover what's out there, then use the Outreach Tool to contact hiring managers at those companies directly.",
     links: [
       { label: "Browse Internship Dojo", url: "/dojos/internships" },
       { label: "Try the Outreach Tool", url: "/outreach" },
@@ -188,7 +188,7 @@ export const INTENTS: Intent[] = [
       "help with my homework",
       "can i get assignment help",
     ],
-    response: "Assignment Dojo generates AI-powered assignments that are formatted, properly referenced, and plagiarism-safe.\n\nHow it works:\n1. Pick your subject and topic\n2. Set your academic level and word count\n3. Get a ready-to-use document in minutes\n\nIt's built as a strong starting point - structured, cited, formatted. Most students use it to get unstuck fast rather than starting from a blank page.\n\nPay per assignment, no subscription.",
+    response: "Assignment Dojo generates formatted, referenced, plagiarism-safe assignments. Pick your topic, set your level and word count, and get a ready document in minutes. Pay per assignment, no subscription.",
     links: [{ label: "Try Assignment Dojo", url: "/dojos/assignment" }],
   },
 
@@ -213,7 +213,7 @@ export const INTENTS: Intent[] = [
       "make a resume",
       "make a cv",
     ],
-    response: "The resume builder is completely free. No credit card, no trial, no catch.\n\nWhat you get:\n- ATS-optimised templates (structured the way tracking systems actually parse resumes)\n- Import from an existing PDF or build from scratch\n- Download as a PDF instantly\n- Unlimited resumes and edits\n\nTakes about 10 minutes to get something that looks properly done.",
+    response: "Completely free — no card, no trial. Build an ATS-optimised resume from scratch or import a PDF, then download instantly. Takes about 10 minutes.",
     links: [{ label: "Build your resume free", url: "/dojos/careers" }],
   },
 
@@ -235,7 +235,7 @@ export const INTENTS: Intent[] = [
       "help me choose",
       "what can studojo do for me",
     ],
-    response: "Start with the Outreach Tool if you're job or internship hunting - it's the highest-impact thing on the platform. It finds hiring managers and sends personalised cold emails from your Gmail.\n\nIf you need a resume first, the Careers Dojo resume builder is free and takes 10 minutes.\n\nAssignment Dojo is if you need help with academic work.\n\nMost students do resume first, then outreach.",
+    response: "If you're job or internship hunting, start with the Outreach Tool — it finds hiring managers and sends cold emails from your Gmail. Build your resume free first if you need one (takes 10 min). Assignment Dojo is for academic work.",
     links: [
       { label: "Outreach Tool", url: "/outreach" },
       { label: "Resume builder (free)", url: "/dojos/careers" },
@@ -258,7 +258,7 @@ export const INTENTS: Intent[] = [
       "ai content checker",
       "ai writing detection",
     ],
-    response: "The AI Risk checker scans your text and gives you a risk score section by section - so you can see exactly which parts might get flagged.\n\nIt shows you where to focus your edits. Run your draft through it, rephrase the high-risk parts in your own words, done.\n\nIt's a checker, not a bypass tool.",
+    response: "AI Risk Dojo scans your text and shows which sections might get flagged by AI detectors. Rephrase the high-risk parts in your own words, rerun, done. It's a checker, not a bypass.",
     links: [{ label: "Try AI Risk checker", url: "/dojos/ai-risk" }],
   },
 
@@ -282,7 +282,7 @@ export const INTENTS: Intent[] = [
       "do i have to pay",
       "will i have to pay",
     ],
-    response: "Here's the breakdown:\n\nResume builder - completely free, no limits.\n\nOutreach Tool - credit-based. You buy credits and spend them on lead discovery, enrichment, and sending campaigns. No subscription.\n\nAssignment Dojo - pay per assignment. No subscription.\n\nPayments go through Razorpay - UPI, debit/credit cards, and net banking all work. You only pay when you actually use something.",
+    response: "Resume builder is free. Outreach Tool is credit-based — buy as you go, no subscription. Assignment Dojo is pay-per-assignment. All payments via Razorpay — UPI, cards, and net banking work.",
     links: [{ label: "Outreach Tool pricing", url: "/outreach" }],
   },
 
@@ -306,7 +306,7 @@ export const INTENTS: Intent[] = [
       "dispute a charge",
       "refund request",
     ],
-    response: "Refund policy:\n\nOutreach credits - refundable within 7 days if no leads have been processed yet.\n\nAssignment Dojo - refundable within 24 hours if you haven't downloaded the document.\n\nAnything already used or delivered - non-refundable.\n\nEmail admin@studojo.com with your order ID and what happened. We'll get back to you within 24 hours.",
+    response: "Credits are refundable within 7 days if no leads were processed. Assignments are refundable within 24 hours if not downloaded. Email admin@studojo.com with your order ID.",
     links: [{ label: "Refund policy", url: "/refund-policy" }],
   },
 
@@ -331,7 +331,7 @@ export const INTENTS: Intent[] = [
       "start interview",
       "redirecting me",
     ],
-    response: "Common account fixes:\n\nForgot password - hit \"Forgot password\" on the login page. Reset link comes by email - check spam if it doesn't show within a couple minutes.\n\nCan't log in - try clearing cache or use an incognito window first. If that doesn't work, email admin@studojo.com.\n\nAccount deletion - email admin@studojo.com and we'll handle it.\n\nAny other account issue - admin@studojo.com is fastest.",
+    response: "For password reset, click 'Forgot password' on the login page and check your spam folder. Can't log in? Try incognito mode or clear your cache. Anything else, email admin@studojo.com.",
     links: [{ label: "Login", url: "/auth" }],
   },
 
@@ -389,7 +389,7 @@ export const INTENTS: Intent[] = [
       "remove the ai chatbox",
       "chatbox blocking",
     ],
-    response: "Let's get that sorted.\n\nQuick things to try first:\n1. Hard refresh (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows)\n2. Clear your browser cache\n3. Try Chrome if you're on a different browser\n4. Try incognito mode\n\nIf that doesn't fix it, reach out at admin@studojo.com with what you were trying to do, what happened, and a screenshot if you have one. We'll look into it.",
+    response: "Try a hard refresh first (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows), then incognito mode. If it's still broken, email admin@studojo.com with what happened and a screenshot.",
     links: [{ label: "Contact support", url: "/contact" }],
   },
 
@@ -414,7 +414,7 @@ export const INTENTS: Intent[] = [
       "brief about studojo",
       "tell me about how studojo",
     ],
-    response: "Studojo is a career platform for ambitious students - built to help you work on things that actually matter, not just tick boxes.\n\nTools we've built:\n- Outreach Tool: AI-powered cold email to hiring managers from your own Gmail\n- Careers Dojo: free ATS resume builder\n- Internship Dojo: internship discovery and listings\n- Assignment Dojo: AI assignment help\n- AI Risk Dojo: AI detection checker\n- Revision Dojo: coming soon\n\nBased in Bangalore. 10,000+ students helped across India, UK, US, UAE, and Singapore.",
+    response: "Studojo is a student career platform based in Bangalore — we help students work on things that matter. Tools: Outreach Tool (cold email to hiring managers), free resume builder, internship listings, assignment help, and an AI detection checker. 10,000+ students helped across India, UK, US, UAE, and Singapore.",
     links: [{ label: "About us", url: "/about" }],
   },
 
@@ -433,7 +433,7 @@ export const INTENTS: Intent[] = [
       "revision tool",
       "when is revision dojo",
     ],
-    response: "Revision Dojo is coming soon.\n\nIt'll generate custom study notes, practice questions, flashcards, and mind maps based on whatever you're studying.\n\nDrop a message to admin@studojo.com if you want to be notified when it launches.",
+    response: "Revision Dojo is coming soon — study notes, flashcards, practice questions, and mind maps. Email admin@studojo.com to get notified when it launches.",
   },
 
   // -- Privacy / Data --
@@ -451,7 +451,7 @@ export const INTENTS: Intent[] = [
       "is it secure",
       "personal information",
     ],
-    response: "Your data is encrypted and never sold to third parties.\n\nWe only use your data to run the services you've signed up for.\n\nIf you want your data deleted, email admin@studojo.com with \"Data Deletion Request\" in the subject. We'll handle it fully.",
+    response: "Your data is encrypted and never sold. We only use it to run the services you signed up for. To delete your data, email admin@studojo.com with 'Data Deletion Request' in the subject.",
     links: [{ label: "Privacy policy", url: "/privacy" }],
   },
 
@@ -473,8 +473,33 @@ export const INTENTS: Intent[] = [
       "speak to a real person",
       "connect me to support",
     ],
-    response: "You can reach the team directly:\n\nEmail: admin@studojo.com\nContact form: studojo.com/contact\n\nEmail is fastest for account or billing issues. Use the contact form for technical stuff - you can attach screenshots there.\n\nWe typically respond within 24 hours.",
+    response: "Reach the team at admin@studojo.com or the contact form at studojo.com/contact. We reply within 24 hours.",
     links: [{ label: "Contact form", url: "/contact" }],
+  },
+
+  // -- Book a call --
+  {
+    id: "book_a_call",
+    keywords: ["book a call", "schedule a call", "call with team", "speak on a call", "zoom call", "google meet", "call with you", "book a meeting", "schedule a meeting"],
+    patterns: [
+      "book a call",
+      "schedule a call",
+      "can i book a call",
+      "can i schedule a call",
+      "i want to book a call",
+      "i want to speak on a call",
+      "can we hop on a call",
+      "hop on a call",
+      "jump on a call",
+      "zoom call",
+      "google meet",
+      "video call",
+      "call with the team",
+      "book a meeting",
+      "schedule a meeting",
+    ],
+    response: "DM us on Instagram and we'll set something up — @studojo.",
+    links: [{ label: "@studojo on Instagram", url: "https://instagram.com/studojo" }],
   },
 
   // -- Farewell --
@@ -538,6 +563,7 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 ## Contact
 - Email: admin@studojo.com (responds within 24 hours)
 - Contact form: studojo.com/contact
+- Instagram: @studojo — DM to book a call with the team
 
 ## HARD RULES — these are absolute, never break them:
 - Studojo is a career PLATFORM with tools. It is NOT an internship provider and does NOT post internship listings itself.
