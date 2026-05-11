@@ -521,11 +521,11 @@ export default function LkotPage() {
             note: next.connection_note,
           },
         }));
-        // 30-second timeout
+        // 60-second timeout — profile page fetch can be slow
         setTimeout(() => {
           window.removeEventListener("STUDOJO_INVITATION_RESULT", handler);
           resolve({ error: "timeout" });
-        }, 30000);
+        }, 60000);
       });
 
       // Report result back to backend
