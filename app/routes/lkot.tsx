@@ -272,7 +272,9 @@ export default function LkotPage() {
   useEffect(() => {
     const onReady = () => setExtInstalled(true);
     window.addEventListener("STUDOJO_EXT_READY", onReady);
-    const t = setTimeout(() => window.removeEventListener("STUDOJO_EXT_READY", onReady), 600);
+    // Ping the extension — it may have already fired STUDOJO_EXT_READY before this effect mounted
+    window.dispatchEvent(new CustomEvent("STUDOJO_PING"));
+    const t = setTimeout(() => window.removeEventListener("STUDOJO_EXT_READY", onReady), 1500);
     return () => { clearTimeout(t); window.removeEventListener("STUDOJO_EXT_READY", onReady); };
   }, []);
 
