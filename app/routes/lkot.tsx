@@ -491,65 +491,13 @@ export default function LkotPage() {
     if (!campaignId) return;
     setSendingOne(true); setSendOneResult("");
     try {
-      // Pull the next pending request from the backend
-      const next = await outreachFetch<{
-        pending: boolean; request_id?: number; profile_url?: string;
-        profile_urn?: string; connection_note?: string; name?: string;
-      }>(`/linkedin/automation/campaigns/${campaignId}/next-pending`);
-
-      if (!next.pending) {
-        setSendOneResult("No pending leads");
-        return;
-      }
-
-      if (!extInstalled) {
-        setSendOneResult("Extension not detected — install the Studojo LinkedIn Connector first");
-        return;
-      }
-
-      // Send via the Chrome extension (uses real browser session — no proxy issues)
-      const result = await new Promise<{ ok?: boolean; authToken?: string; error?: string; status?: number }>((resolve) => {
-        const handler = (e: Event) => {
-          window.removeEventListener("STUDOJO_INVITATION_RESULT", handler);
-          resolve((e as CustomEvent).detail);
-        };
-        window.addEventListener("STUDOJO_INVITATION_RESULT", handler);
-        window.dispatchEvent(new CustomEvent("STUDOJO_SEND_INVITATION", {
-          detail: {
-            profileUrl: next.profile_url,
-            profileUrn: next.profile_urn,
-            note: next.connection_note,
-          },
-        }));
-        // 60-second timeout — profile page fetch can be slow
-        setTimeout(() => {
-          window.removeEventListener("STUDOJO_INVITATION_RESULT", handler);
-          resolve({ error: "timeout" });
-        }, 60000);
-      });
-
-      // Report result back to backend (also saves resolved URN + authToken for future sends)
-      await outreachFetch(`/linkedin/automation/campaigns/${campaignId}/requests/${next.request_id}/report`, {
-        method: "POST",
-        body: JSON.stringify({
-          ok: result.ok ?? false,
-          auth_token: (result as any).authToken ?? null,
-          profile_urn: (result as any).resolvedUrn ?? null,
-          error: result.error ?? null,
-        }),
-      });
-
-      if (result.ok) {
-        setSendOneResult(`Sent to ${next.name}`);
-      } else if (result.error === "timeout") {
-        setSendOneResult(`Timeout — LinkedIn took too long to respond`);
-      } else if (result.error) {
-        setSendOneResult(`Failed for ${next.name}: ${result.error}`);
-      } else {
-        const normInfo = (result as any).normStatus ? ` (norm=${(result as any).normStatus})` : "";
-        setSendOneResult(`Failed for ${next.name} (status ${result.status ?? "unknown"}${normInfo})`);
-      }
-
+      // Server-side Playwright send — runs a real Chromium browser on the
+      // residential proxy IP. No extension needed. User's laptop can be off.
+      const res = await outreachFetch<{ ok: boolean; result: string; lead_name: string }>(
+        `/linkedin/automation/campaigns/${campaignId}/send-one`,
+        { method: "POST" }
+      );
+      setSendOneResult(res.ok ? `Sent to ${res.lead_name}` : `Failed for ${res.lead_name}`);
       await fetchDashboard(campaignId);
     } catch (e) {
       setSendOneResult(`Error: ${errMsg(e)}`);
