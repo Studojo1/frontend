@@ -381,7 +381,7 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
               </div>
             </div>
             <div className="blist">
-              <div className="blist-item" key="Run the \"paste test\" before send">
+              <div className="blist-item" key=='Run the "paste test" before send'>
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Run the "paste test" before send.</strong> If any paragraph could be sent to another person with zero edits, rewrite until at least one sentence contains a detail only true for this recipient and this week.</span>
               </div>

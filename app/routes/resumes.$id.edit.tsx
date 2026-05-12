@@ -418,7 +418,6 @@ export default function ResumeEditorPage() {
                 setDocument(updatedDoc);
                 setIsDirty(true);
               }}
-              onClose={() => setShowAIPanel(false)}
             />
           )}
         </div>
