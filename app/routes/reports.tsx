@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "cold-outreach-what-gets-reply-2026",
+    publishDate: "2026-05-12",
+    title: "Cold Outreach: What Actually Gets a Reply",
+    subtitle: "Cold Outreach · 2026",
+    excerpt: "Most cold messages never get a reply because they look like bulk mail the moment they land. This report breaks down what recipients actually scan for, how to structure a message that respects their time, and how to follow up without training people to ignore you.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 4,
+    badge: "New",
+  },
+  {
     slug: "product-management-internships-india-2026",
     publishDate: "2026-05-10",
     title: "Product Management Internships India 2026: Who Hires, What You Earn, and How Offers Actually Close",
