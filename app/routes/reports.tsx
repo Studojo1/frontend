@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "internships-singapore-what-gets-you-hired-2026",
+    publishDate: "2026-05-12",
+    title: "Internships in Singapore 2026: What Gets You Hired",
+    subtitle: "Singapore internships · Hiring signals · 2026",
+    excerpt: "Singapore packs MNC regional headquarters, fast-growing startups, and public-sector innovation programmes into a tight labour market. This report explains what hiring managers screen for in 2026, where intern demand concentrates, and how to convert interest into a signed offer without burning months on generic applications.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "cold-outreach-what-gets-reply-2026",
     publishDate: "2026-05-12",
     title: "Cold Outreach: What Actually Gets a Reply",
