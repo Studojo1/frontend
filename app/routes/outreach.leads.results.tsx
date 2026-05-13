@@ -34,8 +34,28 @@ export default function ResultsPage() {
       .finally(() => setLoading(false));
   }, [authLoading, candidateId]);
 
-  const sorted = [...leads].sort((a, b) => {
-    if (sortBy === "score") return (b.score?.overall || 0) - (a.score?.overall || 0);
+  // Signal priority: high=2, medium=1, low=0 — used for sorting
+  const signalRank = (lead: Lead) => {
+    const s = lead.justification?.signal_strength;
+    if (s === "high") return 2;
+    if (s === "medium") return 1;
+    return 0;
+  };
+
+  // Filter out low-signal leads entirely — the LLM already flagged them as poor fits
+  const filtered = leads.filter((l) => {
+    const s = l.justification?.signal_strength;
+    // Keep leads without justification yet (don't penalise loading gaps)
+    // but hide ones explicitly marked low
+    return s !== "low";
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "score") {
+      const sigDiff = signalRank(b) - signalRank(a);
+      if (sigDiff !== 0) return sigDiff;
+      return (b.score?.overall || 0) - (a.score?.overall || 0);
+    }
     return (a.name || "").localeCompare(b.name || "");
   });
 
@@ -55,7 +75,7 @@ export default function ResultsPage() {
           <div>
             <h1 className="font-clash text-xl sm:text-2xl font-bold text-studojo-ink">Your Hiring Managers</h1>
             <p className="text-sm text-studojo-muted font-satoshi mt-0.5">
-              Found {leads.length} hiring managers matched to your profile. Tap any card to see why they were picked.
+              {sorted.length} quality matches from {leads.length} professionals scanned. Tap any card to see why.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">

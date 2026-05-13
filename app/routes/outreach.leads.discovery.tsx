@@ -90,13 +90,13 @@ export default function DiscoveryPage() {
       }
     });
 
-    // Lead counter: ramps to 500 starting at stage 2
+    // Lead counter: ramps to 800 starting at stage 2
     timers.push(
       setTimeout(() => {
         counterRef.current = setInterval(() => {
           setLeadCount((c) => {
-            if (c >= 500) { clearInterval(counterRef.current); return 500; }
-            const remaining = 500 - c;
+            if (c >= 800) { clearInterval(counterRef.current); return 800; }
+            const remaining = 800 - c;
             return c + Math.min(Math.floor(Math.random() * 15) + 8, remaining);
           });
         }, 300);
@@ -184,7 +184,7 @@ export default function DiscoveryPage() {
   if (allDone) {
     progress = 100;
   } else if (scoringPhase) {
-    const bulletFraction = Math.min(bulletsCount / 500, 1);
+    const bulletFraction = Math.min(bulletsCount / 800, 1);
     progress = 50 + bulletFraction * 45;
   } else {
     progress = Math.min((discoveryStage / DISCOVERY_STAGES.length) * 50, 47);
