@@ -87,7 +87,7 @@ export function FlashCard({ lead }: FlashCardProps) {
   return (
     <div
       className="cursor-pointer"
-      style={{ perspective: "1000px", height: "260px" }}
+      style={{ perspective: "1000px", height: "290px" }}
       onMouseEnter={() => !isTouch && setFlipped(true)}
       onMouseLeave={() => !isTouch && setFlipped(false)}
       onClick={() => isTouch && setFlipped((f) => !f)}
@@ -149,7 +149,7 @@ export function FlashCard({ lead }: FlashCardProps) {
           className="absolute inset-0 bg-white border-2 border-studojo-purple rounded-2xl shadow-brutal px-4 py-3 flex flex-col justify-between"
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-studojo-purple" />
@@ -166,24 +166,23 @@ export function FlashCard({ lead }: FlashCardProps) {
               )}
             </div>
             {justification ? (
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-satoshi font-bold text-studojo-ink leading-snug line-clamp-2">
+              <div className="flex flex-col gap-2 flex-1">
+                <p className="text-[11px] font-satoshi font-bold text-studojo-ink leading-snug">
                   {justification.headline}
                 </p>
                 {justification.bullets && justification.bullets.length > 0 ? (
-                  <ul className="space-y-1">
+                  <ul className="space-y-1.5 flex-1">
                     {justification.bullets.slice(0, 3).map((b, i) => (
                       <li
                         key={i}
                         className="text-[11px] font-satoshi text-studojo-ink leading-snug flex gap-1.5"
                       >
-                        <span className="text-studojo-purple flex-shrink-0">•</span>
-                        <span className="line-clamp-2">{b}</span>
+                        <span className="text-studojo-purple font-bold flex-shrink-0 mt-0.5">▸</span>
+                        <span>{b}</span>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  // Backwards-compat: old persisted schema with fit_reason + talk_track
                   <>
                     {justification.fit_reason && (
                       <p className="text-[11px] font-satoshi text-studojo-ink leading-snug line-clamp-3">
@@ -199,7 +198,7 @@ export function FlashCard({ lead }: FlashCardProps) {
                 )}
               </div>
             ) : (
-              <p className="text-xs font-satoshi text-studojo-ink leading-relaxed line-clamp-[7]">
+              <p className="text-xs font-satoshi text-studojo-ink leading-relaxed line-clamp-[8]">
                 {reason}
               </p>
             )}
@@ -218,6 +217,9 @@ export function FlashCard({ lead }: FlashCardProps) {
               </a>
             ) : (
               <span />
+            )}
+            {justification?.signal_strength === "high" && (
+              <span className="text-[10px] font-satoshi text-studojo-muted">Web-researched</span>
             )}
           </div>
         </div>
