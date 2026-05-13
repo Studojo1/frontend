@@ -491,7 +491,12 @@ export default function LkotPage() {
     if (!campaignId) return;
     setSendingOne(true); setSendOneResult("");
     try {
-      const res = await outreachFetch<{ ok: boolean; result: string; lead_name: string }>(`/linkedin/automation/campaigns/${campaignId}/send-one`, { method: "POST" });
+      // Server-side Playwright send — runs a real Chromium browser on the
+      // residential proxy IP. No extension needed. User's laptop can be off.
+      const res = await outreachFetch<{ ok: boolean; result: string; lead_name: string }>(
+        `/linkedin/automation/campaigns/${campaignId}/send-one`,
+        { method: "POST" }
+      );
       setSendOneResult(res.ok ? `Sent to ${res.lead_name}` : `Failed for ${res.lead_name}`);
       await fetchDashboard(campaignId);
     } catch (e) {
@@ -1010,12 +1015,14 @@ export default function LkotPage() {
                 )}
                 <Btn
                   onClick={toggleCampaign}
-                  disabled={toggling || campaign.status === "auth_failed"}
+                  disabled={toggling}
                   variant={campaign.status === "running" ? "outline" : "primary"}
                 >
-                  {campaign.status === "running"
-                    ? <><FiPause className="w-3.5 h-3.5" /> Pause</>
-                    : <><FiPlay className="w-3.5 h-3.5" /> Resume</>
+                  {toggling
+                    ? <><FiRefreshCw className="w-3.5 h-3.5 animate-spin" /> …</>
+                    : campaign.status === "running"
+                      ? <><FiPause className="w-3.5 h-3.5" /> Pause</>
+                      : <><FiPlay className="w-3.5 h-3.5" /> Resume</>
                   }
                 </Btn>
               </div>

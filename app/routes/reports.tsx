@@ -39,6 +39,30 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "internships-singapore-what-gets-you-hired-2026",
+    publishDate: "2026-05-12",
+    title: "Internships in Singapore 2026: What Gets You Hired",
+    subtitle: "Singapore internships · Hiring signals · 2026",
+    excerpt: "Singapore packs MNC regional headquarters, fast-growing startups, and public-sector innovation programmes into a tight labour market. This report explains what hiring managers screen for in 2026, where intern demand concentrates, and how to convert interest into a signed offer without burning months on generic applications.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
+    slug: "cold-outreach-what-gets-reply-2026",
+    publishDate: "2026-05-12",
+    title: "Cold Outreach: What Actually Gets a Reply",
+    subtitle: "Cold Outreach · 2026",
+    excerpt: "Most cold messages never get a reply because they look like bulk mail the moment they land. This report breaks down what recipients actually scan for, how to structure a message that respects their time, and how to follow up without training people to ignore you.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 4,
+    badge: "New",
+  },
+  {
     slug: "product-management-internships-india-2026",
     publishDate: "2026-05-10",
     title: "Product Management Internships India 2026: Who Hires, What You Earn, and How Offers Actually Close",

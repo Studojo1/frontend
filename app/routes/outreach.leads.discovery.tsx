@@ -8,16 +8,17 @@ import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 
-// Stage durations are tuned to match the real backend pipeline (~75-120s
-// for /discovery/search). The LAST stage is open-ended — it stays
-// "in progress" until the API call resolves, even if the timer expires.
+// Stage durations are tuned to match the real backend pipeline (~150-300s
+// for /discovery/search with LLM web-search company research).
+// The LAST stage is open-ended — it stays "in progress" until the API
+// call resolves, even if the timer expires.
 const stages = [
   { icon: RiRobot2Fill, label: "Reading your resume...", duration: 4000 },
   { icon: FiSearch, label: "Figuring out what roles fit you...", duration: 5000 },
   { icon: FiUsers, label: "Searching for hiring managers across companies...", duration: 18000 },
   { icon: FiBarChart2, label: "Ranking the best matches for you...", duration: 8000 },
-  { icon: FiBriefcase, label: "Reading their job postings + company sites...", duration: 25000 },
-  { icon: RiRobot2Fill, label: "Writing a tailored reason for each lead...", duration: 30000 },
+  { icon: FiBriefcase, label: "AI-researching each company in real time...", duration: 60000 },
+  { icon: RiRobot2Fill, label: "Writing a personalised reason for each lead...", duration: 50000 },
 ];
 
 const PREVIEW_POOL = [
@@ -200,7 +201,7 @@ export default function DiscoveryPage() {
             <p className="text-sm text-studojo-muted font-satoshi mb-5">
               {allDone
                 ? "Found your hiring managers. Redirecting..."
-                : "Worth the wait — we're researching every company so each card is specific to you. Takes about a minute or two."
+                : "We live-search the web for each company so every card is grounded in real facts, not guesses. Takes 2-4 minutes."
               }
             </p>
 
