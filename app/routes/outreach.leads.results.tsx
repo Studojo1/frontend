@@ -24,14 +24,30 @@ export default function ResultsPage() {
 
   useEffect(() => {
     if (authLoading || !candidateId) return;
-    outreachFetch<{ leads: Lead[] } | Lead[]>(`/candidate/${candidateId}/leads`)
-      .then((data) => {
-        const list = Array.isArray(data) ? data : data.leads || [];
-        setLeads(list);
-        capturePostHog("leads_loaded", { count: list.length, candidate_id: candidateId });
-      })
-      .catch((err) => setError(err?.body?.detail || err.message || "Failed to load leads"))
-      .finally(() => setLoading(false));
+
+    let pollTimer: ReturnType<typeof setTimeout>;
+
+    const fetchLeads = (isInitial = false) => {
+      outreachFetch<{ leads: Lead[] } | Lead[]>(`/candidate/${candidateId}/leads`)
+        .then((data) => {
+          const list = Array.isArray(data) ? data : data.leads || [];
+          setLeads(list);
+          if (isInitial) {
+            capturePostHog("leads_loaded", { count: list.length, candidate_id: candidateId });
+          }
+          // If fewer than 50% of leads have justification, scoring is still running —
+          // re-fetch in 15s so bullets appear without a manual refresh.
+          const withBullets = list.filter((l) => l.score?.justification).length;
+          if (list.length > 0 && withBullets < list.length * 0.5) {
+            pollTimer = setTimeout(() => fetchLeads(false), 15_000);
+          }
+        })
+        .catch((err) => setError(err?.body?.detail || err.message || "Failed to load leads"))
+        .finally(() => { if (isInitial) setLoading(false); });
+    };
+
+    fetchLeads(true);
+    return () => clearTimeout(pollTimer);
   }, [authLoading, candidateId]);
 
   // Signal priority: high=2, medium=1, low=0 — used for sorting
