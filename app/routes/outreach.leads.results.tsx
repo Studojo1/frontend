@@ -36,17 +36,16 @@ export default function ResultsPage() {
 
   // Signal priority: high=2, medium=1, low=0 — used for sorting
   const signalRank = (lead: Lead) => {
-    const s = lead.justification?.signal_strength;
+    const s = lead.score?.justification?.signal_strength;
     if (s === "high") return 2;
     if (s === "medium") return 1;
     return 0;
   };
 
-  // Filter out low-signal leads entirely — the LLM already flagged them as poor fits
+  // Filter out low-signal leads entirely — the LLM already flagged them as poor fits.
+  // Keep leads with no justification yet (don't penalise partial scoring runs).
   const filtered = leads.filter((l) => {
-    const s = l.justification?.signal_strength;
-    // Keep leads without justification yet (don't penalise loading gaps)
-    // but hide ones explicitly marked low
+    const s = l.score?.justification?.signal_strength;
     return s !== "low";
   });
 
