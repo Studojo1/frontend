@@ -10,17 +10,17 @@ import { outreachFetch } from "~/lib/outreach/api";
 
 // Phase 1: discovery stages (run while /discovery/search is in-flight, ~70s)
 const DISCOVERY_STAGES = [
-  { icon: RiRobot2Fill, label: "Reading your resume...", duration: 4000 },
-  { icon: FiSearch, label: "Figuring out what roles fit you...", duration: 5000 },
-  { icon: FiUsers, label: "Searching for hiring managers across companies...", duration: 18000 },
-  { icon: FiBarChart2, label: "Ranking the best matches for you...", duration: 8000 },
-  { icon: FiBriefcase, label: "Collecting 500 hiring managers...", duration: 60000 },
+  { icon: RiRobot2Fill, label: "Building your professional profile...", duration: 4000 },
+  { icon: FiSearch, label: "Mapping your niche across the market...", duration: 5000 },
+  { icon: FiUsers, label: "Identifying decision-makers at target companies...", duration: 18000 },
+  { icon: FiBarChart2, label: "Filtering for the highest-signal opportunities...", duration: 8000 },
+  { icon: FiBriefcase, label: "Assembling your lead list...", duration: 60000 },
 ];
 
 // Phase 2: scoring stages (run while polling /discovery/scoring-ready, ~90s)
 const SCORING_STAGES = [
-  { icon: FiBarChart2, label: "Scoring every lead for your profile..." },
-  { icon: RiRobot2Fill, label: "Writing personalised bullets for each lead..." },
+  { icon: FiBarChart2, label: "Analysing fit across hundreds of companies..." },
+  { icon: RiRobot2Fill, label: "Crafting your personalised outreach intel..." },
 ];
 
 const PREVIEW_POOL = [
@@ -191,10 +191,10 @@ export default function DiscoveryPage() {
     : DISCOVERY_STAGES[Math.min(discoveryStage, DISCOVERY_STAGES.length - 1)]?.label;
 
   const subLabel = allDone
-    ? "Found your hiring managers. Redirecting..."
+    ? "Your leads are ready. Taking you there now..."
     : scoringPhase
     ? `Personalising ${bulletsCount > 0 ? bulletsCount.toLocaleString() : "your"} leads — almost there...`
-    : "We search Apollo + web-research each company so every card is grounded in real facts.";
+    : "Our AI is working across thousands of data points to find your best opportunities.";
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
