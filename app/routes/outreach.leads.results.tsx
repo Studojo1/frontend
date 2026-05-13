@@ -72,7 +72,7 @@ export default function ResultsPage() {
       return (b.score?.overall || 0) - (a.score?.overall || 0);
     }
     return (a.name || "").localeCompare(b.name || "");
-  });
+  }).slice(0, 500);
 
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
   const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
