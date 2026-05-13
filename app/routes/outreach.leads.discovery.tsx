@@ -8,17 +8,19 @@ import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 
-// Stage durations are tuned to match the real backend pipeline (~150-300s
-// for /discovery/search with LLM web-search company research).
-// The LAST stage is open-ended — it stays "in progress" until the API
-// call resolves, even if the timer expires.
-const stages = [
-  { icon: RiRobot2Fill, label: "Reading your resume...", duration: 4000 },
-  { icon: FiSearch, label: "Figuring out what roles fit you...", duration: 5000 },
-  { icon: FiUsers, label: "Searching for hiring managers across companies...", duration: 18000 },
-  { icon: FiBarChart2, label: "Ranking the best matches for you...", duration: 8000 },
-  { icon: FiBriefcase, label: "AI-researching each company in real time...", duration: 60000 },
-  { icon: RiRobot2Fill, label: "Writing a personalised reason for each lead...", duration: 50000 },
+// Phase 1: discovery stages (run while /discovery/search is in-flight, ~70s)
+const DISCOVERY_STAGES = [
+  { icon: RiRobot2Fill, label: "Building your professional profile...", duration: 4000 },
+  { icon: FiSearch, label: "Mapping your niche across the market...", duration: 5000 },
+  { icon: FiUsers, label: "Identifying decision-makers at target companies...", duration: 18000 },
+  { icon: FiBarChart2, label: "Filtering for the highest-signal opportunities...", duration: 8000 },
+  { icon: FiBriefcase, label: "Assembling your lead list...", duration: 60000 },
+];
+
+// Phase 2: scoring stages (run while polling /discovery/scoring-ready, ~90s)
+const SCORING_STAGES = [
+  { icon: FiBarChart2, label: "Analysing fit across hundreds of companies..." },
+  { icon: RiRobot2Fill, label: "Crafting your personalised outreach intel..." },
 ];
 
 const PREVIEW_POOL = [
@@ -40,96 +42,121 @@ const PREVIEW_POOL = [
   { initials: "KP", name: "Kiran P.", title: "Founding Engineer", company: "Ola Krutrim", location: "Bangalore", color: "bg-rose-500" },
 ];
 
-// Pick a pseudo-random offset so each render starts at a different point in the pool
 const _startOffset = Math.floor(Math.random() * PREVIEW_POOL.length);
+
+const POLL_INTERVAL_MS = 5000;
 
 export default function DiscoveryPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
   const { candidateId } = useOutreachStore();
-  const [currentStage, setCurrentStage] = useState(0);
+
+  // Phase 1: discovery stage index (0..DISCOVERY_STAGES.length)
+  const [discoveryStage, setDiscoveryStage] = useState(0);
+  // Phase 2: true once /discovery/search resolves
+  const [scoringPhase, setScoringPhase] = useState(false);
+  const [scoringStage, setScoringStage] = useState(0);
+  // bullets progress 0-500
+  const [bulletsCount, setBulletsCount] = useState(0);
+  const [allDone, setAllDone] = useState(false);
   const [error, setError] = useState("");
   const [leadCount, setLeadCount] = useState(0);
   const [previewOffset, setPreviewOffset] = useState(_startOffset);
-  const [apiDone, setApiDone] = useState(false);
+
   const counterRef = useRef<ReturnType<typeof setInterval>>();
   const cycleRef = useRef<ReturnType<typeof setInterval>>();
-  const apiDoneRef = useRef(false);
+  const pollRef = useRef<ReturnType<typeof setInterval>>();
 
-  // Cards visible as soon as we reach stage 3 (Searching for hiring managers)
-  const cardsVisible = currentStage >= 2;
+  const cardsVisible = discoveryStage >= 2;
 
-  // Derive the 4 preview leads from the current offset
-  const previewLeads = Array.from({ length: 4 }, (_, i) => PREVIEW_POOL[(previewOffset + i) % PREVIEW_POOL.length]);
+  const previewLeads = Array.from({ length: 4 }, (_, i) =>
+    PREVIEW_POOL[(previewOffset + i) % PREVIEW_POOL.length]
+  );
 
   useEffect(() => {
     if (authLoading || !candidateId) return;
 
     const timers: ReturnType<typeof setTimeout>[] = [];
+
+    // ── Phase 1: advance discovery stages on a timer ──────────────────────
     let elapsed = 0;
-    // Advance through stages 1..N-1 on a timer. Stage N (the last one)
-    // only completes when the API resolves — see below.
-    const lastStageIndex = stages.length - 1;
-    stages.forEach((stage, i) => {
+    const lastIdx = DISCOVERY_STAGES.length - 1;
+    DISCOVERY_STAGES.forEach((stage, i) => {
       elapsed += stage.duration;
-      if (i < lastStageIndex) {
-        timers.push(setTimeout(() => setCurrentStage(i + 1), elapsed));
+      if (i < lastIdx) {
+        timers.push(setTimeout(() => setDiscoveryStage(i + 1), elapsed));
       } else {
-        // Move INTO the last stage on schedule but DON'T mark it complete.
-        timers.push(setTimeout(() => setCurrentStage(lastStageIndex), elapsed - stage.duration));
+        timers.push(setTimeout(() => setDiscoveryStage(lastIdx), elapsed - stage.duration));
       }
     });
 
-    // Counter starts at stage 2 — ramps up to 500
+    // Lead counter: ramps to 500 starting at stage 2
     timers.push(
       setTimeout(() => {
         counterRef.current = setInterval(() => {
           setLeadCount((c) => {
             if (c >= 500) { clearInterval(counterRef.current); return 500; }
             const remaining = 500 - c;
-            const increment = Math.min(Math.floor(Math.random() * 15) + 8, remaining);
-            return c + increment;
+            return c + Math.min(Math.floor(Math.random() * 15) + 8, remaining);
           });
         }, 300);
       }, 2000)
     );
 
+    // Card preview cycles every 2.5s from stage 2 onward
+    const cycleStart = setTimeout(() => {
+      cycleRef.current = setInterval(() => {
+        setPreviewOffset((o) => (o + 4) % PREVIEW_POOL.length);
+      }, 2500);
+    }, DISCOVERY_STAGES[0].duration + DISCOVERY_STAGES[1].duration);
+    timers.push(cycleStart);
+
+    // ── Call /discovery/search ────────────────────────────────────────────
     outreachFetch("/discovery/search", {
       method: "POST",
       body: JSON.stringify({ candidate_id: candidateId }),
-      // The new round-2 pipeline (multi-page scrape + Apollo jobs + fact
-      // extractor + justifier) takes 75-150s end-to-end. 300s timeout with
-      // a single retry gives us slack for the long tail without hammering
-      // Apollo/LLM credits on duplicate runs.
       timeout: 300_000,
       maxRetries: 1,
     })
       .then(() => {
-        // Backend done — advance to "complete" state and navigate.
-        // The current stage is the last one (open-ended); now we mark it
-        // done and move to the post-stage "Discovery Complete" view.
-        apiDoneRef.current = true;
-        setApiDone(true);
-        setCurrentStage(stages.length);
-        // Brief pause so the user sees the "complete" state, then navigate.
-        setTimeout(() => navigate("/outreach/leads/results"), 800);
+        // Discovery done — mark all discovery stages complete, enter scoring phase
+        setDiscoveryStage(DISCOVERY_STAGES.length);
+        setScoringPhase(true);
+        setScoringStage(0);
+
+        // ── Phase 2: poll /discovery/scoring-ready until bullets ready ──
+        let scoringTick = 0;
+        pollRef.current = setInterval(async () => {
+          scoringTick++;
+          // Alternate scoring stage label every ~15s
+          setScoringStage(Math.floor(scoringTick / 3) % SCORING_STAGES.length);
+
+          try {
+            const data = await outreachFetch(`/discovery/scoring-ready/${candidateId}`, {
+              method: "GET",
+            });
+            if (data?.with_bullets != null) {
+              setBulletsCount(data.with_bullets);
+            }
+            if (data?.ready) {
+              clearInterval(pollRef.current);
+              setAllDone(true);
+              setTimeout(() => navigate("/outreach/leads/results"), 800);
+            }
+          } catch {
+            // Non-fatal — keep polling
+          }
+        }, POLL_INTERVAL_MS);
       })
       .catch((err) => {
         setError(err?.body?.detail || err.message || "Lead discovery failed");
       });
 
-    // Cycle preview leads every 2.5s once cards are visible
-    const cycleStart = setTimeout(() => {
-      cycleRef.current = setInterval(() => {
-        setPreviewOffset((o) => (o + 4) % PREVIEW_POOL.length);
-      }, 2500);
-    }, stages[0].duration + stages[1].duration); // start after stage 2
-    timers.push(cycleStart);
-
     return () => {
       timers.forEach(clearTimeout);
       clearInterval(counterRef.current);
       clearInterval(cycleRef.current);
+      clearInterval(pollRef.current);
     };
   }, [candidateId, authLoading, navigate]);
 
@@ -138,12 +165,36 @@ export default function DiscoveryPage() {
     return null;
   }
 
-  // Progress caps at 95% until the API actually resolves — the last 5%
-  // is the "we're really done" gap, so the user doesn't see a static
-  // 100% bar for 60s while the backend is still working.
-  const rawProgress = Math.min((currentStage / stages.length) * 100, 95);
-  const progress = apiDone ? 100 : rawProgress;
-  const allDone = apiDone;
+  // Progress:
+  // 0-50%: discovery stages
+  // 50-95%: scoring phase (based on bullets written)
+  // 100%: done
+  let progress: number;
+  if (allDone) {
+    progress = 100;
+  } else if (scoringPhase) {
+    const bulletFraction = Math.min(bulletsCount / 500, 1);
+    progress = 50 + bulletFraction * 45;
+  } else {
+    progress = Math.min((discoveryStage / DISCOVERY_STAGES.length) * 50, 47);
+  }
+
+  const totalStages = DISCOVERY_STAGES.length + SCORING_STAGES.length;
+  const currentStageIdx = scoringPhase
+    ? DISCOVERY_STAGES.length + scoringStage
+    : discoveryStage;
+
+  const stageLabel = allDone
+    ? "Discovery Complete"
+    : scoringPhase
+    ? SCORING_STAGES[scoringStage]?.label
+    : DISCOVERY_STAGES[Math.min(discoveryStage, DISCOVERY_STAGES.length - 1)]?.label;
+
+  const subLabel = allDone
+    ? "Your leads are ready. Taking you there now..."
+    : scoringPhase
+    ? `Personalising ${bulletsCount > 0 ? bulletsCount.toLocaleString() : "your"} leads — almost there...`
+    : "Our AI is working across thousands of data points to find your best opportunities.";
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -180,7 +231,6 @@ export default function DiscoveryPage() {
                   className="transition-all duration-1000 ease-out"
                 />
               </svg>
-
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 {allDone ? (
                   <FiCheck className="w-10 h-10 text-studojo-green" />
@@ -188,7 +238,6 @@ export default function DiscoveryPage() {
                   <div className="w-10 h-10 border-[3px] border-studojo-purple/20 border-t-studojo-purple rounded-full animate-spin" />
                 )}
               </div>
-
               {!allDone && (
                 <div className="absolute inset-0 rounded-full border-2 border-studojo-purple/10 animate-ping" style={{ animationDuration: "2s" }} />
               )}
@@ -196,29 +245,28 @@ export default function DiscoveryPage() {
 
             {/* Stage label */}
             <h2 className="font-clash text-xl sm:text-2xl font-bold text-studojo-ink mb-1">
-              {allDone ? "Discovery Complete" : stages[Math.min(currentStage, stages.length - 1)]?.label}
+              {stageLabel}
             </h2>
-            <p className="text-sm text-studojo-muted font-satoshi mb-5">
-              {allDone
-                ? "Found your hiring managers. Redirecting..."
-                : "We live-search the web for each company so every card is grounded in real facts, not guesses. Takes 2-4 minutes."
-              }
-            </p>
+            <p className="text-sm text-studojo-muted font-satoshi mb-5">{subLabel}</p>
 
             {/* Live counter */}
             {leadCount > 0 && (
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-studojo-purple/8 border border-studojo-purple/20 mb-6">
                 <FiUsers className="w-4 h-4 text-studojo-purple" />
                 <span className="font-clash text-lg font-bold text-studojo-purple">{leadCount.toLocaleString()}</span>
-                <span className="text-xs font-satoshi text-studojo-muted">professionals scanned</span>
+                <span className="text-xs font-satoshi text-studojo-muted">
+                  {scoringPhase && bulletsCount > 0
+                    ? `leads found · ${bulletsCount.toLocaleString()} personalised`
+                    : "professionals scanned"}
+                </span>
               </div>
             )}
 
             {/* Step indicators */}
             <div className="flex items-center justify-center gap-2 mb-8">
-              {stages.map((_, i) => {
-                const done = currentStage > i;
-                const active = currentStage === i;
+              {Array.from({ length: totalStages }).map((_, i) => {
+                const done = currentStageIdx > i;
+                const active = currentStageIdx === i;
                 return (
                   <div key={i} className="flex items-center gap-2">
                     <div
@@ -232,7 +280,7 @@ export default function DiscoveryPage() {
                     >
                       {done ? <FiCheck className="w-3.5 h-3.5" /> : i + 1}
                     </div>
-                    {i < stages.length - 1 && (
+                    {i < totalStages - 1 && (
                       <div className={`w-6 h-0.5 rounded-full transition-all duration-500 ${done ? "bg-studojo-green" : "bg-studojo-ink/10"}`} />
                     )}
                   </div>
@@ -266,7 +314,6 @@ export default function DiscoveryPage() {
                       )}
                     </div>
                   </div>
-
                   {cardsVisible ? (
                     <>
                       <div className="flex items-center gap-1 mb-1">
@@ -289,8 +336,10 @@ export default function DiscoveryPage() {
             </div>
 
             {cardsVisible && (
-              <p className="text-xs text-studojo-muted font-satoshi mt-3 animate-fade-in">
-                + many more being ranked for you...
+              <p className="text-xs text-studojo-muted font-satoshi mt-3">
+                {scoringPhase
+                  ? "Analysing each company and writing your personalised insights..."
+                  : "+ many more being ranked for you..."}
               </p>
             )}
           </div>
