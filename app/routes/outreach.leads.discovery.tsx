@@ -125,11 +125,22 @@ export default function DiscoveryPage() {
         setScoringStage(0);
 
         // ── Phase 2: poll /discovery/scoring-ready until bullets ready ──
+        // Hard timeout: navigate after 3 minutes regardless so user is never stuck.
+        const SCORING_TIMEOUT_MS = 3 * 60 * 1000;
+        const scoringStarted = Date.now();
+
         let scoringTick = 0;
         pollRef.current = setInterval(async () => {
           scoringTick++;
-          // Alternate scoring stage label every ~15s
           setScoringStage(Math.floor(scoringTick / 3) % SCORING_STAGES.length);
+
+          // Force-navigate if we've been polling too long
+          if (Date.now() - scoringStarted >= SCORING_TIMEOUT_MS) {
+            clearInterval(pollRef.current);
+            setAllDone(true);
+            setTimeout(() => navigate("/outreach/leads/results"), 800);
+            return;
+          }
 
           try {
             const data = await outreachFetch(`/discovery/scoring-ready/${candidateId}`, {
