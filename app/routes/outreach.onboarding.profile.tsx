@@ -14,56 +14,57 @@ const STEPS = ["Upload Resume", "AI Chat", "Your Profile"];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function inferRoleCluster(text: string): "engineering" | "data" | "product" | "design" | "marketing" | "sales" | "finance" | "consulting" | "operations" | "general" {
-  // Run only on the target role (first arg passed in), not the full profile summary.
-  // Profile summary contains career goal text which mentions other teams (e.g. "working
-  // with the marketing team") — matching on that text misclassifies ops candidates.
-  const t = (text || "").toLowerCase();
-  if (/\b(engineer|developer|backend|frontend|full[- ]?stack|sde|swe|sre|devops)\b/.test(t)) return "engineering";
-  if (/\b(data scientist|data analyst|analytics|ml engineer|machine learning)\b/.test(t)) return "data";
-  if (/\b(product manager|product owner|associate pm|apm)\b/.test(t)) return "product";
-  if (/\b(designer|design lead|ux|ui[/ ]ux)\b/.test(t)) return "design";
-  if (/\b(operations|ops|chief of staff|founder.?s office|chief of staff|people ops|hr|talent|recruitment|onboarding coordinator)\b/.test(t)) return "operations";
-  if (/\b(growth marketi|marketing manager|marketing lead|brand manager|seo specialist|gtm lead|head of marketing|vp marketing)\b/.test(t)) return "marketing";
-  if (/\b(sales|account executive|business development|bdr|sdr)\b/.test(t)) return "sales";
-  if (/\b(financ|investment|valuation|equity research|fp&a)\b/.test(t)) return "finance";
-  if (/\b(consultant|consulting|strategy|advisory)\b/.test(t)) return "consulting";
-  return "general";
-}
+// Backend-computed domain values → display cluster.
+// The backend LLM sets resume_profile.domain from the full resume context — it is
+// always accurate regardless of how the target role title is worded. This lookup
+// replaces all client-side regex inference.
+const DOMAIN_CLUSTER: Record<string, string> = {
+  software_engineering: "engineering", backend: "engineering",
+  frontend: "engineering", mobile: "engineering",
+  devops: "engineering", sre: "engineering",
+  ai_ml: "data", data: "data", data_analytics: "data", data_science: "data",
+  product: "product", product_management: "product",
+  design: "design", ux_design: "design", ui_design: "design",
+  marketing: "marketing", growth: "marketing", brand: "marketing",
+  operations: "operations", operations_strategy: "operations", general_management: "operations",
+  sales: "sales", sales_bd: "sales", business_development: "sales",
+  finance: "finance", consulting: "consulting", consulting_strategy: "consulting",
+  hr: "operations", people: "operations",
+};
 
-// Map a role cluster + the candidate's stated target_role to the manager titles
-// the backend will actually search for. This mirrors decision_maker_engine on the
-// server side — kept loose so the user just sees a clear summary.
-function inferManagerTitles(targetRole: string, cluster: string): string[] {
-  const r = (targetRole || "").toLowerCase();
-  if (cluster === "engineering" || /engineer|developer|sde|swe/.test(r)) {
-    return ["Engineering Manager", "Head of Engineering", "Director of Engineering", "VP Engineering", "CTO"];
+const CLUSTER_TITLES: Record<string, string[]> = {
+  engineering: ["Engineering Manager", "Head of Engineering", "Director of Engineering", "VP Engineering", "CTO"],
+  data: ["Head of Data", "Director of Data", "Analytics Manager", "Data Science Manager", "VP Data"],
+  product: ["Head of Product", "Director of Product", "VP Product", "Group Product Manager", "Chief Product Officer"],
+  design: ["Head of Design", "Design Lead", "Design Manager", "Director of Design", "VP Design"],
+  operations: ["Chief of Staff", "Head of Operations", "VP Operations", "Director of Operations", "COO"],
+  marketing: ["Head of Growth", "Marketing Manager", "Director of Marketing", "VP Marketing", "Chief Marketing Officer"],
+  sales: ["Sales Manager", "Head of Sales", "Director of Sales", "VP Sales", "Chief Revenue Officer"],
+  finance: ["Finance Manager", "Head of Finance", "Director of Finance", "VP Finance", "CFO"],
+  consulting: ["Engagement Manager", "Project Lead", "Principal Consultant", "Director of Strategy"],
+  general: ["Chief of Staff", "Head of Operations", "Director", "Founder"],
+};
+
+// Primary: use resume_profile.domain (backend LLM, always correct).
+// Fallback: coarse regex on the target role title — only fires for legacy candidates
+// who have no resume_profile.domain set yet.
+function resolveCluster(domain: string, targetRole: string): string {
+  if (domain) {
+    const c = DOMAIN_CLUSTER[domain.toLowerCase()];
+    if (c) return c;
   }
-  if (cluster === "data" || /data|analyst|analytics|scientist/.test(r)) {
-    return ["Head of Data", "Director of Data", "Analytics Manager", "Data Science Manager", "VP Data"];
-  }
-  if (cluster === "product" || /product manager|product owner|apm/.test(r)) {
-    return ["Head of Product", "Director of Product", "VP Product", "Group Product Manager", "Chief Product Officer"];
-  }
-  if (cluster === "design" || /design|ux|ui/.test(r)) {
-    return ["Head of Design", "Design Lead", "Design Manager", "Director of Design", "VP Design"];
-  }
-  if (cluster === "operations" || /operations|ops|chief of staff|founder.?s office|people ops/.test(r)) {
-    return ["Chief of Staff", "Head of Operations", "VP Operations", "Director of Operations", "COO"];
-  }
-  if (cluster === "marketing" || /marketing manager|head of marketing|vp marketing/.test(r)) {
-    return ["Head of Growth", "Marketing Manager", "Director of Marketing", "VP Marketing", "Chief Marketing Officer"];
-  }
-  if (cluster === "sales" || /sales|account executive|business development|bdr|sdr/.test(r)) {
-    return ["Sales Manager", "Head of Sales", "Director of Sales", "VP Sales", "Chief Revenue Officer"];
-  }
-  if (cluster === "finance" || /financ|investment|fp&a/.test(r)) {
-    return ["Finance Manager", "Head of Finance", "Director of Finance", "VP Finance", "CFO"];
-  }
-  if (cluster === "consulting" || /consult|strategy/.test(r)) {
-    return ["Engagement Manager", "Project Lead", "Principal Consultant", "Director of Strategy"];
-  }
-  return ["Chief of Staff", "Head of Operations", "Director", "Founder"];
+  // Fallback regex — coarse, intentionally simple
+  const t = (targetRole || "").toLowerCase();
+  if (/\b(engineer|developer|sde|swe|devops)\b/.test(t)) return "engineering";
+  if (/\b(data scientist|data analyst|ml engineer)\b/.test(t)) return "data";
+  if (/\b(product manager|product owner|associate pm|apm)\b/.test(t)) return "product";
+  if (/\b(operations|ops|chief of staff)\b/.test(t)) return "operations";
+  if (/\b(designer|ux|ui[/ ]ux)\b/.test(t)) return "design";
+  if (/\b(marketing manager|head of marketing)\b/.test(t)) return "marketing";
+  if (/\b(sales|account executive|bdr|sdr)\b/.test(t)) return "sales";
+  if (/\b(financ|fp&a)\b/.test(t)) return "finance";
+  if (/\b(consultant|consulting)\b/.test(t)) return "consulting";
+  return "general";
 }
 
 function formatSizeBand(band: string | undefined | null): string {
@@ -129,10 +130,12 @@ export default function ProfilePage() {
   // ── Derived fields for Ideal Hiring Manager / What we know panels ─────────
   const recommendedRoles = career.recommended_roles || [];
   const targetRole = recommendedRoles[0]?.title || profile?.target_roles?.[0] || "";
-  // Only pass targetRole — profile_summary includes career goal text that mentions other
-  // departments (e.g. "working with the marketing team") and causes false cluster matches.
-  const cluster = inferRoleCluster(targetRole);
-  const managerTitles = inferManagerTitles(targetRole, cluster);
+  // resume_profile.domain is set by the backend LLM from the full resume — it is the
+  // authoritative source for what job function the candidate belongs to. We use it
+  // directly instead of doing fragile regex inference on the role title string.
+  const resumeDomain: string = (profile?.resume_profile?.domain || parsed._qps?.domain || "").toLowerCase();
+  const cluster = resolveCluster(resumeDomain, targetRole);
+  const managerTitles = CLUSTER_TITLES[cluster] ?? CLUSTER_TITLES.general;
 
   const locations: string[] = preferences.locations || [];
   const nicheKeywords: string[] = preferences.niche_keywords || [];
