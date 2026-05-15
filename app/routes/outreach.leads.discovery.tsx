@@ -125,14 +125,17 @@ export default function DiscoveryPage() {
         setScoringStage(0);
 
         // ── Phase 2: poll /discovery/scoring-ready until bullets ready ──
-        // Hard timeout: navigate after 3 minutes regardless so user is never stuck.
-        const SCORING_TIMEOUT_MS = 3 * 60 * 1000;
+        // Hard timeout: navigate after 6 minutes regardless so user is never stuck.
+        // (Previously 3 min — too short for 300-lead LLM justification which takes ~3-4 min.)
+        const SCORING_TIMEOUT_MS = 6 * 60 * 1000;
         const scoringStarted = Date.now();
 
         let scoringTick = 0;
         pollRef.current = setInterval(async () => {
           scoringTick++;
-          setScoringStage(Math.floor(scoringTick / 3) % SCORING_STAGES.length);
+          // Advance once after 3 ticks, then stay at the last stage.
+          // Using modulo caused visible step oscillation (7→6→7...).
+          setScoringStage(Math.min(Math.floor(scoringTick / 3), SCORING_STAGES.length - 1));
 
           // Force-navigate if we've been polling too long
           if (Date.now() - scoringStarted >= SCORING_TIMEOUT_MS) {

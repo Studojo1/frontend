@@ -14,13 +14,17 @@ const STEPS = ["Upload Resume", "AI Chat", "Your Profile"];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function inferRoleCluster(text: string): "engineering" | "data" | "product" | "design" | "marketing" | "sales" | "finance" | "consulting" | "general" {
+function inferRoleCluster(text: string): "engineering" | "data" | "product" | "design" | "marketing" | "sales" | "finance" | "consulting" | "operations" | "general" {
+  // Run only on the target role (first arg passed in), not the full profile summary.
+  // Profile summary contains career goal text which mentions other teams (e.g. "working
+  // with the marketing team") — matching on that text misclassifies ops candidates.
   const t = (text || "").toLowerCase();
   if (/\b(engineer|developer|backend|frontend|full[- ]?stack|sde|swe|sre|devops)\b/.test(t)) return "engineering";
   if (/\b(data scientist|data analyst|analytics|ml engineer|machine learning)\b/.test(t)) return "data";
   if (/\b(product manager|product owner|associate pm|apm)\b/.test(t)) return "product";
   if (/\b(designer|design lead|ux|ui[/ ]ux)\b/.test(t)) return "design";
-  if (/\b(growth|marketing|brand|content|seo|gtm)\b/.test(t)) return "marketing";
+  if (/\b(operations|ops|chief of staff|founder.?s office|chief of staff|people ops|hr|talent|recruitment|onboarding coordinator)\b/.test(t)) return "operations";
+  if (/\b(growth marketi|marketing manager|marketing lead|brand manager|seo specialist|gtm lead|head of marketing|vp marketing)\b/.test(t)) return "marketing";
   if (/\b(sales|account executive|business development|bdr|sdr)\b/.test(t)) return "sales";
   if (/\b(financ|investment|valuation|equity research|fp&a)\b/.test(t)) return "finance";
   if (/\b(consultant|consulting|strategy|advisory)\b/.test(t)) return "consulting";
@@ -38,16 +42,19 @@ function inferManagerTitles(targetRole: string, cluster: string): string[] {
   if (cluster === "data" || /data|analyst|analytics|scientist/.test(r)) {
     return ["Head of Data", "Director of Data", "Analytics Manager", "Data Science Manager", "VP Data"];
   }
-  if (cluster === "product" || /product/.test(r)) {
+  if (cluster === "product" || /product manager|product owner|apm/.test(r)) {
     return ["Head of Product", "Director of Product", "VP Product", "Group Product Manager", "Chief Product Officer"];
   }
   if (cluster === "design" || /design|ux|ui/.test(r)) {
     return ["Head of Design", "Design Lead", "Design Manager", "Director of Design", "VP Design"];
   }
-  if (cluster === "marketing" || /marketing|growth|brand|content/.test(r)) {
+  if (cluster === "operations" || /operations|ops|chief of staff|founder.?s office|people ops/.test(r)) {
+    return ["Chief of Staff", "Head of Operations", "VP Operations", "Director of Operations", "COO"];
+  }
+  if (cluster === "marketing" || /marketing manager|head of marketing|vp marketing/.test(r)) {
     return ["Head of Growth", "Marketing Manager", "Director of Marketing", "VP Marketing", "Chief Marketing Officer"];
   }
-  if (cluster === "sales" || /sales|account|business dev/.test(r)) {
+  if (cluster === "sales" || /sales|account executive|business development|bdr|sdr/.test(r)) {
     return ["Sales Manager", "Head of Sales", "Director of Sales", "VP Sales", "Chief Revenue Officer"];
   }
   if (cluster === "finance" || /financ|investment|fp&a/.test(r)) {
@@ -56,7 +63,7 @@ function inferManagerTitles(targetRole: string, cluster: string): string[] {
   if (cluster === "consulting" || /consult|strategy/.test(r)) {
     return ["Engagement Manager", "Project Lead", "Principal Consultant", "Director of Strategy"];
   }
-  return ["Hiring Manager", "Department Head", "Director", "Operations Manager"];
+  return ["Chief of Staff", "Head of Operations", "Director", "Founder"];
 }
 
 function formatSizeBand(band: string | undefined | null): string {
@@ -122,7 +129,9 @@ export default function ProfilePage() {
   // ── Derived fields for Ideal Hiring Manager / What we know panels ─────────
   const recommendedRoles = career.recommended_roles || [];
   const targetRole = recommendedRoles[0]?.title || profile?.target_roles?.[0] || "";
-  const cluster = inferRoleCluster(targetRole + " " + (parsed.profile_summary || ""));
+  // Only pass targetRole — profile_summary includes career goal text that mentions other
+  // departments (e.g. "working with the marketing team") and causes false cluster matches.
+  const cluster = inferRoleCluster(targetRole);
   const managerTitles = inferManagerTitles(targetRole, cluster);
 
   const locations: string[] = preferences.locations || [];
