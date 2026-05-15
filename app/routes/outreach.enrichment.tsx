@@ -154,6 +154,12 @@ export default function EnrichmentPage() {
         setPricing(pricingData.tiers || []);
         if (pricingData.currency) setCurrency(pricingData.currency);
         setCredits(creditsData);
+        // If the user already has credits but the store defaulted to a higher
+        // tier than they can afford, snap down to the highest affordable tier.
+        const available = creditsData.available_credits;
+        if (available > 0 && available < selectedTier) {
+          if (available >= 200) setSelectedTier(200);
+        }
       } catch {
         // fallback tiers
       }
