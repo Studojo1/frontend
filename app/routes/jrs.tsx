@@ -157,6 +157,11 @@ export default function JrsRoute() {
           setTab("edit");
           setPhase("editor");
         }}
+        onImported={(imported) => {
+          setData(imported);
+          saveResume(imported);
+          setPhase("template");
+        }}
       />
     );
   }

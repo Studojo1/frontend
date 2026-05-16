@@ -1,7 +1,16 @@
 // JRS start flow — welcome screen + Canva-style template gallery.
 // Shown before the editor so users choose a look first instead of being
 // dropped into a form.
-import { FiArrowRight, FiArrowLeft, FiCheck, FiZap, FiClock, FiFileText } from "react-icons/fi";
+import { useRef, useState } from "react";
+import {
+  FiArrowRight,
+  FiArrowLeft,
+  FiCheck,
+  FiZap,
+  FiClock,
+  FiFileText,
+  FiUploadCloud,
+} from "react-icons/fi";
 import { type ResumeData, type TemplateId, TEMPLATES, starterResume } from "~/lib/jrs/types";
 import { ResumeTemplate } from "~/lib/jrs/templates";
 
@@ -13,11 +22,39 @@ export function WelcomeScreen({
   hasSaved,
   onCreate,
   onContinue,
+  onImported,
 }: {
   hasSaved: boolean;
   onCreate: () => void;
   onContinue: () => void;
+  onImported: (data: ResumeData) => void;
 }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState("");
+
+  const handleFiles = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    setImporting(true);
+    setImportError("");
+    try {
+      const fd = new FormData();
+      Array.from(fileList).forEach((f) => fd.append("files", f));
+      const res = await fetch("/api/jrs/import", { method: "POST", body: fd });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        onImported(json.data as ResumeData);
+      } else {
+        setImportError(json.error || "Couldn't import that file. Try another.");
+      }
+    } catch {
+      setImportError("Upload failed. Check your connection and try again.");
+    } finally {
+      setImporting(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-amber-50 font-['Satoshi']">
       <header className="flex items-center gap-2 px-5 py-4">
@@ -62,6 +99,32 @@ export function WelcomeScreen({
               Continue where you left off
             </button>
           )}
+        </div>
+
+        <div className="mt-5 flex flex-col items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={importing}
+            className="flex items-center gap-2 rounded-lg border-2 border-dashed border-neutral-400 bg-white px-5 py-2.5 text-sm font-bold text-neutral-700 transition-colors hover:border-neutral-900 hover:bg-neutral-50 disabled:opacity-60"
+          >
+            <FiUploadCloud className="h-4 w-4 text-violet-600" />
+            {importing ? "Reading your resume..." : "Import a resume or LinkedIn screenshots"}
+          </button>
+          <p className="text-xs text-neutral-400">
+            PDF resume or LinkedIn profile screenshots, we'll fill it in for you.
+          </p>
+          {importError && (
+            <p className="text-xs font-semibold text-rose-600">{importError}</p>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/pdf,image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
         </div>
 
         <div className="mt-12 grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-3">
