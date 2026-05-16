@@ -50,8 +50,9 @@ function tokenize(text: string): string[] {
  * Single-token patterns use whole-word matching to prevent "hi" matching "internship".
  */
 function patternMatch(input: string, pattern: string): boolean {
-  const normInput = normalize(input);
-  const normPattern = normalize(pattern);
+  // Strip apostrophes so "can't" matches pattern "cant" and vice versa.
+  const normInput = normalize(input).replace(/'/g, "");
+  const normPattern = normalize(pattern).replace(/'/g, "");
 
   // Single-token patterns: require the token to appear as a whole word
   const patternWords = normPattern.split(" ").filter((t) => t.length > 0);
@@ -131,7 +132,12 @@ export function matchIntent(userMessage: string): MatchResult {
   // before pattern matching so "resume not working" doesn't hit careers_resume
   const PROBLEM_SIGNALS = ["not working", "isn't working", "doesnt work", "broken", "not loading",
     "wont load", "won't load", "error", "stuck", "failed", "can't use", "cant use",
-    "not downloading", "wont download", "won't download", "keep", "continuously", "redirecting"];
+    "not downloading", "wont download", "won't download", "keep", "continuously", "redirecting",
+    "ain't working", "aint working", "not moving", "not proceeding", "wont proceed",
+    "hung", "nothing happens", "doesn't go", "doesnt go", "cant upload", "can't upload",
+    "wont upload", "won't upload", "not able to upload", "not accepting", "frozen",
+    "not able to move", "not able to type", "submit button", "unable to",
+    "cannot answer", "can not answer"];
   const hasProblemSignal = PROBLEM_SIGNALS.some((s) => normalized.includes(s));
 
   // Phase 1: Pattern matching (highest confidence)
