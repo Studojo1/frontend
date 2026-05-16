@@ -33,6 +33,14 @@ export function LinkedInIntake({
   const canSubmit =
     fullName.trim().length > 1 && !submitting && (!requireResume || !!resumePdf);
 
+  // Explain why submit is disabled so users aren't stuck on a silently greyed-out button.
+  const missingReason: string | null = (() => {
+    if (submitting) return null;
+    if (fullName.trim().length <= 1) return "Add your full name to continue.";
+    if (requireResume && !resumePdf) return "Upload your existing resume to continue.";
+    return null;
+  })();
+
   const submit = () => {
     if (!canSubmit) return;
     onSubmit({
@@ -233,9 +241,20 @@ export function LinkedInIntake({
               </>
             )}
 
+            {missingReason && (
+              <p
+                role="status"
+                aria-live="polite"
+                className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3 text-center"
+              >
+                {missingReason}
+              </p>
+            )}
+
             <button
               onClick={submit}
               disabled={!canSubmit}
+              aria-describedby={missingReason ? "submit-help" : undefined}
               className="w-full bg-violet-500 text-neutral-900 font-bold border-2 border-neutral-900 rounded-xl py-3 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-40 disabled:hover:translate-x-0 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
             >
               {submitting ? "Setting up..." : "Start the interview"}
