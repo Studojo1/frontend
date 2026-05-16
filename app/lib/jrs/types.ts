@@ -56,10 +56,23 @@ export interface ResumeData {
   skills: SkillGroup[];
 }
 
-export type TemplateId = "modern" | "classic" | "compact" | "minimal" | "technical";
+export type TemplateId =
+  | "modern"
+  | "classic"
+  | "compact"
+  | "minimal"
+  | "technical"
+  | "harvard"
+  | "marketing"
+  | "executive"
+  | "creative";
 
 export const TEMPLATES: { id: TemplateId; name: string; blurb: string }[] = [
   { id: "modern", name: "Modern", blurb: "Accent sidebar, clean sans-serif" },
+  { id: "harvard", name: "Harvard", blurb: "The classic academic format, education-first" },
+  { id: "marketing", name: "Marketing", blurb: "Bold colour header, skills as pills" },
+  { id: "executive", name: "Executive", blurb: "Refined serif, understated, senior roles" },
+  { id: "creative", name: "Creative", blurb: "Warm two-tone, personality without clutter" },
   { id: "classic", name: "Classic", blurb: "Traditional serif, centered header" },
   { id: "compact", name: "Compact", blurb: "Dense, fits more on one page" },
   { id: "minimal", name: "Minimal", blurb: "Lots of whitespace, understated" },

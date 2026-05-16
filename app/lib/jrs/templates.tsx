@@ -552,6 +552,456 @@ function Technical({ data }: { data: ResumeData }) {
   );
 }
 
+// ─── Harvard: the classic academic format, education-first ─────────────────
+function Harvard({ data }: { data: ResumeData }) {
+  const exp = data.experience.filter(expHas);
+  const edu = data.education.filter(eduHas);
+  const proj = data.projects.filter(projHas);
+  const skills = data.skills.filter((s) => nonEmpty(s.items));
+  const head: React.CSSProperties = {
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    borderBottom: "1px solid #1a1a1a",
+    paddingBottom: 1,
+    margin: "13px 0 5px",
+  };
+  const rowTop: React.CSSProperties = { display: "flex", justifyContent: "space-between" };
+  return (
+    <div
+      style={{
+        ...PAGE,
+        padding: "16mm 18mm",
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+        fontSize: 10.5,
+      }}
+    >
+      <header style={{ textAlign: "center" }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: 2 }}>
+          {data.basics.name || "Your Name"}
+        </h1>
+        {nonEmpty(data.basics.title) && (
+          <p style={{ margin: "2px 0 0", fontSize: 10.5, fontStyle: "italic" }}>
+            {data.basics.title}
+          </p>
+        )}
+        <p style={{ margin: "3px 0 0", fontSize: 9.5 }}>{contactLine(data).join("  •  ")}</p>
+      </header>
+      {edu.length > 0 && (
+        <>
+          <h2 style={head}>Education</h2>
+          {edu.map((e) => (
+            <div key={e.id} style={{ marginBottom: 6 }}>
+              <div style={rowTop}>
+                <strong>{e.school}</strong>
+                <span>{e.location}</span>
+              </div>
+              <div style={{ ...rowTop, fontStyle: "italic" }}>
+                <span>
+                  {e.degree} {e.field}
+                </span>
+                <span>{dateRange(e.start, e.end, false)}</span>
+              </div>
+              {nonEmpty(e.details) && <p style={{ margin: "1px 0 0" }}>{e.details}</p>}
+            </div>
+          ))}
+        </>
+      )}
+      {nonEmpty(data.summary) && (
+        <>
+          <h2 style={head}>Summary</h2>
+          <p style={{ margin: 0, lineHeight: 1.5 }}>{data.summary}</p>
+        </>
+      )}
+      {exp.length > 0 && (
+        <>
+          <h2 style={head}>Experience</h2>
+          {exp.map((e) => (
+            <div key={e.id} style={{ marginBottom: 8 }}>
+              <div style={rowTop}>
+                <strong>{e.company}</strong>
+                <span>{nonEmpty(e.location) ? e.location : ""}</span>
+              </div>
+              <div style={{ ...rowTop, fontStyle: "italic" }}>
+                <span>{e.role}</span>
+                <span>{dateRange(e.start, e.end, e.current)}</span>
+              </div>
+              <Bullets items={e.bullets} />
+            </div>
+          ))}
+        </>
+      )}
+      {proj.length > 0 && (
+        <>
+          <h2 style={head}>Projects</h2>
+          {proj.map((p) => (
+            <div key={p.id} style={{ marginBottom: 6 }}>
+              <strong>{p.name}</strong>
+              {nonEmpty(p.link) && <span style={{ fontStyle: "italic" }}> — {p.link}</span>}
+              {nonEmpty(p.description) && <p style={{ margin: "1px 0 1px" }}>{p.description}</p>}
+              <Bullets items={p.bullets} />
+            </div>
+          ))}
+        </>
+      )}
+      {skills.length > 0 && (
+        <>
+          <h2 style={head}>Skills</h2>
+          {skills.map((s) => (
+            <p key={s.id} style={{ margin: "0 0 3px" }}>
+              {nonEmpty(s.category) && <strong>{s.category}: </strong>}
+              {s.items}
+            </p>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Marketing: bold colour header, skills as pills ────────────────────────
+function Pills({ items, bg, fg }: { items: string; bg: string; fg: string }) {
+  const list = items
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 2 }}>
+      {list.map((x, i) => (
+        <span
+          key={i}
+          style={{
+            background: bg,
+            color: fg,
+            fontSize: 8.5,
+            padding: "2px 7px",
+            borderRadius: 9,
+          }}
+        >
+          {x}
+        </span>
+      ))}
+    </div>
+  );
+}
+function Marketing({ data }: { data: ResumeData }) {
+  const accent = "#4f46e5";
+  const exp = data.experience.filter(expHas);
+  const edu = data.education.filter(eduHas);
+  const proj = data.projects.filter(projHas);
+  const skills = data.skills.filter((s) => nonEmpty(s.items));
+  const head: React.CSSProperties = {
+    fontSize: 12,
+    fontWeight: 800,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    color: accent,
+    margin: "0 0 6px",
+    borderBottom: `2px solid ${accent}`,
+    paddingBottom: 2,
+  };
+  return (
+    <div style={{ ...PAGE, fontFamily: "'Inter', Arial, sans-serif", fontSize: 10.5 }}>
+      <header style={{ background: accent, color: "#fff", padding: "12mm 12mm 10mm" }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>
+          {data.basics.name || "Your Name"}
+        </h1>
+        {nonEmpty(data.basics.title) && (
+          <p style={{ margin: "3px 0 0", fontSize: 12, color: "#c7d2fe" }}>{data.basics.title}</p>
+        )}
+        <p style={{ margin: "8px 0 0", fontSize: 9 }}>{contactLine(data).join("    •    ")}</p>
+      </header>
+      <main style={{ padding: "8mm 12mm" }}>
+        {nonEmpty(data.summary) && (
+          <section style={{ marginBottom: 12 }}>
+            <h2 style={head}>Profile</h2>
+            <p style={{ margin: 0, lineHeight: 1.5 }}>{data.summary}</p>
+          </section>
+        )}
+        {exp.length > 0 && (
+          <section style={{ marginBottom: 12 }}>
+            <h2 style={head}>Experience</h2>
+            {exp.map((e) => (
+              <div key={e.id} style={{ marginBottom: 9 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <strong style={{ fontSize: 11 }}>{e.role}</strong>
+                  <span style={{ fontSize: 9, color: "#666" }}>
+                    {dateRange(e.start, e.end, e.current)}
+                  </span>
+                </div>
+                <p style={{ margin: "1px 0 3px", fontSize: 10, color: accent, fontWeight: 600 }}>
+                  {e.company}
+                  {nonEmpty(e.location) ? ` · ${e.location}` : ""}
+                </p>
+                <Bullets items={e.bullets} />
+              </div>
+            ))}
+          </section>
+        )}
+        {skills.length > 0 && (
+          <section style={{ marginBottom: 12 }}>
+            <h2 style={head}>Skills</h2>
+            {skills.map((s) => (
+              <div key={s.id} style={{ marginBottom: 5 }}>
+                {nonEmpty(s.category) && (
+                  <p style={{ margin: 0, fontSize: 9.5, fontWeight: 700 }}>{s.category}</p>
+                )}
+                <Pills items={s.items} bg="#eef2ff" fg={accent} />
+              </div>
+            ))}
+          </section>
+        )}
+        {proj.length > 0 && (
+          <section style={{ marginBottom: 12 }}>
+            <h2 style={head}>Projects</h2>
+            {proj.map((p) => (
+              <div key={p.id} style={{ marginBottom: 7 }}>
+                <strong style={{ fontSize: 10.5 }}>{p.name}</strong>
+                {nonEmpty(p.description) && (
+                  <p style={{ margin: "1px 0 2px" }}>{p.description}</p>
+                )}
+                <Bullets items={p.bullets} />
+              </div>
+            ))}
+          </section>
+        )}
+        {edu.length > 0 && (
+          <section>
+            <h2 style={head}>Education</h2>
+            {edu.map((e) => (
+              <div key={e.id} style={{ marginBottom: 5 }}>
+                <strong>
+                  {e.degree} {e.field}
+                </strong>
+                <p style={{ margin: 0, fontSize: 10 }}>
+                  {e.school} · {dateRange(e.start, e.end, false)}
+                </p>
+              </div>
+            ))}
+          </section>
+        )}
+      </main>
+    </div>
+  );
+}
+
+// ─── Executive: refined serif, understated ─────────────────────────────────
+function Executive({ data }: { data: ResumeData }) {
+  const exp = data.experience.filter(expHas);
+  const edu = data.education.filter(eduHas);
+  const proj = data.projects.filter(projHas);
+  const skills = data.skills.filter((s) => nonEmpty(s.items));
+  const head: React.CSSProperties = {
+    fontSize: 10,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: 3,
+    color: "#6b7280",
+    margin: "16px 0 6px",
+  };
+  return (
+    <div
+      style={{
+        ...PAGE,
+        padding: "18mm 18mm",
+        fontFamily: "'Georgia', serif",
+        fontSize: 10.5,
+        color: "#222",
+      }}
+    >
+      <header style={{ borderBottom: "2px solid #222", paddingBottom: 8 }}>
+        <h1 style={{ fontSize: 27, fontWeight: 700, margin: 0, letterSpacing: 0.5 }}>
+          {data.basics.name || "Your Name"}
+        </h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 3 }}>
+          {nonEmpty(data.basics.title) && (
+            <span style={{ fontSize: 12, fontStyle: "italic", color: "#444" }}>
+              {data.basics.title}
+            </span>
+          )}
+          <span style={{ fontSize: 9, color: "#666" }}>{contactLine(data).join("  ·  ")}</span>
+        </div>
+      </header>
+      {nonEmpty(data.summary) && (
+        <>
+          <h2 style={head}>Profile</h2>
+          <p style={{ margin: 0, lineHeight: 1.6 }}>{data.summary}</p>
+        </>
+      )}
+      {exp.length > 0 && (
+        <>
+          <h2 style={head}>Experience</h2>
+          {exp.map((e) => (
+            <div key={e.id} style={{ marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <strong style={{ fontSize: 11.5 }}>{e.company}</strong>
+                <span style={{ fontSize: 9, color: "#666" }}>
+                  {dateRange(e.start, e.end, e.current)}
+                </span>
+              </div>
+              <p style={{ margin: "1px 0 3px", fontSize: 10.5, fontStyle: "italic", color: "#444" }}>
+                {e.role}
+                {nonEmpty(e.location) ? `, ${e.location}` : ""}
+              </p>
+              <Bullets items={e.bullets} />
+            </div>
+          ))}
+        </>
+      )}
+      {proj.length > 0 && (
+        <>
+          <h2 style={head}>Selected Projects</h2>
+          {proj.map((p) => (
+            <div key={p.id} style={{ marginBottom: 7 }}>
+              <strong>{p.name}</strong>
+              {nonEmpty(p.description) && <p style={{ margin: "1px 0 2px" }}>{p.description}</p>}
+              <Bullets items={p.bullets} />
+            </div>
+          ))}
+        </>
+      )}
+      {edu.length > 0 && (
+        <>
+          <h2 style={head}>Education</h2>
+          {edu.map((e) => (
+            <div key={e.id} style={{ marginBottom: 5, display: "flex", justifyContent: "space-between" }}>
+              <span>
+                <strong>
+                  {e.degree} {e.field}
+                </strong>
+                , {e.school}
+                {nonEmpty(e.details) ? ` — ${e.details}` : ""}
+              </span>
+              <span style={{ fontSize: 9, color: "#666" }}>{dateRange(e.start, e.end, false)}</span>
+            </div>
+          ))}
+        </>
+      )}
+      {skills.length > 0 && (
+        <>
+          <h2 style={head}>Competencies</h2>
+          {skills.map((s) => (
+            <p key={s.id} style={{ margin: "0 0 3px" }}>
+              {nonEmpty(s.category) && <strong>{s.category}: </strong>}
+              {s.items}
+            </p>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Creative: warm two-tone with a sidebar ────────────────────────────────
+function Creative({ data }: { data: ResumeData }) {
+  const exp = data.experience.filter(expHas);
+  const edu = data.education.filter(eduHas);
+  const proj = data.projects.filter(projHas);
+  const skills = data.skills.filter((s) => nonEmpty(s.items));
+  const accent = "#c2410c"; // warm rust
+  const head: React.CSSProperties = {
+    fontSize: 12,
+    fontWeight: 800,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    color: accent,
+    margin: "0 0 6px",
+  };
+  return (
+    <div style={{ ...PAGE, display: "flex", fontFamily: "'Inter', Arial, sans-serif", fontSize: 10.5 }}>
+      <main style={{ flex: 1, padding: "14mm 10mm" }}>
+        <h1 style={{ fontSize: 25, fontWeight: 800, margin: 0, color: "#1a1a1a" }}>
+          {data.basics.name || "Your Name"}
+        </h1>
+        {nonEmpty(data.basics.title) && (
+          <p style={{ fontSize: 12, margin: "3px 0 0", color: accent, fontWeight: 600 }}>
+            {data.basics.title}
+          </p>
+        )}
+        {nonEmpty(data.summary) && (
+          <section style={{ marginTop: 14 }}>
+            <h2 style={head}>About</h2>
+            <p style={{ margin: 0, lineHeight: 1.5 }}>{data.summary}</p>
+          </section>
+        )}
+        {exp.length > 0 && (
+          <section style={{ marginTop: 14 }}>
+            <h2 style={head}>Experience</h2>
+            {exp.map((e) => (
+              <div key={e.id} style={{ marginBottom: 10, borderLeft: `2px solid #fed7aa`, paddingLeft: 8 }}>
+                <strong style={{ fontSize: 11 }}>{e.role}</strong>
+                <p style={{ margin: "1px 0 3px", fontSize: 10, color: accent }}>
+                  {e.company}
+                  {nonEmpty(e.location) ? ` · ${e.location}` : ""}
+                  {" · "}
+                  <span style={{ color: "#999" }}>{dateRange(e.start, e.end, e.current)}</span>
+                </p>
+                <Bullets items={e.bullets} />
+              </div>
+            ))}
+          </section>
+        )}
+        {proj.length > 0 && (
+          <section style={{ marginTop: 14 }}>
+            <h2 style={head}>Projects</h2>
+            {proj.map((p) => (
+              <div key={p.id} style={{ marginBottom: 8 }}>
+                <strong style={{ fontSize: 10.5 }}>{p.name}</strong>
+                {nonEmpty(p.description) && (
+                  <p style={{ margin: "1px 0 2px" }}>{p.description}</p>
+                )}
+                <Bullets items={p.bullets} />
+              </div>
+            ))}
+          </section>
+        )}
+      </main>
+      <aside style={{ width: "32%", background: "#fff7ed", padding: "14mm 8mm" }}>
+        <div>
+          {contactLine(data).map((c) => (
+            <p key={c} style={{ margin: "0 0 5px", fontSize: 9, wordBreak: "break-word" }}>
+              {c}
+            </p>
+          ))}
+        </div>
+        {skills.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <h2 style={{ ...head, fontSize: 11 }}>Skills</h2>
+            {skills.map((s) => (
+              <div key={s.id} style={{ marginBottom: 7 }}>
+                {nonEmpty(s.category) && (
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 9.5 }}>{s.category}</p>
+                )}
+                <p style={{ margin: "1px 0 0", fontSize: 9.5 }}>{s.items}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {edu.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <h2 style={{ ...head, fontSize: 11 }}>Education</h2>
+            {edu.map((e) => (
+              <div key={e.id} style={{ marginBottom: 9 }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 9.5 }}>
+                  {e.degree} {e.field}
+                </p>
+                <p style={{ margin: "1px 0 0", fontSize: 9.5 }}>{e.school}</p>
+                <p style={{ margin: "1px 0 0", fontSize: 9, color: "#999" }}>
+                  {dateRange(e.start, e.end, false)}
+                </p>
+                {nonEmpty(e.details) && (
+                  <p style={{ margin: "1px 0 0", fontSize: 9 }}>{e.details}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </aside>
+    </div>
+  );
+}
+
 export function ResumeTemplate({ id, data }: { id: TemplateId; data: ResumeData }) {
   switch (id) {
     case "classic":
@@ -562,6 +1012,14 @@ export function ResumeTemplate({ id, data }: { id: TemplateId; data: ResumeData 
       return <Minimal data={data} />;
     case "technical":
       return <Technical data={data} />;
+    case "harvard":
+      return <Harvard data={data} />;
+    case "marketing":
+      return <Marketing data={data} />;
+    case "executive":
+      return <Executive data={data} />;
+    case "creative":
+      return <Creative data={data} />;
     case "modern":
     default:
       return <Modern data={data} />;
