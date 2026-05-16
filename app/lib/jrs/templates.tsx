@@ -25,8 +25,11 @@ function contactLine(d: ResumeData): string[] {
   );
 }
 
+// Width is 100% so the template fills whatever container it's given — the
+// preview/print wrapper sets the real page width. This lets the density
+// zoom keep full page width while scaling everything else.
 const PAGE: React.CSSProperties = {
-  width: "210mm",
+  width: "100%",
   minHeight: "297mm",
   background: "#fff",
   boxSizing: "border-box",

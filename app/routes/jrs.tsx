@@ -6,11 +6,16 @@ import type { MetaFunction } from "react-router";
 import {
   type ResumeData,
   type TemplateId,
+  type Density,
   TEMPLATES,
+  DENSITIES,
+  densityFactor,
   loadResume,
   saveResume,
   loadTemplate,
   saveTemplate,
+  loadDensity,
+  saveDensity,
   starterResume,
   hasSavedResume,
 } from "~/lib/jrs/types";
@@ -42,7 +47,15 @@ const PRINT_CSS = `
 }
 `;
 
-function PreviewPane({ data, templateId }: { data: ResumeData; templateId: TemplateId }) {
+function PreviewPane({
+  data,
+  templateId,
+  density,
+}: {
+  data: ResumeData;
+  templateId: TemplateId;
+  density: number;
+}) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -70,7 +83,11 @@ function PreviewPane({ data, templateId }: { data: ResumeData; templateId: Templ
             className="bg-white shadow-[0_2px_24px_rgba(0,0,0,0.18)]"
             style={{ width: PAPER_W }}
           >
-            <ResumeTemplate id={templateId} data={data} />
+            {/* Density: render wider, then zoom back to page width so text
+                and spacing scale together while the page stays A4-wide. */}
+            <div style={{ width: PAPER_W / density, zoom: density }}>
+              <ResumeTemplate id={templateId} data={data} />
+            </div>
           </div>
         </div>
       </div>
@@ -86,12 +103,19 @@ export default function JrsRoute() {
   const [phase, setPhase] = useState<Phase>("welcome");
   const [hasSaved, setHasSaved] = useState(false);
   const [formatting, setFormatting] = useState(false);
+  const [density, setDensity] = useState<Density>("normal");
 
   useEffect(() => {
     setData(loadResume());
     setTemplateId(loadTemplate());
+    setDensity(loadDensity());
     setHasSaved(hasSavedResume());
     setMounted(true);
+  }, []);
+
+  const updateDensity = useCallback((d: Density) => {
+    setDensity(d);
+    saveDensity(d);
   }, []);
 
   const updateData = useCallback((d: ResumeData) => {
@@ -215,6 +239,18 @@ export default function JrsRoute() {
         </div>
 
         <div className="flex items-center gap-2">
+          <select
+            value={density}
+            onChange={(e) => updateDensity(e.target.value as Density)}
+            title="Spacing"
+            className="rounded-lg border border-neutral-300 px-2 py-1.5 text-xs font-semibold text-neutral-600 hover:border-neutral-900 focus:outline-none"
+          >
+            {DENSITIES.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name} spacing
+              </option>
+            ))}
+          </select>
           <button
             type="button"
             onClick={() => setPhase("template")}
@@ -276,13 +312,20 @@ export default function JrsRoute() {
           </div>
         </div>
 
-        <PreviewPane data={data} templateId={templateId} />
+        <PreviewPane data={data} templateId={templateId} density={densityFactor(density)} />
       </div>
 
       {/* Print-only copy — portaled to <body> so print CSS can isolate it. */}
       {createPortal(
         <div className="jrs-print-portal">
-          <ResumeTemplate id={templateId} data={data} />
+          <div
+            style={{
+              width: PAPER_W / densityFactor(density),
+              zoom: densityFactor(density),
+            }}
+          >
+            <ResumeTemplate id={templateId} data={data} />
+          </div>
         </div>,
         document.body,
       )}

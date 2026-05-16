@@ -259,6 +259,41 @@ export function saveTemplate(id: TemplateId): void {
   }
 }
 
+// ─── Density (spacing / scale) ──────────────────────────────────────────────
+const DENSITY_KEY = "jrs:density:v1";
+
+export type Density = "compact" | "normal" | "roomy";
+
+export const DENSITIES: { id: Density; name: string; factor: number }[] = [
+  { id: "compact", name: "Compact", factor: 0.87 },
+  { id: "normal", name: "Normal", factor: 1 },
+  { id: "roomy", name: "Roomy", factor: 1.1 },
+];
+
+export function densityFactor(d: Density): number {
+  return DENSITIES.find((x) => x.id === d)?.factor ?? 1;
+}
+
+export function loadDensity(): Density {
+  if (typeof window === "undefined") return "normal";
+  try {
+    const raw = localStorage.getItem(DENSITY_KEY) as Density | null;
+    if (raw && DENSITIES.some((d) => d.id === raw)) return raw;
+  } catch {
+    /* ignore */
+  }
+  return "normal";
+}
+
+export function saveDensity(d: Density): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DENSITY_KEY, d);
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Flatten a resume to plain text — used for ATS keyword analysis. */
 export function resumeToText(d: ResumeData): string {
   const parts: string[] = [
