@@ -12,10 +12,14 @@ import {
   loadTemplate,
   saveTemplate,
   starterResume,
+  hasSavedResume,
 } from "~/lib/jrs/types";
 import { ResumeTemplate } from "~/lib/jrs/templates";
 import { Editor } from "~/components/jrs/editor";
 import { AtsPanel } from "~/components/jrs/ats-panel";
+import { WelcomeScreen, TemplatePicker } from "~/components/jrs/start-flow";
+
+type Phase = "welcome" | "template" | "editor";
 
 export const meta: MetaFunction = () => [
   { title: "Resume Maker — Studojo" },
@@ -79,10 +83,13 @@ export default function JrsRoute() {
   const [data, setData] = useState<ResumeData>(() => starterResume());
   const [templateId, setTemplateId] = useState<TemplateId>("modern");
   const [tab, setTab] = useState<"edit" | "ats">("edit");
+  const [phase, setPhase] = useState<Phase>("welcome");
+  const [hasSaved, setHasSaved] = useState(false);
 
   useEffect(() => {
     setData(loadResume());
     setTemplateId(loadTemplate());
+    setHasSaved(hasSavedResume());
     setMounted(true);
   }, []);
 
@@ -108,6 +115,39 @@ export default function JrsRoute() {
       <div className="flex min-h-screen items-center justify-center bg-neutral-100 text-neutral-500 font-['Satoshi']">
         Loading resume maker...
       </div>
+    );
+  }
+
+  // Phase 1 — welcome / continue.
+  if (phase === "welcome") {
+    return (
+      <WelcomeScreen
+        hasSaved={hasSaved}
+        onCreate={() => {
+          const fresh = starterResume();
+          setData(fresh);
+          saveResume(fresh);
+          setPhase("template");
+        }}
+        onContinue={() => {
+          setTab("edit");
+          setPhase("editor");
+        }}
+      />
+    );
+  }
+
+  // Phase 2 — Canva-style template gallery.
+  if (phase === "template") {
+    return (
+      <TemplatePicker
+        onPick={(id) => {
+          updateTemplate(id);
+          setTab("edit");
+          setPhase("editor");
+        }}
+        onBack={() => setPhase("welcome")}
+      />
     );
   }
 
@@ -146,6 +186,13 @@ export default function JrsRoute() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPhase("template")}
+            className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:border-neutral-900"
+          >
+            Templates
+          </button>
           <button
             type="button"
             onClick={reset}

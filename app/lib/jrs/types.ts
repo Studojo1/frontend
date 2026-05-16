@@ -194,6 +194,38 @@ export function saveResume(data: ResumeData): void {
   }
 }
 
+/** True if the user has a resume saved from a previous session. */
+export function hasSavedResume(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(STORAGE_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
+/** Wipe the saved resume (used by "start over"). */
+export function clearSavedResume(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** An empty resume — used when a user explicitly starts from scratch. */
+export function blankResume(): ResumeData {
+  return {
+    basics: { name: "", title: "", email: "", phone: "", location: "", website: "", linkedin: "" },
+    summary: "",
+    experience: [emptyExperience()],
+    education: [emptyEducation()],
+    projects: [],
+    skills: [emptySkillGroup()],
+  };
+}
+
 export function loadTemplate(): TemplateId {
   if (typeof window === "undefined") return "modern";
   try {
