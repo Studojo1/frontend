@@ -1,6 +1,7 @@
 import { KNOWLEDGE_CONTEXT } from "./knowledge-base";
 
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama.staging.svc.cluster.local:11434";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const SYSTEM_PROMPT = `You are Studojo's support assistant. You only answer questions about Studojo's platform and tools.
 
@@ -34,22 +35,71 @@ interface ChatMessage {
   content: string;
 }
 
-/**
- * Call Ollama API for LLM fallback. Used only when NLP confidence is low.
- */
-export async function generateLLMResponse(
-  userMessage: string,
-  history: ChatMessage[] = []
-): Promise<string> {
-  const messages = [
-    { role: "system" as const, content: SYSTEM_PROMPT },
-    ...history.slice(-4),
-    { role: "user" as const, content: userMessage },
-  ];
+/** Strip em/en dashes the model may emit despite the prompt rule. */
+function stripDashes(content: string): string {
+  return content
+    .replace(/ — /g, ", ")
+    .replace(/ – /g, ", ")
+    .replace(/—/g, ",")
+    .replace(/–/g, ",");
+}
 
+/**
+ * Primary LLM: OpenAI gpt-4o-mini. Fast, reliable, no CPU-inference timeouts.
+ * Matches the pattern used by api.resumes.rewrite.tsx and api.outreach.email-chat.tsx.
+ * Returns null on any failure so the caller can fall back to Ollama.
+ */
+async function callOpenAI(messages: { role: string; content: string }[]): Promise<string | null> {
+  if (!OPENAI_API_KEY) return null;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for CPU inference
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages,
+        temperature: 0.4,
+        top_p: 0.9,
+        max_tokens: 200,
+      }),
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      console.error(`[chat-llm] OpenAI error: ${res.status} ${errBody}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content?.trim();
+    return content || null;
+  } catch (error: any) {
+    if (error.name === "AbortError") {
+      console.error("[chat-llm] OpenAI request timed out after 20s");
+    } else {
+      console.error("[chat-llm] OpenAI error:", error.message);
+    }
+    return null;
+  }
+}
+
+/**
+ * Fallback LLM: in-cluster Ollama (llama3.2:1b on CPU). Slower and less reliable;
+ * only used when OpenAI is unavailable. Returns null on any failure.
+ */
+async function callOllama(messages: { role: string; content: string }[]): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s for CPU inference
 
     const res = await fetch(`${OLLAMA_URL}/api/chat`, {
       method: "POST",
@@ -72,34 +122,50 @@ export async function generateLLMResponse(
     if (!res.ok) {
       const errBody = await res.text().catch(() => "");
       console.error(`[chat-llm] Ollama error: ${res.status} ${errBody}`);
-      return getFallbackResponse();
+      return null;
     }
 
     const data = await res.json();
-    let content = data.message?.content?.trim();
-
-    if (!content) {
-      return getFallbackResponse();
-    }
-
-    // Strip em dashes from LLM output
-    content = content.replace(/\u2014/g, ",").replace(/\u2013/g, ",").replace(/ — /g, ", ").replace(/ – /g, ", ");
-
-    return content;
+    const content = data.message?.content?.trim();
+    return content || null;
   } catch (error: any) {
     if (error.name === "AbortError") {
       console.error("[chat-llm] Ollama request timed out after 45s");
     } else {
       console.error("[chat-llm] Ollama error:", error.message);
     }
-    return getFallbackResponse();
+    return null;
   }
 }
 
 /**
- * Check if Ollama is available and model is loaded
+ * Generate an LLM response for the chatbot. Used only when NLP confidence is low.
+ * Tries OpenAI first, falls back to Ollama, then to a canned escalation message.
  */
-export async function isOllamaReady(): Promise<boolean> {
+export async function generateLLMResponse(
+  userMessage: string,
+  history: ChatMessage[] = []
+): Promise<string> {
+  const messages = [
+    { role: "system", content: SYSTEM_PROMPT },
+    ...history.slice(-4),
+    { role: "user", content: userMessage },
+  ];
+
+  const primary = await callOpenAI(messages);
+  if (primary) return stripDashes(primary);
+
+  const fallback = await callOllama(messages);
+  if (fallback) return stripDashes(fallback);
+
+  return getFallbackResponse();
+}
+
+/**
+ * Check if at least one LLM backend is available.
+ */
+export async function isLLMReady(): Promise<boolean> {
+  if (OPENAI_API_KEY) return true;
   try {
     const res = await fetch(`${OLLAMA_URL}/api/tags`, {
       signal: AbortSignal.timeout(3000),
