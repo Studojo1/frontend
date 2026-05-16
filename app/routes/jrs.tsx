@@ -85,6 +85,7 @@ export default function JrsRoute() {
   const [tab, setTab] = useState<"edit" | "ats">("edit");
   const [phase, setPhase] = useState<Phase>("welcome");
   const [hasSaved, setHasSaved] = useState(false);
+  const [formatting, setFormatting] = useState(false);
 
   useEffect(() => {
     setData(loadResume());
@@ -109,6 +110,29 @@ export default function JrsRoute() {
     setData(fresh);
     saveResume(fresh);
   }, []);
+
+  const autoFormat = useCallback(async () => {
+    if (formatting) return;
+    setFormatting(true);
+    try {
+      const res = await fetch("/api/jrs/format", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data }),
+      });
+      const json = await res.json();
+      if (res.ok && json.data) {
+        setData(json.data);
+        saveResume(json.data);
+      } else {
+        alert(json.error || "Auto-format failed. Try again in a moment.");
+      }
+    } catch {
+      alert("Couldn't reach auto-format. Check your connection and try again.");
+    } finally {
+      setFormatting(false);
+    }
+  }, [data, formatting]);
 
   if (!mounted) {
     return (
@@ -199,6 +223,14 @@ export default function JrsRoute() {
             className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:border-neutral-900"
           >
             Reset
+          </button>
+          <button
+            type="button"
+            onClick={autoFormat}
+            disabled={formatting}
+            className="rounded-lg border-2 border-neutral-900 bg-violet-500 px-3.5 py-1.5 text-sm font-bold text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+          >
+            {formatting ? "Formatting..." : "✨ Auto-format"}
           </button>
           <button
             type="button"

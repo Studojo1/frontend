@@ -16,6 +16,15 @@ const inputCls =
   "w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 bg-white";
 const labelCls = "block text-xs font-semibold text-neutral-600 mb-1";
 
+/** Swap item i with its neighbour in the given direction. */
+function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
+  const j = i + dir;
+  if (j < 0 || j >= arr.length) return arr;
+  const next = [...arr];
+  [next[i], next[j]] = [next[j], next[i]];
+  return next;
+}
+
 function Field({
   label,
   value,
@@ -83,21 +92,45 @@ function Section({
 
 function ItemCard({
   onRemove,
+  onUp,
+  onDown,
   children,
 }: {
   onRemove: () => void;
+  onUp?: () => void;
+  onDown?: () => void;
   children: React.ReactNode;
 }) {
   return (
     <div className="relative rounded-xl border border-neutral-200 bg-neutral-50 p-3 space-y-3">
-      <button
-        type="button"
-        onClick={onRemove}
-        className="absolute right-2 top-2 text-xs text-neutral-400 hover:text-rose-600"
-        aria-label="Remove"
-      >
-        ✕ Remove
-      </button>
+      <div className="absolute right-2 top-2 flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={onUp}
+          disabled={!onUp}
+          aria-label="Move up"
+          className="text-xs text-neutral-400 hover:text-neutral-900 disabled:opacity-25 disabled:hover:text-neutral-400"
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          onClick={onDown}
+          disabled={!onDown}
+          aria-label="Move down"
+          className="text-xs text-neutral-400 hover:text-neutral-900 disabled:opacity-25 disabled:hover:text-neutral-400"
+        >
+          ▼
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="text-xs font-semibold text-neutral-400 hover:text-rose-600"
+          aria-label="Remove"
+        >
+          ✕
+        </button>
+      </div>
       {children}
     </div>
   );
@@ -174,8 +207,17 @@ export function Editor({
         {data.experience.length === 0 && (
           <p className="text-xs text-neutral-400">No roles yet. Click "Add role".</p>
         )}
-        {data.experience.map((e) => (
-          <ItemCard key={e.id} onRemove={() => rmExp(e.id)}>
+        {data.experience.map((e, i) => (
+          <ItemCard
+            key={e.id}
+            onRemove={() => rmExp(e.id)}
+            onUp={i > 0 ? () => patch({ experience: move(data.experience, i, -1) }) : undefined}
+            onDown={
+              i < data.experience.length - 1
+                ? () => patch({ experience: move(data.experience, i, 1) })
+                : undefined
+            }
+          >
             <div className="grid grid-cols-2 gap-3">
               <Field label="Role" value={e.role} onChange={(v) => updExp(e.id, { role: v })} placeholder="Software Engineering Intern" />
               <Field label="Company" value={e.company} onChange={(v) => updExp(e.id, { company: v })} placeholder="Nimbus Labs" />
@@ -212,8 +254,17 @@ export function Editor({
         {data.projects.length === 0 && (
           <p className="text-xs text-neutral-400">No projects yet. Click "Add project".</p>
         )}
-        {data.projects.map((p) => (
-          <ItemCard key={p.id} onRemove={() => rmProj(p.id)}>
+        {data.projects.map((p, i) => (
+          <ItemCard
+            key={p.id}
+            onRemove={() => rmProj(p.id)}
+            onUp={i > 0 ? () => patch({ projects: move(data.projects, i, -1) }) : undefined}
+            onDown={
+              i < data.projects.length - 1
+                ? () => patch({ projects: move(data.projects, i, 1) })
+                : undefined
+            }
+          >
             <div className="grid grid-cols-2 gap-3">
               <Field label="Name" value={p.name} onChange={(v) => updProj(p.id, { name: v })} placeholder="SplitWise Clone" />
               <Field label="Link" value={p.link} onChange={(v) => updProj(p.id, { link: v })} placeholder="github.com/..." />
@@ -237,8 +288,17 @@ export function Editor({
         {data.education.length === 0 && (
           <p className="text-xs text-neutral-400">No education yet. Click "Add school".</p>
         )}
-        {data.education.map((e) => (
-          <ItemCard key={e.id} onRemove={() => rmEdu(e.id)}>
+        {data.education.map((e, i) => (
+          <ItemCard
+            key={e.id}
+            onRemove={() => rmEdu(e.id)}
+            onUp={i > 0 ? () => patch({ education: move(data.education, i, -1) }) : undefined}
+            onDown={
+              i < data.education.length - 1
+                ? () => patch({ education: move(data.education, i, 1) })
+                : undefined
+            }
+          >
             <Field label="School" value={e.school} onChange={(v) => updEdu(e.id, { school: v })} placeholder="RV College of Engineering" />
             <div className="grid grid-cols-2 gap-3">
               <Field label="Degree" value={e.degree} onChange={(v) => updEdu(e.id, { degree: v })} placeholder="B.E." />
@@ -259,8 +319,17 @@ export function Editor({
         {data.skills.length === 0 && (
           <p className="text-xs text-neutral-400">No skills yet. Click "Add group".</p>
         )}
-        {data.skills.map((s) => (
-          <ItemCard key={s.id} onRemove={() => rmSkill(s.id)}>
+        {data.skills.map((s, i) => (
+          <ItemCard
+            key={s.id}
+            onRemove={() => rmSkill(s.id)}
+            onUp={i > 0 ? () => patch({ skills: move(data.skills, i, -1) }) : undefined}
+            onDown={
+              i < data.skills.length - 1
+                ? () => patch({ skills: move(data.skills, i, 1) })
+                : undefined
+            }
+          >
             <Field label="Category" value={s.category} onChange={(v) => updSkill(s.id, { category: v })} placeholder="Languages" />
             <Field label="Items (comma-separated)" value={s.items} onChange={(v) => updSkill(s.id, { items: v })} placeholder="TypeScript, Python, SQL" />
           </ItemCard>
