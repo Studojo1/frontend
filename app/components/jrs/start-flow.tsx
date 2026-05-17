@@ -66,8 +66,11 @@ export function WelcomeScreen({
 
   const triggerUpload = () => fileRef.current?.click();
 
+  const firstName = (savedData?.basics.name || "").split(/\s+/)[0];
+  const showHero = !hasSaved;
+
   return (
-    <div className="flex min-h-[calc(100vh-6rem)] flex-col bg-neutral-50 font-['Satoshi']">
+    <div className="flex min-h-[calc(100vh-6rem)] flex-col bg-gradient-to-br from-violet-50 via-white to-amber-50 font-['Satoshi']">
       <ImportingModal
         open={importing}
         fileName={importFileName}
@@ -75,33 +78,96 @@ export function WelcomeScreen({
         onDismiss={() => setImportError("")}
       />
 
-      <div className="mx-auto flex w-full max-w-[var(--section-max-width,1200px)] flex-1 flex-col px-5 py-10 sm:px-8 sm:py-14">
-        <div className="text-center">
-          <h1 className="font-['Clash_Display'] text-4xl leading-[1.05] text-neutral-900 sm:text-5xl">
-            Build a resume that
-            <br />
-            actually gets callbacks.
-          </h1>
-          <p className="mx-auto mt-4 max-w-[520px] text-[15px] text-neutral-600">
-            Pick a template, fill in your details with a live preview beside you, and download a
-            clean PDF. Most students finish in under 10 minutes.
-          </p>
-        </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/pdf,image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => handleFiles(e.target.files)}
+      />
 
-        {/* Saved resume — Canva-style "your design" card. */}
+      <div className="mx-auto flex w-full max-w-[var(--section-max-width,1200px)] flex-1 flex-col px-5 py-10 sm:px-8 sm:py-14">
+        {/* HERO — two-column on desktop, stacked on mobile */}
+        {showHero ? (
+          <section className="grid items-center gap-10 lg:grid-cols-[1.05fr_1fr]">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-neutral-900 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-neutral-700">
+                <FiZap className="h-3.5 w-3.5 text-violet-600" /> Resume Maker
+              </span>
+              <h1 className="mt-5 font-['Clash_Display'] text-4xl leading-[1.05] text-neutral-900 sm:text-5xl">
+                Build a resume that
+                <br />
+                actually gets callbacks.
+              </h1>
+              <p className="mt-4 max-w-[520px] text-[15px] text-neutral-600">
+                Pick a template, fill it with a live preview beside you, and download a clean PDF.
+                Most students finish in under 10 minutes.
+              </p>
+
+              <div className="mt-7 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                <button
+                  type="button"
+                  onClick={onCreate}
+                  className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-violet-500 px-6 py-3 text-base font-bold text-white shadow-[5px_5px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                >
+                  Create my resume
+                  <FiArrowRight />
+                </button>
+                <button
+                  type="button"
+                  onClick={triggerUpload}
+                  className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-5 py-3 text-sm font-bold text-neutral-800 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)]"
+                >
+                  <FiUploadCloud className="h-4 w-4 text-violet-600" />
+                  Import a PDF or LinkedIn
+                </button>
+              </div>
+
+              <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-bold text-neutral-700">
+                <li className="flex items-center gap-1.5">
+                  <FiFileText className="h-3.5 w-3.5 text-violet-600" /> {TEMPLATES.length} templates
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <FiZap className="h-3.5 w-3.5 text-violet-600" /> AI coach + Auto-format
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <FiClock className="h-3.5 w-3.5 text-violet-600" /> Free, instant PDF
+                </li>
+              </ul>
+            </div>
+
+            <div className="relative hidden h-[420px] lg:block" aria-hidden="true">
+              <TemplatePeek />
+            </div>
+          </section>
+        ) : (
+          <section>
+            <h1 className="font-['Clash_Display'] text-4xl leading-[1.05] text-neutral-900 sm:text-5xl">
+              Welcome back{firstName ? `, ${firstName}` : ""}.
+            </h1>
+            <p className="mt-3 max-w-[520px] text-[15px] text-neutral-600">
+              Pick up where you left off, switch templates, or start something new.
+            </p>
+          </section>
+        )}
+
+        {/* Saved resume card — Canva-style "your design". */}
         {hasSaved && savedData && savedTemplate && (
-          <div className="mx-auto mt-10 w-full max-w-[640px]">
+          <div className="mt-10 w-full">
             <p className="mb-2 ml-1 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
               Your resume
             </p>
-            <div className="flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[5px_5px_0px_0px_rgba(25,26,35,1)] sm:flex-row">
+            <div className="flex flex-col gap-5 rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] sm:flex-row sm:items-stretch">
               <SavedThumb data={savedData} templateId={savedTemplate} />
               <div className="flex min-w-0 flex-1 flex-col">
                 <h2 className="truncate font-['Clash_Display'] text-2xl text-neutral-900">
                   {savedData.basics.name?.trim() || "Untitled resume"}
                 </h2>
                 <p className="mt-0.5 text-sm text-neutral-500">
-                  {TEMPLATES.find((t) => t.id === savedTemplate)?.name ?? "Modern"} template
+                  {TEMPLATES.find((t) => t.id === savedTemplate)?.name ?? "Modern"} template ·{" "}
+                  {savedData.experience.filter((e) => e.company || e.role).length} roles ·{" "}
+                  {savedData.projects.filter((p) => p.name).length} projects
                 </p>
                 <div className="mt-auto flex flex-wrap gap-2 pt-4">
                   <button
@@ -118,65 +184,54 @@ export function WelcomeScreen({
                   >
                     Start a new one
                   </button>
+                  <button
+                    type="button"
+                    onClick={triggerUpload}
+                    className="rounded-xl border-2 border-neutral-900 bg-white px-5 py-2.5 text-sm font-bold text-neutral-700 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    Import another
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         )}
-
-        {/* Primary actions for users without a saved resume. */}
-        {!hasSaved && (
-          <div className="mt-10 flex flex-col items-center gap-3">
-            <button
-              type="button"
-              onClick={onCreate}
-              className="flex items-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 px-7 py-3.5 text-base font-bold text-white shadow-[5px_5px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
-            >
-              Create my resume
-              <FiArrowRight />
-            </button>
-          </div>
-        )}
-
-        {/* Import option — secondary affordance. */}
-        <div className="mx-auto mt-8 w-full max-w-[640px]">
-          <button
-            type="button"
-            onClick={triggerUpload}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-400 bg-white px-5 py-4 text-sm font-bold text-neutral-700 transition-colors hover:border-neutral-900 hover:bg-neutral-50"
-          >
-            <FiUploadCloud className="h-4 w-4 text-violet-600" />
-            Have a resume already? Import a PDF or LinkedIn screenshots
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="application/pdf,image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => handleFiles(e.target.files)}
-          />
-        </div>
-
-        {/* Light feature row — no marketing pills, just three quick reassurances. */}
-        <div className="mx-auto mt-10 grid w-full max-w-[640px] grid-cols-1 gap-3 sm:grid-cols-3">
-          {[
-            { icon: FiFileText, label: "9 clean templates" },
-            { icon: FiZap, label: "Coach + Auto-format" },
-            { icon: FiClock, label: "Free, instant PDF" },
-          ].map((f) => (
-            <div
-              key={f.label}
-              className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-3"
-            >
-              <f.icon className="h-4 w-4 flex-shrink-0 text-violet-600" />
-              <span className="text-xs font-bold text-neutral-700">{f.label}</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       <Footer />
+    </div>
+  );
+}
+
+// ─── Template peek — decorative trio on the welcome hero ─────────────────────
+function TemplatePeek() {
+  const sample = starterResume();
+  const peekW = 230;
+  const scale = peekW / PAPER_W;
+  const peeks: { id: TemplateId; style: React.CSSProperties }[] = [
+    { id: "modern", style: { top: 0, right: 0, transform: "rotate(4deg)" } },
+    { id: "harvard", style: { top: 60, left: 0, transform: "rotate(-6deg)" } },
+    { id: "banner", style: { bottom: 0, right: 30, transform: "rotate(-2deg)" } },
+  ];
+  return (
+    <div className="relative h-full w-full">
+      {peeks.map((p) => (
+        <div
+          key={p.id}
+          style={{
+            position: "absolute",
+            width: peekW,
+            height: PAPER_H * scale,
+            overflow: "hidden",
+            ...p.style,
+          }}
+          className="rounded-xl border-2 border-neutral-900 bg-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+        >
+          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: PAPER_W }}>
+            <ResumeTemplate id={p.id} data={sample} />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

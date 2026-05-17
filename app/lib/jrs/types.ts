@@ -65,7 +65,11 @@ export type TemplateId =
   | "harvard"
   | "marketing"
   | "executive"
-  | "creative";
+  | "creative"
+  | "onyx"
+  | "indus"
+  | "banner"
+  | "consulting";
 
 export const TEMPLATES: { id: TemplateId; name: string; blurb: string }[] = [
   { id: "modern", name: "Modern", blurb: "Accent sidebar, clean sans-serif" },
@@ -73,6 +77,10 @@ export const TEMPLATES: { id: TemplateId; name: string; blurb: string }[] = [
   { id: "marketing", name: "Marketing", blurb: "Bold colour header, skills as pills" },
   { id: "executive", name: "Executive", blurb: "Refined serif, understated, senior roles" },
   { id: "creative", name: "Creative", blurb: "Warm two-tone, personality without clutter" },
+  { id: "onyx", name: "Onyx", blurb: "Dark navy header band, sharp and confident" },
+  { id: "indus", name: "Indus", blurb: "Traditional Indian format, formal serif" },
+  { id: "banner", name: "Banner", blurb: "Full-width colour banner with reversed-out name" },
+  { id: "consulting", name: "Consulting", blurb: "MBB-style, dense, neutral grays" },
   { id: "classic", name: "Classic", blurb: "Traditional serif, centered header" },
   { id: "compact", name: "Compact", blurb: "Dense, fits more on one page" },
   { id: "minimal", name: "Minimal", blurb: "Lots of whitespace, understated" },
