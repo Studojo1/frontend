@@ -142,6 +142,11 @@ export function WelcomeScreen({
                 <FiClock className="h-3.5 w-3.5 text-violet-600" /> Free, instant PDF
               </li>
             </ul>
+
+            {/* Decorative template trio — centered under the hero */}
+            <div className="mt-10 flex justify-center">
+              <TemplatePeek />
+            </div>
           </>
         )}
 
@@ -197,6 +202,39 @@ export function WelcomeScreen({
   );
 }
 
+
+// ─── Template peek — three centered, slightly rotated template thumbnails
+//     showing variety without forcing a click through.
+function TemplatePeek() {
+  const sample = starterResume();
+  const peekW = 180;
+  const scale = peekW / PAPER_W;
+  const peeks: { id: TemplateId; rotate: string; lift: string }[] = [
+    { id: "harvard", rotate: "-6deg", lift: "12px" },
+    { id: "modern", rotate: "0deg", lift: "0px" },
+    { id: "banner", rotate: "5deg", lift: "12px" },
+  ];
+  return (
+    <div className="flex items-center justify-center gap-3 sm:gap-5" aria-hidden="true">
+      {peeks.map((p) => (
+        <div
+          key={p.id}
+          style={{
+            width: peekW,
+            height: PAPER_H * scale,
+            overflow: "hidden",
+            transform: `rotate(${p.rotate}) translateY(${p.lift})`,
+          }}
+          className="flex-shrink-0 rounded-xl border-2 border-neutral-900 bg-white shadow-[5px_5px_0px_0px_rgba(25,26,35,1)]"
+        >
+          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: PAPER_W }}>
+            <ResumeTemplate id={p.id} data={sample} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // ─── Saved-resume thumbnail (left of the saved card) ─────────────────────────
 function SavedThumb({ data, templateId }: { data: ResumeData; templateId: TemplateId }) {
