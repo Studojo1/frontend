@@ -247,11 +247,16 @@ export default function App() {
     suppressThirdPartyWarnings();
   }, []);
 
+  const location = useLocation();
+  // The resume maker has its own coach chat — the global support widget would
+  // float over the editor input and confuse the user.
+  const hideGlobalChat = location.pathname.startsWith("/jrs");
+
   return (
     <>
       <MixpanelInit />
       <Outlet />
-      <ChatWidget />
+      {!hideGlobalChat && <ChatWidget />}
     </>
   );
 }

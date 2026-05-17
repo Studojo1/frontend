@@ -347,105 +347,145 @@ export default function JrsRoute() {
     <div className="flex h-screen flex-col bg-white font-['Satoshi']">
       <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
 
-      {/* Top bar — brutalist, decluttered. The template pill rail is gone:
-          use the "Templates" button to open the full gallery. */}
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-neutral-900 bg-white px-4 py-3">
+      {/* Top bar — three columns: brand · workspace settings · actions */}
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-neutral-900 bg-white px-4 py-2.5">
+        {/* Brand + current template */}
         <div className="flex items-center gap-2">
-          <a href="/" className="font-['Clash_Display'] text-lg font-extrabold text-neutral-900 hover:underline">
+          <a
+            href="/"
+            className="flex items-center gap-2 font-['Clash_Display'] text-lg font-extrabold text-neutral-900 hover:opacity-80"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-neutral-900 bg-violet-500 text-white">
+              <span className="text-sm">S</span>
+            </span>
             Studojo
           </a>
-          <span className="rounded-md border-2 border-neutral-900 bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-800">
+          <span className="rounded-md border-2 border-neutral-900 bg-violet-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-violet-800">
             Resume Maker
-          </span>
-          <span className="hidden text-xs font-semibold text-neutral-500 md:inline">
-            · {TEMPLATES.find((t) => t.id === templateId)?.name}
           </span>
         </div>
 
+        {/* Workspace settings */}
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={density}
-            onChange={(e) => updateDensity(e.target.value as Density)}
-            title="Spacing"
-            className="rounded-lg border-2 border-neutral-900 bg-white px-2.5 py-1.5 text-xs font-bold text-neutral-800 focus:outline-none"
-          >
-            {DENSITIES.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name} spacing
-              </option>
-            ))}
-          </select>
+          {/* Template picker chip — also shows what's active */}
           <button
             type="button"
             onClick={() => setPhase("template")}
-            className="rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-800 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
+            title="Switch template"
+            className="group flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
           >
-            Templates
+            <span className="text-neutral-500">Template:</span>
+            <span>{TEMPLATES.find((t) => t.id === templateId)?.name ?? "Modern"}</span>
+            <svg width="10" height="10" viewBox="0 0 10 10" className="text-neutral-600">
+              <path d="M1 3 L5 7 L9 3" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
+
+          {/* Density as a 3-button group instead of an ugly native select */}
+          <div className="flex items-center rounded-lg border-2 border-neutral-900 bg-white p-0.5 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+            {DENSITIES.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => updateDensity(d.id as Density)}
+                title={`${d.name} spacing`}
+                className={`rounded-md px-2 py-1 text-[11px] font-bold capitalize transition-colors ${
+                  density === d.id
+                    ? "bg-neutral-900 text-white"
+                    : "text-neutral-600 hover:bg-neutral-100"
+                }`}
+              >
+                {d.name}
+              </button>
+            ))}
+          </div>
+
           <button
             type="button"
             onClick={reset}
-            className="rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-800 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
+            title="Clear and start from the sample"
+            className="rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-700 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
           >
             Reset
           </button>
+        </div>
+
+        {/* Primary actions */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={autoFormat}
             disabled={formatting}
-            className="rounded-lg border-2 border-neutral-900 bg-violet-500 px-3.5 py-1.5 text-sm font-bold text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+            className="flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-violet-500 px-3.5 py-1.5 text-sm font-bold text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
           >
-            {formatting ? "Formatting..." : "✨ Auto-format"}
+            <span aria-hidden>✨</span>
+            {formatting ? "Formatting..." : "Auto-format"}
           </button>
           <button
             type="button"
             onClick={() => window.print()}
-            className="rounded-lg border-2 border-neutral-900 bg-amber-300 px-4 py-1.5 text-sm font-bold text-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)]"
+            className="flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-amber-300 px-4 py-1.5 text-sm font-bold text-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)]"
           >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" />
+            </svg>
             Download PDF
           </button>
         </div>
       </header>
 
       {/* Body: edit / chat / ats (left) + preview (right) */}
-      <div className="flex flex-1 overflow-hidden bg-neutral-50">
-        <div className="flex w-full max-w-[480px] flex-col border-r-2 border-neutral-900 bg-white">
-          {/* Brutalist tab strip */}
-          <div className="flex gap-1.5 border-b-2 border-neutral-900 bg-neutral-100 p-1.5">
-            {(
-              [
-                { id: "edit", label: "Edit" },
-                { id: "chat", label: "Chat with coach" },
-                { id: "ats", label: "ATS / job match" },
-              ] as const
-            ).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTab(t.id)}
-                className={`flex-1 rounded-lg border-2 border-neutral-900 px-2 py-2 text-xs font-bold transition-transform ${
-                  tab === t.id
-                    ? "bg-violet-500 text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
-                    : "bg-white text-neutral-700 hover:bg-neutral-50 hover:translate-x-[1px] hover:translate-y-[1px]"
-                }`}
-                aria-pressed={tab === t.id}
-              >
-                {t.label}
-                {t.id === "chat" && messages.length > 0 && (
-                  <span
-                    className={`ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full border border-neutral-900 px-1 text-[10px] font-bold ${
-                      tab === t.id ? "bg-white text-violet-700" : "bg-violet-500 text-white"
+      <div className="flex flex-1 overflow-hidden bg-neutral-100">
+        <div className="flex w-full max-w-[460px] flex-col border-r-2 border-neutral-900 bg-white">
+          {/* Segmented tab control — single bordered shell with internal segments */}
+          <div className="border-b-2 border-neutral-900 bg-neutral-50 px-3 py-2.5">
+            <div
+              className="inline-flex w-full items-center rounded-xl border-2 border-neutral-900 bg-white p-0.5 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+              role="tablist"
+              aria-label="Resume tools"
+            >
+              {(
+                [
+                  { id: "edit", label: "Edit" },
+                  { id: "chat", label: "Coach" },
+                  { id: "ats", label: "Job match" },
+                ] as const
+              ).map((t) => {
+                const active = tab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setTab(t.id)}
+                    className={`relative flex-1 rounded-lg px-2 py-1.5 text-xs font-bold transition-colors ${
+                      active
+                        ? "bg-neutral-900 text-white"
+                        : "text-neutral-700 hover:bg-neutral-100"
                     }`}
                   >
-                    {messages.length}
-                  </span>
-                )}
-              </button>
-            ))}
+                    {t.label}
+                    {t.id === "chat" && messages.length > 0 && (
+                      <span
+                        className={`ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold ${
+                          active
+                            ? "bg-violet-400 text-neutral-900"
+                            : "bg-violet-500 text-white"
+                        }`}
+                      >
+                        {messages.length}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
           <div
             className={`flex-1 min-h-0 ${
-              tab === "chat" ? "p-3" : "overflow-y-auto px-4"
+              tab === "chat" ? "p-3" : "overflow-y-auto px-4 py-3"
             }`}
           >
             {tab === "edit" && <Editor data={data} onChange={updateData} />}
@@ -474,7 +514,21 @@ export default function JrsRoute() {
           </div>
         </div>
 
-        <PreviewPane data={data} templateId={templateId} density={densityFactor(density)} />
+        {/* Preview workspace */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex items-center justify-between border-b-2 border-neutral-900 bg-white px-4 py-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-neutral-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Live preview
+              <span className="text-neutral-400">·</span>
+              <span className="text-neutral-700">A4</span>
+              <span className="text-neutral-400">·</span>
+              <span className="capitalize text-neutral-700">{density} spacing</span>
+            </div>
+            <div className="text-[11px] font-bold text-neutral-400">Auto-saved</div>
+          </div>
+          <PreviewPane data={data} templateId={templateId} density={densityFactor(density)} />
+        </div>
       </div>
 
       {/* Print-only copy — portaled to <body> so print CSS can isolate it. */}
