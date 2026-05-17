@@ -30,6 +30,7 @@ import { Editor } from "~/components/jrs/editor";
 import { AtsPanel } from "~/components/jrs/ats-panel";
 import { WelcomeScreen, TemplatePicker } from "~/components/jrs/start-flow";
 import { ChatPanel } from "~/components/rsb/ChatPanel";
+import { Header } from "~/components/common/header";
 import type { ChatMsg as RsbChatMsg } from "~/lib/rsb/types";
 import {
   type ScriptedStep,
@@ -308,38 +309,44 @@ export default function JrsRoute() {
   // Phase 1 — welcome / continue.
   if (phase === "welcome") {
     return (
-      <WelcomeScreen
-        hasSaved={hasSaved}
-        onCreate={() => {
-          const fresh = starterResume();
-          setData(fresh);
-          saveResume(fresh);
-          setPhase("template");
-        }}
-        onContinue={() => {
-          setTab("edit");
-          setPhase("editor");
-        }}
-        onImported={(imported) => {
-          setData(imported);
-          saveResume(imported);
-          setPhase("template");
-        }}
-      />
+      <>
+        <Header />
+        <WelcomeScreen
+          hasSaved={hasSaved}
+          onCreate={() => {
+            const fresh = starterResume();
+            setData(fresh);
+            saveResume(fresh);
+            setPhase("template");
+          }}
+          onContinue={() => {
+            setTab("edit");
+            setPhase("editor");
+          }}
+          onImported={(imported) => {
+            setData(imported);
+            saveResume(imported);
+            setPhase("template");
+          }}
+        />
+      </>
     );
   }
 
   // Phase 2 — Canva-style template gallery.
   if (phase === "template") {
     return (
-      <TemplatePicker
-        onPick={(id) => {
-          updateTemplate(id);
-          setTab("edit");
-          setPhase("editor");
-        }}
-        onBack={() => setPhase("welcome")}
-      />
+      <>
+        <Header />
+        <TemplatePicker
+          onPick={(id) => {
+            updateTemplate(id);
+            setTab("edit");
+            setPhase("editor");
+          }}
+          onBack={() => setPhase("welcome")}
+        />
+      </>
     );
   }
 
@@ -347,32 +354,22 @@ export default function JrsRoute() {
     <div className="flex h-screen flex-col bg-white font-['Satoshi']">
       <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
 
-      {/* Top bar — three columns: brand · workspace settings · actions */}
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-neutral-900 bg-white px-4 py-2.5">
-        {/* Brand + current template */}
+      {/* Global studojo header — same as the rest of the site */}
+      <Header />
+
+      {/* JRS workspace subheader — sits under the global studojo Header.
+          Branding lives in the Header; this row is just the resume tools. */}
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-neutral-900 bg-neutral-50 px-4 py-2">
+        {/* Crumb + template chip */}
         <div className="flex items-center gap-2">
-          <a
-            href="/"
-            className="flex items-center gap-2 font-['Clash_Display'] text-lg font-extrabold text-neutral-900 hover:opacity-80"
-          >
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg border-2 border-neutral-900 bg-violet-500 text-white">
-              <span className="text-sm">S</span>
-            </span>
-            Studojo
-          </a>
           <span className="rounded-md border-2 border-neutral-900 bg-violet-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-violet-800">
             Resume Maker
           </span>
-        </div>
-
-        {/* Workspace settings */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Template picker chip — also shows what's active */}
           <button
             type="button"
             onClick={() => setPhase("template")}
             title="Switch template"
-            className="group flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
+            className="flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
           >
             <span className="text-neutral-500">Template:</span>
             <span>{TEMPLATES.find((t) => t.id === templateId)?.name ?? "Modern"}</span>
@@ -380,8 +377,10 @@ export default function JrsRoute() {
               <path d="M1 3 L5 7 L9 3" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
+        </div>
 
-          {/* Density as a 3-button group instead of an ugly native select */}
+        {/* Workspace settings */}
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center rounded-lg border-2 border-neutral-900 bg-white p-0.5 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
             {DENSITIES.map((d) => (
               <button
@@ -399,7 +398,6 @@ export default function JrsRoute() {
               </button>
             ))}
           </div>
-
           <button
             type="button"
             onClick={reset}

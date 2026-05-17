@@ -57,15 +57,6 @@ export function WelcomeScreen({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-amber-50 font-['Satoshi']">
-      <header className="flex items-center gap-2 px-5 py-4">
-        <a href="/" className="font-['Clash_Display'] text-lg font-extrabold text-neutral-900">
-          Studojo
-        </a>
-        <span className="rounded-md bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-700">
-          Resume Maker
-        </span>
-      </header>
-
       <div className="mx-auto flex max-w-[760px] flex-col items-center px-5 pb-16 pt-10 text-center sm:pt-16">
         <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border-2 border-neutral-900 bg-white px-3 py-1 text-xs font-bold text-neutral-700">
           <FiZap className="h-3.5 w-3.5 text-violet-600" /> Free · ATS-ready · no sign-up
@@ -177,20 +168,19 @@ export function TemplatePicker({
 
   return (
     <div className="min-h-screen bg-neutral-100 font-['Satoshi']">
-      <header className="flex items-center justify-between border-b-2 border-neutral-900 bg-white px-5 py-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-sm font-bold text-neutral-600 hover:text-neutral-900"
-        >
-          <FiArrowLeft className="h-4 w-4" /> Back
-        </button>
-        <span className="rounded-md bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-700">
-          Resume Maker
-        </span>
-      </header>
-
       <div className="mx-auto max-w-[1100px] px-5 py-10">
+        <div className="mb-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-700 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
+          >
+            <FiArrowLeft className="h-3.5 w-3.5" /> Back
+          </button>
+          <span className="rounded-md border-2 border-neutral-900 bg-violet-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-violet-800">
+            Resume Maker
+          </span>
+        </div>
         <h1 className="font-['Clash_Display'] text-3xl text-neutral-900">Pick a template</h1>
         <p className="mt-1.5 text-[15px] text-neutral-600">
           Click any template to start editing. You can switch anytime, your content carries over.
