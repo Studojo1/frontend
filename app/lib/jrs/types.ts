@@ -294,6 +294,46 @@ export function saveDensity(d: Density): void {
   }
 }
 
+// ── Chat persistence ────────────────────────────────────────────────────────
+export interface JrsChatMsg {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
+
+const CHAT_KEY = "jrs:chat:v1";
+
+export function loadChat(): JrsChatMsg[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CHAT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as JrsChatMsg[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveChat(messages: JrsChatMsg[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    // Cap stored history so localStorage can't blow up over time.
+    localStorage.setItem(CHAT_KEY, JSON.stringify(messages.slice(-40)));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function clearChat(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(CHAT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Flatten a resume to plain text — used for ATS keyword analysis. */
 export function resumeToText(d: ResumeData): string {
   const parts: string[] = [

@@ -7,6 +7,7 @@ import {
   type ResumeData,
   type TemplateId,
   type Density,
+  type JrsChatMsg,
   TEMPLATES,
   DENSITIES,
   densityFactor,
@@ -16,6 +17,9 @@ import {
   saveTemplate,
   loadDensity,
   saveDensity,
+  loadChat,
+  saveChat,
+  clearChat,
   starterResume,
   hasSavedResume,
 } from "~/lib/jrs/types";
@@ -23,6 +27,8 @@ import { ResumeTemplate } from "~/lib/jrs/templates";
 import { Editor } from "~/components/jrs/editor";
 import { AtsPanel } from "~/components/jrs/ats-panel";
 import { WelcomeScreen, TemplatePicker } from "~/components/jrs/start-flow";
+import { ChatPanel } from "~/components/rsb/ChatPanel";
+import type { ChatMsg as RsbChatMsg } from "~/lib/rsb/types";
 
 type Phase = "welcome" | "template" | "editor";
 
@@ -99,18 +105,87 @@ export default function JrsRoute() {
   const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<ResumeData>(() => starterResume());
   const [templateId, setTemplateId] = useState<TemplateId>("modern");
-  const [tab, setTab] = useState<"edit" | "ats">("edit");
+  const [tab, setTab] = useState<"edit" | "chat" | "ats">("edit");
   const [phase, setPhase] = useState<Phase>("welcome");
   const [hasSaved, setHasSaved] = useState(false);
   const [formatting, setFormatting] = useState(false);
   const [density, setDensity] = useState<Density>("normal");
+  const [messages, setMessages] = useState<JrsChatMsg[]>([]);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     setData(loadResume());
     setTemplateId(loadTemplate());
     setDensity(loadDensity());
     setHasSaved(hasSavedResume());
+    setMessages(loadChat());
     setMounted(true);
+  }, []);
+
+  const sendChat = useCallback(
+    async (text: string) => {
+      if (sending || !text.trim()) return;
+      const userMsg: JrsChatMsg = {
+        id: `u_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        role: "user",
+        content: text.trim(),
+      };
+      const next = [...messages, userMsg];
+      setMessages(next);
+      saveChat(next);
+      setSending(true);
+      try {
+        const res = await fetch("/api/jrs/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: next.map((m) => ({ role: m.role, content: m.content })),
+            data,
+          }),
+        });
+        const json = await res.json();
+        if (res.ok && json.reply) {
+          const botMsg: JrsChatMsg = {
+            id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            role: "assistant",
+            content: json.reply,
+          };
+          const after = [...next, botMsg];
+          setMessages(after);
+          saveChat(after);
+          if (json.data) {
+            setData(json.data);
+            saveResume(json.data);
+          }
+        } else {
+          const errMsg: JrsChatMsg = {
+            id: `e_${Date.now()}`,
+            role: "assistant",
+            content: json.error || "I couldn't send that. Try again in a moment.",
+          };
+          const after = [...next, errMsg];
+          setMessages(after);
+          saveChat(after);
+        }
+      } catch {
+        const errMsg: JrsChatMsg = {
+          id: `e_${Date.now()}`,
+          role: "assistant",
+          content: "Couldn't reach the coach. Check your connection and try again.",
+        };
+        const after = [...next, errMsg];
+        setMessages(after);
+        saveChat(after);
+      } finally {
+        setSending(false);
+      }
+    },
+    [data, messages, sending],
+  );
+
+  const resetChat = useCallback(() => {
+    setMessages([]);
+    clearChat();
   }, []);
 
   const updateDensity = useCallback((d: Density) => {
@@ -208,42 +283,27 @@ export default function JrsRoute() {
     <div className="flex h-screen flex-col bg-white font-['Satoshi']">
       <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
 
-      {/* Top bar */}
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-neutral-900 bg-white px-4 py-2.5">
+      {/* Top bar — brutalist, decluttered. The template pill rail is gone:
+          use the "Templates" button to open the full gallery. */}
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-neutral-900 bg-white px-4 py-3">
         <div className="flex items-center gap-2">
-          <a href="/" className="font-['Clash_Display'] text-lg font-extrabold text-neutral-900">
+          <a href="/" className="font-['Clash_Display'] text-lg font-extrabold text-neutral-900 hover:underline">
             Studojo
           </a>
-          <span className="rounded-md bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-700">
+          <span className="rounded-md border-2 border-neutral-900 bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-800">
             Resume Maker
+          </span>
+          <span className="hidden text-xs font-semibold text-neutral-500 md:inline">
+            · {TEMPLATES.find((t) => t.id === templateId)?.name}
           </span>
         </div>
 
-        {/* Template switcher */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          {TEMPLATES.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => updateTemplate(t.id)}
-              title={t.blurb}
-              className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition-colors ${
-                templateId === t.id
-                  ? "border-neutral-900 bg-violet-500 text-white"
-                  : "border-neutral-300 bg-white text-neutral-600 hover:border-neutral-900"
-              }`}
-            >
-              {t.name}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <select
             value={density}
             onChange={(e) => updateDensity(e.target.value as Density)}
             title="Spacing"
-            className="rounded-lg border border-neutral-300 px-2 py-1.5 text-xs font-semibold text-neutral-600 hover:border-neutral-900 focus:outline-none"
+            className="rounded-lg border-2 border-neutral-900 bg-white px-2.5 py-1.5 text-xs font-bold text-neutral-800 focus:outline-none"
           >
             {DENSITIES.map((d) => (
               <option key={d.id} value={d.id}>
@@ -254,14 +314,14 @@ export default function JrsRoute() {
           <button
             type="button"
             onClick={() => setPhase("template")}
-            className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:border-neutral-900"
+            className="rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-800 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
           >
             Templates
           </button>
           <button
             type="button"
             onClick={reset}
-            className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:border-neutral-900"
+            className="rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-800 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
           >
             Reset
           </button>
@@ -283,31 +343,69 @@ export default function JrsRoute() {
         </div>
       </header>
 
-      {/* Body: editor/ats (left) + preview (right) */}
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex w-full max-w-[460px] flex-col border-r-2 border-neutral-900">
-          {/* Tabs */}
-          <div className="flex border-b border-neutral-200">
-            {(["edit", "ats"] as const).map((t) => (
+      {/* Body: edit / chat / ats (left) + preview (right) */}
+      <div className="flex flex-1 overflow-hidden bg-neutral-50">
+        <div className="flex w-full max-w-[480px] flex-col border-r-2 border-neutral-900 bg-white">
+          {/* Brutalist tab strip */}
+          <div className="flex gap-1.5 border-b-2 border-neutral-900 bg-neutral-100 p-1.5">
+            {(
+              [
+                { id: "edit", label: "Edit" },
+                { id: "chat", label: "Chat with coach" },
+                { id: "ats", label: "ATS / job match" },
+              ] as const
+            ).map((t) => (
               <button
-                key={t}
+                key={t.id}
                 type="button"
-                onClick={() => setTab(t)}
-                className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
-                  tab === t
-                    ? "border-b-2 border-violet-600 text-violet-700"
-                    : "text-neutral-500 hover:text-neutral-800"
+                onClick={() => setTab(t.id)}
+                className={`flex-1 rounded-lg border-2 border-neutral-900 px-2 py-2 text-xs font-bold transition-transform ${
+                  tab === t.id
+                    ? "bg-violet-500 text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                    : "bg-white text-neutral-700 hover:bg-neutral-50 hover:translate-x-[1px] hover:translate-y-[1px]"
                 }`}
+                aria-pressed={tab === t.id}
               >
-                {t === "edit" ? "Edit resume" : "ATS / job match"}
+                {t.label}
+                {t.id === "chat" && messages.length > 0 && (
+                  <span
+                    className={`ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full border border-neutral-900 px-1 text-[10px] font-bold ${
+                      tab === t.id ? "bg-white text-violet-700" : "bg-violet-500 text-white"
+                    }`}
+                  >
+                    {messages.length}
+                  </span>
+                )}
               </button>
             ))}
           </div>
-          <div className="flex-1 overflow-y-auto px-4">
-            {tab === "edit" ? (
-              <Editor data={data} onChange={updateData} />
-            ) : (
-              <AtsPanel data={data} />
+          <div
+            className={`flex-1 min-h-0 ${
+              tab === "chat" ? "p-3" : "overflow-y-auto px-4"
+            }`}
+          >
+            {tab === "edit" && <Editor data={data} onChange={updateData} />}
+            {tab === "ats" && <AtsPanel data={data} />}
+            {tab === "chat" && (
+              <div className="flex h-full flex-col gap-2">
+                <ChatPanel
+                  messages={messages as unknown as RsbChatMsg[]}
+                  step={null}
+                  onSend={sendChat}
+                  sending={sending}
+                  onGenerate={() => {}}
+                  generating={false}
+                />
+                {messages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={resetChat}
+                    className="self-end rounded-md border-2 border-neutral-900 bg-white px-2.5 py-1 text-[11px] font-bold text-neutral-600 hover:bg-neutral-50"
+                  >
+                    Clear chat
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
