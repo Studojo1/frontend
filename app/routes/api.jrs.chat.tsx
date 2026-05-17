@@ -1,7 +1,10 @@
-// JRS conversational resume coach. Takes the chat history + current
-// resume data, returns the assistant's next reply plus updated resume
-// data the client can apply live.
+// JRS conversational resume coach.
+//
+// Token-optimised model: instead of writing the whole resume back every turn,
+// the LLM emits a short list of OPS. The server validates and applies them,
+// returning both the ops (small) and the final data (for the client to use).
 import type { Route } from "./+types/api.jrs.chat";
+import { applyOps, compactResume, type Op } from "~/lib/jrs/coach";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -10,30 +13,34 @@ interface InMsg {
   content: string;
 }
 
-const SYSTEM_PROMPT = `You are Studojo's resume coach. You interview a student to fill in their resume, one focused question at a time.
+const SYSTEM_PROMPT = `You are Studojo's resume coach. You help a student fill in their resume one focused question at a time.
 
-Voice
-- Direct, warm, a smart friend who's already been through this. No corporate talk.
-- Short messages. One or two sentences. One question per turn.
-- Never use em dashes (—). Use commas or line breaks instead.
+VOICE
+- Direct, warm, like a smart friend. No corporate talk.
+- One or two short sentences. One question per turn.
+- Never use em dashes (—). Use commas instead.
 
-How you work
-- You receive the user's current resume as JSON (CURRENT_RESUME) and the conversation so far.
-- When the user gives you new information, update the resume and return the FULL updated JSON.
-- If they just said hi, ask what role they're targeting first, then their name.
-- Ask in this rough order: target role -> name + contact -> most recent experience (with bullets that include numbers) -> projects -> education -> skills -> 2-3 line summary.
-- When a bullet is vague ("worked on dashboards"), ask one follow-up to get a number or outcome.
-- Never invent facts. If they haven't told you something, leave that field as it was.
-- If they say "skip" or "next", move on without inventing.
-- When the resume looks complete, say so and suggest running Auto-format or pasting a JD into ATS / job match.
+HOW IT WORKS
+- The user's current resume is below as CURRENT_RESUME (compact JSON, may omit empty fields).
+- When the user tells you something new, return ONE or more OPS that update the resume. If nothing changed, return an empty ops array.
+- Push for numbers/outcomes in bullets. If a bullet is vague, ask one follow-up.
+- Never invent facts. If the user said "skip" or "next", just move on with no ops.
+- Don't ask about info already on the resume.
 
-Output
-You MUST return a JSON object with EXACTLY this shape:
+OPS SCHEMA — emit only these shapes:
+  { "op":"set", "path":"basics.name", "value":"Aanya Sharma" }
+  { "op":"set", "path":"basics.title|email|phone|location|website|linkedin", "value":"..." }
+  { "op":"set", "path":"summary", "value":"..." }
+  { "op":"add", "path":"experience|education|projects|skills", "value":{ ...item fields... } }
+  { "op":"update", "path":"experience.<id>", "value":{ ...partial fields... } }
+  { "op":"remove", "path":"experience.<id>" }
+
+OUTPUT
+Return strict JSON only:
 {
   "reply": "your short message to the user",
-  "data": <the full updated ResumeData object>
-}
-Always return data — if nothing changed, return the resume exactly as you received it.`;
+  "ops": [ ... ops here, [] if nothing changed ... ]
+}`;
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
@@ -59,17 +66,20 @@ export async function action({ request }: Route.ActionArgs) {
     return Response.json({ error: "Resume data is required" }, { status: 400 });
   }
 
-  // Keep prompt size bounded — last 16 turns is plenty of context.
-  const trimmed = messages.slice(-16).map((m) => ({
+  // Keep prompt size bounded — 8 turns is plenty for context.
+  const trimmed = messages.slice(-8).map((m) => ({
     role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
-    content: String(m.content || "").slice(0, 2000),
+    content: String(m.content || "").slice(0, 1500),
   }));
+
+  // Send a compact projection: no empty fields, no starter values.
+  const compact = compactResume(data);
 
   const oaiMessages = [
     { role: "system" as const, content: SYSTEM_PROMPT },
     {
       role: "system" as const,
-      content: `CURRENT_RESUME:\n${JSON.stringify(data).slice(0, 8000)}`,
+      content: `CURRENT_RESUME:\n${JSON.stringify(compact)}`,
     },
     ...trimmed,
   ];
@@ -88,7 +98,9 @@ export async function action({ request }: Route.ActionArgs) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         temperature: 0.4,
-        max_tokens: 2200,
+        // Reply + ops is small. 500 tokens is plenty unless the LLM dumps a
+        // huge summary/experience all at once.
+        max_tokens: 500,
         response_format: { type: "json_object" },
         messages: oaiMessages,
       }),
@@ -122,24 +134,24 @@ export async function action({ request }: Route.ActionArgs) {
       return Response.json({ error: "Empty coach reply" }, { status: 502 });
     }
 
-    // Strip em/en dashes the model might still slip in.
+    // Em/en dash cleanup.
     const cleanReply = reply
       .replace(/ — /g, ", ")
       .replace(/ – /g, ", ")
       .replace(/—/g, ",")
       .replace(/–/g, ",");
 
-    // The returned data should be the full ResumeData. If it's missing or
-    // structurally wrong, fall back to the original so we never corrupt state.
-    const next =
-      parsed.data &&
-      typeof parsed.data === "object" &&
-      parsed.data.basics &&
-      Array.isArray(parsed.data.experience)
-        ? parsed.data
-        : data;
+    // Validate ops shape: must be an array; each item is an object with `op`
+    // and `path` strings. Apply server-side so the client gets clean data.
+    const rawOps: Op[] = Array.isArray(parsed.ops)
+      ? parsed.ops.filter(
+          (o: any) =>
+            o && typeof o === "object" && typeof o.op === "string" && typeof o.path === "string",
+        )
+      : [];
+    const next = applyOps(data, rawOps);
 
-    return Response.json({ reply: cleanReply, data: next });
+    return Response.json({ reply: cleanReply, ops: rawOps, data: next });
   } catch (error: any) {
     if (error?.name === "AbortError") {
       console.error("[jrs-chat] OpenAI request timed out");

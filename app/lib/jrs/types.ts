@@ -334,6 +334,30 @@ export function clearChat(): void {
   }
 }
 
+// ── Scripted-coach step persistence ─────────────────────────────────────────
+// String form of the current scripted step ("name" | "title" | ...). When
+// null/missing, the chat runs in LLM mode.
+const SCRIPT_STEP_KEY = "jrs:script-step:v1";
+
+export function loadScriptStep(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(SCRIPT_STEP_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function saveScriptStep(step: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (step) localStorage.setItem(SCRIPT_STEP_KEY, step);
+    else localStorage.removeItem(SCRIPT_STEP_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Flatten a resume to plain text — used for ATS keyword analysis. */
 export function resumeToText(d: ResumeData): string {
   const parts: string[] = [

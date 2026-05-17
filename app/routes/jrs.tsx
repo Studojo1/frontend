@@ -20,6 +20,8 @@ import {
   loadChat,
   saveChat,
   clearChat,
+  loadScriptStep,
+  saveScriptStep,
   starterResume,
   hasSavedResume,
 } from "~/lib/jrs/types";
@@ -29,6 +31,16 @@ import { AtsPanel } from "~/components/jrs/ats-panel";
 import { WelcomeScreen, TemplatePicker } from "~/components/jrs/start-flow";
 import { ChatPanel } from "~/components/rsb/ChatPanel";
 import type { ChatMsg as RsbChatMsg } from "~/lib/rsb/types";
+import {
+  type ScriptedStep,
+  type Op,
+  nextScriptedStep,
+  scriptedQuestion,
+  applyScripted,
+  smartOpener,
+  applyOps,
+  KICKOFF_AFTER_BASICS,
+} from "~/lib/jrs/coach";
 
 type Phase = "welcome" | "template" | "editor";
 
@@ -112,6 +124,27 @@ export default function JrsRoute() {
   const [density, setDensity] = useState<Density>("normal");
   const [messages, setMessages] = useState<JrsChatMsg[]>([]);
   const [sending, setSending] = useState(false);
+  // Scripted-coach state. When non-null, the user's next message is treated
+  // as an answer to a known basic field — no LLM call needed.
+  const [scriptStep, setScriptStep] = useState<ScriptedStep>(null);
+  // True once the user has opened the Chat tab; we drop the opener message
+  // only at that point so we don't burn a slot if they never use chat.
+  const [chatPrimed, setChatPrimed] = useState(false);
+
+  const pushBot = useCallback(
+    (content: string, current: JrsChatMsg[]): JrsChatMsg[] => {
+      const msg: JrsChatMsg = {
+        id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        role: "assistant",
+        content,
+      };
+      const next = [...current, msg];
+      setMessages(next);
+      saveChat(next);
+      return next;
+    },
+    [],
+  );
 
   useEffect(() => {
     setData(loadResume());
@@ -119,73 +152,104 @@ export default function JrsRoute() {
     setDensity(loadDensity());
     setHasSaved(hasSavedResume());
     setMessages(loadChat());
+    setScriptStep((loadScriptStep() as ScriptedStep) || null);
     setMounted(true);
   }, []);
 
+  // First-open opener: only when the user actually visits the Chat tab and
+  // there's no chat history yet. Cheap because it's scripted, not an LLM call.
+  useEffect(() => {
+    if (!mounted) return;
+    if (tab !== "chat" || chatPrimed) return;
+    setChatPrimed(true);
+    if (messages.length > 0) return;
+    const step = nextScriptedStep(data);
+    if (step) {
+      setScriptStep(step);
+      saveScriptStep(step);
+      pushBot(scriptedQuestion(step, data), []);
+    } else {
+      saveScriptStep(null);
+      pushBot(smartOpener(data), []);
+    }
+  }, [mounted, tab, chatPrimed, messages.length, data, pushBot]);
+
   const sendChat = useCallback(
     async (text: string) => {
-      if (sending || !text.trim()) return;
+      const t = text.trim();
+      if (!t || sending) return;
+
       const userMsg: JrsChatMsg = {
         id: `u_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         role: "user",
-        content: text.trim(),
+        content: t,
       };
-      const next = [...messages, userMsg];
-      setMessages(next);
-      saveChat(next);
+      const afterUser = [...messages, userMsg];
+      setMessages(afterUser);
+      saveChat(afterUser);
+
+      // ── Scripted path: zero LLM cost ───────────────────────────────────
+      if (scriptStep) {
+        const patched = applyScripted(scriptStep, t, data);
+        setData(patched);
+        saveResume(patched);
+        const nextStep = nextScriptedStep(patched);
+        if (nextStep) {
+          setScriptStep(nextStep);
+          saveScriptStep(nextStep);
+          pushBot(scriptedQuestion(nextStep, patched), afterUser);
+        } else {
+          setScriptStep(null);
+          saveScriptStep(null);
+          pushBot(KICKOFF_AFTER_BASICS, afterUser);
+        }
+        return;
+      }
+
+      // ── LLM path: ops model, compact resume in ─────────────────────────
       setSending(true);
       try {
         const res = await fetch("/api/jrs/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages: next.map((m) => ({ role: m.role, content: m.content })),
+            messages: afterUser.map((m) => ({ role: m.role, content: m.content })),
             data,
           }),
         });
         const json = await res.json();
         if (res.ok && json.reply) {
-          const botMsg: JrsChatMsg = {
-            id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            role: "assistant",
-            content: json.reply,
-          };
-          const after = [...next, botMsg];
-          setMessages(after);
-          saveChat(after);
-          if (json.data) {
+          if (Array.isArray(json.ops) && json.ops.length > 0) {
+            const nextData = applyOps(data, json.ops as Op[]);
+            setData(nextData);
+            saveResume(nextData);
+          } else if (json.data) {
+            // Server-applied fallback if ops were missing.
             setData(json.data);
             saveResume(json.data);
           }
+          pushBot(json.reply, afterUser);
         } else {
-          const errMsg: JrsChatMsg = {
-            id: `e_${Date.now()}`,
-            role: "assistant",
-            content: json.error || "I couldn't send that. Try again in a moment.",
-          };
-          const after = [...next, errMsg];
-          setMessages(after);
-          saveChat(after);
+          pushBot(
+            json.error || "I couldn't send that. Try again in a moment.",
+            afterUser,
+          );
         }
       } catch {
-        const errMsg: JrsChatMsg = {
-          id: `e_${Date.now()}`,
-          role: "assistant",
-          content: "Couldn't reach the coach. Check your connection and try again.",
-        };
-        const after = [...next, errMsg];
-        setMessages(after);
-        saveChat(after);
+        pushBot("Couldn't reach the coach. Check your connection and try again.", afterUser);
       } finally {
         setSending(false);
       }
     },
-    [data, messages, sending],
+    [data, messages, sending, scriptStep, pushBot],
   );
 
   const resetChat = useCallback(() => {
     setMessages([]);
     clearChat();
+    setScriptStep(null);
+    saveScriptStep(null);
+    setChatPrimed(false);
   }, []);
 
   const updateDensity = useCallback((d: Density) => {
