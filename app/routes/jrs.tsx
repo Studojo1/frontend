@@ -313,6 +313,8 @@ export default function JrsRoute() {
         <Header />
         <WelcomeScreen
           hasSaved={hasSaved}
+          savedData={hasSaved ? data : undefined}
+          savedTemplate={hasSaved ? templateId : undefined}
           onCreate={() => {
             const fresh = starterResume();
             setData(fresh);

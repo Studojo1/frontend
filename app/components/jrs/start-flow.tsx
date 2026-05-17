@@ -5,14 +5,15 @@ import { useRef, useState } from "react";
 import {
   FiArrowRight,
   FiArrowLeft,
-  FiCheck,
+  FiUploadCloud,
+  FiFileText,
   FiZap,
   FiClock,
-  FiFileText,
-  FiUploadCloud,
 } from "react-icons/fi";
 import { type ResumeData, type TemplateId, TEMPLATES, starterResume } from "~/lib/jrs/types";
 import { ResumeTemplate } from "~/lib/jrs/templates";
+import { Footer } from "~/components/common/footer";
+import { ImportingModal } from "~/components/jrs/importing-modal";
 
 const PAPER_W = 794;
 const PAPER_H = 1123;
@@ -20,94 +21,133 @@ const PAPER_H = 1123;
 // ─── Welcome ────────────────────────────────────────────────────────────────
 export function WelcomeScreen({
   hasSaved,
+  savedData,
+  savedTemplate,
   onCreate,
   onContinue,
   onImported,
 }: {
   hasSaved: boolean;
+  savedData?: ResumeData;
+  savedTemplate?: TemplateId;
   onCreate: () => void;
   onContinue: () => void;
   onImported: (data: ResumeData) => void;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
+  const [importFileName, setImportFileName] = useState<string>("");
   const [importError, setImportError] = useState("");
 
   const handleFiles = async (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
     setImporting(true);
     setImportError("");
+    setImportFileName(fileList.length === 1 ? fileList[0].name : `${fileList.length} files`);
     try {
       const fd = new FormData();
       Array.from(fileList).forEach((f) => fd.append("files", f));
       const res = await fetch("/api/jrs/import", { method: "POST", body: fd });
       const json = await res.json();
       if (res.ok && json.data) {
+        setImporting(false);
         onImported(json.data as ResumeData);
       } else {
-        setImportError(json.error || "Couldn't import that file. Try another.");
+        setImporting(false);
+        setImportError(json.error || "We couldn't read that file. Try a clearer PDF or screenshot.");
       }
     } catch {
+      setImporting(false);
       setImportError("Upload failed. Check your connection and try again.");
     } finally {
-      setImporting(false);
       if (fileRef.current) fileRef.current.value = "";
     }
   };
 
+  const triggerUpload = () => fileRef.current?.click();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-amber-50 font-['Satoshi']">
-      <div className="mx-auto flex max-w-[760px] flex-col items-center px-5 pb-16 pt-10 text-center sm:pt-16">
-        <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border-2 border-neutral-900 bg-white px-3 py-1 text-xs font-bold text-neutral-700">
-          <FiZap className="h-3.5 w-3.5 text-violet-600" /> Free · ATS-ready · no sign-up
-        </span>
+    <div className="flex min-h-[calc(100vh-6rem)] flex-col bg-neutral-50 font-['Satoshi']">
+      <ImportingModal
+        open={importing}
+        fileName={importFileName}
+        error={importError}
+        onDismiss={() => setImportError("")}
+      />
 
-        <h1 className="font-['Clash_Display'] text-4xl leading-[1.1] text-neutral-900 sm:text-5xl">
-          Build a resume that
-          <br />
-          actually gets callbacks.
-        </h1>
-        <p className="mt-4 max-w-[520px] text-[15px] text-neutral-600">
-          Pick a template, fill in your details with a live preview beside you, and download a
-          clean PDF. Most students finish in under 10 minutes.
-        </p>
-
-        <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
-          <button
-            type="button"
-            onClick={onCreate}
-            className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-violet-500 px-7 py-3.5 text-base font-bold text-white shadow-[5px_5px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
-          >
-            {hasSaved ? "Start a new resume" : "Create my resume"}
-            <FiArrowRight />
-          </button>
-          {hasSaved && (
-            <button
-              type="button"
-              onClick={onContinue}
-              className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-7 py-3.5 text-base font-bold text-neutral-800 shadow-[5px_5px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
-            >
-              Continue where you left off
-            </button>
-          )}
+      <div className="mx-auto flex w-full max-w-[var(--section-max-width,1200px)] flex-1 flex-col px-5 py-10 sm:px-8 sm:py-14">
+        <div className="text-center">
+          <h1 className="font-['Clash_Display'] text-4xl leading-[1.05] text-neutral-900 sm:text-5xl">
+            Build a resume that
+            <br />
+            actually gets callbacks.
+          </h1>
+          <p className="mx-auto mt-4 max-w-[520px] text-[15px] text-neutral-600">
+            Pick a template, fill in your details with a live preview beside you, and download a
+            clean PDF. Most students finish in under 10 minutes.
+          </p>
         </div>
 
-        <div className="mt-5 flex flex-col items-center gap-1.5">
+        {/* Saved resume — Canva-style "your design" card. */}
+        {hasSaved && savedData && savedTemplate && (
+          <div className="mx-auto mt-10 w-full max-w-[640px]">
+            <p className="mb-2 ml-1 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+              Your resume
+            </p>
+            <div className="flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[5px_5px_0px_0px_rgba(25,26,35,1)] sm:flex-row">
+              <SavedThumb data={savedData} templateId={savedTemplate} />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <h2 className="truncate font-['Clash_Display'] text-2xl text-neutral-900">
+                  {savedData.basics.name?.trim() || "Untitled resume"}
+                </h2>
+                <p className="mt-0.5 text-sm text-neutral-500">
+                  {TEMPLATES.find((t) => t.id === savedTemplate)?.name ?? "Modern"} template
+                </p>
+                <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                  <button
+                    type="button"
+                    onClick={onContinue}
+                    className="flex items-center gap-1.5 rounded-xl border-2 border-neutral-900 bg-violet-500 px-5 py-2.5 text-sm font-bold text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    Continue editing <FiArrowRight />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onCreate}
+                    className="rounded-xl border-2 border-neutral-900 bg-white px-5 py-2.5 text-sm font-bold text-neutral-800 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    Start a new one
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Primary actions for users without a saved resume. */}
+        {!hasSaved && (
+          <div className="mt-10 flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={onCreate}
+              className="flex items-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 px-7 py-3.5 text-base font-bold text-white shadow-[5px_5px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+            >
+              Create my resume
+              <FiArrowRight />
+            </button>
+          </div>
+        )}
+
+        {/* Import option — secondary affordance. */}
+        <div className="mx-auto mt-8 w-full max-w-[640px]">
           <button
             type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={importing}
-            className="flex items-center gap-2 rounded-lg border-2 border-dashed border-neutral-400 bg-white px-5 py-2.5 text-sm font-bold text-neutral-700 transition-colors hover:border-neutral-900 hover:bg-neutral-50 disabled:opacity-60"
+            onClick={triggerUpload}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-400 bg-white px-5 py-4 text-sm font-bold text-neutral-700 transition-colors hover:border-neutral-900 hover:bg-neutral-50"
           >
             <FiUploadCloud className="h-4 w-4 text-violet-600" />
-            {importing ? "Reading your resume..." : "Import a resume or LinkedIn screenshots"}
+            Have a resume already? Import a PDF or LinkedIn screenshots
           </button>
-          <p className="text-xs text-neutral-400">
-            PDF resume or LinkedIn profile screenshots, we'll fill it in for you.
-          </p>
-          {importError && (
-            <p className="text-xs font-semibold text-rose-600">{importError}</p>
-          )}
           <input
             ref={fileRef}
             type="file"
@@ -118,21 +158,41 @@ export function WelcomeScreen({
           />
         </div>
 
-        <div className="mt-12 grid w-full max-w-[560px] grid-cols-1 gap-3 sm:grid-cols-3">
+        {/* Light feature row — no marketing pills, just three quick reassurances. */}
+        <div className="mx-auto mt-10 grid w-full max-w-[640px] grid-cols-1 gap-3 sm:grid-cols-3">
           {[
-            { icon: FiFileText, label: "5 clean templates" },
-            { icon: FiCheck, label: "ATS & job-match check" },
-            { icon: FiClock, label: "Live preview, instant PDF" },
+            { icon: FiFileText, label: "9 clean templates" },
+            { icon: FiZap, label: "Coach + Auto-format" },
+            { icon: FiClock, label: "Free, instant PDF" },
           ].map((f) => (
             <div
               key={f.label}
-              className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-white px-3 py-3 text-left"
+              className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-3"
             >
               <f.icon className="h-4 w-4 flex-shrink-0 text-violet-600" />
               <span className="text-xs font-bold text-neutral-700">{f.label}</span>
             </div>
           ))}
         </div>
+      </div>
+
+      <Footer />
+    </div>
+  );
+}
+
+// ─── Saved-resume thumbnail (left of the saved card) ─────────────────────────
+function SavedThumb({ data, templateId }: { data: ResumeData; templateId: TemplateId }) {
+  const thumbW = 170;
+  const scale = thumbW / PAPER_W;
+  return (
+    <div
+      className="flex-shrink-0 overflow-hidden rounded-lg border-2 border-neutral-900 bg-white"
+      style={{ width: thumbW, height: PAPER_H * scale }}
+      aria-hidden="true"
+    >
+      <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: PAPER_W }}>
+        <ResumeTemplate id={templateId} data={data} />
       </div>
     </div>
   );
@@ -167,8 +227,8 @@ export function TemplatePicker({
   const sample = starterResume();
 
   return (
-    <div className="min-h-screen bg-neutral-100 font-['Satoshi']">
-      <div className="mx-auto max-w-[1100px] px-5 py-10">
+    <div className="flex min-h-[calc(100vh-6rem)] flex-col bg-neutral-100 font-['Satoshi']">
+      <div className="mx-auto w-full max-w-[var(--section-max-width,1200px)] flex-1 px-5 py-10 sm:px-8">
         <div className="mb-4 flex items-center justify-between">
           <button
             type="button"
@@ -208,6 +268,8 @@ export function TemplatePicker({
           ))}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
