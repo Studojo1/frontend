@@ -225,6 +225,20 @@ export function hasSavedResume(): boolean {
   }
 }
 
+/**
+ * True if the resume looks like the untouched starter sample. We treat this
+ * as "no real saved resume" so the welcome screen doesn't greet the user
+ * back as "Aanya Sharma".
+ */
+export function isStarterSample(d: ResumeData): boolean {
+  const b = d.basics;
+  return (
+    b.name === "Aanya Sharma" &&
+    b.email === "aanya.sharma@email.com" &&
+    b.linkedin === "linkedin.com/in/aanyasharma"
+  );
+}
+
 /** Wipe the saved resume (used by "start over"). */
 export function clearSavedResume(): void {
   if (typeof window === "undefined") return;

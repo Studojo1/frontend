@@ -24,6 +24,7 @@ import {
   saveScriptStep,
   starterResume,
   hasSavedResume,
+  isStarterSample,
 } from "~/lib/jrs/types";
 import { ResumeTemplate } from "~/lib/jrs/templates";
 import { Editor } from "~/components/jrs/editor";
@@ -148,10 +149,13 @@ export default function JrsRoute() {
   );
 
   useEffect(() => {
-    setData(loadResume());
+    const loaded = loadResume();
+    setData(loaded);
     setTemplateId(loadTemplate());
     setDensity(loadDensity());
-    setHasSaved(hasSavedResume());
+    // Only treat as "saved" if it's NOT the starter sample. Otherwise the
+    // welcome card would greet new users back as Aanya Sharma.
+    setHasSaved(hasSavedResume() && !isStarterSample(loaded));
     setMessages(loadChat());
     setScriptStep((loadScriptStep() as ScriptedStep) || null);
     setMounted(true);
@@ -316,9 +320,11 @@ export default function JrsRoute() {
           savedData={hasSaved ? data : undefined}
           savedTemplate={hasSaved ? templateId : undefined}
           onCreate={() => {
-            const fresh = starterResume();
-            setData(fresh);
-            saveResume(fresh);
+            // Set state to the starter sample but DO NOT persist it. We only
+            // save once the user actually edits something — that way the
+            // "Welcome back" card won't show until there's real content.
+            setData(starterResume());
+            setHasSaved(false);
             setPhase("template");
           }}
           onContinue={() => {
