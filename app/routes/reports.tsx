@@ -44,7 +44,7 @@ const REPORTS = [
     title: "The LinkedIn Profile Report: What Hiring Managers Look At",
     subtitle: "LinkedIn Profile · 2026",
     excerpt: "Your resume gets fifteen seconds. Your LinkedIn often gets less. This report maps the exact order hiring managers scan a profile, the signals that earn a second look, and practical templates for headline, about, and experience sections you can update in one sitting.",
-    category: "Career",
+    category: "LinkedIn",
     type: "Sector" as ReportType,
     date: "May 2026",
     findings: 5,
