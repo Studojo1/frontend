@@ -8,6 +8,23 @@ import { applyOps, compactResume, type Op } from "~/lib/jrs/coach";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
+/**
+ * Build a short human-readable reply from an ops list, used as a fallback
+ * when the model returns ops without a reply.
+ */
+function summariseOps(ops: Op[]): string {
+  if (ops.length === 0) return "Got it.";
+  const added = ops.filter((o) => o.op === "add").length;
+  const updated = ops.filter((o) => o.op === "update" || o.op === "set").length;
+  const removed = ops.filter((o) => o.op === "remove").length;
+  const parts: string[] = [];
+  if (added) parts.push(`added ${added} item${added === 1 ? "" : "s"}`);
+  if (updated) parts.push(`updated ${updated} field${updated === 1 ? "" : "s"}`);
+  if (removed) parts.push(`removed ${removed} item${removed === 1 ? "" : "s"}`);
+  const summary = parts.length ? parts.join(", ") : "made some changes";
+  return `Got it, ${summary}. What's next?`;
+}
+
 interface InMsg {
   role: "user" | "assistant";
   content: string;
@@ -38,9 +55,13 @@ OPS SCHEMA — emit only these shapes:
 OUTPUT
 Return strict JSON only:
 {
-  "reply": "your short message to the user",
+  "reply": "your short message to the user (REQUIRED, never empty, even when only adding data — e.g. 'Got it, added Blip Store. What did you build there?')",
   "ops": [ ... ops here, [] if nothing changed ... ]
-}`;
+}
+
+The "reply" field must ALWAYS be a non-empty sentence. If you're adding or
+updating data, briefly acknowledge what you did, then ask the next focused
+question. Never return an empty reply.`;
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
@@ -129,17 +150,8 @@ export async function action({ request }: Route.ActionArgs) {
       return Response.json({ error: "Coach response was malformed" }, { status: 502 });
     }
 
-    const reply: string = typeof parsed.reply === "string" ? parsed.reply.trim() : "";
-    if (!reply) {
-      return Response.json({ error: "Empty coach reply" }, { status: 502 });
-    }
-
-    // Em/en dash cleanup.
-    const cleanReply = reply
-      .replace(/ — /g, ", ")
-      .replace(/ – /g, ", ")
-      .replace(/—/g, ",")
-      .replace(/–/g, ",");
+    const reply: string =
+      typeof parsed.reply === "string" ? parsed.reply.trim() : "";
 
     // Validate ops shape: must be an array; each item is an object with `op`
     // and `path` strings. Apply server-side so the client gets clean data.
@@ -150,6 +162,28 @@ export async function action({ request }: Route.ActionArgs) {
         )
       : [];
     const next = applyOps(data, rawOps);
+
+    // If the model only returned ops with no reply, synthesise a friendly
+    // acknowledgement so the user always gets feedback. Only bail out if we
+    // got nothing useful at all.
+    let finalReply = reply;
+    if (!finalReply) {
+      if (rawOps.length > 0) {
+        finalReply = summariseOps(rawOps);
+      } else {
+        return Response.json(
+          { error: "Hmm, I didn't catch that. Try rephrasing?" },
+          { status: 502 },
+        );
+      }
+    }
+
+    // Em/en dash cleanup.
+    const cleanReply = finalReply
+      .replace(/ — /g, ", ")
+      .replace(/ – /g, ", ")
+      .replace(/—/g, ",")
+      .replace(/–/g, ",");
 
     return Response.json({ reply: cleanReply, ops: rawOps, data: next });
   } catch (error: any) {
