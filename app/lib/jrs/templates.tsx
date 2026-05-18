@@ -36,130 +36,6 @@ const PAGE: React.CSSProperties = {
   color: "#1a1a1a",
 };
 
-// ─── Modern: accent sidebar + main column ──────────────────────────────────
-function Modern({ data }: { data: ResumeData }) {
-  const exp = data.experience.filter(expHas);
-  const edu = data.education.filter(eduHas);
-  const proj = data.projects.filter(projHas);
-  const skills = data.skills.filter((s) => nonEmpty(s.items));
-  return (
-    <div style={{ ...PAGE, display: "flex", fontFamily: "'Inter', Arial, sans-serif", fontSize: 10.5 }}>
-      <aside style={{ width: "33%", background: "#1e1b4b", color: "#e9e7ff", padding: "14mm 8mm" }}>
-        <h1 style={{ fontSize: 21, fontWeight: 800, lineHeight: 1.1, margin: 0, color: "#fff" }}>
-          {data.basics.name || "Your Name"}
-        </h1>
-        {nonEmpty(data.basics.title) && (
-          <p style={{ fontSize: 11, margin: "4px 0 0", color: "#c4b5fd" }}>{data.basics.title}</p>
-        )}
-        <div style={{ marginTop: 18 }}>
-          {contactLine(data).map((c) => (
-            <p key={c} style={{ margin: "0 0 6px", fontSize: 9.5, wordBreak: "break-word" }}>
-              {c}
-            </p>
-          ))}
-        </div>
-        {skills.length > 0 && (
-          <div style={{ marginTop: 18 }}>
-            <h2 style={sidebarHead}>Skills</h2>
-            {skills.map((s) => (
-              <div key={s.id} style={{ marginBottom: 8 }}>
-                {nonEmpty(s.category) && (
-                  <p style={{ margin: 0, fontWeight: 700, fontSize: 9.5, color: "#fff" }}>{s.category}</p>
-                )}
-                <p style={{ margin: "2px 0 0", fontSize: 9.5 }}>{s.items}</p>
-              </div>
-            ))}
-          </div>
-        )}
-        {edu.length > 0 && (
-          <div style={{ marginTop: 18 }}>
-            <h2 style={sidebarHead}>Education</h2>
-            {edu.map((e) => (
-              <div key={e.id} style={{ marginBottom: 10 }}>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: 9.5, color: "#fff" }}>
-                  {e.degree} {e.field}
-                </p>
-                <p style={{ margin: "2px 0 0", fontSize: 9.5 }}>{e.school}</p>
-                <p style={{ margin: "2px 0 0", fontSize: 9, color: "#c4b5fd" }}>
-                  {dateRange(e.start, e.end, false)}
-                </p>
-                {nonEmpty(e.details) && (
-                  <p style={{ margin: "2px 0 0", fontSize: 9 }}>{e.details}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </aside>
-      <main style={{ flex: 1, padding: "14mm 10mm" }}>
-        {nonEmpty(data.summary) && (
-          <section style={{ marginBottom: 14 }}>
-            <h2 style={mainHead("#1e1b4b")}>Summary</h2>
-            <p style={{ margin: 0, lineHeight: 1.5 }}>{data.summary}</p>
-          </section>
-        )}
-        {exp.length > 0 && (
-          <section style={{ marginBottom: 14 }}>
-            <h2 style={mainHead("#1e1b4b")}>Experience</h2>
-            {exp.map((e) => (
-              <div key={e.id} style={{ marginBottom: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <strong style={{ fontSize: 11 }}>{e.role}</strong>
-                  <span style={{ fontSize: 9.5, color: "#555" }}>
-                    {dateRange(e.start, e.end, e.current)}
-                  </span>
-                </div>
-                <p style={{ margin: "1px 0 4px", fontSize: 10, color: "#4338ca" }}>
-                  {e.company}
-                  {nonEmpty(e.location) ? ` · ${e.location}` : ""}
-                </p>
-                <Bullets items={e.bullets} />
-              </div>
-            ))}
-          </section>
-        )}
-        {proj.length > 0 && (
-          <section>
-            <h2 style={mainHead("#1e1b4b")}>Projects</h2>
-            {proj.map((p) => (
-              <div key={p.id} style={{ marginBottom: 9 }}>
-                <strong style={{ fontSize: 10.5 }}>{p.name}</strong>
-                {nonEmpty(p.link) && (
-                  <span style={{ fontSize: 9, color: "#4338ca", marginLeft: 6 }}>{p.link}</span>
-                )}
-                {nonEmpty(p.description) && (
-                  <p style={{ margin: "2px 0 3px", fontSize: 10 }}>{p.description}</p>
-                )}
-                <Bullets items={p.bullets} />
-              </div>
-            ))}
-          </section>
-        )}
-      </main>
-    </div>
-  );
-}
-const sidebarHead: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 800,
-  textTransform: "uppercase",
-  letterSpacing: 1,
-  margin: "0 0 8px",
-  color: "#a78bfa",
-};
-function mainHead(color: string): React.CSSProperties {
-  return {
-    fontSize: 12,
-    fontWeight: 800,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    color,
-    margin: "0 0 6px",
-    borderBottom: `2px solid ${color}`,
-    paddingBottom: 2,
-  };
-}
-
 function Bullets({ items }: { items: string[] }) {
   const real = items.filter(nonEmpty);
   if (real.length === 0) return null;
@@ -1434,8 +1310,9 @@ export function ResumeTemplate({ id, data }: { id: TemplateId; data: ResumeData 
       return <Banner data={data} />;
     case "consulting":
       return <Consulting data={data} />;
-    case "modern":
+    case "harvard":
+      return <Harvard data={data} />;
     default:
-      return <Modern data={data} />;
+      return <Harvard data={data} />;
   }
 }

@@ -57,7 +57,6 @@ export interface ResumeData {
 }
 
 export type TemplateId =
-  | "modern"
   | "classic"
   | "compact"
   | "minimal"
@@ -72,7 +71,6 @@ export type TemplateId =
   | "consulting";
 
 export const TEMPLATES: { id: TemplateId; name: string; blurb: string }[] = [
-  { id: "modern", name: "Modern", blurb: "Accent sidebar, clean sans-serif" },
   { id: "harvard", name: "Harvard", blurb: "The classic academic format, education-first" },
   { id: "marketing", name: "Marketing", blurb: "Bold colour header, skills as pills" },
   { id: "executive", name: "Executive", blurb: "Refined serif, understated, senior roles" },
@@ -262,14 +260,14 @@ export function blankResume(): ResumeData {
 }
 
 export function loadTemplate(): TemplateId {
-  if (typeof window === "undefined") return "modern";
+  if (typeof window === "undefined") return "harvard";
   try {
     const raw = localStorage.getItem(TEMPLATE_KEY) as TemplateId | null;
     if (raw && TEMPLATES.some((t) => t.id === raw)) return raw;
   } catch {
     /* ignore */
   }
-  return "modern";
+  return "harvard";
 }
 
 export function saveTemplate(id: TemplateId): void {

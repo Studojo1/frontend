@@ -118,7 +118,7 @@ function PreviewPane({
 export default function JrsRoute() {
   const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<ResumeData>(() => starterResume());
-  const [templateId, setTemplateId] = useState<TemplateId>("modern");
+  const [templateId, setTemplateId] = useState<TemplateId>("harvard");
   const [tab, setTab] = useState<"edit" | "chat" | "ats">("edit");
   const [phase, setPhase] = useState<Phase>("welcome");
   const [hasSaved, setHasSaved] = useState(false);
@@ -380,7 +380,7 @@ export default function JrsRoute() {
             className="flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
           >
             <span className="text-neutral-500">Template:</span>
-            <span>{TEMPLATES.find((t) => t.id === templateId)?.name ?? "Modern"}</span>
+            <span>{TEMPLATES.find((t) => t.id === templateId)?.name ?? "Harvard"}</span>
             <svg width="10" height="10" viewBox="0 0 10 10" className="text-neutral-600">
               <path d="M1 3 L5 7 L9 3" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>

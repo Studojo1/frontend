@@ -164,7 +164,7 @@ export function WelcomeScreen({
                   {savedData.basics.name?.trim() || "Untitled resume"}
                 </h2>
                 <p className="mt-0.5 text-sm text-neutral-500">
-                  {TEMPLATES.find((t) => t.id === savedTemplate)?.name ?? "Modern"} template ·{" "}
+                  {TEMPLATES.find((t) => t.id === savedTemplate)?.name ?? "Harvard"} template ·{" "}
                   {savedData.experience.filter((e) => e.company || e.role).length} roles ·{" "}
                   {savedData.projects.filter((p) => p.name).length} projects
                 </p>
@@ -211,7 +211,7 @@ function TemplatePeek() {
   const scale = peekW / PAPER_W;
   const peeks: { id: TemplateId; rotate: string; lift: string }[] = [
     { id: "harvard", rotate: "-6deg", lift: "12px" },
-    { id: "modern", rotate: "0deg", lift: "0px" },
+    { id: "executive", rotate: "0deg", lift: "0px" },
     { id: "banner", rotate: "5deg", lift: "12px" },
   ];
   return (
