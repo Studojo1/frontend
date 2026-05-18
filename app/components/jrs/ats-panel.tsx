@@ -16,10 +16,18 @@ function scoreColor(score: number): string {
   return "#dc2626";
 }
 
-export function AtsPanel({ data }: { data: ResumeData }) {
+export function AtsPanel({
+  data,
+  onChange,
+}: {
+  data: ResumeData;
+  onChange: (d: ResumeData) => void;
+}) {
   const [jd, setJd] = useState("");
   const [loading, setLoading] = useState(false);
+  const [tailoring, setTailoring] = useState(false);
   const [error, setError] = useState("");
+  const [tailored, setTailored] = useState(false);
   const [result, setResult] = useState<AtsResult | null>(null);
 
   const analyse = async () => {
@@ -27,7 +35,7 @@ export function AtsPanel({ data }: { data: ResumeData }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/jrs/ats", {
+      const res = await fetch("/api/resume-maker/ats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resumeText: resumeToText(data), jobDescription: jd }),
@@ -42,6 +50,31 @@ export function AtsPanel({ data }: { data: ResumeData }) {
       setError("Couldn't connect. Check your internet and try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const tailor = async () => {
+    if (jd.trim().length < 20 || tailoring) return;
+    setTailoring(true);
+    setError("");
+    setTailored(false);
+    try {
+      const res = await fetch("/api/resume-maker/tailor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data, jobDescription: jd }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.data) {
+        setError(json.error || "Could not tailor the resume. Try again.");
+      } else {
+        onChange(json.data as ResumeData);
+        setTailored(true);
+      }
+    } catch {
+      setError("Couldn't connect. Check your internet and try again.");
+    } finally {
+      setTailoring(false);
     }
   };
 
@@ -62,14 +95,32 @@ export function AtsPanel({ data }: { data: ResumeData }) {
         className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
       />
 
-      <button
-        type="button"
-        onClick={analyse}
-        disabled={loading || jd.trim().length < 20}
-        className="w-full bg-violet-600 text-white font-semibold rounded-lg py-2.5 text-sm hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-      >
-        {loading ? "Analysing..." : "Analyse match"}
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={analyse}
+          disabled={loading || jd.trim().length < 20}
+          className="flex-1 bg-violet-600 text-white font-semibold rounded-lg py-2.5 text-sm hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {loading ? "Analysing..." : "Analyse match"}
+        </button>
+        <button
+          type="button"
+          onClick={tailor}
+          disabled={tailoring || jd.trim().length < 20}
+          title="Rewrite your whole resume to target this job"
+          className="flex-1 rounded-lg border-2 border-neutral-900 bg-amber-300 py-2.5 text-sm font-bold text-neutral-900 transition-transform hover:translate-y-[1px] disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {tailoring ? "Tailoring..." : "✨ Tailor my resume"}
+        </button>
+      </div>
+
+      {tailored && (
+        <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+          Resume tailored to this job. Check the preview — every fact was kept,
+          only the wording changed. Re-run "Analyse match" to see the new score.
+        </p>
+      )}
 
       {error && (
         <p className="text-sm text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">

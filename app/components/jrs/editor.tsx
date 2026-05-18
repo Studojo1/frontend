@@ -25,6 +25,54 @@ function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
   return next;
 }
 
+/** Call the JRS AI assist endpoint. Returns null (and alerts) on failure. */
+async function assist(payload: Record<string, unknown>): Promise<any | null> {
+  try {
+    const res = await fetch("/api/resume-maker/assist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      alert(json.error || "AI help failed. Try again in a moment.");
+      return null;
+    }
+    return json;
+  } catch {
+    alert("Couldn't reach AI help. Check your connection and try again.");
+    return null;
+  }
+}
+
+/** Small ✨ button that manages its own loading state. */
+function AiButton({
+  label,
+  onRun,
+}: {
+  label: string;
+  onRun: () => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        try {
+          await onRun();
+        } finally {
+          setBusy(false);
+        }
+      }}
+      className="inline-flex items-center gap-1 rounded-md border border-violet-300 bg-violet-50 px-2 py-1 text-xs font-semibold text-violet-700 transition-colors hover:bg-violet-100 disabled:opacity-50"
+    >
+      {busy ? "Working…" : label}
+    </button>
+  );
+}
+
 function Field({
   label,
   value,
@@ -193,6 +241,15 @@ export function Editor({
 
       {/* Summary */}
       <Section title="Summary">
+        <div className="flex justify-end">
+          <AiButton
+            label="✨ Write with AI"
+            onRun={async () => {
+              const r = await assist({ task: "write-summary", data });
+              if (r?.text) patch({ summary: r.text });
+            }}
+          />
+        </div>
         <textarea
           value={data.summary}
           onChange={(e) => patch({ summary: e.target.value })}
@@ -236,7 +293,32 @@ export function Editor({
               I currently work here
             </label>
             <div>
-              <label className={labelCls}>Bullets (one per line)</label>
+              <div className="mb-1 flex items-center justify-between">
+                <label className={labelCls + " mb-0"}>Bullets (one per line)</label>
+                <div className="flex gap-1.5">
+                  <AiButton
+                    label="✨ Improve"
+                    onRun={async () => {
+                      const r = await assist({
+                        task: "improve-bullets",
+                        bullets: e.bullets,
+                        role: e.role,
+                      });
+                      if (r?.bullets) updExp(e.id, { bullets: r.bullets });
+                    }}
+                  />
+                  <AiButton
+                    label="✨ Suggest"
+                    onRun={async () => {
+                      const r = await assist({ task: "suggest-bullets", role: e.role });
+                      if (r?.items?.length) {
+                        const existing = e.bullets.filter((b) => b.trim());
+                        updExp(e.id, { bullets: [...existing, ...r.items] });
+                      }
+                    }}
+                  />
+                </div>
+              </div>
               <textarea
                 value={e.bullets.join("\n")}
                 onChange={(ev) => updExp(e.id, { bullets: ev.target.value.split("\n") })}
@@ -271,7 +353,20 @@ export function Editor({
             </div>
             <Field label="One-line description" value={p.description} onChange={(v) => updProj(p.id, { description: v })} placeholder="Group expense tracker." />
             <div>
-              <label className={labelCls}>Bullets (one per line)</label>
+              <div className="mb-1 flex items-center justify-between">
+                <label className={labelCls + " mb-0"}>Bullets (one per line)</label>
+                <AiButton
+                  label="✨ Improve"
+                  onRun={async () => {
+                    const r = await assist({
+                      task: "improve-bullets",
+                      bullets: p.bullets,
+                      role: p.name,
+                    });
+                    if (r?.bullets) updProj(p.id, { bullets: r.bullets });
+                  }}
+                />
+              </div>
               <textarea
                 value={p.bullets.join("\n")}
                 onChange={(ev) => updProj(p.id, { bullets: ev.target.value.split("\n") })}
@@ -316,6 +411,34 @@ export function Editor({
 
       {/* Skills */}
       <Section title="Skills" onAdd={addSkill} addLabel="Add group">
+        <div className="flex items-center justify-between rounded-lg bg-violet-50 px-3 py-2">
+          <span className="text-xs text-violet-700">
+            Suggest skills from your roles
+          </span>
+          <AiButton
+            label="✨ Suggest skills"
+            onRun={async () => {
+              const roles = [
+                data.basics.title,
+                ...data.experience.map((e) => e.role),
+              ].filter((r) => r.trim());
+              if (roles.length === 0) {
+                alert("Add a headline or a role first so we can suggest skills.");
+                return;
+              }
+              const have = data.skills.map((s) => s.items).filter(Boolean).join(", ");
+              const r = await assist({ task: "suggest-skills", roles, have });
+              if (r?.items?.length) {
+                patch({
+                  skills: [
+                    ...data.skills,
+                    { ...emptySkillGroup(), category: "Suggested", items: r.items.join(", ") },
+                  ],
+                });
+              }
+            }}
+          />
+        </div>
         {data.skills.length === 0 && (
           <p className="text-xs text-neutral-400">No skills yet. Click "Add group".</p>
         )}

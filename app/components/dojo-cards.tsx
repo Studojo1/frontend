@@ -45,7 +45,7 @@ const DOJOS: DojoCard[] = [
     cta: "Build resume",
     ctaClass: "text-emerald-600",
     icon: <IoBriefcaseOutline />,
-    href: "/dojos/careers",
+    href: "/resume-maker",
   },
   {
     id: "revision",

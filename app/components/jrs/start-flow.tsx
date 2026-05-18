@@ -47,7 +47,7 @@ export function WelcomeScreen({
     try {
       const fd = new FormData();
       Array.from(fileList).forEach((f) => fd.append("files", f));
-      const res = await fetch("/api/jrs/import", { method: "POST", body: fd });
+      const res = await fetch("/api/resume-maker/import", { method: "POST", body: fd });
       const json = await res.json();
       if (res.ok && json.data) {
         setImporting(false);

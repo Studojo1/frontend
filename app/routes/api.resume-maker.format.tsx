@@ -1,7 +1,7 @@
 // JRS auto-format — rewrites a resume's wording with AI without inventing
 // facts. OpenAI gpt-4o-mini. Contact details, dates, ids and entry counts
 // are preserved server-side; the model only rephrases text.
-import type { Route } from "./+types/api.jrs.format";
+import type { Route } from "./+types/api.resume-maker.format";
 import type { ResumeData } from "~/lib/jrs/types";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;

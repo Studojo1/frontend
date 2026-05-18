@@ -3,7 +3,7 @@
 // Token-optimised model: instead of writing the whole resume back every turn,
 // the LLM emits a short list of OPS. The server validates and applies them,
 // returning both the ops (small) and the final data (for the client to use).
-import type { Route } from "./+types/api.jrs.chat";
+import type { Route } from "./+types/api.resume-maker.chat";
 import { applyOps, compactResume, type Op } from "~/lib/jrs/coach";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;

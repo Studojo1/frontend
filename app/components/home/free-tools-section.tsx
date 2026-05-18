@@ -36,7 +36,7 @@ const FREE_TOOLS: FreeTool[] = [
     accent: "bg-sky-500",
     accentIcon: "text-sky-500",
     cta: "Build my resume",
-    href: "/resumes/new",
+    href: "/resume-maker",
     icon: <FiFileText />,
     badge: "Free",
   },

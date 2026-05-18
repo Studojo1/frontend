@@ -1,7 +1,7 @@
 // JRS ATS analysis — scores a resume against a job description.
 // Primary: OpenAI gpt-4o-mini. Fallback: local keyword-overlap so the
 // feature still works if the API key is missing or the call fails.
-import type { Route } from "./+types/api.jrs.ats";
+import type { Route } from "./+types/api.resume-maker.ats";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 

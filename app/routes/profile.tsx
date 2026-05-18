@@ -24,11 +24,9 @@ class ProfileErrorBoundary extends Component<{ children: ReactNode }, { error: E
 }
 import { authClient } from "~/lib/auth-client";
 import { Header } from "~/components/common/header";
-import { rsbFetch } from "~/lib/rsb/api";
 import { outreachFetch } from "~/lib/outreach/api";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { getJobs } from "~/lib/control-plane";
-import type { RsbSession } from "~/lib/rsb/types";
 
 type UserProfile = {
   fullName: string | null;
@@ -138,7 +136,6 @@ function ProfileContent() {
   const [mounted, setMounted] = useState(false);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [rsbSessions, setRsbSessions] = useState<RsbSession[] | null>(null);
   const [classicResumes, setClassicResumes] = useState<ClassicResume[] | null>(null);
   const [applications, setApplications] = useState<Application[] | null>(null);
   const [outreachOrders, setOutreachOrders] = useState<OutreachOrder[] | null>(null);
@@ -167,10 +164,6 @@ function ProfileContent() {
       .then((r) => r.json())
       .then((d) => setProfile(d.profile ?? null))
       .catch(() => setProfile(null));
-
-    rsbFetch<{ sessions: RsbSession[] }>("/sessions")
-      .then((d) => setRsbSessions(Array.isArray(d?.sessions) ? d.sessions : []))
-      .catch(() => setRsbSessions([]));
 
     Promise.all([
       fetch("/api/v2/resumes")
@@ -452,66 +445,19 @@ function ProfileContent() {
             )}
           </Section>
 
-          {/* AI Resume Drafts */}
-          <Section title="AI Resume Drafts" cta="Build new resume →" ctaHref="/rsb">
-            {rsbSessions === null ? (
-              <>
-                <Skeleton />
-                <Skeleton />
-              </>
-            ) : rsbSessions.length === 0 ? (
-              <div className="text-center py-6">
-                <p className="font-['Satoshi'] text-sm text-neutral-500 mb-3">No AI drafts yet.</p>
-                <Link
-                  to="/rsb"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-500 text-white font-bold text-sm border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all font-['Satoshi']"
-                >
-                  Build your first resume
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {(Array.isArray(rsbSessions) ? rsbSessions : []).map((s) => {
-                  const score = s.ats?.score ?? 0;
-                  const scoreColor =
-                    score >= 80
-                      ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                      : score >= 60
-                        ? "bg-violet-100 text-violet-800 border-violet-300"
-                        : score >= 40
-                          ? "bg-amber-100 text-amber-800 border-amber-300"
-                          : "bg-neutral-100 text-neutral-700 border-neutral-300";
-                  const localLabel = typeof window !== "undefined"
-                    ? (localStorage.getItem(`rsb:label:${s.id}`) ?? null)
-                    : null;
-                  const displayName = localLabel ?? s.target_role ?? "Untitled resume";
-                  const updatedDate = s.updated_at
-                    ? new Date(s.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-                    : null;
-                  return (
-                    <Link
-                      key={s.id}
-                      to={`/rsb/session/${s.id}`}
-                      className="flex items-center justify-between p-3 rounded-xl border-2 border-neutral-200 hover:border-violet-400 hover:bg-violet-50 transition-all group"
-                    >
-                      <div className="min-w-0">
-                        <div className="font-['Satoshi'] text-sm font-semibold text-neutral-900 group-hover:text-violet-700 truncate">
-                          {displayName}
-                        </div>
-                        <div className="font-['Satoshi'] text-xs text-neutral-500">
-                          {s.experience_band ? `${s.experience_band}${updatedDate ? ` · ${updatedDate}` : ""}` : (updatedDate ?? "In progress")}
-                        </div>
-                      </div>
-                      <span
-                        className={`ml-3 shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${scoreColor} font-['Satoshi']`}
-                      >
-                        {score > 0 ? `ATS ${score}` : "In progress"}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+          {/* Resume Maker */}
+          <Section title="Resume Maker" cta="Open Resume Maker →" ctaHref="/resume-maker">
+            <div className="text-center py-6">
+              <p className="font-['Satoshi'] text-sm text-neutral-500 mb-3">
+                Build an ATS-ready resume in minutes — 12 templates, live preview, AI coach.
+              </p>
+              <Link
+                to="/resume-maker"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-500 text-white font-bold text-sm border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all font-['Satoshi']"
+              >
+                Open Resume Maker
+              </Link>
+            </div>
           </Section>
 
           {/* Internship Applications */}

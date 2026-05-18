@@ -1,21 +1,18 @@
+// JRS chat panel — ported from rsb/ChatPanel.tsx (the resume coach chat).
+// Slimmed down: no MCQ step UI, no "Generate resume" CTA at the end — JRS
+// updates the resume live as the user chats, so no terminal step exists.
 import { useEffect, useRef, useState } from "react";
 import { FiSend, FiMic, FiMicOff } from "react-icons/fi";
-import type { ChatMsg, StepInfo } from "~/lib/rsb/types";
+import type { JrsChatMsg } from "~/lib/jrs/types";
 
 export function ChatPanel({
   messages,
-  step,
   onSend,
   sending,
-  onGenerate,
-  generating,
 }: {
-  messages: ChatMsg[];
-  step: StepInfo | null;
+  messages: JrsChatMsg[];
   onSend: (text: string) => void;
   sending: boolean;
-  onGenerate: () => void;
-  generating: boolean;
 }) {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -24,7 +21,10 @@ export function ChatPanel({
   const keepListeningRef = useRef(false);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages.length, sending]);
 
   const submit = (override?: string) => {
@@ -39,7 +39,7 @@ export function ChatPanel({
     const SR: any =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
-      alert("Voice input is not supported in this browser. Use Chrome or Edge.");
+      alert("Voice input isn't supported in this browser. Use Chrome or Edge.");
       return;
     }
     if (listening) {
@@ -99,9 +99,6 @@ export function ChatPanel({
     setListening(true);
   };
 
-  const isDone = step?.is_complete ?? false;
-  const isMcq = step?.kind === "mcq" && !isDone;
-
   return (
     <div className="bg-white border-2 border-neutral-900 rounded-[24px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] flex flex-col h-full overflow-hidden font-['Satoshi']">
       <div className="bg-neutral-900 text-white px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
@@ -109,13 +106,10 @@ export function ChatPanel({
         Resume coach
       </div>
 
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0"
-      >
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
         {messages.length === 0 && !sending && (
           <div className="flex h-full items-center justify-center py-12 text-center">
-            <p className="font-['Satoshi'] text-sm text-neutral-400 max-w-xs">
+            <p className="text-sm text-neutral-400 max-w-xs">
               Your resume coach is ready. Say hi or describe the role you&apos;re targeting.
             </p>
           </div>
@@ -136,74 +130,46 @@ export function ChatPanel({
         )}
       </div>
 
-      {isDone ? (
-        <div className="border-t-2 border-neutral-900 p-4 bg-violet-50 flex flex-col gap-2">
-          <p className="text-sm text-neutral-700">
-            Chat complete. Build the polished resume now.
-          </p>
+      <div className="border-t-2 border-neutral-900 p-3 bg-violet-50">
+        <div className="flex gap-2">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submit();
+              }
+            }}
+            rows={2}
+            placeholder="Type your answer..."
+            className="flex-1 px-3 py-2 bg-white border-2 border-neutral-900 rounded-xl text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none resize-none"
+          />
           <button
-            onClick={onGenerate}
-            disabled={generating}
-            className="bg-violet-500 text-neutral-900 font-bold border-2 border-neutral-900 rounded-xl py-2.5 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-50"
+            onClick={toggleMic}
+            title={listening ? "Stop listening" : "Speak your answer"}
+            className={`px-3 border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all ${
+              listening ? "bg-rose-400" : "bg-white"
+            }`}
           >
-            {generating ? "Building your resume..." : "Build my resume"}
+            {listening ? <FiMicOff className="w-5 h-5" /> : <FiMic className="w-5 h-5" />}
+          </button>
+          <button
+            onClick={() => submit()}
+            disabled={sending || !input.trim()}
+            className="px-4 bg-violet-500 text-white font-bold border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-40 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+          >
+            <FiSend className="w-5 h-5" />
           </button>
         </div>
-      ) : (
-        <div className="border-t-2 border-neutral-900 p-3 bg-violet-50">
-          {isMcq && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {step!.options.map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => submit(opt)}
-                  disabled={sending}
-                  className="px-3 py-1.5 bg-white text-neutral-900 text-sm border-2 border-neutral-900 rounded-full shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] hover:bg-violet-500 hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-40"
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="flex gap-2">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  submit();
-                }
-              }}
-              rows={2}
-              placeholder={isMcq ? "Or type your own answer..." : "Type your answer..."}
-              className="flex-1 px-3 py-2 bg-white border-2 border-neutral-900 rounded-xl text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none resize-none"
-            />
-            <button
-              onClick={toggleMic}
-              title={listening ? "Stop listening" : "Speak your answer"}
-              className={`px-3 border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all ${
-                listening ? "bg-rose-400" : "bg-white"
-              }`}
-            >
-              {listening ? <FiMicOff className="w-5 h-5" /> : <FiMic className="w-5 h-5" />}
-            </button>
-            <button
-              onClick={() => submit()}
-              disabled={sending || !input.trim()}
-              className="px-4 bg-violet-500 text-white font-bold border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-40 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
-            >
-              <FiSend className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
 
 function Bubble({ role, text }: { role: "user" | "assistant"; text: string }) {
-  const display = role === "assistant" ? text.replace(/\u2014/g, "-").replace(/\u2013/g, "-") : text;
+  const display =
+    role === "assistant" ? text.replace(/—/g, "-").replace(/–/g, "-") : text;
   if (role === "user") {
     return (
       <div className="flex justify-end">
@@ -216,7 +182,7 @@ function Bubble({ role, text }: { role: "user" | "assistant"; text: string }) {
   return (
     <div className="flex justify-start">
       <div className="max-w-[85%]">
-        <div className="text-[10px] font-bold text-neutral-400 mb-0.5 ml-1 font-['Satoshi']">studojo</div>
+        <div className="text-[10px] font-bold text-neutral-400 mb-0.5 ml-1">studojo</div>
         <div className="bg-white text-neutral-900 px-4 py-2.5 border-2 border-neutral-900 rounded-2xl rounded-bl-md shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-sm whitespace-pre-wrap">
           {display}
         </div>

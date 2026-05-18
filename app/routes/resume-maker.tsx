@@ -30,9 +30,8 @@ import { ResumeTemplate } from "~/lib/jrs/templates";
 import { Editor } from "~/components/jrs/editor";
 import { AtsPanel } from "~/components/jrs/ats-panel";
 import { WelcomeScreen, TemplatePicker } from "~/components/jrs/start-flow";
-import { ChatPanel } from "~/components/rsb/ChatPanel";
+import { ChatPanel } from "~/components/jrs/chat-panel";
 import { Header } from "~/components/common/header";
-import type { ChatMsg as RsbChatMsg } from "~/lib/rsb/types";
 import {
   type ScriptedStep,
   type Op,
@@ -214,7 +213,7 @@ export default function JrsRoute() {
       // ── LLM path: ops model, compact resume in ─────────────────────────
       setSending(true);
       try {
-        const res = await fetch("/api/jrs/chat", {
+        const res = await fetch("/api/resume-maker/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -283,7 +282,7 @@ export default function JrsRoute() {
     if (formatting) return;
     setFormatting(true);
     try {
-      const res = await fetch("/api/jrs/format", {
+      const res = await fetch("/api/resume-maker/format", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data }),
@@ -498,14 +497,7 @@ export default function JrsRoute() {
             {tab === "ats" && <AtsPanel data={data} />}
             {tab === "chat" && (
               <div className="flex h-full flex-col gap-2">
-                <ChatPanel
-                  messages={messages as unknown as RsbChatMsg[]}
-                  step={null}
-                  onSend={sendChat}
-                  sending={sending}
-                  onGenerate={() => {}}
-                  generating={false}
-                />
+                <ChatPanel messages={messages} onSend={sendChat} sending={sending} />
                 {messages.length > 0 && (
                   <button
                     type="button"
