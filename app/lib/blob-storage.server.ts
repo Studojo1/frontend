@@ -384,7 +384,11 @@ export async function uploadTicketScreenshot(
   originalName: string,
 ): Promise<string> {
   const client = getBlobServiceClient();
-  const containerClient = client.getContainerClient(containerName);
+  // Use a separate container so we can give it public-blob access without
+  // exposing the private "resumes" container. Falls back to a sensible default.
+  const ticketsContainer =
+    process.env.AZURE_STORAGE_TICKETS_CONTAINER || "ticket-screenshots";
+  const containerClient = client.getContainerClient(ticketsContainer);
   try {
     await containerClient.createIfNotExists({ access: "blob" });
   } catch (e: any) {
@@ -392,15 +396,24 @@ export async function uploadTicketScreenshot(
       !e?.message?.includes("ContainerAlreadyExists") &&
       !e?.message?.includes("409")
     ) {
-      // Best-effort; uploads can still succeed against an existing container.
       console.warn("[tickets] container create probe:", e?.message);
     }
   }
+  // Belt-and-braces: if the container already existed with a different access
+  // level (e.g. private), force it to public-blob so direct URLs resolve.
+  try {
+    const props = await containerClient.getProperties();
+    if (props.blobPublicAccess !== "blob") {
+      await containerClient.setAccessPolicy("blob");
+    }
+  } catch (e: any) {
+    console.warn("[tickets] container access probe:", e?.message);
+  }
   const ext = (originalName.split(".").pop() || "bin").toLowerCase().slice(0, 10);
   const safeUser = userId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
-  const blobName = `tickets/${safeUser}/${Date.now()}-${Math.random()
+  const blobName = `${Date.now()}-${Math.random()
     .toString(36)
-    .slice(2, 8)}.${ext}`;
+    .slice(2, 10)}-${safeUser}.${ext}`;
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
   await blockBlobClient.upload(fileBuffer, fileBuffer.length, {
     blobHTTPHeaders: { blobContentType: contentType },
@@ -409,7 +422,7 @@ export async function uploadTicketScreenshot(
     const externalEndpoint = localStackEndpoint.includes("localstack:")
       ? localStackEndpoint.replace("localstack:", "localhost:")
       : localStackEndpoint;
-    return `${externalEndpoint}/${containerName}/${blobName}`;
+    return `${externalEndpoint}/${ticketsContainer}/${blobName}`;
   }
   return blockBlobClient.url;
 }
