@@ -55,8 +55,15 @@ export function TicketThread({
   useEffect(() => {
     fetchDetail();
     const id = setInterval(fetchDetail, 30000);
+    // Mark the thread as viewed so the unread badge clears for this ticket.
+    fetch(`/api/tickets/${ticketId}/view`, {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => {
+      /* non-fatal */
+    });
     return () => clearInterval(id);
-  }, [fetchDetail]);
+  }, [fetchDetail, ticketId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -134,6 +141,30 @@ export function TicketThread({
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-neutral-50">
+        {detail.attachments && detail.attachments.length > 0 && (
+          <div className="rounded-xl border border-neutral-200 bg-white p-2">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
+              Attached screenshots
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {detail.attachments.map((a, i) => (
+                <a
+                  key={i}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block overflow-hidden rounded-md border border-neutral-300 bg-neutral-100"
+                >
+                  <img
+                    src={a.url}
+                    alt={a.filename || `Screenshot ${i + 1}`}
+                    className="block h-16 w-full object-cover hover:opacity-80"
+                  />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
         {detail.messages.map((m) => {
           const isUser = m.author_type === "user";
           return (

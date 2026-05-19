@@ -95,12 +95,19 @@ export interface TicketMessage {
   created_at: string;
 }
 
+export interface TicketAttachment {
+  url: string;
+  content_type?: string;
+  filename?: string;
+}
+
 export interface TicketDetail {
   id: number;
   category: TicketCategory;
   status: TicketStatus;
   source: TicketSource;
   context: Record<string, any> | null;
+  attachments: TicketAttachment[];
   created_at: string;
   updated_at: string;
   closed_at: string | null;

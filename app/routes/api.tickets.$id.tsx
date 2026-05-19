@@ -20,7 +20,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   await ensureTicketTables();
 
   const ticketRes = await db.execute(sql`
-    SELECT id, category, status, source, context,
+    SELECT id, category, status, source, context, attachments,
            created_at, updated_at, closed_at
     FROM tickets
     WHERE id = ${id} AND user_id = ${session.user.id}

@@ -26,11 +26,22 @@ export async function ensureTicketTables(): Promise<void> {
       status TEXT NOT NULL DEFAULT 'open',
       source TEXT NOT NULL,
       context JSONB,
+      attachments JSONB NOT NULL DEFAULT '[]'::jsonb,
       assignee_email TEXT,
+      user_last_viewed_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       closed_at TIMESTAMPTZ
     )
+  `);
+  // Forward-compat: if tickets existed without the new columns, add them.
+  await db.execute(sql`
+    ALTER TABLE tickets
+      ADD COLUMN IF NOT EXISTS attachments JSONB NOT NULL DEFAULT '[]'::jsonb
+  `);
+  await db.execute(sql`
+    ALTER TABLE tickets
+      ADD COLUMN IF NOT EXISTS user_last_viewed_at TIMESTAMPTZ
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_tickets_status_priority

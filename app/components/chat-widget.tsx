@@ -52,6 +52,12 @@ export function ChatWidget() {
   const [ticketsLoading, setTicketsLoading] = useState(false);
   const [activeTicketId, setActiveTicketId] = useState<number | null>(null);
 
+  // Aggregate summary used by the chat bubble (notification dot) + Tickets tab.
+  const [summary, setSummary] = useState<{
+    total_unread: number;
+    open_count: number;
+  }>({ total_unread: 0, open_count: 0 });
+
   const fetchTickets = useCallback(async () => {
     if (!loggedIn) return;
     setTicketsLoading(true);
@@ -60,6 +66,7 @@ export function ChatWidget() {
       if (res.ok) {
         const json = await res.json();
         setTickets(json.tickets || []);
+        if (json.summary) setSummary(json.summary);
       }
     } catch {
       /* non-fatal */
@@ -72,6 +79,16 @@ export function ChatWidget() {
   useEffect(() => {
     if (open && view === "tickets") fetchTickets();
   }, [open, view, fetchTickets]);
+
+  // Background poll for unread admin replies so the bubble badge stays
+  // fresh even when the widget is closed. 60s is plenty — admin replies
+  // are minutes-to-hours-scale events.
+  useEffect(() => {
+    if (!loggedIn) return;
+    fetchTickets();
+    const id = setInterval(fetchTickets, 60000);
+    return () => clearInterval(id);
+  }, [loggedIn, fetchTickets]);
 
   // Anonymous users can never reach tickets/thread views.
   useEffect(() => {
@@ -93,6 +110,23 @@ export function ChatWidget() {
     setView("tickets");
     fetchTickets();
   }, [fetchTickets]);
+
+  // Allow other parts of the app (profile, dashboard, etc.) to deep-link
+  // into a specific ticket thread by dispatching a window event:
+  //   window.dispatchEvent(new CustomEvent("studojo:open-ticket", { detail: { id } }))
+  useEffect(() => {
+    function handler(ev: Event) {
+      const e = ev as CustomEvent<{ id?: number }>;
+      const id = Number(e.detail?.id);
+      if (!Number.isFinite(id) || id <= 0) return;
+      setActiveTicketId(id);
+      setView("thread");
+      setOpen(true);
+    }
+    window.addEventListener("studojo:open-ticket", handler as EventListener);
+    return () =>
+      window.removeEventListener("studojo:open-ticket", handler as EventListener);
+  }, []);
 
   // Drag state — null means use default CSS bottom-left position
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -191,6 +225,15 @@ export function ChatWidget() {
         className="fixed bottom-6 left-6 z-50 flex h-14 w-14 cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing"
         aria-label={open ? "Close chat" : "Open chat"}
       >
+        {/* Unread admin-reply badge — shows count from the background poll. */}
+        {!open && summary.total_unread > 0 && (
+          <span
+            aria-label={`${summary.total_unread} unread message${summary.total_unread === 1 ? "" : "s"}`}
+            className="absolute -top-1 -right-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-neutral-900 bg-rose-500 px-1 text-[10px] font-bold text-white"
+          >
+            {summary.total_unread > 9 ? "9+" : summary.total_unread}
+          </span>
+        )}
         {open ? (
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -261,15 +304,12 @@ export function ChatWidget() {
                   }`}
                 >
                   {t.label}
-                  {t.id === "tickets" && tickets.length > 0 && (
+                  {t.id === "tickets" && summary.total_unread > 0 && (
                     <span
-                      className={`ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold ${
-                        view === "tickets"
-                          ? "bg-white text-neutral-900"
-                          : "bg-violet-500 text-white"
-                      }`}
+                      aria-label={`${summary.total_unread} unread`}
+                      className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white"
                     >
-                      {tickets.length}
+                      {summary.total_unread > 9 ? "9+" : summary.total_unread}
                     </span>
                   )}
                 </button>

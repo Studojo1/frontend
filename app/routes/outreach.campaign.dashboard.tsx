@@ -17,6 +17,7 @@ import { outreachFetch } from "~/lib/outreach/api";
 import { formatTimestamp } from "~/lib/outreach/format-time";
 import type { CampaignMetrics } from "~/lib/outreach/types";
 import { TicketModal } from "~/components/ticket-modal";
+import { TicketBanner } from "~/components/ticket-banner";
 
 interface TestLead {
   lead_name: string;
@@ -669,6 +670,10 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
+
+            {/* Ticket banner — shown when the user has an open ticket or a
+                recently-resolved one. Resolved version overrides the open one. */}
+            <TicketBanner />
 
             {/* Cadence info banner — shown while campaign is running and not yet complete */}
             {metrics.status === "running" && metrics.sent_count < metrics.total_leads && (

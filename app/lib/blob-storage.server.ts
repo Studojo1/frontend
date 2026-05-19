@@ -374,6 +374,47 @@ export async function uploadExamplePreview(
 }
 
 /**
+ * Upload a ticket screenshot. Returns the public URL on success.
+ * Path layout: tickets/<userId>/<random>.<ext>
+ */
+export async function uploadTicketScreenshot(
+  userId: string,
+  fileBuffer: Buffer,
+  contentType: string,
+  originalName: string,
+): Promise<string> {
+  const client = getBlobServiceClient();
+  const containerClient = client.getContainerClient(containerName);
+  try {
+    await containerClient.createIfNotExists({ access: "blob" });
+  } catch (e: any) {
+    if (
+      !e?.message?.includes("ContainerAlreadyExists") &&
+      !e?.message?.includes("409")
+    ) {
+      // Best-effort; uploads can still succeed against an existing container.
+      console.warn("[tickets] container create probe:", e?.message);
+    }
+  }
+  const ext = (originalName.split(".").pop() || "bin").toLowerCase().slice(0, 10);
+  const safeUser = userId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
+  const blobName = `tickets/${safeUser}/${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}.${ext}`;
+  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+  await blockBlobClient.upload(fileBuffer, fileBuffer.length, {
+    blobHTTPHeaders: { blobContentType: contentType },
+  });
+  if (useLocalStack) {
+    const externalEndpoint = localStackEndpoint.includes("localstack:")
+      ? localStackEndpoint.replace("localstack:", "localhost:")
+      : localStackEndpoint;
+    return `${externalEndpoint}/${containerName}/${blobName}`;
+  }
+  return blockBlobClient.url;
+}
+
+/**
  * Get blob URL for a template asset
  * @param blobName - The blob name/path
  * @returns The public URL

@@ -24,6 +24,7 @@ class ProfileErrorBoundary extends Component<{ children: ReactNode }, { error: E
 }
 import { authClient } from "~/lib/auth-client";
 import { Header } from "~/components/common/header";
+import { ProfileTickets } from "~/components/profile-tickets";
 import { outreachFetch } from "~/lib/outreach/api";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { getJobs } from "~/lib/control-plane";
@@ -458,6 +459,11 @@ function ProfileContent() {
                 Open Resume Maker
               </Link>
             </div>
+          </Section>
+
+          {/* Support Tickets */}
+          <Section title="Support Tickets">
+            <ProfileTickets />
           </Section>
 
           {/* Internship Applications */}
