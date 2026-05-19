@@ -372,9 +372,48 @@ export const INTENTS: Intent[] = [
 
   // -- Technical issues / bugs --
   {
+    id: "server_error",
+    keywords: ["503", "502", "500", "504", "server error", "service unavailable", "5xx"],
+    patterns: [
+      "503", "502", "500", "504",
+      "http 503", "http 502", "http 500", "http 504",
+      "error 503", "error 502", "error 500", "error 504",
+      "server error", "service unavailable", "bad gateway", "gateway timeout",
+      "the server is down", "your server", "backend is down",
+    ],
+    response: "That's on our side, sorry — looks like our service hit a hiccup. We're on it. If it keeps happening, drop a note to admin@studojo.com with what page you were on and we'll dig in fast.",
+    links: [{ label: "Contact support", url: "/contact" }],
+  },
+
+  // -- Credit issues (billing, separate from outreach pricing) --
+  {
+    id: "credit_issue",
+    keywords: ["credit issue", "credits gone", "credits missing", "lost credits", "credit problem", "credits not showing", "where are my credits"],
+    patterns: [
+      "credit issue",
+      "credits issue",
+      "credits gone",
+      "credits not showing",
+      "lost credits",
+      "missing credits",
+      "where are my credits",
+      "i am having credit issue",
+      "having a credit issue",
+      "credit problem",
+      "credits problem",
+      "didn't get my credits",
+      "didnt get my credits",
+      "credits not credited",
+    ],
+    response: "Credits are billing, so the team needs to look at your account. Email admin@studojo.com with your order ID or the email you used to pay and we'll sort it within 24 hours.",
+    links: [{ label: "Contact support", url: "/contact" }],
+  },
+
+  // -- Technical (UI bugs, not server-side outages) --
+  {
     id: "technical",
     keywords: [
-      "bug", "error", "broken", "not working", "crash", "slow", "loading", "issue", "problem",
+      "bug", "broken", "not working", "crash", "slow", "loading", "issue", "problem",
       "glitch", "stuck", "failed", "not loading", "blank page", "page error", "doesnt work",
       "wont work", "cant use", "not downloading", "not sending", "keeps redirecting", "playstore", "app store",
       "hung", "frozen", "freezing", "not uploading", "wont upload", "not proceeding", "not moving",
