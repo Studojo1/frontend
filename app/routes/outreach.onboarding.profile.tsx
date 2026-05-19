@@ -14,73 +14,6 @@ const STEPS = ["Upload Resume", "AI Chat", "Your Profile"];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-// Backend-computed domain values → display cluster.
-// The backend LLM sets resume_profile.domain from the full resume context — it is
-// always accurate regardless of how the target role title is worded. This lookup
-// replaces all client-side regex inference.
-const DOMAIN_CLUSTER: Record<string, string> = {
-  software_engineering: "engineering", backend: "engineering",
-  frontend: "engineering", mobile: "engineering",
-  devops: "engineering", sre: "engineering",
-  machine_learning: "ai_ml", ai_ml: "ai_ml",
-  data: "data", data_analytics: "data",
-  data_science: "ai_ml",
-  product: "product", product_management: "product",
-  design: "design", ux_design: "design", ui_design: "design",
-  marketing: "marketing", growth: "marketing", brand: "marketing",
-  operations: "operations", operations_strategy: "operations", general_management: "operations",
-  sales: "sales", sales_bd: "sales", business_development: "sales",
-  finance: "finance", consulting: "consulting", consulting_strategy: "consulting",
-  hr: "operations", people: "operations",
-};
-
-const ML_SUBDOMAIN_RE = /machine.learn|deep.learn|data.scien|nlp|computer.vision|ai.engin|neural/i;
-
-const CLUSTER_TITLES: Record<string, string[]> = {
-  engineering: ["Engineering Manager", "Head of Engineering", "Director of Engineering", "VP Engineering", "CTO"],
-  ai_ml: ["Head of ML Engineering", "Director of AI/ML", "ML Engineering Manager", "VP of Engineering", "CTO"],
-  data: ["Head of Analytics", "Director of Data Analytics", "Analytics Manager", "Head of Data Platform", "VP of Data"],
-  product: ["Head of Product", "Director of Product", "VP Product", "Group Product Manager", "Chief Product Officer"],
-  design: ["Head of Design", "Design Lead", "Design Manager", "Director of Design", "VP Design"],
-  operations: ["Chief of Staff", "Head of Operations", "VP Operations", "Director of Operations", "COO"],
-  marketing: ["Head of Growth", "Marketing Manager", "Director of Marketing", "VP Marketing", "Chief Marketing Officer"],
-  sales: ["Sales Manager", "Head of Sales", "Director of Sales", "VP Sales", "Chief Revenue Officer"],
-  finance: ["Finance Manager", "Head of Finance", "Director of Finance", "VP Finance", "CFO"],
-  consulting: ["Engagement Manager", "Project Lead", "Principal Consultant", "Director of Strategy"],
-  general: ["Chief of Staff", "Head of Operations", "Director", "Founder"],
-};
-
-// Primary: use resume_profile.domain (backend LLM, authoritative source).
-// Subdomain override: "data" domain with ML subdomain signals routes to ai_ml, not data analytics.
-// Fallback: coarse regex on target role title for legacy candidates with no resume_profile.domain.
-function resolveCluster(domain: string, subdomain: string, targetRole: string): string {
-  const d = (domain || "").toLowerCase();
-  const sub = (subdomain || "").toLowerCase();
-
-  // Subdomain override: ML engineers often get domain="data" from the LLM when
-  // machine_learning wasn't a valid option. Check subdomain to correct this.
-  if (d === "data" && ML_SUBDOMAIN_RE.test(sub)) return "ai_ml";
-
-  if (d) {
-    const c = DOMAIN_CLUSTER[d];
-    if (c) return c;
-  }
-
-  // Fallback regex — fires only for legacy candidates with no resume_profile.domain
-  const t = (targetRole || "").toLowerCase();
-  if (/\b(ml engineer|machine learning|deep learning|nlp|computer vision|data scientist)\b/.test(t)) return "ai_ml";
-  if (/\b(engineer|developer|sde|swe|devops)\b/.test(t)) return "engineering";
-  if (/\b(data analyst|analytics)\b/.test(t)) return "data";
-  if (/\b(product manager|product owner|associate pm|apm)\b/.test(t)) return "product";
-  if (/\b(operations|ops|chief of staff)\b/.test(t)) return "operations";
-  if (/\b(designer|ux|ui[/ ]ux)\b/.test(t)) return "design";
-  if (/\b(marketing manager|head of marketing)\b/.test(t)) return "marketing";
-  if (/\b(sales|account executive|bdr|sdr)\b/.test(t)) return "sales";
-  if (/\b(financ|fp&a)\b/.test(t)) return "finance";
-  if (/\b(consultant|consulting)\b/.test(t)) return "consulting";
-  return "general";
-}
-
 function formatSizeBand(band: string | undefined | null): string {
   if (!band) return "";
   // Apollo-style "51,200" → "51-200"
@@ -144,15 +77,9 @@ export default function ProfilePage() {
   // ── Derived fields for Ideal Hiring Manager / What we know panels ─────────
   const recommendedRoles = career.recommended_roles || [];
   const targetRole = recommendedRoles[0]?.title || profile?.target_roles?.[0] || "";
-  // resume_profile.domain is set by the backend LLM from the full resume — it is the
-  // authoritative source for what job function the candidate belongs to. We use it
-  // directly instead of doing fragile regex inference on the role title string.
-  // subdomain provides finer signal (e.g. domain="data" + subdomain="machine_learning"
-  // → ML engineer, not data analyst — resolveCluster uses this to override the cluster).
-  const resumeDomain: string = (profile?.resume_profile?.domain || parsed._qps?.domain || "").toLowerCase();
-  const resumeSubdomain: string = (profile?.resume_profile?.subdomain || parsed._qps?.subdomain || "").toLowerCase();
-  const cluster = resolveCluster(resumeDomain, resumeSubdomain, targetRole);
-  const managerTitles = CLUSTER_TITLES[cluster] ?? CLUSTER_TITLES.general;
+  // Backend computes the correct manager titles from target_roles + resume_profile.
+  // No client-side guessing — the array is always present in the API response.
+  const managerTitles: string[] = profile?.hiring_manager_titles || [];
 
   const locations: string[] = preferences.locations || [];
   const nicheKeywords: string[] = preferences.niche_keywords || [];
