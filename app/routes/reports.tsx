@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "mba-internship-market-india-2026",
+    publishDate: "2026-05-19",
+    title: "The MBA Internship Market India 2026: Who Hires, What They Pay, and How Offers Actually Close",
+    subtitle: "MBA Internships · India 2026",
+    excerpt: "MBA summer internships in India sit at the intersection of consulting, investment banking, FMCG, and tech strategy. This report maps where hiring energy is concentrated in 2026, what stipend bands look like for structured programmes, and how students get shortlists when portals feel noisy.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "linkedin-profile-what-hiring-managers-look-at-2026",
     publishDate: "2026-05-18",
     title: "The LinkedIn Profile Report: What Hiring Managers Look At",
