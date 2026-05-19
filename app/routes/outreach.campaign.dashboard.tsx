@@ -16,6 +16,7 @@ import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 import { formatTimestamp } from "~/lib/outreach/format-time";
 import type { CampaignMetrics } from "~/lib/outreach/types";
+import { TicketModal } from "~/components/ticket-modal";
 
 interface TestLead {
   lead_name: string;
@@ -208,6 +209,7 @@ export default function DashboardPage() {
   const [pendingTz, setPendingTz] = useState("");
   const [tzSaving, setTzSaving] = useState(false);
   const [tzError, setTzError] = useState("");
+  const [reportIssueOpen, setReportIssueOpen] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const initialLoaded = useRef(false);
@@ -658,6 +660,13 @@ export default function DashboardPage() {
                     <FiMail className="w-4 h-4 mr-2" /> Send Test Emails
                   </button>
                 )}
+                <button
+                  onClick={() => setReportIssueOpen(true)}
+                  className="h-9 px-4 rounded-xl border-2 border-studojo-ink bg-white text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+                  title="Raise a ticket for the team"
+                >
+                  <FiAlertCircle className="w-4 h-4 mr-2" /> Report issue
+                </button>
               </div>
             </div>
 
@@ -1242,6 +1251,16 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+      <TicketModal
+        open={reportIssueOpen}
+        source="outreach_dashboard"
+        context={{
+          campaign_id: campaignId ?? null,
+          campaign_name: metrics?.campaign_name ?? null,
+          status: metrics?.status ?? null,
+        }}
+        onClose={() => setReportIssueOpen(false)}
+      />
       <Footer />
     </div>
   );

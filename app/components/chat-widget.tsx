@@ -1,11 +1,29 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router";
+import { authClient } from "~/lib/auth-client";
+import { TicketModal } from "~/components/ticket-modal";
+import { TicketThread } from "~/components/ticket-thread";
+import { TICKET_CATEGORIES } from "~/lib/tickets";
 
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   links?: { label: string; url: string }[];
 }
+
+interface TicketSummaryRow {
+  id: number;
+  category: string;
+  status: string;
+  source: string;
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+  preview: string;
+  unread_admin_replies: number;
+}
+
+type ChatView = "chat" | "tickets" | "thread";
 
 const WELCOME_MESSAGE: ChatMessage = {
   role: "assistant",
@@ -24,6 +42,57 @@ export function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const sessionId = useMemo(() => generateSessionId(), []);
+
+  // Tickets state — logged-in users can switch to a Tickets tab.
+  const { data: session } = authClient.useSession();
+  const loggedIn = !!session?.user;
+  const [view, setView] = useState<ChatView>("chat");
+  const [raiseOpen, setRaiseOpen] = useState(false);
+  const [tickets, setTickets] = useState<TicketSummaryRow[]>([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [activeTicketId, setActiveTicketId] = useState<number | null>(null);
+
+  const fetchTickets = useCallback(async () => {
+    if (!loggedIn) return;
+    setTicketsLoading(true);
+    try {
+      const res = await fetch("/api/tickets", { credentials: "include" });
+      if (res.ok) {
+        const json = await res.json();
+        setTickets(json.tickets || []);
+      }
+    } catch {
+      /* non-fatal */
+    } finally {
+      setTicketsLoading(false);
+    }
+  }, [loggedIn]);
+
+  // Refresh tickets when the user enters the tab.
+  useEffect(() => {
+    if (open && view === "tickets") fetchTickets();
+  }, [open, view, fetchTickets]);
+
+  // Anonymous users can never reach tickets/thread views.
+  useEffect(() => {
+    if (!loggedIn && view !== "chat") setView("chat");
+  }, [loggedIn, view]);
+
+  const openTickets = useCallback(() => {
+    setView("tickets");
+    fetchTickets();
+  }, [fetchTickets]);
+
+  const openThread = useCallback((id: number) => {
+    setActiveTicketId(id);
+    setView("thread");
+  }, []);
+
+  const backFromThread = useCallback(() => {
+    setActiveTicketId(null);
+    setView("tickets");
+    fetchTickets();
+  }, [fetchTickets]);
 
   // Drag state — null means use default CSS bottom-left position
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -172,7 +241,118 @@ export function ChatWidget() {
             </button>
           </div>
 
-          {/* Messages */}
+          {/* Tab strip — only for logged-in users (Tickets tab needs auth). */}
+          {loggedIn && view !== "thread" && (
+            <div className="flex gap-1 border-b border-neutral-200 bg-neutral-50 px-2 py-1.5">
+              {(
+                [
+                  { id: "chat", label: "Chat" },
+                  { id: "tickets", label: "Tickets" },
+                ] as const
+              ).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => (t.id === "tickets" ? openTickets() : setView("chat"))}
+                  className={`flex-1 rounded-lg px-2 py-1 text-xs font-bold transition-colors ${
+                    view === t.id
+                      ? "bg-neutral-900 text-white"
+                      : "text-neutral-700 hover:bg-neutral-100"
+                  }`}
+                >
+                  {t.label}
+                  {t.id === "tickets" && tickets.length > 0 && (
+                    <span
+                      className={`ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-bold ${
+                        view === "tickets"
+                          ? "bg-white text-neutral-900"
+                          : "bg-violet-500 text-white"
+                      }`}
+                    >
+                      {tickets.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Thread view (own height; takes over the body) */}
+          {view === "thread" && activeTicketId !== null && (
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <TicketThread ticketId={activeTicketId} onBack={backFromThread} />
+            </div>
+          )}
+
+          {/* Tickets list view */}
+          {view === "tickets" && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-neutral-50">
+              {ticketsLoading && tickets.length === 0 ? (
+                <div className="py-8 text-center text-sm text-neutral-400">
+                  Loading...
+                </div>
+              ) : tickets.length === 0 ? (
+                <div className="py-8 text-center text-sm text-neutral-500">
+                  <p className="mb-2">No tickets yet.</p>
+                  <button
+                    type="button"
+                    onClick={() => setRaiseOpen(true)}
+                    className="rounded-lg border-2 border-neutral-900 bg-violet-500 px-3 py-1.5 text-xs font-bold text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    Raise a ticket
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {tickets.map((t) => {
+                    const label =
+                      TICKET_CATEGORIES.find((c) => c.id === t.category)
+                        ?.label ?? t.category;
+                    const statusColor =
+                      t.status === "open"
+                        ? "bg-amber-100 text-amber-800 border-amber-300"
+                        : t.status === "in_progress"
+                          ? "bg-violet-100 text-violet-800 border-violet-300"
+                          : "bg-neutral-100 text-neutral-700 border-neutral-300";
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => openThread(t.id)}
+                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-3 py-2 text-left shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)] transition-transform"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-neutral-900 truncate">
+                            #{t.id} · {label}
+                          </span>
+                          <span
+                            className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-bold ${statusColor}`}
+                          >
+                            {t.status.replace("_", " ")}
+                          </span>
+                        </div>
+                        {t.preview && (
+                          <p className="mt-1 text-[11px] text-neutral-500 line-clamp-2">
+                            {t.preview}
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setRaiseOpen(true)}
+                    className="w-full rounded-xl border-2 border-dashed border-neutral-300 px-3 py-3 text-xs font-bold text-neutral-600 hover:border-neutral-900 hover:bg-white"
+                  >
+                    + Raise a new ticket
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Messages — only visible on the Chat view */}
+          {view === "chat" && (
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -216,9 +396,20 @@ export function ChatWidget() {
 
             <div ref={messagesEndRef} />
           </div>
+          )}
 
-          {/* Input */}
+          {/* Input — chat view only */}
+          {view === "chat" && (
           <div className="border-t-2 border-neutral-900 bg-white p-3">
+            {loggedIn && (
+              <button
+                type="button"
+                onClick={() => setRaiseOpen(true)}
+                className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-[11px] font-bold text-neutral-700 hover:border-neutral-900 hover:bg-white"
+              >
+                🎫 Raise a ticket — get the team on it
+              </button>
+            )}
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -251,9 +442,22 @@ export function ChatWidget() {
               Powered by Studojo AI
             </p>
           </div>
+          )}
         </div>
         );
       })()}
+
+      <TicketModal
+        open={raiseOpen}
+        source="support_chat"
+        onClose={() => setRaiseOpen(false)}
+        onCreated={(id) => {
+          fetchTickets();
+          setActiveTicketId(id);
+          setView("thread");
+          if (!open) setOpen(true);
+        }}
+      />
     </>
   );
 }
