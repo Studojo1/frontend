@@ -45,6 +45,9 @@ const PREVIEW_POOL = [
 const _startOffset = Math.floor(Math.random() * PREVIEW_POOL.length);
 
 const POLL_INTERVAL_MS = 5000;
+// Bar fills 0→99 over this duration. Freezes at 99 if leads aren't ready yet,
+// then jumps to 100 the moment scoring-ready returns true.
+const BAR_TOTAL_MS = 120_000;
 
 export default function DiscoveryPage() {
   const navigate = useNavigate();
@@ -63,9 +66,14 @@ export default function DiscoveryPage() {
   const [leadCount, setLeadCount] = useState(0);
   const [previewOffset, setPreviewOffset] = useState(_startOffset);
 
+  // Time-based loading bar: 0-99 over BAR_TOTAL_MS, then 100 when ready.
+  const [barProgress, setBarProgress] = useState(0);
+  const barStartRef = useRef(Date.now());
+
   const counterRef = useRef<ReturnType<typeof setInterval>>();
   const cycleRef = useRef<ReturnType<typeof setInterval>>();
   const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const barTickRef = useRef<ReturnType<typeof setInterval>>();
 
   const cardsVisible = discoveryStage >= 2;
 
@@ -73,12 +81,32 @@ export default function DiscoveryPage() {
     PREVIEW_POOL[(previewOffset + i) % PREVIEW_POOL.length]
   );
 
+  // ── Time-based bar ticker ────────────────────────────────────────────────
+  // Runs independently of API phases. Caps at 99 until allDone flips true.
+  useEffect(() => {
+    barStartRef.current = Date.now();
+    barTickRef.current = setInterval(() => {
+      const elapsed = Date.now() - barStartRef.current;
+      const p = Math.min(Math.round((elapsed / BAR_TOTAL_MS) * 99), 99);
+      setBarProgress(p);
+    }, 500);
+    return () => clearInterval(barTickRef.current);
+  }, []);
+
+  // When leads are ready: jump bar to 100 immediately.
+  useEffect(() => {
+    if (!allDone) return;
+    clearInterval(barTickRef.current);
+    setBarProgress(100);
+  }, [allDone]);
+
+  // ── Discovery + scoring orchestration ────────────────────────────────────
   useEffect(() => {
     if (authLoading || !candidateId) return;
 
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    // ── Phase 1: advance discovery stages on a timer ──────────────────────
+    // Phase 1: advance discovery stages on a timer
     let elapsed = 0;
     const lastIdx = DISCOVERY_STAGES.length - 1;
     DISCOVERY_STAGES.forEach((stage, i) => {
@@ -111,7 +139,7 @@ export default function DiscoveryPage() {
     }, DISCOVERY_STAGES[0].duration + DISCOVERY_STAGES[1].duration);
     timers.push(cycleStart);
 
-    // ── Call /discovery/search ────────────────────────────────────────────
+    // Call /discovery/search
     outreachFetch("/discovery/search", {
       method: "POST",
       body: JSON.stringify({ candidate_id: candidateId }),
@@ -119,25 +147,19 @@ export default function DiscoveryPage() {
       maxRetries: 1,
     })
       .then(() => {
-        // Discovery done — mark all discovery stages complete, enter scoring phase
         setDiscoveryStage(DISCOVERY_STAGES.length);
         setScoringPhase(true);
         setScoringStage(0);
 
-        // ── Phase 2: poll /discovery/scoring-ready until bullets ready ──
-        // Hard timeout: navigate after 6 minutes regardless so user is never stuck.
-        // (Previously 3 min — too short for 300-lead LLM justification which takes ~3-4 min.)
+        // Phase 2: poll /discovery/scoring-ready
         const SCORING_TIMEOUT_MS = 6 * 60 * 1000;
         const scoringStarted = Date.now();
 
         let scoringTick = 0;
         pollRef.current = setInterval(async () => {
           scoringTick++;
-          // Advance once after 3 ticks, then stay at the last stage.
-          // Using modulo caused visible step oscillation (7→6→7...).
           setScoringStage(Math.min(Math.floor(scoringTick / 3), SCORING_STAGES.length - 1));
 
-          // Force-navigate if we've been polling too long
           if (Date.now() - scoringStarted >= SCORING_TIMEOUT_MS) {
             clearInterval(pollRef.current);
             setAllDone(true);
@@ -179,20 +201,6 @@ export default function DiscoveryPage() {
     return null;
   }
 
-  // Progress:
-  // 0-50%: discovery stages
-  // 50-95%: scoring phase (based on bullets written)
-  // 100%: done
-  let progress: number;
-  if (allDone) {
-    progress = 100;
-  } else if (scoringPhase) {
-    const bulletFraction = Math.min(bulletsCount / 800, 1);
-    progress = 50 + bulletFraction * 45;
-  } else {
-    progress = Math.min((discoveryStage / DISCOVERY_STAGES.length) * 50, 47);
-  }
-
   const totalStages = DISCOVERY_STAGES.length + SCORING_STAGES.length;
   const currentStageIdx = scoringPhase
     ? DISCOVERY_STAGES.length + scoringStage
@@ -207,7 +215,7 @@ export default function DiscoveryPage() {
   const subLabel = allDone
     ? "Your leads are ready. Taking you there now..."
     : scoringPhase
-    ? `Personalising ${bulletsCount > 0 ? bulletsCount.toLocaleString() : "your"} leads — almost there...`
+    ? `Personalising ${bulletsCount > 0 ? bulletsCount.toLocaleString() : "your"} leads - almost there...`
     : "Our AI is working across thousands of data points to find your best opportunities.";
 
   return (
@@ -230,7 +238,7 @@ export default function DiscoveryPage() {
           </div>
         ) : (
           <div className="w-full max-w-lg text-center">
-            {/* Animated ring */}
+            {/* Animated ring — driven by barProgress */}
             <div className="relative w-32 h-32 sm:w-36 sm:h-36 mx-auto mb-6">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 160 160">
                 <circle cx="80" cy="80" r="70" fill="none" stroke="#f5f5f5" strokeWidth="6" />
@@ -241,8 +249,8 @@ export default function DiscoveryPage() {
                   strokeWidth="6"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 70}`}
-                  strokeDashoffset={`${2 * Math.PI * 70 * (1 - progress / 100)}`}
-                  className="transition-all duration-1000 ease-out"
+                  strokeDashoffset={`${2 * Math.PI * 70 * (1 - barProgress / 100)}`}
+                  className="transition-all duration-500 ease-out"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -263,6 +271,24 @@ export default function DiscoveryPage() {
             </h2>
             <p className="text-sm text-studojo-muted font-satoshi mb-5">{subLabel}</p>
 
+            {/* Loading bar */}
+            <div className="w-full max-w-sm mx-auto mb-6">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-satoshi text-studojo-muted">
+                  {allDone ? "Complete" : barProgress >= 99 ? "Finalising your leads..." : "Finding your leads"}
+                </span>
+                <span className={`text-xs font-satoshi font-semibold tabular-nums ${allDone ? "text-studojo-green" : "text-studojo-purple"}`}>
+                  {barProgress}%
+                </span>
+              </div>
+              <div className="h-2 w-full bg-studojo-surface-muted rounded-full overflow-hidden border border-studojo-ink/8">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ease-out ${allDone ? "bg-studojo-green" : "bg-studojo-purple"}`}
+                  style={{ width: `${barProgress}%` }}
+                />
+              </div>
+            </div>
+
             {/* Live counter */}
             {leadCount > 0 && (
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-studojo-purple/8 border border-studojo-purple/20 mb-6">
@@ -270,7 +296,7 @@ export default function DiscoveryPage() {
                 <span className="font-clash text-lg font-bold text-studojo-purple">{leadCount.toLocaleString()}</span>
                 <span className="text-xs font-satoshi text-studojo-muted">
                   {scoringPhase && bulletsCount > 0
-                    ? `leads found · ${bulletsCount.toLocaleString()} personalised`
+                    ? `leads found - ${bulletsCount.toLocaleString()} personalised`
                     : "professionals scanned"}
                 </span>
               </div>
