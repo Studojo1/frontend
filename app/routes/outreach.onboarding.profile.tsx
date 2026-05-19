@@ -22,7 +22,9 @@ const DOMAIN_CLUSTER: Record<string, string> = {
   software_engineering: "engineering", backend: "engineering",
   frontend: "engineering", mobile: "engineering",
   devops: "engineering", sre: "engineering",
-  ai_ml: "data", data: "data", data_analytics: "data", data_science: "data",
+  machine_learning: "ai_ml", ai_ml: "ai_ml",
+  data: "data", data_analytics: "data",
+  data_science: "ai_ml",
   product: "product", product_management: "product",
   design: "design", ux_design: "design", ui_design: "design",
   marketing: "marketing", growth: "marketing", brand: "marketing",
@@ -32,9 +34,12 @@ const DOMAIN_CLUSTER: Record<string, string> = {
   hr: "operations", people: "operations",
 };
 
+const ML_SUBDOMAIN_RE = /machine.learn|deep.learn|data.scien|nlp|computer.vision|ai.engin|neural/i;
+
 const CLUSTER_TITLES: Record<string, string[]> = {
   engineering: ["Engineering Manager", "Head of Engineering", "Director of Engineering", "VP Engineering", "CTO"],
-  data: ["Head of Data", "Director of Data", "Analytics Manager", "Data Science Manager", "VP Data"],
+  ai_ml: ["Head of ML Engineering", "Director of AI/ML", "ML Engineering Manager", "VP of Engineering", "CTO"],
+  data: ["Head of Analytics", "Director of Data Analytics", "Analytics Manager", "Head of Data Platform", "VP of Data"],
   product: ["Head of Product", "Director of Product", "VP Product", "Group Product Manager", "Chief Product Officer"],
   design: ["Head of Design", "Design Lead", "Design Manager", "Director of Design", "VP Design"],
   operations: ["Chief of Staff", "Head of Operations", "VP Operations", "Director of Operations", "COO"],
@@ -45,18 +50,27 @@ const CLUSTER_TITLES: Record<string, string[]> = {
   general: ["Chief of Staff", "Head of Operations", "Director", "Founder"],
 };
 
-// Primary: use resume_profile.domain (backend LLM, always correct).
-// Fallback: coarse regex on the target role title — only fires for legacy candidates
-// who have no resume_profile.domain set yet.
-function resolveCluster(domain: string, targetRole: string): string {
-  if (domain) {
-    const c = DOMAIN_CLUSTER[domain.toLowerCase()];
+// Primary: use resume_profile.domain (backend LLM, authoritative source).
+// Subdomain override: "data" domain with ML subdomain signals routes to ai_ml, not data analytics.
+// Fallback: coarse regex on target role title for legacy candidates with no resume_profile.domain.
+function resolveCluster(domain: string, subdomain: string, targetRole: string): string {
+  const d = (domain || "").toLowerCase();
+  const sub = (subdomain || "").toLowerCase();
+
+  // Subdomain override: ML engineers often get domain="data" from the LLM when
+  // machine_learning wasn't a valid option. Check subdomain to correct this.
+  if (d === "data" && ML_SUBDOMAIN_RE.test(sub)) return "ai_ml";
+
+  if (d) {
+    const c = DOMAIN_CLUSTER[d];
     if (c) return c;
   }
-  // Fallback regex — coarse, intentionally simple
+
+  // Fallback regex — fires only for legacy candidates with no resume_profile.domain
   const t = (targetRole || "").toLowerCase();
+  if (/\b(ml engineer|machine learning|deep learning|nlp|computer vision|data scientist)\b/.test(t)) return "ai_ml";
   if (/\b(engineer|developer|sde|swe|devops)\b/.test(t)) return "engineering";
-  if (/\b(data scientist|data analyst|ml engineer)\b/.test(t)) return "data";
+  if (/\b(data analyst|analytics)\b/.test(t)) return "data";
   if (/\b(product manager|product owner|associate pm|apm)\b/.test(t)) return "product";
   if (/\b(operations|ops|chief of staff)\b/.test(t)) return "operations";
   if (/\b(designer|ux|ui[/ ]ux)\b/.test(t)) return "design";
@@ -133,8 +147,11 @@ export default function ProfilePage() {
   // resume_profile.domain is set by the backend LLM from the full resume — it is the
   // authoritative source for what job function the candidate belongs to. We use it
   // directly instead of doing fragile regex inference on the role title string.
+  // subdomain provides finer signal (e.g. domain="data" + subdomain="machine_learning"
+  // → ML engineer, not data analyst — resolveCluster uses this to override the cluster).
   const resumeDomain: string = (profile?.resume_profile?.domain || parsed._qps?.domain || "").toLowerCase();
-  const cluster = resolveCluster(resumeDomain, targetRole);
+  const resumeSubdomain: string = (profile?.resume_profile?.subdomain || parsed._qps?.subdomain || "").toLowerCase();
+  const cluster = resolveCluster(resumeDomain, resumeSubdomain, targetRole);
   const managerTitles = CLUSTER_TITLES[cluster] ?? CLUSTER_TITLES.general;
 
   const locations: string[] = preferences.locations || [];
