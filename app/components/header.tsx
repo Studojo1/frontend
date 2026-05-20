@@ -4,7 +4,6 @@ import { Link, useLocation } from "react-router";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
-  { to: "/career-coach", label: "Career Coach" },
   { to: "#dojos", label: "Features" },
   { to: "#dojos", label: "Dojos" },
   { to: "#pricing", label: "Pricing" },
@@ -16,7 +15,6 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-  const isCareerCoach = location.pathname === "/career-coach";
 
   return (
     <motion.header
@@ -59,7 +57,7 @@ export function Header() {
           <Link
             to="/auth?mode=signup"
             className={`flex h-12 flex-1 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-base font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] md:w-32 md:flex-none ${
-              isHomePage || isCareerCoach ? "hidden md:flex" : ""
+              isHomePage ? "hidden md:flex" : ""
             }`}
           >
             Get Started
