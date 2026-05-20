@@ -23,13 +23,18 @@ function ScoreRing({ score, label, size = 110 }: { score: number; label: string;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - Math.max(0, Math.min(100, score)) / 100);
   const color = score >= 70 ? "#22c55e" : score >= 45 ? "#f59e0b" : "#8b5cf6";
+  const [animated, setAnimated] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setAnimated(true), 80); return () => clearTimeout(t); }, []);
   return (
     <div className="flex flex-col items-center gap-1">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#f3f4f6" strokeWidth="10" />
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="10"
-          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
-          transform={`rotate(-90 ${size/2} ${size/2})`} />
+          strokeDasharray={circ}
+          strokeDashoffset={animated ? offset : circ}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${size/2} ${size/2})`}
+          style={{ transition: "stroke-dashoffset 1s ease" }} />
         <text x={size/2} y={size/2 - 4} textAnchor="middle" dominantBaseline="middle"
           style={{ fontSize: size * 0.22, fontWeight: 800, fill: "#111" }}>{score}</text>
         <text x={size/2} y={size/2 + size*0.16} textAnchor="middle"
@@ -42,6 +47,8 @@ function ScoreRing({ score, label, size = 110 }: { score: number; label: string;
 
 function GapBar({ label, score }: { label: string; score: number }) {
   const color = score >= 70 ? "#22c55e" : score >= 40 ? "#f59e0b" : "#ef4444";
+  const [w, setW] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setW(score), 120); return () => clearTimeout(t); }, [score]);
   return (
     <div className="mb-3">
       <div className="flex justify-between text-xs font-semibold mb-1">
@@ -49,7 +56,7 @@ function GapBar({ label, score }: { label: string; score: number }) {
         <span style={{ color }}>{score}%</span>
       </div>
       <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
-        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${score}%`, background: color }} />
+        <div className="h-full rounded-full" style={{ width: `${w}%`, background: color, transition: "width 0.9s ease" }} />
       </div>
     </div>
   );
@@ -169,9 +176,9 @@ export default function CcAnalysis() {
   const actions: GapItem[] = path.skills_gap_items || [];
   const companies: string[] = path.target_companies || [];
   const altRoles: string[] = path.alternative_roles || [];
-  const skillsGap = path.skills_gap_score ?? Math.round(readiness * 0.9);
-  const industryGap = path.industry_gap_score ?? Math.round(readiness * 0.85);
-  const expGap = path.experience_gap_score ?? Math.round(readiness * 0.8);
+  const skillsGap = path.skills_gap_score || Math.round(readiness * 0.9);
+  const industryGap = path.industry_gap_score || Math.round(readiness * 0.85);
+  const expGap = path.experience_gap_score || Math.round(readiness * 0.8);
   const topAction = actions[0];
   const altAction = actions[1];
   const completedCount = actions.filter((_, i) => (progress[`action_${i}`] || "todo") === "completed").length;
