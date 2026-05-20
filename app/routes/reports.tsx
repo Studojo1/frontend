@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "referrals-vs-applications-how-people-get-hired-2026",
+    publishDate: "2026-05-20",
+    title: "Referrals vs Applications: The Data on How People Actually Get Hired",
+    subtitle: "Referrals vs Applications · 2026",
+    excerpt: "Everyone is told to apply online. The hiring data tells a different story: referrals and warm introductions are a small fraction of applications but an outsized share of hires. This report compares channel volume to channel outcomes, explains why conversion beats volume, and maps a realistic mix for students and early-career candidates without a big network.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
     slug: "mba-internship-market-india-2026",
     publishDate: "2026-05-19",
     title: "The MBA Internship Market India 2026: Who Hires, What They Pay, and How Offers Actually Close",

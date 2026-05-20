@@ -156,8 +156,8 @@ export const INTENTS: Intent[] = [
       "campaign won't launch",
       "launch the campaign",
     ],
-    response: "Usually a Gmail disconnect or credits running out. Reconnect Gmail in the Outreach Tool settings, or top up credits and the campaign will resume. If that's not it, email admin@studojo.com with your campaign name and a screenshot.",
-    links: [{ label: "Contact support", url: "/contact" }],
+    response: "Usually a Gmail disconnect or credits running out. Reconnect Gmail in the Outreach Tool settings, or top up credits and the campaign will resume. If that's not it, tap 'Raise a ticket' above with your campaign name and a screenshot and the team will sort it within 48 hours.",
+    links: [],
   },
 
   // -- Internship Dojo (discovery/browsing) --
@@ -343,7 +343,7 @@ export const INTENTS: Intent[] = [
       "dispute a charge",
       "refund request",
     ],
-    response: "Credits are refundable within 7 days if no leads were processed. Assignments are refundable within 24 hours if not downloaded. Email admin@studojo.com with your order ID.",
+    response: "Credits are refundable within 7 days if no leads were processed. Assignments are refundable within 24 hours if not downloaded. Tap 'Raise a ticket' above with your order ID and the team will process it.",
     links: [{ label: "Refund policy", url: "/refund-policy" }],
   },
 
@@ -366,7 +366,7 @@ export const INTENTS: Intent[] = [
       "cant access my account",
       "password reset not working",
     ],
-    response: "For password reset, click 'Forgot password' on the login page and check your spam folder. Can't log in? Try incognito mode or clear your cache. Anything else, email admin@studojo.com.",
+    response: "For password reset, click 'Forgot password' on the login page and check your spam folder. Can't log in? Try incognito mode or clear your cache. Still stuck? Tap 'Raise a ticket' above and the team will help.",
     links: [{ label: "Login", url: "/auth" }],
   },
 
@@ -381,8 +381,8 @@ export const INTENTS: Intent[] = [
       "server error", "service unavailable", "bad gateway", "gateway timeout",
       "the server is down", "your server", "backend is down",
     ],
-    response: "That's on our side, sorry — looks like our service hit a hiccup. We're on it. If it keeps happening, drop a note to admin@studojo.com with what page you were on and we'll dig in fast.",
-    links: [{ label: "Contact support", url: "/contact" }],
+    response: "That's on our side, sorry. We're on it. If it keeps happening, tap 'Raise a ticket' above with what page you were on and a screenshot, and the team will dig in fast.",
+    links: [],
   },
 
   // -- Credit issues (billing, separate from outreach pricing) --
@@ -405,8 +405,8 @@ export const INTENTS: Intent[] = [
       "didnt get my credits",
       "credits not credited",
     ],
-    response: "Credits are billing, so the team needs to look at your account. Email admin@studojo.com with your order ID or the email you used to pay and we'll sort it within 24 hours.",
-    links: [{ label: "Contact support", url: "/contact" }],
+    response: "Credits are billing, so the team needs to look at your account. Tap 'Raise a ticket' above with your order ID or the email you used to pay and we'll sort it within 48 hours.",
+    links: [],
   },
 
   // -- Technical (UI bugs, not server-side outages) --
@@ -529,8 +529,8 @@ export const INTENTS: Intent[] = [
       "cannot answer the question",
       "i cannot answer",
     ],
-    response: "Try a hard refresh first (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows), then incognito mode. If it's still broken, email admin@studojo.com with what happened and a screenshot.",
-    links: [{ label: "Contact support", url: "/contact" }],
+    response: "Try a hard refresh first (Cmd+Shift+R on Mac, Ctrl+Shift+R on Windows), then incognito mode. If it's still broken, tap 'Raise a ticket' above with what happened and a screenshot.",
+    links: [],
   },
 
   // -- About Studojo --
@@ -573,7 +573,7 @@ export const INTENTS: Intent[] = [
       "revision tool",
       "when is revision dojo",
     ],
-    response: "Revision Dojo is coming soon — study notes, flashcards, practice questions, and mind maps. Email admin@studojo.com to get notified when it launches.",
+    response: "Revision Dojo is coming soon — study notes, flashcards, practice questions, and mind maps. Tap 'Raise a ticket' above to get notified when it launches.",
   },
 
   // -- Privacy / Data --
@@ -591,7 +591,7 @@ export const INTENTS: Intent[] = [
       "is it secure",
       "personal information",
     ],
-    response: "Your data is encrypted and never sold. We only use it to run the services you signed up for. To delete your data, email admin@studojo.com with 'Data Deletion Request' in the subject.",
+    response: "Your data is encrypted and never sold. We only use it to run the services you signed up for. To delete your data, tap 'Raise a ticket' above with 'Data Deletion Request' in the description.",
     links: [{ label: "Privacy policy", url: "/privacy" }],
   },
 
@@ -613,8 +613,8 @@ export const INTENTS: Intent[] = [
       "speak to a real person",
       "connect me to support",
     ],
-    response: "Reach the team at admin@studojo.com or the contact form at studojo.com/contact. We reply within 24 hours.",
-    links: [{ label: "Contact form", url: "/contact" }],
+    response: "Tap 'Raise a ticket' above and the team will get back to you within 48 hours. That's the fastest way to reach a human from here.",
+    links: [],
   },
 
   // -- Book a call --
@@ -698,11 +698,11 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 - Unused outreach credits: refundable within 7 days if no process started
 - Assignment: refundable within 24 hours if not downloaded
 - Used/delivered services: non-refundable
-- Contact: admin@studojo.com with order ID
+- Contact: raise a ticket from this chat with the order ID
 
 ## Contact
-- Email: admin@studojo.com (responds within 24 hours)
-- Contact form: studojo.com/contact
+- Primary support channel: tap "Raise a ticket" in this chat — team responds within 48 hours.
+- DO NOT direct users to admin@studojo.com or studojo.com/contact for support. Tickets are the only escalation path from chat.
 - Instagram: @studojo — DM to book a call with the team
 
 ## HARD RULES — these are absolute, never break them:

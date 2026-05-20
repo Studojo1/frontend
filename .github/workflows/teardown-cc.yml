@@ -1,0 +1,34 @@
+name: Teardown CC Backend (Staging)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  teardown:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group rg-studojo \
+            --name studojo-aks \
+            --overwrite-existing
+
+      - name: Delete cc-backend resources from staging namespace
+        run: |
+          kubectl delete deployment cc-backend -n staging --ignore-not-found
+          kubectl delete service cc-backend -n staging --ignore-not-found
+          kubectl delete ingress cc-backend -n staging --ignore-not-found
+          kubectl delete secret cc-backend-secrets -n staging --ignore-not-found
+          echo "CC backend resources removed from staging namespace."
