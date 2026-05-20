@@ -456,7 +456,7 @@ export default function CcRoadmap() {
                   <div style={{ fontWeight: 800, fontSize: "0.9rem", marginBottom: 4 }}>Resume Maker</div>
                   <div style={{ fontSize: "0.78rem", color: "#71717a", lineHeight: 1.5 }}>Once you close an experience gap — a new project, a quantified result, a volunteer role — add it to your resume immediately. The Resume Maker helps you format it correctly so it passes ATS filters and gets read by recruiters.</div>
                 </div>
-                <a href="https://studojo.com/dojos/careers" target="_blank" rel="noopener noreferrer" style={{ background: "linear-gradient(90deg,#14b8a6,#10b981)", border: "2px solid #111", borderRadius: 999, boxShadow: "3px 3px 0 #111", padding: "10px 18px", color: "white", fontWeight: 700, fontSize: "0.78rem", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
+                <a href="https://studojo.com/resume-maker" target="_blank" rel="noopener noreferrer" style={{ background: "linear-gradient(90deg,#14b8a6,#10b981)", border: "2px solid #111", borderRadius: 999, boxShadow: "3px 3px 0 #111", padding: "10px 18px", color: "white", fontWeight: 700, fontSize: "0.78rem", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
                   Update your Resume →
                 </a>
               </div>
