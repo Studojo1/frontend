@@ -8,9 +8,13 @@ import { sql } from "drizzle-orm";
 import db from "./db";
 import { getEmailerServiceUrl } from "./emailer";
 
-const TICKET_ADMIN_RECIPIENTS =
+const TICKET_ADMIN_RECIPIENTS = (
   process.env.TICKET_ADMIN_RECIPIENTS ||
-  "jeremy.zac@gmail.com,businessconnect.pranav@gmail.com";
+  "jeremy.zac@gmail.com,businessconnect.pranav@gmail.com"
+)
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 let tablesReady = false;
 export async function ensureTicketTables(): Promise<void> {
