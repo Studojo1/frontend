@@ -6,7 +6,6 @@ import { SmoothLink } from "./smooth-link";
 
 const NAV_LINKS = [
   { to: "/", label: "Home", active: true },
-  { to: "/career-coach", label: "Career Coach" },
   { to: "/outreach", label: "Outreach" },
   { to: "#reviews", label: "Reviews" },
   { to: "/about", label: "About" },
