@@ -1,15 +1,13 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
-import type { Route } from "./+types/cc._index";
-
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [
-    { title: "CareerDojo | AI Career Coach for Indian Students" },
+    { title: "CareerDojo | AI Career Coach" },
     {
       name: "description",
       content:
-        "Get a personalised career roadmap, gap analysis, and outreach strategy — built specifically for Indian students.",
+        "Get a personalised career roadmap, gap analysis, and outreach strategy — based on your actual profile.",
     },
   ];
 }
@@ -68,8 +66,7 @@ export default function CcIndex() {
               Free Beta
             </div>
             <h1 className="font-['Clash_Display'] text-4xl md:text-6xl font-bold leading-tight mb-6">
-              Your AI career coach.<br />
-              <span className="text-violet-400">Built for Indian students.</span>
+              Your AI career coach.
             </h1>
             <p className="text-lg text-neutral-300 max-w-2xl mx-auto mb-10">
               Stop guessing what employers want. Get a personalised readiness score, gap analysis, and outreach strategy — based on your actual profile.

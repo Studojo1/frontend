@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
-import type { Route } from "./+types/cc.analysis";
-
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [{ title: "Career Analysis | CareerDojo" }];
 }
 
