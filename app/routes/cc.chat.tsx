@@ -19,7 +19,7 @@ const STATE_TO_STEP: Record<string, number> = {
   ROADMAP: 3, NEW_PATH_EXPLORATION: 3, ONGOING_SUPPORT: 4,
 };
 const DNA_STATES = new Set(["CAREER_ANALYSIS", "DNA_REVIEW", "DNA_CORRECTION"]);
-const DASH_STATES = new Set(["ROADMAP", "NEW_PATH_EXPLORATION", "ONGOING_SUPPORT"]);
+const DASH_STATES = new Set(["DNA_REVIEW", "DNA_CORRECTION", "ROADMAP", "NEW_PATH_EXPLORATION", "ONGOING_SUPPORT"]);
 
 const HOOK_STATS = [
   { main: "B.Tech students applying on LinkedIn get a 1.4% callback rate.", emphasis: "Students who cold outreach hiring managers directly get 12 to 18%.", hook: "Let's figure out which companies you should be reaching." },
@@ -155,7 +155,7 @@ export default function CcChat() {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; state?: string; time: string }>>([]);
   const [waiting, setWaiting] = useState(false);
   const [headerHidden, setHeaderHidden] = useState(false);
-  const [sessionReady, setSessionReady] = useState(false);
+  const [dnaConfirmed, setDnaConfirmed] = useState(false);
   const [returning, setReturning] = useState(false);
 
   // Hook state
@@ -230,19 +230,19 @@ export default function CcChat() {
           }));
           setMessages(hist);
           const lastState = [...sd.history].reverse().find((m: any) => m.state)?.state;
-          if (lastState) setAgentState(lastState);
-          setSessionReady(true);
+          if (lastState) {
+            setAgentState(lastState);
+            if (DASH_STATES.has(lastState)) setDnaConfirmed(true);
+          }
           return;
         }
 
         const gRes = await fetch(`${CC_API}/chat/greeting?student_id=${sd.student_id}&conversation_id=${sd.conversation_id}`);
         const gd = await gRes.json();
         pendingGreetingRef.current = gd;
-        setSessionReady(true);
         if (hookDismissedRef.current) showGreeting(gd);
       } catch {
         pendingGreetingRef.current = { reply: "Hey, what are you working through right now?" };
-        setSessionReady(true);
         if (hookDismissedRef.current) showGreeting(pendingGreetingRef.current);
       }
     })();
@@ -289,6 +289,7 @@ export default function CcChat() {
       await new Promise(r => setTimeout(r, Math.max(0, 600 - elapsed)));
       const newState = data.orchestration?.current_state || agentState;
       setAgentState(newState);
+      if (data.orchestration?.dna_generated || DASH_STATES.has(newState)) setDnaConfirmed(true);
       setMessages(prev => [...prev, { role: "agent", content: data.reply, state: newState, time: now12h() }]);
     } catch {
       setMessages(prev => [...prev, { role: "agent", content: "Something went wrong on my end — try sending that again.", time: now12h() }]);
@@ -299,7 +300,7 @@ export default function CcChat() {
   const step = STATE_TO_STEP[agentState] || 1;
   const sid = studentIdRef.current;
   const showDnaCta = DNA_STATES.has(agentState) && sid;
-  const showDashCta = DASH_STATES.has(agentState) && sid;
+  const showDashCta = dnaConfirmed && sid;
   const stat = HOOK_STATS[statIdx];
 
   const navCenter = (!agentState || agentState === "GREETING" || agentState === "PROFILING")
