@@ -61,4 +61,5 @@ export default [
   route("reports/internships-singapore-what-gets-you-hired-2026", "routes/reports.internships-singapore-what-gets-you-hired-2026.tsx"),
   route("reports/linkedin-profile-what-hiring-managers-look-at-2026", "routes/reports.linkedin-profile-what-hiring-managers-look-at-2026.tsx"),
   route("reports/mba-internship-market-india-2026", "routes/reports.mba-internship-market-india-2026.tsx"),
+  route("reports/referrals-vs-applications-how-people-get-hired-2026", "routes/reports.referrals-vs-applications-how-people-get-hired-2026.tsx"),
 ] satisfies RouteConfig;
