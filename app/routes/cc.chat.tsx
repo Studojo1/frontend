@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 export function meta() {
   return [{ title: "CareerDojo Chat | Studojo" }];
@@ -151,6 +151,8 @@ const CSS = `
 
 export default function CcChat() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const forceChat = searchParams.get("force") === "1";
   const [agentState, setAgentState] = useState("GREETING");
   const [messages, setMessages] = useState<Array<{ role: string; content: string; state?: string; time: string }>>([]);
   const [waiting, setWaiting] = useState(false);
@@ -223,7 +225,8 @@ export default function CcChat() {
         if (sd.returning && sd.history?.length > 0) {
           const lastState = [...sd.history].reverse().find((m: any) => m.state)?.state;
           // Returning user who already has DNA — send directly to dashboard
-          if (lastState && DASH_STATES.has(lastState)) {
+          // Skip if user explicitly clicked "Back to Chat" (?force=1)
+          if (!forceChat && lastState && DASH_STATES.has(lastState)) {
             navigate(`/cc/dashboard?id=${sd.student_id}`);
             return;
           }
