@@ -78,7 +78,7 @@ export async function action({ request }: Route.ActionArgs) {
     console.error("[api.chat] LLM fallback failed:", error);
 
     const escalationReply =
-      "Hmm, I'm not able to answer that right now. You can reach the team at admin@studojo.com or use our contact form and they'll get back to you within 24 hours.";
+      "That's beyond my scope. Tap 'Raise a ticket' above and the team will get back to you within 48 hours.";
 
     logChatInteraction({
       sessionId: sid,

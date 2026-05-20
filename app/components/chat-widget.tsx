@@ -196,7 +196,7 @@ export function ChatWidget() {
           ...prev,
           {
             role: "assistant",
-            content: "Something went wrong. Try again or email admin@studojo.com.",
+            content: "Something went wrong. Try again, or tap 'Raise a ticket' above and the team will follow up.",
           },
         ]);
       }
