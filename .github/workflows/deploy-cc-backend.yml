@@ -1,0 +1,99 @@
+name: Deploy CC Backend (Staging)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [staging]
+    paths:
+      - .github/workflows/deploy-cc-backend.yml
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  REGISTRY: acrstudojo-dhfsdrfhf6a6bbg2.azurecr.io
+  ACR_NAME: acrstudojo
+  APP_NAME: cc-backend
+  NAMESPACE: staging
+  AKS_RG: rg-studojo
+  AKS_CLUSTER: studojo-aks
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Career-coach repo
+        uses: actions/checkout@v4
+        with:
+          repository: Studojo1/Career-coach
+          token: ${{ secrets.CC_DEPLOY_TOKEN }}
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: |
+          TOKEN=$(az acr login --name ${{ env.ACR_NAME }} --expose-token --output tsv --query accessToken)
+          docker login ${{ env.REGISTRY }} -u 00000000-0000-0000-0000-000000000000 -p "$TOKEN"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.APP_NAME }}:staging
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache,mode=max
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group ${{ env.AKS_RG }} \
+            --name ${{ env.AKS_CLUSTER }} \
+            --overwrite-existing
+
+      - name: Ensure namespace and secrets
+        run: |
+          kubectl get namespace ${{ env.NAMESPACE }} 2>/dev/null || kubectl create namespace ${{ env.NAMESPACE }}
+          kubectl create secret generic cc-backend-secrets \
+            --namespace ${{ env.NAMESPACE }} \
+            --from-literal=AZURE_OPENAI_API_KEY="${{ secrets.CC_AZURE_OPENAI_API_KEY }}" \
+            --from-literal=AZURE_OPENAI_ENDPOINT="${{ secrets.CC_AZURE_OPENAI_ENDPOINT }}" \
+            --from-literal=DATABASE_URL="sqlite+aiosqlite:///./studojo.db" \
+            --from-literal=ADMIN_SECRET_KEY="${{ secrets.CC_ADMIN_SECRET_KEY }}" \
+            --save-config --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply k8s service and ingress
+        run: |
+          kubectl apply -f backend/k8s/service.yaml
+          kubectl apply -f backend/k8s/ingress-staging.yaml
+
+      - name: Deploy or create deployment
+        run: |
+          if kubectl get deployment ${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} &>/dev/null; then
+            kubectl set image deployment/${{ env.APP_NAME }} \
+              ${{ env.APP_NAME }}=${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }} \
+              -n ${{ env.NAMESPACE }}
+          else
+            kubectl create deployment ${{ env.APP_NAME }} \
+              --image=${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }} \
+              --namespace=${{ env.NAMESPACE }}
+            kubectl set env deployment/${{ env.APP_NAME }} \
+              --namespace=${{ env.NAMESPACE }} \
+              --from=secret/cc-backend-secrets
+            kubectl patch deployment ${{ env.APP_NAME }} \
+              --namespace=${{ env.NAMESPACE }} \
+              --type=json \
+              -p='[{"op":"replace","path":"/spec/template/spec/containers/0/ports","value":[{"containerPort":8000}]}]'
+          fi
+          kubectl rollout status deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} --timeout=10m
