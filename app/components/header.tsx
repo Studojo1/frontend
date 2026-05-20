@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router";
 
 const NAV_LINKS = [
-  { to: "/", label: "Home", active: true },
+  { to: "/", label: "Home" },
+  { to: "/career-coach", label: "Career Coach" },
   { to: "#dojos", label: "Features" },
   { to: "#dojos", label: "Dojos" },
   { to: "#pricing", label: "Pricing" },
@@ -15,6 +16,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+  const isCareerCoach = location.pathname === "/career-coach";
 
   return (
     <motion.header
@@ -36,10 +38,10 @@ export function Header() {
             <Link
               key={link.label}
               to={link.to}
-              className={`font-['Satoshi'] text-base leading-6 ${
-                "active" in link && link.active
-                  ? "font-black text-neutral-700"
-                  : "font-normal text-neutral-700"
+              className={`font-['Satoshi'] text-base leading-6 transition-colors ${
+                location.pathname === link.to
+                  ? "font-black text-neutral-900"
+                  : "font-normal text-neutral-700 hover:text-neutral-900"
               }`}
             >
               {link.label}
@@ -57,7 +59,7 @@ export function Header() {
           <Link
             to="/auth?mode=signup"
             className={`flex h-12 flex-1 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-base font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] md:w-32 md:flex-none ${
-              isHomePage ? "hidden md:flex" : ""
+              isHomePage || isCareerCoach ? "hidden md:flex" : ""
             }`}
           >
             Get Started
