@@ -221,6 +221,12 @@ export default function CcChat() {
         localStorage.setItem(STORAGE_KEY, sd.student_id);
 
         if (sd.returning && sd.history?.length > 0) {
+          const lastState = [...sd.history].reverse().find((m: any) => m.state)?.state;
+          // Returning user who already has DNA — send directly to dashboard
+          if (lastState && DASH_STATES.has(lastState)) {
+            navigate(`/cc/dashboard?id=${sd.student_id}`);
+            return;
+          }
           setHookVisible(false);
           hookDismissedRef.current = true;
           setReturning(true);
@@ -229,11 +235,7 @@ export default function CcChat() {
             content: m.content, state: m.state, time: now12h(),
           }));
           setMessages(hist);
-          const lastState = [...sd.history].reverse().find((m: any) => m.state)?.state;
-          if (lastState) {
-            setAgentState(lastState);
-            if (DASH_STATES.has(lastState)) setDnaConfirmed(true);
-          }
+          if (lastState) setAgentState(lastState);
           return;
         }
 
@@ -358,7 +360,7 @@ export default function CcChat() {
 
         {/* STEP NAV */}
         <div id="cc-step-nav">
-          {[["AI Chat", "/cc/chat"], ["Career Analysis", `/cc/analysis${sid ? "?id="+sid : ""}`], ["Recommendations", `/cc/analysis${sid ? "?id="+sid : ""}`], ["Dashboard", `/cc/dashboard${sid ? "?id="+sid : ""}`]].map(([label, href], i) => {
+          {[["AI Chat", "/cc/chat"], ["Career Analysis", `/cc/analysis${sid ? "?id="+sid : ""}`], ["Recommendations", `/cc/roadmap${sid ? "?id="+sid : ""}`], ["Dashboard", `/cc/dashboard${sid ? "?id="+sid : ""}`]].map(([label, href], i) => {
             const n = i + 1;
             const cls = n === step ? "step-item active" : n < step ? "step-item done" : "step-item";
             return (
@@ -406,9 +408,9 @@ export default function CcChat() {
                         )}
                         {showDashCta && (
                           <div style={{ marginLeft: 46 }}>
-                            <div className="dashboard-cta-inline" onClick={() => navigate(`/cc/dashboard?id=${sid}`)}>
-                              <div><div className="cta-text">View your Dashboard</div><div className="cta-sub">Track progress and bridge your skill gaps</div></div>
-                              <div className="cta-arrow">→</div>
+                            <div className="analysis-cta-inline" style={{ borderColor: "#8b5cf6", background: "rgba(233,213,255,0.2)" }} onClick={() => navigate(`/cc/roadmap?id=${sid}`)}>
+                              <div><div className="cta-text" style={{ color: "#8b5cf6" }}>View your Recommendations</div><div className="cta-sub">Full roadmap, skill gaps, and priority actions</div></div>
+                              <div className="cta-arrow" style={{ color: "#8b5cf6" }}>→</div>
                             </div>
                           </div>
                         )}

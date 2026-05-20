@@ -1,319 +1,525 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
 export function meta() {
   return [{ title: "Career Analysis | CareerDojo" }];
 }
 
 const CC_API = "/api/v1/cc";
+const STORAGE_KEY = "studojo_student_id";
 
-type GapStatus = "todo" | "in_progress" | "completed";
-type GapItem = { skill?: string; action?: string; type?: string; why_it_matters?: string; how_to_close?: string; how_to_build?: string; priority?: string };
-
-function gapKey(studentId: string) { return `studojo_gaps_${studentId}`; }
-function loadProgress(sid: string): Record<string, GapStatus> {
-  try { return JSON.parse(localStorage.getItem(gapKey(sid)) || "{}"); } catch { return {}; }
+const CSS = `
+:root{
+  --bg:#FAFAF9;--bg2:#F5F5F4;--white:#FFFFFF;
+  --text:#111111;--muted:#71717A;--faint:#A1A1AA;
+  --border:#111111;--border-light:rgba(0,0,0,0.1);
+  --purple:#8B5CF6;--purple-light:#E9D5FF;
+  --pink:#EC4899;--green:#10B981;--green-light:#D1FAE5;
+  --amber:#F59E0B;--amber-light:#FEF3C7;
+  --red:#EF4444;--teal:#14B8A6;
+  --grad:linear-gradient(90deg,#8B5CF6 0%,#A855F7 50%,#EC4899 100%);
 }
-function saveProgress(sid: string, data: Record<string, GapStatus>) {
-  localStorage.setItem(gapKey(sid), JSON.stringify(data));
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--text);}
+#ca-navbar{
+  position:sticky;top:0;height:64px;
+  background:var(--white);border-bottom:2px solid #111;
+  box-shadow:0 2px 0 #111;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;padding:0 32px;
+}
+.ca-nav-logo{font-size:1.35rem;font-weight:800;letter-spacing:-0.04em;display:flex;align-items:center;gap:4px;text-decoration:none;color:var(--text);}
+.ca-nav-logo .dot{width:8px;height:8px;border-radius:50%;background:var(--grad);display:inline-block;}
+.ca-nav-btns{display:flex;gap:10px;align-items:center;}
+.btn-outline-nav{background:white;border:2px solid #111;border-radius:999px;box-shadow:3px 3px 0 #111;padding:7px 16px;font-weight:600;font-size:0.8rem;cursor:pointer;font-family:"Inter",sans-serif;text-decoration:none;color:var(--text);transition:all 0.15s;}
+.btn-outline-nav:hover{transform:translateY(-1px);}
+#ca-step-nav{
+  position:sticky;top:64px;z-index:98;height:44px;
+  background:var(--white);border-bottom:1px solid rgba(0,0,0,0.08);
+  display:flex;align-items:center;justify-content:center;gap:0;
+}
+.step-item{display:flex;align-items:center;gap:7px;cursor:pointer;padding:5px 12px;border-radius:999px;transition:all 0.15s;user-select:none;text-decoration:none;}
+.step-item:hover:not(.active){background:var(--bg2);}
+.step-num{width:20px;height:20px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#bbb;flex-shrink:0;}
+.step-item.active .step-num{background:var(--grad);border-color:transparent;color:white;}
+.step-item.done .step-num{background:var(--green);border-color:transparent;color:white;}
+.step-label{font-size:0.78rem;font-weight:500;color:var(--faint);}
+.step-item.active .step-label{font-weight:700;color:var(--purple);}
+.step-item.done .step-label{color:var(--green);font-weight:600;}
+.step-connector{width:28px;height:2px;background:#e8e8e8;flex-shrink:0;margin:0 2px;}
+.step-connector.done{background:var(--green);}
+#ca-page{max-width:860px;margin:0 auto;padding:40px 28px 80px;}
+.section-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--faint);margin-bottom:8px;}
+
+/* DNA CARD */
+.dna-card{background:white;border:2px solid #111;border-radius:24px;box-shadow:5px 5px 0 #111;overflow:hidden;margin-bottom:24px;}
+.dna-strip{height:6px;background:var(--grad);}
+.dna-body{padding:28px 32px;}
+.dna-top{display:flex;gap:24px;align-items:flex-start;margin-bottom:20px;}
+.clarity-ring-wrap{flex-shrink:0;text-align:center;}
+.ring-svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:var(--bg2);}
+.ring-fill{fill:none;stroke-linecap:round;stroke-dasharray:283;transition:stroke-dashoffset 1s ease;}
+.clarity-num{font-size:1.5rem;font-weight:800;margin-top:6px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.clarity-label{font-size:0.62rem;color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
+.dna-info{flex:1;}
+.dna-role{font-size:1.5rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:4px;}
+.dna-industry{font-size:0.95rem;font-weight:600;color:var(--purple);margin-bottom:10px;}
+.dna-narrative{font-size:0.875rem;line-height:1.65;color:var(--muted);margin-bottom:14px;padding:10px 14px;background:var(--bg2);border-radius:10px;border-left:3px solid var(--purple);}
+.meta-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.meta-pill{font-size:0.72rem;font-weight:600;padding:4px 12px;border:2px solid #111;border-radius:999px;box-shadow:2px 2px 0 #111;background:var(--bg2);}
+.skills-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.skill-col label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--faint);display:block;margin-bottom:8px;}
+.pills-wrap{display:flex;flex-wrap:wrap;gap:6px;}
+.pill{font-size:0.78rem;font-weight:600;padding:5px 12px;border:2px solid #111;border-radius:999px;box-shadow:2px 2px 0 #111;}
+.pill-green{background:var(--green);color:white;}
+.pill-amber{background:var(--amber);color:white;}
+.readiness-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.readiness-bar-wrap{flex:1;}
+.readiness-bar-label{display:flex;justify-content:space-between;font-size:0.78rem;font-weight:600;margin-bottom:6px;}
+.readiness-bar-sub{font-size:0.68rem;color:var(--faint);margin-top:4px;}
+.bar-track{height:10px;background:var(--bg2);border-radius:999px;border:1px solid #111;overflow:hidden;}
+.bar-fill{height:100%;background:var(--grad);border-radius:999px;width:0%;transition:width 1s ease;}
+.reply-badge{flex-shrink:0;background:var(--purple-light);border:2px solid #111;border-radius:12px;padding:10px 16px;text-align:center;box-shadow:3px 3px 0 #111;}
+.reply-badge .rnum{font-size:1.4rem;font-weight:800;color:var(--purple);}
+.reply-badge .rlbl{font-size:0.62rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+.dna-share-row{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;}
+.share-score-inline{flex:1;min-width:120px;background:var(--bg2);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px;}
+.ssi-num{font-size:1.25rem;font-weight:800;letter-spacing:-0.03em;}
+.ssi-label{font-size:0.72rem;color:var(--muted);font-weight:600;}
+.ssi-gap{font-size:0.72rem;color:var(--amber);font-weight:700;}
+.not-accurate-btn{font-size:0.72rem;color:var(--faint);background:none;border:1px solid rgba(0,0,0,0.15);border-radius:999px;padding:4px 12px;cursor:pointer;font-family:"Inter",sans-serif;transition:all 0.15s;}
+.not-accurate-btn:hover{color:var(--text);border-color:var(--border);background:var(--bg2);}
+.clarity-tips{background:var(--amber-light);border:1px solid var(--amber);border-radius:12px;padding:12px 16px;margin-bottom:20px;}
+.clarity-tips-title{font-size:0.72rem;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+.clarity-tips li{font-size:0.8rem;color:#78350F;line-height:1.6;padding-left:16px;}
+
+/* SCORE CARD */
+.score-card{background:white;border:2px solid #111;border-radius:20px;box-shadow:4px 4px 0 #111;padding:22px 26px;margin-bottom:20px;}
+
+/* GAP BARS */
+.gap-bar-section{background:white;border:2px solid #111;border-radius:20px;box-shadow:4px 4px 0 #111;padding:22px 26px;margin-bottom:20px;}
+
+/* THIS WEEK CARD */
+.this-week-card{background:white;border:3px solid #111;border-radius:20px;box-shadow:5px 5px 0 #111;overflow:hidden;margin-bottom:20px;}
+.tw-strip{height:5px;background:var(--grad);}
+.tw-body{padding:24px 28px;}
+.tw-eyebrow{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--purple);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.tw-eyebrow::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--purple);}
+.tw-action{font-size:1.2rem;font-weight:800;letter-spacing:-0.02em;line-height:1.35;margin-bottom:12px;}
+.tw-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.tw-meta-box{background:var(--bg2);border-radius:10px;padding:10px 14px;}
+.tw-meta-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--faint);margin-bottom:4px;}
+.tw-meta-val{font-size:0.82rem;font-weight:600;line-height:1.45;}
+.tw-impact{background:linear-gradient(90deg,#F3F0FF,#FDF2FF);border:1px solid rgba(139,92,246,0.25);border-radius:10px;padding:10px 14px;font-size:0.83rem;}
+.tw-impact strong{color:var(--purple);}
+.tw-alt{border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;margin-top:12px;}
+.tw-alt-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--faint);margin-bottom:6px;}
+
+/* BOTTOM CTA */
+.ca-cta-section{background:white;border:2px solid #111;border-radius:24px;box-shadow:5px 5px 0 #111;padding:32px;text-align:center;margin-bottom:40px;}
+.ca-cta-section h3{font-size:1.2rem;font-weight:800;margin-bottom:8px;}
+.ca-cta-section p{color:var(--muted);font-size:0.875rem;margin-bottom:24px;}
+.btn-primary{display:inline-block;background:var(--grad);border:3px solid #111;border-radius:999px;box-shadow:4px 4px 0 #111;padding:14px 28px;color:white;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.2s;font-family:"Inter",sans-serif;text-decoration:none;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:6px 6px 0 #111;}
+.btn-secondary{display:inline-block;background:white;border:2px solid #111;border-radius:999px;box-shadow:3px 3px 0 #111;padding:13px 26px;color:var(--text);font-weight:700;font-size:0.875rem;cursor:pointer;transition:all 0.2s;font-family:"Inter",sans-serif;text-decoration:none;}
+.btn-secondary:hover{transform:translateY(-2px);}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+@media(max-width:768px){
+  #ca-page{padding:20px 16px 60px;}
+  #ca-navbar{padding:0 16px;}
+  #ca-step-nav{overflow-x:auto;justify-content:flex-start;padding:0 12px;}
+  .dna-top{flex-direction:column;gap:16px;}
+  .skills-grid{grid-template-columns:1fr;}
+  .readiness-row{flex-direction:column;align-items:stretch;}
+  .tw-meta-grid{grid-template-columns:1fr;}
+}
+`;
+
+function AnimBar({ label, score }: { label: string; score: number }) {
+  const [w, setW] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setW(score), 150); return () => clearTimeout(t); }, [score]);
+  const color = score >= 70 ? "#10b981" : score >= 40 ? "#f59e0b" : "#ef4444";
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", fontWeight: 700, marginBottom: 5 }}>
+        <span>{label}</span><span style={{ color }}>{score}%</span>
+      </div>
+      <div className="bar-track">
+        <div className="bar-fill" style={{ width: `${w}%`, background: color, transition: "width 0.9s ease" }} />
+      </div>
+    </div>
+  );
 }
 
-function ScoreRing({ score, label, size = 110 }: { score: number; label: string; size?: number }) {
-  const r = size * 0.4;
+function ScoreRing({ score, label, size = 100 }: { score: number; label: string; size?: number }) {
+  const r = 45;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - Math.max(0, Math.min(100, score)) / 100);
   const color = score >= 70 ? "#22c55e" : score >= 45 ? "#f59e0b" : "#8b5cf6";
   const [animated, setAnimated] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setAnimated(true), 80); return () => clearTimeout(t); }, []);
+  useEffect(() => { const t = setTimeout(() => setAnimated(true), 100); return () => clearTimeout(t); }, []);
   return (
-    <div className="flex flex-col items-center gap-1">
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#f3f4f6" strokeWidth="10" />
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="10"
-          strokeDasharray={circ}
-          strokeDashoffset={animated ? offset : circ}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${size/2} ${size/2})`}
-          style={{ transition: "stroke-dashoffset 1s ease" }} />
-        <text x={size/2} y={size/2 - 4} textAnchor="middle" dominantBaseline="middle"
-          style={{ fontSize: size * 0.22, fontWeight: 800, fill: "#111" }}>{score}</text>
-        <text x={size/2} y={size/2 + size*0.16} textAnchor="middle"
-          style={{ fontSize: size * 0.1, fill: "#9ca3af" }}>/100</text>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      <svg width={size} height={size} viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }}>
+        <circle cx="50" cy="50" r={r} fill="none" stroke="#f3f4f6" strokeWidth="9" />
+        <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="9"
+          strokeDasharray={circ} strokeDashoffset={animated ? offset : circ}
+          strokeLinecap="round" style={{ transition: "stroke-dashoffset 1s ease" }} />
+        <text x="50" y="46" textAnchor="middle" dominantBaseline="middle"
+          style={{ fontSize: 22, fontWeight: 800, fill: "#111", fontFamily: "Inter,sans-serif" }}
+          transform="rotate(90 50 50)">{score}</text>
+        <text x="50" y="60" textAnchor="middle"
+          style={{ fontSize: 10, fill: "#9ca3af", fontFamily: "Inter,sans-serif" }}
+          transform="rotate(90 50 50)">/100</text>
       </svg>
-      <span className="text-xs font-semibold text-neutral-500">{label}</span>
+      <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "#71717a" }}>{label}</span>
     </div>
   );
 }
 
-function GapBar({ label, score }: { label: string; score: number }) {
-  const color = score >= 70 ? "#22c55e" : score >= 40 ? "#f59e0b" : "#ef4444";
-  const [w, setW] = useState(0);
-  useEffect(() => { const t = setTimeout(() => setW(score), 120); return () => clearTimeout(t); }, [score]);
-  return (
-    <div className="mb-3">
-      <div className="flex justify-between text-xs font-semibold mb-1">
-        <span className="text-neutral-700">{label}</span>
-        <span style={{ color }}>{score}%</span>
-      </div>
-      <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
-        <div className="h-full rounded-full" style={{ width: `${w}%`, background: color, transition: "width 0.9s ease" }} />
-      </div>
-    </div>
-  );
-}
+function buildNarrative(path: any, student: any): string {
+  const degree = student?.degree || "";
+  const stream = student?.stream || "";
+  const institution = student?.institution || "";
+  const role = path?.target_role || "";
+  const industry = path?.target_industry || "";
+  const readiness = path?.readiness_score || 0;
+  const skills = path?.skills_you_have || [];
+  const gaps = path?.skills_to_build || [];
+  const topGap = gaps.length ? (typeof gaps[0] === "object" ? (gaps[0].skill || gaps[0].name || "") : gaps[0]) : "";
 
-const STATUS_NEXT: Record<GapStatus, GapStatus> = { todo: "in_progress", in_progress: "completed", completed: "todo" };
-const STATUS_LABEL: Record<GapStatus, string> = { todo: "Not started", in_progress: "In progress", completed: "Done" };
-const STATUS_COLOR: Record<GapStatus, string> = {
-  todo: "bg-neutral-100 text-neutral-500 border-neutral-200",
-  in_progress: "bg-amber-50 text-amber-700 border-amber-200",
-  completed: "bg-green-50 text-green-700 border-green-200",
-};
+  let who = "";
+  if (degree && stream) who = `${degree} ${stream} student`;
+  else if (degree) who = `${degree} student`;
+  else if (stream) who = `${stream} student`;
+  if (institution) who = who ? `${who} from ${institution}` : `Student from ${institution}`;
+  if (!who) who = "You";
 
-function ActionItem({ item, idx, progress, onToggle }: {
-  item: GapItem; idx: number;
-  progress: Record<string, GapStatus>; onToggle: (key: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const key = `action_${idx}`;
-  const status = progress[key] || "todo";
-  const label = item.skill || item.action || item.type || "";
-  const why = item.why_it_matters || "";
-  const how = item.how_to_close || item.how_to_build || "";
-  const priority = (item.priority || "").toLowerCase();
+  let situation = "";
+  if (role && industry) situation = `targeting ${role} roles in ${industry}`;
+  else if (role) situation = `targeting ${role} roles`;
+  else if (industry) situation = `targeting the ${industry} industry`;
 
-  return (
-    <div className={`border-2 rounded-2xl overflow-hidden transition-all ${status === "completed" ? "border-green-200 bg-green-50/50" : status === "in_progress" ? "border-amber-200 bg-amber-50/30" : "border-neutral-200 bg-white"}`}>
-      <div className="flex items-center gap-3 px-4 py-3 cursor-pointer" onClick={() => setOpen(o => !o)}>
-        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 flex-shrink-0 ${idx === 0 && status === "todo" ? "bg-violet-500 border-violet-500 text-white" : "bg-white border-neutral-300 text-neutral-500"}`}>{idx + 1}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-sm font-semibold ${status === "completed" ? "line-through text-neutral-400" : "text-neutral-800"}`}>{label}</span>
-            {priority === "high" && <span className="text-xs font-bold px-2 py-0.5 bg-red-50 text-red-600 border border-red-200 rounded-full">High</span>}
-            {priority === "medium" && <span className="text-xs font-bold px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 rounded-full">Medium</span>}
-          </div>
-        </div>
-        <button
-          onClick={e => { e.stopPropagation(); onToggle(key); }}
-          className={`text-xs font-semibold px-2 py-1 rounded-lg border flex-shrink-0 ${STATUS_COLOR[status]}`}
-        >{STATUS_LABEL[status]}</button>
-        <span className="text-neutral-400 text-xs">{open ? "↑" : "↓"}</span>
-      </div>
-      {open && (why || how) && (
-        <div className="px-4 pb-4 flex flex-col gap-2 border-t border-neutral-100">
-          {why && (
-            <div className="mt-3 bg-neutral-50 rounded-xl p-3">
-              <div className="text-xs font-bold uppercase tracking-wide text-neutral-400 mb-1">Why this matters</div>
-              <p className="text-sm text-neutral-700 leading-relaxed">{why}</p>
-            </div>
-          )}
-          {how && (
-            <div className="bg-violet-50 rounded-xl p-3">
-              <div className="text-xs font-bold uppercase tracking-wide text-violet-400 mb-1">How to close it</div>
-              <p className="text-sm text-violet-800 leading-relaxed">{how}</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+  let insight = "";
+  if (readiness < 50 && topGap) {
+    insight = `The single biggest thing standing between you and your first reply is ${topGap}. That is fixable in two to three weeks.`;
+  } else if (readiness >= 70) {
+    insight = `You are in the top range of readiness for someone at your stage. A few targeted moves and you will be sending outreach this week.`;
+  } else if (topGap) {
+    insight = `You have a real foundation to work with. Closing the gap on ${topGap} is the move that unlocks the next stage.`;
+  } else if (skills.length > 0) {
+    insight = `You already have the foundation. The gap between you and your first interview is smaller than it feels right now.`;
+  } else {
+    insight = `This is more fixable than it looks. Most students in your position get to outreach-ready within four to six weeks with the right focus.`;
+  }
+
+  const fullWho = who.charAt(0).toUpperCase() + who.slice(1);
+  return `${fullWho}${situation ? `, ${situation}` : ""}. ${insight}`;
 }
 
 export default function CcAnalysis() {
+  const navigate = useNavigate();
   const [params] = useSearchParams();
-  const studentId = params.get("id") || localStorage.getItem("studojo_cc_student_id") || "";
+  const studentId = params.get("id") || (typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : "") || "";
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [progress, setProgress] = useState<Record<string, GapStatus>>({});
+  const [barAnimated, setBarAnimated] = useState(false);
+  const [ringOffset, setRingOffset] = useState(283);
 
   useEffect(() => {
-    if (!studentId) { setError("No student ID found. Go back to chat."); setLoading(false); return; }
-    setProgress(loadProgress(studentId));
+    if (!studentId) { setError("No student ID found."); setLoading(false); return; }
     fetch(`${CC_API}/dashboard/${studentId}`)
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(() => { setError("Could not load your analysis."); setLoading(false); });
+      .then(d => {
+        setData(d);
+        setLoading(false);
+        setTimeout(() => {
+          setBarAnimated(true);
+          const clarity = d?.primary_path?.clarity_score || 0;
+          setRingOffset(283 - (clarity / 100) * 283);
+        }, 200);
+      })
+      .catch(() => { setError("Could not load analysis."); setLoading(false); });
   }, [studentId]);
 
-  function toggleStatus(key: string) {
-    setProgress(prev => {
-      const current = prev[key] || "todo";
-      const next = STATUS_NEXT[current];
-      const updated = { ...prev, [key]: next };
-      saveProgress(studentId, updated);
-      return updated;
-    });
-  }
-
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 rounded-full border-4 border-violet-500 border-t-transparent animate-spin" />
-        <p className="text-neutral-500 text-sm">Loading your analysis...</p>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fafaf9" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", border: "3px solid #e9d5ff", borderTopColor: "#8b5cf6", animation: "spin 0.8s linear infinite", margin: "0 auto 14px" }} />
+          <p style={{ color: "#71717a", fontSize: "0.9rem", fontFamily: "Inter,sans-serif" }}>Loading your analysis...</p>
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        </div>
       </div>
-    </div>
+    </>
   );
 
   if (error || !data?.ready) return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
-      <div className="text-center max-w-sm">
-        <div className="text-5xl mb-4">🧠</div>
-        <h2 className="font-['Clash_Display'] text-2xl font-bold text-neutral-900 mb-3">Analysis not ready yet</h2>
-        <p className="text-neutral-500 text-sm mb-6">{error || "Keep chatting — your Career DNA generates once the coach has enough to work with."}</p>
-        <Link to="/cc/chat" className="inline-block bg-violet-500 text-white font-bold px-6 py-3 rounded-2xl border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all text-sm">
-          Continue chatting
-        </Link>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fafaf9", padding: 24 }}>
+        <div style={{ textAlign: "center", maxWidth: 360, fontFamily: "Inter,sans-serif" }}>
+          <div style={{ fontSize: "3rem", marginBottom: 16 }}>🧠</div>
+          <h2 style={{ fontSize: "1.5rem", fontWeight: 800, marginBottom: 12 }}>Analysis not ready yet</h2>
+          <p style={{ color: "#71717a", fontSize: "0.875rem", marginBottom: 24, lineHeight: 1.6 }}>{error || "Keep chatting — your Career DNA generates once the coach has enough to work with."}</p>
+          <Link to="/cc/chat" className="btn-primary">Continue chatting →</Link>
+        </div>
       </div>
-    </div>
+    </>
   );
 
   const path = data.primary_path || {};
+  const student = data.student || {};
   const readiness = path.readiness_score || 0;
   const clarity = path.clarity_score || 0;
-  const replyProb = path.reply_probability || 0;
+  const reply = path.reply_probability || 0;
   const summary = path.one_line_summary || "";
-  const actions: GapItem[] = path.skills_gap_items || [];
-  const companies: string[] = path.target_companies || [];
-  const altRoles: string[] = path.alternative_roles || [];
-  const skillsGap = path.skills_gap_score || Math.round(readiness * 0.9);
-  const industryGap = path.industry_gap_score || Math.round(readiness * 0.85);
-  const expGap = path.experience_gap_score || Math.round(readiness * 0.8);
-  const topAction = actions[0];
-  const altAction = actions[1];
-  const completedCount = actions.filter((_, i) => (progress[`action_${i}`] || "todo") === "completed").length;
-  const potentialReply = Math.min(99, replyProb + Math.round(completedCount * 2.5));
+  const topAction = (path.skills_gap_items || [])[0];
+  const altAction = (path.skills_gap_items || [])[1];
+  const skillsHave: string[] = (path.skills_you_have || []).slice(0, 6);
+  const skillsToBuild: any[] = (path.skills_to_build || (path.skills_gap_items || []).map((a: any) => ({ skill: a.skill || a.action || "" }))).slice(0, 6);
+  const skillsGap = path.skills_gap_score || Math.max(0, 100 - readiness + 10);
+  const industryGap = path.industry_gap_score || Math.max(0, 100 - readiness - 10);
+  const expGap = path.experience_gap_score || Math.max(0, 100 - readiness);
+  const INTERVIEW_THRESHOLD = 74;
+  const scoreGap = Math.max(0, INTERVIEW_THRESHOLD - readiness);
+  const readinessDesc = readiness >= 70 ? "Well-positioned to start applying now" : readiness >= 40 ? "A few gaps to close before applying" : "Early stage — build your profile first";
+  const clarityLabel = clarity >= 75 ? "Strong Clarity" : clarity >= 50 ? "Growing Clarity" : "Building Clarity";
+  const narrative = buildNarrative(path, student);
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <div className="bg-white border-b border-neutral-100 px-4 py-4 flex items-center justify-between sticky top-0 z-10">
-        <Link to="/cc" className="font-['Clash_Display'] font-bold text-neutral-900 text-lg">CareerDojo</Link>
-        <Link to="/cc/chat" className="text-xs font-bold text-violet-600 border border-violet-300 rounded-xl px-3 py-1 hover:bg-violet-50 transition-colors">Back to chat</Link>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+
+      {/* NAVBAR */}
+      <nav id="ca-navbar">
+        <Link to="/cc" className="ca-nav-logo">studojo<span className="dot" /></Link>
+        <div className="ca-nav-btns">
+          <Link to={`/cc/dashboard?id=${studentId}`} className="btn-outline-nav">Dashboard →</Link>
+          <Link to="/cc/chat" className="btn-outline-nav">Back to chat</Link>
+        </div>
+      </nav>
+
+      {/* STEP NAV */}
+      <div id="ca-step-nav">
+        {([
+          ["AI Chat", "/cc/chat"],
+          ["Career Analysis", `/cc/analysis?id=${studentId}`],
+          ["Recommendations", `/cc/roadmap?id=${studentId}`],
+          ["Dashboard", `/cc/dashboard?id=${studentId}`],
+        ] as const).map(([label, href], i) => {
+          const n = i + 1;
+          // Analysis page is step 2 — steps 1 and 2 are "done", step 2 is active
+          const cls = n === 2 ? "step-item active" : n < 2 ? "step-item done" : "step-item";
+          return (
+            <span key={n} style={{ display: "contents" }}>
+              <a href={href} className={cls} style={{ textDecoration: "none" }}>
+                <div className="step-num">{n}</div>
+                <div className="step-label">{label}</div>
+              </a>
+              {i < 3 && <div className={`step-connector${n < 2 ? " done" : ""}`} />}
+            </span>
+          );
+        })}
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-5">
+      <div id="ca-page">
 
-        {/* DNA summary */}
-        {summary && (
-          <div className="bg-neutral-900 text-white rounded-2xl p-5 border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-            <div className="text-xs font-bold uppercase tracking-widest text-violet-400 mb-2">Career DNA</div>
-            <p className="text-sm font-semibold leading-relaxed">{summary}</p>
-            {(path.target_role || path.target_industry) && (
-              <div className="flex gap-2 mt-3 flex-wrap">
-                {path.target_role && <span className="text-xs bg-white/10 px-3 py-1 rounded-full">{path.target_role}</span>}
-                {path.target_industry && <span className="text-xs bg-white/10 px-3 py-1 rounded-full">{path.target_industry}</span>}
+        {/* DNA CARD */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <div className="section-label" style={{ marginBottom: 0 }}>Your Career DNA</div>
+          <button className="not-accurate-btn" onClick={() => navigate(`/cc/chat?id=${studentId}`)}>Something look off?</button>
+        </div>
+
+        <div className="dna-card">
+          <div className="dna-strip" />
+          <div className="dna-body">
+            <div className="dna-top">
+              {/* Clarity ring */}
+              <div className="clarity-ring-wrap">
+                <svg width="100" height="100" viewBox="0 0 100 100" className="ring-svg">
+                  <defs>
+                    <linearGradient id="grad-dna" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#8B5CF6" /><stop offset="100%" stopColor="#EC4899" />
+                    </linearGradient>
+                  </defs>
+                  <circle className="ring-bg" cx="50" cy="50" r="45" strokeWidth="8" />
+                  <circle className="ring-fill" cx="50" cy="50" r="45" strokeWidth="8"
+                    stroke="url(#grad-dna)" strokeDashoffset={ringOffset} />
+                </svg>
+                <div className="clarity-num">{clarity}</div>
+                <div className="clarity-label">{clarityLabel}</div>
+              </div>
+
+              {/* DNA info */}
+              <div className="dna-info">
+                <div className="dna-role">{path.target_role || "Your Target Role"}</div>
+                <div className="dna-industry">{path.target_industry || ""}</div>
+                <div className="meta-row">
+                  {path.target_geography && <span className="meta-pill">{path.target_geography}</span>}
+                  {path.job_type && <span className="meta-pill">{path.job_type}</span>}
+                  {path.urgency_timeline && <span className="meta-pill">{path.urgency_timeline}</span>}
+                </div>
+                <div className="dna-narrative">{narrative || summary}</div>
+              </div>
+            </div>
+
+            {/* Clarity tips */}
+            {clarity < 65 && (
+              <div className="clarity-tips">
+                <div className="clarity-tips-title">How to improve your clarity score</div>
+                <ul>
+                  <li>Tell the coach specifically which companies you want to work at</li>
+                  <li>Share your timeline — when are you looking to start?</li>
+                  <li>Clarify your location and work preference (remote, hybrid, etc.)</li>
+                </ul>
               </div>
             )}
-          </div>
-        )}
 
-        {/* Scores */}
-        <div className="bg-white border-2 border-neutral-900 rounded-2xl p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-          <h2 className="font-['Clash_Display'] font-bold text-neutral-900 mb-5">Your Scores</h2>
-          <div className="flex justify-around flex-wrap gap-4">
+            {/* Skills grid */}
+            <div className="skills-grid">
+              <div className="skill-col">
+                <label>Skills you have</label>
+                <div className="pills-wrap">
+                  {skillsHave.length
+                    ? skillsHave.map((s, i) => <span key={i} className="pill pill-green">{s}</span>)
+                    : <span style={{ color: "#a1a1aa", fontSize: "0.8rem" }}>Keep chatting to unlock</span>}
+                </div>
+              </div>
+              <div className="skill-col">
+                <label>Skills to build</label>
+                <div className="pills-wrap">
+                  {skillsToBuild.map((s, i) => (
+                    <span key={i} className="pill pill-amber">{typeof s === "object" ? (s.skill || s.name || "") : s}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Readiness bar + reply badge */}
+            <div className="readiness-row">
+              <div className="readiness-bar-wrap">
+                <div className="readiness-bar-label">
+                  <span>Outreach readiness</span>
+                  <span style={{ color: readiness >= 70 ? "#10b981" : readiness >= 40 ? "#f59e0b" : "#ef4444" }}>{readiness}/100</span>
+                </div>
+                <div className="bar-track">
+                  <div className="bar-fill" style={{ width: barAnimated ? `${readiness}%` : "0%" }} />
+                </div>
+                <div className="readiness-bar-sub">{readinessDesc}</div>
+              </div>
+              <div className="reply-badge">
+                <div className="rnum">{reply}%</div>
+                <div className="rlbl">Recruiter reply rate</div>
+              </div>
+            </div>
+
+            {/* Share row */}
+            <div className="dna-share-row">
+              {readiness < INTERVIEW_THRESHOLD
+                ? <div className="share-score-inline"><span className="ssi-num" style={{ color: "#f59e0b" }}>{readiness}</span><div><div className="ssi-label">Readiness score</div><div className="ssi-gap">{scoreGap} pts from interview threshold</div></div></div>
+                : <div className="share-score-inline"><span className="ssi-num" style={{ color: "#10b981" }}>{readiness}</span><div><div className="ssi-label">Readiness score</div><div className="ssi-label" style={{ color: "#10b981", fontWeight: 700 }}>Above interview threshold ✓</div></div></div>
+              }
+            </div>
+          </div>
+        </div>
+
+        {/* SCORES */}
+        <div className="score-card">
+          <div style={{ fontSize: "0.95rem", fontWeight: 800, marginBottom: 20 }}>Your Scores</div>
+          <div style={{ display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: 16 }}>
             <ScoreRing score={readiness} label="Readiness" />
             <ScoreRing score={clarity} label="Clarity" />
-            <ScoreRing score={replyProb} label="Reply Rate" />
+            <ScoreRing score={reply} label="Reply Rate" />
           </div>
-          {completedCount > 0 && (
-            <div className="mt-4 bg-green-50 border border-green-200 rounded-xl p-3 text-center">
-              <p className="text-xs text-green-700 font-semibold">{completedCount} action{completedCount > 1 ? "s" : ""} completed — reply rate could reach <strong>{potentialReply}%</strong></p>
-            </div>
-          )}
         </div>
 
-        {/* Gap analysis */}
-        <div className="bg-white border-2 border-neutral-900 rounded-2xl p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-          <h2 className="font-['Clash_Display'] font-bold text-neutral-900 mb-4">Gap Analysis</h2>
-          <GapBar label="Skills" score={skillsGap} />
-          <GapBar label="Industry Knowledge" score={industryGap} />
-          <GapBar label="Experience" score={expGap} />
+        {/* GAP ANALYSIS BARS */}
+        <div className="gap-bar-section">
+          <div style={{ fontSize: "0.95rem", fontWeight: 800, marginBottom: 16 }}>Gap Analysis</div>
+          <AnimBar label="Skills" score={skillsGap} />
+          <AnimBar label="Industry Knowledge" score={industryGap} />
+          <AnimBar label="Experience" score={expGap} />
+          <Link to={`/cc/roadmap?id=${studentId}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: "0.8rem", fontWeight: 700, color: "#8b5cf6", textDecoration: "none", border: "2px solid #111", borderRadius: 999, padding: "5px 14px", boxShadow: "2px 2px 0 #111", background: "white" }}>
+            See full gap breakdown and roadmap →
+          </Link>
         </div>
 
-        {/* This week card */}
+        {/* THIS WEEK CARD */}
         {topAction && (
-          <div className="bg-white border-2 border-neutral-900 rounded-2xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] group">
-            <div className="h-1.5 bg-gradient-to-r from-violet-500 to-purple-600" />
-            <div className="p-5">
-              <div className="text-xs font-bold uppercase tracking-widest text-violet-500 mb-2">One thing. This week.</div>
-              <p className="font-bold text-neutral-900 text-base leading-snug mb-1">{topAction.action || topAction.skill || topAction.how_to_close || ""}</p>
-              <p className="text-xs text-neutral-400 mb-3 group-hover:hidden">Hover to see why and how</p>
-              <div className="max-h-0 overflow-hidden group-hover:max-h-64 transition-all duration-300">
-                {topAction.why_it_matters && (
-                  <div className="bg-neutral-50 rounded-xl p-3 mb-2">
-                    <div className="text-xs font-bold uppercase tracking-wide text-neutral-400 mb-1">Why this matters</div>
-                    <p className="text-sm text-neutral-700 leading-relaxed">{topAction.why_it_matters}</p>
-                  </div>
-                )}
-              </div>
-              <div className="bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl px-3 py-2 text-xs text-neutral-700 mb-3">
-                This moves your reply rate from <strong className="text-violet-600">{replyProb}%</strong> toward <strong className="text-violet-600">{Math.min(99, replyProb + 5)}%</strong>. Everything else comes after this.
+          <div className="this-week-card">
+            <div className="tw-strip" />
+            <div className="tw-body">
+              <div className="tw-eyebrow">One thing. This week.</div>
+              <div className="tw-action">{topAction.action || topAction.skill || topAction.how_to_close || ""}</div>
+              {(topAction.why_it_matters || topAction.how_to_close || topAction.how_to_build) && (
+                <div className="tw-meta-grid">
+                  {topAction.why_it_matters && (
+                    <div className="tw-meta-box">
+                      <div className="tw-meta-label">Why this matters</div>
+                      <div className="tw-meta-val">{topAction.why_it_matters}</div>
+                    </div>
+                  )}
+                  {(topAction.how_to_close || topAction.how_to_build) && (
+                    <div className="tw-meta-box">
+                      <div className="tw-meta-label">Exactly how</div>
+                      <div className="tw-meta-val" style={{ color: "#4c1d95" }}>{topAction.how_to_close || topAction.how_to_build}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+              <div className="tw-impact">
+                This single action moves your reply rate from <strong>{reply}%</strong> toward <strong>{Math.min(99, reply + 5)}%</strong>. Everything else comes after this one.
               </div>
               {altAction && (
-                <details className="border-t border-neutral-100 pt-3">
-                  <summary className="text-xs font-semibold text-neutral-500 cursor-pointer hover:text-neutral-700 list-none flex items-center gap-1">
-                    <span>Can't do this right now?</span><span className="text-violet-400">↓</span>
-                  </summary>
-                  <div className="mt-2 pl-2 border-l-2 border-violet-200">
-                    <p className="text-sm font-semibold text-neutral-800">{altAction.action || altAction.skill || ""}</p>
-                    {altAction.why_it_matters && <p className="text-xs text-neutral-500 mt-1">{altAction.why_it_matters}</p>}
-                  </div>
-                </details>
+                <div className="tw-alt">
+                  <div className="tw-alt-label">Can't do this right now?</div>
+                  <div style={{ fontSize: "0.875rem", fontWeight: 700, marginBottom: 4 }}>{altAction.action || altAction.skill || ""}</div>
+                  {altAction.why_it_matters && <div style={{ fontSize: "0.78rem", color: "#71717a", lineHeight: 1.5 }}>{altAction.why_it_matters}</div>}
+                </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Full roadmap with status tracking */}
-        {actions.length > 0 && (
-          <div className="bg-white border-2 border-neutral-900 rounded-2xl p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-['Clash_Display'] font-bold text-neutral-900">Full Roadmap</h2>
-              <span className="text-xs text-neutral-500">{completedCount}/{actions.length} done</span>
-            </div>
-            {actions.length > 1 && (
-              <div className="h-1.5 bg-neutral-100 rounded-full mb-4 overflow-hidden">
-                <div className="h-full bg-violet-500 rounded-full transition-all duration-700" style={{ width: `${Math.round(completedCount / actions.length * 100)}%` }} />
-              </div>
-            )}
-            <div className="flex flex-col gap-3">
-              {actions.map((item, i) => (
-                <ActionItem key={i} item={item} idx={i} progress={progress} onToggle={toggleStatus} />
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Target companies */}
-        {companies.length > 0 && (
-          <div className="bg-white border-2 border-neutral-900 rounded-2xl p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-            <h2 className="font-['Clash_Display'] font-bold text-neutral-900 mb-4">Target Companies</h2>
-            <div className="flex flex-wrap gap-2">
-              {companies.map((c, i) => (
-                <span key={i} className="text-sm font-semibold bg-violet-50 text-violet-700 border border-violet-200 rounded-xl px-3 py-1">{c}</span>
+        {(path.target_companies || []).length > 0 && (
+          <div className="score-card">
+            <div style={{ fontSize: "0.95rem", fontWeight: 800, marginBottom: 14 }}>Target Companies</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {(path.target_companies || []).map((c: string, i: number) => (
+                <span key={i} style={{ fontSize: "0.83rem", fontWeight: 600, background: "#f3f0ff", color: "#8b5cf6", border: "2px solid #111", borderRadius: 999, padding: "5px 14px", boxShadow: "2px 2px 0 #111" }}>{c}</span>
               ))}
             </div>
           </div>
         )}
 
         {/* Alternative roles */}
-        {altRoles.length > 0 && (
-          <div className="bg-white border-2 border-neutral-900 rounded-2xl p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-            <h2 className="font-['Clash_Display'] font-bold text-neutral-900 mb-3">Also Consider</h2>
-            <div className="flex flex-wrap gap-2">
-              {altRoles.map((r, i) => (
-                <span key={i} className="text-sm font-medium bg-neutral-50 text-neutral-700 border border-neutral-200 rounded-xl px-3 py-1">{r}</span>
+        {(path.alternative_roles || []).length > 0 && (
+          <div className="score-card">
+            <div style={{ fontSize: "0.95rem", fontWeight: 800, marginBottom: 10 }}>Also Consider</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {(path.alternative_roles || []).map((r: string, i: number) => (
+                <span key={i} style={{ fontSize: "0.83rem", fontWeight: 600, background: "#f5f5f4", color: "#374151", border: "2px solid #111", borderRadius: 999, padding: "5px 14px", boxShadow: "2px 2px 0 #111" }}>{r}</span>
               ))}
             </div>
           </div>
         )}
 
-        <div className="text-center pb-6">
-          <Link to="/cc/chat" className="inline-block bg-violet-500 text-white font-bold px-8 py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all">
-            Continue with coach
-          </Link>
+        {/* CTA */}
+        <div className="ca-cta-section">
+          <h3>Ready to close the gap?</h3>
+          <p>Your full roadmap with every priority action, skill plan, and industry gap is one click away.</p>
+          <div className="cta-btns">
+            <Link to={`/cc/roadmap?id=${studentId}`} className="btn-primary">View Full Roadmap →</Link>
+            <Link to={`/cc/dashboard?id=${studentId}`} className="btn-secondary">Go to Dashboard</Link>
+          </div>
         </div>
+
       </div>
-    </div>
+    </>
   );
 }

@@ -256,7 +256,7 @@ function padHistory(history: any[], score: number) {
   return history;
 }
 
-function BridgeGapBar({ reply, skills }: { reply: number; skills: any[] }) {
+function BridgeGapBar({ reply, skills, studentId }: { reply: number; skills: any[]; studentId: string }) {
   const [barW, setBarW] = useState(0);
   const softFallback = ["Executive Communication", "Personal Branding (LinkedIn)", "Stakeholder Management", "Structured Problem Solving"];
   const toBuild = (skills.length ? skills : softFallback.map(s => ({ skill: s }))).slice(0, 6);
@@ -275,7 +275,7 @@ function BridgeGapBar({ reply, skills }: { reply: number; skills: any[] }) {
           <div className="bridge-gap-title">Bridge the Gap</div>
           <div className="bridge-gap-sub">Close {toBuild.length} gap{toBuild.length !== 1 ? "s" : ""} — reply rate goes from <strong>{reply}%</strong> to <strong>{potential}%</strong></div>
         </div>
-        <Link to="/cc/analysis" className="bridge-gap-link">Full analysis →</Link>
+        <Link to={`/cc/roadmap?id=${studentId}`} className="bridge-gap-link">Full roadmap →</Link>
       </div>
       <div className="bridge-markers">
         <div className="bridge-marker bm-now" style={{ left: `${nowLeft}%` }}>
@@ -392,6 +392,9 @@ export default function CcDashboard() {
             <Link to={`/cc/analysis?id=${studentId}`} className="nav-item">
               <span className="nav-icon ic-analysis">CA</span> Career Analysis
             </Link>
+            <Link to={`/cc/roadmap?id=${studentId}`} className="nav-item">
+              <span className="nav-icon ic-chat" style={{ background: "linear-gradient(135deg,#14B8A6,#10B981)" }}>RM</span> Roadmap
+            </Link>
             <Link to="/cc/chat" className="nav-item">
               <span className="nav-icon ic-chat">←</span> Back to Chat
             </Link>
@@ -463,7 +466,7 @@ export default function CcDashboard() {
               )}
 
               {/* Bridge the gap */}
-              <BridgeGapBar reply={reply} skills={skillsToBuild} />
+              <BridgeGapBar reply={reply} skills={skillsToBuild} studentId={studentId} />
 
               {/* Weekly check-in */}
               {topAction && (
@@ -483,11 +486,11 @@ export default function CcDashboard() {
               {/* Links to analysis sections */}
               <div className="analysis-link-row" style={{ marginTop: 20 }}>
                 <Link to={`/cc/analysis?id=${studentId}`} className="analysis-link-card" style={{ borderLeft: "4px solid #8B5CF6" }}>
-                  <div><div className="alc-title">Skill Gaps & Actions</div><div className="alc-sub">See what to close and how</div></div>
+                  <div><div className="alc-title">Career Analysis</div><div className="alc-sub">DNA, scores, and target companies</div></div>
                   <span className="alc-arrow" style={{ color: "#8B5CF6" }}>→</span>
                 </Link>
-                <Link to={`/cc/analysis?id=${studentId}`} className="analysis-link-card" style={{ borderLeft: "4px solid #14B8A6" }}>
-                  <div><div className="alc-title">Full Roadmap</div><div className="alc-sub">Priority actions and next steps</div></div>
+                <Link to={`/cc/roadmap?id=${studentId}`} className="analysis-link-card" style={{ borderLeft: "4px solid #14B8A6" }}>
+                  <div><div className="alc-title">Full Roadmap</div><div className="alc-sub">Skills, gaps, and priority actions</div></div>
                   <span className="alc-arrow" style={{ color: "#14B8A6" }}>→</span>
                 </Link>
               </div>
@@ -561,9 +564,9 @@ export default function CcDashboard() {
             <div className="tab-icon-box" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>CP</div>
             <span>Paths</span>
           </div>
-          <div className="tab-item" onClick={() => navigate(`/cc/analysis?id=${studentId}`)}>
-            <div className="tab-icon-box" style={{ background: "linear-gradient(135deg,#14B8A6,#10B981)" }}>CA</div>
-            <span>Analysis</span>
+          <div className="tab-item" onClick={() => navigate(`/cc/roadmap?id=${studentId}`)}>
+            <div className="tab-icon-box" style={{ background: "linear-gradient(135deg,#14B8A6,#10B981)" }}>RM</div>
+            <span>Roadmap</span>
           </div>
           <div className="tab-item" onClick={() => navigate("/cc/chat")}>
             <div className="tab-icon-box" style={{ background: "linear-gradient(135deg,#F59E0B,#EF4444)" }}>←</div>
