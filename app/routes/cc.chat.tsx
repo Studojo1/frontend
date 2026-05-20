@@ -1,31 +1,32 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 
 export function meta() {
   return [{ title: "CareerDojo Chat | Studojo" }];
 }
 
 const CC_API = "/api/v1/cc";
-const STORAGE_KEY = "studojo_cc_student_id";
+const STORAGE_KEY = "studojo_student_id";
 
-type Msg = { role: "user" | "agent"; content: string; state?: string };
-
-const STATE_STEPS: Record<string, number> = {
-  GREETING: 1, PROFILING: 1,
-  CAREER_ANALYSIS: 2, DNA_REVIEW: 2, DNA_CORRECTION: 2,
-  ROADMAP: 3, NEW_PATH_EXPLORATION: 3,
-  ONGOING_SUPPORT: 4,
+const STATE_LABELS: Record<string, string> = {
+  GREETING: "Getting started", PROFILING: "Building your profile",
+  CAREER_ANALYSIS: "Building your Career DNA", DNA_REVIEW: "Career DNA ready",
+  ROADMAP: "Roadmap ready", ONGOING_SUPPORT: "Welcome back",
+  DNA_CORRECTION: "Refining your DNA", NEW_PATH_EXPLORATION: "Exploring new paths",
+};
+const STATE_TO_STEP: Record<string, number> = {
+  GREETING: 1, PROFILING: 1, CAREER_ANALYSIS: 2, DNA_REVIEW: 2, DNA_CORRECTION: 2,
+  ROADMAP: 3, NEW_PATH_EXPLORATION: 3, ONGOING_SUPPORT: 4,
 };
 const DNA_STATES = new Set(["CAREER_ANALYSIS", "DNA_REVIEW", "DNA_CORRECTION"]);
 const DASH_STATES = new Set(["ROADMAP", "NEW_PATH_EXPLORATION", "ONGOING_SUPPORT"]);
 
 const HOOK_STATS = [
   { main: "B.Tech students applying on LinkedIn get a 1.4% callback rate.", emphasis: "Students who cold outreach hiring managers directly get 12 to 18%.", hook: "Let's figure out which companies you should be reaching." },
-  { main: "Most applications are filtered by software before any human reads them.", emphasis: "A keyword-optimised resume gets through. A generic one gets rejected in seconds.", hook: "Let's see exactly where you stand right now." },
+  { main: "Most applications are filtered by software before any human ever reads them.", emphasis: "A keyword-optimised resume gets through. A generic one gets rejected in seconds.", hook: "Let's see exactly where you stand right now." },
   { main: "The average student who books an interview has a readiness score of 74.", emphasis: "Most students start at 40 to 50.", hook: "Let's find your number and close the gap." },
   { main: "Sending 30 targeted cold emails gets replies in 1 to 2 weeks on average.", emphasis: "The same 30 applications on Naukri gets close to zero.", hook: "Let's build your outreach strategy, specific to your profile." },
 ];
-
 const SOCIAL_PROOF = [
   "A B.Tech CSE student from Hyderabad improved their readiness from 38% to 71% in 3 weeks.",
   "A BCom student from Mumbai got a reply from a hiring manager at Deloitte using cold outreach.",
@@ -35,66 +36,170 @@ const SOCIAL_PROOF = [
   "An MBA student from a non-IIM college got a consulting internship through targeted cold email.",
 ];
 
-function StepBar({ state }: { state: string }) {
-  const step = STATE_STEPS[state] || 1;
-  const steps = ["AI Chat", "Career Analysis", "Recommendations", "Dashboard"];
-  return (
-    <div className="flex items-center justify-center gap-1 py-3 px-4 text-xs font-semibold border-b border-neutral-100 bg-white flex-wrap">
-      {steps.map((label, i) => {
-        const n = i + 1;
-        const active = n === step;
-        const done = n < step;
-        return (
-          <div key={n} className="flex items-center gap-1">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 text-xs font-bold transition-all ${active ? "bg-violet-500 border-violet-500 text-white" : done ? "bg-neutral-900 border-neutral-900 text-white" : "bg-white border-neutral-300 text-neutral-400"}`}>{n}</div>
-            <span className={`hidden sm:inline ${active ? "text-violet-600" : done ? "text-neutral-700" : "text-neutral-400"}`}>{label}</span>
-            {i < steps.length - 1 && <div className={`w-5 h-px mx-1 ${done ? "bg-neutral-900" : "bg-neutral-200"}`} />}
-          </div>
-        );
-      })}
-    </div>
-  );
+const CSS = `
+:root {
+  --bg-primary:#FAFAF9;--bg-secondary:#F5F5F4;--bg-white:#FFFFFF;
+  --text-primary:#111111;--text-secondary:#71717A;--text-muted:#A1A1AA;
+  --border:#111111;--border-light:rgba(0,0,0,0.12);
+  --accent-purple:#8B5CF6;--accent-light:#E9D5FF;
+  --success:#10B981;--warning:#F59E0B;
+  --gradient-primary:linear-gradient(90deg,#8B5CF6 0%,#A855F7 50%,#EC4899 100%);
+  --navbar-h:64px;--step-nav-h:44px;--total-top:calc(var(--navbar-h) + var(--step-nav-h));
 }
+.cc-root *,
+.cc-root *::before,
+.cc-root *::after{box-sizing:border-box;margin:0;padding:0;}
+.cc-root{height:100dvh;font-family:"Inter",sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
+#cc-navbar{height:var(--navbar-h);background:var(--bg-white);border-bottom:2px solid #111;box-shadow:0 2px 0px #111;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;flex-shrink:0;}
+#cc-nav-logo{font-size:1.35rem;font-weight:800;letter-spacing:-0.04em;color:var(--text-primary);display:flex;align-items:center;gap:4px;cursor:pointer;text-decoration:none;}
+.cc-dot{width:8px;height:8px;border-radius:50%;background:var(--gradient-primary);display:inline-block;}
+#cc-navbar-center{text-align:center;flex:1;}
+.nav-setup-title{font-size:0.9rem;font-weight:700;color:var(--text-primary);}
+.nav-setup-sub{font-size:0.68rem;color:var(--text-muted);margin-top:1px;}
+.nav-state-label{font-size:0.85rem;font-weight:600;color:var(--accent-purple);background:var(--accent-light);padding:5px 14px;border-radius:999px;border:2px solid #111;box-shadow:2px 2px 0 #111;display:inline-block;}
+#cc-step-nav{height:var(--step-nav-h);background:var(--bg-white);border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;gap:0;flex-shrink:0;}
+.step-item{display:flex;align-items:center;gap:7px;cursor:pointer;padding:5px 12px;border-radius:999px;transition:all 0.15s;user-select:none;}
+.step-item:hover:not(.active){background:var(--bg-secondary);}
+.step-num{width:20px;height:20px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#bbb;flex-shrink:0;transition:all 0.25s;}
+.step-item.active .step-num{background:var(--gradient-primary);border-color:transparent;color:white;}
+.step-item.done .step-num{background:var(--success);border-color:transparent;color:white;}
+.step-label{font-size:0.78rem;font-weight:500;color:var(--text-muted);transition:color 0.2s;}
+.step-item.active .step-label{font-weight:700;color:var(--accent-purple);}
+.step-item.done .step-label{color:var(--success);font-weight:600;}
+.step-connector{width:28px;height:2px;background:#e8e8e8;flex-shrink:0;margin:0 2px;transition:background 0.3s;}
+.step-connector.done{background:var(--success);}
+#cc-layout{flex:1;display:flex;min-height:0;padding:16px;}
+#cc-chat-col{flex:1;display:flex;flex-direction:column;max-width:820px;margin:0 auto;width:100%;}
+.chat-card{flex:1;display:flex;flex-direction:column;border:2px solid #111;border-radius:20px;overflow:hidden;box-shadow:4px 4px 0 #111;background:white;min-height:0;}
+.chat-setup-header{padding:16px 28px;flex-shrink:0;background:linear-gradient(135deg,#F3F0FF 0%,#FDF2FF 100%);border-bottom:1px solid rgba(139,92,246,0.15);transition:all 0.3s ease;}
+.chat-setup-header.hidden{display:none;}
+.chat-setup-header-title{font-size:1rem;font-weight:800;margin-bottom:2px;}
+.chat-setup-header-sub{font-size:0.78rem;color:var(--text-muted);}
+#cc-messages{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;scroll-behavior:smooth;min-height:0;}
+#cc-messages::-webkit-scrollbar{width:4px;}
+#cc-messages::-webkit-scrollbar-track{background:transparent;}
+#cc-messages::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:2px;}
+.msg-row{display:flex;gap:12px;align-items:flex-end;}
+.msg-row.agent{justify-content:flex-start;}
+.msg-row.user{justify-content:flex-end;}
+.agent-avatar{width:34px;height:34px;border-radius:50%;flex-shrink:0;background:var(--gradient-primary);border:2px solid #111;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:white;}
+.msg-bubble-wrap{display:flex;flex-direction:column;max-width:72%;}
+.msg-bubble{padding:14px 18px;font-size:0.9375rem;line-height:1.55;border:2px solid #111;white-space:pre-wrap;}
+.msg-row.agent .msg-bubble{background:#F3F0FF;border-radius:4px 18px 18px 18px;box-shadow:3px 3px 0 rgba(0,0,0,0.12);}
+.msg-row.user .msg-bubble{background:var(--gradient-primary);border-radius:18px 4px 18px 18px;box-shadow:3px 3px 0 rgba(0,0,0,0.6);color:white;}
+.msg-row.user .msg-bubble-wrap{align-items:flex-end;}
+.msg-time{font-size:10px;color:var(--text-muted);margin-top:4px;}
+.typing-dots{display:flex;gap:5px;padding:4px 0;}
+.typing-dots span{width:7px;height:7px;border-radius:50%;background:var(--accent-purple);animation:dotPulse 600ms ease-in-out infinite alternate;opacity:0.3;}
+.typing-dots span:nth-child(2){animation-delay:200ms;}
+.typing-dots span:nth-child(3){animation-delay:400ms;}
+@keyframes dotPulse{to{opacity:1;transform:translateY(-2px);}}
+.analysis-cta-inline{border:2px solid #111;border-radius:14px;padding:16px 20px;background:#F3F0FF;cursor:pointer;transition:all 0.2s ease;margin:6px 0;display:flex;align-items:center;justify-content:space-between;box-shadow:3px 3px 0 #111;}
+.analysis-cta-inline:hover{transform:translateY(-2px);box-shadow:5px 5px 0 #111;}
+.analysis-cta-inline .cta-text{font-size:0.95rem;font-weight:700;color:var(--text-primary);}
+.analysis-cta-inline .cta-sub{font-size:0.78rem;color:var(--text-secondary);margin-top:2px;}
+.analysis-cta-inline .cta-arrow{font-size:1.3rem;color:var(--accent-purple);}
+.dashboard-cta-inline{border:2px solid var(--accent-purple);border-radius:14px;padding:16px 20px;background:rgba(233,213,255,0.2);cursor:pointer;transition:all 0.2s ease;margin:6px 0;display:flex;align-items:center;justify-content:space-between;}
+.dashboard-cta-inline:hover{background:rgba(233,213,255,0.4);transform:translateY(-1px);box-shadow:4px 4px 0 #111;}
+.dashboard-cta-inline .cta-text{font-size:0.95rem;font-weight:700;color:var(--accent-purple);}
+.dashboard-cta-inline .cta-sub{font-size:0.78rem;color:var(--text-secondary);margin-top:2px;}
+.dashboard-cta-inline .cta-arrow{font-size:1.3rem;color:var(--accent-purple);}
+#cc-input-area{flex-shrink:0;background:var(--bg-white);border-top:2px solid rgba(0,0,0,0.1);padding:16px 24px;display:flex;gap:12px;align-items:flex-end;}
+#cc-chat-input{flex:1;border:2px solid var(--accent-purple);border-radius:18px;padding:14px 18px;font-family:"Inter",sans-serif;font-size:0.95rem;background:white;color:var(--text-primary);resize:none;min-height:52px;max-height:140px;outline:none;transition:all 0.2s ease;line-height:1.5;}
+#cc-chat-input:focus{box-shadow:0 0 0 4px rgba(139,92,246,0.12);}
+#cc-chat-input::placeholder{color:var(--text-muted);}
+#cc-send-btn{width:48px;height:48px;border-radius:50%;flex-shrink:0;background:var(--gradient-primary);border:2px solid #111;box-shadow:3px 3px 0 #111;color:white;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;justify-content:center;}
+#cc-send-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:5px 5px 0 #111;}
+#cc-send-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.session-divider{text-align:center;font-size:0.72rem;color:var(--text-muted);padding:4px 0 8px;}
+/* HOOK */
+#cc-hook{position:fixed;inset:0;z-index:600;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity 0.45s ease,transform 0.45s ease;}
+#cc-hook.dismissing{opacity:0;transform:translateY(-24px);pointer-events:none;}
+.hook-inner{max-width:580px;width:90%;text-align:center;}
+.hook-logo{font-size:1.1rem;font-weight:800;letter-spacing:-0.04em;margin-bottom:40px;display:flex;align-items:center;justify-content:center;gap:4px;}
+.hook-stat{font-size:clamp(1.35rem,3vw,1.75rem);font-weight:800;letter-spacing:-0.03em;line-height:1.3;margin-bottom:16px;min-height:4.5em;transition:opacity 0.3s ease;}
+.hook-stat .hs-main{color:var(--text-primary);display:block;margin-bottom:6px;}
+.hook-stat .hs-emphasis{color:var(--accent-purple);display:block;}
+.hook-hook{font-size:1rem;color:var(--text-secondary);margin-bottom:36px;font-weight:500;}
+.hook-cta{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:var(--text-primary);color:white;border:2px solid #111;border-radius:999px;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:4px 4px 0 #111;transition:all 0.15s;font-family:"Inter",sans-serif;}
+.hook-cta:hover{transform:translateY(-2px);box-shadow:5px 6px 0 #111;}
+.hook-meta{font-size:0.75rem;color:var(--text-muted);margin-top:16px;}
+.hook-dots{display:flex;justify-content:center;gap:6px;margin-top:28px;}
+.hook-dot{width:7px;height:7px;border-radius:50%;background:var(--border-light);transition:background 0.3s;cursor:pointer;border:none;}
+.hook-dot.active{background:var(--accent-purple);}
+.hook-commit{display:none;}
+.hook-commit.show{display:block;}
+.commit-q{font-size:1.3rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:10px;line-height:1.4;}
+.commit-sub{font-size:0.9rem;color:var(--text-secondary);margin-bottom:28px;}
+.commit-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.commit-btn{padding:13px 28px;border:2px solid #111;border-radius:16px;font-weight:700;font-size:0.9rem;cursor:pointer;box-shadow:3px 3px 0 #111;transition:all 0.15s;font-family:"Inter",sans-serif;background:white;}
+.commit-btn:hover{transform:translateY(-2px);}
+.commit-btn.active-btn{background:var(--text-primary);color:white;}
+.social-ticker{margin-top:24px;padding:10px 16px;background:var(--bg-secondary);border-radius:10px;font-size:0.75rem;color:var(--text-secondary);min-height:36px;display:flex;align-items:center;justify-content:center;transition:opacity 0.35s;}
+.social-ticker .st-dot{width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:8px;flex-shrink:0;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+@media(max-width:768px){
+  #cc-input-area{padding:12px 16px;}
+  #cc-messages{padding:16px;}
+  #cc-navbar{padding:0 16px;}
+  .nav-setup-sub{display:none;}
+  .msg-bubble-wrap{max-width:86%;}
+  #cc-chat-col{padding:8px;}
+  #cc-step-nav{overflow-x:auto;justify-content:flex-start;padding:0 12px;}
+}
+`;
 
 export default function CcChat() {
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [input, setInput] = useState("");
-  const [waiting, setWaiting] = useState(false);
-  const [sessionReady, setSessionReady] = useState(false);
+  const navigate = useNavigate();
   const [agentState, setAgentState] = useState("GREETING");
-  const [studentId, setStudentId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string; state?: string; time: string }>>([]);
+  const [waiting, setWaiting] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
   const [returning, setReturning] = useState(false);
 
-  // Hook overlay state
+  // Hook state
   const [hookVisible, setHookVisible] = useState(false);
-  const [hookScreen, setHookScreen] = useState<"stats" | "commitment">("stats");
-  const [hookStatIdx, setHookStatIdx] = useState(0);
+  const [hookScreen, setHookScreen] = useState<"stats" | "commit">("stats");
+  const [hookDismissing, setHookDismissing] = useState(false);
+  const [statIdx, setStatIdx] = useState(0);
+  const [statOpacity, setStatOpacity] = useState(1);
   const [tickerIdx, setTickerIdx] = useState(0);
-  const [pendingGreeting, setPendingGreeting] = useState<string | null>(null);
-  const [hookDismissed, setHookDismissed] = useState(false);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const initDone = useRef(false);
-  const pendingMsg = useRef<string | null>(null);
   const studentIdRef = useRef<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const pendingGreetingRef = useRef<any>(null);
+  const hookDismissedRef = useRef(false);
+  const initDone = useRef(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Ticker
+  function now12h() {
+    return new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
+  }
+
+  // Hook stat cycle
+  useEffect(() => {
+    if (!hookVisible || hookScreen !== "stats") return;
+    const t = setInterval(() => {
+      setStatOpacity(0);
+      setTimeout(() => {
+        setStatIdx(i => (i + 1) % HOOK_STATS.length);
+        setStatOpacity(1);
+      }, 200);
+    }, 5000);
+    return () => clearInterval(t);
+  }, [hookVisible, hookScreen]);
+
+  // Ticker cycle
   useEffect(() => {
     if (!hookVisible) return;
     const t = setInterval(() => setTickerIdx(i => (i + 1) % SOCIAL_PROOF.length), 4000);
     return () => clearInterval(t);
   }, [hookVisible]);
 
-  // Hook stat cycle
+  // Scroll to bottom
   useEffect(() => {
-    if (!hookVisible || hookScreen !== "stats") return;
-    const t = setInterval(() => setHookStatIdx(i => (i + 1) % HOOK_STATS.length), 5000);
-    return () => clearInterval(t);
-  }, [hookVisible, hookScreen]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, waiting]);
 
   useEffect(() => {
@@ -102,274 +207,240 @@ export default function CcChat() {
     initDone.current = true;
 
     const existingId = localStorage.getItem(STORAGE_KEY);
-
-    // Show hook only for brand-new users
     if (!existingId) setHookVisible(true);
 
     (async () => {
       const body = existingId ? { student_id: existingId } : {};
       try {
         const res = await fetch(`${CC_API}/session/start`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
         const sd = await res.json();
-        setStudentId(sd.student_id);
         studentIdRef.current = sd.student_id;
         localStorage.setItem(STORAGE_KEY, sd.student_id);
 
         if (sd.returning && sd.history?.length > 0) {
-          setReturning(true);
           setHookVisible(false);
-          const history: Msg[] = sd.history.map((m: any) => ({
+          hookDismissedRef.current = true;
+          setReturning(true);
+          const hist = sd.history.map((m: any) => ({
             role: m.role === "assistant" ? "agent" : m.role,
-            content: m.content,
-            state: m.state,
+            content: m.content, state: m.state, time: now12h(),
           }));
-          setMessages(history);
+          setMessages(hist);
           const lastState = [...sd.history].reverse().find((m: any) => m.state)?.state;
           if (lastState) setAgentState(lastState);
           setSessionReady(true);
           return;
         }
 
-        // New user — fetch greeting in background
         const gRes = await fetch(`${CC_API}/chat/greeting?student_id=${sd.student_id}&conversation_id=${sd.conversation_id}`);
         const gd = await gRes.json();
-        const msg = gd.reply || gd.message || "Hey, what are you working through right now?";
-        setPendingGreeting(msg);
-        if (gd.orchestration?.current_state) setAgentState(gd.orchestration.current_state);
+        pendingGreetingRef.current = gd;
         setSessionReady(true);
-
-        // If hook already dismissed (shouldn't happen for new user but guard it)
-        if (hookDismissed) {
-          setMessages([{ role: "agent", content: msg, state: "GREETING" }]);
-          setPendingGreeting(null);
-        }
+        if (hookDismissedRef.current) showGreeting(gd);
       } catch {
-        setPendingGreeting("Hey, what are you working through right now?");
+        pendingGreetingRef.current = { reply: "Hey, what are you working through right now?" };
         setSessionReady(true);
+        if (hookDismissedRef.current) showGreeting(pendingGreetingRef.current);
       }
     })();
   }, []);
 
+  function showGreeting(gd: any) {
+    setWaiting(true);
+    setTimeout(() => {
+      setWaiting(false);
+      const newState = gd.orchestration?.current_state || "GREETING";
+      setAgentState(newState);
+      setMessages([{ role: "agent", content: gd.reply || gd.message || "Hey, what are you working through?", state: newState, time: now12h() }]);
+    }, 500);
+  }
+
   function dismissHook(level: string) {
+    if (hookDismissedRef.current) return;
+    hookDismissedRef.current = true;
     localStorage.setItem("studojo_commitment", level);
-    setHookVisible(false);
-    setHookDismissed(true);
-    if (pendingGreeting) {
-      setMessages([{ role: "agent", content: pendingGreeting, state: "GREETING" }]);
-      setPendingGreeting(null);
-    } else if (sessionReady) {
-      // greeting not yet fetched, it will set messages when ready
+    setHookDismissing(true);
+    setTimeout(() => setHookVisible(false), 450);
+    if (pendingGreetingRef.current) {
+      showGreeting(pendingGreetingRef.current);
     }
   }
 
-  // When greeting arrives after hook dismissal
-  useEffect(() => {
-    if (hookDismissed && pendingGreeting && sessionReady) {
-      setMessages([{ role: "agent", content: pendingGreeting, state: "GREETING" }]);
-      setPendingGreeting(null);
-    }
-  }, [hookDismissed, pendingGreeting, sessionReady]);
-
-  async function doSend(sid: string, content: string) {
-    setMessages(prev => [...prev, { role: "user", content }]);
+  async function sendMsg(overrideText?: string) {
+    const content = (overrideText || inputRef.current?.value || "").trim();
+    if (!content || waiting) return;
+    if (inputRef.current) { inputRef.current.value = ""; inputRef.current.style.height = "auto"; }
+    setHeaderHidden(true);
+    const sid = studentIdRef.current;
+    if (!sid) return;
+    setMessages(prev => [...prev, { role: "user", content, time: now12h() }]);
     setWaiting(true);
+    const t0 = Date.now();
     try {
       const res = await fetch(`${CC_API}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ student_id: sid, message: content }),
       });
       const data = await res.json();
+      const elapsed = Date.now() - t0;
+      await new Promise(r => setTimeout(r, Math.max(0, 600 - elapsed)));
       const newState = data.orchestration?.current_state || agentState;
       setAgentState(newState);
-      setMessages(prev => [...prev, { role: "agent", content: data.reply, state: newState }]);
+      setMessages(prev => [...prev, { role: "agent", content: data.reply, state: newState, time: now12h() }]);
     } catch {
-      setMessages(prev => [...prev, { role: "agent", content: "Something went wrong, try again.", state: agentState }]);
+      setMessages(prev => [...prev, { role: "agent", content: "Something went wrong on my end — try sending that again.", time: now12h() }]);
     }
     setWaiting(false);
   }
 
-  function sendMsg() {
-    const content = input.trim();
-    if (!content || waiting) return;
-    setInput("");
-    if (textareaRef.current) { textareaRef.current.style.height = "auto"; }
-    const sid = studentIdRef.current || studentId;
-    if (!sessionReady || !sid) {
-      pendingMsg.current = content;
-      setMessages(prev => [...prev, { role: "user", content }]);
-      return;
-    }
-    doSend(sid, content);
-  }
+  const step = STATE_TO_STEP[agentState] || 1;
+  const sid = studentIdRef.current;
+  const showDnaCta = DNA_STATES.has(agentState) && sid;
+  const showDashCta = DASH_STATES.has(agentState) && sid;
+  const stat = HOOK_STATS[statIdx];
 
-  const showDnaCta = messages.length > 0 && DNA_STATES.has(agentState) && studentId;
-  const showDashCta = messages.length > 0 && DASH_STATES.has(agentState) && studentId;
-  const stat = HOOK_STATS[hookStatIdx];
+  const navCenter = (!agentState || agentState === "GREETING" || agentState === "PROFILING")
+    ? <div id="cc-navbar-center"><div className="nav-setup-title">Quick Profile Setup</div><div className="nav-setup-sub">A few quick questions so we can find the right path for you</div></div>
+    : <div id="cc-navbar-center"><span className="nav-state-label">{STATE_LABELS[agentState] || agentState}</span></div>;
 
   return (
-    <div style={{ height: "100dvh" }} className="flex flex-col bg-neutral-50 overflow-hidden relative">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <div className="cc-root">
 
-      {/* Hook overlay */}
-      {hookVisible && (
-        <div className="absolute inset-0 z-50 flex flex-col bg-neutral-950 text-white">
-          {hookScreen === "stats" ? (
-            <div className="flex flex-col h-full px-6 pt-10 pb-6">
-              <div className="font-['Clash_Display'] text-xl font-bold text-white mb-8">CareerDojo</div>
-              <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full">
-                <p className="text-neutral-400 text-sm mb-2">{stat.main}</p>
-                <p className="text-white text-xl font-bold leading-snug mb-3">{stat.emphasis}</p>
-                <p className="text-violet-400 text-sm font-semibold mb-8">{stat.hook}</p>
-                {/* dots */}
-                <div className="flex gap-2 mb-10">
-                  {HOOK_STATS.map((_, i) => (
-                    <button key={i} onClick={() => setHookStatIdx(i)} className={`w-2 h-2 rounded-full transition-all ${i === hookStatIdx ? "bg-violet-400 w-5" : "bg-neutral-600"}`} />
-                  ))}
-                </div>
-                {/* social proof */}
-                <div className="text-xs text-neutral-400 mb-8 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0" />
-                  {SOCIAL_PROOF[tickerIdx]}
-                </div>
-                <button
-                  onClick={() => setHookScreen("commitment")}
-                  className="w-full bg-violet-500 text-white font-bold py-4 rounded-2xl border-2 border-violet-400 hover:bg-violet-400 transition-colors"
-                >
-                  See where I stand
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col h-full px-6 pt-10 pb-6">
-              <div className="font-['Clash_Display'] text-xl font-bold text-white mb-8">One quick question</div>
-              <div className="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full">
-                <p className="text-white text-xl font-bold mb-2">Where are you right now?</p>
-                <p className="text-neutral-400 text-sm mb-10">This helps me give you the right guidance from the first message.</p>
-                <div className="flex flex-col gap-3">
-                  <button onClick={() => dismissHook("active")} className="text-left px-5 py-4 bg-neutral-900 border-2 border-neutral-700 rounded-2xl hover:border-violet-500 transition-colors">
-                    <div className="font-bold text-white text-sm">Actively searching</div>
-                    <div className="text-neutral-400 text-xs mt-1">Applying or about to start applying soon</div>
-                  </button>
-                  <button onClick={() => dismissHook("exploring")} className="text-left px-5 py-4 bg-neutral-900 border-2 border-neutral-700 rounded-2xl hover:border-violet-500 transition-colors">
-                    <div className="font-bold text-white text-sm">Exploring options</div>
-                    <div className="text-neutral-400 text-xs mt-1">Figuring out what direction makes sense</div>
-                  </button>
-                  <button onClick={() => dismissHook("stuck")} className="text-left px-5 py-4 bg-neutral-900 border-2 border-neutral-700 rounded-2xl hover:border-violet-500 transition-colors">
-                    <div className="font-bold text-white text-sm">Applying but not getting replies</div>
-                    <div className="text-neutral-400 text-xs mt-1">Have tried job boards, need a different approach</div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Top nav */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-neutral-100 flex-shrink-0">
-        <Link to="/cc" className="font-['Clash_Display'] font-bold text-neutral-900 text-lg">CareerDojo</Link>
-        {studentId && (showDnaCta || showDashCta) && (
-          <Link to={`/cc/analysis?id=${studentId}`} className="text-xs font-bold text-violet-600 border border-violet-300 rounded-xl px-3 py-1 hover:bg-violet-50 transition-colors">
-            View Analysis
-          </Link>
-        )}
-      </div>
-
-      <div className="flex-shrink-0"><StepBar state={agentState} /></div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="max-w-2xl mx-auto">
-          {returning && messages.length > 0 && (
-            <div className="text-center text-xs text-neutral-400 mb-5 py-2 border-y border-neutral-100">Continuing your session</div>
-          )}
-
-          {messages.map((m, i) => (
-            <div key={i} className={`flex gap-3 mb-4 ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-              {m.role === "agent" && (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-1">S</div>
+        {/* HOOK OVERLAY */}
+        {hookVisible && (
+          <div id="cc-hook" className={hookDismissing ? "dismissing" : ""}>
+            <div className="hook-inner">
+              <div className="hook-logo">studojo<span className="cc-dot" /></div>
+              {hookScreen === "stats" ? (
+                <>
+                  <div className="hook-stat" style={{ opacity: statOpacity }}>
+                    <span className="hs-main">{stat.main}</span>
+                    <span className="hs-emphasis">{stat.emphasis}</span>
+                  </div>
+                  <div className="hook-hook">{stat.hook}</div>
+                  <button className="hook-cta" onClick={() => setHookScreen("commit")}>Show me where I stand →</button>
+                  <div className="hook-meta">8 minutes. Specific to you. No sign-up.</div>
+                  <div className="hook-dots">
+                    {HOOK_STATS.map((_, i) => (
+                      <button key={i} className={`hook-dot${i === statIdx ? " active" : ""}`} onClick={() => setStatIdx(i)} />
+                    ))}
+                  </div>
+                  <div className="social-ticker">
+                    <span className="st-dot" />{SOCIAL_PROOF[tickerIdx]}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="commit-q">Before we start — are you actively looking right now, or just exploring what is out there?</div>
+                  <div className="commit-sub">This shapes the next 8 minutes.</div>
+                  <div className="commit-btns">
+                    <button className="commit-btn active-btn" onClick={() => dismissHook("active")}>Actively looking for a job</button>
+                    <button className="commit-btn" onClick={() => dismissHook("exploring")}>Just exploring for now</button>
+                  </div>
+                </>
               )}
-              <div className={`max-w-xs sm:max-w-sm rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === "user" ? "bg-violet-500 text-white rounded-br-sm" : "bg-white border border-neutral-200 text-neutral-800 rounded-bl-sm shadow-sm"}`}>
-                {m.content}
-              </div>
             </div>
-          ))}
+          </div>
+        )}
 
-          {/* Session loading dots (before first message) */}
-          {!sessionReady && messages.length === 0 && (
-            <div className="flex gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">S</div>
-              <div className="bg-white border border-neutral-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                <div className="flex gap-1 h-4 items-center">
-                  {[0,1,2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />)}
+        {/* NAVBAR */}
+        <nav id="cc-navbar">
+          <a id="cc-nav-logo" href="/cc">studojo<span className="cc-dot" /></a>
+          {navCenter}
+          <div style={{ width: 120 }} />
+        </nav>
+
+        {/* STEP NAV */}
+        <div id="cc-step-nav">
+          {[["AI Chat", "/cc/chat"], ["Career Analysis", `/cc/analysis${sid ? "?id="+sid : ""}`], ["Recommendations", `/cc/analysis${sid ? "?id="+sid+"#checklist" : ""}`], ["Dashboard", `/cc/analysis${sid ? "?id="+sid : ""}`]].map(([label, href], i) => {
+            const n = i + 1;
+            const cls = n === step ? "step-item active" : n < step ? "step-item done" : "step-item";
+            return (
+              <div key={n} style={{ display: "contents" }}>
+                <div className={cls} onClick={() => n < step && navigate(href)}>
+                  <div className="step-num">{n}</div>
+                  <div className="step-label">{label}</div>
                 </div>
+                {i < 3 && <div className={`step-connector${n < step ? " done" : ""}`} />}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* LAYOUT */}
+        <div id="cc-layout">
+          <div id="cc-chat-col">
+            <div className="chat-card">
+              <div className={`chat-setup-header${headerHidden ? " hidden" : ""}`}>
+                <div className="chat-setup-header-title">Quick Profile Setup</div>
+                <div className="chat-setup-header-sub">A few quick questions so we can find the right path for you</div>
+              </div>
+
+              <div id="cc-messages">
+                {returning && <div className="session-divider">Continuing your session</div>}
+                {messages.map((m, i) => (
+                  <div key={i}>
+                    <div className={`msg-row ${m.role}`}>
+                      {m.role === "agent" && <div className="agent-avatar">S</div>}
+                      <div className="msg-bubble-wrap">
+                        <div className="msg-bubble">{m.content}</div>
+                        <div className="msg-time">{m.time}</div>
+                      </div>
+                    </div>
+                    {/* CTAs after last agent message */}
+                    {m.role === "agent" && i === messages.length - 1 && (
+                      <>
+                        {showDnaCta && (
+                          <div style={{ marginLeft: 46 }}>
+                            <div className="analysis-cta-inline" onClick={() => navigate(`/cc/analysis?id=${sid}`)}>
+                              <div><div className="cta-text">View your Career Analysis</div><div className="cta-sub">Career DNA, skill gaps, and your recommended roadmap</div></div>
+                              <div className="cta-arrow">→</div>
+                            </div>
+                          </div>
+                        )}
+                        {showDashCta && (
+                          <div style={{ marginLeft: 46 }}>
+                            <div className="dashboard-cta-inline" onClick={() => navigate(`/cc/analysis?id=${sid}`)}>
+                              <div><div className="cta-text">View your Dashboard</div><div className="cta-sub">Track progress and bridge your skill gaps</div></div>
+                              <div className="cta-arrow">→</div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ))}
+                {waiting && (
+                  <div className="msg-row agent">
+                    <div className="agent-avatar">S</div>
+                    <div className="msg-bubble-wrap">
+                      <div className="msg-bubble"><div className="typing-dots"><span /><span /><span /></div></div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div id="cc-input-area">
+                <textarea
+                  id="cc-chat-input"
+                  ref={inputRef}
+                  placeholder="Type your message..."
+                  rows={1}
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
+                  onChange={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px"; }}
+                />
+                <button id="cc-send-btn" disabled={waiting} onClick={() => sendMsg()}>→</button>
               </div>
             </div>
-          )}
-
-          {/* Typing indicator */}
-          {waiting && (
-            <div className="flex gap-3 mb-4">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">S</div>
-              <div className="bg-white border border-neutral-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                <div className="flex gap-1 h-4 items-center">
-                  {[0,1,2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-neutral-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />)}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* CTAs */}
-          {showDnaCta && (
-            <div className="ml-11 mb-4">
-              <Link to={`/cc/analysis?id=${studentId}`} className="inline-flex items-center gap-2 bg-white border-2 border-neutral-900 rounded-2xl px-4 py-3 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all">
-                <span>View your Career Analysis</span><span className="text-violet-500">→</span>
-              </Link>
-            </div>
-          )}
-          {showDashCta && (
-            <div className="ml-11 mb-4">
-              <Link to={`/cc/analysis?id=${studentId}`} className="inline-flex items-center gap-2 bg-violet-500 text-white border-2 border-neutral-900 rounded-2xl px-4 py-3 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all">
-                <span>View your Dashboard</span><span>→</span>
-              </Link>
-            </div>
-          )}
-
-          <div ref={bottomRef} />
+          </div>
         </div>
       </div>
-
-      {/* Input */}
-      <div className="flex-shrink-0 border-t border-neutral-200 bg-white px-4 py-3">
-        <div className="flex gap-3 items-end max-w-2xl mx-auto">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={e => {
-              setInput(e.target.value);
-              e.target.style.height = "auto";
-              e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
-            }}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
-            placeholder="Type your message..."
-            rows={1}
-            className="flex-1 resize-none border-2 border-neutral-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-violet-400 transition-colors bg-neutral-50"
-          />
-          <button
-            onClick={sendMsg}
-            disabled={waiting || !input.trim()}
-            className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white shadow-md disabled:opacity-40 hover:scale-105 active:scale-95 transition-transform flex-shrink-0"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
