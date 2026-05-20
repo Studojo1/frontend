@@ -357,7 +357,7 @@ export default function CcChat() {
 
         {/* STEP NAV */}
         <div id="cc-step-nav">
-          {[["AI Chat", "/cc/chat"], ["Career Analysis", `/cc/analysis${sid ? "?id="+sid : ""}`], ["Recommendations", `/cc/analysis${sid ? "?id="+sid+"#checklist" : ""}`], ["Dashboard", `/cc/analysis${sid ? "?id="+sid : ""}`]].map(([label, href], i) => {
+          {[["AI Chat", "/cc/chat"], ["Career Analysis", `/cc/analysis${sid ? "?id="+sid : ""}`], ["Recommendations", `/cc/analysis${sid ? "?id="+sid : ""}`], ["Dashboard", `/cc/dashboard${sid ? "?id="+sid : ""}`]].map(([label, href], i) => {
             const n = i + 1;
             const cls = n === step ? "step-item active" : n < step ? "step-item done" : "step-item";
             return (
@@ -405,7 +405,7 @@ export default function CcChat() {
                         )}
                         {showDashCta && (
                           <div style={{ marginLeft: 46 }}>
-                            <div className="dashboard-cta-inline" onClick={() => navigate(`/cc/analysis?id=${sid}`)}>
+                            <div className="dashboard-cta-inline" onClick={() => navigate(`/cc/dashboard?id=${sid}`)}>
                               <div><div className="cta-text">View your Dashboard</div><div className="cta-sub">Track progress and bridge your skill gaps</div></div>
                               <div className="cta-arrow">→</div>
                             </div>
