@@ -412,6 +412,18 @@ export default function CcRoadmap() {
               <div style={{ marginTop: 16, background: "#ede9fe", border: "2px solid #8b5cf6", borderRadius: 12, padding: "12px 16px", fontSize: "0.78rem", fontWeight: 600, color: "#4c1d95" }}>
                 Industry knowledge compounds. Come back every 2 weeks — as your understanding deepens, your readiness score improves automatically.
               </div>
+
+              {/* Outreach Dojo CTA */}
+              <div style={{ marginTop: 20, background: "white", border: "2px solid #111", borderRadius: 16, boxShadow: "3px 3px 0 #111", padding: "20px 24px", display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#8b5cf6,#ec4899)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", flexShrink: 0 }}>✉️</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 800, fontSize: "0.9rem", marginBottom: 4 }}>Outreach Dojo</div>
+                  <div style={{ fontSize: "0.78rem", color: "#71717a", lineHeight: 1.5 }}>Once you understand the industry, start sending targeted cold outreach. Outreach Dojo personalises your emails to the exact companies and roles you're targeting — boosting your reply rate significantly.</div>
+                </div>
+                <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer" style={{ background: "linear-gradient(90deg,#8b5cf6,#ec4899)", border: "2px solid #111", borderRadius: 999, boxShadow: "3px 3px 0 #111", padding: "10px 18px", color: "white", fontWeight: 700, fontSize: "0.78rem", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
+                  Try Outreach Dojo →
+                </a>
+              </div>
             </div>
           </div>
         )}
@@ -435,6 +447,18 @@ export default function CcRoadmap() {
               ))}
               <div style={{ marginTop: 16, background: "#fffbeb", border: "2px solid #f59e0b", borderRadius: 12, padding: "12px 16px", fontSize: "0.78rem", fontWeight: 600, color: "#92400e" }}>
                 Experience gaps close with action, not waiting. Every week you do something relevant, update the coach. Your readiness score will reflect it.
+              </div>
+
+              {/* Resume Maker CTA */}
+              <div style={{ marginTop: 20, background: "white", border: "2px solid #111", borderRadius: 16, boxShadow: "3px 3px 0 #111", padding: "20px 24px", display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#14b8a6,#10b981)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem", flexShrink: 0 }}>📄</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 800, fontSize: "0.9rem", marginBottom: 4 }}>Resume Maker</div>
+                  <div style={{ fontSize: "0.78rem", color: "#71717a", lineHeight: 1.5 }}>Once you close an experience gap — a new project, a quantified result, a volunteer role — add it to your resume immediately. The Resume Maker helps you format it correctly so it passes ATS filters and gets read by recruiters.</div>
+                </div>
+                <a href="https://studojo.com/dojos/careers" target="_blank" rel="noopener noreferrer" style={{ background: "linear-gradient(90deg,#14b8a6,#10b981)", border: "2px solid #111", borderRadius: 999, boxShadow: "3px 3px 0 #111", padding: "10px 18px", color: "white", fontWeight: 700, fontSize: "0.78rem", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
+                  Update your Resume →
+                </a>
               </div>
             </div>
           </div>

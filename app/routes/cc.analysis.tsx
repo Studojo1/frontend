@@ -152,31 +152,6 @@ function AnimBar({ label, score }: { label: string; score: number }) {
   );
 }
 
-function ScoreRing({ score, label, size = 100 }: { score: number; label: string; size?: number }) {
-  const r = 45;
-  const circ = 2 * Math.PI * r;
-  const offset = circ * (1 - Math.max(0, Math.min(100, score)) / 100);
-  const color = score >= 70 ? "#22c55e" : score >= 45 ? "#f59e0b" : "#8b5cf6";
-  const [animated, setAnimated] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setAnimated(true), 100); return () => clearTimeout(t); }, []);
-  return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-      <svg width={size} height={size} viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }}>
-        <circle cx="50" cy="50" r={r} fill="none" stroke="#f3f4f6" strokeWidth="9" />
-        <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="9"
-          strokeDasharray={circ} strokeDashoffset={animated ? offset : circ}
-          strokeLinecap="round" style={{ transition: "stroke-dashoffset 1s ease" }} />
-        <text x="50" y="46" textAnchor="middle" dominantBaseline="middle"
-          style={{ fontSize: 22, fontWeight: 800, fill: "#111", fontFamily: "Inter,sans-serif" }}
-          transform="rotate(90 50 50)">{score}</text>
-        <text x="50" y="60" textAnchor="middle"
-          style={{ fontSize: 10, fill: "#9ca3af", fontFamily: "Inter,sans-serif" }}
-          transform="rotate(90 50 50)">/100</text>
-      </svg>
-      <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "#71717a" }}>{label}</span>
-    </div>
-  );
-}
 
 function buildNarrative(path: any, student: any): string {
   const degree = student?.degree || "";
@@ -225,7 +200,6 @@ export default function CcAnalysis() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [barAnimated, setBarAnimated] = useState(false);
   const [ringOffset, setRingOffset] = useState(283);
 
   useEffect(() => {
@@ -236,7 +210,6 @@ export default function CcAnalysis() {
         setData(d);
         setLoading(false);
         setTimeout(() => {
-          setBarAnimated(true);
           const clarity = d?.primary_path?.clarity_score || 0;
           setRingOffset(283 - (clarity / 100) * 283);
         }, 200);
@@ -284,9 +257,6 @@ export default function CcAnalysis() {
   const skillsGap = path.skills_gap_score || Math.max(0, 100 - readiness + 10);
   const industryGap = path.industry_gap_score || Math.max(0, 100 - readiness - 10);
   const expGap = path.experience_gap_score || Math.max(0, 100 - readiness);
-  const INTERVIEW_THRESHOLD = 74;
-  const scoreGap = Math.max(0, INTERVIEW_THRESHOLD - readiness);
-  const readinessDesc = readiness >= 70 ? "Well-positioned to start applying now" : readiness >= 40 ? "A few gaps to close before applying" : "Early stage — build your profile first";
   const clarityLabel = clarity >= 75 ? "Strong Clarity" : clarity >= 50 ? "Growing Clarity" : "Building Clarity";
   const narrative = buildNarrative(path, student);
 
@@ -399,41 +369,6 @@ export default function CcAnalysis() {
               </div>
             </div>
 
-            {/* Readiness bar + reply badge */}
-            <div className="readiness-row">
-              <div className="readiness-bar-wrap">
-                <div className="readiness-bar-label">
-                  <span>Outreach readiness</span>
-                  <span style={{ color: readiness >= 70 ? "#10b981" : readiness >= 40 ? "#f59e0b" : "#ef4444" }}>{readiness}/100</span>
-                </div>
-                <div className="bar-track">
-                  <div className="bar-fill" style={{ width: barAnimated ? `${readiness}%` : "0%" }} />
-                </div>
-                <div className="readiness-bar-sub">{readinessDesc}</div>
-              </div>
-              <div className="reply-badge">
-                <div className="rnum">{reply}%</div>
-                <div className="rlbl">Recruiter reply rate</div>
-              </div>
-            </div>
-
-            {/* Share row */}
-            <div className="dna-share-row">
-              {readiness < INTERVIEW_THRESHOLD
-                ? <div className="share-score-inline"><span className="ssi-num" style={{ color: "#f59e0b" }}>{readiness}</span><div><div className="ssi-label">Readiness score</div><div className="ssi-gap">{scoreGap} pts from interview threshold</div></div></div>
-                : <div className="share-score-inline"><span className="ssi-num" style={{ color: "#10b981" }}>{readiness}</span><div><div className="ssi-label">Readiness score</div><div className="ssi-label" style={{ color: "#10b981", fontWeight: 700 }}>Above interview threshold ✓</div></div></div>
-              }
-            </div>
-          </div>
-        </div>
-
-        {/* SCORES */}
-        <div className="score-card">
-          <div style={{ fontSize: "0.95rem", fontWeight: 800, marginBottom: 20 }}>Your Scores</div>
-          <div style={{ display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: 16 }}>
-            <ScoreRing score={readiness} label="Readiness" />
-            <ScoreRing score={clarity} label="Clarity" />
-            <ScoreRing score={reply} label="Reply Rate" />
           </div>
         </div>
 
