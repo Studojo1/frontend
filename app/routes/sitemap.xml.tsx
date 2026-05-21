@@ -44,6 +44,7 @@ export async function loader() {
     { loc: "/reports/linkedin-profile-what-hiring-managers-look-at-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/mba-internship-market-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/referrals-vs-applications-how-people-get-hired-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/rejection-report-what-happens-after-you-apply-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
@@ -106,6 +107,7 @@ export async function loader() {
     "/reports/linkedin-profile-what-hiring-managers-look-at-2026": "2026-05-18",
     "/reports/mba-internship-market-india-2026": "2026-05-19",
     "/reports/referrals-vs-applications-how-people-get-hired-2026": "2026-05-20",
+    "/reports/rejection-report-what-happens-after-you-apply-2026": "2026-05-20",
   };
 
   const urls = [
