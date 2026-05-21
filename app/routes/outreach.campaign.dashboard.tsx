@@ -244,6 +244,8 @@ export default function DashboardPage() {
   const [liStatusFilter, setLiStatusFilter] = useState("all");
   const [liLoading, setLiLoading] = useState(false);
   const [liError, setLiError] = useState("");
+  const [liSendingOne, setLiSendingOne] = useState(false);
+  const [liSendResult, setLiSendResult] = useState<{ ok: boolean; name: string; url?: string } | null>(null);
 
   // Test mode state
   const [testJobId, setTestJobId] = useState<string | null>(null);
@@ -409,6 +411,24 @@ export default function DashboardPage() {
       });
       fetchLinkedIn();
     } catch { /* ignore */ }
+  };
+
+  const handleSendOne = async () => {
+    if (!linkedInCampaignId || liSendingOne) return;
+    setLiSendingOne(true);
+    setLiSendResult(null);
+    try {
+      const res = await outreachFetch<{ ok: boolean; lead_name: string; profile_url?: string }>(
+        `/linkedin/automation/campaigns/${linkedInCampaignId}/send-one`,
+        { method: "POST" },
+      );
+      setLiSendResult({ ok: res?.ok ?? false, name: res?.lead_name ?? "Unknown", url: res?.profile_url ?? undefined });
+      fetchLinkedIn();
+    } catch (e: any) {
+      setLiSendResult({ ok: false, name: e?.message ?? "Request failed" });
+    } finally {
+      setLiSendingOne(false);
+    }
   };
 
   const handleReauth = async () => {
@@ -789,6 +809,16 @@ export default function DashboardPage() {
                       </button>
                     )}
                     <button
+                      onClick={handleSendOne}
+                      disabled={liSendingOne}
+                      className="h-9 px-4 rounded-xl bg-studojo-ink text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-x-0 disabled:translate-y-0 disabled:shadow-brutal"
+                    >
+                      {liSendingOne
+                        ? <><span className="w-3.5 h-3.5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />Sending…</>
+                        : <><FiSend className="w-4 h-4 mr-2" />Send 1 Now</>
+                      }
+                    </button>
+                    <button
                       onClick={() => navigate("/outreach/connect/linkedin")}
                       className="h-9 px-4 rounded-xl border-2 border-studojo-purple bg-studojo-purple-bg text-studojo-purple text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
                     >
@@ -796,6 +826,24 @@ export default function DashboardPage() {
                     </button>
                   </div>
                 </div>
+
+                {liSendResult && (
+                  <div className={`rounded-2xl border-2 p-4 flex items-start gap-3 ${liSendResult.ok ? "border-studojo-green/40 bg-studojo-green-bg" : "border-red-300 bg-red-50"}`}>
+                    {liSendResult.ok
+                      ? <FiCheckCircle className="w-5 h-5 text-studojo-green flex-shrink-0 mt-0.5" />
+                      : <FiAlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    }
+                    <div className="flex-1 min-w-0">
+                      {liSendResult.ok
+                        ? <p className="text-sm font-satoshi"><span className="font-bold text-studojo-ink">Connection request sent</span> to <span className="font-bold">{liSendResult.name}</span>{liSendResult.url && <> · <a href={liSendResult.url} target="_blank" rel="noreferrer" className="underline text-studojo-purple">{liSendResult.url.split("/in/")[1]?.replace(/\/$/, "")}</a></>}</p>
+                        : <p className="text-sm font-satoshi text-red-700"><span className="font-bold">Send failed:</span> {liSendResult.name}</p>
+                      }
+                    </div>
+                    <button onClick={() => setLiSendResult(null)} className="text-studojo-muted hover:text-studojo-ink flex-shrink-0">
+                      <FiX className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
 
                 {liStats.status === "auth_failed" && (
                   <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-4 flex items-start gap-3">
