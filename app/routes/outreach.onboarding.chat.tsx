@@ -58,95 +58,13 @@ export default function ChatPage() {
   const [streamingText, setStreamingText] = useState<string | null>(null);
   const autoStarted = useRef(false);
 
-  // Boot / resume the quiz on every page load.
-  //
-  // chatHistory is persisted in localStorage so progress survives a refresh.
-  // Read via getState() inside the effect to avoid stale closure — the closure
-  // captures the value from the render BEFORE Zustand rehydrated from storage.
-  //
-  // Cases:
-  //  1. No user answers yet → serve Q1 client-side instantly (zero API call).
-  //  2. Has user answers → replay history through /chat/stream to restore the
-  //     current question's MCQ options. If last message was from the user the
-  //     next question bubble hasn't been stored yet, so we add it.
-  //  3. Replay fails (stale/incompatible history) → fall back to Q1.
+  // Serve Q1 instantly on mount — no API call
   useEffect(() => {
-    if (!candidateId || autoStarted.current) return;
-    autoStarted.current = true;
-
-    const history = useOutreachStore.getState().chatHistory;
-    const hasUserAnswers = history.some((m) => m.role === "user");
-
-    if (!hasUserAnswers) {
-      clearChatHistory();
+    if (candidateId && !autoStarted.current && chatHistory.length === 0) {
+      autoStarted.current = true;
       addChatMessage({ role: "assistant", content: Q1_STATIC.message });
       setCurrentResponse(Q1_STATIC);
-      return;
     }
-
-    // Mid-quiz refresh: replay through the stream endpoint to restore state.
-    setLoading(true);
-    (async () => {
-      try {
-        const res = await outreachStreamFetch(`/candidate/${candidateId}/chat/stream`, {
-          method: "POST",
-          body: JSON.stringify({
-            message: "",
-            chat_history: history.map((m) => ({ role: m.role, content: m.content })),
-          }),
-        });
-
-        if (!res.ok || !res.body) throw new Error(`Replay failed (${res.status})`);
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buf = "";
-        let finalResponse: AgentResponse | null = null;
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buf += decoder.decode(value, { stream: true });
-          const lines = buf.split("\n");
-          buf = lines.pop() ?? "";
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const raw = line.slice(6).trim();
-            if (!raw) continue;
-            try {
-              const evt = JSON.parse(raw);
-              if (evt.type === "complete") {
-                finalResponse = {
-                  message: evt.message ?? "",
-                  current_state: evt.current_state ?? "MCQ",
-                  mcq: evt.mcq ?? null,
-                  text_input: evt.text_input ?? false,
-                  input_placeholder: evt.input_placeholder ?? null,
-                  is_complete: evt.is_complete ?? false,
-                  questions_asked_so_far: evt.questions_asked_so_far ?? 0,
-                  psychometric: evt.psychometric ?? null,
-                } as AgentResponse;
-              }
-            } catch { /* skip malformed lines */ }
-          }
-        }
-
-        if (finalResponse) {
-          const lastMsg = history[history.length - 1];
-          if (lastMsg?.role === "user") {
-            addChatMessage({ role: "assistant", content: finalResponse.message });
-          }
-          setCurrentResponse(finalResponse);
-        }
-      } catch {
-        // Stale or incompatible history — restart clean from Q1.
-        clearChatHistory();
-        addChatMessage({ role: "assistant", content: Q1_STATIC.message });
-        setCurrentResponse(Q1_STATIC);
-      } finally {
-        setLoading(false);
-      }
-    })();
   }, [candidateId]);
 
   const questionsAsked = currentResponse?.questions_asked_so_far ?? 0;

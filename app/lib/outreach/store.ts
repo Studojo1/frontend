@@ -87,7 +87,6 @@ export const useOutreachStore = create<OutreachState>()(
       name: "internreach-app-store",
       partialize: (state) => ({
         candidateId: state.candidateId,
-        chatHistory: state.chatHistory,
         currentStep: state.currentStep,
         selectedTier: state.selectedTier,
         selectedStyles: state.selectedStyles,
