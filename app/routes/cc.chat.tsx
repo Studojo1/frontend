@@ -153,6 +153,9 @@ export default function CcChat() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const forceChat = searchParams.get("force") === "1";
+  const pathId = searchParams.get("path_id") || null;   // resume a specific career path
+  const newPath = searchParams.get("new") === "1";       // start a brand-new path thread
+  const [pathLabel, setPathLabel] = useState<string | null>(null); // banner label for current path
   const [agentState, setAgentState] = useState("GREETING");
   const [messages, setMessages] = useState<Array<{ role: string; content: string; state?: string; time: string }>>([]);
   const [waiting, setWaiting] = useState(false);
@@ -212,21 +215,53 @@ export default function CcChat() {
     if (!existingId) setHookVisible(true);
 
     (async () => {
-      const body = existingId ? { student_id: existingId } : {};
       try {
+        let conversationId: string;
+        let sd: any;
+
+        if (newPath && existingId) {
+          // Start a brand-new path thread — student has context but fresh conversation
+          const res = await fetch(`${CC_API}/session/new-thread`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ student_id: existingId }),
+          });
+          const newThread = await res.json();
+          studentIdRef.current = newThread.student_id;
+          conversationId = newThread.conversation_id;
+          // Show greeting immediately (no history)
+          setHookVisible(false);
+          hookDismissedRef.current = true;
+          setPathLabel("New career path");
+          const gRes = await fetch(`${CC_API}/chat/greeting?student_id=${newThread.student_id}&conversation_id=${conversationId}`);
+          const gd = await gRes.json();
+          pendingGreetingRef.current = gd;
+          showGreeting(gd);
+          return;
+        }
+
+        // Build session/start body
+        const body: Record<string, string> = existingId ? { student_id: existingId } : {};
+        if (pathId) body.path_id = pathId;
+
         const res = await fetch(`${CC_API}/session/start`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        const sd = await res.json();
+        sd = await res.json();
         studentIdRef.current = sd.student_id;
         localStorage.setItem(STORAGE_KEY, sd.student_id);
+        conversationId = sd.conversation_id;
+
+        // Set path label banner when on a specific path thread
+        if (sd.career_path_id || pathId) {
+          setPathLabel(sd.thread_type === "explore_new_path" ? "Exploring new path" : null);
+        }
 
         if (sd.returning && sd.history?.length > 0) {
           const lastState = [...sd.history].reverse().find((m: any) => m.state)?.state;
-          // Returning user who already has DNA — send directly to dashboard
-          // Skip if user explicitly clicked "Back to Chat" (?force=1)
-          if (!forceChat && lastState && DASH_STATES.has(lastState)) {
+          // Returning user with DNA on default path — redirect to dashboard
+          // Skip if ?force=1 or if loading a specific path_id
+          if (!forceChat && !pathId && lastState && DASH_STATES.has(lastState)) {
             navigate(`/cc/dashboard?id=${sd.student_id}`);
             return;
           }
@@ -242,7 +277,7 @@ export default function CcChat() {
           return;
         }
 
-        const gRes = await fetch(`${CC_API}/chat/greeting?student_id=${sd.student_id}&conversation_id=${sd.conversation_id}`);
+        const gRes = await fetch(`${CC_API}/chat/greeting?student_id=${sd.student_id}&conversation_id=${conversationId}`);
         const gd = await gRes.json();
         pendingGreetingRef.current = gd;
         if (hookDismissedRef.current) showGreeting(gd);
@@ -351,6 +386,13 @@ export default function CcChat() {
                 </>
               )}
             </div>
+          </div>
+        )}
+
+        {/* PATH BANNER — shown when on a specific career path thread */}
+        {pathLabel && (
+          <div style={{ background: "linear-gradient(90deg,#8B5CF6,#A855F7)", color: "white", textAlign: "center", fontSize: "0.75rem", fontWeight: 700, padding: "6px 16px", letterSpacing: "0.05em", flexShrink: 0 }}>
+            {pathLabel.toUpperCase()} · <a href="/cc/dashboard" style={{ color: "white", textDecoration: "underline", fontWeight: 700 }}>Back to Dashboard</a>
           </div>
         )}
 
