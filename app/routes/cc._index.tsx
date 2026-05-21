@@ -11,11 +11,6 @@ export function meta() {
   ];
 }
 
-const COMPANIES = [
-  "Google", "Deloitte", "McKinsey", "Goldman Sachs", "Bain", "Amazon",
-  "Zomato", "Razorpay", "HDFC Bank", "BCG", "EY", "Meesho", "Zepto",
-  "Swiggy", "JPMorgan", "PhonePe", "KPMG", "Atlassian", "Browserstack",
-];
 
 const HOW_IT_WORKS = [
   {
@@ -151,17 +146,6 @@ const CSS = `
 .lp-stat-num { font-size: 2rem; font-weight: 800; color: #fff; letter-spacing: -0.03em; }
 .lp-stat-label { font-size: 0.78rem; color: #C4B5FD; margin-top: 4px; font-weight: 500; }
 
-/* TRUST STRIP */
-.lp-trust { padding: 28px 48px; border-bottom: 2px solid #111; overflow: hidden; background: #FAFAF9; }
-.lp-trust-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #A1A1AA; text-align: center; margin-bottom: 16px; }
-.lp-trust-scroll { display: flex; gap: 10px; animation: scroll 28s linear infinite; white-space: nowrap; }
-@keyframes scroll { to { transform: translateX(-50%); } }
-.lp-trust-pill {
-  display: inline-block; padding: 6px 18px;
-  border: 2px solid #111; border-radius: 999px;
-  font-size: 0.82rem; font-weight: 600; color: #111;
-  background: #fff; box-shadow: 2px 2px 0 #111; flex-shrink: 0;
-}
 
 /* HOW IT WORKS */
 .lp-section { padding: 80px 48px; }
@@ -225,13 +209,14 @@ const CSS = `
 
 /* CTA BANNER */
 .lp-cta-banner {
-  background: #6D28D9; padding: 80px 48px; text-align: center;
+  background: #F59E0B; padding: 80px 48px; text-align: center;
+  border-top: 2px solid #111;
 }
 .lp-cta-banner h2 {
-  font-size: clamp(2rem,4vw,3rem); font-weight: 800; color: #fff;
+  font-size: clamp(2rem,4vw,3rem); font-weight: 800; color: #111;
   letter-spacing: -0.04em; margin-bottom: 16px; line-height: 1.2;
 }
-.lp-cta-banner p { font-size: 1rem; color: #DDD6FE; margin-bottom: 36px; }
+.lp-cta-banner p { font-size: 1rem; color: rgba(0,0,0,0.65); margin-bottom: 36px; }
 
 /* FOOTER */
 .lp-footer {
@@ -277,8 +262,6 @@ const QUOTES = [
 ];
 
 export default function CcIndex() {
-  const trustDuped = [...COMPANIES, ...COMPANIES];
-
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -328,18 +311,6 @@ export default function CcIndex() {
           <div className="lp-stat">
             <div className="lp-stat-num">Free</div>
             <div className="lp-stat-label">to get started today</div>
-          </div>
-        </div>
-
-        {/* TRUST STRIP */}
-        <div className="lp-trust">
-          <div className="lp-trust-label">Students have gotten replies from</div>
-          <div style={{ overflow: "hidden" }}>
-            <div className="lp-trust-scroll">
-              {trustDuped.map((c, i) => (
-                <span key={i} className="lp-trust-pill">{c}</span>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -406,7 +377,7 @@ export default function CcIndex() {
         <section className="lp-cta-banner">
           <h2>Know exactly where you stand.</h2>
           <p>Takes 8 minutes. Free to get started. No account needed.</p>
-          <Link to="/cc/chat" className="lp-btn-primary" style={{ display: "inline-block" }}>
+          <Link to="/cc/chat" className="lp-btn-primary" style={{ display: "inline-block", background: "#111", color: "#F59E0B" }}>
             Get my Career DNA →
           </Link>
         </section>
