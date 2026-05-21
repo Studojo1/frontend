@@ -51,17 +51,18 @@ const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)/;
 export default function ChatPage() {
   const navigate = useNavigate();
   const { user } = useOutreachAuth();
-  const { candidateId, chatHistory, addChatMessage } = useOutreachStore();
+  const { candidateId, chatHistory, addChatMessage, clearChatHistory } = useOutreachStore();
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
   const [streamingText, setStreamingText] = useState<string | null>(null);
   const autoStarted = useRef(false);
 
-  // Serve Q1 instantly on mount — no API call
+  // Always start fresh — clears any stale localStorage chatHistory
   useEffect(() => {
-    if (candidateId && !autoStarted.current && chatHistory.length === 0) {
+    if (candidateId && !autoStarted.current) {
       autoStarted.current = true;
+      clearChatHistory();
       addChatMessage({ role: "assistant", content: Q1_STATIC.message });
       setCurrentResponse(Q1_STATIC);
     }
