@@ -788,6 +788,12 @@ export default function DashboardPage() {
                         <FiPlay className="w-4 h-4 mr-2" /> Resume
                       </button>
                     )}
+                    <button
+                      onClick={() => navigate("/outreach/connect/linkedin")}
+                      className="h-9 px-4 rounded-xl border-2 border-studojo-purple bg-studojo-purple-bg text-studojo-purple text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+                    >
+                      <FiLinkedin className="w-4 h-4 mr-2" /> Reconnect LinkedIn
+                    </button>
                   </div>
                 </div>
 
