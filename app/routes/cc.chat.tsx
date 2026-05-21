@@ -15,11 +15,15 @@ const STATE_LABELS: Record<string, string> = {
   DNA_CORRECTION: "Refining your DNA", NEW_PATH_EXPLORATION: "Exploring new paths",
 };
 const STATE_TO_STEP: Record<string, number> = {
-  GREETING: 1, PROFILING: 1, CAREER_ANALYSIS: 2, DNA_REVIEW: 2, DNA_CORRECTION: 2,
-  ROADMAP: 3, NEW_PATH_EXPLORATION: 3, ONGOING_SUPPORT: 4,
+  GREETING: 1, PROFILING: 1, NEW_PATH_EXPLORATION: 1, ONGOING_SUPPORT: 1,
+  CAREER_ANALYSIS: 2, DNA_REVIEW: 2, DNA_CORRECTION: 2,
+  ROADMAP: 3,
 };
 const DNA_STATES = new Set(["CAREER_ANALYSIS", "DNA_REVIEW", "DNA_CORRECTION"]);
-const DASH_STATES = new Set(["DNA_REVIEW", "DNA_CORRECTION", "ROADMAP", "NEW_PATH_EXPLORATION", "ONGOING_SUPPORT"]);
+// DNA_CONFIRMED_STATES: only these mean this path actually has a generated Career DNA.
+// ONGOING_SUPPORT and NEW_PATH_EXPLORATION are NOT included — they are chat states,
+// not evidence that this specific path has completed analysis.
+const DNA_CONFIRMED_STATES = new Set(["DNA_REVIEW", "ROADMAP"]);
 
 const HOOK_STATS = [
   { main: "B.Tech students applying on LinkedIn get a 1.4% callback rate.", emphasis: "Students who cold outreach hiring managers directly get 12 to 18%.", hook: "Let's figure out which companies you should be reaching." },
@@ -261,7 +265,8 @@ export default function CcChat() {
 
         if (sd.returning && sd.history?.length > 0) {
           const lastState = [...sd.history].reverse().find((m: any) => m.state)?.state;
-          if (!forceChat && !pathId && lastState && DASH_STATES.has(lastState)) {
+          // Redirect to dashboard only when default path has DNA — never for new/alt path threads
+          if (!forceChat && !pathId && !newPath && lastState && DNA_CONFIRMED_STATES.has(lastState)) {
             navigate(`/cc/dashboard?id=${sd.student_id}`);
             return;
           }
@@ -275,8 +280,8 @@ export default function CcChat() {
           setMessages(hist);
           if (lastState) {
             setAgentState(lastState);
-            // Only mark dnaConfirmed for THIS path's conversation history
-            if (DASH_STATES.has(lastState)) setDnaConfirmed(true);
+            // dnaConfirmed only if this path actually generated a DNA
+            if (DNA_CONFIRMED_STATES.has(lastState)) setDnaConfirmed(true);
           }
           return;
         }
@@ -337,7 +342,7 @@ export default function CcChat() {
       await new Promise(r => setTimeout(r, Math.max(0, 600 - elapsed)));
       const newState = data.orchestration?.current_state || agentState;
       setAgentState(newState);
-      if (data.orchestration?.dna_generated || DASH_STATES.has(newState)) setDnaConfirmed(true);
+      if (data.orchestration?.dna_generated || DNA_CONFIRMED_STATES.has(newState)) setDnaConfirmed(true);
       setMessages(prev => [...prev, { role: "agent", content: data.reply, state: newState, time: now12h() }]);
     } catch {
       setMessages(prev => [...prev, { role: "agent", content: "Something went wrong on my end — try sending that again.", time: now12h() }]);
@@ -459,7 +464,7 @@ export default function CcChat() {
                             </div>
                           </div>
                         )}
-                        {dnaConfirmed && DASH_STATES.has(m.state || "") && !DNA_STATES.has(m.state || "") && sid && (
+                        {dnaConfirmed && m.state === "ROADMAP" && sid && (
                           <div style={{ marginLeft: 46 }}>
                             <div className="analysis-cta-inline" style={{ borderColor: "#8b5cf6", background: "rgba(233,213,255,0.2)" }} onClick={() => navigate(`/cc/roadmap?id=${sid}`)}>
                               <div><div className="cta-text" style={{ color: "#8b5cf6" }}>View your Recommendations</div><div className="cta-sub">Full roadmap, skill gaps, and priority actions</div></div>
