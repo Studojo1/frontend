@@ -15,19 +15,16 @@ export function meta() {
 const HOW_IT_WORKS = [
   {
     num: "01",
-    icon: "💬",
     title: "Tell the coach about yourself",
     desc: "No forms. No uploads. Just a conversation. The AI asks about your degree, skills, experience, and what you are going after — and listens.",
   },
   {
     num: "02",
-    icon: "🧬",
     title: "Get your Career DNA",
     desc: "You receive a readiness score, a detailed gap analysis, and a clear picture of exactly what is holding your reply rate back.",
   },
   {
     num: "03",
-    icon: "📋",
     title: "Follow your weekly roadmap",
     desc: "One prioritised action per week. Closes your gaps. Moves your readiness score. Tracks your progress every time you come back.",
   },
@@ -167,7 +164,6 @@ const CSS = `
   font-size: 3rem; font-weight: 800; color: #F3F0FF;
   letter-spacing: -0.04em; line-height: 1; margin-bottom: 12px;
 }
-.lp-step-icon { font-size: 1.75rem; margin-bottom: 16px; display: block; }
 .lp-step-title { font-size: 1.05rem; font-weight: 800; color: #111; margin-bottom: 10px; }
 .lp-step-desc { font-size: 0.875rem; color: #71717A; line-height: 1.65; }
 
@@ -324,7 +320,6 @@ export default function CcIndex() {
               {HOW_IT_WORKS.map((s, i) => (
                 <div key={i} className="lp-step-card">
                   <div className="lp-step-num">{s.num}</div>
-                  <span className="lp-step-icon">{s.icon}</span>
                   <div className="lp-step-title">{s.title}</div>
                   <div className="lp-step-desc">{s.desc}</div>
                 </div>
