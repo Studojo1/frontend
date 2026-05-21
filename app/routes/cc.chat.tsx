@@ -172,6 +172,7 @@ export default function CcChat() {
   const [tickerIdx, setTickerIdx] = useState(0);
 
   const studentIdRef = useRef<string | null>(null);
+  const conversationIdRef = useRef<string | null>(null);  // always the current path's conversation
   const pendingGreetingRef = useRef<any>(null);
   const hookDismissedRef = useRef(false);
   const initDone = useRef(false);
@@ -220,18 +221,19 @@ export default function CcChat() {
         let sd: any;
 
         if (newPath && existingId) {
-          // Start a brand-new path thread — student has context but fresh conversation
+          // New path thread — fresh conversation, student profile already known
           const res = await fetch(`${CC_API}/session/new-thread`, {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ student_id: existingId }),
           });
           const newThread = await res.json();
           studentIdRef.current = newThread.student_id;
+          conversationIdRef.current = newThread.conversation_id;
           conversationId = newThread.conversation_id;
-          // Show greeting immediately (no history)
           setHookVisible(false);
           hookDismissedRef.current = true;
           setPathLabel("New career path");
+          // dnaConfirmed stays false — this path has no DNA yet, step nav starts at 1
           const gRes = await fetch(`${CC_API}/chat/greeting?student_id=${newThread.student_id}&conversation_id=${conversationId}`);
           const gd = await gRes.json();
           pendingGreetingRef.current = gd;
@@ -249,18 +251,16 @@ export default function CcChat() {
         });
         sd = await res.json();
         studentIdRef.current = sd.student_id;
+        conversationIdRef.current = sd.conversation_id;
         localStorage.setItem(STORAGE_KEY, sd.student_id);
         conversationId = sd.conversation_id;
 
-        // Set path label banner when on a specific path thread
         if (sd.career_path_id || pathId) {
           setPathLabel(sd.thread_type === "explore_new_path" ? "Exploring new path" : null);
         }
 
         if (sd.returning && sd.history?.length > 0) {
           const lastState = [...sd.history].reverse().find((m: any) => m.state)?.state;
-          // Returning user with DNA on default path — redirect to dashboard
-          // Skip if ?force=1 or if loading a specific path_id
           if (!forceChat && !pathId && lastState && DASH_STATES.has(lastState)) {
             navigate(`/cc/dashboard?id=${sd.student_id}`);
             return;
@@ -275,6 +275,7 @@ export default function CcChat() {
           setMessages(hist);
           if (lastState) {
             setAgentState(lastState);
+            // Only mark dnaConfirmed for THIS path's conversation history
             if (DASH_STATES.has(lastState)) setDnaConfirmed(true);
           }
           return;
@@ -318,14 +319,18 @@ export default function CcChat() {
     if (inputRef.current) { inputRef.current.value = ""; inputRef.current.style.height = "auto"; }
     setHeaderHidden(true);
     const sid = studentIdRef.current;
+    const cid = conversationIdRef.current;
     if (!sid) return;
     setMessages(prev => [...prev, { role: "user", content, time: now12h() }]);
     setWaiting(true);
     const t0 = Date.now();
     try {
+      const body: Record<string, string> = { student_id: sid, message: content };
+      // Pass conversation_id so the backend writes to the correct path's conversation
+      if (cid) body.conversation_id = cid;
       const res = await fetch(`${CC_API}/api/chat`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ student_id: sid, message: content }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       const elapsed = Date.now() - t0;
@@ -342,8 +347,6 @@ export default function CcChat() {
 
   const step = STATE_TO_STEP[agentState] || 1;
   const sid = studentIdRef.current;
-  const showDnaCta = DNA_STATES.has(agentState) && sid;
-  const showDashCta = dnaConfirmed && sid;
   const stat = HOOK_STATS[statIdx];
 
   const navCenter = (!agentState || agentState === "GREETING" || agentState === "PROFILING")
@@ -445,10 +448,10 @@ export default function CcChat() {
                         <div className="msg-time">{m.time}</div>
                       </div>
                     </div>
-                    {/* CTAs after last agent message */}
+                    {/* CTAs: only on the specific message where the state first entered DNA/DASH territory */}
                     {m.role === "agent" && i === messages.length - 1 && (
                       <>
-                        {showDnaCta && (
+                        {DNA_STATES.has(m.state || "") && sid && (
                           <div style={{ marginLeft: 46 }}>
                             <div className="analysis-cta-inline" onClick={() => navigate(`/cc/analysis?id=${sid}`)}>
                               <div><div className="cta-text">View your Career Analysis</div><div className="cta-sub">Career DNA, skill gaps, and your recommended roadmap</div></div>
@@ -456,7 +459,7 @@ export default function CcChat() {
                             </div>
                           </div>
                         )}
-                        {showDashCta && (
+                        {dnaConfirmed && DASH_STATES.has(m.state || "") && !DNA_STATES.has(m.state || "") && sid && (
                           <div style={{ marginLeft: 46 }}>
                             <div className="analysis-cta-inline" style={{ borderColor: "#8b5cf6", background: "rgba(233,213,255,0.2)" }} onClick={() => navigate(`/cc/roadmap?id=${sid}`)}>
                               <div><div className="cta-text" style={{ color: "#8b5cf6" }}>View your Recommendations</div><div className="cta-sub">Full roadmap, skill gaps, and priority actions</div></div>
