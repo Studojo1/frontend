@@ -273,7 +273,10 @@ export default function CcChat() {
             content: m.content, state: m.state, time: now12h(),
           }));
           setMessages(hist);
-          if (lastState) setAgentState(lastState);
+          if (lastState) {
+            setAgentState(lastState);
+            if (DASH_STATES.has(lastState)) setDnaConfirmed(true);
+          }
           return;
         }
 
@@ -405,16 +408,18 @@ export default function CcChat() {
 
         {/* STEP NAV */}
         <div id="cc-step-nav">
-          {[["AI Chat", "/cc/chat"], ["Career Analysis", `/cc/analysis${sid ? "?id="+sid : ""}`], ["Recommendations", `/cc/roadmap${sid ? "?id="+sid : ""}`], ["Dashboard", `/cc/dashboard${sid ? "?id="+sid : ""}`]].map(([label, href], i) => {
+          {[["AI Chat", "/cc/chat?force=1"], ["Career Analysis", `/cc/analysis${sid ? "?id="+sid : ""}`], ["Recommendations", `/cc/roadmap${sid ? "?id="+sid : ""}`], ["Dashboard", `/cc/dashboard${sid ? "?id="+sid : ""}`]].map(([label, href], i) => {
             const n = i + 1;
-            const cls = n === step ? "step-item active" : n < step ? "step-item done" : "step-item";
+            // A step is clickable if: it's a previous step, it's the current step, or DNA is confirmed (unlocks steps 3+4)
+            const isClickable = n < step || n === step || (dnaConfirmed && n >= 3 && !!sid);
+            const cls = n === step ? "step-item active" : n < step ? "step-item done" : isClickable ? "step-item done" : "step-item";
             return (
               <div key={n} style={{ display: "contents" }}>
-                <div className={cls} onClick={() => n < step && navigate(href)}>
+                <div className={cls} style={{ cursor: isClickable ? "pointer" : "default" }} onClick={() => isClickable && navigate(href)}>
                   <div className="step-num">{n}</div>
                   <div className="step-label">{label}</div>
                 </div>
-                {i < 3 && <div className={`step-connector${n < step ? " done" : ""}`} />}
+                {i < 3 && <div className={`step-connector${n < step || (dnaConfirmed && n >= 3) ? " done" : ""}`} />}
               </div>
             );
           })}
