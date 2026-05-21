@@ -712,16 +712,11 @@ export default function CcDashboard() {
             <button className={`nav-item${section === "overview" ? " active" : ""}`} onClick={() => setSection("overview")}>
               <span className="nav-icon ic-overview">OV</span> Overview
             </button>
-            <button className={`nav-item${section === "paths" ? " active" : ""}`} onClick={() => setSection("paths")}>
-              <span className="nav-icon ic-paths">CP</span> Career Paths
-            </button>
             <Link to="/cc/chat?force=1" className="nav-item">
               <span className="nav-icon ic-chat">←</span> Back to Chat
             </Link>
           </nav>
-          <div className="sidebar-bottom">
-            <Link to="/cc/chat?force=1&new=1" className="btn-new-path">+ Explore new path</Link>
-          </div>
+          <div className="sidebar-bottom" />
         </aside>
 
         {/* MAIN */}
@@ -840,57 +835,6 @@ export default function CcDashboard() {
             </>
           )}
 
-          {/* CAREER PATHS */}
-          {section === "paths" && (
-            <>
-              <div className="sec-header">
-                <h2>Career Paths</h2>
-                <Link to="/cc/chat?force=1&new=1" className="btn-explore-path" style={{ fontSize: "0.78rem", padding: "9px 18px" }}>+ Explore new path</Link>
-              </div>
-              <div className="primary-path-card">
-                <div className="path-strip" />
-                <div className="path-body">
-                  <div className="primary-pill">Primary Focus</div>
-                  <div className="path-role">{path.target_role || "Your Target Role"}</div>
-                  <div className="path-meta-pills">
-                    {path.target_industry && <span className="outline-pill">{path.target_industry}</span>}
-                    {path.target_geography && <span className="outline-pill">{path.target_geography}</span>}
-                    {path.job_type && <span className="outline-pill">{path.job_type}</span>}
-                  </div>
-                  {companies.slice(0, 4).map((c, i) => <div key={i} className="target-co-item">{c}</div>)}
-                  <div style={{ marginTop: 14 }}>
-                    <div className="r-label"><span>Career Readiness</span><span>{readiness}%</span></div>
-                    <div className="bar-track"><div className="bar-fill" style={{ width: `${readiness}%` }} /></div>
-                  </div>
-                </div>
-              </div>
-              {alts.length > 0 && (
-                <div className="alt-paths-grid">
-                  {alts.map((a: any, i: number) => (
-                    <div key={i} className="alt-path-card">
-                      <div className="exploring-badge">Exploring</div>
-                      <div className="alt-path-role">{a.target_role || ""}</div>
-                      <div className="alt-path-industry">{a.target_industry || ""}</div>
-                      <div className="bar-track"><div className="bar-fill" style={{ width: `${a.readiness_score || 0}%`, background: "linear-gradient(90deg,#14B8A6,#3B82F6)" }} /></div>
-                      <Link to={`/cc/chat?force=1&path_id=${a.path_id || a.id}`} className="btn-promote" style={{ display: "block", textAlign: "center", textDecoration: "none" }}>Open chat →</Link>
-                      <button className="btn-promote" style={{ marginTop: 6 }} onClick={async () => {
-                        await fetch(`${CC_API}/dashboard/${studentId}/promote-path`, {
-                          method: "POST", headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ path_id: a.path_id || a.id }),
-                        });
-                        const r = await fetch(`${CC_API}/dashboard/${studentId}`);
-                        setData(await r.json());
-                      }}>Promote to primary →</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="explore-cta">
-                <h3>Want to explore a different direction?</h3>
-                <Link to="/cc/chat?force=1&new=1" className="btn-explore-path">+ Explore new path</Link>
-              </div>
-            </>
-          )}
         </main>
 
         {/* MOBILE TAB BAR */}
