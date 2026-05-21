@@ -438,10 +438,16 @@ function ThisWeekCard({ topAction, altAction, readiness, studentId }: {
   const lwk = lastWeekKey();
   const [weekData, setWeekData] = useState(() => loadWeekData(studentId, wk));
   const [lwData] = useState(() => loadWeekData(studentId, lwk));
+  // Only show last-week review if: student used the app last week (lwData has a stored response key),
+  // they haven't already reviewed it (no lwData.status), and this week hasn't been submitted yet.
   const [showLastWeek, setShowLastWeek] = useState(() => {
-    const lw = loadWeekData(studentId, lwk);
-    const thisW = loadWeekData(studentId, wk);
-    return !lw.status && !thisW.status;
+    try {
+      const all = JSON.parse(localStorage.getItem(weekKey(studentId)) || "{}");
+      const hadLastWeek = lwk in all;           // they interacted last week
+      const lw = all[lwk] || {};
+      const thisW = all[wk] || {};
+      return hadLastWeek && !lw.status && !thisW.status;
+    } catch { return false; }
   });
   const [customNote, setCustomNote] = useState("");
   const [suggestion, setSuggestion] = useState("");
