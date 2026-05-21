@@ -84,8 +84,9 @@ export default function EnrichmentPage() {
 
   const navigate = useNavigate();
   const { user, loading: authLoading } = useOutreachAuth();
-  const { candidateId, selectedTier, setSelectedTier, orderId } = useOutreachStore();
+  const { candidateId, selectedTier, setSelectedTier, orderId, setPlanType, setSelectedPlanId } = useOutreachStore();
   const { createOrder, updateOrder } = useOrder();
+  const planTypeRef = useRef<Channel>("email");
 
   useEffect(() => {
     if (!orderId && candidateId) {
@@ -117,7 +118,6 @@ export default function EnrichmentPage() {
   const [error, setError] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [dodoCheckoutUrl, setDodoCheckoutUrl] = useState<string | null>(null);
-  const [comingSoonChannel, setComingSoonChannel] = useState<Channel | null>(null);
   const dodoSessionRef = useRef<string>("");
   const dodoPollingRef = useRef(false);
 
@@ -130,8 +130,10 @@ export default function EnrichmentPage() {
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
-    updateOrder({ status: "campaign_setup", log_entry: `Payment completed for ${selectedTier} credits (JIT enrichment)` });
-    navigate("/outreach/connect/gmail");
+    const pt = planTypeRef.current;
+    updateOrder({ status: "campaign_setup", log_entry: `Payment completed (plan_type=${pt})` });
+    // LinkedIn-only → connect/linkedin. Email or Both → start at gmail (gmail page chains to linkedin for 'both').
+    navigate(pt === "linkedin" ? "/outreach/connect/linkedin" : "/outreach/connect/gmail");
   };
 
   const pollDodoVerify = async (attempt: number) => {
@@ -180,10 +182,17 @@ export default function EnrichmentPage() {
     const loadData = async () => {
       try {
         const [pricingData, creditsData] = await Promise.all([
-          outreachFetch<{ tiers: TierPricing[]; currency: string }>("/payment/pricing"),
+          outreachFetch<{ plans?: any[]; tiers?: TierPricing[]; currency: string }>("/payment/pricing"),
           outreachFetch<{ total_credits: number; used_credits: number; available_credits: number }>("/payment/credits"),
         ]);
-        setPricing(pricingData.tiers || []);
+        // Backend returns `plans` (new) — pull out the email-only entries for the legacy TierPricing shape
+        if (pricingData.plans) {
+          setPricing(pricingData.plans
+            .filter((p) => p.plan_type === "email")
+            .map((p) => ({ tier: p.email_credits, label: p.label, amount_cents: p.amount_cents, currency: p.currency, display_price: p.display_price })));
+        } else if (pricingData.tiers) {
+          setPricing(pricingData.tiers);
+        }
         if (pricingData.currency) setCurrency(pricingData.currency);
         setCredits(creditsData);
         const available = creditsData.available_credits;
@@ -216,15 +225,13 @@ export default function EnrichmentPage() {
   const handlePayAndContinue = async (plan: Plan) => {
     if (!candidateId) return;
 
-    // LinkedIn and Both plans need backend wiring — show coming soon modal
-    if (plan.channel !== "email") {
-      setComingSoonChannel(plan.channel);
-      return;
-    }
-
     setSelectedTier(plan.tier);
+    setPlanType(plan.channel);
+    setSelectedPlanId(plan.id);
+    planTypeRef.current = plan.channel;
 
-    if (credits && credits.available_credits >= plan.tier) {
+    // Existing credits cover this email-only plan? Skip payment.
+    if (plan.channel === "email" && credits && credits.available_credits >= plan.tier) {
       onPaymentSuccess();
       return;
     }
@@ -235,7 +242,7 @@ export default function EnrichmentPage() {
     try {
       const orderData = await outreachFetch<any>("/payment/create-order", {
         method: "POST",
-        body: JSON.stringify({ tier: plan.tier, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined }),
+        body: JSON.stringify({ plan_id: plan.id, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined }),
       });
 
       if (orderData.free) {
@@ -594,33 +601,6 @@ export default function EnrichmentPage() {
         </div>
       )}
 
-      {comingSoonChannel && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setComingSoonChannel(null)} />
-          <div className="relative bg-white rounded-2xl border-2 border-studojo-ink shadow-brutal p-6 max-w-md w-full">
-            <h3 className="font-clash text-xl font-bold text-studojo-ink mb-2">
-              {comingSoonChannel === "linkedin" ? "LinkedIn outreach is launching soon" : "Email + LinkedIn bundles launching soon"}
-            </h3>
-            <p className="text-sm text-studojo-muted font-satoshi mb-4">
-              We're finishing the LinkedIn payment integration. In the meantime, start with the Email plan — your credits transfer over once LinkedIn ships, and you'll be first in line for the bundle discount.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => { setComingSoonChannel(null); setChannel("email"); }}
-                className="flex-1 h-10 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-bold border-2 border-studojo-ink shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-              >
-                Switch to Email plans
-              </button>
-              <button
-                onClick={() => setComingSoonChannel(null)}
-                className="h-10 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-bold border-2 border-studojo-ink shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

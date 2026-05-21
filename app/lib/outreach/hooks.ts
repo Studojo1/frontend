@@ -82,6 +82,8 @@ export function useOrder() {
     candidate_id?: number;
     campaign_id?: number;
     email_account_id?: number;
+    linkedin_campaign_id?: number;
+    linkedin_connected?: boolean;
     leads_collected?: number;
     log_entry?: string;
   }) => {
