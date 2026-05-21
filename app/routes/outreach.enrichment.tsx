@@ -210,9 +210,11 @@ export default function EnrichmentPage() {
     setCouponError("");
     setCouponResult(null);
     try {
+      // Validate against the recommended (Growth) plan for the active channel
+      const previewPlan = PLANS.find((p) => p.channel === channel && p.recommended) ?? PLANS.find((p) => p.channel === channel);
       const data = await outreachFetch<CouponResult>("/payment/coupon/validate", {
         method: "POST",
-        body: JSON.stringify({ code: couponCode.trim(), tier: selectedTier, currency }),
+        body: JSON.stringify({ code: couponCode.trim(), plan_id: previewPlan?.id, currency }),
       });
       setCouponResult(data);
     } catch (err: any) {
@@ -356,19 +358,20 @@ export default function EnrichmentPage() {
 
   const buildFeatures = (plan: Plan): string[] => {
     const out: string[] = [];
+    const contacts = Math.max(plan.emailCount, plan.linkedinCount);
     if (plan.emailCount > 0) {
-      out.push(`${plan.emailCount} verified hiring manager emails, personalised and sent for you`);
+      out.push(`${plan.emailCount} verified hiring-manager contacts found and matched to your profile`);
+      out.push(`${plan.emailCount * 3} personalised emails sent (initial + 2 follow-ups per contact)`);
     }
     if (plan.linkedinCount > 0) {
-      out.push(`${plan.linkedinCount} personalised LinkedIn connection requests`);
+      out.push(`${plan.linkedinCount} personalised LinkedIn connection requests sent for you`);
+      out.push("Personalised follow-up message sent automatically after each accepted connection");
+      out.push("Daily safety limits + acceptance monitoring so your LinkedIn account stays healthy");
     }
     out.push("Targeted to your role, industry and company preferences");
-    out.push("Fully custom dashboard to track every send and reply");
+    out.push(`Live dashboard tracking every ${plan.linkedinCount > 0 && plan.emailCount > 0 ? "email and request" : plan.linkedinCount > 0 ? "request, accept and reply" : "send and reply"}`);
     if (plan.emailCount > 0) {
-      out.push("Sent gradually so they land in the primary inbox");
-    }
-    if (plan.linkedinCount > 0) {
-      out.push("Automated daily limits to keep your LinkedIn account safe");
+      out.push("Emails staggered across days so they land in the primary inbox");
     }
     out.push("Email support");
     return out;
@@ -495,9 +498,9 @@ export default function EnrichmentPage() {
                     <span className="font-clash text-4xl font-black text-studojo-green">{price.discounted}</span>
                   )}
                   <p className="text-xs text-studojo-muted font-satoshi mt-1">
-                    {plan.channel === "email" && `${plan.emailCount} decision makers. ${plan.emailCount} chances.`}
-                    {plan.channel === "linkedin" && `${plan.linkedinCount} LinkedIn requests sent for you.`}
-                    {plan.channel === "both" && `${plan.emailCount} emails + ${plan.linkedinCount} LinkedIn requests.`}
+                    {plan.channel === "email" && `${plan.emailCount} contacts · ${plan.emailCount * 3} emails sent (incl. follow-ups)`}
+                    {plan.channel === "linkedin" && `${plan.linkedinCount} contacts · requests + follow-up messages, fully monitored`}
+                    {plan.channel === "both" && `${plan.emailCount} contacts · ${plan.emailCount * 3} emails + ${plan.linkedinCount} LinkedIn requests with follow-ups`}
                   </p>
                 </div>
 
@@ -535,40 +538,38 @@ export default function EnrichmentPage() {
           })}
         </div>
 
-        {channel === "email" && (
-          <div className="rounded-2xl border-2 border-studojo-ink/20 bg-white p-5 mb-6 max-w-md mx-auto">
-            <div className="flex items-center gap-2 mb-3">
-              <FiTag className="w-4 h-4 text-studojo-purple" />
-              <p className="font-satoshi text-sm font-bold text-studojo-ink">Have a coupon?</p>
-            </div>
-            <div className="flex gap-2">
-              <input
-                value={couponCode}
-                onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); setCouponError(""); }}
-                placeholder="Enter code"
-                className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
-              />
-              <button
-                onClick={validateCoupon}
-                disabled={couponLoading}
-                className="h-10 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50"
-              >
-                {couponLoading ? "..." : "Apply"}
-              </button>
-            </div>
-            {couponError && <p className="text-red-600 text-xs mt-2 font-satoshi">{couponError}</p>}
-            {couponResult?.valid && (
-              <div className="mt-3 p-3 bg-studojo-green-bg rounded-xl border border-studojo-green/30">
-                <p className="text-sm text-studojo-green font-bold font-satoshi">
-                  {couponResult.discount_type === "percent"
-                    ? `${couponResult.discount_value}% off`
-                    : `${currSymbol}${(couponResult.discount_value / 100).toFixed(0)} off`}
-                  {couponResult.distributor && <span className="text-studojo-muted font-normal"> via {couponResult.distributor}</span>}
-                </p>
-              </div>
-            )}
+        <div className="rounded-2xl border-2 border-studojo-ink/20 bg-white p-5 mb-6 max-w-md mx-auto">
+          <div className="flex items-center gap-2 mb-3">
+            <FiTag className="w-4 h-4 text-studojo-purple" />
+            <p className="font-satoshi text-sm font-bold text-studojo-ink">Have a coupon?</p>
           </div>
-        )}
+          <div className="flex gap-2">
+            <input
+              value={couponCode}
+              onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); setCouponError(""); }}
+              placeholder="Enter code"
+              className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+            />
+            <button
+              onClick={validateCoupon}
+              disabled={couponLoading}
+              className="h-10 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50"
+            >
+              {couponLoading ? "..." : "Apply"}
+            </button>
+          </div>
+          {couponError && <p className="text-red-600 text-xs mt-2 font-satoshi">{couponError}</p>}
+          {couponResult?.valid && (
+            <div className="mt-3 p-3 bg-studojo-green-bg rounded-xl border border-studojo-green/30">
+              <p className="text-sm text-studojo-green font-bold font-satoshi">
+                {couponResult.discount_type === "percent"
+                  ? `${couponResult.discount_value}% off`
+                  : `${currSymbol}${(couponResult.discount_value / 100).toFixed(0)} off`}
+                {couponResult.distributor && <span className="text-studojo-muted font-normal"> via {couponResult.distributor}</span>}
+              </p>
+            </div>
+          )}
+        </div>
 
         {error && <p className="text-red-600 text-sm text-center mb-4 font-satoshi">{error}</p>}
 
