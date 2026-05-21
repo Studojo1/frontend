@@ -5,7 +5,8 @@ import {
   FiCheckCircle, FiXCircle, FiClock, FiMessageCircle, FiX,
   FiArrowRight, FiThumbsUp, FiThumbsDown, FiMinus,
   FiPlus, FiTrash2, FiMail, FiRefreshCw, FiGlobe,
-  FiChevronRight, FiChevronDown, FiCornerDownRight,
+  FiChevronRight, FiChevronDown, FiCornerDownRight, FiLinkedin,
+  FiExternalLink, FiPercent,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
@@ -18,6 +19,58 @@ import { formatTimestamp } from "~/lib/outreach/format-time";
 import type { CampaignMetrics } from "~/lib/outreach/types";
 import { TicketModal } from "~/components/ticket-modal";
 import { TicketBanner } from "~/components/ticket-banner";
+
+interface LiStats {
+  campaign_id: number;
+  status: string;
+  total_leads: number;
+  total_sent: number;
+  total_accepted: number;
+  total_followups_sent: number;
+  total_replied: number;
+  acceptance_rate: number;
+  reply_rate: number;
+}
+
+interface LiRequest {
+  id: number;
+  name: string;
+  headline?: string;
+  company?: string;
+  profile_url?: string;
+  connection_note?: string;
+  match_reason?: string;
+  status: string;
+  sent_at?: string;
+  accepted_at?: string;
+  reply_text?: string;
+  reply_sentiment?: string;
+}
+
+const LI_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending:      { label: "Queued",          color: "text-studojo-muted" },
+  sent:         { label: "Request Sent",    color: "text-studojo-purple" },
+  accepted:     { label: "Connected",       color: "text-studojo-green" },
+  declined:     { label: "Not Connected",   color: "text-red-500" },
+  ignored:      { label: "Not Connected",   color: "text-red-500" },
+  followup_sent:{ label: "Follow-up Sent",  color: "text-blue-600" },
+  replied:      { label: "Replied",         color: "text-studojo-green" },
+  error:        { label: "Error",           color: "text-red-600" },
+};
+
+function LiStatusBadge({ status }: { status: string }) {
+  const cfg = LI_STATUS_LABELS[status] || { label: status, color: "text-studojo-muted" };
+  const icon =
+    status === "accepted" || status === "replied" ? <FiCheckCircle className="w-3.5 h-3.5" /> :
+    status === "sent" || status === "followup_sent" ? <FiSend className="w-3.5 h-3.5" /> :
+    status === "declined" || status === "ignored" || status === "error" ? <FiXCircle className="w-3.5 h-3.5" /> :
+    <FiClock className="w-3.5 h-3.5" />;
+  return (
+    <div className={`flex items-center gap-1 font-bold text-sm ${cfg.color}`}>
+      {icon} {cfg.label}
+    </div>
+  );
+}
 
 interface TestLead {
   lead_name: string;
@@ -177,8 +230,20 @@ const TIMEZONES = [
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
-  const { campaignId, setCampaignId, emailAccountId } = useOutreachStore();
+  const { campaignId, setCampaignId, emailAccountId, planType, linkedInCampaignId } = useOutreachStore();
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const hasLinkedIn = (planType === "linkedin" || planType === "both") && !!linkedInCampaignId;
+  const [activeTab, setActiveTab] = useState<"email" | "linkedin">(() =>
+    planType === "linkedin" ? "linkedin" : "email"
+  );
+
+  // LinkedIn tab state
+  const [liStats, setLiStats] = useState<LiStats | null>(null);
+  const [liRequests, setLiRequests] = useState<LiRequest[]>([]);
+  const [liStatusFilter, setLiStatusFilter] = useState("all");
+  const [liLoading, setLiLoading] = useState(false);
+  const [liError, setLiError] = useState("");
 
   // Test mode state
   const [testJobId, setTestJobId] = useState<string | null>(null);
@@ -308,6 +373,43 @@ export default function DashboardPage() {
       }
     }).catch(() => {});
   }, [campaignId, emailAccountId]);
+
+  // LinkedIn polling
+  const fetchLinkedIn = useCallback(async () => {
+    if (!linkedInCampaignId) return;
+    try {
+      const [statsData, reqData] = await Promise.all([
+        outreachFetch<LiStats>(`/linkedin/automation/campaigns/${linkedInCampaignId}/stats`),
+        outreachFetch<LiRequest[]>(`/linkedin/automation/campaigns/${linkedInCampaignId}/requests?limit=200`),
+      ]);
+      setLiStats(statsData);
+      setLiRequests(reqData || []);
+      setLiError("");
+    } catch (err: any) {
+      setLiError(err?.body?.detail || "Failed to load LinkedIn data");
+    } finally {
+      setLiLoading(false);
+    }
+  }, [linkedInCampaignId]);
+
+  useEffect(() => {
+    if (!linkedInCampaignId) return;
+    setLiLoading(true);
+    fetchLinkedIn();
+    const interval = setInterval(fetchLinkedIn, 30000);
+    return () => clearInterval(interval);
+  }, [linkedInCampaignId, fetchLinkedIn]);
+
+  const handleLiTransition = async (targetStatus: string) => {
+    if (!linkedInCampaignId) return;
+    try {
+      await outreachFetch(`/linkedin/automation/campaigns/${linkedInCampaignId}`, {
+        method: "PUT",
+        body: JSON.stringify({ status: targetStatus }),
+      });
+      fetchLinkedIn();
+    } catch { /* ignore */ }
+  };
 
   const handleReauth = async () => {
     setReauthLoading(true);
@@ -614,6 +716,227 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-8 md:px-8">
+        {/* Channel tabs — only shown for 'both' plans */}
+        {hasLinkedIn && planType === "both" && (
+          <div className="flex gap-2 rounded-2xl border-2 border-studojo-ink/20 p-1 bg-studojo-surface-muted mb-6">
+            <button
+              onClick={() => setActiveTab("email")}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-bold font-satoshi flex items-center justify-center gap-2 transition-all ${
+                activeTab === "email"
+                  ? "bg-white border border-studojo-ink/10 shadow-sm text-studojo-purple"
+                  : "text-studojo-muted hover:text-studojo-ink"
+              }`}
+            >
+              <FiMail className="w-4 h-4" /> Email Campaign
+            </button>
+            <button
+              onClick={() => setActiveTab("linkedin")}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-bold font-satoshi flex items-center justify-center gap-2 transition-all ${
+                activeTab === "linkedin"
+                  ? "bg-white border border-studojo-ink/10 shadow-sm text-studojo-purple"
+                  : "text-studojo-muted hover:text-studojo-ink"
+              }`}
+            >
+              <FiLinkedin className="w-4 h-4" /> LinkedIn Campaign
+            </button>
+          </div>
+        )}
+
+        {/* ── LinkedIn tab ── */}
+        {hasLinkedIn && activeTab === "linkedin" && (
+          <div className="space-y-8 animate-fade-in">
+            {liError && (
+              <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-4">
+                <p className="text-red-600 font-satoshi text-sm">{liError}</p>
+              </div>
+            )}
+
+            {liLoading && !liStats ? (
+              <div className="flex justify-center py-12">
+                <div className="w-8 h-8 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : liStats ? (
+              <>
+                {/* LI Header */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="font-clash text-2xl font-bold text-studojo-ink">LinkedIn Campaign</h1>
+                    <span className={`mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium border ${
+                      liStats.status === "running" ? "bg-studojo-green-bg text-studojo-green border-studojo-green/30" :
+                      liStats.status === "paused" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                      liStats.status === "auth_failed" ? "bg-red-50 text-red-600 border-red-200" :
+                      "bg-studojo-surface-muted text-studojo-muted border-studojo-ink/20"
+                    }`}>
+                      <FiLinkedin className="w-3 h-3" />
+                      {liStats.status === "auth_failed" ? "Auth Failed" : liStats.status.charAt(0).toUpperCase() + liStats.status.slice(1)}
+                    </span>
+                  </div>
+                  <div className="flex gap-3">
+                    {liStats.status === "running" && (
+                      <button
+                        onClick={() => handleLiTransition("paused")}
+                        className="h-9 px-4 rounded-xl border-2 border-studojo-ink bg-white text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+                      >
+                        <FiPause className="w-4 h-4 mr-2" /> Pause
+                      </button>
+                    )}
+                    {(liStats.status === "paused" || liStats.status === "auth_failed") && (
+                      <button
+                        onClick={() => handleLiTransition("running")}
+                        className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+                      >
+                        <FiPlay className="w-4 h-4 mr-2" /> Resume
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {liStats.status === "auth_failed" && (
+                  <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-4 flex items-start gap-3">
+                    <FiAlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-bold text-red-700 font-satoshi">LinkedIn session expired</p>
+                      <p className="text-sm text-red-600 font-satoshi mt-0.5">
+                        Your LinkedIn session has expired. Go to{" "}
+                        <button onClick={() => navigate("/outreach/connect/linkedin")} className="underline font-bold">
+                          reconnect LinkedIn
+                        </button>{" "}
+                        to resume sending.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* LI Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <MetricCard label="Requests Sent" value={liStats.total_sent} icon={<FiSend className="w-5 h-5" />} trend={liStats.total_sent > 0 ? "up" : undefined} trendValue={`${liStats.total_leads} total`} />
+                  <MetricCard label="Connected" value={liStats.total_accepted} icon={<FiCheckCircle className="w-5 h-5" />} />
+                  <MetricCard label="Acceptance Rate" value={`${liStats.acceptance_rate}%`} icon={<FiPercent className="w-5 h-5" />} />
+                  <MetricCard label="Replied" value={liStats.total_replied} icon={<FiMessageCircle className="w-5 h-5" />} />
+                </div>
+
+                {/* LI Progress bar */}
+                {liStats.total_leads > 0 && (
+                  <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-purple">
+                        <FiBarChart2 className="w-5 h-5" />
+                      </div>
+                      <h3 className="font-clash text-lg font-bold text-studojo-ink">Campaign Progress</h3>
+                      <span className="text-sm text-studojo-muted font-satoshi ml-auto">{liStats.total_sent} / {liStats.total_leads} sent</span>
+                    </div>
+                    <div className="w-full h-3 bg-studojo-surface-muted rounded-full overflow-hidden border-2 border-studojo-ink/10">
+                      <div className="h-full flex">
+                        <div className="bg-studojo-green transition-all duration-500" style={{ width: `${liStats.total_leads > 0 ? (liStats.total_accepted / liStats.total_leads) * 100 : 0}%` }} />
+                        <div className="bg-studojo-purple/50 transition-all duration-500" style={{ width: `${liStats.total_leads > 0 ? ((liStats.total_sent - liStats.total_accepted) / liStats.total_leads) * 100 : 0}%` }} />
+                      </div>
+                    </div>
+                    <div className="flex gap-4 mt-2 text-xs font-satoshi text-studojo-muted">
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-studojo-green inline-block" /> Connected ({liStats.total_accepted})</span>
+                      <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-studojo-purple/50 inline-block" /> Sent, awaiting ({liStats.total_sent - liStats.total_accepted})</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* LI Requests table */}
+                <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-purple">
+                      <FiLinkedin className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-clash text-lg font-bold text-studojo-ink">Connection Requests</h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium bg-studojo-purple-bg text-studojo-purple border border-studojo-purple/30">
+                      {liRequests.length} leads
+                    </span>
+                  </div>
+
+                  {/* Status filter */}
+                  <div className="flex items-center gap-2 mb-4 flex-wrap">
+                    {[
+                      { key: "all", label: "All" },
+                      { key: "pending", label: "Queued" },
+                      { key: "sent", label: "Sent" },
+                      { key: "accepted", label: "Connected" },
+                      { key: "replied", label: "Replied" },
+                      { key: "error", label: "Error" },
+                    ].map((t) => {
+                      const count = t.key === "all" ? liRequests.length :
+                        t.key === "accepted" ? liRequests.filter(r => r.status === "accepted").length :
+                        t.key === "error" ? liRequests.filter(r => r.status === "error" || r.status === "declined" || r.status === "ignored").length :
+                        liRequests.filter(r => r.status === t.key).length;
+                      return (
+                        <button
+                          key={t.key}
+                          onClick={() => setLiStatusFilter(t.key)}
+                          className={`px-3 py-1 rounded-full text-xs font-satoshi font-medium border transition-colors ${
+                            liStatusFilter === t.key
+                              ? "bg-studojo-purple text-white border-studojo-purple"
+                              : "bg-white text-studojo-muted border-studojo-ink/20 hover:border-studojo-purple/50"
+                          }`}
+                        >
+                          {t.label} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {(() => {
+                    const filtered = liRequests.filter(r => {
+                      if (liStatusFilter === "all") return true;
+                      if (liStatusFilter === "error") return ["error", "declined", "ignored"].includes(r.status);
+                      if (liStatusFilter === "accepted") return r.status === "accepted";
+                      return r.status === liStatusFilter;
+                    });
+                    if (filtered.length === 0) return (
+                      <p className="text-sm text-studojo-muted font-satoshi text-center py-6">No requests in this category yet.</p>
+                    );
+                    return (
+                      <div className="overflow-x-auto max-h-[520px] overflow-y-auto rounded-lg">
+                        <table className="w-full text-sm font-satoshi">
+                          <thead className="sticky top-0 bg-white z-10">
+                            <tr className="border-b-2 border-studojo-ink/10">
+                              <th className="text-left py-3 px-2 text-xs font-bold text-studojo-muted uppercase">Name</th>
+                              <th className="text-left py-3 px-2 text-xs font-bold text-studojo-muted uppercase hidden md:table-cell">Company</th>
+                              <th className="text-left py-3 px-2 text-xs font-bold text-studojo-muted uppercase">Status</th>
+                              <th className="text-left py-3 px-2 text-xs font-bold text-studojo-muted uppercase hidden lg:table-cell">Why this lead</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filtered.map(req => (
+                              <tr key={req.id} className="border-b border-studojo-ink/5 hover:bg-studojo-surface-muted/40 transition-colors">
+                                <td className="py-3 px-2">
+                                  <div className="font-bold text-studojo-ink">{req.name}</div>
+                                  {req.headline && <div className="text-xs text-studojo-muted">{req.headline}</div>}
+                                </td>
+                                <td className="py-3 px-2 text-studojo-muted hidden md:table-cell">{req.company || "—"}</td>
+                                <td className="py-3 px-2">
+                                  <LiStatusBadge status={req.status} />
+                                  {req.status === "accepted" && req.accepted_at && (
+                                    <div className="text-xs text-studojo-muted mt-0.5">{formatTimestamp(req.accepted_at, tz)}</div>
+                                  )}
+                                  {req.status === "sent" && req.sent_at && (
+                                    <div className="text-xs text-studojo-muted mt-0.5">{formatTimestamp(req.sent_at, tz)}</div>
+                                  )}
+                                </td>
+                                <td className="py-3 px-2 text-xs text-studojo-muted hidden lg:table-cell max-w-[240px]">
+                                  <span className="line-clamp-2">{req.match_reason || "—"}</span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </>
+            ) : null}
+          </div>
+        )}
+
+        {/* ── Email tab (or only tab for email-only plans) ── */}
+        {(!hasLinkedIn || activeTab === "email") && (
+        <>
         {error ? (
           <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center">
             <p className="text-red-600 font-satoshi">{error}</p>
@@ -1022,6 +1345,8 @@ export default function DashboardPage() {
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin" />
           </div>
+        )}
+        </>
         )}
 
         {/* ── Side Drawer: Email Detail ── */}
