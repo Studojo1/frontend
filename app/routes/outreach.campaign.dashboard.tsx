@@ -380,7 +380,7 @@ export default function DashboardPage() {
     try {
       const [statsData, reqData] = await Promise.all([
         outreachFetch<LiStats>(`/linkedin/automation/campaigns/${linkedInCampaignId}/stats`),
-        outreachFetch<LiRequest[]>(`/linkedin/automation/campaigns/${linkedInCampaignId}/requests?limit=200`),
+        outreachFetch<LiRequest[]>(`/linkedin/automation/campaigns/${linkedInCampaignId}/requests?limit=500`),
       ]);
       setLiStats(statsData);
       setLiRequests(reqData || []);
