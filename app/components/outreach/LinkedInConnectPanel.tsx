@@ -217,8 +217,14 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
         <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border-2 border-blue-200">
           <FiAlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-bold font-satoshi text-blue-800">Approve on your phone</p>
-            <p className="text-sm text-blue-700 font-satoshi mt-0.5">LinkedIn sent a push notification to your phone. Tap "Yes, it's me" then click Continue below.</p>
+            <p className="text-sm font-bold font-satoshi text-blue-800">LinkedIn wants you to confirm it's you</p>
+            <p className="text-sm text-blue-700 font-satoshi mt-1">Follow these steps:</p>
+            <ol className="mt-2 space-y-1 text-sm text-blue-700 font-satoshi list-none">
+              <li className="flex items-start gap-2"><span className="font-bold flex-shrink-0">1.</span> Open the LinkedIn app on your phone</li>
+              <li className="flex items-start gap-2"><span className="font-bold flex-shrink-0">2.</span> You'll see a notification — tap it</li>
+              <li className="flex items-start gap-2"><span className="font-bold flex-shrink-0">3.</span> Tap <span className="font-bold">"Yes, it's me"</span> to approve</li>
+              <li className="flex items-start gap-2"><span className="font-bold flex-shrink-0">4.</span> Come back here and click Continue</li>
+            </ol>
           </div>
         </div>
         {error && <p className="text-red-600 text-sm font-satoshi">{error}</p>}
@@ -240,9 +246,12 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
     <div className="space-y-6">
       <div className="flex items-start gap-3 p-4 rounded-xl bg-studojo-green-bg border-2 border-studojo-ink/20">
         <FiShield className="w-5 h-5 text-studojo-green flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-studojo-muted font-satoshi">
-          Your credentials are encrypted with AES-256-GCM and never stored in plaintext. We use them only to send connection requests on your behalf.
-        </p>
+        <div className="space-y-1">
+          <p className="text-sm font-bold font-satoshi text-studojo-ink">How this works</p>
+          <p className="text-sm text-studojo-muted font-satoshi">
+            We use your email and password to log in to LinkedIn once, collect your session cookies, then <span className="font-bold text-studojo-ink">permanently delete your credentials</span>. Your password is never stored — only the session cookies needed to send connection requests on your behalf.
+          </p>
+        </div>
       </div>
 
       <div className="flex gap-2 rounded-xl border-2 border-studojo-ink/20 p-1 bg-studojo-surface-muted">
@@ -286,6 +295,12 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
             >
               {showPass ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
             </button>
+          </div>
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+            <FiAlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-700 font-satoshi">
+              LinkedIn may ask you to approve a notification on your phone. If that happens, just tap "Yes, it's me" in the LinkedIn app and come back here.
+            </p>
           </div>
           {error && <p className="text-red-600 text-sm font-satoshi">{error}</p>}
           <button
