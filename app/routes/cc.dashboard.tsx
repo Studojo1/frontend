@@ -83,11 +83,7 @@ const CSS = `
 .nav-item.active{background:var(--purple-light);border:2px solid #111;box-shadow:3px 3px 0 #111;color:var(--purple);}
 .nav-icon{width:26px;height:26px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;color:white;}
 .ic-overview{background:linear-gradient(135deg,#8B5CF6,#A855F7);}
-.ic-paths{background:linear-gradient(135deg,#3B82F6,#6366F1);}
 .ic-chat{background:linear-gradient(135deg,#F59E0B,#EF4444);}
-.sidebar-bottom{margin-top:auto;padding-top:20px;border-top:1px solid var(--border-light);}
-.btn-new-path{width:100%;background:white;border:2px solid #111;border-radius:999px;box-shadow:3px 3px 0 #111;padding:10px 14px;font-weight:600;font-size:0.78rem;cursor:pointer;transition:all 0.2s;font-family:"Inter",sans-serif;text-decoration:none;display:block;text-align:center;color:#111;}
-.btn-new-path:hover{transform:translateY(-1px);background:var(--bg-secondary);}
 #db-main{margin-left:var(--sidebar-w);padding:40px;min-height:100vh;}
 .main-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:36px;}
 .main-header h1{font-size:1.9rem;font-weight:800;letter-spacing:-0.04em;}
@@ -214,17 +210,6 @@ const CSS = `
 .bar-track{height:8px;background:var(--bg-secondary);border-radius:999px;border:1px solid #111;overflow:hidden;margin-top:6px;}
 .bar-fill{height:100%;background:var(--grad);border-radius:999px;transition:width 0.8s ease;}
 .r-label{display:flex;justify-content:space-between;font-size:0.78rem;font-weight:600;margin-bottom:4px;}
-.alt-paths-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
-.alt-path-card{background:white;border:2px solid #111;border-radius:16px;box-shadow:3px 3px 0 #111;padding:18px;}
-.exploring-badge{display:inline-block;background:var(--blue-light);border:1px solid var(--blue);color:var(--blue);border-radius:999px;padding:3px 10px;font-size:0.68rem;font-weight:600;margin-bottom:8px;}
-.alt-path-role{font-size:0.95rem;font-weight:700;margin-bottom:4px;}
-.alt-path-industry{font-size:0.78rem;color:var(--text-secondary);margin-bottom:10px;}
-.btn-promote{width:100%;background:white;border:2px solid #111;border-radius:999px;box-shadow:2px 2px 0 #111;padding:8px 14px;font-weight:600;font-size:0.72rem;cursor:pointer;transition:all 0.2s;font-family:"Inter",sans-serif;margin-top:10px;}
-.btn-promote:hover{transform:translateY(-1px);background:var(--bg-secondary);}
-.explore-cta{border:2px dashed var(--purple);border-radius:20px;padding:28px;background:rgba(233,213,255,0.12);text-align:center;}
-.explore-cta h3{font-size:0.95rem;font-weight:700;margin-bottom:14px;color:var(--text-secondary);}
-.btn-explore-path{display:inline-block;background:var(--grad);border:3px solid #111;border-radius:999px;box-shadow:4px 4px 0 #111;padding:12px 22px;color:white;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.2s;font-family:"Inter",sans-serif;text-decoration:none;}
-.btn-explore-path:hover{transform:translateY(-2px);box-shadow:6px 6px 0 #111;}
 .sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 .sec-header h2{font-size:1.4rem;font-weight:800;letter-spacing:-0.03em;}
 .empty-state{text-align:center;padding:80px 40px;color:var(--text-secondary);}
@@ -243,7 +228,7 @@ const CSS = `
   #db-main{margin-left:0;padding:20px 14px 80px;}
   #db-tab-bar{display:flex;}
   .stat-grid{grid-template-columns:1fr 1fr;}
-  .alt-paths-grid{grid-template-columns:1fr;}
+
   .stat-num{font-size:1.65rem;}
   .tw-hero-grid{grid-template-columns:1fr;}
   .quick-links-row{grid-template-columns:1fr;}
@@ -629,7 +614,7 @@ export default function CcDashboard() {
   const studentId = params.get("id") || (typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : "") || "";
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [section, setSection] = useState<"overview" | "paths">("overview");
+  const [section, setSection] = useState<"overview">("overview");
   const [streak, setStreak] = useState(0);
   const [outreachScore, setOutreachScore] = useState(0);
 
@@ -660,7 +645,6 @@ export default function CcDashboard() {
   const sh = data?.score_history || {};
   const history = padHistory(sh.history || [], readiness);
   const companies: string[] = Array.isArray(path.target_companies) ? path.target_companies : String(path.target_companies || "").split(",").map((s: string) => s.trim()).filter(Boolean);
-  const alts: any[] = data?.alternative_paths || [];
   const skillsToBuild: any[] = path.skills_to_build || [];
   const topAction = (path.skills_gap_items || [])[0];
   const altAction = (path.skills_gap_items || [])[1];
@@ -843,10 +827,7 @@ export default function CcDashboard() {
             <div className="tab-icon-box" style={{ background: "linear-gradient(135deg,#8B5CF6,#A855F7)" }}>OV</div>
             <span>Overview</span>
           </div>
-          <div className={`tab-item${section === "paths" ? " active" : ""}`} onClick={() => setSection("paths")}>
-            <div className="tab-icon-box" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>CP</div>
-            <span>Paths</span>
-          </div>
+
           <div className="tab-item" onClick={() => navigate(`/cc/roadmap?id=${studentId}`)}>
             <div className="tab-icon-box" style={{ background: "linear-gradient(135deg,#14B8A6,#10B981)" }}>RM</div>
             <span>Roadmap</span>
