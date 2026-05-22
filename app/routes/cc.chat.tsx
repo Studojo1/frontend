@@ -77,15 +77,14 @@ const CSS = `
 #cc-sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-white);border-left:2px solid #111;display:flex;flex-direction:column;transition:margin-right 0.28s ease;overflow:hidden;}
 #cc-sidebar.collapsed{margin-right:calc(-1 * var(--sidebar-w));}
 #cc-sidebar.expanded{position:fixed;inset:0;width:100vw;z-index:200;border-left:none;}
-#cc-sidebar-tabs{display:flex;border-bottom:2px solid #111;flex-shrink:0;}
-.side-tab{flex:1;padding:12px 6px;text-align:center;cursor:pointer;font-size:0.76rem;font-weight:700;color:var(--text-muted);background:var(--bg-secondary);border-right:1px solid var(--border-light);transition:all 0.15s;user-select:none;}
-.side-tab:last-child{border-right:none;}
-.side-tab.active{background:white;color:var(--accent-purple);box-shadow:inset 0 -3px 0 var(--accent-purple);}
-.side-tab:hover:not(.active){background:#ededec;}
-#cc-sidebar-actions{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border-light);flex-shrink:0;background:var(--bg-secondary);}
-.side-action-btn{flex:1;border:2px solid #111;border-radius:999px;background:white;padding:7px 10px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:"Inter",sans-serif;box-shadow:2px 2px 0 #111;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+/* collapsed-panel nav: pill buttons, same system as the expanded view */
+#cc-sidebar-nav{display:flex;flex-direction:column;gap:8px;padding:14px;border-bottom:2px solid #111;flex-shrink:0;background:var(--bg-white);}
+#cc-sidebar-tabs{display:flex;gap:6px;}
+.side-tab{flex:1;padding:8px 8px;text-align:center;cursor:pointer;font-size:0.74rem;font-weight:700;color:var(--text-primary);background:white;border:2px solid #111;border-radius:999px;box-shadow:2px 2px 0 #111;transition:all 0.15s;user-select:none;}
+.side-tab.active{background:var(--gradient-primary);color:white;}
+.side-tab:hover:not(.active){background:var(--bg-secondary);}
+.side-action-btn{border:2px solid #111;border-radius:999px;background:white;padding:7px 10px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:"Inter",sans-serif;box-shadow:2px 2px 0 #111;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;}
 .side-action-btn:hover{transform:translateY(-1px);box-shadow:3px 3px 0 #111;}
-.side-action-btn.primary{background:var(--gradient-primary);color:white;}
 #cc-sidebar-body{flex:1;overflow-y:auto;padding:18px;}
 #cc-sidebar.expanded #cc-sidebar-body{max-width:760px;margin:0 auto;width:100%;}
 #cc-sidebar-body::-webkit-scrollbar{width:5px;}
@@ -1100,21 +1099,19 @@ export default function CcChat() {
                 <div style={{ width: 130 }} />
               </div>
             ) : (
-              /* COLLAPSED PANEL: tab strip + a single expand action */
-              <>
+              /* COLLAPSED PANEL: pill-button nav, same system as the expanded view */
+              <div id="cc-sidebar-nav">
                 <div id="cc-sidebar-tabs">
                   {(["analysis", "roadmap", "dashboard"] as CtaKind[]).map(p => (
-                    <div key={p} className={`side-tab${panel === p ? " active" : ""}`} onClick={() => setPanel(p)}>
+                    <button key={p} className={`side-tab${panel === p ? " active" : ""}`} onClick={() => setPanel(p)}>
                       {p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}
-                    </div>
+                    </button>
                   ))}
                 </div>
-                <div id="cc-sidebar-actions">
-                  <button className="side-action-btn" onClick={() => setSidebarExpanded(true)}>
-                    ⤢ Expand to full page
-                  </button>
-                </div>
-              </>
+                <button className="side-action-btn" onClick={() => setSidebarExpanded(true)}>
+                  ⤢ Expand to full page
+                </button>
+              </div>
             )}
             <div id="cc-sidebar-body">
               {panel === "analysis" && renderAnalysis(sidebarExpanded)}
