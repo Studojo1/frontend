@@ -54,13 +54,19 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
     }
   };
 
+  // LinkedIn login through the Evomi proxy spawns a Playwright browser and
+  // navigates through the full login + checkpoint flow — easily 60-120s.
+  // Retrying creates a brand-new Playwright session each time, which fires a
+  // fresh phone notification on the user's device. So: long timeout, NO retries.
+  const LOGIN_FETCH_OPTS = { timeout: 180_000, maxRetries: 1 } as const;
+
   const handleConnect = async () => {
     setLoading(true);
     setError("");
     try {
       const res = await outreachFetch<{ challenge_required?: boolean; challenge_type?: string; session_key?: string }>(
         "/linkedin/automation/login",
-        { method: "POST", body: JSON.stringify({ email, password }) },
+        { method: "POST", body: JSON.stringify({ email, password }), ...LOGIN_FETCH_OPTS },
       );
       if (res.challenge_required) {
         setChallenge({
@@ -85,6 +91,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
       await outreachFetch("/linkedin/automation/login/verify-pin", {
         method: "POST",
         body: JSON.stringify({ session_key: challenge.sessionKey, pin }),
+        ...LOGIN_FETCH_OPTS,
       });
       setChallenge(null);
       await afterLogin();
@@ -102,7 +109,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
     try {
       const res = await outreachFetch<{ still_waiting?: boolean }>(
         "/linkedin/automation/login/check-phone-tap",
-        { method: "POST", body: JSON.stringify({ session_key: challenge.sessionKey }) },
+        { method: "POST", body: JSON.stringify({ session_key: challenge.sessionKey }), ...LOGIN_FETCH_OPTS },
       );
       if (res.still_waiting) {
         setError('Not approved yet — tap "Yes" on your phone first, then click Continue.');
@@ -124,6 +131,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
       await outreachFetch("/linkedin/automation/login/cookies", {
         method: "POST",
         body: JSON.stringify({ li_at: liAt.trim(), jsessionid: jsessionid.trim() }),
+        ...LOGIN_FETCH_OPTS,
       });
       await afterLogin();
     } catch (err: any) {
