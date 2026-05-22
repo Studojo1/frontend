@@ -26,7 +26,10 @@ const CSS = `
 .cc-root{--bg-primary:#FAFAF9;--bg-secondary:#F5F5F4;--bg-white:#FFFFFF;--text-primary:#111111;--text-secondary:#71717A;--text-muted:#A1A1AA;--border-light:rgba(0,0,0,0.12);--accent-purple:#8B5CF6;--accent-light:#E9D5FF;--success:#10B981;--warning:#F59E0B;--gradient-primary:linear-gradient(90deg,#8B5CF6 0%,#A855F7 50%,#EC4899 100%);--sidebar-w:560px;height:100dvh;font-family:"Inter",sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
 #cc-float-logo{position:fixed;top:18px;left:22px;z-index:120;font-size:1.3rem;font-weight:800;letter-spacing:-0.04em;display:flex;align-items:center;gap:4px;text-decoration:none;color:var(--text-primary);background:var(--bg-white);border:2px solid #111;border-radius:999px;padding:7px 16px;box-shadow:3px 3px 0 #111;}
 .cc-dot{width:8px;height:8px;border-radius:50%;background:var(--gradient-primary);display:inline-block;}
-#cc-float-toggle{position:fixed;top:18px;right:22px;z-index:120;display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid #111;border-radius:999px;padding:8px 16px;background:white;box-shadow:3px 3px 0 #111;font-size:0.8rem;font-weight:700;transition:all 0.15s;font-family:"Inter",sans-serif;}
+/* panel toggle sits just left of the sidebar and slides with it */
+#cc-float-toggle{position:fixed;top:18px;z-index:120;display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid #111;border-radius:999px;padding:8px 16px;background:white;box-shadow:3px 3px 0 #111;font-size:0.8rem;font-weight:700;transition:right 0.28s ease,transform 0.15s,box-shadow 0.15s;font-family:"Inter",sans-serif;}
+#cc-float-toggle.open{right:calc(var(--sidebar-w) + 22px);}
+#cc-float-toggle.closed{right:22px;}
 #cc-float-toggle:hover{transform:translateY(-1px);box-shadow:4px 4px 0 #111;}
 #cc-layout{flex:1;display:flex;min-height:0;}
 #cc-chat-col{flex:1;display:flex;flex-direction:column;min-width:0;padding:72px 16px 16px;}
@@ -36,7 +39,7 @@ const CSS = `
 .chat-setup-header.hidden{display:none;}
 .chat-setup-header-title{font-size:1rem;font-weight:800;}
 .chat-setup-header-sub{font-size:0.78rem;color:var(--text-muted);margin-top:2px;}
-#cc-messages{flex:1;overflow-y:auto;padding:22px 26px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth;min-height:0;}
+#cc-messages{flex:1;overflow-y:auto;padding:22px 26px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth;min-height:0;}
 #cc-messages::-webkit-scrollbar{width:4px;}
 #cc-messages::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:2px;}
 .msg-row{display:flex;gap:12px;align-items:flex-end;}
@@ -48,13 +51,17 @@ const CSS = `
 .msg-row.agent .msg-bubble{background:#F3F0FF;border-radius:4px 18px 18px 18px;box-shadow:3px 3px 0 rgba(0,0,0,0.12);}
 .msg-row.user .msg-bubble{background:var(--gradient-primary);border-radius:18px 4px 18px 18px;box-shadow:3px 3px 0 rgba(0,0,0,0.6);color:white;}
 .msg-row.user .msg-bubble-wrap{align-items:flex-end;}
+.msg-bubble a{color:var(--accent-purple);font-weight:600;}
+.msg-row.user .msg-bubble a{color:#fff;text-decoration:underline;}
 .msg-time{font-size:10px;color:var(--text-muted);margin-top:4px;}
+.report-link-btn{align-self:flex-start;margin-top:5px;background:none;border:none;font-family:"Inter",sans-serif;font-size:0.7rem;font-weight:600;color:var(--text-muted);cursor:pointer;text-decoration:underline;padding:0;}
+.report-link-btn:hover{color:var(--accent-purple);}
 .typing-dots{display:flex;gap:5px;padding:4px 0;}
 .typing-dots span{width:7px;height:7px;border-radius:50%;background:var(--accent-purple);animation:dotPulse 600ms ease-in-out infinite alternate;opacity:0.3;}
 .typing-dots span:nth-child(2){animation-delay:200ms;}
 .typing-dots span:nth-child(3){animation-delay:400ms;}
 @keyframes dotPulse{to{opacity:1;transform:translateY(-2px);}}
-.panel-cta{border:2px solid #111;border-radius:14px;padding:14px 18px;background:#F3F0FF;cursor:pointer;transition:all 0.2s ease;margin:4px 0 4px 44px;display:flex;align-items:center;justify-content:space-between;box-shadow:3px 3px 0 #111;max-width:76%;}
+.panel-cta{border:2px solid #111;border-radius:14px;padding:14px 18px;background:#F3F0FF;cursor:pointer;transition:all 0.2s ease;margin:2px 0 2px 44px;display:flex;align-items:center;justify-content:space-between;box-shadow:3px 3px 0 #111;max-width:76%;}
 .panel-cta:hover{transform:translateY(-2px);box-shadow:5px 5px 0 #111;}
 .panel-cta .cta-text{font-size:0.92rem;font-weight:700;}
 .panel-cta .cta-sub{font-size:0.76rem;color:var(--text-secondary);margin-top:2px;}
@@ -69,12 +76,18 @@ const CSS = `
 #cc-send-btn:disabled{opacity:0.5;cursor:not-allowed;}
 #cc-sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-white);border-left:2px solid #111;display:flex;flex-direction:column;transition:margin-right 0.28s ease;overflow:hidden;}
 #cc-sidebar.collapsed{margin-right:calc(-1 * var(--sidebar-w));}
+#cc-sidebar.expanded{position:fixed;inset:0;width:100vw;z-index:200;border-left:none;}
 #cc-sidebar-tabs{display:flex;border-bottom:2px solid #111;flex-shrink:0;}
 .side-tab{flex:1;padding:12px 6px;text-align:center;cursor:pointer;font-size:0.76rem;font-weight:700;color:var(--text-muted);background:var(--bg-secondary);border-right:1px solid var(--border-light);transition:all 0.15s;user-select:none;}
 .side-tab:last-child{border-right:none;}
 .side-tab.active{background:white;color:var(--accent-purple);box-shadow:inset 0 -3px 0 var(--accent-purple);}
 .side-tab:hover:not(.active){background:#ededec;}
+#cc-sidebar-actions{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border-light);flex-shrink:0;background:var(--bg-secondary);}
+.side-action-btn{flex:1;border:2px solid #111;border-radius:999px;background:white;padding:7px 10px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:"Inter",sans-serif;box-shadow:2px 2px 0 #111;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.side-action-btn:hover{transform:translateY(-1px);box-shadow:3px 3px 0 #111;}
+.side-action-btn.primary{background:var(--gradient-primary);color:white;}
 #cc-sidebar-body{flex:1;overflow-y:auto;padding:18px;}
+#cc-sidebar.expanded #cc-sidebar-body{max-width:760px;margin:0 auto;width:100%;}
 #cc-sidebar-body::-webkit-scrollbar{width:5px;}
 #cc-sidebar-body::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px;}
 .side-empty{text-align:center;color:var(--text-muted);font-size:0.85rem;padding:48px 16px;line-height:1.6;}
@@ -83,8 +96,8 @@ const CSS = `
 .scard-title{font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;}
 .scard h3{font-size:1.05rem;font-weight:800;margin-bottom:4px;}
 .scard .sub{font-size:0.8rem;color:var(--text-secondary);}
-.bar-track{height:12px;background:var(--bg-secondary);border:2px solid #111;border-radius:999px;overflow:hidden;margin:8px 0 4px;}
-.bar-fill{height:100%;background:var(--gradient-primary);transition:width 0.7s ease;}
+.scard ul{margin:6px 0 2px;padding-left:18px;}
+.scard li{font-size:0.82rem;line-height:1.55;margin-bottom:4px;color:var(--text-secondary);}
 .pill{display:inline-block;font-size:0.74rem;font-weight:600;padding:4px 11px;border-radius:999px;border:1.5px solid #111;margin:3px 4px 3px 0;}
 .pill.have{background:#DCFCE7;color:#065F46;}
 .pill.top{background:#EDE9FE;color:#5B21B6;}
@@ -99,20 +112,41 @@ const CSS = `
 .stat-box{border:2px solid #111;border-radius:12px;padding:12px;background:#F3F0FF;box-shadow:2px 2px 0 #111;}
 .stat-box .sb-num{font-size:1.5rem;font-weight:800;line-height:1;}
 .stat-box .sb-label{font-size:0.68rem;color:var(--text-secondary);margin-top:4px;font-weight:600;}
-.roadmap-step{display:flex;gap:11px;}
-.rs-num{width:24px;height:24px;border-radius:50%;background:var(--gradient-primary);border:2px solid #111;color:white;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.rs-body .rs-action{font-size:0.86rem;font-weight:700;line-height:1.45;}
-.rs-body .rs-why{font-size:0.77rem;color:var(--text-secondary);margin-top:3px;line-height:1.5;}
-.checkin-card{border:2px solid var(--accent-purple);border-radius:14px;padding:15px;margin-bottom:14px;background:rgba(233,213,255,0.18);}
-.checkin-item{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:0.84rem;cursor:pointer;}
-.checkin-item input{width:17px;height:17px;accent-color:var(--accent-purple);cursor:pointer;}
+/* interactive roadmap step — expands on hover */
+.rm-step{border:2px solid #111;border-radius:12px;padding:13px 14px;margin-bottom:10px;background:white;box-shadow:3px 3px 0 #111;cursor:pointer;transition:all 0.18s ease;}
+.rm-step:hover{box-shadow:5px 5px 0 var(--accent-purple);transform:translateY(-1px);}
+.rm-step-head{display:flex;gap:11px;align-items:flex-start;}
+.rm-num{width:24px;height:24px;border-radius:50%;background:var(--gradient-primary);border:2px solid #111;color:white;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rm-action{font-size:0.86rem;font-weight:700;line-height:1.45;}
+.rm-detail{max-height:0;overflow:hidden;transition:max-height 0.25s ease,margin 0.25s ease,opacity 0.2s ease;opacity:0;}
+.rm-step:hover .rm-detail{max-height:340px;opacity:1;margin-top:10px;}
+.rm-detail .rm-why{font-size:0.78rem;color:var(--text-secondary);line-height:1.55;}
+.rm-detail ul{margin:7px 0 2px;padding-left:18px;}
+.rm-detail li{font-size:0.78rem;color:var(--text-secondary);line-height:1.5;margin-bottom:3px;}
+.rm-hint{font-size:0.68rem;color:var(--text-muted);margin-top:4px;font-style:italic;}
+.task-item{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:0.84rem;cursor:pointer;border-bottom:1px solid var(--border-light);}
+.task-item:last-child{border-bottom:none;}
+.task-item input{width:17px;height:17px;accent-color:var(--accent-purple);cursor:pointer;flex-shrink:0;}
+.task-weekly{border:2px solid var(--accent-purple);border-radius:12px;padding:12px 13px;background:rgba(233,213,255,0.18);margin-top:10px;}
+.task-weekly .tw-label{font-size:0.66rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent-purple);margin-bottom:6px;}
+.checkin-card{border:2px solid var(--accent-purple);border-radius:14px;padding:15px;margin-bottom:14px;background:rgba(233,213,255,0.12);}
 .btn-sm{background:var(--gradient-primary);border:2px solid #111;border-radius:999px;box-shadow:2px 2px 0 #111;padding:8px 18px;color:white;font-weight:700;font-size:0.8rem;cursor:pointer;transition:all 0.15s;font-family:"Inter",sans-serif;}
 .btn-sm:hover:not(:disabled){transform:translateY(-1px);box-shadow:3px 3px 0 #111;}
 .btn-sm:disabled{opacity:0.5;cursor:not-allowed;}
 .btn-primary{background:var(--gradient-primary);border:3px solid #111;border-radius:999px;box-shadow:4px 4px 0 #111;padding:11px 22px;color:white;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.2s;font-family:"Inter",sans-serif;width:100%;}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:6px 6px 0 #111;}
+.btn-ghost{background:white;border:2px solid #111;border-radius:999px;box-shadow:3px 3px 0 #111;padding:9px 18px;font-weight:700;font-size:0.8rem;cursor:pointer;font-family:"Inter",sans-serif;width:100%;transition:all 0.15s;}
+.btn-ghost:hover{transform:translateY(-1px);background:var(--bg-secondary);}
 #cc-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text-primary);color:white;padding:12px 22px;border-radius:999px;font-size:0.85rem;font-weight:600;z-index:500;transition:transform 0.3s ease;box-shadow:4px 4px 0 rgba(0,0,0,0.3);}
 #cc-toast.show{transform:translateX(-50%) translateY(0);}
+/* analysis-ready popup, shown only when panel is collapsed */
+#cc-ready-pop{position:fixed;bottom:24px;right:24px;z-index:400;background:white;border:2px solid #111;border-radius:16px;box-shadow:5px 5px 0 #111;padding:16px 18px;max-width:300px;transform:translateY(140px);opacity:0;transition:transform 0.35s ease,opacity 0.35s ease;}
+#cc-ready-pop.show{transform:translateY(0);opacity:1;}
+#cc-ready-pop .rp-title{font-size:0.92rem;font-weight:800;margin-bottom:3px;}
+#cc-ready-pop .rp-sub{font-size:0.76rem;color:var(--text-secondary);margin-bottom:11px;line-height:1.5;}
+#cc-ready-pop .rp-btns{display:flex;gap:8px;}
+#cc-ready-pop .rp-open{flex:1;background:var(--gradient-primary);color:white;border:2px solid #111;border-radius:999px;padding:7px 12px;font-weight:700;font-size:0.76rem;cursor:pointer;font-family:"Inter",sans-serif;}
+#cc-ready-pop .rp-later{background:white;border:2px solid #111;border-radius:999px;padding:7px 12px;font-weight:700;font-size:0.76rem;cursor:pointer;font-family:"Inter",sans-serif;}
 #cc-hook{position:fixed;inset:0;z-index:600;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity 0.45s ease,transform 0.45s ease;}
 #cc-hook.dismissing{opacity:0;transform:translateY(-24px);pointer-events:none;}
 .hook-inner{max-width:580px;width:90%;text-align:center;}
@@ -137,15 +171,28 @@ const CSS = `
 .social-ticker .st-dot{width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:8px;flex-shrink:0;}
 .session-divider{text-align:center;font-size:0.72rem;color:var(--text-muted);padding:8px 0 4px;}
 @media(max-width:900px){
-  .cc-root{--sidebar-w:320px;}
+  .cc-root{--sidebar-w:340px;}
   #cc-sidebar{position:fixed;top:0;right:0;bottom:0;z-index:90;box-shadow:-4px 0 0 rgba(0,0,0,0.1);}
-  #cc-chat-col{padding:8px;}
-  #cc-navbar{padding:0 16px;}
+  #cc-chat-col{padding:72px 8px 8px;}
 }
 `;
 
 type Msg = { role: string; content: string; state?: string; time: string; cta?: string };
 type CtaKind = "analysis" | "roadmap" | "dashboard";
+
+// Render a plain-text bubble: capitalize the first letter, linkify URLs.
+function renderBubbleText(text: string) {
+  let t = String(text || "");
+  // capitalize the very first alphabetic character
+  t = t.replace(/^(\s*)([a-z])/, (_m, ws, ch) => ws + ch.toUpperCase());
+  const urlRe = /(https?:\/\/[^\s)]+)/g;
+  const parts = t.split(urlRe);
+  return parts.map((part, i) =>
+    urlRe.test(part)
+      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer">{part}</a>
+      : <span key={i}>{part}</span>
+  );
+}
 
 export default function CcChat() {
   const [agentState, setAgentState] = useState("GREETING");
@@ -156,12 +203,18 @@ export default function CcChat() {
 
   // sidebar
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [panel, setPanel] = useState<CtaKind>("analysis");
   const [sidebarData, setSidebarData] = useState<any>(null);
   const [gapData, setGapData] = useState<any>(null);
   const [checkInStatus, setCheckInStatus] = useState<any>(null);
-  const [checkInBoxes, setCheckInBoxes] = useState<Record<number, boolean>>({});
+  const [tasks, setTasks] = useState<{ daily: any[]; weekly: any } | null>(null);
+  const [taskBoxes, setTaskBoxes] = useState<Record<string, boolean>>({});
   const [checkInSaving, setCheckInSaving] = useState(false);
+
+  // analysis-ready popup
+  const [readyPopVisible, setReadyPopVisible] = useState(false);
+  const analysisAnnouncedRef = useRef(false);
 
   // hook
   const [hookVisible, setHookVisible] = useState(false);
@@ -177,6 +230,7 @@ export default function CcChat() {
   const pendingGreetingRef = useRef<any>(null);
   const hookDismissedRef = useRef(false);
   const sidebarLoadedRef = useRef(false);
+  const sidebarOpenRef = useRef(false);
   const initDone = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -209,6 +263,8 @@ export default function CcChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, waiting]);
 
+  useEffect(() => { sidebarOpenRef.current = sidebarOpen; }, [sidebarOpen]);
+
   // ---- sidebar refresh ----
   const refreshSidebar = useCallback(async () => {
     const sid = studentIdRef.current;
@@ -230,25 +286,31 @@ export default function CcChat() {
     }
   }, []);
 
-  // load check-in status whenever the dashboard panel is shown
+  // load check-in status + fresh tasks whenever the dashboard panel is shown
   useEffect(() => {
     const sid = studentIdRef.current;
     if (!sidebarOpen || panel !== "dashboard" || !sid) return;
     (async () => {
       try {
         const r = await fetch(`${CC_API}/api/student/${sid}/check-in/status`);
-        if (r.ok) setCheckInStatus(await r.json());
-        else setCheckInStatus({ daily: { due: true }, weekly: { due: true } });
+        setCheckInStatus(r.ok ? await r.json() : { daily: { due: true }, weekly: { due: true } });
       } catch {
         setCheckInStatus({ daily: { due: true }, weekly: { due: true } });
       }
+      try {
+        const tr = await fetch(`${CC_API}/api/student/${sid}/progress-tasks`);
+        if (tr.ok) setTasks(await tr.json());
+      } catch { /* tasks optional */ }
     })();
   }, [sidebarOpen, panel, sidebarData]);
 
   function toggleSidebar(forceOpen?: boolean) {
     const willOpen = forceOpen === true ? true : !sidebarOpen;
     setSidebarOpen(willOpen);
-    if (willOpen && !sidebarLoadedRef.current) refreshSidebar();
+    if (willOpen) {
+      setReadyPopVisible(false);
+      if (!sidebarLoadedRef.current) refreshSidebar();
+    }
   }
   function openSidebarTo(p: CtaKind) {
     setPanel(p);
@@ -301,7 +363,7 @@ export default function CcChat() {
         pendingGreetingRef.current = await gRes.json();
         if (hookDismissedRef.current) showGreeting(pendingGreetingRef.current);
       } catch {
-        pendingGreetingRef.current = { reply: "hey, what are you working through? job search stuff, or something else?" };
+        pendingGreetingRef.current = { reply: "Hey, what are you working through? Job search stuff, or something else?" };
         if (hookDismissedRef.current) showGreeting(pendingGreetingRef.current);
       }
     })();
@@ -334,7 +396,7 @@ export default function CcChat() {
       setWaiting(false);
       const state = gd.orchestration?.current_state || "GREETING";
       setAgentState(state);
-      await appendAgentBubbles(gd.reply || gd.message || "hey, what's going on? what are you trying to figure out?", undefined, state);
+      await appendAgentBubbles(gd.reply || gd.message || "Hey, what's going on? What are you trying to figure out?", undefined, state);
     }, 500);
   }
 
@@ -383,13 +445,20 @@ export default function CcChat() {
       await appendAgentBubbles(data.reply, cta, state);
       if (["DNA_REVIEW", "ROADMAP", "ONGOING_SUPPORT", "DNA_CORRECTION"].includes(state)) {
         await refreshSidebar();
-        if (state === "DNA_REVIEW") openSidebarTo("analysis");
-        else if (state === "ROADMAP") openSidebarTo("roadmap");
+        // When Career Analysis becomes ready and the panel is closed, surface
+        // a popup instead of a card in the chat.
+        if (state === "DNA_REVIEW" && !analysisAnnouncedRef.current) {
+          analysisAnnouncedRef.current = true;
+          if (sidebarOpenRef.current) openSidebarTo("analysis");
+          else setReadyPopVisible(true);
+        } else if (state === "ROADMAP" && sidebarOpenRef.current) {
+          openSidebarTo("roadmap");
+        }
       }
     } catch {
       setWaiting(false);
       setMessages(prev => [...prev, {
-        role: "agent", content: "something went wrong on my end, try sending that again", time: now12h(),
+        role: "agent", content: "Something went wrong on my end, try sending that again.", time: now12h(),
       }]);
     }
   }
@@ -407,27 +476,27 @@ export default function CcChat() {
       setWaiting(false);
       if (!res.ok) {
         setMessages(prev => [...prev, {
-          role: "agent", content: (data?.detail ? String(data.detail).toLowerCase() : "i could not read that file, you can keep answering here instead"), time: now12h(),
+          role: "agent", content: (data?.detail ? String(data.detail) : "I could not read that file, you can keep answering here instead."), time: now12h(),
         }]);
       } else {
         const n = (data.fields_extracted || []).length;
         setHeaderHidden(true);
-        await appendAgentBubbles(`got your resume, that covers a lot\n\npulled in ${n} details from it, so we can skip most of the questions`);
-        await sendMsg("i just uploaded my resume");
+        await appendAgentBubbles(`Got your resume, that covers a lot.\n\nI pulled in ${n} details from it, so we can skip most of the questions.`);
+        await sendMsg("I just uploaded my resume");
       }
     } catch {
       setWaiting(false);
       setMessages(prev => [...prev, {
-        role: "agent", content: "the upload did not go through, you can keep answering here instead", time: now12h(),
+        role: "agent", content: "The upload did not go through, you can keep answering here instead.", time: now12h(),
       }]);
     }
   }
 
-  async function submitCheckIn(kind: string, items: Array<{ label: string; type: string }>) {
+  async function submitCheckIn(kind: string, items: Array<{ label: string; type: string; key: string }>) {
     const sid = studentIdRef.current;
     if (!sid) return;
-    const payload = items.map((it, i) => ({
-      label: it.label, type: it.type, status: checkInBoxes[i] ? "done" : "skipped",
+    const payload = items.map(it => ({
+      label: it.label, type: it.type, status: taskBoxes[it.key] ? "done" : "skipped",
     }));
     if (!payload.some(p => p.status === "done")) { toast("Tick at least one thing you did"); return; }
     setCheckInSaving(true);
@@ -442,7 +511,11 @@ export default function CcChat() {
       toast(delta != null && delta !== 0
         ? `Readiness ${delta > 0 ? "up " : "down "}${Math.abs(delta)} to ${data.readiness_after}`
         : "Check-in logged");
-      setCheckInBoxes({});
+      // The agent reacts in chat with the outreach impact line.
+      if (data.outreach_message) {
+        setMessages(prev => [...prev, { role: "agent", content: data.outreach_message, time: now12h() }]);
+      }
+      setTaskBoxes({});
       await refreshSidebar();
     } catch {
       toast("Could not save your check-in");
@@ -459,7 +532,6 @@ export default function CcChat() {
       return <div className="side-empty"><div className="se-icon">🧬</div>Your Career Analysis appears here once we have built your Career DNA. Keep chatting to get there.</div>;
     }
     const b = pp.benchmark || {};
-    const readiness = pp.readiness_score || 0;
     const have: string[] = pp.skills_you_have || [];
     const sg = (gapData?.skills_gap) || [];
     return (
@@ -468,10 +540,8 @@ export default function CcChat() {
           <div className="scard-title">Your Career DNA</div>
           <h3>{pp.target_role || "Your target role"}</h3>
           <div className="sub">{pp.target_industry || ""}{pp.target_geography ? " · " + pp.target_geography : ""}</div>
-          <div className="bar-track"><div className="bar-fill" style={{ width: `${readiness}%` }} /></div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.74rem", color: "var(--text-muted)" }}>
-            <span>Readiness {readiness}/100</span>
-            <span>Reply probability ~{pp.reply_probability || 0}%</span>
+          <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: 8 }}>
+            Reply probability ~{pp.reply_probability || 0}%
           </div>
         </div>
         {have.length > 0 && (
@@ -519,7 +589,10 @@ export default function CcChat() {
             })}
           </div>
         )}
-        <button className="btn-primary" onClick={() => setPanel("roadmap")}>See your roadmap →</button>
+        <button className="btn-primary" style={{ marginBottom: 10 }} onClick={() => setPanel("roadmap")}>See your roadmap →</button>
+        <button className="btn-ghost" onClick={() => sendMsg("This does not look like me, the reading is not quite right.")}>
+          This doesn't look like me
+        </button>
       </>
     );
   }
@@ -533,19 +606,29 @@ export default function CcChat() {
       <>
         <div className="scard">
           <div className="scard-title">Your roadmap</div>
-          <div className="sub">The moves that raise your readiness fastest, in order.</div>
+          <div className="sub">The moves that raise your readiness fastest, in order. Hover any step for the detail.</div>
         </div>
         {actions.map((a: any, i: number) => {
           const action = a.action || a.skill || (typeof a === "string" ? a : "");
           const why = a.why_it_matters || "";
+          const how = a.how_to_close || a.how_to_build || "";
+          const linked = a.linked_tool;
           return (
-            <div key={i} className="scard" style={{ padding: 14 }}>
-              <div className="roadmap-step">
-                <div className="rs-num">{i + 1}</div>
-                <div className="rs-body">
-                  <div className="rs-action">{action}</div>
-                  {why && <div className="rs-why">{why}</div>}
+            <div key={i} className="rm-step">
+              <div className="rm-step-head">
+                <div className="rm-num">{i + 1}</div>
+                <div style={{ flex: 1 }}>
+                  <div className="rm-action">{action}</div>
+                  <div className="rm-hint">Hover for detail</div>
                 </div>
+              </div>
+              <div className="rm-detail">
+                <ul>
+                  {why && <li><strong>Why it matters:</strong> {why}</li>}
+                  {how && <li><strong>How to start:</strong> {how}</li>}
+                  {a.priority && <li><strong>Priority:</strong> {String(a.priority)}</li>}
+                  {linked && <li><strong>Tool that helps:</strong> {linked === "resume_maker" ? "Resume Maker" : linked === "outreach_dojo" ? "Outreach Dojo" : linked}</li>}
+                </ul>
               </div>
             </div>
           );
@@ -562,17 +645,11 @@ export default function CcChat() {
     const sh = sidebarData.score_history || {};
     const student = sidebarData.student || {};
     const hist = (sh.history || []);
-    const actions = (pp?.priority_actions) || [];
-    const items = actions.slice(0, 4).map((a: any, i: number) => ({
-      label: a.action || a.skill || ("Action " + (i + 1)),
-      type: a.type === "experience" ? "experience" : "skill",
-    }));
-    if (!items.length) items.push({ label: "Practiced a target skill today", type: "skill" });
+    const daily: any[] = tasks?.daily || [];
+    const weekly = tasks?.weekly || null;
 
-    const dailyDue = checkInStatus?.daily?.due;
-    const weeklyDue = checkInStatus?.weekly?.due;
-    const kind = weeklyDue ? "weekly" : "daily";
-    const dueText = weeklyDue ? "Your weekly check-in is due" : (dailyDue ? "Log today's progress" : "You are checked in for today");
+    const dailyItems = daily.map((t, i) => ({ label: t.label, type: t.type || "skill", key: "d" + i }));
+    const weeklyItem = weekly ? { label: weekly.label, type: weekly.type || "skill", key: "w0" } : null;
 
     return (
       <>
@@ -582,6 +659,47 @@ export default function CcChat() {
           <div className="stat-box"><div className="sb-num">{student.session_count || 1}</div><div className="sb-label">Sessions</div></div>
           <div className="stat-box"><div className="sb-num">{sh.improvement_total != null ? (sh.improvement_total >= 0 ? "+" : "") + sh.improvement_total : "0"}</div><div className="sb-label">Readiness change</div></div>
         </div>
+
+        {/* DAILY TASKS */}
+        <div className="checkin-card">
+          <div style={{ fontSize: "0.9rem", fontWeight: 800, marginBottom: 2 }}>Today's tasks</div>
+          <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)", marginBottom: 6 }}>
+            Small moves you can finish today. They refresh daily.
+          </div>
+          {dailyItems.length === 0 && <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Loading your tasks...</div>}
+          {dailyItems.map(it => (
+            <label key={it.key} className="task-item">
+              <input type="checkbox" checked={!!taskBoxes[it.key]}
+                onChange={e => setTaskBoxes(prev => ({ ...prev, [it.key]: e.target.checked }))} />
+              <span>{it.label}</span>
+            </label>
+          ))}
+          {dailyItems.length > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("daily", dailyItems)}>
+                {checkInSaving ? "Saving..." : "Log daily check-in"}
+              </button>
+            </div>
+          )}
+
+          {/* WEEKLY TASK */}
+          {weeklyItem && (
+            <div className="task-weekly">
+              <div className="tw-label">This week's big task</div>
+              <label className="task-item" style={{ borderBottom: "none", paddingBottom: 0 }}>
+                <input type="checkbox" checked={!!taskBoxes[weeklyItem.key]}
+                  onChange={e => setTaskBoxes(prev => ({ ...prev, [weeklyItem.key]: e.target.checked }))} />
+                <span>{weeklyItem.label}</span>
+              </label>
+              <div style={{ marginTop: 8 }}>
+                <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("weekly", [weeklyItem])}>
+                  {checkInSaving ? "Saving..." : "Log weekly check-in"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {hist.length > 1 && (
           <div className="scard">
             <div className="scard-title">Readiness over time</div>
@@ -593,28 +711,6 @@ export default function CcChat() {
             ))}
           </div>
         )}
-        <div className="checkin-card">
-          <div style={{ fontSize: "0.9rem", fontWeight: 800, marginBottom: 3 }}>{kind === "weekly" ? "Weekly check-in" : "Daily check-in"}</div>
-          <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginBottom: 10 }}>{dueText}</div>
-          {(dailyDue || weeklyDue) ? (
-            <>
-              {items.map((it: any, i: number) => (
-                <label key={i} className="checkin-item">
-                  <input type="checkbox" checked={!!checkInBoxes[i]}
-                    onChange={e => setCheckInBoxes(prev => ({ ...prev, [i]: e.target.checked }))} />
-                  <span>{it.label}</span>
-                </label>
-              ))}
-              <div style={{ marginTop: 10 }}>
-                <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn(kind, items)}>
-                  {checkInSaving ? "Saving..." : `Log ${kind} check-in`}
-                </button>
-              </div>
-            </>
-          ) : (
-            <div style={{ fontSize: "0.8rem", color: "var(--success)", fontWeight: 600 }}>✓ All caught up. Come back tomorrow.</div>
-          )}
-        </div>
       </>
     );
   }
@@ -665,11 +761,13 @@ export default function CcChat() {
           </div>
         )}
 
-        {/* FLOATING LOGO + PANEL TOGGLE */}
+        {/* FLOATING LOGO + PANEL TOGGLE (toggle slides with the panel) */}
         <a id="cc-float-logo" href="/cc">studojo<span className="cc-dot" /></a>
-        <button id="cc-float-toggle" onClick={() => toggleSidebar()}>
-          <span>{sidebarOpen ? "❯" : "❮"}</span> <span>{sidebarOpen ? "Hide panel" : "Show panel"}</span>
-        </button>
+        {!sidebarExpanded && (
+          <button id="cc-float-toggle" className={sidebarOpen ? "open" : "closed"} onClick={() => toggleSidebar()}>
+            <span>{sidebarOpen ? "❯" : "❮"}</span> <span>{sidebarOpen ? "Hide panel" : "Show panel"}</span>
+          </button>
+        )}
 
         {/* LAYOUT */}
         <div id="cc-layout">
@@ -678,30 +776,44 @@ export default function CcChat() {
               <div className="chat-card">
                 <div className={`chat-setup-header${headerHidden ? " hidden" : ""}`}>
                   <div className="chat-setup-header-title">Quick Profile Setup</div>
-                  <div className="chat-setup-header-sub">A few quick questions so we can find the right path for you</div>
+                  <div className="chat-setup-header-sub">The more you talk to the coach, the better it knows you and the sharper your plan gets.</div>
                 </div>
                 <div id="cc-messages">
                   {returning && <div className="session-divider">Continuing your session</div>}
-                  {messages.map((m, i) => (
-                    <div key={i}>
-                      <div className={`msg-row ${m.role}`}>
-                        {m.role === "agent" && <div className="agent-avatar">S</div>}
-                        <div className="msg-bubble-wrap">
-                          <div className="msg-bubble">{m.content}</div>
-                          <div className="msg-time">{m.time}</div>
-                        </div>
-                      </div>
-                      {m.cta && (
-                        <div className="panel-cta" onClick={() => openSidebarTo(m.cta as CtaKind)}>
-                          <div>
-                            <div className="cta-text">{ctaCopy[m.cta as CtaKind].title}</div>
-                            <div className="cta-sub">{ctaCopy[m.cta as CtaKind].sub}</div>
+                  {messages.map((m, i) => {
+                    const isLastInRun =
+                      i === messages.length - 1 || messages[i + 1].role !== m.role;
+                    const isLastMessage = i === messages.length - 1;
+                    const hasLink = /(https?:\/\/[^\s)]+)/.test(m.content);
+                    return (
+                      <div key={i}>
+                        <div className={`msg-row ${m.role}`}>
+                          {m.role === "agent" && <div className="agent-avatar">S</div>}
+                          <div className="msg-bubble-wrap">
+                            <div className="msg-bubble">{renderBubbleText(m.content)}</div>
+                            {m.role === "agent" && hasLink && (
+                              <button className="report-link-btn"
+                                onClick={() => sendMsg("One of the links you sent does not work or is wrong.")}>
+                                Link not working? Report it
+                              </button>
+                            )}
+                            {isLastInRun && <div className="msg-time">{m.time}</div>}
                           </div>
-                          <div className="cta-arrow">→</div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        {/* CTA shows only on the most recent agent message, so it
+                            disappears as the conversation continues. */}
+                        {m.cta && isLastMessage && (
+                          <div className="panel-cta" onClick={() => openSidebarTo(m.cta as CtaKind)}>
+                            <div>
+                              <div className="cta-text">{ctaCopy[m.cta as CtaKind].title}</div>
+                              <div className="cta-sub">{ctaCopy[m.cta as CtaKind].sub}</div>
+                            </div>
+                            <div className="cta-arrow">→</div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                   {waiting && (
                     <div className="msg-row agent">
                       <div className="agent-avatar">S</div>
@@ -728,7 +840,7 @@ export default function CcChat() {
           </div>
 
           {/* SIDEBAR */}
-          <aside id="cc-sidebar" className={sidebarOpen ? "" : "collapsed"}>
+          <aside id="cc-sidebar" className={`${sidebarOpen ? "" : "collapsed"} ${sidebarExpanded ? "expanded" : ""}`}>
             <div id="cc-sidebar-tabs">
               {(["analysis", "roadmap", "dashboard"] as CtaKind[]).map(p => (
                 <div key={p} className={`side-tab${panel === p ? " active" : ""}`} onClick={() => setPanel(p)}>
@@ -736,12 +848,38 @@ export default function CcChat() {
                 </div>
               ))}
             </div>
+            <div id="cc-sidebar-actions">
+              {sidebarExpanded ? (
+                <button className="side-action-btn primary" onClick={() => setSidebarExpanded(false)}>
+                  ← Take me to chat
+                </button>
+              ) : (
+                <>
+                  <button className="side-action-btn" onClick={() => setSidebarExpanded(true)}>
+                    ⤢ Expand to full page
+                  </button>
+                  <button className="side-action-btn" onClick={() => toggleSidebar(false)}>
+                    ❯ Hide panel
+                  </button>
+                </>
+              )}
+            </div>
             <div id="cc-sidebar-body">
               {panel === "analysis" && renderAnalysis()}
               {panel === "roadmap" && renderRoadmap()}
               {panel === "dashboard" && renderDashboard()}
             </div>
           </aside>
+        </div>
+
+        {/* ANALYSIS-READY POPUP — only when panel is collapsed */}
+        <div id="cc-ready-pop" className={readyPopVisible && !sidebarOpen ? "show" : ""}>
+          <div className="rp-title">Your Career Analysis is ready</div>
+          <div className="rp-sub">See how you compare to top performers and what to do next.</div>
+          <div className="rp-btns">
+            <button className="rp-open" onClick={() => openSidebarTo("analysis")}>View it</button>
+            <button className="rp-later" onClick={() => setReadyPopVisible(false)}>Later</button>
+          </div>
         </div>
 
         <div id="cc-toast" className={toastMsg ? "show" : ""}>{toastMsg}</div>

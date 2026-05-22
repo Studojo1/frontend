@@ -280,13 +280,13 @@ export default function CcIndex() {
             </div>
             <h1>Skip the guessing.<br />Know exactly what to do next.</h1>
             <p className="lp-hero-sub">
-              Stop applying blindly. Get a personalised readiness score, a skills gap breakdown, and a week-by-week action plan — built around your actual profile.
+              Stop applying blindly. Get a personalised readiness score, a skills gap breakdown, and a week-by-week action plan, built around your actual profile. The more you talk to the coach, the better it knows you and the sharper your plan gets.
             </p>
             <div className="lp-hero-btns">
               <Link to="/cc/chat" className="lp-btn-primary">Get my Career DNA →</Link>
               <a href="#how-it-works" className="lp-btn-ghost">See how it works</a>
             </div>
-            <div className="lp-hero-meta">Takes 8 minutes. Free. No account needed to start.</div>
+            <div className="lp-hero-meta">Takes 8 minutes. Free. No account needed to start. Gets smarter the more you use it.</div>
           </div>
         </section>
 
