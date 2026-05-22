@@ -26,11 +26,26 @@ function showError(message) {
   const el = document.getElementById("error-message");
   if (el) {
     const friendly = {
-      not_logged_in_linkedin: "You're not logged into LinkedIn. Open LinkedIn and sign in first.",
-      not_logged_in_studojo: "You're not logged into Studojo. Open Studojo and sign in first.",
-      no_jsessionid: "LinkedIn session incomplete. Refresh LinkedIn and reconnect.",
+      not_logged_in_linkedin: "You're not logged into LinkedIn. Open LinkedIn in a tab, sign in, then try again.",
+      not_logged_in_studojo: "You're not logged into Studojo. Open studojo.com or studojo.pro, sign in, then try again.",
+      no_jsessionid: "LinkedIn session incomplete. Refresh LinkedIn (or open www.linkedin.com/feed) and try again.",
+      extension_error: "The extension hit an internal error. Try removing and reinstalling.",
+      extension_runtime_error: "The extension hit an internal error. Try removing and reinstalling.",
     };
-    el.textContent = friendly[message] || "Something went wrong. Please try again.";
+    // Pull out api_error:XYZ so the user sees the real status code
+    const apiMatch = typeof message === "string" && message.match(/^api_error:(\d+)/);
+    if (apiMatch) {
+      const code = apiMatch[1];
+      const apiMessages = {
+        "401": "Studojo says you're not signed in. Refresh studojo.com and sign in, then try again.",
+        "403": "Studojo refused the connection (forbidden). Make sure you're using the same account in both tabs.",
+        "404": "Studojo's session endpoint is unreachable. The platform may be deploying — try again in a minute.",
+        "500": "Studojo's server hit an error storing the session. Try again in a moment.",
+      };
+      el.textContent = apiMessages[code] || `Studojo returned HTTP ${code}. Try again or contact support.`;
+    } else {
+      el.textContent = friendly[message] || `Unexpected error: ${message}. Try again or reinstall the extension.`;
+    }
   }
   showState("error");
 }

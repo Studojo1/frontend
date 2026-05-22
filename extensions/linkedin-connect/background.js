@@ -204,6 +204,62 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // keep channel open for async response
   }
 
+  // Outreach flow — return the cookie jar to the page so IT can POST to the
+  // outreach backend. We don't post from the extension here because the page
+  // already has the user's auth token and the right endpoint URL.
+  if (message.type === 'GET_LI_COOKIES_RAW') {
+    (async () => {
+      try {
+        // Pull full cookie jar from BOTH origins to maximise coverage — some
+        // cookies are set on .linkedin.com, others on www.linkedin.com.
+        const jar = [];
+        const seen = new Set();
+        for (const origin of LINKEDIN_ORIGINS) {
+          const cookies = await new Promise((resolve) => {
+            chrome.cookies.getAll({ url: origin }, (c) => resolve(c || []));
+          });
+          for (const c of cookies) {
+            const key = `${c.name}@${c.domain}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            jar.push({
+              name: c.name,
+              value: c.value,
+              domain: c.domain,
+              path: c.path,
+              secure: c.secure,
+              httpOnly: c.httpOnly,
+              sameSite: c.sameSite,
+            });
+          }
+        }
+        const liAt = jar.find((c) => c.name === 'li_at')?.value || null;
+        const jsessionid = (jar.find((c) => c.name === 'JSESSIONID')?.value || '').replace(/^"|"$/g, '');
+
+        if (!liAt) {
+          sendResponse({ error: 'not_logged_in_linkedin' });
+          return;
+        }
+        if (!jsessionid) {
+          // li_at without JSESSIONID happens when the user has been logged in
+          // for a while but hasn't visited LinkedIn recently — the CSRF cookie
+          // got cleaned up. A single page-load on LinkedIn restores it.
+          sendResponse({ error: 'no_jsessionid' });
+          return;
+        }
+
+        sendResponse({
+          li_at: liAt,
+          jsessionid,
+          cookies: jar,
+        });
+      } catch (err) {
+        sendResponse({ error: err?.message || 'unknown_error' });
+      }
+    })();
+    return true;
+  }
+
   if (message.type === 'CHECK_STATUS') {
     getCookie('https://www.linkedin.com', 'li_at').then((liAt) => {
       chrome.storage.local.get(['connected', 'connected_at'], (stored) => {

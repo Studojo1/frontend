@@ -145,18 +145,33 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
     setExtLoading(true);
     setError("");
     let timeoutId: ReturnType<typeof setTimeout>;
+    const friendlyExtError = (code: string): string => {
+      const map: Record<string, string> = {
+        not_logged_in_linkedin: "You're not signed into LinkedIn in this browser. Open www.linkedin.com, sign in, then try again.",
+        no_jsessionid: "LinkedIn session incomplete. Open www.linkedin.com/feed once to refresh the session, then try again.",
+        extension_runtime_error: "The extension hit an internal error. Try removing and reinstalling it.",
+        no_response: "The extension didn't respond. Make sure it's enabled and try again.",
+      };
+      return map[code] || `Extension error: ${code}`;
+    };
     const onCookies = (e: Event) => {
       clearTimeout(timeoutId);
       const { li_at, jsessionid: jsid, cookies, error: extErr } = (e as CustomEvent).detail || {};
       window.removeEventListener("STUDOJO_LI_COOKIES", onCookies);
-      if (extErr || !li_at) {
-        setError(extErr || "Extension could not read LinkedIn cookies. Make sure you're logged in to LinkedIn.");
+      if (extErr) {
+        setError(friendlyExtError(extErr));
+        setExtLoading(false);
+        return;
+      }
+      if (!li_at) {
+        setError("Extension could not read LinkedIn cookies. Make sure you're logged in to LinkedIn.");
         setExtLoading(false);
         return;
       }
       outreachFetch("/linkedin/automation/login/cookies", {
         method: "POST",
         body: JSON.stringify({ li_at, jsessionid: jsid || "", is_extension: true, cookies }),
+        ...LOGIN_FETCH_OPTS,
       })
         .then(() => afterLogin())
         .catch((err: any) => {
@@ -169,7 +184,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
     timeoutId = setTimeout(() => {
       window.removeEventListener("STUDOJO_LI_COOKIES", onCookies);
       setExtLoading((prev) => {
-        if (prev) setError("Extension did not respond. Try refreshing or installing the extension.");
+        if (prev) setError("Extension did not respond. Make sure it's enabled and refresh this page, or reinstall it.");
         return false;
       });
     }, 5000);
