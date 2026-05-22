@@ -819,6 +819,17 @@ export default function DashboardPage() {
                       }
                     </button>
                     <button
+                      onClick={() => navigate("/outreach/campaign/inbox")}
+                      className="h-9 px-4 rounded-xl border-2 border-studojo-ink bg-white text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+                    >
+                      <FiMessageCircle className="w-4 h-4 mr-2" /> Inbox
+                      {(liStats.total_replied ?? 0) > 0 && (
+                        <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full bg-studojo-purple text-white text-[10px] font-bold">
+                          {liStats.total_replied}
+                        </span>
+                      )}
+                    </button>
+                    <button
                       onClick={() => navigate("/outreach/connect/linkedin")}
                       className="h-9 px-4 rounded-xl border-2 border-studojo-purple bg-studojo-purple-bg text-studojo-purple text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
                     >
@@ -860,6 +871,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 )}
+
+                {/* LI Campaign Settings */}
+                <LinkedInSettingsCard campaignId={linkedInCampaignId!} onUpdate={fetchLinkedIn} />
 
                 {/* LI Metrics */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1646,6 +1660,123 @@ export default function DashboardPage() {
         onClose={() => setReportIssueOpen(false)}
       />
       <Footer />
+    </div>
+  );
+}
+
+
+interface LinkedInCampaignSettings {
+  daily_limit: number;
+  weekly_invite_limit: number;
+  send_with_note: boolean;
+  like_post_before_connect: boolean;
+}
+
+function LinkedInSettingsCard({ campaignId, onUpdate }: { campaignId: number; onUpdate: () => void }) {
+  const [settings, setSettings] = useState<LinkedInCampaignSettings | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  useEffect(() => {
+    outreachFetch<LinkedInCampaignSettings>(`/linkedin/automation/campaigns/${campaignId}`)
+      .then((d) => setSettings({
+        daily_limit: d.daily_limit,
+        weekly_invite_limit: d.weekly_invite_limit,
+        send_with_note: d.send_with_note,
+        like_post_before_connect: d.like_post_before_connect,
+      }))
+      .catch(() => {});
+  }, [campaignId]);
+
+  const toggle = async (field: "send_with_note" | "like_post_before_connect") => {
+    if (!settings) return;
+    const next = !settings[field];
+    setSaving(field);
+    // Optimistic update so the toggle feels instant
+    setSettings({ ...settings, [field]: next });
+    try {
+      const updated = await outreachFetch<LinkedInCampaignSettings>(
+        `/linkedin/automation/campaigns/${campaignId}/settings`,
+        { method: "PATCH", body: JSON.stringify({ [field]: next }) },
+      );
+      setSettings({
+        daily_limit: updated.daily_limit,
+        weekly_invite_limit: updated.weekly_invite_limit,
+        send_with_note: updated.send_with_note,
+        like_post_before_connect: updated.like_post_before_connect,
+      });
+      onUpdate();
+    } catch {
+      // Rollback on failure
+      setSettings({ ...settings, [field]: !next });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  if (!settings) return null;
+
+  return (
+    <div className="rounded-2xl border-2 border-studojo-ink/15 bg-white">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full px-5 py-3 flex items-center justify-between text-left"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold font-satoshi text-studojo-ink">Campaign settings</span>
+          <span className="text-xs text-studojo-muted font-satoshi">
+            {settings.daily_limit}/day · {settings.weekly_invite_limit}/week ·{" "}
+            {settings.send_with_note ? "with note" : "no note"}
+            {settings.like_post_before_connect ? " · like post" : ""}
+          </span>
+        </div>
+        <span className="text-xs text-studojo-muted">{expanded ? "Hide" : "Edit"}</span>
+      </button>
+      {expanded && (
+        <div className="border-t border-studojo-ink/10 px-5 py-4 space-y-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings.send_with_note}
+              onChange={() => toggle("send_with_note")}
+              disabled={saving === "send_with_note"}
+              className="mt-0.5 w-4 h-4 accent-studojo-purple"
+            />
+            <div className="flex-1">
+              <p className="text-sm font-bold font-satoshi text-studojo-ink">Send a connection note</p>
+              <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
+                LinkedIn data shows acceptance rate is{" "}
+                <span className="font-bold text-studojo-ink">about 10pt higher without a note</span>.
+                Recommended off. If you turn this on, we'll attach the AI-generated note we crafted for each lead.
+              </p>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings.like_post_before_connect}
+              onChange={() => toggle("like_post_before_connect")}
+              disabled={saving === "like_post_before_connect"}
+              className="mt-0.5 w-4 h-4 accent-studojo-purple"
+            />
+            <div className="flex-1">
+              <p className="text-sm font-bold font-satoshi text-studojo-ink">Like a recent post first (optional warmup)</p>
+              <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
+                Before sending the invite, we'll like one of the lead's recent posts. Small warm-touch that
+                tends to lift acceptance for active LinkedIn users. Skipped silently if they haven't posted recently.
+              </p>
+            </div>
+          </label>
+
+          <div className="rounded-xl bg-studojo-surface-muted border border-studojo-ink/10 p-3 text-xs text-studojo-muted font-satoshi">
+            Pacing is set automatically: <span className="font-bold text-studojo-ink">{settings.daily_limit} invites/day</span>{" "}
+            with a randomised weekly cap of{" "}
+            <span className="font-bold text-studojo-ink">{settings.weekly_invite_limit}</span> to stay under LinkedIn's
+            ~100/week soft limit. A 200-invite plan completes in roughly 2.5 weeks at this rate.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
