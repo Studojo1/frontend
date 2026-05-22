@@ -170,10 +170,73 @@ const CSS = `
 .social-ticker{margin-top:24px;padding:10px 16px;background:var(--bg-secondary);border-radius:10px;font-size:0.75rem;color:var(--text-secondary);min-height:36px;display:flex;align-items:center;justify-content:center;transition:opacity 0.35s;}
 .social-ticker .st-dot{width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:8px;flex-shrink:0;}
 .session-divider{text-align:center;font-size:0.72rem;color:var(--text-muted);padding:8px 0 4px;}
+/* ===== EXPANDED FULL-PAGE VIEW ===== */
+#cc-xp-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 26px;border-bottom:2px solid #111;background:var(--bg-white);flex-shrink:0;}
+#cc-xp-back{background:white;border:2px solid #111;border-radius:999px;box-shadow:3px 3px 0 #111;padding:8px 16px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:"Inter",sans-serif;transition:all 0.15s;white-space:nowrap;}
+#cc-xp-back:hover{transform:translateY(-1px);box-shadow:4px 4px 0 #111;}
+#cc-xp-tabs{display:flex;gap:6px;}
+.cc-xp-tab{background:white;border:2px solid #111;border-radius:999px;padding:8px 20px;font-size:0.82rem;font-weight:700;cursor:pointer;font-family:"Inter",sans-serif;transition:all 0.15s;}
+.cc-xp-tab:hover:not(.active){background:var(--bg-secondary);}
+.cc-xp-tab.active{background:var(--gradient-primary);color:white;box-shadow:3px 3px 0 #111;}
+.xp{max-width:760px;margin:0 auto;padding:8px 4px 40px;}
+.xp-hero{border:2px solid #111;border-radius:20px;background:linear-gradient(135deg,#F3F0FF 0%,#FDF2FF 100%);box-shadow:5px 5px 0 #111;padding:28px;margin-bottom:20px;}
+.xp-hero-label{font-size:0.72rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent-purple);margin-bottom:8px;}
+.xp-hero-role{font-size:1.9rem;font-weight:800;letter-spacing:-0.03em;line-height:1.15;}
+.xp-hero-meta{font-size:0.92rem;color:var(--text-secondary);margin-top:6px;}
+.xp-hero-score{display:flex;align-items:center;gap:18px;margin-top:20px;}
+.xp-ring{width:84px;height:84px;border-radius:50%;border:3px solid #111;background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:3px 3px 0 #111;}
+.xp-ring span{font-size:1.8rem;font-weight:800;}
+.xp-hs-num{font-size:1.05rem;font-weight:800;}
+.xp-hs-sub{font-size:0.85rem;color:var(--text-secondary);margin-top:3px;line-height:1.5;}
+.xp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.xp-card{border:2px solid #111;border-radius:16px;background:white;box-shadow:4px 4px 0 #111;padding:20px;margin-bottom:20px;}
+.xp-card-title{font-size:0.78rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;}
+.xp-muted{font-size:0.84rem;color:var(--text-muted);}
+.xp-callout{border:2px solid var(--accent-purple);border-radius:16px;background:rgba(233,213,255,0.22);padding:20px;margin-bottom:20px;}
+.xp-callout-label{font-size:0.72rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent-purple);margin-bottom:7px;}
+.xp-callout-body{font-size:0.95rem;line-height:1.6;}
+.xp-gap{border:1.5px solid var(--border-light);border-radius:12px;padding:14px;margin-bottom:10px;}
+.xp-gap:last-child{margin-bottom:0;}
+.xp-gap-skill{font-size:0.95rem;font-weight:700;}
+.xp-gap-how{font-size:0.85rem;color:var(--text-secondary);margin-top:5px;line-height:1.55;}
+.xp-actions{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
+/* expanded timeline roadmap */
+.xp-timeline{margin-bottom:20px;}
+.xp-tl-step{display:flex;gap:16px;}
+.xp-tl-rail{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.xp-tl-num{width:36px;height:36px;border-radius:50%;background:var(--gradient-primary);border:2px solid #111;color:white;font-size:0.95rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 #111;}
+.xp-tl-line{flex:1;width:3px;background:#111;margin:4px 0;}
+.xp-tl-body{flex:1;border:2px solid #111;border-radius:14px;background:white;box-shadow:4px 4px 0 #111;padding:18px;margin-bottom:18px;}
+.xp-tl-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.xp-tl-action{font-size:1.02rem;font-weight:800;line-height:1.35;}
+.xp-tl-block{margin-top:10px;}
+.xp-tl-block-label{font-size:0.68rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent-purple);margin-bottom:3px;}
+.xp-tl-block-text{font-size:0.86rem;color:var(--text-secondary);line-height:1.6;}
+.xp-tl-tool{margin-top:12px;padding-top:10px;border-top:1px solid var(--border-light);font-size:0.82rem;color:var(--text-secondary);}
+/* expanded dashboard */
+.xp-dash-banner{display:flex;justify-content:space-between;align-items:center;gap:20px;border:2px solid #111;border-radius:20px;background:linear-gradient(135deg,#111 0%,#3B2A66 100%);color:white;box-shadow:5px 5px 0 #111;padding:26px 28px;margin-bottom:18px;}
+.xp-dash-banner .xp-hero-label{color:#C4B5FD;}
+.xp-dash-banner .xp-hero-meta{color:#DDD6FE;}
+.xp-dash-name{font-size:1.6rem;font-weight:800;letter-spacing:-0.03em;margin-top:4px;}
+.xp-dash-ring{width:96px;height:96px;border-radius:50%;background:var(--gradient-primary);border:3px solid white;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.xp-dash-ring span{font-size:2rem;font-weight:800;line-height:1;}
+.xp-dash-ring small{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.85;}
+.xp-statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.xp-stat{border:2px solid #111;border-radius:14px;background:white;box-shadow:3px 3px 0 #111;padding:16px;text-align:center;}
+.xp-stat-num{font-size:1.7rem;font-weight:800;line-height:1;}
+.xp-stat-label{font-size:0.68rem;color:var(--text-secondary);margin-top:6px;font-weight:600;}
+.xp-chart{display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:18px;}
+.xp-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;}
+.xp-bar{width:100%;background:var(--gradient-primary);border:2px solid #111;border-radius:6px 6px 0 0;min-height:8px;display:flex;align-items:flex-start;justify-content:center;position:relative;margin-top:auto;}
+.xp-bar-val{position:absolute;top:-16px;font-size:0.68rem;font-weight:800;color:var(--text-primary);}
+.xp-bar-date{font-size:0.62rem;color:var(--text-muted);margin-top:5px;}
+.xp-weekly{border-color:var(--accent-purple);background:rgba(233,213,255,0.18);}
 @media(max-width:900px){
   .cc-root{--sidebar-w:340px;}
   #cc-sidebar{position:fixed;top:0;right:0;bottom:0;z-index:90;box-shadow:-4px 0 0 rgba(0,0,0,0.1);}
   #cc-chat-col{padding:72px 8px 8px;}
+  .xp-grid2{grid-template-columns:1fr;}
+  .xp-statrow{grid-template-columns:1fr 1fr;}
 }
 `;
 
@@ -527,22 +590,98 @@ export default function CcChat() {
   const pp = sidebarData?.primary_path;
   const dnaReady = !!(pp && pp.dna_id);
 
-  function renderAnalysis() {
+  function renderAnalysis(expanded: boolean) {
     if (!dnaReady) {
       return <div className="side-empty"><div className="se-icon">🧬</div>Your Career Analysis appears here once we have built your Career DNA. Keep chatting to get there.</div>;
     }
     const b = pp.benchmark || {};
     const have: string[] = pp.skills_you_have || [];
     const sg = (gapData?.skills_gap) || [];
+    const readiness = pp.readiness_score || 0;
+
+    if (expanded) {
+      // Full-page Career Analysis: hero header + benchmark comparison grid.
+      return (
+        <div className="xp">
+          <div className="xp-hero">
+            <div className="xp-hero-label">Career DNA</div>
+            <h1 className="xp-hero-role">{pp.target_role || "Your target role"}</h1>
+            <div className="xp-hero-meta">{pp.target_industry || ""}{pp.target_geography ? "  ·  " + pp.target_geography : ""}</div>
+            <div className="xp-hero-score">
+              <div className="xp-ring"><span>{readiness}</span></div>
+              <div className="xp-hero-score-text">
+                <div className="xp-hs-num">Readiness {readiness}/100</div>
+                <div className="xp-hs-sub">This is how ready your profile is for {pp.target_role || "this role"} right now.</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="xp-grid2">
+            <div className="xp-card">
+              <div className="xp-card-title">What you bring</div>
+              {have.length ? have.map((s, i) => <span key={i} className="pill have">{s}</span>)
+                : <div className="xp-muted">No confirmed skills yet, keep talking to the coach.</div>}
+            </div>
+            <div className="xp-card">
+              <div className="xp-card-title">What top performers bring</div>
+              {(b.top_performer_skills || []).length ? b.top_performer_skills.map((s: string, i: number) => <span key={i} className="pill top">{s}</span>)
+                : <div className="xp-muted">Benchmark loading.</div>}
+            </div>
+          </div>
+
+          {b.your_standing && (
+            <div className="xp-callout">
+              <div className="xp-callout-label">Where you stand</div>
+              <div className="xp-callout-body">{b.your_standing}</div>
+            </div>
+          )}
+
+          {(b.gap_to_top || []).length > 0 && (
+            <div className="xp-card">
+              <div className="xp-card-title">How you close the gap to the top</div>
+              {b.gap_to_top.map((g: any, i: number) => (
+                <div key={i} className="xp-gap">
+                  <div className="xp-gap-skill">{g.skill || ""}</div>
+                  <div className="xp-gap-how">{g.how_to_close || ""}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {sg.length > 0 && (
+            <div className="xp-card">
+              <div className="xp-card-title">Skill gaps for this role</div>
+              {sg.map((g: any, i: number) => {
+                const prio = (g.priority || "medium").toLowerCase();
+                return (
+                  <div key={i} className="xp-gap">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                      <span className="xp-gap-skill">{g.skill || ""}</span>
+                      <span className={`gi-prio ${prio}`}>{prio}</span>
+                    </div>
+                    <div className="xp-gap-how">{g.how_to_build || ""}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="xp-actions">
+            <button className="btn-primary" onClick={() => setPanel("roadmap")}>See your roadmap →</button>
+            <button className="btn-ghost" onClick={() => { setSidebarExpanded(false); sendMsg("This does not look like me, the reading is not quite right."); }}>
+              This doesn't look like me
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <>
         <div className="scard">
           <div className="scard-title">Your Career DNA</div>
           <h3>{pp.target_role || "Your target role"}</h3>
           <div className="sub">{pp.target_industry || ""}{pp.target_geography ? " · " + pp.target_geography : ""}</div>
-          <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: 8 }}>
-            Reply probability ~{pp.reply_probability || 0}%
-          </div>
         </div>
         {have.length > 0 && (
           <div className="scard">
@@ -597,11 +736,69 @@ export default function CcChat() {
     );
   }
 
-  function renderRoadmap() {
+  function renderRoadmap(expanded: boolean) {
     const actions = (pp?.priority_actions) || [];
     if (!dnaReady || !actions.length) {
       return <div className="side-empty"><div className="se-icon">🗺️</div>Your Roadmap appears here once your Career DNA is ready. It is the ordered set of moves that raise your readiness fastest.</div>;
     }
+
+    if (expanded) {
+      // Full-page roadmap: a vertical timeline with every step fully expanded,
+      // no hover needed, all detail laid out in depth.
+      return (
+        <div className="xp">
+          <div className="xp-hero">
+            <div className="xp-hero-label">Your Roadmap</div>
+            <h1 className="xp-hero-role">The path to {pp.target_role || "your goal"}</h1>
+            <div className="xp-hero-meta">{actions.length} moves, ordered by how much they raise your readiness.</div>
+          </div>
+          <div className="xp-timeline">
+            {actions.map((a: any, i: number) => {
+              const action = a.action || a.skill || (typeof a === "string" ? a : "");
+              const why = a.why_it_matters || "";
+              const how = a.how_to_close || a.how_to_build || "";
+              const linked = a.linked_tool;
+              const prio = (a.priority || "").toString().toLowerCase();
+              return (
+                <div key={i} className="xp-tl-step">
+                  <div className="xp-tl-rail">
+                    <div className="xp-tl-num">{i + 1}</div>
+                    {i < actions.length - 1 && <div className="xp-tl-line" />}
+                  </div>
+                  <div className="xp-tl-body">
+                    <div className="xp-tl-head">
+                      <span className="xp-tl-action">{action}</span>
+                      {prio && <span className={`gi-prio ${prio === "high" || prio === "medium" || prio === "low" ? prio : "medium"}`}>{prio}</span>}
+                    </div>
+                    {why && (
+                      <div className="xp-tl-block">
+                        <div className="xp-tl-block-label">Why this matters</div>
+                        <div className="xp-tl-block-text">{why}</div>
+                      </div>
+                    )}
+                    {how && (
+                      <div className="xp-tl-block">
+                        <div className="xp-tl-block-label">How to start</div>
+                        <div className="xp-tl-block-text">{how}</div>
+                      </div>
+                    )}
+                    {linked && (
+                      <div className="xp-tl-tool">
+                        Tool that helps: <strong>{linked === "resume_maker" ? "Resume Maker" : linked === "outreach_dojo" ? "Outreach Dojo" : linked}</strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="xp-actions">
+            <button className="btn-primary" onClick={() => setPanel("dashboard")}>Go to dashboard →</button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <>
         <div className="scard">
@@ -638,7 +835,7 @@ export default function CcChat() {
     );
   }
 
-  function renderDashboard() {
+  function renderDashboard(expanded: boolean) {
     if (!dnaReady) {
       return <div className="side-empty"><div className="se-icon">📊</div>Your Dashboard appears here once your Career DNA is ready. It tracks your readiness over time and your weekly check-ins.</div>;
     }
@@ -650,56 +847,104 @@ export default function CcChat() {
 
     const dailyItems = daily.map((t, i) => ({ label: t.label, type: t.type || "skill", key: "d" + i }));
     const weeklyItem = weekly ? { label: weekly.label, type: weekly.type || "skill", key: "w0" } : null;
+    const readiness = pp.readiness_score || 0;
+    const maxHist = Math.max(100, ...hist.map((h: any) => h.score || 0));
+
+    const dailyBlock = (
+      <div className={expanded ? "xp-card" : "checkin-card"}>
+        <div style={{ fontSize: expanded ? "1rem" : "0.9rem", fontWeight: 800, marginBottom: 2 }}>Today's tasks</div>
+        <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)", marginBottom: 8 }}>
+          Small moves you can finish today. They refresh daily.
+        </div>
+        {dailyItems.length === 0 && <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Loading your tasks...</div>}
+        {dailyItems.map(it => (
+          <label key={it.key} className="task-item">
+            <input type="checkbox" checked={!!taskBoxes[it.key]}
+              onChange={e => setTaskBoxes(prev => ({ ...prev, [it.key]: e.target.checked }))} />
+            <span>{it.label}</span>
+          </label>
+        ))}
+        {dailyItems.length > 0 && (
+          <div style={{ marginTop: 10 }}>
+            <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("daily", dailyItems)}>
+              {checkInSaving ? "Saving..." : "Log daily check-in"}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+
+    const weeklyBlock = weeklyItem && (
+      <div className={expanded ? "xp-card xp-weekly" : "task-weekly"}>
+        <div className="tw-label">This week's big task</div>
+        <label className="task-item" style={{ borderBottom: "none", paddingBottom: 0 }}>
+          <input type="checkbox" checked={!!taskBoxes[weeklyItem.key]}
+            onChange={e => setTaskBoxes(prev => ({ ...prev, [weeklyItem.key]: e.target.checked }))} />
+          <span>{weeklyItem.label}</span>
+        </label>
+        <div style={{ marginTop: 8 }}>
+          <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("weekly", [weeklyItem])}>
+            {checkInSaving ? "Saving..." : "Log weekly check-in"}
+          </button>
+        </div>
+      </div>
+    );
+
+    if (expanded) {
+      // Full-page dashboard: big readiness banner, stat row, a bar-chart
+      // history, and the tasks laid out side by side.
+      return (
+        <div className="xp">
+          <div className="xp-dash-banner">
+            <div>
+              <div className="xp-hero-label">Dashboard</div>
+              <div className="xp-dash-name">{student.name ? `${student.name}'s progress` : "Your progress"}</div>
+              <div className="xp-hero-meta">Toward {pp.target_role || "your target role"}</div>
+            </div>
+            <div className="xp-dash-ring"><span>{readiness}</span><small>readiness</small></div>
+          </div>
+
+          <div className="xp-statrow">
+            <div className="xp-stat"><div className="xp-stat-num">{readiness}</div><div className="xp-stat-label">Readiness score</div></div>
+            <div className="xp-stat"><div className="xp-stat-num">{student.session_count || 1}</div><div className="xp-stat-label">Coaching sessions</div></div>
+            <div className="xp-stat"><div className="xp-stat-num">{sh.improvement_total != null ? (sh.improvement_total >= 0 ? "+" : "") + sh.improvement_total : "0"}</div><div className="xp-stat-label">Readiness change</div></div>
+            <div className="xp-stat"><div className="xp-stat-num">{dailyItems.length + (weeklyItem ? 1 : 0)}</div><div className="xp-stat-label">Open tasks</div></div>
+          </div>
+
+          {hist.length > 1 && (
+            <div className="xp-card">
+              <div className="xp-card-title">Readiness over time</div>
+              <div className="xp-chart">
+                {hist.slice(-8).map((h: any, i: number) => (
+                  <div key={i} className="xp-bar-col">
+                    <div className="xp-bar" style={{ height: `${Math.round(((h.score || 0) / maxHist) * 100)}%` }}>
+                      <span className="xp-bar-val">{h.score}</span>
+                    </div>
+                    <div className="xp-bar-date">{(h.date || "").slice(5, 10)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="xp-grid2">
+            {dailyBlock}
+            {weeklyBlock}
+          </div>
+        </div>
+      );
+    }
 
     return (
       <>
         <div className="stat-grid">
-          <div className="stat-box"><div className="sb-num">{pp.readiness_score || 0}</div><div className="sb-label">Readiness score</div></div>
-          <div className="stat-box"><div className="sb-num">{pp.reply_probability || 0}%</div><div className="sb-label">Reply probability</div></div>
+          <div className="stat-box"><div className="sb-num">{readiness}</div><div className="sb-label">Readiness score</div></div>
           <div className="stat-box"><div className="sb-num">{student.session_count || 1}</div><div className="sb-label">Sessions</div></div>
           <div className="stat-box"><div className="sb-num">{sh.improvement_total != null ? (sh.improvement_total >= 0 ? "+" : "") + sh.improvement_total : "0"}</div><div className="sb-label">Readiness change</div></div>
+          <div className="stat-box"><div className="sb-num">{dailyItems.length + (weeklyItem ? 1 : 0)}</div><div className="sb-label">Open tasks</div></div>
         </div>
-
-        {/* DAILY TASKS */}
-        <div className="checkin-card">
-          <div style={{ fontSize: "0.9rem", fontWeight: 800, marginBottom: 2 }}>Today's tasks</div>
-          <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)", marginBottom: 6 }}>
-            Small moves you can finish today. They refresh daily.
-          </div>
-          {dailyItems.length === 0 && <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Loading your tasks...</div>}
-          {dailyItems.map(it => (
-            <label key={it.key} className="task-item">
-              <input type="checkbox" checked={!!taskBoxes[it.key]}
-                onChange={e => setTaskBoxes(prev => ({ ...prev, [it.key]: e.target.checked }))} />
-              <span>{it.label}</span>
-            </label>
-          ))}
-          {dailyItems.length > 0 && (
-            <div style={{ marginTop: 10 }}>
-              <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("daily", dailyItems)}>
-                {checkInSaving ? "Saving..." : "Log daily check-in"}
-              </button>
-            </div>
-          )}
-
-          {/* WEEKLY TASK */}
-          {weeklyItem && (
-            <div className="task-weekly">
-              <div className="tw-label">This week's big task</div>
-              <label className="task-item" style={{ borderBottom: "none", paddingBottom: 0 }}>
-                <input type="checkbox" checked={!!taskBoxes[weeklyItem.key]}
-                  onChange={e => setTaskBoxes(prev => ({ ...prev, [weeklyItem.key]: e.target.checked }))} />
-                <span>{weeklyItem.label}</span>
-              </label>
-              <div style={{ marginTop: 8 }}>
-                <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("weekly", [weeklyItem])}>
-                  {checkInSaving ? "Saving..." : "Log weekly check-in"}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
+        {dailyBlock}
+        {weeklyBlock}
         {hist.length > 1 && (
           <div className="scard">
             <div className="scard-title">Readiness over time</div>
@@ -841,33 +1086,40 @@ export default function CcChat() {
 
           {/* SIDEBAR */}
           <aside id="cc-sidebar" className={`${sidebarOpen ? "" : "collapsed"} ${sidebarExpanded ? "expanded" : ""}`}>
-            <div id="cc-sidebar-tabs">
-              {(["analysis", "roadmap", "dashboard"] as CtaKind[]).map(p => (
-                <div key={p} className={`side-tab${panel === p ? " active" : ""}`} onClick={() => setPanel(p)}>
-                  {p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}
+            {sidebarExpanded ? (
+              /* EXPANDED: full-page view with a top nav bar */
+              <div id="cc-xp-nav">
+                <button id="cc-xp-back" onClick={() => setSidebarExpanded(false)}>← Take me to chat</button>
+                <div id="cc-xp-tabs">
+                  {(["analysis", "roadmap", "dashboard"] as CtaKind[]).map(p => (
+                    <button key={p} className={`cc-xp-tab${panel === p ? " active" : ""}`} onClick={() => setPanel(p)}>
+                      {p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}
+                    </button>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div id="cc-sidebar-actions">
-              {sidebarExpanded ? (
-                <button className="side-action-btn primary" onClick={() => setSidebarExpanded(false)}>
-                  ← Take me to chat
-                </button>
-              ) : (
-                <>
+                <div style={{ width: 130 }} />
+              </div>
+            ) : (
+              /* COLLAPSED PANEL: tab strip + a single expand action */
+              <>
+                <div id="cc-sidebar-tabs">
+                  {(["analysis", "roadmap", "dashboard"] as CtaKind[]).map(p => (
+                    <div key={p} className={`side-tab${panel === p ? " active" : ""}`} onClick={() => setPanel(p)}>
+                      {p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}
+                    </div>
+                  ))}
+                </div>
+                <div id="cc-sidebar-actions">
                   <button className="side-action-btn" onClick={() => setSidebarExpanded(true)}>
                     ⤢ Expand to full page
                   </button>
-                  <button className="side-action-btn" onClick={() => toggleSidebar(false)}>
-                    ❯ Hide panel
-                  </button>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
             <div id="cc-sidebar-body">
-              {panel === "analysis" && renderAnalysis()}
-              {panel === "roadmap" && renderRoadmap()}
-              {panel === "dashboard" && renderDashboard()}
+              {panel === "analysis" && renderAnalysis(sidebarExpanded)}
+              {panel === "roadmap" && renderRoadmap(sidebarExpanded)}
+              {panel === "dashboard" && renderDashboard(sidebarExpanded)}
             </div>
           </aside>
         </div>
