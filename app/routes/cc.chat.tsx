@@ -7,13 +7,6 @@ export function meta() {
 const CC_API = "/api/v1/cc";
 const STORAGE_KEY = "studojo_student_id";
 
-const STATE_LABELS: Record<string, string> = {
-  GREETING: "Getting started", PROFILING: "Building your profile",
-  CAREER_ANALYSIS: "Building your Career DNA", DNA_REVIEW: "Career DNA ready",
-  ROADMAP: "Roadmap ready", ONGOING_SUPPORT: "Welcome back",
-  DNA_CORRECTION: "Refining your DNA", NEW_PATH_EXPLORATION: "Exploring new paths",
-};
-
 const HOOK_STATS = [
   { main: "B.Tech students applying on LinkedIn get a 1.4% callback rate.", emphasis: "Students who cold outreach hiring managers directly get 12 to 18%.", hook: "Let's figure out which companies you should be reaching." },
   { main: "Most applications are filtered by software before any human reads them.", emphasis: "A keyword-optimised resume gets through. A generic one gets rejected in seconds.", hook: "Let's see exactly where you stand right now." },
@@ -30,16 +23,14 @@ const SOCIAL_PROOF = [
 
 const CSS = `
 .cc-root *,.cc-root *::before,.cc-root *::after{box-sizing:border-box;margin:0;padding:0;}
-.cc-root{--bg-primary:#FAFAF9;--bg-secondary:#F5F5F4;--bg-white:#FFFFFF;--text-primary:#111111;--text-secondary:#71717A;--text-muted:#A1A1AA;--border-light:rgba(0,0,0,0.12);--accent-purple:#8B5CF6;--accent-light:#E9D5FF;--success:#10B981;--warning:#F59E0B;--gradient-primary:linear-gradient(90deg,#8B5CF6 0%,#A855F7 50%,#EC4899 100%);--navbar-h:64px;--sidebar-w:400px;height:100dvh;font-family:"Inter",sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
-#cc-navbar{height:var(--navbar-h);background:var(--bg-white);border-bottom:2px solid #111;box-shadow:0 2px 0px #111;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;}
-#cc-nav-logo{font-size:1.35rem;font-weight:800;letter-spacing:-0.04em;display:flex;align-items:center;gap:4px;text-decoration:none;color:var(--text-primary);}
+.cc-root{--bg-primary:#FAFAF9;--bg-secondary:#F5F5F4;--bg-white:#FFFFFF;--text-primary:#111111;--text-secondary:#71717A;--text-muted:#A1A1AA;--border-light:rgba(0,0,0,0.12);--accent-purple:#8B5CF6;--accent-light:#E9D5FF;--success:#10B981;--warning:#F59E0B;--gradient-primary:linear-gradient(90deg,#8B5CF6 0%,#A855F7 50%,#EC4899 100%);--sidebar-w:560px;height:100dvh;font-family:"Inter",sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
+#cc-float-logo{position:fixed;top:18px;left:22px;z-index:120;font-size:1.3rem;font-weight:800;letter-spacing:-0.04em;display:flex;align-items:center;gap:4px;text-decoration:none;color:var(--text-primary);background:var(--bg-white);border:2px solid #111;border-radius:999px;padding:7px 16px;box-shadow:3px 3px 0 #111;}
 .cc-dot{width:8px;height:8px;border-radius:50%;background:var(--gradient-primary);display:inline-block;}
-#cc-nav-state{font-size:0.8rem;font-weight:600;color:var(--accent-purple);background:var(--accent-light);padding:5px 14px;border-radius:999px;border:2px solid #111;box-shadow:2px 2px 0 #111;}
-#cc-sidebar-toggle{display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid #111;border-radius:999px;padding:6px 14px;background:white;box-shadow:2px 2px 0 #111;font-size:0.8rem;font-weight:700;transition:all 0.15s;font-family:"Inter",sans-serif;}
-#cc-sidebar-toggle:hover{transform:translateY(-1px);box-shadow:3px 3px 0 #111;}
+#cc-float-toggle{position:fixed;top:18px;right:22px;z-index:120;display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid #111;border-radius:999px;padding:8px 16px;background:white;box-shadow:3px 3px 0 #111;font-size:0.8rem;font-weight:700;transition:all 0.15s;font-family:"Inter",sans-serif;}
+#cc-float-toggle:hover{transform:translateY(-1px);box-shadow:4px 4px 0 #111;}
 #cc-layout{flex:1;display:flex;min-height:0;}
-#cc-chat-col{flex:1;display:flex;flex-direction:column;min-width:0;padding:16px;}
-#cc-chat-inner{flex:1;display:flex;flex-direction:column;max-width:760px;margin:0 auto;width:100%;min-height:0;}
+#cc-chat-col{flex:1;display:flex;flex-direction:column;min-width:0;padding:72px 16px 16px;}
+#cc-chat-inner{flex:1;display:flex;flex-direction:column;max-width:680px;margin:0 auto;width:100%;min-height:0;}
 .chat-card{flex:1;display:flex;flex-direction:column;border:2px solid #111;border-radius:20px;overflow:hidden;box-shadow:4px 4px 0 #111;background:white;min-height:0;}
 .chat-setup-header{padding:14px 26px;flex-shrink:0;background:linear-gradient(135deg,#F3F0FF 0%,#FDF2FF 100%);border-bottom:1px solid rgba(139,92,246,0.15);}
 .chat-setup-header.hidden{display:none;}
@@ -147,7 +138,7 @@ const CSS = `
 .session-divider{text-align:center;font-size:0.72rem;color:var(--text-muted);padding:8px 0 4px;}
 @media(max-width:900px){
   .cc-root{--sidebar-w:320px;}
-  #cc-sidebar{position:fixed;top:var(--navbar-h);right:0;bottom:0;z-index:90;box-shadow:-4px 0 0 rgba(0,0,0,0.1);}
+  #cc-sidebar{position:fixed;top:0;right:0;bottom:0;z-index:90;box-shadow:-4px 0 0 rgba(0,0,0,0.1);}
   #cc-chat-col{padding:8px;}
   #cc-navbar{padding:0 16px;}
 }
@@ -674,14 +665,11 @@ export default function CcChat() {
           </div>
         )}
 
-        {/* NAVBAR */}
-        <nav id="cc-navbar">
-          <a id="cc-nav-logo" href="/cc">studojo<span className="cc-dot" /></a>
-          <span id="cc-nav-state">{STATE_LABELS[agentState] || "Getting started"}</span>
-          <button id="cc-sidebar-toggle" onClick={() => toggleSidebar()}>
-            <span>{sidebarOpen ? "❯" : "❮"}</span> <span>{sidebarOpen ? "Hide panel" : "Show panel"}</span>
-          </button>
-        </nav>
+        {/* FLOATING LOGO + PANEL TOGGLE */}
+        <a id="cc-float-logo" href="/cc">studojo<span className="cc-dot" /></a>
+        <button id="cc-float-toggle" onClick={() => toggleSidebar()}>
+          <span>{sidebarOpen ? "❯" : "❮"}</span> <span>{sidebarOpen ? "Hide panel" : "Show panel"}</span>
+        </button>
 
         {/* LAYOUT */}
         <div id="cc-layout">
