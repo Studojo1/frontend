@@ -48,6 +48,23 @@ window.addEventListener("STUDOJO_REQUEST_LI_COOKIES", () => {
   });
 });
 
+// Page signals after a successful outreach POST so the background worker
+// knows to refresh outreach cookies every 7 days too.
+window.addEventListener("STUDOJO_MARK_OUTREACH_CONNECTED", () => {
+  chrome.runtime.sendMessage({
+    type: "MARK_OUTREACH_CONNECTED",
+    origin: window.location.origin,
+  });
+});
+
+// Background sees li_at removed (LinkedIn logout) and fans out to all open
+// Studojo tabs. Forward to the page so the connect/dashboard UI can react.
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === "STUDOJO_LINKEDIN_LOGGED_OUT") {
+    window.dispatchEvent(new CustomEvent("STUDOJO_LINKEDIN_LOGGED_OUT"));
+  }
+});
+
 // ── AutoApply protocol (legacy postMessage) ───────────────────────────────────
 // Preserve the existing autoapply page <-> extension contract.
 

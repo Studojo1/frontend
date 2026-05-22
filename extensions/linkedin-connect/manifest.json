@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Studojo LinkedIn Connector",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "One-click connect your LinkedIn to Studojo for outreach and auto-apply. Cookies stay on your machine.",
   "permissions": ["cookies", "storage", "alarms", "tabs"],
   "host_permissions": [

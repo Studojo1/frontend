@@ -173,7 +173,11 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
         body: JSON.stringify({ li_at, jsessionid: jsid || "", is_extension: true, cookies }),
         ...LOGIN_FETCH_OPTS,
       })
-        .then(() => afterLogin())
+        .then(() => {
+          // Tell the extension to include outreach in its 7-day cookie refresh.
+          window.dispatchEvent(new CustomEvent("STUDOJO_MARK_OUTREACH_CONNECTED"));
+          return afterLogin();
+        })
         .catch((err: any) => {
           setError(err?.body?.detail || err.message || "LinkedIn session invalid. Please re-login to LinkedIn and try again.");
         })

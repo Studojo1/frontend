@@ -19,6 +19,16 @@ export default function LinkedInConnectPage() {
 
   const [campaignStatus, setCampaignStatus] = useState<CampaignStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [linkedinLoggedOut, setLinkedinLoggedOut] = useState(false);
+
+  // Extension tells us when LinkedIn's li_at cookie is removed in the user's
+  // browser — that's a hard signal the existing session is dead, surface it
+  // immediately instead of waiting for the daemon to hit auth_failed.
+  useEffect(() => {
+    const onLogout = () => setLinkedinLoggedOut(true);
+    window.addEventListener("STUDOJO_LINKEDIN_LOGGED_OUT", onLogout);
+    return () => window.removeEventListener("STUDOJO_LINKEDIN_LOGGED_OUT", onLogout);
+  }, []);
 
   // Verify the existing campaign's session is still valid before claiming "Connected".
   // Without this check, a campaign in auth_failed state still showed the success
@@ -72,7 +82,7 @@ export default function LinkedInConnectPage() {
     return null;
   }
 
-  const sessionDead = campaignStatus === "auth_failed";
+  const sessionDead = campaignStatus === "auth_failed" || linkedinLoggedOut;
   const sessionHealthy =
     linkedInCampaignId &&
     !sessionDead &&
