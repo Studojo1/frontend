@@ -361,13 +361,19 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
                 Install the Studojo browser extension, then come back here to connect with one click — no password needed.
               </p>
               <a
-                href="https://chrome.google.com/webstore"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/studojo-linkedin-connector.zip"
+                download
                 className="inline-flex items-center gap-2 text-sm font-bold text-studojo-purple font-satoshi"
               >
-                Install Extension <FiExternalLink className="w-3.5 h-3.5" />
+                Download Extension (.zip) <FiExternalLink className="w-3.5 h-3.5" />
               </a>
+              <ol className="text-xs text-studojo-muted font-satoshi list-decimal pl-5 space-y-1 pt-2 border-t border-studojo-ink/10">
+                <li>Unzip the downloaded file</li>
+                <li>Open <code className="bg-white px-1 rounded">chrome://extensions</code> in Chrome</li>
+                <li>Toggle <span className="font-bold">Developer mode</span> on (top-right)</li>
+                <li>Click <span className="font-bold">Load unpacked</span> and select the unzipped folder</li>
+                <li>Come back here — this page will auto-detect the extension</li>
+              </ol>
             </div>
           ) : (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-studojo-green-bg border-2 border-studojo-ink/20">
