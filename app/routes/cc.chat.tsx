@@ -28,7 +28,7 @@ const CSS = `
 .cc-root .scard h3,.cc-root .xp-hero-role,.cc-root .xp-dash-name,
 .cc-root .commit-q,.cc-root .hook-stat,.cc-root #cc-ready-pop .rp-title{font-family:"Clash Display",ui-sans-serif,system-ui,sans-serif;}
 .cc-root{--bg-primary:#0E0E12;--bg-secondary:#17171F;--bg-white:#1B1B24;--bg-raised:#22222E;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#3A3A48;--border-light:rgba(255,255,255,0.10);--shadow-c:rgba(0,0,0,0.55);--accent-purple:#A78BFA;--accent-light:#2E2547;--success:#34D399;--warning:#FBBF24;--gradient-primary:linear-gradient(90deg,#8B5CF6 0%,#A855F7 50%,#EC4899 100%);--sidebar-w:560px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
-#cc-float-logo{position:fixed;top:18px;left:22px;z-index:120;font-size:1.3rem;font-weight:800;letter-spacing:-0.04em;display:flex;align-items:center;gap:4px;text-decoration:none;color:var(--text-primary);background:var(--bg-raised);border:2px solid var(--border);border-radius:999px;padding:7px 16px;box-shadow:3px 3px 0 var(--shadow-c);}
+#cc-float-logo{position:fixed;top:20px;left:26px;z-index:120;font-size:1.7rem;font-weight:700;letter-spacing:-0.045em;display:flex;align-items:center;gap:3px;text-decoration:none;color:var(--text-primary);}
 .cc-dot{width:8px;height:8px;border-radius:50%;background:var(--gradient-primary);display:inline-block;}
 /* panel toggle sits just left of the sidebar and slides with it */
 #cc-float-toggle{position:fixed;top:18px;z-index:120;display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid var(--border);border-radius:999px;padding:8px 16px;background:var(--bg-raised);color:var(--text-primary);box-shadow:3px 3px 0 var(--shadow-c);font-size:0.8rem;font-weight:700;transition:right 0.28s ease,transform 0.15s,box-shadow 0.15s;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
@@ -53,7 +53,7 @@ const CSS = `
 .msg-bubble-wrap{display:flex;flex-direction:column;max-width:76%;}
 .msg-bubble{padding:13px 17px;font-size:0.92rem;line-height:1.55;border:2px solid var(--border);white-space:pre-wrap;}
 .msg-row.agent .msg-bubble{background:var(--bg-raised);border-radius:4px 18px 18px 18px;box-shadow:3px 3px 0 var(--shadow-c);}
-.msg-row.user .msg-bubble{background:var(--gradient-primary);border-color:transparent;border-radius:18px 4px 18px 18px;box-shadow:3px 3px 0 var(--shadow-c);color:white;}
+.msg-row.user .msg-bubble{background:#9B6DF5;border-color:transparent;border-radius:18px 4px 18px 18px;box-shadow:3px 3px 0 var(--shadow-c);color:#fff;}
 .msg-row.user .msg-bubble-wrap{align-items:flex-end;}
 .msg-bubble a{color:var(--accent-purple);font-weight:600;}
 .msg-row.user .msg-bubble a{color:#fff;text-decoration:underline;}
@@ -235,6 +235,33 @@ const CSS = `
 .xp-bar-val{position:absolute;top:-16px;font-size:0.68rem;font-weight:800;color:var(--text-primary);}
 .xp-bar-date{font-size:0.62rem;color:var(--text-muted);margin-top:5px;}
 .xp-weekly{border-color:var(--accent-purple);background:var(--accent-light);}
+/* skill-gap hover-reveal (expanded career analysis) */
+.gap-hover .gap-hover-detail{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.25s ease,opacity 0.2s ease,margin 0.25s ease;}
+.gap-hover{cursor:pointer;}
+.gap-hover:hover .gap-hover-detail{max-height:200px;opacity:1;margin-top:6px;}
+/* roadmap intent line */
+.rm-intent,.xp-intent{border:2px solid var(--accent-purple);border-radius:14px;background:var(--accent-light);padding:14px 16px;margin-bottom:14px;font-size:0.86rem;line-height:1.6;font-weight:600;color:var(--text-primary);}
+.xp-intent{font-size:0.95rem;padding:18px 20px;margin-bottom:20px;}
+/* expanded roadmap deep hover */
+.rm-hoverable{cursor:pointer;}
+.rm-deep{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.3s ease,opacity 0.25s ease,margin 0.3s ease;}
+.rm-hoverable:hover .rm-deep{max-height:520px;opacity:1;margin-top:10px;}
+.rm-hoverable:hover .rm-hint{display:none;}
+/* dashboard progress tracker */
+.trk-row{display:flex;align-items:center;gap:12px;margin:4px 0 6px;}
+.trk-bar-track{flex:1;height:14px;background:var(--bg-secondary);border:2px solid var(--border);border-radius:999px;overflow:hidden;}
+.trk-bar-fill{height:100%;background:var(--gradient-primary);transition:width 0.5s ease;}
+.trk-pct{font-size:0.9rem;font-weight:800;min-width:42px;text-align:right;}
+.trk-sub{font-size:0.75rem;color:var(--text-secondary);margin-bottom:6px;}
+.trk-milestone{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:0.84rem;border-bottom:1px solid var(--border-light);}
+.trk-milestone:last-child{border-bottom:none;}
+.trk-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.66rem;font-weight:800;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-secondary);}
+.trk-dot.done{background:var(--success);border-color:transparent;color:#0E0E12;}
+/* dashboard tool buttons */
+.tool-btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tool-btn{display:flex;align-items:center;gap:7px;border:2px solid var(--border);border-radius:12px;background:var(--bg-secondary);color:var(--text-primary);box-shadow:2px 2px 0 var(--shadow-c);padding:10px 12px;font-size:0.78rem;font-weight:700;text-decoration:none;transition:all 0.15s;}
+.tool-btn:hover{transform:translateY(-1px);box-shadow:3px 3px 0 var(--accent-purple);}
+.tool-btn-icon{font-size:0.95rem;}
 @media(max-width:900px){
   .cc-root{--sidebar-w:340px;}
   #cc-sidebar{position:fixed;top:0;right:0;bottom:0;z-index:90;box-shadow:-4px 0 0 var(--shadow-c);}
@@ -274,7 +301,6 @@ export default function CcChat() {
   const [panel, setPanel] = useState<CtaKind>("analysis");
   const [sidebarData, setSidebarData] = useState<any>(null);
   const [gapData, setGapData] = useState<any>(null);
-  const [checkInStatus, setCheckInStatus] = useState<any>(null);
   const [tasks, setTasks] = useState<{ daily: any[]; weekly: any } | null>(null);
   const [taskBoxes, setTaskBoxes] = useState<Record<string, boolean>>({});
   const [checkInSaving, setCheckInSaving] = useState(false);
@@ -353,17 +379,11 @@ export default function CcChat() {
     }
   }, []);
 
-  // load check-in status + fresh tasks whenever the dashboard panel is shown
+  // load fresh tasks whenever the dashboard panel is shown
   useEffect(() => {
     const sid = studentIdRef.current;
     if (!sidebarOpen || panel !== "dashboard" || !sid) return;
     (async () => {
-      try {
-        const r = await fetch(`${CC_API}/api/student/${sid}/check-in/status`);
-        setCheckInStatus(r.ok ? await r.json() : { daily: { due: true }, weekly: { due: true } });
-      } catch {
-        setCheckInStatus({ daily: { due: true }, weekly: { due: true } });
-      }
       try {
         const tr = await fetch(`${CC_API}/api/student/${sid}/progress-tasks`);
         if (tr.ok) setTasks(await tr.json());
@@ -574,10 +594,7 @@ export default function CcChat() {
       });
       const data = await r.json();
       if (!r.ok) throw new Error("check-in failed");
-      const delta = data.improvement;
-      toast(delta != null && delta !== 0
-        ? `Readiness ${delta > 0 ? "up " : "down "}${Math.abs(delta)} to ${data.readiness_after}`
-        : "Check-in logged");
+      toast("Progress logged. Nice work.");
       // The agent reacts in chat with the outreach impact line.
       if (data.outreach_message) {
         setMessages(prev => [...prev, { role: "agent", content: data.outreach_message, time: now12h() }]);
@@ -594,6 +611,16 @@ export default function CcChat() {
   const pp = sidebarData?.primary_path;
   const dnaReady = !!(pp && pp.dna_id);
 
+  // "X% better than people in your industry" — uses the LLM-generated
+  // industry_percentile when present, otherwise derived from the readiness score.
+  function industryPct(): number {
+    const b = pp?.benchmark || {};
+    const fromDna = b.industry_percentile ?? pp?.industry_percentile;
+    if (typeof fromDna === "number" && fromDna > 0) return Math.min(99, Math.round(fromDna));
+    const r = pp?.readiness_score || 0;
+    return Math.min(95, Math.max(5, Math.round(r * 0.9)));
+  }
+
   function renderAnalysis(expanded: boolean) {
     if (!dnaReady) {
       return <div className="side-empty"><div className="se-icon">🧬</div>Your Career Analysis appears here once we have built your Career DNA. Keep chatting to get there.</div>;
@@ -601,7 +628,7 @@ export default function CcChat() {
     const b = pp.benchmark || {};
     const have: string[] = pp.skills_you_have || [];
     const sg = (gapData?.skills_gap) || [];
-    const readiness = pp.readiness_score || 0;
+    const pct = industryPct();
 
     if (expanded) {
       // Full-page Career Analysis: hero header + benchmark comparison grid.
@@ -612,10 +639,10 @@ export default function CcChat() {
             <h1 className="xp-hero-role">{pp.target_role || "Your target role"}</h1>
             <div className="xp-hero-meta">{pp.target_industry || ""}{pp.target_geography ? "  ·  " + pp.target_geography : ""}</div>
             <div className="xp-hero-score">
-              <div className="xp-ring"><span>{readiness}</span></div>
+              <div className="xp-ring"><span>{pct}%</span></div>
               <div className="xp-hero-score-text">
-                <div className="xp-hs-num">Readiness {readiness}/100</div>
-                <div className="xp-hs-sub">This is how ready your profile is for {pp.target_role || "this role"} right now.</div>
+                <div className="xp-hs-num">You are better than {pct}% of people in your industry</div>
+                <div className="xp-hs-sub">Replicate what the top performers do below and that number climbs.</div>
               </div>
             </div>
           </div>
@@ -655,15 +682,16 @@ export default function CcChat() {
           {sg.length > 0 && (
             <div className="xp-card">
               <div className="xp-card-title">Skill gaps for this role</div>
+              <div className="xp-muted" style={{ marginBottom: 10 }}>Hover any gap for how to close it.</div>
               {sg.map((g: any, i: number) => {
                 const prio = (g.priority || "medium").toLowerCase();
                 return (
-                  <div key={i} className="xp-gap">
+                  <div key={i} className="xp-gap gap-hover">
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                       <span className="xp-gap-skill">{g.skill || ""}</span>
                       <span className={`gi-prio ${prio}`}>{prio}</span>
                     </div>
-                    <div className="xp-gap-how">{g.how_to_build || ""}</div>
+                    <div className="gap-hover-detail xp-gap-how">{g.how_to_build || ""}</div>
                   </div>
                 );
               })}
@@ -686,6 +714,12 @@ export default function CcChat() {
           <div className="scard-title">Your Career DNA</div>
           <h3>{pp.target_role || "Your target role"}</h3>
           <div className="sub">{pp.target_industry || ""}{pp.target_geography ? " · " + pp.target_geography : ""}</div>
+          <div style={{ marginTop: 10, fontSize: "0.86rem", fontWeight: 700, lineHeight: 1.5 }}>
+            You are better than {pct}% of people in your industry.
+          </div>
+          <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: 3 }}>
+            Replicate the top performer skills below to push that higher.
+          </div>
         </div>
         {have.length > 0 && (
           <div className="scard">
@@ -740,28 +774,54 @@ export default function CcChat() {
     );
   }
 
+  // Tool label for a roadmap step. Only show a known, sensible tool name;
+  // an unrecognised value like a raw "outreach" string is dropped.
+  function toolLabel(linked: any): string | null {
+    if (!linked || typeof linked !== "string") return null;
+    const map: Record<string, string> = {
+      resume_maker: "Resume Maker",
+      outreach_dojo: "Outreach Dojo",
+      internship_dojo: "Internship Dojo",
+      reports: "Reports",
+    };
+    return map[linked] || null;
+  }
+
+  // Break a how-to string into bullet steps for the detailed hover.
+  function howSteps(how: string): string[] {
+    if (!how) return [];
+    return String(how)
+      .split(/(?:\n|(?<=[.;])\s+(?=[A-Z]))/)
+      .map(s => s.trim().replace(/^[-•*]\s*/, ""))
+      .filter(s => s.length > 3);
+  }
+
   function renderRoadmap(expanded: boolean) {
     const actions = (pp?.priority_actions) || [];
     if (!dnaReady || !actions.length) {
-      return <div className="side-empty"><div className="se-icon">🗺️</div>Your Roadmap appears here once your Career DNA is ready. It is the ordered set of moves that raise your readiness fastest.</div>;
+      return <div className="side-empty"><div className="se-icon">🗺️</div>Your Roadmap appears here once your Career DNA is ready. It is the ordered set of moves that get you ahead of your peers.</div>;
     }
 
+    const intentLine = "Remember, what sets you apart is not intent. Plenty of students want to work. The ones who get hired pair that intent with action, and action beats intent alone by miles.";
+
     if (expanded) {
-      // Full-page roadmap: a vertical timeline with every step fully expanded,
-      // no hover needed, all detail laid out in depth.
+      // Full-page roadmap: vertical timeline. Each step header is visible;
+      // hovering a step reveals the detailed, bulleted how-to-do-it.
       return (
         <div className="xp">
           <div className="xp-hero">
             <div className="xp-hero-label">Your Roadmap</div>
             <h1 className="xp-hero-role">The path to {pp.target_role || "your goal"}</h1>
-            <div className="xp-hero-meta">{actions.length} moves, ordered by how much they raise your readiness.</div>
+            <div className="xp-hero-meta">{actions.length} moves, ordered by impact. Hover any step for exactly how to do it.</div>
           </div>
+          <div className="xp-intent">{intentLine}</div>
           <div className="xp-timeline">
             {actions.map((a: any, i: number) => {
               const action = a.action || a.skill || (typeof a === "string" ? a : "");
               const why = a.why_it_matters || "";
               const how = a.how_to_close || a.how_to_build || "";
-              const linked = a.linked_tool;
+              const steps = howSteps(how);
+              const tool = toolLabel(a.linked_tool);
               const prio = (a.priority || "").toString().toLowerCase();
               return (
                 <div key={i} className="xp-tl-step">
@@ -769,28 +829,24 @@ export default function CcChat() {
                     <div className="xp-tl-num">{i + 1}</div>
                     {i < actions.length - 1 && <div className="xp-tl-line" />}
                   </div>
-                  <div className="xp-tl-body">
+                  <div className="xp-tl-body rm-hoverable">
                     <div className="xp-tl-head">
                       <span className="xp-tl-action">{action}</span>
                       {prio && <span className={`gi-prio ${prio === "high" || prio === "medium" || prio === "low" ? prio : "medium"}`}>{prio}</span>}
                     </div>
-                    {why && (
-                      <div className="xp-tl-block">
-                        <div className="xp-tl-block-label">Why this matters</div>
-                        <div className="xp-tl-block-text">{why}</div>
-                      </div>
-                    )}
-                    {how && (
-                      <div className="xp-tl-block">
-                        <div className="xp-tl-block-label">How to start</div>
-                        <div className="xp-tl-block-text">{how}</div>
-                      </div>
-                    )}
-                    {linked && (
-                      <div className="xp-tl-tool">
-                        Tool that helps: <strong>{linked === "resume_maker" ? "Resume Maker" : linked === "outreach_dojo" ? "Outreach Dojo" : linked}</strong>
-                      </div>
-                    )}
+                    {why && <div className="xp-tl-block-text" style={{ marginTop: 4 }}>{why}</div>}
+                    <div className="rm-hint">Hover for the step-by-step</div>
+                    <div className="rm-deep">
+                      {steps.length > 0 && (
+                        <div className="xp-tl-block">
+                          <div className="xp-tl-block-label">How to actually do this</div>
+                          <ul>{steps.map((s, si) => <li key={si}>{s}</li>)}</ul>
+                        </div>
+                      )}
+                      {tool && (
+                        <div className="xp-tl-tool">Tool that helps: <strong>{tool}</strong></div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -807,13 +863,14 @@ export default function CcChat() {
       <>
         <div className="scard">
           <div className="scard-title">Your roadmap</div>
-          <div className="sub">The moves that raise your readiness fastest, in order. Hover any step for the detail.</div>
+          <div className="sub">The moves that get you ahead of your peers, in order. Hover any step for the detail.</div>
         </div>
+        <div className="rm-intent">{intentLine}</div>
         {actions.map((a: any, i: number) => {
           const action = a.action || a.skill || (typeof a === "string" ? a : "");
           const why = a.why_it_matters || "";
           const how = a.how_to_close || a.how_to_build || "";
-          const linked = a.linked_tool;
+          const tool = toolLabel(a.linked_tool);
           return (
             <div key={i} className="rm-step">
               <div className="rm-step-head">
@@ -828,7 +885,7 @@ export default function CcChat() {
                   {why && <li><strong>Why it matters:</strong> {why}</li>}
                   {how && <li><strong>How to start:</strong> {how}</li>}
                   {a.priority && <li><strong>Priority:</strong> {String(a.priority)}</li>}
-                  {linked && <li><strong>Tool that helps:</strong> {linked === "resume_maker" ? "Resume Maker" : linked === "outreach_dojo" ? "Outreach Dojo" : linked}</li>}
+                  {tool && <li><strong>Tool that helps:</strong> {tool}</li>}
                 </ul>
               </div>
             </div>
@@ -839,9 +896,29 @@ export default function CcChat() {
     );
   }
 
+  // The four Studojo tools, shown as small buttons on the dashboard.
+  const TOOL_LINKS = [
+    { label: "Resume Maker", href: "https://studojo.com/dojos/careers", icon: "📄" },
+    { label: "Outreach Dojo", href: "https://studojo.com/outreach", icon: "✉️" },
+    { label: "Internship Dojo", href: "https://studojo.com/dojos/internships", icon: "🎯" },
+    { label: "Reports", href: "https://studojo.com/reports", icon: "📊" },
+  ];
+
+  function toolButtons() {
+    return (
+      <div className="tool-btn-grid">
+        {TOOL_LINKS.map(t => (
+          <a key={t.label} className="tool-btn" href={t.href} target="_blank" rel="noopener noreferrer">
+            <span className="tool-btn-icon">{t.icon}</span>{t.label}
+          </a>
+        ))}
+      </div>
+    );
+  }
+
   function renderDashboard(expanded: boolean) {
     if (!dnaReady) {
-      return <div className="side-empty"><div className="se-icon">📊</div>Your Dashboard appears here once your Career DNA is ready. It tracks your readiness over time and your weekly check-ins.</div>;
+      return <div className="side-empty"><div className="se-icon">📊</div>Your Dashboard appears here once your Career DNA is ready. It tracks your progress and the tasks that move you forward.</div>;
     }
     const sh = sidebarData.score_history || {};
     const student = sidebarData.student || {};
@@ -851,89 +928,124 @@ export default function CcChat() {
 
     const dailyItems = daily.map((t, i) => ({ label: t.label, type: t.type || "skill", key: "d" + i }));
     const weeklyItem = weekly ? { label: weekly.label, type: weekly.type || "skill", key: "w0" } : null;
-    const readiness = pp.readiness_score || 0;
-    const maxHist = Math.max(100, ...hist.map((h: any) => h.score || 0));
+    const pct = industryPct();
+    const totalTasks = dailyItems.length + (weeklyItem ? 1 : 0);
+    const doneTasks = [...dailyItems, ...(weeklyItem ? [weeklyItem] : [])].filter(it => taskBoxes[it.key]).length;
+    const progressPct = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
+    const sessions = student.session_count || 1;
 
-    const dailyBlock = (
-      <div className={expanded ? "xp-card" : "checkin-card"}>
-        <div style={{ fontSize: expanded ? "1rem" : "0.9rem", fontWeight: 800, marginBottom: 2 }}>Today's tasks</div>
-        <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)", marginBottom: 8 }}>
-          Small moves you can finish today. They refresh daily.
+    // A roadmap step is a tracked milestone; mark how far through the student is.
+    const milestones = (pp.priority_actions || []).map((a: any, i: number) => ({
+      label: a.action || a.skill || ("Step " + (i + 1)),
+      done: !!a.completed,
+    }));
+    const milestonesDone = milestones.filter((m: any) => m.done).length;
+
+    // PROGRESS TRACKER — the core of the dashboard. Bars and milestones, not boxes.
+    const tracker = (
+      <>
+        <div className={expanded ? "xp-card" : "scard"}>
+          <div className={expanded ? "xp-card-title" : "scard-title"}>Today's progress</div>
+          <div className="trk-row">
+            <div className="trk-bar-track"><div className="trk-bar-fill" style={{ width: `${progressPct}%` }} /></div>
+            <div className="trk-pct">{progressPct}%</div>
+          </div>
+          <div className="trk-sub">{doneTasks} of {totalTasks} tasks ticked. Tick what you have done, then log it below.</div>
+          {dailyItems.length === 0 && <div className="trk-sub">Loading your tasks...</div>}
+          {dailyItems.map(it => (
+            <label key={it.key} className="task-item">
+              <input type="checkbox" checked={!!taskBoxes[it.key]}
+                onChange={e => setTaskBoxes(prev => ({ ...prev, [it.key]: e.target.checked }))} />
+              <span>{it.label}</span>
+            </label>
+          ))}
+          {dailyItems.length > 0 && (
+            <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("daily", dailyItems)}>
+                {checkInSaving ? "Saving..." : "Log today's progress"}
+              </button>
+              <button className="btn-ghost" style={{ width: "auto", padding: "8px 14px" }}
+                onClick={() => sendMsg("These tasks feel too hard for me right now.")}>
+                Too hard? Get easier ones
+              </button>
+            </div>
+          )}
         </div>
-        {dailyItems.length === 0 && <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Loading your tasks...</div>}
-        {dailyItems.map(it => (
-          <label key={it.key} className="task-item">
-            <input type="checkbox" checked={!!taskBoxes[it.key]}
-              onChange={e => setTaskBoxes(prev => ({ ...prev, [it.key]: e.target.checked }))} />
-            <span>{it.label}</span>
-          </label>
-        ))}
-        {dailyItems.length > 0 && (
-          <div style={{ marginTop: 10 }}>
-            <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("daily", dailyItems)}>
-              {checkInSaving ? "Saving..." : "Log daily check-in"}
-            </button>
+
+        {weeklyItem && (
+          <div className={expanded ? "xp-card xp-weekly" : "task-weekly"}>
+            <div className="tw-label">This week's milestone</div>
+            <label className="task-item" style={{ borderBottom: "none", paddingBottom: 0 }}>
+              <input type="checkbox" checked={!!taskBoxes[weeklyItem.key]}
+                onChange={e => setTaskBoxes(prev => ({ ...prev, [weeklyItem.key]: e.target.checked }))} />
+              <span>{weeklyItem.label}</span>
+            </label>
+            <div style={{ marginTop: 8 }}>
+              <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("weekly", [weeklyItem])}>
+                {checkInSaving ? "Saving..." : "Log weekly milestone"}
+              </button>
+            </div>
           </div>
         )}
-      </div>
-    );
 
-    const weeklyBlock = weeklyItem && (
-      <div className={expanded ? "xp-card xp-weekly" : "task-weekly"}>
-        <div className="tw-label">This week's big task</div>
-        <label className="task-item" style={{ borderBottom: "none", paddingBottom: 0 }}>
-          <input type="checkbox" checked={!!taskBoxes[weeklyItem.key]}
-            onChange={e => setTaskBoxes(prev => ({ ...prev, [weeklyItem.key]: e.target.checked }))} />
-          <span>{weeklyItem.label}</span>
-        </label>
-        <div style={{ marginTop: 8 }}>
-          <button className="btn-sm" disabled={checkInSaving} onClick={() => submitCheckIn("weekly", [weeklyItem])}>
-            {checkInSaving ? "Saving..." : "Log weekly check-in"}
-          </button>
-        </div>
-      </div>
+        {milestones.length > 0 && (
+          <div className={expanded ? "xp-card" : "scard"}>
+            <div className={expanded ? "xp-card-title" : "scard-title"}>Roadmap milestones</div>
+            <div className="trk-sub" style={{ marginBottom: 8 }}>{milestonesDone} of {milestones.length} roadmap steps complete</div>
+            {milestones.map((m: any, i: number) => (
+              <div key={i} className="trk-milestone">
+                <span className={`trk-dot${m.done ? " done" : ""}`}>{m.done ? "✓" : i + 1}</span>
+                <span style={{ opacity: m.done ? 0.6 : 1, textDecoration: m.done ? "line-through" : "none" }}>{m.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </>
     );
 
     if (expanded) {
-      // Full-page dashboard: big readiness banner, stat row, a bar-chart
-      // history, and the tasks laid out side by side.
       return (
         <div className="xp">
           <div className="xp-dash-banner">
             <div>
-              <div className="xp-hero-label">Dashboard</div>
+              <div className="xp-hero-label">Progress Tracker</div>
               <div className="xp-dash-name">{student.name ? `${student.name}'s progress` : "Your progress"}</div>
               <div className="xp-hero-meta">Toward {pp.target_role || "your target role"}</div>
             </div>
-            <div className="xp-dash-ring"><span>{readiness}</span><small>readiness</small></div>
+            <div className="xp-dash-ring"><span>{pct}%</span><small>ahead of peers</small></div>
           </div>
 
           <div className="xp-statrow">
-            <div className="xp-stat"><div className="xp-stat-num">{readiness}</div><div className="xp-stat-label">Readiness score</div></div>
-            <div className="xp-stat"><div className="xp-stat-num">{student.session_count || 1}</div><div className="xp-stat-label">Coaching sessions</div></div>
-            <div className="xp-stat"><div className="xp-stat-num">{sh.improvement_total != null ? (sh.improvement_total >= 0 ? "+" : "") + sh.improvement_total : "0"}</div><div className="xp-stat-label">Readiness change</div></div>
-            <div className="xp-stat"><div className="xp-stat-num">{dailyItems.length + (weeklyItem ? 1 : 0)}</div><div className="xp-stat-label">Open tasks</div></div>
+            <div className="xp-stat"><div className="xp-stat-num">{pct}%</div><div className="xp-stat-label">Better than your industry</div></div>
+            <div className="xp-stat"><div className="xp-stat-num">{milestonesDone}/{milestones.length || 0}</div><div className="xp-stat-label">Roadmap steps done</div></div>
+            <div className="xp-stat"><div className="xp-stat-num">{sessions}</div><div className="xp-stat-label">Coaching sessions</div></div>
+            <div className="xp-stat"><div className="xp-stat-num">{totalTasks}</div><div className="xp-stat-label">Tasks this cycle</div></div>
           </div>
 
           {hist.length > 1 && (
             <div className="xp-card">
-              <div className="xp-card-title">Readiness over time</div>
+              <div className="xp-card-title">Your climb over time</div>
               <div className="xp-chart">
-                {hist.slice(-8).map((h: any, i: number) => (
-                  <div key={i} className="xp-bar-col">
-                    <div className="xp-bar" style={{ height: `${Math.round(((h.score || 0) / maxHist) * 100)}%` }}>
-                      <span className="xp-bar-val">{h.score}</span>
+                {hist.slice(-8).map((h: any, i: number) => {
+                  const v = Math.min(95, Math.round((h.score || 0) * 0.9));
+                  return (
+                    <div key={i} className="xp-bar-col">
+                      <div className="xp-bar" style={{ height: `${v}%` }}>
+                        <span className="xp-bar-val">{v}%</span>
+                      </div>
+                      <div className="xp-bar-date">{(h.date || "").slice(5, 10)}</div>
                     </div>
-                    <div className="xp-bar-date">{(h.date || "").slice(5, 10)}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
-          <div className="xp-grid2">
-            {dailyBlock}
-            {weeklyBlock}
+          {tracker}
+
+          <div className="xp-card">
+            <div className="xp-card-title">Tools to move faster</div>
+            {toolButtons()}
           </div>
         </div>
       );
@@ -942,24 +1054,16 @@ export default function CcChat() {
     return (
       <>
         <div className="stat-grid">
-          <div className="stat-box"><div className="sb-num">{readiness}</div><div className="sb-label">Readiness score</div></div>
-          <div className="stat-box"><div className="sb-num">{student.session_count || 1}</div><div className="sb-label">Sessions</div></div>
-          <div className="stat-box"><div className="sb-num">{sh.improvement_total != null ? (sh.improvement_total >= 0 ? "+" : "") + sh.improvement_total : "0"}</div><div className="sb-label">Readiness change</div></div>
-          <div className="stat-box"><div className="sb-num">{dailyItems.length + (weeklyItem ? 1 : 0)}</div><div className="sb-label">Open tasks</div></div>
+          <div className="stat-box"><div className="sb-num">{pct}%</div><div className="sb-label">Better than your industry</div></div>
+          <div className="stat-box"><div className="sb-num">{milestonesDone}/{milestones.length || 0}</div><div className="sb-label">Roadmap steps done</div></div>
+          <div className="stat-box"><div className="sb-num">{sessions}</div><div className="sb-label">Sessions</div></div>
+          <div className="stat-box"><div className="sb-num">{totalTasks}</div><div className="sb-label">Tasks this cycle</div></div>
         </div>
-        {dailyBlock}
-        {weeklyBlock}
-        {hist.length > 1 && (
-          <div className="scard">
-            <div className="scard-title">Readiness over time</div>
-            {hist.slice(-6).map((h: any, i: number) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "5px 0", borderBottom: "1px solid var(--border-light)" }}>
-                <span style={{ color: "var(--text-muted)" }}>{(h.date || "").slice(0, 10)}</span>
-                <span style={{ fontWeight: 700 }}>{h.score}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        {tracker}
+        <div className="scard">
+          <div className="scard-title">Tools to move faster</div>
+          {toolButtons()}
+        </div>
       </>
     );
   }
