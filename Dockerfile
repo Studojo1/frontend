@@ -16,13 +16,19 @@ RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
-# One-off stage: run auth migrations (user, session, etc.). Non-interactive; no push prompts.
+# One-off stage: apply pending schema migrations.
+# Built and pushed as `frontend-migrate:<sha>` by deploy.yml. The deploy
+# workflow runs this image as a Kubernetes Job before promoting the new
+# frontend image, so any SQL failure blocks the rollout.
 FROM build-env AS db-push
 WORKDIR /src
-# Install postgresql-client to run migrations
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
-# Run migrations using psql in sorted order
-CMD ["sh", "-c", "for file in $(ls -1 drizzle/*.sql | sort); do echo \"Running migration: $file\"; psql $DATABASE_URL -f \"$file\" || exit 1; done"]
+RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client && rm -rf /var/lib/apt/lists/*
+# scripts/migrate.sh tracks applied files in a schema_migrations table so each
+# migration runs exactly once across deploys.
+COPY scripts/migrate.sh /usr/local/bin/migrate.sh
+RUN chmod +x /usr/local/bin/migrate.sh
+ENV MIGRATIONS_DIR=/src/drizzle
+CMD ["/usr/local/bin/migrate.sh"]
 
 # Final runtime stage
 FROM node:20-bookworm-slim

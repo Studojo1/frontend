@@ -50,8 +50,95 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache,mode=max
 
-  deploy:
+      - name: Build and push migrate image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          target: db-push
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.APP_NAME }}-migrate:${{ env.IMAGE_TAG }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache,mode=max
+
+  migrate:
     needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "latest"
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials \
+            --resource-group rg-studojo \
+            --name studojo-aks \
+            --overwrite-existing
+
+      - name: Apply schema migrations
+        env:
+          JOB_NAME: frontend-migrate-${{ github.run_id }}
+          IMAGE: ${{ env.REGISTRY }}/${{ env.APP_NAME }}-migrate:${{ env.IMAGE_TAG }}
+        run: |
+          set -euo pipefail
+          echo "Running migration job: $JOB_NAME"
+          echo "Image: $IMAGE"
+
+          # Substitute placeholders and submit the Job.
+          sed \
+            -e "s|__JOB_NAME__|$JOB_NAME|g" \
+            -e "s|__NAMESPACE__|${{ env.NAMESPACE }}|g" \
+            -e "s|__IMAGE__|$IMAGE|g" \
+            k8s/migrate-job.yaml | kubectl apply -f -
+
+          # Poll the Job until it reaches a terminal state. We can't just use
+          # `kubectl wait --for=condition=complete` because that returns
+          # non-zero on timeout AND on failure with identical semantics, and
+          # we want to surface failure logs distinctly.
+          deadline=$(( $(date +%s) + 900 ))
+          while [ $(date +%s) -lt $deadline ]; do
+            succeeded=$(kubectl get job "$JOB_NAME" -n ${{ env.NAMESPACE }} -o jsonpath='{.status.succeeded}' 2>/dev/null || true)
+            failed=$(kubectl get job "$JOB_NAME" -n ${{ env.NAMESPACE }} -o jsonpath='{.status.failed}' 2>/dev/null || true)
+
+            if [ "$succeeded" = "1" ]; then
+              echo "::group::Migration logs"
+              kubectl logs "job/$JOB_NAME" -n ${{ env.NAMESPACE }} --tail=500 || true
+              echo "::endgroup::"
+              echo "Migrations succeeded."
+              exit 0
+            fi
+
+            if [ -n "$failed" ] && [ "$failed" != "0" ]; then
+              echo "::error::Migration job failed (failed=$failed). Deploy will not proceed."
+              echo "::group::Migration logs"
+              kubectl logs "job/$JOB_NAME" -n ${{ env.NAMESPACE }} --tail=500 || true
+              echo "::endgroup::"
+              exit 1
+            fi
+
+            sleep 5
+          done
+
+          echo "::error::Migration job did not finish within 15 minutes."
+          echo "::group::Migration logs (timeout)"
+          kubectl logs "job/$JOB_NAME" -n ${{ env.NAMESPACE }} --tail=500 || true
+          echo "::endgroup::"
+          exit 1
+
+  deploy:
+    needs: migrate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
