@@ -507,6 +507,29 @@ export const internshipApplications = pgTable(
   ],
 );
 
+// One row per file a candidate has uploaded for an internship application.
+// Powers the "use a previous resume" picker on the apply flow and acts as the
+// ownership-check source of truth when the apply endpoint receives a URL.
+export const applicationResumeUploads = pgTable(
+  "application_resume_uploads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    contentType: text("content_type").notNull(),
+    name: text("name").notNull(),
+    sizeBytes: integer("size_bytes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastUsedAt: timestamp("last_used_at").defaultNow().notNull(),
+  },
+  (table) => [
+    unique("application_resume_uploads_user_url_unique").on(table.userId, table.url),
+    index("application_resume_uploads_user_last_used_idx").on(table.userId, table.lastUsedAt),
+  ],
+);
+
 // Company tokens table for managing company access
 export const companyTokens = pgTable(
   "company_tokens",

@@ -8,7 +8,16 @@ interface UploadedResume {
   url: string;
   contentType: string;
   name: string;
-  size: number;
+  size?: number;
+}
+
+interface PreviousResume {
+  id: string;
+  url: string;
+  contentType: string;
+  name: string;
+  sizeBytes: number | null;
+  lastUsedAt: string;
 }
 
 interface ApplicationFlowProps {
@@ -35,11 +44,38 @@ export function ApplicationFlow({
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [resume, setResume] = useState<UploadedResume | null>(null);
+  const [previousResumes, setPreviousResumes] = useState<PreviousResume[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    loadQuestions().finally(() => setLoading(false));
+    Promise.all([loadQuestions(), loadPreviousResumes({ preselect: true })]).finally(() =>
+      setLoading(false),
+    );
   }, []);
+
+  const loadPreviousResumes = async ({ preselect = false }: { preselect?: boolean } = {}) => {
+    try {
+      const res = await fetch("/api/user/resume-uploads");
+      if (!res.ok) return;
+      const data = await res.json();
+      const uploads: PreviousResume[] = data.uploads || [];
+      setPreviousResumes(uploads);
+      // On first open, pre-select the most recently used resume so the
+      // candidate can submit immediately. On post-upload refreshes we leave
+      // the current selection alone — the upload handler already set it.
+      if (preselect && uploads.length > 0) {
+        const latest = uploads[0];
+        setResume({
+          url: latest.url,
+          contentType: latest.contentType,
+          name: latest.name,
+          size: latest.sizeBytes ?? undefined,
+        });
+      }
+    } catch (error) {
+      console.error("Error loading previous resumes:", error);
+    }
+  };
 
   const loadQuestions = async () => {
     try {
@@ -165,6 +201,9 @@ export function ApplicationFlow({
         name: data.name,
         size: file.size,
       });
+      // Refresh the picker so the new upload appears (and bubbles to the top)
+      // for the next time this user opens the apply flow.
+      loadPreviousResumes().catch(() => {});
     } catch (error: any) {
       toast.error(error.message || "Failed to upload resume");
       console.error(error);
@@ -172,6 +211,15 @@ export function ApplicationFlow({
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handlePickPrevious = (prev: PreviousResume) => {
+    setResume({
+      url: prev.url,
+      contentType: prev.contentType,
+      name: prev.name,
+      size: prev.sizeBytes ?? undefined,
+    });
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,10 +296,28 @@ export function ApplicationFlow({
     }
   };
 
-  const formatSize = (bytes: number) => {
+  const formatSize = (bytes: number | undefined) => {
+    if (bytes == null) return "PDF";
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const formatRelative = (iso: string) => {
+    const then = new Date(iso).getTime();
+    if (Number.isNaN(then)) return "earlier";
+    const seconds = Math.floor((Date.now() - then) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hr ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days} ${days === 1 ? "day" : "days"} ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months} ${months === 1 ? "month" : "months"} ago`;
+    const years = Math.floor(days / 365);
+    return `${years} ${years === 1 ? "year" : "years"} ago`;
   };
 
   return (
@@ -369,54 +435,97 @@ export function ApplicationFlow({
                       className="flex flex-shrink-0 items-center gap-1 rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 font-['Satoshi'] text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-100 disabled:opacity-50"
                     >
                       <FiTrash2 className="h-4 w-4" />
-                      Remove
+                      Change
                     </button>
                   </div>
                 ) : (
-                  <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed py-10 transition-colors ${
-                      uploading
-                        ? "border-violet-400 bg-violet-50 cursor-not-allowed"
-                        : isDragging
-                          ? "border-violet-500 bg-violet-50 scale-[1.02]"
-                          : "border-gray-300 bg-gray-50 hover:border-violet-400 hover:bg-violet-50"
-                    }`}
-                  >
-                    {uploading ? (
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="flex gap-1">
-                          {[0, 1, 2].map((i) => (
-                            <span
-                              key={i}
-                              className="h-2 w-2 rounded-full bg-violet-500 animate-bounce"
-                              style={{ animationDelay: `${i * 0.15}s` }}
-                            />
+                  <>
+                    {previousResumes.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="font-['Satoshi'] text-xs font-medium uppercase tracking-wide text-gray-600">
+                          Use a previous resume
+                        </p>
+                        <div className="space-y-2">
+                          {previousResumes.map((prev) => (
+                            <button
+                              key={prev.id}
+                              type="button"
+                              onClick={() => handlePickPrevious(prev)}
+                              disabled={uploading || submitting}
+                              className="flex w-full items-center gap-3 rounded-lg border-2 border-neutral-900 bg-white px-4 py-3 text-left transition-colors hover:bg-violet-50 disabled:opacity-50"
+                            >
+                              <FiFileText className="h-5 w-5 flex-shrink-0 text-violet-700" />
+                              <div className="min-w-0 flex-1">
+                                <p className="font-['Satoshi'] font-medium text-neutral-900 truncate">
+                                  {prev.name}
+                                </p>
+                                <p className="font-['Satoshi'] text-xs text-gray-600">
+                                  {prev.sizeBytes ? `${formatSize(prev.sizeBytes)} · ` : ""}
+                                  Last used {formatRelative(prev.lastUsedAt)}
+                                </p>
+                              </div>
+                              <span className="flex-shrink-0 rounded-lg border-2 border-neutral-900 bg-violet-600 px-3 py-1 font-['Satoshi'] text-xs font-bold text-white">
+                                Use
+                              </span>
+                            </button>
                           ))}
                         </div>
-                        <p className="font-['Satoshi'] text-sm font-medium text-violet-600">
-                          Uploading...
-                        </p>
+
+                        <div className="flex items-center gap-3 py-1">
+                          <div className="h-px flex-1 bg-gray-200" />
+                          <span className="font-['Satoshi'] text-xs text-gray-500">
+                            or upload a new one
+                          </span>
+                          <div className="h-px flex-1 bg-gray-200" />
+                        </div>
                       </div>
-                    ) : (
-                      <label
-                        htmlFor="apply-pdf-upload"
-                        className="flex cursor-pointer flex-col items-center gap-3"
-                      >
-                        <FiUpload className="h-7 w-7 text-gray-400" />
-                        <div className="text-center">
-                          <p className="font-['Satoshi'] text-sm font-medium text-neutral-900">
-                            {isDragging ? "Drop your PDF here" : "Click to upload or drag and drop"}
-                          </p>
-                          <p className="mt-1 font-['Satoshi'] text-xs text-gray-500">
-                            PDF only · Max 10MB
+                    )}
+
+                    <div
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed py-10 transition-colors ${
+                        uploading
+                          ? "border-violet-400 bg-violet-50 cursor-not-allowed"
+                          : isDragging
+                            ? "border-violet-500 bg-violet-50 scale-[1.02]"
+                            : "border-gray-300 bg-gray-50 hover:border-violet-400 hover:bg-violet-50"
+                      }`}
+                    >
+                      {uploading ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="flex gap-1">
+                            {[0, 1, 2].map((i) => (
+                              <span
+                                key={i}
+                                className="h-2 w-2 rounded-full bg-violet-500 animate-bounce"
+                                style={{ animationDelay: `${i * 0.15}s` }}
+                              />
+                            ))}
+                          </div>
+                          <p className="font-['Satoshi'] text-sm font-medium text-violet-600">
+                            Uploading...
                           </p>
                         </div>
-                      </label>
-                    )}
-                  </div>
+                      ) : (
+                        <label
+                          htmlFor="apply-pdf-upload"
+                          className="flex cursor-pointer flex-col items-center gap-3"
+                        >
+                          <FiUpload className="h-7 w-7 text-gray-400" />
+                          <div className="text-center">
+                            <p className="font-['Satoshi'] text-sm font-medium text-neutral-900">
+                              {isDragging ? "Drop your PDF here" : "Click to upload or drag and drop"}
+                            </p>
+                            <p className="mt-1 font-['Satoshi'] text-xs text-gray-500">
+                              PDF only · Max 10MB
+                            </p>
+                          </div>
+                        </label>
+                      )}
+                    </div>
+                  </>
                 )}
 
                 <p className="font-['Satoshi'] text-xs text-gray-500">
