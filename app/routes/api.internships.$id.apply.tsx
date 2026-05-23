@@ -143,6 +143,18 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     resolvedResumeId = resume.id;
     resolvedResumeSnapshot = resume.resumeData;
+
+    // If the resume was created by importing a PDF (migration 0024), inherit
+    // its original-file pointer onto the application row so the ops dashboard
+    // can serve the candidate's actual upload. Skipped for builder-from-scratch
+    // resumes where these columns are NULL.
+    if (!resolvedOriginalFile && resume.originalFileUrl && resume.originalFileContentType && resume.originalFileName) {
+      resolvedOriginalFile = {
+        url: resume.originalFileUrl,
+        contentType: resume.originalFileContentType,
+        name: resume.originalFileName,
+      };
+    }
   }
 
   // Check if user has already applied

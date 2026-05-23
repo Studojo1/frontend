@@ -227,13 +227,19 @@ export function ApplicationFlow({
     return finalName;
   };
 
-  const handleResumeImport = async (resumeData: any) => {
+  const handleResumeImport = async (
+    resumeData: any,
+    originalFile?: { url: string; contentType: string; name: string } | null,
+  ) => {
     try {
       const name = generateSmartResumeName(resumeData, resumes);
       const res = await fetch("/api/resumes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, resumeData }),
+        // originalFile carries the blob URL of the uploaded PDF (when the import
+        // started from a real file); the apply endpoint will copy it onto the
+        // application row so ops can serve the original instead of a re-render.
+        body: JSON.stringify({ name, resumeData, originalFile: originalFile ?? undefined }),
       });
 
       if (!res.ok) {
