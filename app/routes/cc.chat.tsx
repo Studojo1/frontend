@@ -235,18 +235,18 @@ const CSS = `
 .xp-bar-val{position:absolute;top:-16px;font-size:0.68rem;font-weight:800;color:var(--text-primary);}
 .xp-bar-date{font-size:0.62rem;color:var(--text-muted);margin-top:5px;}
 .xp-weekly{border-color:var(--accent-purple);background:var(--accent-light);}
-/* skill-gap hover-reveal (expanded career analysis) */
-.gap-hover .gap-hover-detail{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.25s ease,opacity 0.2s ease,margin 0.25s ease;}
-.gap-hover{cursor:pointer;}
-.gap-hover:hover .gap-hover-detail{max-height:200px;opacity:1;margin-top:6px;}
+/* skill-gap click-to-expand (expanded career analysis) */
+.gap-clickable{cursor:pointer;transition:border-color 0.15s ease,background 0.15s ease;}
+.gap-clickable:hover{border-color:var(--accent-purple);}
+.gap-clickable.open{border-color:var(--accent-purple);background:var(--accent-light);}
+.gap-chevron{color:var(--accent-purple);font-size:0.95rem;font-weight:800;display:inline-block;min-width:14px;text-align:center;}
 /* roadmap intent line */
 .rm-intent,.xp-intent{border:2px solid var(--accent-purple);border-radius:14px;background:var(--accent-light);padding:14px 16px;margin-bottom:14px;font-size:0.86rem;line-height:1.6;font-weight:600;color:var(--text-primary);}
 .xp-intent{font-size:0.95rem;padding:18px 20px;margin-bottom:20px;}
-/* expanded roadmap deep hover */
-.rm-hoverable{cursor:pointer;}
-.rm-deep{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.3s ease,opacity 0.25s ease,margin 0.3s ease;}
-.rm-hoverable:hover .rm-deep{max-height:520px;opacity:1;margin-top:10px;}
-.rm-hoverable:hover .rm-hint{display:none;}
+/* expanded roadmap click-to-expand */
+.rm-clickable{cursor:pointer;transition:box-shadow 0.18s ease,transform 0.18s ease,border-color 0.15s ease;}
+.rm-clickable:hover{box-shadow:5px 5px 0 var(--accent-purple);transform:translateY(-1px);}
+.rm-clickable.open{box-shadow:5px 5px 0 var(--accent-purple);border-color:var(--accent-purple);}
 /* dashboard progress tracker */
 .trk-row{display:flex;align-items:center;gap:12px;margin:4px 0 6px;}
 .trk-bar-track{flex:1;height:14px;background:var(--bg-secondary);border:2px solid var(--border);border-radius:999px;overflow:hidden;}
@@ -303,6 +303,9 @@ export default function CcChat() {
   const [gapData, setGapData] = useState<any>(null);
   const [tasks, setTasks] = useState<{ daily: any[]; weekly: any } | null>(null);
   const [taskBoxes, setTaskBoxes] = useState<Record<string, boolean>>({});
+  // tracks which Career-Analysis skill gap / Roadmap step is currently expanded
+  const [openGap, setOpenGap] = useState<number | null>(null);
+  const [openStep, setOpenStep] = useState<number | null>(null);
   const [checkInSaving, setCheckInSaving] = useState(false);
 
   // analysis-ready popup
@@ -682,16 +685,23 @@ export default function CcChat() {
           {sg.length > 0 && (
             <div className="xp-card">
               <div className="xp-card-title">Skill gaps for this role</div>
-              <div className="xp-muted" style={{ marginBottom: 10 }}>Hover any gap for how to close it.</div>
+              <div className="xp-muted" style={{ marginBottom: 10 }}>Tap any gap to see how to close it.</div>
               {sg.map((g: any, i: number) => {
                 const prio = (g.priority || "medium").toLowerCase();
+                const isOpen = openGap === i;
                 return (
-                  <div key={i} className="xp-gap gap-hover">
+                  <div key={i} className={`xp-gap gap-clickable${isOpen ? " open" : ""}`}
+                    onClick={() => setOpenGap(isOpen ? null : i)}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
                       <span className="xp-gap-skill">{g.skill || ""}</span>
-                      <span className={`gi-prio ${prio}`}>{prio}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span className={`gi-prio ${prio}`}>{prio}</span>
+                        <span className="gap-chevron">{isOpen ? "▾" : "▸"}</span>
+                      </span>
                     </div>
-                    <div className="gap-hover-detail xp-gap-how">{g.how_to_build || ""}</div>
+                    {isOpen && (
+                      <div className="xp-gap-how" style={{ marginTop: 8 }}>{g.how_to_build || ""}</div>
+                    )}
                   </div>
                 );
               })}
@@ -812,7 +822,7 @@ export default function CcChat() {
           <div className="xp-hero">
             <div className="xp-hero-label">Your Roadmap</div>
             <h1 className="xp-hero-role">The path to {pp.target_role || "your goal"}</h1>
-            <div className="xp-hero-meta">{actions.length} moves, ordered by impact. Hover any step for exactly how to do it.</div>
+            <div className="xp-hero-meta">{actions.length} moves, ordered by impact. Tap any step for exactly how to do it.</div>
           </div>
           <div className="xp-intent">{intentLine}</div>
           <div className="xp-timeline">
@@ -823,30 +833,42 @@ export default function CcChat() {
               const steps = howSteps(how);
               const tool = toolLabel(a.linked_tool);
               const prio = (a.priority || "").toString().toLowerCase();
+              const isOpen = openStep === i;
               return (
                 <div key={i} className="xp-tl-step">
                   <div className="xp-tl-rail">
                     <div className="xp-tl-num">{i + 1}</div>
                     {i < actions.length - 1 && <div className="xp-tl-line" />}
                   </div>
-                  <div className="xp-tl-body rm-hoverable">
+                  <div className={`xp-tl-body rm-clickable${isOpen ? " open" : ""}`}
+                    onClick={() => setOpenStep(isOpen ? null : i)}>
                     <div className="xp-tl-head">
                       <span className="xp-tl-action">{action}</span>
-                      {prio && <span className={`gi-prio ${prio === "high" || prio === "medium" || prio === "low" ? prio : "medium"}`}>{prio}</span>}
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {prio && <span className={`gi-prio ${prio === "high" || prio === "medium" || prio === "low" ? prio : "medium"}`}>{prio}</span>}
+                        <span className="gap-chevron">{isOpen ? "▾" : "▸"}</span>
+                      </span>
                     </div>
                     {why && <div className="xp-tl-block-text" style={{ marginTop: 4 }}>{why}</div>}
-                    <div className="rm-hint">Hover for the step-by-step</div>
-                    <div className="rm-deep">
-                      {steps.length > 0 && (
-                        <div className="xp-tl-block">
-                          <div className="xp-tl-block-label">How to actually do this</div>
-                          <ul>{steps.map((s, si) => <li key={si}>{s}</li>)}</ul>
-                        </div>
-                      )}
-                      {tool && (
-                        <div className="xp-tl-tool">Tool that helps: <strong>{tool}</strong></div>
-                      )}
-                    </div>
+                    {!isOpen && <div className="rm-hint">Tap for the step-by-step</div>}
+                    {isOpen && (
+                      <div style={{ marginTop: 10 }}>
+                        {steps.length > 0 ? (
+                          <div className="xp-tl-block">
+                            <div className="xp-tl-block-label">How to actually do this</div>
+                            <ul>{steps.map((s, si) => <li key={si}>{s}</li>)}</ul>
+                          </div>
+                        ) : how ? (
+                          <div className="xp-tl-block">
+                            <div className="xp-tl-block-label">How to actually do this</div>
+                            <div className="xp-tl-block-text">{how}</div>
+                          </div>
+                        ) : null}
+                        {tool && (
+                          <div className="xp-tl-tool">Tool that helps: <strong>{tool}</strong></div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
