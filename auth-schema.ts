@@ -473,6 +473,12 @@ export const internshipApplications = pgTable(
     resumeId: uuid("resume_id")
       .references(() => resumes.id, { onDelete: "restrict" }),
     resumeSnapshot: jsonb("resume_snapshot").notNull(), // Locked resume data
+    // Direct-upload applicants: preserved copy of the original file so ops can
+    // view exactly what the candidate sent rather than a parsed re-render.
+    // Null for legacy rows and for Studojo-builder applicants who didn't upload.
+    resumeFileUrl: text("resume_file_url"),
+    resumeFileContentType: text("resume_file_content_type"),
+    resumeFileName: text("resume_file_name"),
     status: text("status").default("pending").notNull(), // 'pending', 'shortlisted', 'rejected', 'forwarded', 'accepted', 'interview_scheduled', 'more_info_requested'
     adminNotes: text("admin_notes"),
     companyToken: text("company_token"), // Token for company access (if forwarded)

@@ -428,6 +428,65 @@ export async function uploadTicketScreenshot(
 }
 
 /**
+ * Upload the original resume file submitted alongside an internship application.
+ * The resumes container is private — the returned URL is only retrievable by
+ * services that hold the storage account key (e.g. Maverick), never directly
+ * by browsers.
+ *
+ * Path layout: application-uploads/<userId>/<timestamp>-<random>.<ext>
+ */
+export async function uploadApplicationResume(
+  userId: string,
+  fileBuffer: Buffer,
+  contentType: string,
+  originalName: string,
+): Promise<{ url: string; blobName: string }> {
+  const client = getBlobServiceClient();
+  const containerClient = client.getContainerClient(containerName);
+
+  // Container is expected to exist (created by infra / earlier resume code). We
+  // do not set public access here — application resumes contain PII and must
+  // only be served through authenticated dashboards.
+  try {
+    if (!useLocalStack) {
+      await containerClient.createIfNotExists();
+    }
+  } catch (e: any) {
+    if (
+      !e?.message?.includes("ContainerAlreadyExists") &&
+      !e?.message?.includes("409")
+    ) {
+      console.warn("[application-resume] container create probe:", e?.message);
+    }
+  }
+
+  const ext = (originalName.split(".").pop() || "bin").toLowerCase().slice(0, 10);
+  const safeUser = userId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
+  const blobName = `application-uploads/${safeUser}/${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 10)}.${ext}`;
+
+  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+  try {
+    await blockBlobClient.upload(fileBuffer, fileBuffer.length, {
+      blobHTTPHeaders: { blobContentType: contentType },
+    });
+  } catch (error: any) {
+    if (!isLocalStackS3SuccessError(error)) {
+      throw error;
+    }
+  }
+
+  if (useLocalStack) {
+    const externalEndpoint = localStackEndpoint.includes("localstack:")
+      ? localStackEndpoint.replace("localstack:", "localhost:")
+      : localStackEndpoint;
+    return { url: `${externalEndpoint}/${containerName}/${blobName}`, blobName };
+  }
+  return { url: blockBlobClient.url, blobName };
+}
+
+/**
  * Get blob URL for a template asset
  * @param blobName - The blob name/path
  * @returns The public URL

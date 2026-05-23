@@ -34,7 +34,12 @@ export async function action({ request, params }: Route.ActionArgs) {
     );
   }
 
-  const { resume_id, resume_data, question_responses } = body as { resume_id?: unknown; resume_data?: unknown; question_responses?: Record<string, unknown> };
+  const { resume_id, resume_data, original_file, question_responses } = body as {
+    resume_id?: unknown;
+    resume_data?: unknown;
+    original_file?: { url?: unknown; contentType?: unknown; name?: unknown } | null;
+    question_responses?: Record<string, unknown>;
+  };
 
   if (!resume_id && !resume_data) {
     return new Response(
@@ -48,6 +53,16 @@ export async function action({ request, params }: Route.ActionArgs) {
       JSON.stringify({ error: "resume_id must be a string" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
+  }
+
+  // Validate optional original_file shape. Set on direct-upload flow only;
+  // ignored when the applicant chose a saved Studojo resume.
+  let resolvedOriginalFile: { url: string; contentType: string; name: string } | null = null;
+  if (original_file && typeof original_file === "object") {
+    const { url, contentType, name } = original_file;
+    if (typeof url === "string" && typeof contentType === "string" && typeof name === "string") {
+      resolvedOriginalFile = { url, contentType, name };
+    }
   }
 
   // Validate internship exists and is published
@@ -149,7 +164,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     );
   }
 
-  // Create application with locked resume snapshot
+  // Create application with locked resume snapshot. For direct uploads, also
+  // record the URL/MIME/filename of the preserved original so the ops dashboard
+  // can show it verbatim instead of re-rendering the parsed snapshot.
   const [newApplication] = await db
     .insert(internshipApplications)
     .values({
@@ -157,6 +174,9 @@ export async function action({ request, params }: Route.ActionArgs) {
       userId: session.user.id,
       resumeId: resolvedResumeId,
       resumeSnapshot: resolvedResumeSnapshot,
+      resumeFileUrl: resolvedOriginalFile?.url ?? null,
+      resumeFileContentType: resolvedOriginalFile?.contentType ?? null,
+      resumeFileName: resolvedOriginalFile?.name ?? null,
       status: "pending",
     })
     .returning();

@@ -1,4 +1,5 @@
 import { getSessionFromRequest } from "~/lib/onboarding.server";
+import { uploadApplicationResume } from "~/lib/blob-storage.server";
 import type { Route } from "./+types/api.resumes.parse";
 
 export async function action({ request }: Route.ActionArgs) {
@@ -48,7 +49,29 @@ export async function action({ request }: Route.ActionArgs) {
     const text = await extractPdfText(buffer);
     const resumeData = parseResumeStructured(text);
 
-    return new Response(JSON.stringify({ resumeData }), {
+    // Persist the original file so the ops dashboard can show exactly what the
+    // candidate uploaded, instead of a re-render of the parsed JSON (which can
+    // be empty when the PDF doesn't parse cleanly). Best-effort: a storage
+    // failure must not block the application flow.
+    let originalFile: { url: string; contentType: string; name: string } | null = null;
+    try {
+      const contentType = file.type || "application/pdf";
+      const uploaded = await uploadApplicationResume(
+        session.user.id,
+        buffer,
+        contentType,
+        file.name,
+      );
+      originalFile = {
+        url: uploaded.url,
+        contentType,
+        name: file.name,
+      };
+    } catch (uploadError: any) {
+      console.error("[resume-parse] failed to persist original file:", uploadError?.message || uploadError);
+    }
+
+    return new Response(JSON.stringify({ resumeData, originalFile }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
