@@ -314,7 +314,6 @@ export default function CcChat() {
 
   // hook
   const [hookVisible, setHookVisible] = useState(false);
-  const [hookScreen, setHookScreen] = useState<"stats" | "commit">("stats");
   const [hookDismissing, setHookDismissing] = useState(false);
   const [statIdx, setStatIdx] = useState(0);
   const [statOpacity, setStatOpacity] = useState(1);
@@ -341,13 +340,13 @@ export default function CcChat() {
 
   // hook stat cycle
   useEffect(() => {
-    if (!hookVisible || hookScreen !== "stats") return;
+    if (!hookVisible) return;
     const t = setInterval(() => {
       setStatOpacity(0);
       setTimeout(() => { setStatIdx(i => (i + 1) % HOOK_STATS.length); setStatOpacity(1); }, 200);
     }, 5000);
     return () => clearInterval(t);
-  }, [hookVisible, hookScreen]);
+  }, [hookVisible]);
 
   useEffect(() => {
     if (!hookVisible) return;
@@ -412,9 +411,10 @@ export default function CcChat() {
     if (initDone.current) return;
     initDone.current = true;
 
+    // Hook overlay shows on every page load, regardless of whether the
+    // student is new or returning. They dismiss it with "Show me where I stand".
+    setHookVisible(true);
     const existingId = localStorage.getItem(STORAGE_KEY);
-    if (!existingId) setHookVisible(true);
-    else { hookDismissedRef.current = true; }
 
     (async () => {
       try {
@@ -429,8 +429,8 @@ export default function CcChat() {
         localStorage.setItem(STORAGE_KEY, sd.student_id);
 
         if (sd.returning && sd.history?.length > 0) {
-          hookDismissedRef.current = true;
-          setHookVisible(false);
+          // Hook stays visible — student dismisses it themselves. We just
+          // load the history in the background so it is ready when they enter.
           setHeaderHidden(true);
           setReturning(true);
           const hist: Msg[] = [];
@@ -1101,37 +1101,24 @@ export default function CcChat() {
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="cc-root">
-        {/* HOOK */}
+        {/* HOOK — rotating stats, single CTA to enter the chat */}
         {hookVisible && (
           <div id="cc-hook" className={hookDismissing ? "dismissing" : ""}>
             <div className="hook-inner">
               <div className="hook-logo">studojo<span className="cc-dot" /></div>
-              {hookScreen === "stats" ? (
-                <>
-                  <div className="hook-stat" style={{ opacity: statOpacity }}>
-                    <span className="hs-main">{stat.main}</span>
-                    <span className="hs-emphasis">{stat.emphasis}</span>
-                  </div>
-                  <div className="hook-hook">{stat.hook}</div>
-                  <button className="hook-cta" onClick={() => setHookScreen("commit")}>Show me where I stand →</button>
-                  <div className="hook-meta">8 minutes. Specific to you. No sign-up.</div>
-                  <div className="hook-dots">
-                    {HOOK_STATS.map((_, i) => (
-                      <button key={i} className={`hook-dot${i === statIdx ? " active" : ""}`} onClick={() => setStatIdx(i)} />
-                    ))}
-                  </div>
-                  <div className="social-ticker"><span className="st-dot" />{SOCIAL_PROOF[tickerIdx]}</div>
-                </>
-              ) : (
-                <>
-                  <div className="commit-q">Before we start — are you actively looking right now, or just exploring what is out there?</div>
-                  <div className="commit-sub">This shapes the next 8 minutes.</div>
-                  <div className="commit-btns">
-                    <button className="commit-btn active-btn" onClick={() => dismissHook("active")}>Actively looking for a job</button>
-                    <button className="commit-btn" onClick={() => dismissHook("exploring")}>Just exploring for now</button>
-                  </div>
-                </>
-              )}
+              <div className="hook-stat" style={{ opacity: statOpacity }}>
+                <span className="hs-main">{stat.main}</span>
+                <span className="hs-emphasis">{stat.emphasis}</span>
+              </div>
+              <div className="hook-hook">{stat.hook}</div>
+              <button className="hook-cta" onClick={() => dismissHook("entered")}>Show me where I stand →</button>
+              <div className="hook-meta">8 minutes. Specific to you. No sign-up.</div>
+              <div className="hook-dots">
+                {HOOK_STATS.map((_, i) => (
+                  <button key={i} className={`hook-dot${i === statIdx ? " active" : ""}`} onClick={() => setStatIdx(i)} />
+                ))}
+              </div>
+              <div className="social-ticker"><span className="st-dot" />{SOCIAL_PROOF[tickerIdx]}</div>
             </div>
           </div>
         )}
