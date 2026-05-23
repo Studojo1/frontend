@@ -299,7 +299,10 @@ export function ApplicationFlow({
     }
   };
 
-  const submitWithResumeData = async (resumeData: any) => {
+  const submitWithResumeData = async (
+    resumeData: any,
+    originalFile?: { url: string; contentType: string; name: string } | null,
+  ) => {
     setSubmitting(true);
     try {
       const res = await fetch(`/api/internships/${internshipId}/apply`, {
@@ -307,6 +310,7 @@ export function ApplicationFlow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           resume_data: resumeData,
+          original_file: originalFile ?? undefined,
           question_responses: questionResponses,
         }),
       });
@@ -372,7 +376,7 @@ export function ApplicationFlow({
         throw new Error("No resume data returned from server");
       }
 
-      await submitWithResumeData(data.resumeData);
+      await submitWithResumeData(data.resumeData, data.originalFile);
     } catch (error: any) {
       toast.error(error.message || "Failed to process PDF");
       console.error(error);
