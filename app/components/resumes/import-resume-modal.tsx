@@ -7,7 +7,10 @@ import { fetchWithRetry } from "~/lib/fetch-with-retry";
 type ImportResumeModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onImport: (resumeData: any) => void;
+  onImport: (
+    resumeData: any,
+    originalFile?: { url: string; contentType: string; name: string } | null,
+  ) => void;
 };
 
 const floatY = [0, -24, -12, -30, 0];
@@ -178,8 +181,10 @@ export function ImportResumeModal({
       if (!data.resumeData) {
         throw new Error("No resume data returned from server");
       }
-      // handleImport is async, await it - it will manage processing state and close modal
-      await handleImport(data.resumeData);
+      // handleImport is async, await it - it will manage processing state and close modal.
+      // originalFile (set by /api/resumes/parse since the resume-file preservation rollout)
+      // carries the blob URL of the uploaded PDF so the ops dashboard can serve the original.
+      await handleImport(data.resumeData, data.originalFile);
       // Reset file input on success
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -244,7 +249,10 @@ export function ImportResumeModal({
     }
   };
 
-  const handleImport = async (resumeData: any) => {
+  const handleImport = async (
+    resumeData: any,
+    originalFile?: { url: string; contentType: string; name: string } | null,
+  ) => {
     // Basic validation
     if (!resumeData || typeof resumeData !== "object") {
       toast.error("Invalid resume data");
@@ -261,7 +269,7 @@ export function ImportResumeModal({
 
     try {
       // Call the parent's async import handler and wait for it
-      await onImport(resumeData);
+      await onImport(resumeData, originalFile);
       // Only close modal and reset processing if import succeeds
       setIsProcessing(false);
       onClose();

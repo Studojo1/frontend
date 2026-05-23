@@ -236,6 +236,12 @@ export const resumes = pgTable(
     resumeData: jsonb("resume_data").notNull(),
     version: integer("version").default(1).notNull(),
     templateId: text("template_id").default("modern").notNull(),
+    // Set when the resume was created by importing a PDF, so the ops dashboard
+    // can serve the original file instead of a re-render of the parsed snapshot.
+    // Null for resumes built from scratch in the builder.
+    originalFileUrl: text("original_file_url"),
+    originalFileContentType: text("original_file_content_type"),
+    originalFileName: text("original_file_name"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

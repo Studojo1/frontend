@@ -38,13 +38,24 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const body = await request.json();
-  const { name, resumeData, templateId } = body;
+  const { name, resumeData, templateId, originalFile } = body;
 
   if (!name || !resumeData) {
     return Response.json(
       { error: "Name and resumeData are required" },
       { status: 400 }
     );
+  }
+
+  // originalFile is set on the PDF-import path so the ops dashboard can serve
+  // the original file later. Validate shape; ignore if malformed rather than
+  // failing the create — a resume row without it just falls back to snapshot.
+  let resolvedOriginal: { url: string; contentType: string; name: string } | null = null;
+  if (originalFile && typeof originalFile === "object") {
+    const { url, contentType, name: fileName } = originalFile as Record<string, unknown>;
+    if (typeof url === "string" && typeof contentType === "string" && typeof fileName === "string") {
+      resolvedOriginal = { url, contentType, name: fileName };
+    }
   }
 
   const newResume = await db
@@ -55,6 +66,9 @@ export async function action({ request }: Route.ActionArgs) {
       resumeData,
       version: 1,
       templateId: templateId || "modern",
+      originalFileUrl: resolvedOriginal?.url ?? null,
+      originalFileContentType: resolvedOriginal?.contentType ?? null,
+      originalFileName: resolvedOriginal?.name ?? null,
     })
     .returning();
 
