@@ -1,0 +1,47 @@
+# Template applied by deploy.yml / deploy-staging.yml. Placeholders are
+# substituted with sed at apply time.
+#
+# Placeholders:
+#   __JOB_NAME__   — uniquely names this run (e.g. frontend-migrate-<run_id>)
+#   __NAMESPACE__  — target k8s namespace (studojo or staging)
+#   __IMAGE__      — full migrate-image ref including registry and tag
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__
+  namespace: __NAMESPACE__
+  labels:
+    app: frontend-migrate
+spec:
+  # No retries on failure — let the workflow surface the error and decide.
+  backoffLimit: 0
+  # Hard ceiling so a stuck migration doesn't sit forever; the workflow's
+  # poll loop has a shorter deadline.
+  activeDeadlineSeconds: 1200
+  # Auto-clean Job + pods 1 hour after they finish.
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: frontend-migrate
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+        - name: migrate
+          image: __IMAGE__
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: database-url
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
