@@ -27,6 +27,14 @@ import {
   isStarterSample,
 } from "~/lib/jrs/types";
 import { ResumeTemplate } from "~/lib/jrs/templates";
+import {
+  type ResumeFormatting,
+  DEFAULT_FORMATTING,
+  loadFormatting,
+  saveFormatting,
+  formattingCSS,
+} from "~/lib/jrs/formatting";
+import { FormatToolbar } from "~/components/jrs/format-toolbar";
 import { Editor } from "~/components/jrs/editor";
 import { AtsPanel } from "~/components/jrs/ats-panel";
 import { WelcomeScreen, TemplatePicker } from "~/components/jrs/start-flow";
@@ -66,14 +74,18 @@ const PRINT_CSS = `
 }
 `;
 
+const FORMAT_SCOPE_CLASS = "jrs-fmt-scope";
+
 function PreviewPane({
   data,
   templateId,
   density,
+  formatting,
 }: {
   data: ResumeData;
   templateId: TemplateId;
   density: number;
+  formatting: ResumeFormatting;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -91,8 +103,13 @@ function PreviewPane({
     return () => ro.disconnect();
   }, []);
 
+  // Multiply density and user-set font scale together — both ride the same
+  // `zoom` so the page stays A4-wide while everything inside scales.
+  const totalZoom = density * formatting.fontScale;
+
   return (
     <div ref={wrapRef} className="flex-1 overflow-auto bg-neutral-100 p-6">
+      <style>{formattingCSS(FORMAT_SCOPE_CLASS, formatting)}</style>
       <div
         className="mx-auto"
         style={{ width: PAPER_W * scale, height: PAPER_H * scale }}
@@ -102,9 +119,10 @@ function PreviewPane({
             className="bg-white shadow-[0_2px_24px_rgba(0,0,0,0.18)]"
             style={{ width: PAPER_W }}
           >
-            {/* Density: render wider, then zoom back to page width so text
-                and spacing scale together while the page stays A4-wide. */}
-            <div style={{ width: PAPER_W / density, zoom: density }}>
+            <div
+              className={FORMAT_SCOPE_CLASS}
+              style={{ width: PAPER_W / totalZoom, zoom: totalZoom }}
+            >
               <ResumeTemplate id={templateId} data={data} />
             </div>
           </div>
@@ -123,6 +141,7 @@ export default function JrsRoute() {
   const [hasSaved, setHasSaved] = useState(false);
   const [formatting, setFormatting] = useState(false);
   const [density, setDensity] = useState<Density>("normal");
+  const [typography, setTypography] = useState<ResumeFormatting>(DEFAULT_FORMATTING);
   const [messages, setMessages] = useState<JrsChatMsg[]>([]);
   const [sending, setSending] = useState(false);
   // Scripted-coach state. When non-null, the user's next message is treated
@@ -152,6 +171,7 @@ export default function JrsRoute() {
     setData(loaded);
     setTemplateId(loadTemplate());
     setDensity(loadDensity());
+    setTypography(loadFormatting());
     // Only treat as "saved" if it's NOT the starter sample. Otherwise the
     // welcome card would greet new users back as Aanya Sharma.
     setHasSaved(hasSavedResume() && !isStarterSample(loaded));
@@ -493,7 +513,18 @@ export default function JrsRoute() {
               tab === "chat" ? "p-3" : "overflow-y-auto px-4 py-3"
             }`}
           >
-            {tab === "edit" && <Editor data={data} onChange={updateData} />}
+            {tab === "edit" && (
+              <>
+                <FormatToolbar
+                  formatting={typography}
+                  onChange={(next) => {
+                    setTypography(next);
+                    saveFormatting(next);
+                  }}
+                />
+                <Editor data={data} onChange={updateData} />
+              </>
+            )}
             {tab === "ats" && <AtsPanel data={data} />}
             {tab === "chat" && (
               <div className="flex h-full flex-col gap-2">
@@ -525,17 +556,24 @@ export default function JrsRoute() {
             </div>
             <div className="text-[11px] font-bold text-neutral-400">Auto-saved</div>
           </div>
-          <PreviewPane data={data} templateId={templateId} density={densityFactor(density)} />
+          <PreviewPane
+            data={data}
+            templateId={templateId}
+            density={densityFactor(density)}
+            formatting={typography}
+          />
         </div>
       </div>
 
       {/* Print-only copy — portaled to <body> so print CSS can isolate it. */}
       {createPortal(
         <div className="jrs-print-portal">
+          <style>{formattingCSS(FORMAT_SCOPE_CLASS, typography)}</style>
           <div
+            className={FORMAT_SCOPE_CLASS}
             style={{
-              width: PAPER_W / densityFactor(density),
-              zoom: densityFactor(density),
+              width: PAPER_W / (densityFactor(density) * typography.fontScale),
+              zoom: densityFactor(density) * typography.fontScale,
             }}
           >
             <ResumeTemplate id={templateId} data={data} />
