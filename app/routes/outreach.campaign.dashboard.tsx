@@ -404,13 +404,19 @@ export default function DashboardPage() {
 
   const handleLiTransition = async (targetStatus: string) => {
     if (!linkedInCampaignId) return;
+    // Use the dedicated pause/resume endpoints. PUT /campaigns/{id} expects
+    // a full CreateCampaignRequest body and doesn't accept a status field at
+    // all — sending {status: ...} there is silently ignored.
+    const action = targetStatus === "running" ? "resume" : "pause";
     try {
-      await outreachFetch(`/linkedin/automation/campaigns/${linkedInCampaignId}`, {
-        method: "PUT",
-        body: JSON.stringify({ status: targetStatus }),
-      });
+      await outreachFetch(
+        `/linkedin/automation/campaigns/${linkedInCampaignId}/${action}`,
+        { method: "POST" },
+      );
       fetchLinkedIn();
-    } catch { /* ignore */ }
+    } catch (e) {
+      setLiError(`Couldn't ${action} the campaign. Try again in a moment.`);
+    }
   };
 
   const handleSendOne = async () => {
@@ -418,9 +424,13 @@ export default function DashboardPage() {
     setLiSendingOne(true);
     setLiSendResult(null);
     try {
+      // send-one drives a real Playwright nav through the Evomi proxy — easily
+      // 60-120s end-to-end. Default 30s × 3 retries cascades into the same
+      // failure pattern as the login endpoint (multiple parallel browser
+      // sessions, duplicate sends, "Request timeout after 30s" banner).
       const res = await outreachFetch<{ ok: boolean; lead_name: string; profile_url?: string }>(
         `/linkedin/automation/campaigns/${linkedInCampaignId}/send-one`,
-        { method: "POST" },
+        { method: "POST", timeout: 180_000, maxRetries: 1 },
       );
       setLiSendResult({ ok: res?.ok ?? false, name: res?.lead_name ?? "Unknown", url: res?.profile_url ?? undefined });
       fetchLinkedIn();
