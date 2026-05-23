@@ -1,7 +1,14 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
-import { internships, internshipApplications, internshipQuestions, userQuestionResponses, user } from "../../auth-schema";
+import {
+  internships,
+  internshipApplications,
+  internshipQuestions,
+  userQuestionResponses,
+  user,
+  applicationResumeUploads,
+} from "../../auth-schema";
 import { sendInternshipApplicationNotification } from "~/lib/notifications.server";
 import type { Route } from "./+types/api.internships.$id.apply";
 
@@ -35,29 +42,51 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const { original_file, question_responses } = body as {
-    original_file?: { url?: unknown; contentType?: unknown; name?: unknown } | null;
+    original_file?: { url?: unknown } | null;
     question_responses?: Record<string, unknown>;
   };
 
-  // The application flow is upload-only now (single "Import your resume" step).
-  // The resume_id / resume_data paths were dropped because they required either
-  // a builder snapshot or a parsed JSON re-render, both of which lost fidelity
-  // versus the candidate's actual file. Callers must POST /api/internships/
-  // applications/upload first and forward the returned reference here.
-  let resolvedOriginalFile: { url: string; contentType: string; name: string } | null = null;
-  if (original_file && typeof original_file === "object") {
-    const { url, contentType, name } = original_file;
-    if (typeof url === "string" && typeof contentType === "string" && typeof name === "string") {
-      resolvedOriginalFile = { url, contentType, name };
-    }
-  }
+  // The apply flow is upload-only. The candidate either uploaded a new PDF via
+  // /api/internships/applications/upload (which recorded a row in
+  // application_resume_uploads), or picked a previously-used resume from
+  // /api/user/resume-uploads. Either way the URL must exist as one of THIS
+  // user's recorded uploads — that's both ownership verification and the
+  // source of truth for content type and filename.
+  const submittedUrl =
+    original_file && typeof original_file === "object" && typeof original_file.url === "string"
+      ? original_file.url
+      : null;
 
-  if (!resolvedOriginalFile) {
+  if (!submittedUrl) {
     return new Response(
-      JSON.stringify({ error: "original_file is required (POST to /api/internships/applications/upload first)" }),
+      JSON.stringify({ error: "original_file.url is required" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
+
+  const [uploadRow] = await db
+    .select()
+    .from(applicationResumeUploads)
+    .where(
+      and(
+        eq(applicationResumeUploads.userId, session.user.id),
+        eq(applicationResumeUploads.url, submittedUrl),
+      ),
+    )
+    .limit(1);
+
+  if (!uploadRow) {
+    return new Response(
+      JSON.stringify({ error: "Resume not found in your uploads. Upload a new one and try again." }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const resolvedOriginalFile = {
+    url: uploadRow.url,
+    contentType: uploadRow.contentType,
+    name: uploadRow.name,
+  };
 
   // Validate internship exists and is published
   const [internship] = await db
@@ -151,6 +180,14 @@ export async function action({ request, params }: Route.ActionArgs) {
       status: "pending",
     })
     .returning();
+
+  // Bump last_used_at so this resume bubbles to the top of the picker next
+  // time the user hits Apply. Non-blocking: failure here doesn't break the
+  // application that was just successfully inserted.
+  db.update(applicationResumeUploads)
+    .set({ lastUsedAt: sql`now()` })
+    .where(eq(applicationResumeUploads.id, uploadRow.id))
+    .catch((err) => console.error("[apply] failed to bump last_used_at:", err));
 
   // Store question responses
   if (question_responses && typeof question_responses === "object") {

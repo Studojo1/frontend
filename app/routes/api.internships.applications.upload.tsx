@@ -1,5 +1,8 @@
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { uploadApplicationResume } from "~/lib/blob-storage.server";
+import db from "~/lib/db";
+import { applicationResumeUploads } from "../../auth-schema";
+import { sql } from "drizzle-orm";
 import type { Route } from "./+types/api.internships.applications.upload";
 
 // POST /api/internships/applications/upload
@@ -48,6 +51,24 @@ export async function action({ request }: Route.ActionArgs) {
       contentType,
       file.name,
     );
+
+    // Record this upload so the user sees it in their "previous resumes" list
+    // next time they hit Apply, and so /api/internships/:id/apply can confirm
+    // ownership when the URL gets sent back. Same (user, url) re-upload just
+    // bumps last_used_at — no duplicate rows.
+    await db
+      .insert(applicationResumeUploads)
+      .values({
+        userId: session.user.id,
+        url: uploaded.url,
+        contentType,
+        name: file.name,
+        sizeBytes: file.size,
+      })
+      .onConflictDoUpdate({
+        target: [applicationResumeUploads.userId, applicationResumeUploads.url],
+        set: { lastUsedAt: sql`now()` },
+      });
 
     return Response.json({
       url: uploaded.url,
