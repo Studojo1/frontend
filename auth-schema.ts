@@ -478,7 +478,9 @@ export const internshipApplications = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     resumeId: uuid("resume_id")
       .references(() => resumes.id, { onDelete: "restrict" }),
-    resumeSnapshot: jsonb("resume_snapshot").notNull(), // Locked resume data
+    // Optional. Legacy applications carry a parsed-resume snapshot here; new
+    // applications go through the upload-only flow and leave this NULL.
+    resumeSnapshot: jsonb("resume_snapshot"),
     // Direct-upload applicants: preserved copy of the original file so ops can
     // view exactly what the candidate sent rather than a parsed re-render.
     // Null for legacy rows and for Studojo-builder applicants who didn't upload.

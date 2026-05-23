@@ -1,7 +1,7 @@
 import { eq, and } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
-import { internships, internshipApplications, resumes, internshipQuestions, userQuestionResponses, user } from "../../auth-schema";
+import { internships, internshipApplications, internshipQuestions, userQuestionResponses, user } from "../../auth-schema";
 import { sendInternshipApplicationNotification } from "~/lib/notifications.server";
 import type { Route } from "./+types/api.internships.$id.apply";
 
@@ -34,35 +34,29 @@ export async function action({ request, params }: Route.ActionArgs) {
     );
   }
 
-  const { resume_id, resume_data, original_file, question_responses } = body as {
-    resume_id?: unknown;
-    resume_data?: unknown;
+  const { original_file, question_responses } = body as {
     original_file?: { url?: unknown; contentType?: unknown; name?: unknown } | null;
     question_responses?: Record<string, unknown>;
   };
 
-  if (!resume_id && !resume_data) {
-    return new Response(
-      JSON.stringify({ error: "Either resume_id or resume_data is required" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
-  if (resume_id && typeof resume_id !== "string") {
-    return new Response(
-      JSON.stringify({ error: "resume_id must be a string" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
-  // Validate optional original_file shape. Set on direct-upload flow only;
-  // ignored when the applicant chose a saved Studojo resume.
+  // The application flow is upload-only now (single "Import your resume" step).
+  // The resume_id / resume_data paths were dropped because they required either
+  // a builder snapshot or a parsed JSON re-render, both of which lost fidelity
+  // versus the candidate's actual file. Callers must POST /api/internships/
+  // applications/upload first and forward the returned reference here.
   let resolvedOriginalFile: { url: string; contentType: string; name: string } | null = null;
   if (original_file && typeof original_file === "object") {
     const { url, contentType, name } = original_file;
     if (typeof url === "string" && typeof contentType === "string" && typeof name === "string") {
       resolvedOriginalFile = { url, contentType, name };
     }
+  }
+
+  if (!resolvedOriginalFile) {
+    return new Response(
+      JSON.stringify({ error: "original_file is required (POST to /api/internships/applications/upload first)" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   // Validate internship exists and is published
@@ -123,40 +117,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
   }
 
-  // Validate resume — either by ID or use inline resume_data
-  let resolvedResumeId: string | null = null;
-  let resolvedResumeSnapshot: unknown = resume_data || null;
-
-  if (resume_id) {
-    const [resume] = await db
-      .select()
-      .from(resumes)
-      .where(and(eq(resumes.id, resume_id as string), eq(resumes.userId, session.user.id)))
-      .limit(1);
-
-    if (!resume) {
-      return new Response(
-        JSON.stringify({ error: "Resume not found or does not belong to you" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    resolvedResumeId = resume.id;
-    resolvedResumeSnapshot = resume.resumeData;
-
-    // If the resume was created by importing a PDF (migration 0024), inherit
-    // its original-file pointer onto the application row so the ops dashboard
-    // can serve the candidate's actual upload. Skipped for builder-from-scratch
-    // resumes where these columns are NULL.
-    if (!resolvedOriginalFile && resume.originalFileUrl && resume.originalFileContentType && resume.originalFileName) {
-      resolvedOriginalFile = {
-        url: resume.originalFileUrl,
-        contentType: resume.originalFileContentType,
-        name: resume.originalFileName,
-      };
-    }
-  }
-
   // Check if user has already applied
   const [existingApplication] = await db
     .select()
@@ -176,19 +136,18 @@ export async function action({ request, params }: Route.ActionArgs) {
     );
   }
 
-  // Create application with locked resume snapshot. For direct uploads, also
-  // record the URL/MIME/filename of the preserved original so the ops dashboard
-  // can show it verbatim instead of re-rendering the parsed snapshot.
+  // Upload-only flow: persist the raw file pointer. resume_id / resume_snapshot
+  // remain in the schema for legacy rows; new applications leave them NULL.
   const [newApplication] = await db
     .insert(internshipApplications)
     .values({
       internshipId: internshipId,
       userId: session.user.id,
-      resumeId: resolvedResumeId,
-      resumeSnapshot: resolvedResumeSnapshot,
-      resumeFileUrl: resolvedOriginalFile?.url ?? null,
-      resumeFileContentType: resolvedOriginalFile?.contentType ?? null,
-      resumeFileName: resolvedOriginalFile?.name ?? null,
+      resumeId: null,
+      resumeSnapshot: null,
+      resumeFileUrl: resolvedOriginalFile.url,
+      resumeFileContentType: resolvedOriginalFile.contentType,
+      resumeFileName: resolvedOriginalFile.name,
       status: "pending",
     })
     .returning();
@@ -261,7 +220,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       internship_id: internshipId,
       internship_title: internship.title,
       company_name: internship.companyName,
-      resume_id: resolvedResumeId,
+      resume_id: null,
       timestamp: newApplication.createdAt.toISOString(),
     });
   } catch (error) {
