@@ -85,11 +85,14 @@ const CSS = `
 /* collapsed-panel nav: pill buttons, same system as the expanded view */
 #cc-sidebar-nav{display:flex;flex-direction:column;gap:8px;padding:14px;border-bottom:2px solid var(--border);flex-shrink:0;background:var(--bg-white);}
 #cc-sidebar-tabs{display:flex;gap:6px;}
-.side-tab{flex:1;padding:8px 8px;text-align:center;cursor:pointer;font-size:0.74rem;font-weight:700;color:var(--text-primary);background:var(--bg-raised);border:2px solid var(--border);border-radius:999px;box-shadow:2px 2px 0 var(--shadow-c);transition:all 0.15s;user-select:none;}
+.side-tab{flex:1;min-width:0;padding:8px 8px;text-align:center;cursor:pointer;font-size:0.74rem;font-weight:700;color:var(--text-primary);background:var(--bg-raised);border:2px solid var(--border);border-radius:999px;box-shadow:2px 2px 0 var(--shadow-c);transition:all 0.15s;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .side-tab.active{background:var(--gradient-primary);color:white;border-color:transparent;}
 .side-tab:hover:not(.active){background:var(--bg-secondary);}
-.side-action-btn{border:2px solid var(--border);border-radius:999px;background:var(--bg-raised);color:var(--text-primary);padding:7px 10px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;box-shadow:2px 2px 0 var(--shadow-c);transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.side-tab .tab-short{display:none;}
+.side-action-row{display:flex;gap:8px;}
+.side-action-btn{flex:1;min-width:0;border:2px solid var(--border);border-radius:999px;background:var(--bg-raised);color:var(--text-primary);padding:7px 10px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;box-shadow:2px 2px 0 var(--shadow-c);transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;}
 .side-action-btn:hover{transform:translateY(-1px);box-shadow:3px 3px 0 var(--shadow-c);}
+.side-action-close{display:none;}
 #cc-sidebar-body{flex:1;overflow-y:auto;padding:18px;}
 #cc-sidebar.expanded #cc-sidebar-body{max-width:760px;margin:0 auto;width:100%;}
 #cc-sidebar-body::-webkit-scrollbar{width:5px;}
@@ -263,11 +266,23 @@ const CSS = `
 .tool-btn:hover{transform:translateY(-1px);box-shadow:3px 3px 0 var(--accent-purple);}
 .tool-btn-icon{font-size:0.95rem;}
 @media(max-width:900px){
-  .cc-root{--sidebar-w:340px;}
+  .cc-root{--sidebar-w:min(360px,92vw);}
   #cc-sidebar{position:fixed;top:0;right:0;bottom:0;z-index:90;box-shadow:-4px 0 0 var(--shadow-c);}
   #cc-chat-col{padding:72px 8px 8px;}
   .xp-grid2{grid-template-columns:1fr;}
   .xp-statrow{grid-template-columns:1fr 1fr;}
+  /* hide the floating "Hide panel" pill on mobile — it overlaps the panel's
+     own tab pills. The in-panel "Close" button replaces it. */
+  #cc-float-toggle{display:none;}
+  .side-tab .tab-full{display:none;}
+  .side-tab .tab-short{display:inline;}
+  .side-action-close{display:flex;}
+  /* narrow the floating logo on mobile so it doesn't dominate the navbar area */
+  #cc-float-logo{font-size:1.4rem;top:14px;left:16px;}
+}
+@media(max-width:480px){
+  .cc-root{--sidebar-w:100vw;}
+  #cc-sidebar{border-left:none;}
 }
 `;
 
@@ -1222,13 +1237,19 @@ export default function CcChat() {
                 <div id="cc-sidebar-tabs">
                   {(["analysis", "roadmap", "dashboard"] as CtaKind[]).map(p => (
                     <button key={p} className={`side-tab${panel === p ? " active" : ""}`} onClick={() => setPanel(p)}>
-                      {p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}
+                      <span className="tab-full">{p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}</span>
+                      <span className="tab-short">{p === "analysis" ? "Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}</span>
                     </button>
                   ))}
                 </div>
-                <button className="side-action-btn" onClick={() => setSidebarExpanded(true)}>
-                  ⤢ Expand to full page
-                </button>
+                <div className="side-action-row">
+                  <button className="side-action-btn" onClick={() => setSidebarExpanded(true)}>
+                    ⤢ Expand to full page
+                  </button>
+                  <button className="side-action-btn side-action-close" onClick={() => toggleSidebar(false)}>
+                    ✕ Close
+                  </button>
+                </div>
               </div>
             )}
             <div id="cc-sidebar-body">
