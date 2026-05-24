@@ -242,6 +242,7 @@ const CSS = `
 .xp-dash-banner .xp-hero-label{color:#C4B5FD;}
 .xp-dash-banner .xp-hero-meta{color:#DDD6FE;}
 .xp-dash-name{font-size:1.6rem;font-weight:800;letter-spacing:-0.03em;margin-top:4px;}
+.level-badge{display:inline-block;margin-top:10px;padding:5px 12px;background:var(--gradient-primary);color:#fff;border:2px solid var(--border);border-radius:999px;font-size:0.74rem;font-weight:800;letter-spacing:0.02em;box-shadow:2px 2px 0 var(--shadow-c);}
 .xp-dash-ring{width:96px;height:96px;border-radius:50%;background:var(--gradient-primary);border:3px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;color:white;}
 .xp-dash-ring span{font-size:2rem;font-weight:800;line-height:1;}
 .xp-dash-ring small{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.85;}
@@ -694,8 +695,13 @@ export default function CcChat() {
       });
       const data = await r.json();
       if (!r.ok) throw new Error("check-in failed");
-      toast("Progress logged. Nice work.");
-      // The agent reacts in chat with the outreach impact line.
+      // Level up shows a bigger toast; normal check-ins are quieter.
+      if (data?.levelup?.leveled_up) {
+        toast(`Level ${data.levelup.to_level} reached, the bar just got harder.`);
+      } else {
+        toast("Progress logged. Nice work.");
+      }
+      // The agent reacts in chat with the outreach impact line or levelup message.
       if (data.outreach_message) {
         setMessages(prev => [...prev, { role: "agent", content: data.outreach_message, time: now12h() }]);
       }
@@ -711,14 +717,24 @@ export default function CcChat() {
   const pp = sidebarData?.primary_path;
   const dnaReady = !!(pp && pp.dna_id);
 
-  // "X% better than people in your industry" — uses the LLM-generated
-  // industry_percentile when present, otherwise derived from the readiness score.
+  // "X% better than people in your industry" — primary source is the new
+  // industry_percentile_score column. Falls back to the benchmark's stored
+  // percentile, then to the legacy readiness number (multiplied) so old
+  // DNAs still render something.
   function industryPct(): number {
+    const primary = pp?.industry_percentile_score;
+    if (typeof primary === "number" && primary > 0) return Math.min(99, Math.round(primary));
     const b = pp?.benchmark || {};
     const fromDna = b.industry_percentile ?? pp?.industry_percentile;
     if (typeof fromDna === "number" && fromDna > 0) return Math.min(99, Math.round(fromDna));
     const r = pp?.readiness_score || 0;
     return Math.min(95, Math.max(5, Math.round(r * 0.9)));
+  }
+  // Level info — what bar the student is currently working toward.
+  function currentLevel(): { num: number; name: string } {
+    const n = (pp?.level as number) || 1;
+    const name = n === 1 ? "Industry-Ready" : n === 2 ? "Well-Rounded" : "Standout";
+    return { num: n, name };
   }
 
   function renderAnalysis(expanded: boolean) {
@@ -1131,6 +1147,7 @@ export default function CcChat() {
     );
 
     if (expanded) {
+      const lvl = currentLevel();
       return (
         <div className="xp">
           <div className="xp-dash-banner">
@@ -1138,15 +1155,18 @@ export default function CcChat() {
               <div className="xp-hero-label">Progress Tracker</div>
               <div className="xp-dash-name">{student.name ? `${student.name}'s progress` : "Your progress"}</div>
               <div className="xp-hero-meta">Toward {pp.target_role || "your target role"}</div>
+              <span className="level-badge" title={`Level ${lvl.num} of 3: ${lvl.name}`}>
+                Level {lvl.num} · {lvl.name}
+              </span>
             </div>
             <div className="xp-dash-ring"><span>{pct}%</span><small>ahead of peers</small></div>
           </div>
 
           <div className="xp-statrow">
             <div className="xp-stat"><div className="xp-stat-num">{pct}%</div><div className="xp-stat-label">Better than your industry</div></div>
+            <div className="xp-stat"><div className="xp-stat-num">{lvl.num}/3</div><div className="xp-stat-label">Level reached</div></div>
             <div className="xp-stat"><div className="xp-stat-num">{milestonesDone}/{milestones.length || 0}</div><div className="xp-stat-label">Roadmap steps done</div></div>
             <div className="xp-stat"><div className="xp-stat-num">{sessions}</div><div className="xp-stat-label">Coaching sessions</div></div>
-            <div className="xp-stat"><div className="xp-stat-num">{totalTasks}</div><div className="xp-stat-label">Tasks this cycle</div></div>
           </div>
 
           {hist.length > 1 && (
@@ -1178,13 +1198,17 @@ export default function CcChat() {
       );
     }
 
+    const lvl2 = currentLevel();
     return (
       <>
+        <div style={{ marginBottom: 10 }}>
+          <span className="level-badge">Level {lvl2.num} · {lvl2.name}</span>
+        </div>
         <div className="stat-grid">
           <div className="stat-box"><div className="sb-num">{pct}%</div><div className="sb-label">Better than your industry</div></div>
-          <div className="stat-box"><div className="sb-num">{milestonesDone}/{milestones.length || 0}</div><div className="sb-label">Roadmap steps done</div></div>
+          <div className="stat-box"><div className="sb-num">{lvl2.num}/3</div><div className="sb-label">Level reached</div></div>
           <div className="stat-box"><div className="sb-num">{sessions}</div><div className="sb-label">Sessions</div></div>
-          <div className="stat-box"><div className="sb-num">{totalTasks}</div><div className="sb-label">Tasks this cycle</div></div>
+          <div className="stat-box"><div className="sb-num">{milestonesDone}/{milestones.length || 0}</div><div className="sb-label">Roadmap steps</div></div>
         </div>
         {tracker}
         <div className="scard">
