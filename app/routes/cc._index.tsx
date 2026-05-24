@@ -269,7 +269,7 @@ export default function CcIndex() {
           <a href="/cc" className="lp-nav-logo">
             studojo<span className="lp-nav-dot" />
           </a>
-          <Link to="/cc/chat" className="lp-nav-cta">Start for free →</Link>
+          <Link to="/cc/chat" className="lp-nav-cta">Get my Career DNA →</Link>
         </nav>
 
         {/* HERO */}
@@ -302,8 +302,8 @@ export default function CcIndex() {
             <div className="lp-stat-label">levels to climb</div>
           </div>
           <div className="lp-stat">
-            <div className="lp-stat-num">3% / 5%</div>
-            <div className="lp-stat-label">daily / weekly standing gains</div>
+            <div className="lp-stat-num">Daily</div>
+            <div className="lp-stat-label">check-ins that compound</div>
           </div>
           <div className="lp-stat">
             <div className="lp-stat-num">100%</div>
