@@ -94,7 +94,7 @@ const CSS = `
 
 /* HERO */
 .lp-hero {
-  background: #6D28D9;
+  background: #FF2466;
   padding: 100px 48px 80px;
   text-align: left;
   max-width: 100%;
@@ -116,7 +116,7 @@ const CSS = `
 .lp-hero-sub { font-size: 1.125rem; color: #DDD6FE; line-height: 1.65; max-width: 560px; margin-bottom: 40px; }
 .lp-hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
 .lp-btn-primary {
-  background: #fff; color: #6D28D9; font-weight: 800; font-size: 1rem;
+  background: #fff; color: #FF2466; font-weight: 800; font-size: 1rem;
   padding: 15px 32px; border-radius: 999px;
   border: 2px solid #111; box-shadow: 4px 4px 0 #111;
   text-decoration: none; transition: all 0.15s; display: inline-block;
@@ -133,7 +133,7 @@ const CSS = `
 
 /* STATS BAR */
 .lp-stats {
-  background: #5B21B6; border-top: 2px solid rgba(255,255,255,0.1);
+  background: #CC1A52; border-top: 2px solid rgba(255,255,255,0.1);
   display: grid; grid-template-columns: repeat(4,1fr);
   divide-x: 1px solid rgba(255,255,255,0.1);
 }
@@ -206,14 +206,14 @@ const CSS = `
 
 /* CTA BANNER */
 .lp-cta-banner {
-  background: #F59E0B; padding: 80px 48px; text-align: center;
+  background: #6D28D9; padding: 80px 48px; text-align: center;
   border-top: 2px solid #111;
 }
 .lp-cta-banner h2 {
-  font-size: clamp(2rem,4vw,3rem); font-weight: 800; color: #111;
+  font-size: clamp(2rem,4vw,3rem); font-weight: 800; color: #fff;
   letter-spacing: -0.04em; margin-bottom: 16px; line-height: 1.2;
 }
-.lp-cta-banner p { font-size: 1rem; color: rgba(0,0,0,0.65); margin-bottom: 36px; }
+.lp-cta-banner p { font-size: 1rem; color: rgba(255,255,255,0.75); margin-bottom: 36px; }
 
 /* FOOTER */
 .lp-footer {
@@ -373,7 +373,7 @@ export default function CcIndex() {
         <section className="lp-cta-banner">
           <h2>Know exactly where you stand.</h2>
           <p>Takes 8 minutes. Built around your real profile, not a quiz.</p>
-          <Link to="/cc/chat" className="lp-btn-primary" style={{ display: "inline-block", background: "#111", color: "#F59E0B" }}>
+          <Link to="/cc/chat" className="lp-btn-primary" style={{ display: "inline-block", background: "#111", color: "#fff" }}>
             Get my Career DNA →
           </Link>
         </section>

@@ -27,7 +27,7 @@ const CSS = `
 .cc-root #cc-float-logo,.cc-root .hook-logo,.cc-root .chat-setup-header-title,
 .cc-root .scard h3,.cc-root .xp-hero-role,.cc-root .xp-dash-name,
 .cc-root .commit-q,.cc-root .hook-stat,.cc-root #cc-ready-pop .rp-title{font-family:"Clash Display",ui-sans-serif,system-ui,sans-serif;}
-.cc-root{--bg-primary:#0E0E12;--bg-secondary:#17171F;--bg-white:#1B1B24;--bg-raised:#22222E;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#3A3A48;--border-light:rgba(255,255,255,0.10);--shadow-c:rgba(0,0,0,0.55);--accent-purple:#A78BFA;--accent-light:#2E2547;--success:#34D399;--warning:#FBBF24;--gradient-primary:linear-gradient(90deg,#8B5CF6 0%,#A855F7 50%,#EC4899 100%);--sidebar-w:560px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
+.cc-root{--bg-primary:#0E0E12;--bg-secondary:#17171F;--bg-white:#1B1B24;--bg-raised:#22222E;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#3A3A48;--border-light:rgba(255,255,255,0.10);--shadow-c:rgba(0,0,0,0.55);--accent-purple:#9B6DF5;--accent-light:#2A2241;--success:#34D399;--warning:#FBBF24;--gradient-primary:#9B6DF5;--sidebar-w:560px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
 /* studojo wordmark — matches the main platform: heavy Satoshi black,
    tight tracking, no dot, no pill. Chat is dark mode so white; landing
    page uses brand ink black. */
