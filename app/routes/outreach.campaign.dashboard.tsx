@@ -710,7 +710,7 @@ export default function DashboardPage() {
   }
 
   // ─── Campaign Mode Dashboard ──────────────────────────────────────
-  if (!campaignId) {
+  if (!campaignId && !hasLinkedIn) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
