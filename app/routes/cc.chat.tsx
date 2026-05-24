@@ -79,6 +79,14 @@ const CSS = `
 .panel-cta .cta-text{font-size:0.92rem;font-weight:700;}
 .panel-cta .cta-sub{font-size:0.76rem;color:var(--text-secondary);margin-top:2px;}
 .panel-cta .cta-arrow{font-size:1.25rem;color:var(--accent-purple);}
+/* staged resume chip sitting above the input bar */
+#cc-pending-resume{flex-shrink:0;display:flex;align-items:center;gap:10px;margin:0 22px;padding:9px 13px;background:var(--accent-light);border:2px solid var(--accent-purple);border-radius:12px;font-size:0.82rem;}
+#cc-pending-resume .pr-icon{font-size:1.05rem;flex-shrink:0;}
+#cc-pending-resume .pr-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%;}
+#cc-pending-resume .pr-hint{font-size:0.72rem;color:var(--text-secondary);margin-left:auto;}
+#cc-pending-resume .pr-remove{background:none;border:none;color:var(--text-secondary);font-size:1rem;cursor:pointer;padding:0 4px;line-height:1;font-family:inherit;}
+#cc-pending-resume .pr-remove:hover{color:var(--text-primary);}
+#cc-pending-resume .pr-remove:disabled{opacity:0.4;cursor:not-allowed;}
 #cc-input-area{flex-shrink:0;background:var(--bg-white);border-top:2px solid var(--border-light);padding:14px 22px;display:flex;gap:10px;align-items:flex-end;}
 #cc-attach-btn{width:46px;height:46px;border-radius:50%;flex-shrink:0;background:var(--bg-raised);color:var(--text-primary);border:2px solid var(--border);box-shadow:2px 2px 0 var(--shadow-c);cursor:pointer;font-size:1.05rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
 #cc-attach-btn:hover{transform:translateY(-2px);box-shadow:3px 3px 0 var(--shadow-c);}
@@ -334,8 +342,8 @@ function renderBubbleText(text: string) {
       <a key="rm-btn" className="rm-upload-btn" href="https://studojo.com/resume-maker" target="_blank" rel="noopener noreferrer">
         <span className="rm-upload-icon">📄</span>
         <span>
-          <span className="rm-upload-title">Upload your resume using this link</span>
-          <span className="rm-upload-sub">If not, you can continue chatting here, that's fine.</span>
+          <span className="rm-upload-title">If you don't have a resume, make one using this link</span>
+          <span className="rm-upload-sub">If you already have one, just continue chatting here, that's fine.</span>
         </span>
       </a>
     );
@@ -358,6 +366,9 @@ export default function CcChat() {
   const [gapData, setGapData] = useState<any>(null);
   const [tasks, setTasks] = useState<{ daily: any[]; weekly: any } | null>(null);
   const [taskBoxes, setTaskBoxes] = useState<Record<string, boolean>>({});
+  // staged resume file shown as a chip above the input until the student hits Send
+  const [pendingResume, setPendingResume] = useState<File | null>(null);
+  const [resumeUploading, setResumeUploading] = useState(false);
   // tracks which Career-Analysis skill gap / Roadmap step is currently expanded
   const [openGap, setOpenGap] = useState<number | null>(null);
   const [openStep, setOpenStep] = useState<number | null>(null);
@@ -563,11 +574,23 @@ export default function CcChat() {
 
   async function sendMsg(overrideText?: string) {
     const content = (overrideText ?? inputRef.current?.value ?? "").trim();
-    if (!content || waiting) return;
     const sid = studentIdRef.current;
     if (!sid) return;
+    // Allow sending when text is empty if a resume is staged: that's how the
+    // student commits the upload without typing anything.
+    if (!content && !pendingResume) return;
+    if (waiting) return;
     if (inputRef.current) { inputRef.current.value = ""; inputRef.current.style.height = "auto"; }
     setHeaderHidden(true);
+
+    // If a resume is staged, upload it first. The upload posts its own user
+    // bubble for the file and an agent ack. Then we continue with the text.
+    if (pendingResume) {
+      await uploadPendingResume();
+    }
+
+    if (!content) return;
+
     setMessages(prev => [...prev, { role: "user", content, time: now12h() }]);
     setWaiting(true);
     const t0 = Date.now();
@@ -608,32 +631,51 @@ export default function CcChat() {
     }
   }
 
-  async function handleResumeUpload(file: File) {
+  // Stage a picked file as a chip above the input. The student can type
+  // alongside it, or remove the file before sending. Actual upload happens
+  // when they hit Send (inside sendMsg).
+  function stageResume(file: File) {
+    if (!file) return;
+    setPendingResume(file);
+  }
+
+  // Upload the staged resume to the backend. Returns true on success.
+  // Adds a "📎 filename.pdf" bubble to the chat so there is a record of it,
+  // then triggers a short agent ack on success.
+  async function uploadPendingResume(): Promise<boolean> {
     const sid = studentIdRef.current;
-    if (!file || !sid) return;
+    const file = pendingResume;
+    if (!file || !sid) return false;
+    setResumeUploading(true);
     setMessages(prev => [...prev, { role: "user", content: "📎 " + file.name, time: now12h() }]);
-    setWaiting(true);
     try {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", body: fd });
       const data = await res.json();
-      setWaiting(false);
       if (!res.ok) {
         setMessages(prev => [...prev, {
-          role: "agent", content: (data?.detail ? String(data.detail) : "I could not read that file, you can keep answering here instead."), time: now12h(),
+          role: "agent",
+          content: (data?.detail ? String(data.detail) : "I could not read that file, you can keep answering here instead."),
+          time: now12h(),
         }]);
-      } else {
-        const n = (data.fields_extracted || []).length;
-        setHeaderHidden(true);
-        await appendAgentBubbles(`Got your resume, that covers a lot.\n\nI pulled in ${n} details from it, so we can skip most of the questions.`);
-        await sendMsg("I just uploaded my resume");
+        setPendingResume(null);
+        setResumeUploading(false);
+        return false;
       }
+      const n = (data.fields_extracted || []).length;
+      setHeaderHidden(true);
+      await appendAgentBubbles(`Got your resume, that covers a lot.\n\nI pulled in ${n} details from it, so we can skip most of the questions.`);
+      setPendingResume(null);
+      setResumeUploading(false);
+      return true;
     } catch {
-      setWaiting(false);
       setMessages(prev => [...prev, {
         role: "agent", content: "The upload did not go through, you can keep answering here instead.", time: now12h(),
       }]);
+      setPendingResume(null);
+      setResumeUploading(false);
+      return false;
     }
   }
 
@@ -940,31 +982,39 @@ export default function CcChat() {
       <>
         <div className="scard">
           <div className="scard-title">Your roadmap</div>
-          <div className="sub">The moves that get you ahead of your peers, in order. Hover any step for the detail.</div>
+          <div className="sub">The moves that get you ahead of your peers, in order. Tap any step for the detail.</div>
         </div>
         <div className="rm-intent">{intentLine}</div>
         {actions.map((a: any, i: number) => {
           const action = a.action || a.skill || (typeof a === "string" ? a : "");
           const why = a.why_it_matters || "";
           const how = a.how_to_close || a.how_to_build || "";
+          const steps = howSteps(how);
           const tool = toolLabel(a.linked_tool);
+          const isOpen = openStep === i;
           return (
-            <div key={i} className="rm-step">
+            <div key={i} className={`rm-step rm-clickable${isOpen ? " open" : ""}`}
+              onClick={() => setOpenStep(isOpen ? null : i)}>
               <div className="rm-step-head">
                 <div className="rm-num">{i + 1}</div>
                 <div style={{ flex: 1 }}>
                   <div className="rm-action">{action}</div>
-                  <div className="rm-hint">Hover for detail</div>
+                  {!isOpen && <div className="rm-hint">Tap for detail</div>}
                 </div>
+                <span className="gap-chevron">{isOpen ? "▾" : "▸"}</span>
               </div>
-              <div className="rm-detail">
-                <ul>
-                  {why && <li><strong>Why it matters:</strong> {why}</li>}
-                  {how && <li><strong>How to start:</strong> {how}</li>}
-                  {a.priority && <li><strong>Priority:</strong> {String(a.priority)}</li>}
-                  {tool && <li><strong>Tool that helps:</strong> {tool}</li>}
-                </ul>
-              </div>
+              {isOpen && (
+                <div style={{ marginTop: 10 }}>
+                  <ul>
+                    {why && <li><strong>Why it matters:</strong> {why}</li>}
+                    {steps.length > 0
+                      ? steps.map((s, si) => <li key={"s" + si}>{s}</li>)
+                      : how && <li><strong>How to start:</strong> {how}</li>}
+                    {a.priority && <li><strong>Priority:</strong> {String(a.priority)}</li>}
+                    {tool && <li><strong>Tool that helps:</strong> {tool}</li>}
+                  </ul>
+                </div>
+              )}
             </div>
           );
         })}
@@ -1241,16 +1291,26 @@ export default function CcChat() {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
+                {pendingResume && (
+                  <div id="cc-pending-resume">
+                    <span className="pr-icon">📎</span>
+                    <span className="pr-name" title={pendingResume.name}>{pendingResume.name}</span>
+                    <span className="pr-hint">{resumeUploading ? "Uploading..." : "Will upload when you send"}</span>
+                    <button className="pr-remove" disabled={resumeUploading} title="Remove" onClick={() => setPendingResume(null)}>✕</button>
+                  </div>
+                )}
                 <div id="cc-input-area">
                   <button id="cc-attach-btn" title="Upload your resume" onClick={() => fileRef.current?.click()}>📎</button>
                   <input type="file" ref={fileRef} accept=".pdf,.docx,.txt" style={{ display: "none" }}
-                    onChange={e => { if (e.target.files?.[0]) handleResumeUpload(e.target.files[0]); e.target.value = ""; }} />
+                    onChange={e => { if (e.target.files?.[0]) stageResume(e.target.files[0]); e.target.value = ""; }} />
                   <textarea
-                    id="cc-chat-input" ref={inputRef} placeholder="Type your message..." rows={1}
+                    id="cc-chat-input" ref={inputRef}
+                    placeholder={pendingResume ? "Add a note about your resume, or just hit send..." : "Type your message..."}
+                    rows={1}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
                     onChange={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 130) + "px"; }}
                   />
-                  <button id="cc-send-btn" disabled={waiting} onClick={() => sendMsg()}>→</button>
+                  <button id="cc-send-btn" disabled={waiting || resumeUploading} onClick={() => sendMsg()}>→</button>
                 </div>
               </div>
             </div>
