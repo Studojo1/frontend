@@ -86,8 +86,9 @@ const CSS = `
   background: #fff; border-bottom: 2px solid #111;
   box-shadow: 0 2px 0 #111;
 }
-.lp-nav-logo { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.04em; text-decoration: none; color: #111; display: flex; align-items: center; gap: 5px; }
-.lp-nav-dot { width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg,#7C3AED,#EC4899); display: inline-block; }
+/* studojo wordmark — matches the main platform: Satoshi 900, brand ink black, tight tracking, no dot. */
+.lp-nav-logo { font-size: 1.75rem; font-weight: 900; letter-spacing: -0.055em; line-height: 1; text-decoration: none; color: #191A23; font-family: "Satoshi", ui-sans-serif, system-ui, sans-serif; }
+.lp-nav-dot { display: none; }
 .lp-nav-cta { background: #111; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 22px; border-radius: 999px; text-decoration: none; transition: opacity 0.15s; }
 .lp-nav-cta:hover { opacity: 0.8; }
 

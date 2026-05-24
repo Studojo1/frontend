@@ -28,8 +28,11 @@ const CSS = `
 .cc-root .scard h3,.cc-root .xp-hero-role,.cc-root .xp-dash-name,
 .cc-root .commit-q,.cc-root .hook-stat,.cc-root #cc-ready-pop .rp-title{font-family:"Clash Display",ui-sans-serif,system-ui,sans-serif;}
 .cc-root{--bg-primary:#0E0E12;--bg-secondary:#17171F;--bg-white:#1B1B24;--bg-raised:#22222E;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#3A3A48;--border-light:rgba(255,255,255,0.10);--shadow-c:rgba(0,0,0,0.55);--accent-purple:#A78BFA;--accent-light:#2E2547;--success:#34D399;--warning:#FBBF24;--gradient-primary:linear-gradient(90deg,#8B5CF6 0%,#A855F7 50%,#EC4899 100%);--sidebar-w:560px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
-#cc-float-logo{position:fixed;top:20px;left:26px;z-index:120;font-size:1.7rem;font-weight:700;letter-spacing:-0.045em;display:flex;align-items:center;gap:3px;text-decoration:none;color:var(--text-primary);}
-.cc-dot{width:8px;height:8px;border-radius:50%;background:var(--gradient-primary);display:inline-block;}
+/* studojo wordmark — matches the main platform: heavy Satoshi black,
+   tight tracking, no dot, no pill. Chat is dark mode so white; landing
+   page uses brand ink black. */
+#cc-float-logo{position:fixed;top:18px;left:26px;z-index:120;font-size:2rem;font-weight:900;letter-spacing:-0.055em;line-height:1;text-decoration:none;color:var(--text-primary);font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
+.cc-dot{display:none;}
 /* panel toggle sits just left of the sidebar and slides with it */
 #cc-float-toggle{position:fixed;top:18px;z-index:120;display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid var(--border);border-radius:999px;padding:8px 16px;background:var(--bg-raised);color:var(--text-primary);box-shadow:3px 3px 0 var(--shadow-c);font-size:0.8rem;font-weight:700;transition:right 0.28s ease,transform 0.15s,box-shadow 0.15s;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
 #cc-float-toggle.open{right:calc(var(--sidebar-w) + 22px);}
@@ -157,7 +160,7 @@ const CSS = `
 #cc-hook{position:fixed;inset:0;z-index:600;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity 0.45s ease,transform 0.45s ease;}
 #cc-hook.dismissing{opacity:0;transform:translateY(-24px);pointer-events:none;}
 .hook-inner{max-width:580px;width:90%;text-align:center;}
-.hook-logo{font-size:1.1rem;font-weight:800;letter-spacing:-0.04em;margin-bottom:40px;display:flex;align-items:center;justify-content:center;gap:4px;}
+.hook-logo{font-size:1.6rem;font-weight:900;letter-spacing:-0.055em;line-height:1;margin-bottom:40px;text-align:center;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
 .hook-stat{font-size:clamp(1.35rem,3vw,1.75rem);font-weight:800;letter-spacing:-0.03em;line-height:1.3;margin-bottom:16px;min-height:4.5em;transition:opacity 0.3s ease;}
 .hook-stat .hs-main{color:var(--text-primary);display:block;margin-bottom:6px;}
 .hook-stat .hs-emphasis{color:var(--accent-purple);display:block;}
