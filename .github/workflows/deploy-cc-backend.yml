@@ -84,6 +84,10 @@ jobs:
             kubectl set image deployment/${{ env.APP_NAME }} \
               ${{ env.APP_NAME }}=${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }} \
               -n ${{ env.NAMESPACE }}
+            # Force a pod restart even if the image tag string is unchanged
+            # (e.g. workflow_dispatch re-runs on the same SHA after a Career-coach
+            # source push). Without this, the pod keeps the old image layer.
+            kubectl rollout restart deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }}
           else
             kubectl create deployment ${{ env.APP_NAME }} \
               --image=${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }} \
@@ -97,3 +101,8 @@ jobs:
               -p='[{"op":"replace","path":"/spec/template/spec/containers/0/ports","value":[{"containerPort":8000}]}]'
           fi
           kubectl rollout status deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} --timeout=10m
+          echo "--- final pod status ---"
+          kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.APP_NAME }} -o wide
+          POD=$(kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.APP_NAME }} -o jsonpath='{.items[0].metadata.name}')
+          echo "--- last 80 log lines from $POD ---"
+          kubectl logs -n ${{ env.NAMESPACE }} $POD --tail=80 || true
