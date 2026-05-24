@@ -63,6 +63,12 @@ const CSS = `
 .msg-time{font-size:10px;color:var(--text-muted);margin-top:4px;}
 .report-link-btn{align-self:flex-start;margin-top:5px;background:none;border:none;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.7rem;font-weight:600;color:var(--text-muted);cursor:pointer;text-decoration:underline;padding:0;}
 .report-link-btn:hover{color:var(--accent-purple);}
+/* Inline Resume Maker upload button — hides the raw URL */
+.rm-upload-btn{display:flex;align-items:center;gap:11px;margin-top:10px;padding:11px 14px;background:var(--accent-light);border:2px solid var(--accent-purple);border-radius:14px;text-decoration:none;color:var(--text-primary);box-shadow:3px 3px 0 var(--shadow-c);transition:all 0.15s;}
+.rm-upload-btn:hover{transform:translateY(-1px);box-shadow:5px 5px 0 var(--shadow-c);}
+.rm-upload-icon{font-size:1.2rem;flex-shrink:0;}
+.rm-upload-title{display:block;font-size:0.86rem;font-weight:800;color:var(--text-primary);}
+.rm-upload-sub{display:block;font-size:0.74rem;color:var(--text-secondary);margin-top:2px;line-height:1.4;}
 .typing-dots{display:flex;gap:5px;padding:4px 0;}
 .typing-dots span{width:7px;height:7px;border-radius:50%;background:var(--accent-purple);animation:dotPulse 600ms ease-in-out infinite alternate;opacity:0.3;}
 .typing-dots span:nth-child(2){animation-delay:200ms;}
@@ -292,18 +298,49 @@ const CSS = `
 type Msg = { role: string; content: string; state?: string; time: string; cta?: string };
 type CtaKind = "analysis" | "roadmap" | "dashboard";
 
-// Render a plain-text bubble: capitalize the first letter, linkify URLs.
+// Recognise any spelling of the Resume Maker URL: with or without protocol,
+// optional www, trailing slash or path tail.
+const RESUME_MAKER_RE = /(?:https?:\/\/)?(?:www\.)?studojo\.com\/resume-maker[^\s)]*/gi;
+
+// Render a plain-text bubble:
+// - capitalize the first letter
+// - if the bubble mentions the Resume Maker URL, strip the URL out of the
+//   text entirely and render a styled "Upload your resume" button instead
+//   (hides the raw /resume-maker URL from the chat)
+// - all other URLs are linkified normally
 function renderBubbleText(text: string) {
   let t = String(text || "");
-  // capitalize the very first alphabetic character
   t = t.replace(/^(\s*)([a-z])/, (_m, ws, ch) => ws + ch.toUpperCase());
+
+  // Detect Resume Maker URL, strip it (and a leading colon/dash before it),
+  // then render a button at the end of the bubble.
+  const hasResumeUrl = RESUME_MAKER_RE.test(t);
+  RESUME_MAKER_RE.lastIndex = 0;
+  if (hasResumeUrl) {
+    t = t.replace(/[\s:,\-—.]*(here\s*[:\-]?\s*)?(?:https?:\/\/)?(?:www\.)?studojo\.com\/resume-maker[^\s)]*/gi, "").trim();
+    t = t.replace(/\s{2,}/g, " ").replace(/[\s,;.]+$/, "");
+  }
+
   const urlRe = /(https?:\/\/[^\s)]+)/g;
   const parts = t.split(urlRe);
-  return parts.map((part, i) =>
+  const rendered = parts.map((part, i) =>
     urlRe.test(part)
       ? <a key={i} href={part} target="_blank" rel="noopener noreferrer">{part}</a>
       : <span key={i}>{part}</span>
   );
+
+  if (hasResumeUrl) {
+    rendered.push(
+      <a key="rm-btn" className="rm-upload-btn" href="https://studojo.com/resume-maker" target="_blank" rel="noopener noreferrer">
+        <span className="rm-upload-icon">📄</span>
+        <span>
+          <span className="rm-upload-title">Upload your resume using this link</span>
+          <span className="rm-upload-sub">If not, you can continue chatting here, that's fine.</span>
+        </span>
+      </a>
+    );
+  }
+  return rendered;
 }
 
 export default function CcChat() {
@@ -938,7 +975,7 @@ export default function CcChat() {
 
   // The four Studojo tools, shown as small buttons on the dashboard.
   const TOOL_LINKS = [
-    { label: "Resume Maker", href: "https://studojo.com/dojos/careers", icon: "📄" },
+    { label: "Resume Maker", href: "https://studojo.com/resume-maker", icon: "📄" },
     { label: "Outreach Dojo", href: "https://studojo.com/outreach", icon: "✉️" },
     { label: "Internship Dojo", href: "https://studojo.com/dojos/internships", icon: "🎯" },
     { label: "Reports", href: "https://studojo.com/reports", icon: "📊" },
