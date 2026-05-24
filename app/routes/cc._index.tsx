@@ -6,7 +6,7 @@ export function meta() {
     {
       name: "description",
       content:
-        "Get a personalised readiness score, gap analysis, and week-by-week action plan — based on your actual profile. Free to start.",
+        "See exactly how much better you are than the typical fresher chasing your role. Climb three levels — Industry-Ready, Well-Rounded, Standout — with a weekly action plan built around your profile.",
     },
   ];
 }
@@ -16,17 +16,17 @@ const HOW_IT_WORKS = [
   {
     num: "01",
     title: "Tell the coach about yourself",
-    desc: "No forms. No uploads. Just a conversation. The AI asks about your degree, skills, experience, and what you are going after — and listens.",
+    desc: "No forms. Just a conversation. The AI asks about your degree, skills, experience, and what you are going after — and listens. The more you talk to it, the sharper it gets.",
   },
   {
     num: "02",
     title: "Get your Career DNA",
-    desc: "You receive a readiness score, a detailed gap analysis, and a clear picture of exactly what is holding your reply rate back.",
+    desc: "You see exactly how much better you are than the typical fresher chasing your role in your industry, the specific gaps holding that number back, and your current level on the 3-step ladder.",
   },
   {
     num: "03",
-    title: "Follow your weekly roadmap",
-    desc: "One prioritised action per week. Closes your gaps. Moves your readiness score. Tracks your progress every time you come back.",
+    title: "Climb the three levels",
+    desc: "Show up daily, log your weekly progress, and watch your standing climb. Six weeks of consistent follow-through promotes you to the next level: Industry-Ready → Well-Rounded → Standout.",
   },
 ];
 
@@ -37,9 +37,9 @@ const WHAT_YOU_GET = [
     label: "Career DNA",
     title: "Know exactly where you stand",
     bullets: [
-      "Readiness score out of 100",
+      "How much % better you are than your industry",
       "Skills, industry, and experience gaps",
-      "Personalised clarity score",
+      "Your current level: Industry-Ready, Well-Rounded, or Standout",
     ],
     cta: "Get your Career DNA",
     href: "/cc/chat",
@@ -50,9 +50,9 @@ const WHAT_YOU_GET = [
     label: "Gap Analysis",
     title: "See what is holding you back",
     bullets: [
-      "Skills gap ranked by impact",
+      "Skill gaps ranked by impact for your role",
       "Industry knowledge gaps",
-      "Experience gaps vs target role",
+      "Experience gaps vs the top fresher candidates",
     ],
     cta: "Run your gap analysis",
     href: "/cc/chat",
@@ -61,11 +61,11 @@ const WHAT_YOU_GET = [
     color: "#D97706",
     bg: "#FFFBEB",
     label: "Weekly Action Plan",
-    title: "One thing to do this week",
+    title: "Climb the ladder, week by week",
     bullets: [
-      "Highest-leverage move for your profile",
-      "Updates every week as you close gaps",
-      "Tracks your score improvement",
+      "Highest-leverage move for your level",
+      "Daily check-ins compound your standing",
+      "Six weeks of follow-through gets you to the next level",
     ],
     cta: "Get your action plan",
     href: "/cc/chat",
@@ -242,7 +242,7 @@ const CSS = `
 
 const QUOTES = [
   {
-    text: "I had no idea what was actually stopping me from getting replies. The readiness score told me exactly which skill to build first. Got an interview at Razorpay two weeks later.",
+    text: "I had no idea what was actually stopping me from getting replies. Seeing exactly where I stood vs other CS freshers — and the one skill that was dragging it down — told me what to build first. Got an interview at Razorpay two weeks later.",
     name: "Arjun S.",
     detail: "B.Tech CS, SRM — targeting Product",
   },
@@ -277,17 +277,17 @@ export default function CcIndex() {
           <div className="lp-hero-inner">
             <div className="lp-hero-eyebrow">
               <span className="lp-hero-eyebrow-dot" />
-              Career Coach — Free to start
+              Career Coach — A real coach in your corner
             </div>
-            <h1>Skip the guessing.<br />Know exactly what to do next.</h1>
+            <h1>Know exactly how much<br />better you are than your industry.</h1>
             <p className="lp-hero-sub">
-              Stop applying blindly. Get a personalised readiness score, a skills gap breakdown, and a week-by-week action plan, built around your actual profile. The more you talk to the coach, the better it knows you and the sharper your plan gets.
+              Stop applying blindly. The coach reads your profile, shows you exactly where you stand against the typical fresher chasing your role, and walks you up a 3-level ladder — Industry-Ready, Well-Rounded, Standout — with daily and weekly moves that compound.
             </p>
             <div className="lp-hero-btns">
               <Link to="/cc/chat" className="lp-btn-primary">Get my Career DNA →</Link>
               <a href="#how-it-works" className="lp-btn-ghost">See how it works</a>
             </div>
-            <div className="lp-hero-meta">Takes 8 minutes. Free. No account needed to start. Gets smarter the more you use it.</div>
+            <div className="lp-hero-meta">Takes 8 minutes. Gets sharper the more you talk to it.</div>
           </div>
         </section>
 
@@ -298,16 +298,16 @@ export default function CcIndex() {
             <div className="lp-stat-label">to your Career DNA</div>
           </div>
           <div className="lp-stat">
-            <div className="lp-stat-num">3x</div>
-            <div className="lp-stat-label">better reply rate after closing gaps</div>
+            <div className="lp-stat-num">3</div>
+            <div className="lp-stat-label">levels to climb</div>
+          </div>
+          <div className="lp-stat">
+            <div className="lp-stat-num">3% / 5%</div>
+            <div className="lp-stat-label">daily / weekly standing gains</div>
           </div>
           <div className="lp-stat">
             <div className="lp-stat-num">100%</div>
             <div className="lp-stat-label">personalised to your profile</div>
-          </div>
-          <div className="lp-stat">
-            <div className="lp-stat-num">Free</div>
-            <div className="lp-stat-label">to get started today</div>
           </div>
         </div>
 
@@ -372,7 +372,7 @@ export default function CcIndex() {
         {/* CTA BANNER */}
         <section className="lp-cta-banner">
           <h2>Know exactly where you stand.</h2>
-          <p>Takes 8 minutes. Free to get started. No account needed.</p>
+          <p>Takes 8 minutes. Built around your real profile, not a quiz.</p>
           <Link to="/cc/chat" className="lp-btn-primary" style={{ display: "inline-block", background: "#111", color: "#F59E0B" }}>
             Get my Career DNA →
           </Link>
