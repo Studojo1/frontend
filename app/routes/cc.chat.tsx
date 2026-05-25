@@ -27,7 +27,13 @@ const CSS = `
 .cc-root #cc-float-logo,.cc-root .hook-logo,.cc-root .chat-setup-header-title,
 .cc-root .scard h3,.cc-root .xp-hero-role,.cc-root .xp-dash-name,
 .cc-root .commit-q,.cc-root .hook-stat,.cc-root #cc-ready-pop .rp-title{font-family:"Clash Display",ui-sans-serif,system-ui,sans-serif;}
-.cc-root{--bg-primary:#0E0E12;--bg-secondary:#17171F;--bg-white:#1B1B24;--bg-raised:#22222E;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#3A3A48;--border-light:rgba(255,255,255,0.10);--shadow-c:rgba(0,0,0,0.55);--accent-purple:#9B6DF5;--accent-light:#2A2241;--success:#34D399;--warning:#FBBF24;--gradient-primary:#9B6DF5;--sidebar-w:560px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
+/* Contrast zoning, three luminance layers:
+   --bg-primary  pure black app background
+   --bg-secondary  lifted panel surfaces (sidebar, input frame)
+   --bg-white  active conversational surface (chat card)
+   --bg-raised  raised elements inside cards (bubbles, stat boxes)
+   Layered purple system: solid accent + muted + glow + lavender. */
+.cc-root{--bg-primary:#000000;--bg-secondary:#0B0B11;--bg-white:#13131A;--bg-raised:#1C1C26;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#2A2A38;--border-light:rgba(255,255,255,0.07);--shadow-c:rgba(0,0,0,0.7);--accent-purple:#9B6DF5;--accent-purple-muted:#6D4FAF;--accent-lavender:#C4B5FD;--accent-glow:rgba(155,109,245,0.45);--accent-light:#221A39;--success:#34D399;--warning:#FBBF24;--gradient-primary:#9B6DF5;--gradient-soft:linear-gradient(135deg,rgba(155,109,245,0.18) 0%,rgba(196,181,253,0.08) 100%);--sidebar-w:580px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
 /* studojo wordmark — matches the main platform: heavy Satoshi black,
    tight tracking, no dot, no pill. Chat is dark mode so white; landing
    page uses brand ink black. */
@@ -40,7 +46,7 @@ const CSS = `
 #cc-float-toggle:hover{transform:translateY(-1px);box-shadow:4px 4px 0 var(--shadow-c);}
 #cc-layout{flex:1;display:flex;min-height:0;}
 #cc-chat-col{flex:1;display:flex;flex-direction:column;min-width:0;padding:72px 16px 16px;}
-#cc-chat-inner{flex:1;display:flex;flex-direction:column;max-width:680px;margin:0 auto;width:100%;min-height:0;}
+#cc-chat-inner{flex:1;display:flex;flex-direction:column;max-width:820px;margin:0 auto;width:100%;min-height:0;}
 .chat-card{flex:1;display:flex;flex-direction:column;border:2px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:4px 4px 0 var(--shadow-c);background:var(--bg-white);min-height:0;}
 .chat-setup-header{padding:14px 26px;flex-shrink:0;background:linear-gradient(135deg,#241D3D 0%,#2B1F3E 100%);border-bottom:1px solid rgba(167,139,250,0.2);}
 .chat-setup-header.hidden{display:none;}
@@ -53,7 +59,7 @@ const CSS = `
 .msg-row.agent{justify-content:flex-start;}
 .msg-row.user{justify-content:flex-end;}
 .agent-avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;background:var(--gradient-primary);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;color:white;}
-.msg-bubble-wrap{display:flex;flex-direction:column;max-width:76%;}
+.msg-bubble-wrap{display:flex;flex-direction:column;max-width:82%;}
 .msg-bubble{padding:13px 17px;font-size:0.92rem;line-height:1.55;border:2px solid var(--border);white-space:pre-wrap;}
 .msg-row.agent .msg-bubble{background:var(--bg-raised);border-radius:4px 18px 18px 18px;box-shadow:3px 3px 0 var(--shadow-c);}
 .msg-row.user .msg-bubble{background:#9B6DF5;border-color:transparent;border-radius:18px 4px 18px 18px;box-shadow:3px 3px 0 var(--shadow-c);color:#fff;}
@@ -87,15 +93,22 @@ const CSS = `
 #cc-pending-resume .pr-remove{background:none;border:none;color:var(--text-secondary);font-size:1rem;cursor:pointer;padding:0 4px;line-height:1;font-family:inherit;}
 #cc-pending-resume .pr-remove:hover{color:var(--text-primary);}
 #cc-pending-resume .pr-remove:disabled{opacity:0.4;cursor:not-allowed;}
-#cc-input-area{flex-shrink:0;background:var(--bg-white);border-top:2px solid var(--border-light);padding:14px 22px;display:flex;gap:10px;align-items:flex-end;}
-#cc-attach-btn{width:46px;height:46px;border-radius:50%;flex-shrink:0;background:var(--bg-raised);color:var(--text-primary);border:2px solid var(--border);box-shadow:2px 2px 0 var(--shadow-c);cursor:pointer;font-size:1.05rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
-#cc-attach-btn:hover{transform:translateY(-2px);box-shadow:3px 3px 0 var(--shadow-c);}
-#cc-chat-input{flex:1;border:2px solid var(--accent-purple);border-radius:18px;padding:13px 17px;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.93rem;background:var(--bg-raised);color:var(--text-primary);resize:none;min-height:50px;max-height:130px;outline:none;transition:all 0.2s;line-height:1.5;}
+/* PREMIUM INPUT AREA — translucent surface, soft border, integrated attach
+   + send, suggestion chips floating above, glow-on-focus halo. */
+#cc-input-area{flex-shrink:0;background:transparent;border-top:none;padding:10px 22px 18px;display:flex;flex-direction:column;gap:10px;}
+#cc-chat-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 2px;}
+.cc-chip{font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.78rem;font-weight:600;color:var(--accent-lavender);background:rgba(155,109,245,0.10);border:1px solid rgba(155,109,245,0.28);border-radius:999px;padding:6px 14px;cursor:pointer;transition:all 0.15s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.cc-chip:hover{background:rgba(155,109,245,0.18);border-color:rgba(155,109,245,0.55);color:#fff;transform:translateY(-1px);}
+.cc-chip:disabled{opacity:0.4;cursor:not-allowed;}
+#cc-input-shell{display:flex;align-items:flex-end;gap:8px;background:linear-gradient(180deg,rgba(28,28,38,0.85) 0%,rgba(19,19,26,0.85) 100%);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:22px;padding:8px 8px 8px 14px;box-shadow:0 8px 24px -10px rgba(0,0,0,0.55),0 0 0 0 transparent;transition:border-color 0.18s,box-shadow 0.22s;}
+#cc-input-shell:focus-within{border-color:rgba(155,109,245,0.55);box-shadow:0 10px 28px -10px rgba(0,0,0,0.6),0 0 0 4px rgba(155,109,245,0.18);}
+#cc-attach-btn{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:transparent;color:var(--text-secondary);border:none;cursor:pointer;font-size:1.05rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+#cc-attach-btn:hover{color:var(--accent-lavender);background:rgba(155,109,245,0.10);}
+#cc-chat-input{flex:1;border:none;background:transparent;padding:10px 4px;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.95rem;color:var(--text-primary);resize:none;min-height:42px;max-height:140px;outline:none;line-height:1.5;}
 #cc-chat-input::placeholder{color:var(--text-muted);}
-#cc-chat-input:focus{box-shadow:0 0 0 4px rgba(167,139,250,0.18);}
-#cc-send-btn{width:46px;height:46px;border-radius:50%;flex-shrink:0;background:var(--gradient-primary);border:2px solid var(--border);box-shadow:2px 2px 0 var(--shadow-c);color:white;font-size:1.05rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
-#cc-send-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:3px 3px 0 var(--shadow-c);}
-#cc-send-btn:disabled{opacity:0.5;cursor:not-allowed;}
+#cc-send-btn{width:40px;height:40px;border-radius:14px;flex-shrink:0;background:var(--accent-purple);border:none;color:white;font-size:1rem;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px -4px var(--accent-glow);}
+#cc-send-btn:hover:not(:disabled){background:#A87DFF;transform:translateY(-1px);box-shadow:0 6px 18px -4px var(--accent-glow);}
+#cc-send-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
 #cc-sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-white);border-left:2px solid var(--border);display:flex;flex-direction:column;transition:margin-right 0.28s ease;overflow:hidden;}
 #cc-sidebar.collapsed{margin-right:calc(-1 * var(--sidebar-w));}
 #cc-sidebar.expanded{position:fixed;inset:0;width:100vw;z-index:200;border-left:none;}
@@ -194,6 +207,35 @@ const CSS = `
 .social-ticker{margin-top:24px;padding:10px 16px;background:var(--bg-secondary);border-radius:10px;font-size:0.75rem;color:var(--text-secondary);min-height:36px;display:flex;align-items:center;justify-content:center;transition:opacity 0.35s;}
 .social-ticker .st-dot{width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:8px;flex-shrink:0;}
 .session-divider{text-align:center;font-size:0.72rem;color:var(--text-muted);padding:8px 0 4px;}
+/* ===== DETECTED SO FAR (pre-DNA live panel) ===== */
+.ds-empty{padding:60px 22px;text-align:center;color:var(--text-muted);}
+.ds-empty-icon{font-size:2.2rem;color:var(--accent-purple);margin-bottom:14px;text-shadow:0 0 18px var(--accent-glow);}
+.ds-empty-title{font-size:1rem;font-weight:800;color:var(--text-primary);margin-bottom:6px;}
+.ds-empty-sub{font-size:0.82rem;line-height:1.55;max-width:280px;margin:0 auto;}
+.ds-wrap{padding:4px 2px 24px;}
+.ds-header{padding:18px 20px;border:1px solid var(--border);border-radius:18px;background:var(--gradient-soft);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);margin-bottom:14px;}
+.ds-eyebrow{font-size:0.62rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent-lavender);margin-bottom:6px;}
+.ds-title{font-size:1.15rem;font-weight:800;letter-spacing:-0.02em;}
+.ds-sub{font-size:0.78rem;color:var(--text-secondary);margin-top:4px;line-height:1.5;}
+.ds-conf-row{display:flex;align-items:center;gap:12px;margin-top:14px;}
+.ds-conf-track{flex:1;height:8px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden;}
+.ds-conf-fill{height:100%;background:linear-gradient(90deg,var(--accent-purple-muted) 0%,var(--accent-purple) 100%);box-shadow:0 0 14px var(--accent-glow);transition:width 0.5s ease;}
+.ds-conf-pct{font-size:0.82rem;font-weight:800;color:var(--accent-lavender);min-width:36px;text-align:right;}
+.ds-conf-label{font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-top:4px;}
+.ds-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.ds-tile{border:1px solid var(--border);border-radius:14px;background:var(--bg-raised);padding:13px 14px;transition:border-color 0.18s,transform 0.18s;}
+.ds-tile:hover{border-color:rgba(155,109,245,0.45);transform:translateY(-1px);}
+.ds-tile-wide{grid-column:span 2;}
+.ds-tile-label{font-size:0.6rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+.ds-tile-body{font-size:0.86rem;font-weight:600;line-height:1.45;color:var(--text-primary);text-transform:capitalize;}
+.ds-tile-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.ds-chip{display:inline-block;font-size:0.74rem;font-weight:600;padding:4px 11px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-secondary);}
+.ds-chip-have{background:rgba(52,211,153,0.10);border-color:rgba(52,211,153,0.35);color:#6EE7B7;}
+.ds-chip-glow{background:rgba(155,109,245,0.12);border-color:rgba(155,109,245,0.4);color:var(--accent-lavender);box-shadow:0 0 10px rgba(155,109,245,0.18);}
+.ds-footer{display:flex;align-items:center;gap:9px;font-size:0.74rem;color:var(--text-muted);padding:10px 6px 2px;line-height:1.5;}
+.ds-pulse{width:8px;height:8px;border-radius:50%;background:var(--accent-purple);box-shadow:0 0 0 0 var(--accent-glow);animation:dsPulse 1.6s ease-out infinite;flex-shrink:0;}
+@keyframes dsPulse{0%{box-shadow:0 0 0 0 var(--accent-glow);}70%{box-shadow:0 0 0 8px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
+
 /* ===== EXPANDED FULL-PAGE VIEW ===== */
 #cc-xp-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 26px;border-bottom:2px solid var(--border);background:var(--bg-white);flex-shrink:0;}
 #cc-xp-back{background:var(--bg-raised);color:var(--text-primary);border:2px solid var(--border);border-radius:999px;box-shadow:3px 3px 0 var(--shadow-c);padding:8px 16px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;transition:all 0.15s;white-space:nowrap;}
@@ -370,6 +412,10 @@ export default function CcChat() {
   // staged resume file shown as a chip above the input until the student hits Send
   const [pendingResume, setPendingResume] = useState<File | null>(null);
   const [resumeUploading, setResumeUploading] = useState(false);
+  // context-aware suggestion chips shown above the input bar
+  const [chips, setChips] = useState<string[]>([
+    "Tell me what to expect", "What if I'm still figuring it out?", "Upload my resume to fast-track this",
+  ]);
   // tracks which Career-Analysis skill gap / Roadmap step is currently expanded
   const [openGap, setOpenGap] = useState<number | null>(null);
   const [openStep, setOpenStep] = useState<number | null>(null);
@@ -553,6 +599,9 @@ export default function CcChat() {
       setWaiting(false);
       const state = gd.orchestration?.current_state || "GREETING";
       setAgentState(state);
+      if (Array.isArray(gd.suggestion_chips) && gd.suggestion_chips.length) {
+        setChips(gd.suggestion_chips.slice(0, 3));
+      }
       await appendAgentBubbles(gd.reply || gd.message || "Hey, what's going on? What are you trying to figure out?", undefined, state);
     }, 500);
   }
@@ -610,6 +659,9 @@ export default function CcChat() {
       const state = o.current_state || agentState;
       setAgentState(state);
       if (data.conversation_id) conversationIdRef.current = data.conversation_id;
+      if (Array.isArray(data.suggestion_chips) && data.suggestion_chips.length) {
+        setChips(data.suggestion_chips.slice(0, 3));
+      }
       const cta = ctaForState(state, o);
       await appendAgentBubbles(data.reply, cta, state);
       if (["DNA_REVIEW", "ROADMAP", "ONGOING_SUPPORT", "DNA_CORRECTION"].includes(state)) {
@@ -737,9 +789,118 @@ export default function CcChat() {
     return { num: n, name };
   }
 
+  // Pre-DNA panel: shows what the coach has picked up from the chat so far,
+  // populated from /dashboard's detected_so_far snapshot. Renders message-by-
+  // message as the student fills in their profile.
+  function renderDetectedSoFar(expanded: boolean) {
+    const d = sidebarData?.detected_so_far || {};
+    const educationFields = ([d.degree && d.stream ? `${d.degree} in ${d.stream}`
+      : d.degree, d.institution, d.graduation_year && `Graduating ${d.graduation_year}`])
+      .filter(Boolean) as string[];
+    const direction: string[] = [];
+    if (d.target_role) direction.push(d.target_role);
+    if (d.target_industry) direction.push(d.target_industry);
+    if (d.target_geography) direction.push(d.target_geography);
+    if (d.job_type) direction.push(d.job_type);
+    const motivators: string[] = Array.isArray(d.motivators) ? d.motivators : [];
+    const skills: string[] = Array.isArray(d.skills_confirmed) ? d.skills_confirmed : [];
+    const tools: string[] = Array.isArray(d.tools_and_tech) ? d.tools_and_tech : [];
+    const directionPct = typeof d.direction_confidence_pct === "number" ? d.direction_confidence_pct : 0;
+    const nothingYet =
+      !educationFields.length && !direction.length && !motivators.length &&
+      !skills.length && !tools.length && !d.archetype;
+
+    if (nothingYet) {
+      return (
+        <div className="ds-empty">
+          <div className="ds-empty-icon">⌁</div>
+          <div className="ds-empty-title">Your Career Analysis is building.</div>
+          <div className="ds-empty-sub">
+            Tiles light up here as the coach learns about you, your goals, and where you stand.
+            Keep chatting.
+          </div>
+        </div>
+      );
+    }
+
+    const wrapClass = expanded ? "xp ds-wrap" : "ds-wrap";
+    return (
+      <div className={wrapClass}>
+        <div className="ds-header">
+          <div className="ds-eyebrow">Detected so far</div>
+          <div className="ds-title">What the coach has picked up</div>
+          <div className="ds-sub">Live snapshot from your conversation. Full Career DNA generates when there's enough signal.</div>
+          <div className="ds-conf-row">
+            <div className="ds-conf-track"><div className="ds-conf-fill" style={{ width: `${directionPct}%` }} /></div>
+            <div className="ds-conf-pct">{directionPct}%</div>
+          </div>
+          <div className="ds-conf-label">Direction confidence</div>
+        </div>
+
+        <div className="ds-grid">
+          {educationFields.length > 0 && (
+            <div className="ds-tile">
+              <div className="ds-tile-label">Background</div>
+              <div className="ds-tile-body">{educationFields.join(" · ")}</div>
+            </div>
+          )}
+          {direction.length > 0 && (
+            <div className="ds-tile">
+              <div className="ds-tile-label">Direction</div>
+              <div className="ds-tile-body">{direction.join(" · ")}</div>
+            </div>
+          )}
+          {d.archetype && (
+            <div className="ds-tile">
+              <div className="ds-tile-label">Read of you</div>
+              <div className="ds-tile-body">{String(d.archetype).replace(/_/g, " ")}</div>
+            </div>
+          )}
+          {d.confidence_level && (
+            <div className="ds-tile">
+              <div className="ds-tile-label">Confidence</div>
+              <div className="ds-tile-body">{String(d.confidence_level)}</div>
+            </div>
+          )}
+          {motivators.length > 0 && (
+            <div className="ds-tile ds-tile-wide">
+              <div className="ds-tile-label">What's driving you</div>
+              <div className="ds-tile-chips">
+                {motivators.slice(0, 6).map((m, i) => <span key={i} className="ds-chip ds-chip-glow">{m}</span>)}
+              </div>
+            </div>
+          )}
+          {skills.length > 0 && (
+            <div className="ds-tile ds-tile-wide">
+              <div className="ds-tile-label">Skills detected</div>
+              <div className="ds-tile-chips">
+                {skills.slice(0, 12).map((s, i) => <span key={i} className="ds-chip ds-chip-have">{s}</span>)}
+              </div>
+            </div>
+          )}
+          {tools.length > 0 && (
+            <div className="ds-tile ds-tile-wide">
+              <div className="ds-tile-label">Tools & tech</div>
+              <div className="ds-tile-chips">
+                {tools.slice(0, 12).map((s, i) => <span key={i} className="ds-chip">{s}</span>)}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="ds-footer">
+          <span className="ds-pulse" />
+          {d.has_resume ? "Resume parsed. Career DNA generates after a few more exchanges." : "Career DNA generates after a few more exchanges — or upload your resume to fast-track it."}
+        </div>
+      </div>
+    );
+  }
+
   function renderAnalysis(expanded: boolean) {
     if (!dnaReady) {
-      return <div className="side-empty"><div className="se-icon">🧬</div>Your Career Analysis appears here once we have built your Career DNA. Keep chatting to get there.</div>;
+      // Pre-DNA: show what's been detected so far so the panel feels alive
+      // while the student is still talking through profiling.
+      return renderDetectedSoFar(expanded);
     }
     const b = pp.benchmark || {};
     const have: string[] = pp.skills_you_have || [];
@@ -1324,17 +1485,32 @@ export default function CcChat() {
                   </div>
                 )}
                 <div id="cc-input-area">
-                  <button id="cc-attach-btn" title="Upload your resume" onClick={() => fileRef.current?.click()}>📎</button>
-                  <input type="file" ref={fileRef} accept=".pdf,.docx,.txt" style={{ display: "none" }}
-                    onChange={e => { if (e.target.files?.[0]) stageResume(e.target.files[0]); e.target.value = ""; }} />
-                  <textarea
-                    id="cc-chat-input" ref={inputRef}
-                    placeholder={pendingResume ? "Add a note about your resume, or just hit send..." : "Type your message..."}
-                    rows={1}
-                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
-                    onChange={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 130) + "px"; }}
-                  />
-                  <button id="cc-send-btn" disabled={waiting || resumeUploading} onClick={() => sendMsg()}>→</button>
+                  {chips.length > 0 && !waiting && !resumeUploading && (
+                    <div id="cc-chat-chips">
+                      {chips.map((c, i) => (
+                        <button
+                          key={i}
+                          className="cc-chip"
+                          disabled={waiting || resumeUploading}
+                          onClick={() => sendMsg(c)}
+                          title={c}
+                        >{c}</button>
+                      ))}
+                    </div>
+                  )}
+                  <div id="cc-input-shell">
+                    <button id="cc-attach-btn" title="Upload your resume" onClick={() => fileRef.current?.click()} aria-label="Upload resume">📎</button>
+                    <input type="file" ref={fileRef} accept=".pdf,.docx,.txt" style={{ display: "none" }}
+                      onChange={e => { if (e.target.files?.[0]) stageResume(e.target.files[0]); e.target.value = ""; }} />
+                    <textarea
+                      id="cc-chat-input" ref={inputRef}
+                      placeholder={pendingResume ? "Add a note about your resume, or just hit send..." : "Ask about internships, resumes, outreach..."}
+                      rows={1}
+                      onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
+                      onChange={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px"; }}
+                    />
+                    <button id="cc-send-btn" disabled={waiting || resumeUploading} onClick={() => sendMsg()} aria-label="Send">→</button>
+                  </div>
                 </div>
               </div>
             </div>
