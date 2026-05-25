@@ -1049,7 +1049,7 @@ export default function CcChat() {
             <div className="xp-card">
               <div className="xp-card-title">What top performers bring</div>
               {(b.top_performer_skills || []).length ? b.top_performer_skills.map((s: string, i: number) => <span key={i} className="pill top">{s}</span>)
-                : <div className="xp-muted">Benchmark loading.</div>}
+                : <div className="xp-muted">Top performer benchmark not available for this role yet.</div>}
             </div>
           </div>
 
