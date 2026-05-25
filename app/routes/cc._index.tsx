@@ -124,14 +124,14 @@ export default function CcIndex() {
             {/* subtle gradient at the bottom so the CTA button sits on a readable surface */}
             <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 to-transparent" />
 
-            {/* CTA overlay — bottom-centre */}
+            {/* CTA overlay — bottom-right */}
             <motion.div
-              className="absolute inset-x-0 bottom-0 flex flex-col items-center pb-8 md:pb-12"
+              className="absolute bottom-0 right-0 flex flex-col items-end pb-8 pr-8 md:pb-12 md:pr-12"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <p className="mb-4 font-['Satoshi'] text-sm font-medium text-white/80 tracking-wide">
+              <p className="mb-4 font-['Satoshi'] text-sm font-medium text-white/80 tracking-wide text-right">
                 Takes 8 minutes. Gets sharper the more you talk to it.
               </p>
               <Link
