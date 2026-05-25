@@ -146,25 +146,36 @@ export default function CcIndex() {
 
         {/* Stats bar */}
         <section className="border-b border-neutral-900 bg-violet-600">
-          <Section width="wide" className="mx-auto grid grid-cols-2 md:grid-cols-4">
-            {[
-              { num: "8 min", label: "to your Career DNA" },
-              { num: "3", label: "levels to climb" },
-              { num: "Daily", label: "check-ins that compound" },
-              { num: "100%", label: "personalised to your profile" },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className="border-l-2 border-white/10 px-6 py-7 first:border-l-0 md:px-10"
-              >
-                <div className="font-['Clash_Display'] text-3xl font-medium text-white md:text-4xl">
-                  {s.num}
-                </div>
-                <div className="mt-1 font-['Satoshi'] text-sm text-violet-200">
-                  {s.label}
-                </div>
+          <Section width="wide" className="mx-auto flex flex-wrap items-center justify-center md:flex-nowrap">
+            {/* Confused → Happy transformation */}
+            <div className="flex w-full items-center justify-center gap-3 px-6 py-5 md:w-auto md:flex-none md:px-8 md:py-7">
+              <div className="flex flex-col items-center gap-1">
+                <img src="/bobie-confused.png" alt="Confused student" className="h-16 w-16 rounded-xl object-cover md:h-20 md:w-20" />
+                <span className="font-['Satoshi'] text-xs font-semibold text-violet-200">Confused</span>
               </div>
-            ))}
+              <svg className="h-6 w-10 flex-shrink-0 text-white/60 md:w-14" viewBox="0 0 56 24" fill="none">
+                <path d="M4 12h44m0 0l-8-7m8 7l-8 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div className="flex flex-col items-center gap-1">
+                <img src="/bobie-happy.png" alt="Student with clarity" className="h-16 w-16 rounded-xl object-cover md:h-20 md:w-20" />
+                <span className="font-['Satoshi'] text-xs font-semibold text-violet-200">Clarity</span>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="hidden h-16 w-px bg-white/10 md:block" />
+
+            {/* 3 levels */}
+            <div className="border-t-2 border-white/10 px-6 py-7 md:border-l-2 md:border-t-0 md:px-10">
+              <div className="font-['Clash_Display'] text-3xl font-medium text-white md:text-4xl">3</div>
+              <div className="mt-1 font-['Satoshi'] text-sm text-violet-200">levels to climb</div>
+            </div>
+
+            {/* Daily */}
+            <div className="border-t-2 border-white/10 px-6 py-7 md:border-l-2 md:border-t-0 md:px-10">
+              <div className="font-['Clash_Display'] text-3xl font-medium text-white md:text-4xl">Daily</div>
+              <div className="mt-1 font-['Satoshi'] text-sm text-violet-200">check-ins that compound</div>
+            </div>
           </Section>
         </section>
 
