@@ -35,10 +35,10 @@ const CSS = `
    --bg-white  active conversational surface (chat card)
    --bg-raised  raised elements inside cards (bubbles, stat boxes)
    Layered purple system: solid accent + muted + glow + lavender. */
-.cc-root{--bg-primary:#000000;--bg-secondary:#0B0B11;--bg-white:#13131A;--bg-raised:#1C1C26;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#2A2A38;--border-light:rgba(255,255,255,0.07);--shadow-c:rgba(0,0,0,0.7);--accent-purple:#9B6DF5;--accent-purple-muted:#6D4FAF;--accent-lavender:#C4B5FD;--accent-glow:rgba(155,109,245,0.45);--accent-light:#221A39;--success:#34D399;--warning:#FBBF24;--gradient-primary:#9B6DF5;--gradient-soft:linear-gradient(135deg,rgba(155,109,245,0.18) 0%,rgba(196,181,253,0.08) 100%);--sidebar-w:580px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
+.cc-root{--bg-primary:#000000;--bg-secondary:#0B0B11;--bg-white:#13131A;--bg-raised:#1C1C26;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#2A2A38;--border-light:rgba(255,255,255,0.07);--shadow-c:rgba(0,0,0,0.7);--accent-purple:#7C3AED;--accent-purple-muted:#6D28D9;--accent-lavender:#C4B5FD;--accent-glow:rgba(124,58,237,0.45);--accent-light:#221A39;--success:#34D399;--warning:#FBBF24;--gradient-primary:#7C3AED;--gradient-soft:linear-gradient(135deg,rgba(124,58,237,0.18) 0%,rgba(196,181,253,0.08) 100%);--sidebar-w:580px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
 /* Light theme override — three layers in the light direction. Keeps the
    same purple accent so the brand reads consistent. */
-.cc-root.theme-light{--bg-primary:#FAFAF7;--bg-secondary:#F2F1ED;--bg-white:#FFFFFF;--bg-raised:#F6F5F1;--text-primary:#0E0E12;--text-secondary:#52525B;--text-muted:#9CA3AF;--border:#E5E5EA;--border-light:rgba(0,0,0,0.08);--shadow-c:rgba(15,15,25,0.12);--accent-purple:#9B6DF5;--accent-purple-muted:#7C5BD0;--accent-lavender:#7C3AED;--accent-glow:rgba(155,109,245,0.30);--accent-light:#F1ECFE;--gradient-soft:linear-gradient(135deg,rgba(155,109,245,0.10) 0%,rgba(196,181,253,0.04) 100%);}
+.cc-root.theme-light{--bg-primary:#FAFAF7;--bg-secondary:#F2F1ED;--bg-white:#FFFFFF;--bg-raised:#F6F5F1;--text-primary:#0E0E12;--text-secondary:#52525B;--text-muted:#9CA3AF;--border:#E5E5EA;--border-light:rgba(0,0,0,0.08);--shadow-c:rgba(15,15,25,0.12);--accent-purple:#7C3AED;--accent-purple-muted:#6D28D9;--accent-lavender:#7C3AED;--accent-glow:rgba(124,58,237,0.30);--accent-light:#F1ECFE;--gradient-soft:linear-gradient(135deg,rgba(124,58,237,0.10) 0%,rgba(196,181,253,0.04) 100%);}
 /* studojo wordmark — matches the main platform: heavy Satoshi black,
    tight tracking, no dot, no pill. Chat is dark mode so white; landing
    page uses brand ink black. */
@@ -58,9 +58,9 @@ const CSS = `
 .cc-user-avatar span{font-family:"Clash Display",ui-sans-serif,system-ui,sans-serif;font-size:0.95rem;font-weight:800;color:#fff;letter-spacing:-0.01em;user-select:none;}
 .cc-user-chev{color:var(--text-secondary);transition:transform 0.18s;}
 .cc-user-chev.up{transform:rotate(180deg);color:var(--text-primary);}
-#cc-user-menu{position:absolute;top:calc(100% + 8px);right:0;width:248px;background:var(--bg-white);border:1px solid var(--border);border-radius:18px;box-shadow:0 18px 40px -12px rgba(0,0,0,0.7),0 2px 0 rgba(155,109,245,0.08) inset;padding:8px;display:flex;flex-direction:column;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+#cc-user-menu{position:absolute;top:calc(100% + 8px);right:0;width:248px;background:var(--bg-white);border:1px solid var(--border);border-radius:18px;box-shadow:0 18px 40px -12px rgba(0,0,0,0.7),0 2px 0 rgba(124,58,237,0.08) inset;padding:8px;display:flex;flex-direction:column;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
 .cc-user-item{display:flex;align-items:center;gap:11px;padding:9px 11px;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.86rem;font-weight:600;color:var(--text-primary);background:transparent;border:none;border-radius:10px;text-decoration:none;cursor:pointer;text-align:left;transition:background 0.12s;}
-.cc-user-item:hover{background:rgba(155,109,245,0.10);color:#fff;}
+.cc-user-item:hover{background:rgba(124,58,237,0.10);color:#fff;}
 .cc-user-icon{width:18px;height:18px;flex-shrink:0;color:var(--text-secondary);}
 .cc-user-item:hover .cc-user-icon{color:var(--accent-lavender);}
 .cc-user-sep{height:1px;background:var(--border-light);margin:6px 8px;}
@@ -88,7 +88,7 @@ const CSS = `
 .msg-bubble-wrap{display:flex;flex-direction:column;max-width:82%;}
 .msg-bubble{padding:13px 17px;font-size:0.92rem;line-height:1.55;border:2px solid var(--border);white-space:pre-wrap;}
 .msg-row.agent .msg-bubble{background:var(--bg-raised);border-radius:4px 18px 18px 18px;box-shadow:3px 3px 0 var(--shadow-c);}
-.msg-row.user .msg-bubble{background:#9B6DF5;border-color:transparent;border-radius:18px 4px 18px 18px;box-shadow:3px 3px 0 var(--shadow-c);color:#fff;}
+.msg-row.user .msg-bubble{background:#7C3AED;border-color:transparent;border-radius:18px 4px 18px 18px;box-shadow:3px 3px 0 var(--shadow-c);color:#fff;}
 .msg-row.user .msg-bubble-wrap{align-items:flex-end;}
 .msg-bubble a{color:var(--accent-purple);font-weight:600;}
 .msg-row.user .msg-bubble a{color:#fff;text-decoration:underline;}
@@ -125,9 +125,9 @@ const CSS = `
 /* placeholder for the cycling ghost-text suggestion in the textarea */
 #cc-chat-input::placeholder{color:var(--text-muted);opacity:0.85;transition:opacity 0.3s ease;}
 #cc-input-shell{display:flex;align-items:flex-end;gap:8px;background:linear-gradient(180deg,rgba(28,28,38,0.85) 0%,rgba(19,19,26,0.85) 100%);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:22px;padding:8px 8px 8px 14px;box-shadow:0 8px 24px -10px rgba(0,0,0,0.55),0 0 0 0 transparent;transition:border-color 0.18s,box-shadow 0.22s;}
-#cc-input-shell:focus-within{border-color:rgba(155,109,245,0.55);box-shadow:0 10px 28px -10px rgba(0,0,0,0.6),0 0 0 4px rgba(155,109,245,0.18);}
+#cc-input-shell:focus-within{border-color:rgba(124,58,237,0.55);box-shadow:0 10px 28px -10px rgba(0,0,0,0.6),0 0 0 4px rgba(124,58,237,0.18);}
 #cc-attach-btn{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:transparent;color:var(--text-secondary);border:none;cursor:pointer;font-size:1.05rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
-#cc-attach-btn:hover{color:var(--accent-lavender);background:rgba(155,109,245,0.10);}
+#cc-attach-btn:hover{color:var(--accent-lavender);background:rgba(124,58,237,0.10);}
 #cc-chat-input{flex:1;border:none;background:transparent;padding:10px 4px;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.95rem;color:var(--text-primary);resize:none;min-height:42px;max-height:140px;outline:none;line-height:1.5;}
 #cc-send-btn{width:40px;height:40px;border-radius:14px;flex-shrink:0;background:var(--accent-purple);border:none;color:white;font-size:1rem;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px -4px var(--accent-glow);}
 #cc-send-btn:hover:not(:disabled){background:#A87DFF;transform:translateY(-1px);box-shadow:0 6px 18px -4px var(--accent-glow);}
@@ -247,14 +247,14 @@ const CSS = `
 .ds-conf-label{font-size:0.66rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-top:4px;}
 .ds-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .ds-tile{border:1px solid var(--border);border-radius:14px;background:var(--bg-raised);padding:13px 14px;transition:border-color 0.18s,transform 0.18s;}
-.ds-tile:hover{border-color:rgba(155,109,245,0.45);transform:translateY(-1px);}
+.ds-tile:hover{border-color:rgba(124,58,237,0.45);transform:translateY(-1px);}
 .ds-tile-wide{grid-column:span 2;}
 .ds-tile-label{font-size:0.6rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
 .ds-tile-body{font-size:0.86rem;font-weight:600;line-height:1.45;color:var(--text-primary);text-transform:capitalize;}
 .ds-tile-chips{display:flex;flex-wrap:wrap;gap:6px;}
 .ds-chip{display:inline-block;font-size:0.74rem;font-weight:600;padding:4px 11px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-secondary);}
 .ds-chip-have{background:rgba(52,211,153,0.10);border-color:rgba(52,211,153,0.35);color:#6EE7B7;}
-.ds-chip-glow{background:rgba(155,109,245,0.12);border-color:rgba(155,109,245,0.4);color:var(--accent-lavender);box-shadow:0 0 10px rgba(155,109,245,0.18);}
+.ds-chip-glow{background:rgba(124,58,237,0.12);border-color:rgba(124,58,237,0.4);color:var(--accent-lavender);box-shadow:0 0 10px rgba(124,58,237,0.18);}
 .ds-footer{display:flex;align-items:center;gap:9px;font-size:0.74rem;color:var(--text-muted);padding:10px 6px 2px;line-height:1.5;}
 .ds-pulse{width:8px;height:8px;border-radius:50%;background:var(--accent-purple);box-shadow:0 0 0 0 var(--accent-glow);animation:dsPulse 1.6s ease-out infinite;flex-shrink:0;}
 @keyframes dsPulse{0%{box-shadow:0 0 0 0 var(--accent-glow);}70%{box-shadow:0 0 0 8px transparent;}100%{box-shadow:0 0 0 0 transparent;}}
@@ -374,7 +374,7 @@ const CSS = `
 }
 
 /* ===== Light-theme overrides for surfaces that hardcode dark gradients ===== */
-.cc-root.theme-light .chat-setup-header{background:linear-gradient(135deg,#F1ECFE 0%,#FAF6FF 100%);border-bottom:1px solid rgba(155,109,245,0.18);}
+.cc-root.theme-light .chat-setup-header{background:linear-gradient(135deg,#F1ECFE 0%,#FAF6FF 100%);border-bottom:1px solid rgba(124,58,237,0.18);}
 .cc-root.theme-light .xp-hero{background:linear-gradient(135deg,#F1ECFE 0%,#FAF6FF 100%);}
 .cc-root.theme-light .xp-dash-banner{background:linear-gradient(135deg,#1B1340 0%,#2A1C4F 100%);color:#fff;}
 .cc-root.theme-light .xp-dash-banner .xp-hero-label{color:#C4B5FD;}
@@ -383,7 +383,7 @@ const CSS = `
 .cc-root.theme-light .msg-row.agent .msg-bubble{background:#F1ECFE;color:var(--text-primary);}
 .cc-root.theme-light .msg-row.user .msg-bubble{color:#fff;}
 .cc-root.theme-light .ds-chip{background:rgba(15,15,25,0.04);color:var(--text-secondary);}
-.cc-root.theme-light .ds-chip-glow{background:rgba(155,109,245,0.10);color:#5B21B6;box-shadow:none;}
+.cc-root.theme-light .ds-chip-glow{background:rgba(124,58,237,0.10);color:#5B21B6;box-shadow:none;}
 .cc-root.theme-light .ds-chip-have{background:rgba(16,185,129,0.10);color:#065F46;border-color:rgba(16,185,129,0.35);}
 .cc-root.theme-light #cc-user-menu{box-shadow:0 18px 40px -12px rgba(15,15,25,0.18);}
 .cc-root.theme-light .cc-user-item:hover{background:#F1ECFE;color:var(--accent-lavender);}
@@ -475,7 +475,7 @@ export default function CcChat() {
   const themeStorageKey = session?.user?.email
     ? `studojo_cc_theme:${session.user.email}`
     : "studojo_cc_theme";
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   // Load saved theme once we know which key to read.
   useEffect(() => {
