@@ -1008,9 +1008,15 @@ export default function CcChat() {
 
   function renderAnalysis(expanded: boolean) {
     if (!dnaReady) {
-      // Pre-DNA: show what's been detected so far so the panel feels alive
-      // while the student is still talking through profiling.
-      return renderDetectedSoFar(expanded);
+      return (
+        <div className="side-empty">
+          <div className="se-icon">🧬</div>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>Career Analysis building...</div>
+          <div style={{ fontSize: "0.83rem", color: "var(--text-secondary)", lineHeight: 1.55 }}>
+            Keep talking to the coach. Once there is enough signal, your skills comparison and gap analysis will appear here.
+          </div>
+        </div>
+      );
     }
     const b = pp.benchmark || {};
     const have: string[] = pp.skills_you_have || [];
