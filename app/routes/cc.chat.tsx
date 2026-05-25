@@ -96,16 +96,13 @@ const CSS = `
 /* PREMIUM INPUT AREA — translucent surface, soft border, integrated attach
    + send, suggestion chips floating above, glow-on-focus halo. */
 #cc-input-area{flex-shrink:0;background:transparent;border-top:none;padding:10px 22px 18px;display:flex;flex-direction:column;gap:10px;}
-#cc-chat-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 2px;}
-.cc-chip{font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.78rem;font-weight:600;color:var(--accent-lavender);background:rgba(155,109,245,0.10);border:1px solid rgba(155,109,245,0.28);border-radius:999px;padding:6px 14px;cursor:pointer;transition:all 0.15s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
-.cc-chip:hover{background:rgba(155,109,245,0.18);border-color:rgba(155,109,245,0.55);color:#fff;transform:translateY(-1px);}
-.cc-chip:disabled{opacity:0.4;cursor:not-allowed;}
+/* placeholder for the cycling ghost-text suggestion in the textarea */
+#cc-chat-input::placeholder{color:var(--text-muted);opacity:0.85;transition:opacity 0.3s ease;}
 #cc-input-shell{display:flex;align-items:flex-end;gap:8px;background:linear-gradient(180deg,rgba(28,28,38,0.85) 0%,rgba(19,19,26,0.85) 100%);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:22px;padding:8px 8px 8px 14px;box-shadow:0 8px 24px -10px rgba(0,0,0,0.55),0 0 0 0 transparent;transition:border-color 0.18s,box-shadow 0.22s;}
 #cc-input-shell:focus-within{border-color:rgba(155,109,245,0.55);box-shadow:0 10px 28px -10px rgba(0,0,0,0.6),0 0 0 4px rgba(155,109,245,0.18);}
 #cc-attach-btn{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:transparent;color:var(--text-secondary);border:none;cursor:pointer;font-size:1.05rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
 #cc-attach-btn:hover{color:var(--accent-lavender);background:rgba(155,109,245,0.10);}
 #cc-chat-input{flex:1;border:none;background:transparent;padding:10px 4px;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.95rem;color:var(--text-primary);resize:none;min-height:42px;max-height:140px;outline:none;line-height:1.5;}
-#cc-chat-input::placeholder{color:var(--text-muted);}
 #cc-send-btn{width:40px;height:40px;border-radius:14px;flex-shrink:0;background:var(--accent-purple);border:none;color:white;font-size:1rem;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px -4px var(--accent-glow);}
 #cc-send-btn:hover:not(:disabled){background:#A87DFF;transform:translateY(-1px);box-shadow:0 6px 18px -4px var(--accent-glow);}
 #cc-send-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
@@ -412,10 +409,15 @@ export default function CcChat() {
   // staged resume file shown as a chip above the input until the student hits Send
   const [pendingResume, setPendingResume] = useState<File | null>(null);
   const [resumeUploading, setResumeUploading] = useState(false);
-  // context-aware suggestion chips shown above the input bar
+  // Context-aware example prompts the input bar cycles through as ghost
+  // text when the textarea is empty. Tab fills it, typing replaces it.
   const [chips, setChips] = useState<string[]>([
-    "Tell me what to expect", "What if I'm still figuring it out?", "Upload my resume to fast-track this",
+    "Tell me what to expect",
+    "What if I'm still figuring it out?",
+    "Upload my resume to fast-track this",
   ]);
+  const [ghostIdx, setGhostIdx] = useState(0);
+  const [inputEmpty, setInputEmpty] = useState(true);
   // tracks which Career-Analysis skill gap / Roadmap step is currently expanded
   const [openGap, setOpenGap] = useState<number | null>(null);
   const [openStep, setOpenStep] = useState<number | null>(null);
@@ -466,6 +468,18 @@ export default function CcChat() {
     const t = setInterval(() => setTickerIdx(i => (i + 1) % SOCIAL_PROOF.length), 4000);
     return () => clearInterval(t);
   }, [hookVisible]);
+
+  // Cycle ghost-text suggestions only when the input is empty; when the
+  // student types we stop rotating so the suggestion they see is what Tab
+  // will accept.
+  useEffect(() => {
+    if (!inputEmpty || waiting || resumeUploading || chips.length === 0) return;
+    const t = setInterval(() => setGhostIdx((i: number) => (i + 1) % Math.max(1, chips.length)), 3500);
+    return () => clearInterval(t);
+  }, [inputEmpty, waiting, resumeUploading, chips.length]);
+
+  // Reset ghost index when a new set of chips arrives.
+  useEffect(() => { setGhostIdx(0); }, [chips]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1485,29 +1499,39 @@ export default function CcChat() {
                   </div>
                 )}
                 <div id="cc-input-area">
-                  {chips.length > 0 && !waiting && !resumeUploading && (
-                    <div id="cc-chat-chips">
-                      {chips.map((c, i) => (
-                        <button
-                          key={i}
-                          className="cc-chip"
-                          disabled={waiting || resumeUploading}
-                          onClick={() => sendMsg(c)}
-                          title={c}
-                        >{c}</button>
-                      ))}
-                    </div>
-                  )}
                   <div id="cc-input-shell">
                     <button id="cc-attach-btn" title="Upload your resume" onClick={() => fileRef.current?.click()} aria-label="Upload resume">📎</button>
                     <input type="file" ref={fileRef} accept=".pdf,.docx,.txt" style={{ display: "none" }}
-                      onChange={e => { if (e.target.files?.[0]) stageResume(e.target.files[0]); e.target.value = ""; }} />
+                      onChange={(e: any) => { if (e.target.files?.[0]) stageResume(e.target.files[0]); e.target.value = ""; }} />
                     <textarea
                       id="cc-chat-input" ref={inputRef}
-                      placeholder={pendingResume ? "Add a note about your resume, or just hit send..." : "Ask about internships, resumes, outreach..."}
+                      placeholder={
+                        pendingResume
+                          ? "Add a note about your resume, or just hit send..."
+                          : (chips[ghostIdx] ? `e.g. ${chips[ghostIdx]} — Tab to use` : "Ask about internships, resumes, outreach...")
+                      }
                       rows={1}
-                      onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
-                      onChange={e => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px"; }}
+                      onKeyDown={(e: any) => {
+                        // Tab on an empty input fills the textarea with the
+                        // current ghost suggestion instead of moving focus.
+                        if (e.key === "Tab" && !e.shiftKey && inputEmpty && chips[ghostIdx] && !pendingResume) {
+                          e.preventDefault();
+                          if (inputRef.current) {
+                            inputRef.current.value = chips[ghostIdx];
+                            inputRef.current.style.height = "auto";
+                            inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 140) + "px";
+                            setInputEmpty(false);
+                            inputRef.current.focus();
+                          }
+                          return;
+                        }
+                        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+                      }}
+                      onChange={(e: any) => {
+                        e.target.style.height = "auto";
+                        e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+                        setInputEmpty(!e.target.value);
+                      }}
                     />
                     <button id="cc-send-btn" disabled={waiting || resumeUploading} onClick={() => sendMsg()} aria-label="Send">→</button>
                   </div>
