@@ -151,6 +151,21 @@ const CSS = `
 #cc-sidebar-body::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px;}
 .side-empty{text-align:center;color:var(--text-muted);font-size:0.85rem;padding:48px 16px;line-height:1.6;}
 .side-empty .se-icon{font-size:2rem;margin-bottom:12px;}
+/* Skeleton shimmer for Career Analysis loading state */
+@keyframes shimmer{0%{background-position:-600px 0;}100%{background-position:600px 0;}}
+.skel-wrap{padding:4px 0 20px;display:flex;flex-direction:column;gap:14px;}
+.skel-card{border:2px solid var(--border);border-radius:14px;padding:18px;background:var(--bg-raised);box-shadow:3px 3px 0 var(--shadow-c);}
+.skel-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:600px 100%;animation:shimmer 1.4s infinite linear;margin-bottom:10px;}
+.skel-line.short{width:40%;}
+.skel-line.medium{width:65%;}
+.skel-line.full{width:100%;}
+.skel-line.heading{height:22px;width:55%;margin-bottom:14px;}
+.skel-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.skel-pill{height:26px;border-radius:999px;background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:600px 100%;animation:shimmer 1.4s infinite linear;}
+.skel-score{display:flex;align-items:center;gap:16px;margin-top:6px;}
+.skel-ring{width:72px;height:72px;border-radius:50%;background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:600px 100%;animation:shimmer 1.4s infinite linear;flex-shrink:0;}
+.skel-building{font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;margin-top:10px;}
+.skel-pulse{width:7px;height:7px;border-radius:50%;background:var(--accent-purple);animation:dsPulse 1.6s ease-out infinite;flex-shrink:0;}
 .scard{border:2px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;background:var(--bg-raised);box-shadow:3px 3px 0 var(--shadow-c);}
 .scard-title{font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;}
 .scard h3{font-size:1.05rem;font-weight:800;margin-bottom:4px;}
@@ -1023,11 +1038,44 @@ export default function CcChat() {
   function renderAnalysis(expanded: boolean) {
     if (!dnaReady) {
       return (
-        <div className="side-empty">
-          <div className="se-icon">🧬</div>
-          <div style={{ fontWeight: 700, marginBottom: 6 }}>Career Analysis building...</div>
-          <div style={{ fontSize: "0.83rem", color: "var(--text-secondary)", lineHeight: 1.55 }}>
-            Keep talking to the coach. Once there is enough signal, your skills comparison and gap analysis will appear here.
+        <div className="skel-wrap">
+          {/* Score hero skeleton */}
+          <div className="skel-card">
+            <div className="skel-line short" style={{ marginBottom: 8 }} />
+            <div className="skel-line heading" />
+            <div className="skel-score">
+              <div className="skel-ring" />
+              <div style={{ flex: 1 }}>
+                <div className="skel-line medium" />
+                <div className="skel-line short" style={{ marginBottom: 0 }} />
+              </div>
+            </div>
+            <div className="skel-building"><span className="skel-pulse" />Building your Career Analysis as you chat...</div>
+          </div>
+          {/* Skills grid skeleton */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div className="skel-card">
+              <div className="skel-line short" />
+              <div className="skel-pills">
+                {[70, 90, 60, 80, 50].map((w, i) => <div key={i} className="skel-pill" style={{ width: w }} />)}
+              </div>
+            </div>
+            <div className="skel-card">
+              <div className="skel-line short" />
+              <div className="skel-pills">
+                {[80, 65, 95, 55, 75].map((w, i) => <div key={i} className="skel-pill" style={{ width: w }} />)}
+              </div>
+            </div>
+          </div>
+          {/* Gap items skeleton */}
+          <div className="skel-card">
+            <div className="skel-line short" />
+            {[1, 2, 3].map(i => (
+              <div key={i} style={{ borderTop: i > 1 ? "1px solid var(--border-light)" : "none", paddingTop: i > 1 ? 10 : 0, marginTop: i > 1 ? 10 : 6 }}>
+                <div className="skel-line medium" style={{ marginBottom: 6 }} />
+                <div className="skel-line full" style={{ marginBottom: 0 }} />
+              </div>
+            ))}
           </div>
         </div>
       );
