@@ -169,6 +169,10 @@ const CSS = `
 .gi-prio.low{background:#1E2147;color:#A5B4FC;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .stat-box{border:2px solid var(--border);border-radius:12px;padding:12px;background:var(--accent-light);box-shadow:2px 2px 0 var(--shadow-c);}
+.stat-box:nth-child(1){background:#F1ECFE;border-color:#C4B5FD;}
+.stat-box:nth-child(2){background:#ECFDF5;border-color:#6EE7B7;}
+.stat-box:nth-child(3){background:#FEF3C7;border-color:#FCD34D;}
+.stat-box:nth-child(4){background:#EFF6FF;border-color:#93C5FD;}
 .stat-box .sb-num{font-size:1.5rem;font-weight:800;line-height:1;}
 .stat-box .sb-label{font-size:0.68rem;color:var(--text-secondary);margin-top:4px;font-weight:600;}
 /* interactive roadmap step — expands on hover */
@@ -294,13 +298,19 @@ const CSS = `
 .xp-tl-rail{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
 .xp-tl-num{width:36px;height:36px;border-radius:50%;background:var(--gradient-primary);border:2px solid var(--border);color:white;font-size:0.95rem;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--shadow-c);}
 .xp-tl-line{flex:1;width:3px;background:var(--border);margin:4px 0;}
-.xp-tl-body{flex:1;border:2px solid var(--border);border-radius:14px;background:var(--bg-raised);box-shadow:4px 4px 0 var(--shadow-c);padding:18px;margin-bottom:18px;}
-.xp-tl-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.xp-tl-body{flex:1;border:2px solid var(--border);border-radius:14px;background:var(--bg-raised);box-shadow:4px 4px 0 var(--shadow-c);padding:18px;margin-bottom:18px;cursor:pointer;transition:box-shadow 0.18s,transform 0.15s;}
+.xp-tl-body:hover{box-shadow:5px 5px 0 var(--accent-purple);transform:translateY(-1px);}
+.xp-tl-body.open{border-color:var(--accent-purple);background:#FDFCFF;}
+.xp-tl-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;}
 .xp-tl-action{font-size:1.02rem;font-weight:800;line-height:1.35;}
-.xp-tl-block{margin-top:10px;}
-.xp-tl-block-label{font-size:0.68rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent-purple);margin-bottom:3px;}
+.xp-tl-why{font-size:0.84rem;color:var(--text-secondary);line-height:1.55;margin-bottom:4px;}
+.xp-tl-block{margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light);}
+.xp-tl-block-label{font-size:0.68rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent-purple);margin-bottom:8px;}
 .xp-tl-block-text{font-size:0.86rem;color:var(--text-secondary);line-height:1.6;}
-.xp-tl-tool{margin-top:12px;padding-top:10px;border-top:1px solid var(--border-light);font-size:0.82rem;color:var(--text-secondary);}
+.xp-tl-block ul{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.xp-tl-block ul li{display:flex;gap:8px;font-size:0.86rem;color:var(--text-secondary);line-height:1.5;}
+.xp-tl-block ul li::before{content:"→";color:var(--accent-purple);flex-shrink:0;font-weight:800;}
+.xp-tl-tool{margin-top:12px;padding:8px 12px;border-radius:8px;background:var(--accent-light);font-size:0.82rem;color:var(--accent-purple);font-weight:700;border:1px solid rgba(124,58,237,0.2);}
 /* expanded dashboard */
 .xp-dash-banner{display:flex;justify-content:space-between;align-items:center;gap:20px;border:2px solid var(--border);border-radius:20px;background:linear-gradient(135deg,#1B1340 0%,#2A1C4F 100%);color:#fff;box-shadow:5px 5px 0 var(--shadow-c);padding:26px 28px;margin-bottom:18px;}
 .xp-dash-banner .xp-hero-label{color:#C4B5FD;}
@@ -312,6 +322,10 @@ const CSS = `
 .xp-dash-ring small{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.85;}
 .xp-statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
 .xp-stat{border:2px solid var(--border);border-radius:14px;background:var(--bg-raised);box-shadow:3px 3px 0 var(--shadow-c);padding:16px;text-align:center;}
+.xp-stat:nth-child(1){background:#F1ECFE;border-color:#C4B5FD;}
+.xp-stat:nth-child(2){background:#ECFDF5;border-color:#6EE7B7;}
+.xp-stat:nth-child(3){background:#FEF3C7;border-color:#FCD34D;}
+.xp-stat:nth-child(4){background:#EFF6FF;border-color:#93C5FD;}
 .xp-stat-num{font-size:1.7rem;font-weight:800;line-height:1;}
 .xp-stat-label{font-size:0.68rem;color:var(--text-secondary);margin-top:6px;font-weight:600;}
 .xp-chart{display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:18px;}
@@ -1230,32 +1244,27 @@ export default function CcChat() {
                     <div className="xp-tl-num">{i + 1}</div>
                     {i < actions.length - 1 && <div className="xp-tl-line" />}
                   </div>
-                  <div className={`xp-tl-body rm-clickable${isOpen ? " open" : ""}`}
+                  <div className={`xp-tl-body${isOpen ? " open" : ""}`}
                     onClick={() => setOpenStep(isOpen ? null : i)}>
                     <div className="xp-tl-head">
                       <span className="xp-tl-action">{action}</span>
-                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                         {prio && <span className={`gi-prio ${prio === "high" || prio === "medium" || prio === "low" ? prio : "medium"}`}>{prio}</span>}
                         <span className="gap-chevron">{isOpen ? "▾" : "▸"}</span>
                       </span>
                     </div>
-                    {why && <div className="xp-tl-block-text" style={{ marginTop: 4 }}>{why}</div>}
-                    {!isOpen && <div className="rm-hint">Tap for the step-by-step</div>}
+                    {why && <div className="xp-tl-why">{why}</div>}
+                    {!isOpen && <div className="rm-hint">Tap to see how to execute this</div>}
                     {isOpen && (
-                      <div style={{ marginTop: 10 }}>
+                      <div className="xp-tl-block">
+                        <div className="xp-tl-block-label">What will help you execute this</div>
                         {steps.length > 0 ? (
-                          <div className="xp-tl-block">
-                            <div className="xp-tl-block-label">How to actually do this</div>
-                            <ul>{steps.map((s, si) => <li key={si}>{s}</li>)}</ul>
-                          </div>
+                          <ul>{steps.map((s, si) => <li key={si}>{s}</li>)}</ul>
                         ) : how ? (
-                          <div className="xp-tl-block">
-                            <div className="xp-tl-block-label">How to actually do this</div>
-                            <div className="xp-tl-block-text">{how}</div>
-                          </div>
+                          <ul><li>{how}</li></ul>
                         ) : null}
                         {tool && (
-                          <div className="xp-tl-tool">Tool that helps: <strong>{tool}</strong></div>
+                          <div className="xp-tl-tool">Studojo tool: {tool}</div>
                         )}
                       </div>
                     )}
