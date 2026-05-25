@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router";
 import { authClient } from "~/lib/auth-client";
+import { Header } from "~/components";
 
 export function meta() {
   return [{ title: "CareerDojo Chat | Studojo" }];
@@ -29,26 +30,24 @@ const CSS = `
 .cc-root #cc-float-logo,.cc-root .hook-logo,.cc-root .chat-setup-header-title,
 .cc-root .scard h3,.cc-root .xp-hero-role,.cc-root .xp-dash-name,
 .cc-root .commit-q,.cc-root .hook-stat,.cc-root #cc-ready-pop .rp-title{font-family:"Clash Display",ui-sans-serif,system-ui,sans-serif;}
-/* Contrast zoning, three luminance layers:
-   --bg-primary  pure black app background
-   --bg-secondary  lifted panel surfaces (sidebar, input frame)
-   --bg-white  active conversational surface (chat card)
-   --bg-raised  raised elements inside cards (bubbles, stat boxes)
-   Layered purple system: solid accent + muted + glow + lavender. */
-.cc-root{--bg-primary:#000000;--bg-secondary:#0B0B11;--bg-white:#13131A;--bg-raised:#1C1C26;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#2A2A38;--border-light:rgba(255,255,255,0.07);--shadow-c:rgba(0,0,0,0.7);--accent-purple:#7C3AED;--accent-purple-muted:#6D28D9;--accent-lavender:#C4B5FD;--accent-glow:rgba(124,58,237,0.45);--accent-light:#221A39;--success:#34D399;--warning:#FBBF24;--gradient-primary:#7C3AED;--gradient-soft:linear-gradient(135deg,rgba(124,58,237,0.18) 0%,rgba(196,181,253,0.08) 100%);--sidebar-w:580px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
-/* Light theme override — three layers in the light direction. Keeps the
-   same purple accent so the brand reads consistent. */
-.cc-root.theme-light{--bg-primary:#FAFAF7;--bg-secondary:#F2F1ED;--bg-white:#FFFFFF;--bg-raised:#F6F5F1;--text-primary:#0E0E12;--text-secondary:#52525B;--text-muted:#9CA3AF;--border:#E5E5EA;--border-light:rgba(0,0,0,0.08);--shadow-c:rgba(15,15,25,0.12);--accent-purple:#7C3AED;--accent-purple-muted:#6D28D9;--accent-lavender:#7C3AED;--accent-glow:rgba(124,58,237,0.30);--accent-light:#F1ECFE;--gradient-soft:linear-gradient(135deg,rgba(124,58,237,0.10) 0%,rgba(196,181,253,0.04) 100%);}
-/* studojo wordmark — matches the main platform: heavy Satoshi black,
-   tight tracking, no dot, no pill. Chat is dark mode so white; landing
-   page uses brand ink black. */
-#cc-float-logo{position:fixed;top:18px;left:26px;z-index:120;font-size:2rem;font-weight:900;letter-spacing:-0.055em;line-height:1;text-decoration:none;color:var(--text-primary);font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
+/* Light-only theme — matches the rest of studojo (Satoshi body, brand violet,
+   brutalist border + shadow). Dark mode has been removed; the chat now reads
+   as part of the main app, not a separate product. */
+.cc-root{--bg-primary:#FAFAF7;--bg-secondary:#F2F1ED;--bg-white:#FFFFFF;--bg-raised:#F6F5F1;--text-primary:#0E0E12;--text-secondary:#52525B;--text-muted:#9CA3AF;--border:#E5E5EA;--border-light:rgba(0,0,0,0.08);--shadow-c:rgba(25,26,35,1);--accent-purple:#7C3AED;--accent-purple-muted:#6D28D9;--accent-lavender:#7C3AED;--accent-glow:rgba(124,58,237,0.30);--accent-light:#F1ECFE;--success:#10B981;--warning:#F59E0B;--gradient-primary:#7C3AED;--gradient-soft:linear-gradient(135deg,rgba(124,58,237,0.10) 0%,rgba(196,181,253,0.04) 100%);--sidebar-w:580px;height:calc(100dvh - 64px);font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
+@media (min-width: 768px) { .cc-root { height: calc(100dvh - 96px); } }
+/* Main app Header provides the studojo logo and avatar dropdown above
+   the chat surface. The floating logo / floating avatar inside the chat
+   are hidden — they were duplicates from when this was a standalone page. */
+#cc-float-logo{display:none;}
+#cc-user-wrap{display:none;}
 .cc-dot{display:none;}
-/* panel toggle sits just left of the sidebar and slides with it */
-#cc-float-toggle{position:fixed;top:18px;z-index:120;display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid var(--border);border-radius:999px;padding:8px 16px;background:var(--bg-raised);color:var(--text-primary);box-shadow:3px 3px 0 var(--shadow-c);font-size:0.8rem;font-weight:700;transition:right 0.28s ease,transform 0.15s,box-shadow 0.15s;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
-/* shift left to make room for the profile avatar (~70px wide incl. gap) */
-#cc-float-toggle.open{right:calc(var(--sidebar-w) + 96px);}
-#cc-float-toggle.closed{right:96px;}
+/* panel toggle sits below the main Header (24px clear, ~64-96px header) and
+   slides horizontally with the sidebar */
+#cc-float-toggle{position:fixed;top:84px;z-index:60;display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid var(--border);border-radius:999px;padding:8px 16px;background:#fff;color:var(--text-primary);box-shadow:3px 3px 0 var(--shadow-c);font-size:0.8rem;font-weight:700;transition:right 0.28s ease,transform 0.15s,box-shadow 0.15s;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
+@media (max-width: 767px) { #cc-float-toggle{top:72px;} }
+/* Header's avatar is in the top bar now; toggle just clears the sidebar */
+#cc-float-toggle.open{right:calc(var(--sidebar-w) + 24px);}
+#cc-float-toggle.closed{right:24px;}
 #cc-float-toggle:hover{transform:translateY(-1px);box-shadow:4px 4px 0 var(--shadow-c);}
 
 /* PROFILE MENU (top-right avatar + dropdown). Mirrors the main platform header. */
@@ -71,10 +70,10 @@ const CSS = `
 .cc-user-switch.on{background:var(--accent-purple);border-color:transparent;}
 .cc-user-switch.on > span{transform:translateX(12px);background:#fff;}
 #cc-layout{flex:1;display:flex;min-height:0;}
-#cc-chat-col{flex:1;display:flex;flex-direction:column;min-width:0;padding:72px 16px 16px;}
+#cc-chat-col{flex:1;display:flex;flex-direction:column;min-width:0;padding:16px 16px 16px;}
 #cc-chat-inner{flex:1;display:flex;flex-direction:column;max-width:820px;margin:0 auto;width:100%;min-height:0;}
 .chat-card{flex:1;display:flex;flex-direction:column;border:2px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:4px 4px 0 var(--shadow-c);background:var(--bg-white);min-height:0;}
-.chat-setup-header{padding:14px 26px;flex-shrink:0;background:linear-gradient(135deg,#241D3D 0%,#2B1F3E 100%);border-bottom:1px solid rgba(167,139,250,0.2);}
+.chat-setup-header{padding:14px 26px;flex-shrink:0;background:linear-gradient(135deg,#F1ECFE 0%,#FAF6FF 100%);border-bottom:1px solid rgba(124,58,237,0.18);}
 .chat-setup-header.hidden{display:none;}
 .chat-setup-header-title{font-size:1rem;font-weight:800;}
 .chat-setup-header-sub{font-size:0.78rem;color:var(--text-muted);margin-top:2px;}
@@ -268,7 +267,7 @@ const CSS = `
 .cc-xp-tab:hover:not(.active){background:var(--bg-secondary);}
 .cc-xp-tab.active{background:var(--gradient-primary);color:white;border-color:transparent;box-shadow:3px 3px 0 var(--shadow-c);}
 .xp{max-width:760px;margin:0 auto;padding:8px 4px 40px;}
-.xp-hero{border:2px solid var(--border);border-radius:20px;background:linear-gradient(135deg,#241D3D 0%,#2B1F3E 100%);box-shadow:5px 5px 0 var(--shadow-c);padding:28px;margin-bottom:20px;}
+.xp-hero{border:2px solid var(--border);border-radius:20px;background:linear-gradient(135deg,#F1ECFE 0%,#FAF6FF 100%);box-shadow:5px 5px 0 var(--shadow-c);padding:28px;margin-bottom:20px;}
 .xp-hero-label{font-size:0.72rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent-purple);margin-bottom:8px;}
 .xp-hero-role{font-size:1.9rem;font-weight:800;letter-spacing:-0.03em;line-height:1.15;}
 .xp-hero-meta{font-size:0.92rem;color:var(--text-secondary);margin-top:6px;}
@@ -303,7 +302,7 @@ const CSS = `
 .xp-tl-block-text{font-size:0.86rem;color:var(--text-secondary);line-height:1.6;}
 .xp-tl-tool{margin-top:12px;padding-top:10px;border-top:1px solid var(--border-light);font-size:0.82rem;color:var(--text-secondary);}
 /* expanded dashboard */
-.xp-dash-banner{display:flex;justify-content:space-between;align-items:center;gap:20px;border:2px solid var(--border);border-radius:20px;background:linear-gradient(135deg,#1A1426 0%,#2E2150 100%);color:var(--text-primary);box-shadow:5px 5px 0 var(--shadow-c);padding:26px 28px;margin-bottom:18px;}
+.xp-dash-banner{display:flex;justify-content:space-between;align-items:center;gap:20px;border:2px solid var(--border);border-radius:20px;background:linear-gradient(135deg,#1B1340 0%,#2A1C4F 100%);color:#fff;box-shadow:5px 5px 0 var(--shadow-c);padding:26px 28px;margin-bottom:18px;}
 .xp-dash-banner .xp-hero-label{color:#C4B5FD;}
 .xp-dash-banner .xp-hero-meta{color:#DDD6FE;}
 .xp-dash-name{font-size:1.6rem;font-weight:800;letter-spacing:-0.03em;margin-top:4px;}
@@ -351,7 +350,7 @@ const CSS = `
 @media(max-width:900px){
   .cc-root{--sidebar-w:min(360px,92vw);}
   #cc-sidebar{position:fixed;top:0;right:0;bottom:0;z-index:90;box-shadow:-4px 0 0 var(--shadow-c);}
-  #cc-chat-col{padding:72px 8px 8px;}
+  #cc-chat-col{padding:8px;}
   .xp-grid2{grid-template-columns:1fr;}
   .xp-statrow{grid-template-columns:1fr 1fr;}
   /* hide the floating "Hide panel" pill on mobile — it overlaps the panel's
@@ -373,20 +372,17 @@ const CSS = `
   #cc-sidebar{border-left:none;}
 }
 
-/* ===== Light-theme overrides for surfaces that hardcode dark gradients ===== */
-.cc-root.theme-light .chat-setup-header{background:linear-gradient(135deg,#F1ECFE 0%,#FAF6FF 100%);border-bottom:1px solid rgba(124,58,237,0.18);}
-.cc-root.theme-light .xp-hero{background:linear-gradient(135deg,#F1ECFE 0%,#FAF6FF 100%);}
-.cc-root.theme-light .xp-dash-banner{background:linear-gradient(135deg,#1B1340 0%,#2A1C4F 100%);color:#fff;}
-.cc-root.theme-light .xp-dash-banner .xp-hero-label{color:#C4B5FD;}
-.cc-root.theme-light .xp-dash-banner .xp-hero-meta{color:#DDD6FE;}
-.cc-root.theme-light #cc-input-shell{background:linear-gradient(180deg,rgba(255,255,255,0.95) 0%,rgba(246,245,241,0.9) 100%);box-shadow:0 8px 24px -12px rgba(15,15,25,0.18);}
-.cc-root.theme-light .msg-row.agent .msg-bubble{background:#F1ECFE;color:var(--text-primary);}
-.cc-root.theme-light .msg-row.user .msg-bubble{color:#fff;}
-.cc-root.theme-light .ds-chip{background:rgba(15,15,25,0.04);color:var(--text-secondary);}
-.cc-root.theme-light .ds-chip-glow{background:rgba(124,58,237,0.10);color:#5B21B6;box-shadow:none;}
-.cc-root.theme-light .ds-chip-have{background:rgba(16,185,129,0.10);color:#065F46;border-color:rgba(16,185,129,0.35);}
-.cc-root.theme-light #cc-user-menu{box-shadow:0 18px 40px -12px rgba(15,15,25,0.18);}
-.cc-root.theme-light .cc-user-item:hover{background:#F1ECFE;color:var(--accent-lavender);}
+/* Light-theme surface overrides (merged into base now that dark mode is gone) */
+.msg-row.agent .msg-bubble{background:#F1ECFE;color:var(--text-primary);}
+.msg-row.user .msg-bubble{color:#fff;}
+#cc-input-shell{background:linear-gradient(180deg,rgba(255,255,255,0.95) 0%,rgba(246,245,241,0.9) 100%);box-shadow:0 8px 24px -12px rgba(15,15,25,0.18);}
+.ds-chip{background:rgba(15,15,25,0.04);color:var(--text-secondary);}
+.ds-chip-glow{background:rgba(124,58,237,0.10);color:#5B21B6;box-shadow:none;}
+.ds-chip-have{background:rgba(16,185,129,0.10);color:#065F46;border-color:rgba(16,185,129,0.35);}
+.xp-dash-banner .xp-hero-label{color:#C4B5FD;}
+.xp-dash-banner .xp-hero-meta{color:#DDD6FE;}
+#cc-user-menu{box-shadow:0 18px 40px -12px rgba(15,15,25,0.18);}
+.cc-user-item:hover{background:#F1ECFE;color:var(--accent-lavender);}
 `;
 
 type Msg = { role: string; content: string; state?: string; time: string; cta?: string };
@@ -1504,7 +1500,8 @@ export default function CcChat() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <div className={`cc-root${theme === "light" ? " theme-light" : ""}`}>
+      <Header />
+      <div className="cc-root">
         {/* HOOK — rotating stats, single CTA to enter the chat */}
         {hookVisible && (
           <div id="cc-hook" className={hookDismissing ? "dismissing" : ""}>
