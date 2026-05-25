@@ -111,27 +111,57 @@ export default function CcIndex() {
     <>
       <Header />
       <main className="min-h-screen bg-white">
-        {/* Hero — full-bleed 16:9 image with overlaid CTA */}
+        {/* Hero — 9:16 on mobile, 16:9 on desktop */}
         <section className="relative w-full overflow-hidden border-b-2 border-neutral-900">
-          {/* 16:9 aspect ratio container */}
-          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+          <div
+            className="hero-aspect relative w-full"
+            style={{ paddingBottom: "177.78%" }}
+          >
+            {/* Mobile image (portrait 9:16) — hidden on md+ */}
+            <img
+              src="/cc-hero-mobile.png"
+              alt="Bobie the career coach in front of the Studojo dojo gate"
+              className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
+              loading="eager"
+            />
+            {/* Desktop image (landscape 16:9) — shown on md+ via aspect ratio override */}
             <img
               src="/cc-hero.png"
               alt="Bobie the career coach in front of the Studojo dojo gate"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="absolute inset-0 hidden h-full w-full object-cover object-center md:block"
               loading="eager"
             />
-            {/* subtle gradient at the bottom so the CTA button sits on a readable surface */}
-            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 to-transparent" />
 
-            {/* CTA overlay — bottom-right */}
+            {/* Gradient overlays */}
+            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/40 to-transparent" />
+
+            {/* How it works — top-left */}
             <motion.div
-              className="absolute bottom-0 right-0 flex flex-col items-end pb-8 pr-8 md:pb-12 md:pr-12"
+              className="absolute left-4 top-4 md:left-8 md:top-6"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+              >
+                How it works
+                <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 2v10m0 0L3 8m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </a>
+            </motion.div>
+
+            {/* CTA — bottom-right on desktop, bottom-centre on mobile */}
+            <motion.div
+              className="absolute bottom-0 right-0 flex flex-col items-end pb-8 pr-4 md:pr-12 md:pb-12"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <p className="mb-4 font-['Satoshi'] text-sm font-medium text-white/80 tracking-wide text-right">
+              <p className="mb-4 text-right font-['Satoshi'] text-sm font-medium tracking-wide text-white/80">
                 Takes 8 minutes. Gets sharper the more you talk to it.
               </p>
               <Link
@@ -142,8 +172,53 @@ export default function CcIndex() {
               </Link>
             </motion.div>
           </div>
+          {/* Desktop: override aspect ratio to 16:9 */}
+          <style>{`@media(min-width:768px){.hero-aspect{padding-bottom:56.25%!important}}`}</style>
         </section>
 
+
+        {/* How it works */}
+        <section id="how-it-works" className="border-b border-neutral-900 bg-white py-16 md:py-24">
+          <Section>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={containerVariants}
+            >
+              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
+                How it works
+              </motion.p>
+              <motion.h2
+                variants={itemVariants}
+                className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl"
+              >
+                Three steps. Your roadmap is ready.
+              </motion.h2>
+              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
+                No forms, no uploads. Just a conversation that builds your complete career picture.
+              </motion.p>
+              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
+                {HOW_IT_WORKS.map((s) => (
+                  <div
+                    key={s.num}
+                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    <div className="font-['Clash_Display'] text-5xl font-medium leading-none text-violet-100">
+                      {s.num}
+                    </div>
+                    <h3 className="mt-3 font-['Satoshi'] text-lg font-bold text-neutral-900">
+                      {s.title}
+                    </h3>
+                    <p className="mt-2 font-['Satoshi'] text-sm leading-6 text-neutral-600">
+                      {s.desc}
+                    </p>
+                  </div>
+                ))}
+              </motion.div>
+            </motion.div>
+          </Section>
+        </section>
 
         {/* What you get */}
         <section className="border-b border-neutral-900 bg-neutral-50 py-16 md:py-24">
@@ -195,49 +270,6 @@ export default function CcIndex() {
                     >
                       {c.cta} <FiArrowRight />
                     </Link>
-                  </div>
-                ))}
-              </motion.div>
-            </motion.div>
-          </Section>
-        </section>
-
-        {/* How it works */}
-        <section id="how-it-works" className="border-b border-neutral-900 bg-white py-16 md:py-24">
-          <Section>
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-80px" }}
-              variants={containerVariants}
-            >
-              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
-                How it works
-              </motion.p>
-              <motion.h2
-                variants={itemVariants}
-                className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl"
-              >
-                Three steps. Your roadmap is ready.
-              </motion.h2>
-              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
-                No forms, no uploads. Just a conversation that builds your complete career picture.
-              </motion.p>
-              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
-                {HOW_IT_WORKS.map((s) => (
-                  <div
-                    key={s.num}
-                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
-                  >
-                    <div className="font-['Clash_Display'] text-5xl font-medium leading-none text-violet-100">
-                      {s.num}
-                    </div>
-                    <h3 className="mt-3 font-['Satoshi'] text-lg font-bold text-neutral-900">
-                      {s.title}
-                    </h3>
-                    <p className="mt-2 font-['Satoshi'] text-sm leading-6 text-neutral-600">
-                      {s.desc}
-                    </p>
                   </div>
                 ))}
               </motion.div>
