@@ -145,80 +145,56 @@ export default function CcIndex() {
         </section>
 
         {/* Confused → Clarity bar */}
-        <section className="border-b border-neutral-900 bg-violet-600 py-6 md:py-10">
-          <div className="flex items-end justify-center gap-4 md:gap-8">
-            {/* Confused */}
+        <section className="relative overflow-hidden border-b border-neutral-900 bg-violet-600 py-8 md:py-12">
+          {/* Heading — centred */}
+          <p className="mb-6 text-center font-['Clash_Display'] text-xl font-medium text-white md:text-2xl">
+            Here's how you go from confused to clarity.
+          </p>
+
+          {/* Images — pushed to opposite edges */}
+          <div className="relative flex items-end justify-between">
+            {/* Confused — left edge */}
             <div className="flex flex-col items-center">
               <img
                 src="/bobie-confused.png"
                 alt="Confused"
-                className="h-32 w-32 object-cover md:h-48 md:w-48"
-                style={{ mixBlendMode: "luminosity", filter: "contrast(1.05)" }}
+                className="h-36 w-36 object-cover md:h-56 md:w-56"
+                style={{ imageRendering: "auto", mixBlendMode: "screen" }}
               />
-              <span className="mt-2 font-['Satoshi'] text-sm font-bold tracking-wide text-white/80">Confused</span>
+              <span className="mb-3 font-['Satoshi'] text-sm font-bold tracking-wide text-white/70">Confused</span>
             </div>
 
-            {/* Arrow */}
-            <div className="mb-10 md:mb-16">
-              <svg className="h-8 w-16 text-white/70 md:h-10 md:w-24" viewBox="0 0 96 40" fill="none">
-                <path d="M4 20h80m0 0L68 6m16 14L68 34" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+            {/* Arrow — centre */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+              <svg className="h-8 w-20 text-white/60 md:h-10 md:w-32" viewBox="0 0 128 40" fill="none">
+                <path d="M4 20h112m0 0L98 6m18 14L98 34" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
 
-            {/* Clarity */}
+            {/* Clarity — right edge */}
             <div className="flex flex-col items-center">
               <img
                 src="/bobie-happy.png"
                 alt="Clarity"
-                className="h-32 w-32 object-cover md:h-48 md:w-48"
-                style={{ mixBlendMode: "luminosity", filter: "contrast(1.05)" }}
+                className="h-36 w-36 object-cover md:h-56 md:w-56"
+                style={{ imageRendering: "auto", mixBlendMode: "screen" }}
               />
-              <span className="mt-2 font-['Satoshi'] text-sm font-bold tracking-wide text-white/80">Clarity</span>
+              <span className="mb-3 font-['Satoshi'] text-sm font-bold tracking-wide text-white/70">Clarity</span>
             </div>
           </div>
-        </section>
 
-        {/* How it works */}
-        <section id="how-it-works" className="border-b border-neutral-900 bg-white py-16 md:py-24">
-          <Section>
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-80px" }}
-              variants={containerVariants}
+          {/* How it works scroll button — bottom centre */}
+          <div className="mt-6 flex justify-center">
+            <a
+              href="#how-it-works"
+              className="inline-flex items-center gap-2 rounded-2xl border-2 border-white/30 px-6 py-2.5 font-['Satoshi'] text-sm font-semibold text-white/90 transition-colors hover:border-white/60 hover:text-white"
             >
-              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
-                How it works
-              </motion.p>
-              <motion.h2
-                variants={itemVariants}
-                className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl"
-              >
-                Three steps. Your roadmap is ready.
-              </motion.h2>
-              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
-                No forms, no uploads. Just a conversation that builds your complete career picture.
-              </motion.p>
-              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
-                {HOW_IT_WORKS.map((s) => (
-                  <div
-                    key={s.num}
-                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
-                  >
-                    <div className="font-['Clash_Display'] text-5xl font-medium leading-none text-violet-100">
-                      {s.num}
-                    </div>
-                    <h3 className="mt-3 font-['Satoshi'] text-lg font-bold text-neutral-900">
-                      {s.title}
-                    </h3>
-                    <p className="mt-2 font-['Satoshi'] text-sm leading-6 text-neutral-600">
-                      {s.desc}
-                    </p>
-                  </div>
-                ))}
-              </motion.div>
-            </motion.div>
-          </Section>
+              How it works
+              <svg className="h-4 w-4" viewBox="0 0 16 16" fill="none">
+                <path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </div>
         </section>
 
         {/* What you get */}
@@ -271,6 +247,49 @@ export default function CcIndex() {
                     >
                       {c.cta} <FiArrowRight />
                     </Link>
+                  </div>
+                ))}
+              </motion.div>
+            </motion.div>
+          </Section>
+        </section>
+
+        {/* How it works */}
+        <section id="how-it-works" className="border-b border-neutral-900 bg-white py-16 md:py-24">
+          <Section>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={containerVariants}
+            >
+              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
+                How it works
+              </motion.p>
+              <motion.h2
+                variants={itemVariants}
+                className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl"
+              >
+                Three steps. Your roadmap is ready.
+              </motion.h2>
+              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
+                No forms, no uploads. Just a conversation that builds your complete career picture.
+              </motion.p>
+              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
+                {HOW_IT_WORKS.map((s) => (
+                  <div
+                    key={s.num}
+                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    <div className="font-['Clash_Display'] text-5xl font-medium leading-none text-violet-100">
+                      {s.num}
+                    </div>
+                    <h3 className="mt-3 font-['Satoshi'] text-lg font-bold text-neutral-900">
+                      {s.title}
+                    </h3>
+                    <p className="mt-2 font-['Satoshi'] text-sm leading-6 text-neutral-600">
+                      {s.desc}
+                    </p>
                   </div>
                 ))}
               </motion.div>

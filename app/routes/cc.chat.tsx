@@ -83,7 +83,8 @@ const CSS = `
 .msg-row{display:flex;gap:12px;align-items:flex-end;}
 .msg-row.agent{justify-content:flex-start;}
 .msg-row.user{justify-content:flex-end;}
-.agent-avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;background:var(--gradient-primary);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;color:white;}
+.agent-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;border:2px solid var(--border);overflow:hidden;background:#7c3aed;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 0 var(--shadow-c);}
+.agent-avatar img{width:100%;height:100%;object-fit:cover;object-position:center top;}
 .msg-bubble-wrap{display:flex;flex-direction:column;max-width:82%;}
 .msg-bubble{padding:13px 17px;font-size:0.92rem;line-height:1.55;border:2px solid var(--border);white-space:pre-wrap;}
 .msg-row.agent .msg-bubble{background:var(--bg-raised);border-radius:4px 18px 18px 18px;box-shadow:3px 3px 0 var(--shadow-c);}
@@ -1723,7 +1724,7 @@ export default function CcChat() {
                     return (
                       <div key={i}>
                         <div className={`msg-row ${m.role}`}>
-                          {m.role === "agent" && <div className="agent-avatar">S</div>}
+                          {m.role === "agent" && <div className="agent-avatar"><img src="/bobie-hat.png" alt="Bobie" /></div>}
                           <div className="msg-bubble-wrap">
                             <div className="msg-bubble">{renderBubbleText(m.content)}</div>
                             {m.role === "agent" && hasLink && (
@@ -1751,7 +1752,7 @@ export default function CcChat() {
                   })}
                   {waiting && (
                     <div className="msg-row agent">
-                      <div className="agent-avatar">S</div>
+                      <div className="agent-avatar"><img src="/bobie-hat.png" alt="Bobie" /></div>
                       <div className="msg-bubble-wrap">
                         <div className="msg-bubble"><div className="typing-dots"><span /><span /><span /></div></div>
                       </div>
