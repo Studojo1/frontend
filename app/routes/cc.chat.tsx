@@ -663,9 +663,8 @@ export default function CcChat() {
     if (initDone.current) return;
     initDone.current = true;
 
-    // Hook overlay shows on every page load, regardless of whether the
-    // student is new or returning. They dismiss it with "Show me where I stand".
-    setHookVisible(true);
+    // Skip the hook overlay — go straight to chat.
+    hookDismissedRef.current = true;
     const existingId = localStorage.getItem(STORAGE_KEY);
 
     (async () => {
@@ -1261,7 +1260,26 @@ export default function CcChat() {
   function renderRoadmap(expanded: boolean) {
     const actions = (pp?.priority_actions) || [];
     if (!dnaReady || !actions.length) {
-      return <div className="side-empty"><div className="se-icon">🗺️</div>Your Roadmap appears here once your Career DNA is ready. It is the ordered set of moves that get you ahead of your peers.</div>;
+      return (
+        <div className="skel-wrap">
+          <div className="skel-card">
+            <div className="skel-line short" style={{ marginBottom: 8 }} />
+            <div className="skel-line heading" />
+            <div className="skel-line medium" style={{ marginBottom: 0 }} />
+            <div className="skel-building" style={{ marginTop: 10 }}><span className="skel-pulse" />Your Roadmap builds as the coach learns your situation...</div>
+          </div>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="skel-card" style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", flexShrink: 0, background: "linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%)", backgroundSize: "600px 100%", animation: "shimmer 1.4s infinite linear" }} />
+              <div style={{ flex: 1 }}>
+                <div className="skel-line medium" style={{ marginBottom: 8 }} />
+                <div className="skel-line full" style={{ marginBottom: 6 }} />
+                <div className="skel-line short" style={{ marginBottom: 0 }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
     }
 
     const intentLine = "Remember, what sets you apart is not intent. Plenty of students want to work. The ones who get hired pair that intent with action, and action beats intent alone by miles.";
@@ -1395,7 +1413,33 @@ export default function CcChat() {
 
   function renderDashboard(expanded: boolean) {
     if (!dnaReady) {
-      return <div className="side-empty"><div className="se-icon">📊</div>Your Dashboard appears here once your Career DNA is ready. It tracks your progress and the tasks that move you forward.</div>;
+      return (
+        <div className="skel-wrap">
+          {/* stat grid skeleton */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+            {[["#F1ECFE","#C4B5FD"],["#ECFDF5","#6EE7B7"],["#FEF3C7","#FCD34D"],["#EFF6FF","#93C5FD"]].map(([bg, border], i) => (
+              <div key={i} className="skel-card" style={{ background: bg, borderColor: border, padding: 12 }}>
+                <div className="skel-line short" style={{ height: 28, marginBottom: 8, borderRadius: 6 }} />
+                <div className="skel-line medium" style={{ height: 10, marginBottom: 0 }} />
+              </div>
+            ))}
+          </div>
+          {/* progress bar skeleton */}
+          <div className="skel-card">
+            <div className="skel-line short" style={{ marginBottom: 12 }} />
+            <div style={{ height: 14, borderRadius: 999, background: "linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%)", backgroundSize: "600px 100%", animation: "shimmer 1.4s infinite linear", marginBottom: 10 }} />
+            {[1, 2, 3].map(i => (
+              <div key={i} className="skel-line full" style={{ height: 18, marginBottom: 8, borderRadius: 8 }} />
+            ))}
+          </div>
+          {/* weekly milestone skeleton */}
+          <div className="skel-card" style={{ border: "2px solid #C4B5FD", background: "#F1ECFE" }}>
+            <div className="skel-line short" style={{ marginBottom: 10 }} />
+            <div className="skel-line medium" style={{ marginBottom: 0 }} />
+          </div>
+          <div className="skel-building"><span className="skel-pulse" />Dashboard activates once your Career DNA is ready...</div>
+        </div>
+      );
     }
     const sh = sidebarData.score_history || {};
     const student = sidebarData.student || {};
@@ -1565,27 +1609,7 @@ export default function CcChat() {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <Header />
       <div className="cc-root">
-        {/* HOOK — rotating stats, single CTA to enter the chat */}
-        {hookVisible && (
-          <div id="cc-hook" className={hookDismissing ? "dismissing" : ""}>
-            <div className="hook-inner">
-              <div className="hook-logo">studojo<span className="cc-dot" /></div>
-              <div className="hook-stat" style={{ opacity: statOpacity }}>
-                <span className="hs-main">{stat.main}</span>
-                <span className="hs-emphasis">{stat.emphasis}</span>
-              </div>
-              <div className="hook-hook">{stat.hook}</div>
-              <button className="hook-cta" onClick={() => dismissHook("entered")}>Show me where I stand →</button>
-              <div className="hook-meta">8 minutes. Specific to you. No sign-up.</div>
-              <div className="hook-dots">
-                {HOOK_STATS.map((_, i) => (
-                  <button key={i} className={`hook-dot${i === statIdx ? " active" : ""}`} onClick={() => setStatIdx(i)} />
-                ))}
-              </div>
-              <div className="social-ticker"><span className="st-dot" />{SOCIAL_PROOF[tickerIdx]}</div>
-            </div>
-          </div>
-        )}
+
 
         {/* FLOATING LOGO + PANEL TOGGLE (toggle slides with the panel) */}
         <a id="cc-float-logo" href="/cc">studojo<span className="cc-dot" /></a>
