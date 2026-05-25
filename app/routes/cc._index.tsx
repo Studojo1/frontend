@@ -1,8 +1,12 @@
+import { motion } from "framer-motion";
 import { Link } from "react-router";
+import { FiTarget, FiTrendingUp, FiCalendar, FiArrowRight } from "react-icons/fi";
+import { Header, Footer } from "~/components";
+import { Section } from "~/components/common/section";
 
 export function meta() {
   return [
-    { title: "CareerDojo | Your Personal Career Coach" },
+    { title: "Career Coach | Studojo" },
     {
       name: "description",
       content:
@@ -11,12 +15,11 @@ export function meta() {
   ];
 }
 
-
 const HOW_IT_WORKS = [
   {
     num: "01",
     title: "Tell the coach about yourself",
-    desc: "No forms. Just a conversation. The AI asks about your degree, skills, experience, and what you are going after — and listens. The more you talk to it, the sharper it gets.",
+    desc: "No forms. Just a conversation. The AI asks about your degree, skills, experience, and what you're going after — and listens. The more you talk to it, the sharper it gets.",
   },
   {
     num: "02",
@@ -32,8 +35,6 @@ const HOW_IT_WORKS = [
 
 const WHAT_YOU_GET = [
   {
-    color: "#7C3AED",
-    bg: "#F3F0FF",
     label: "Career DNA",
     title: "Know exactly where you stand",
     bullets: [
@@ -42,24 +43,26 @@ const WHAT_YOU_GET = [
       "Your current level: Industry-Ready, Well-Rounded, or Standout",
     ],
     cta: "Get your Career DNA",
-    href: "/cc/chat",
+    accent: "bg-violet-500",
+    iconBg: "bg-violet-200",
+    iconColor: "text-violet-600",
+    icon: <FiTarget />,
   },
   {
-    color: "#0891B2",
-    bg: "#ECFEFF",
     label: "Gap Analysis",
-    title: "See what is holding you back",
+    title: "See what's holding you back",
     bullets: [
       "Skill gaps ranked by impact for your role",
       "Industry knowledge gaps",
       "Experience gaps vs the top fresher candidates",
     ],
     cta: "Run your gap analysis",
-    href: "/cc/chat",
+    accent: "bg-emerald-500",
+    iconBg: "bg-emerald-200",
+    iconColor: "text-emerald-600",
+    icon: <FiTrendingUp />,
   },
   {
-    color: "#D97706",
-    bg: "#FFFBEB",
     label: "Weekly Action Plan",
     title: "Climb the ladder, week by week",
     bullets: [
@@ -68,177 +71,12 @@ const WHAT_YOU_GET = [
       "Six weeks of follow-through gets you to the next level",
     ],
     cta: "Get your action plan",
-    href: "/cc/chat",
+    accent: "bg-amber-500",
+    iconBg: "bg-amber-200",
+    iconColor: "text-amber-700",
+    icon: <FiCalendar />,
   },
 ];
-
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-.lp-root { font-family: 'Inter', sans-serif; background: #fff; color: #111; }
-.lp-root *, .lp-root *::before, .lp-root *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-/* NAV */
-.lp-nav {
-  position: sticky; top: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 48px; height: 64px;
-  background: #fff; border-bottom: 2px solid #111;
-  box-shadow: 0 2px 0 #111;
-}
-/* studojo wordmark — matches the main platform: Satoshi 900, brand ink black, tight tracking, no dot. */
-.lp-nav-logo { font-size: 1.75rem; font-weight: 900; letter-spacing: -0.055em; line-height: 1; text-decoration: none; color: #191A23; font-family: "Satoshi", ui-sans-serif, system-ui, sans-serif; }
-.lp-nav-dot { display: none; }
-.lp-nav-cta { background: #111; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 22px; border-radius: 999px; text-decoration: none; transition: opacity 0.15s; }
-.lp-nav-cta:hover { opacity: 0.8; }
-
-/* HERO */
-.lp-hero {
-  background: #FF2466;
-  padding: 100px 48px 80px;
-  text-align: left;
-  max-width: 100%;
-}
-.lp-hero-inner { max-width: 720px; }
-.lp-hero-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 999px; padding: 5px 14px;
-  font-size: 0.72rem; font-weight: 700; color: #E9D5FF;
-  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 28px;
-}
-.lp-hero-eyebrow-dot { width: 7px; height: 7px; border-radius: 50%; background: #A78BFA; flex-shrink: 0; animation: pulse 2s ease-in-out infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.lp-hero h1 {
-  font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 800; line-height: 1.1;
-  letter-spacing: -0.04em; color: #fff; margin-bottom: 24px;
-}
-.lp-hero-sub { font-size: 1.125rem; color: #DDD6FE; line-height: 1.65; max-width: 560px; margin-bottom: 40px; }
-.lp-hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
-.lp-btn-primary {
-  background: #fff; color: #FF2466; font-weight: 800; font-size: 1rem;
-  padding: 15px 32px; border-radius: 999px;
-  border: 2px solid #111; box-shadow: 4px 4px 0 #111;
-  text-decoration: none; transition: all 0.15s; display: inline-block;
-}
-.lp-btn-primary:hover { transform: translate(2px,2px); box-shadow: 2px 2px 0 #111; }
-.lp-btn-ghost {
-  background: transparent; color: #fff; font-weight: 700; font-size: 1rem;
-  padding: 15px 32px; border-radius: 999px;
-  border: 2px solid rgba(255,255,255,0.4);
-  text-decoration: none; transition: all 0.15s; display: inline-block;
-}
-.lp-btn-ghost:hover { background: rgba(255,255,255,0.1); }
-.lp-hero-meta { margin-top: 28px; font-size: 0.78rem; color: #C4B5FD; font-weight: 500; }
-
-/* STATS BAR */
-.lp-stats {
-  background: #CC1A52; border-top: 2px solid rgba(255,255,255,0.1);
-  display: grid; grid-template-columns: repeat(4,1fr);
-  divide-x: 1px solid rgba(255,255,255,0.1);
-}
-.lp-stat {
-  padding: 28px 40px; border-right: 1px solid rgba(255,255,255,0.12);
-}
-.lp-stat:last-child { border-right: none; }
-.lp-stat-num { font-size: 2rem; font-weight: 800; color: #fff; letter-spacing: -0.03em; }
-.lp-stat-label { font-size: 0.78rem; color: #C4B5FD; margin-top: 4px; font-weight: 500; }
-
-
-/* HOW IT WORKS */
-.lp-section { padding: 80px 48px; }
-.lp-section-label {
-  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.14em; color: #7C3AED; margin-bottom: 14px;
-}
-.lp-section h2 {
-  font-size: clamp(1.8rem,3.5vw,2.75rem); font-weight: 800;
-  letter-spacing: -0.04em; color: #111; margin-bottom: 10px;
-}
-.lp-section-sub { font-size: 1rem; color: #71717A; margin-bottom: 52px; }
-.lp-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
-.lp-step-card {
-  border: 2px solid #111; border-radius: 20px; padding: 28px 28px 32px;
-  box-shadow: 4px 4px 0 #111; background: #fff; position: relative;
-}
-.lp-step-num {
-  font-size: 3rem; font-weight: 800; color: #F3F0FF;
-  letter-spacing: -0.04em; line-height: 1; margin-bottom: 12px;
-}
-.lp-step-title { font-size: 1.05rem; font-weight: 800; color: #111; margin-bottom: 10px; }
-.lp-step-desc { font-size: 0.875rem; color: #71717A; line-height: 1.65; }
-
-/* WHAT YOU GET — coloured cards */
-.lp-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
-.lp-feature-card {
-  border-radius: 20px; padding: 32px; position: relative; overflow: hidden;
-  border: 2px solid #111; box-shadow: 5px 5px 0 #111;
-}
-.lp-card-label {
-  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.12em; margin-bottom: 14px; opacity: 0.7;
-}
-.lp-card-title { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 20px; line-height: 1.3; }
-.lp-card-bullets { list-style: none; margin-bottom: 28px; }
-.lp-card-bullets li {
-  display: flex; align-items: flex-start; gap: 10px;
-  font-size: 0.875rem; line-height: 1.55; margin-bottom: 10px; font-weight: 500;
-}
-.lp-card-bullets li::before { content: "✓"; font-weight: 800; flex-shrink: 0; margin-top: 1px; }
-.lp-card-cta {
-  display: inline-block; background: rgba(0,0,0,0.08);
-  border: 2px solid rgba(0,0,0,0.15); border-radius: 999px;
-  padding: 10px 22px; font-size: 0.85rem; font-weight: 700;
-  text-decoration: none; transition: all 0.15s;
-}
-.lp-card-cta:hover { background: rgba(0,0,0,0.15); transform: translateY(-1px); }
-
-/* SOCIAL PROOF QUOTE */
-.lp-proof-section { background: #FAFAF9; border-top: 2px solid #111; border-bottom: 2px solid #111; padding: 80px 48px; }
-.lp-quotes { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
-.lp-quote {
-  background: #fff; border: 2px solid #111; border-radius: 20px;
-  padding: 28px; box-shadow: 4px 4px 0 #111;
-}
-.lp-quote-text { font-size: 0.95rem; color: #374151; line-height: 1.65; margin-bottom: 20px; font-style: italic; }
-.lp-quote-name { font-size: 0.78rem; font-weight: 700; color: #111; }
-.lp-quote-detail { font-size: 0.72rem; color: #71717A; margin-top: 2px; }
-
-/* CTA BANNER */
-.lp-cta-banner {
-  background: #6D28D9; padding: 80px 48px; text-align: center;
-  border-top: 2px solid #111;
-}
-.lp-cta-banner h2 {
-  font-size: clamp(2rem,4vw,3rem); font-weight: 800; color: #fff;
-  letter-spacing: -0.04em; margin-bottom: 16px; line-height: 1.2;
-}
-.lp-cta-banner p { font-size: 1rem; color: rgba(255,255,255,0.75); margin-bottom: 36px; }
-
-/* FOOTER */
-.lp-footer {
-  padding: 32px 48px; border-top: 2px solid #111;
-  display: flex; align-items: center; justify-content: space-between;
-  font-size: 0.78rem; color: #71717A;
-}
-.lp-footer a { color: #71717A; text-decoration: none; }
-.lp-footer a:hover { color: #111; }
-
-@media(max-width:768px){
-  .lp-nav{padding:0 20px;}
-  .lp-hero{padding:64px 20px 56px;}
-  .lp-stats{grid-template-columns:1fr 1fr;}
-  .lp-trust{padding:20px;}
-  .lp-section{padding:56px 20px;}
-  .lp-steps{grid-template-columns:1fr;}
-  .lp-cards{grid-template-columns:1fr;}
-  .lp-proof-section{padding:56px 20px;}
-  .lp-quotes{grid-template-columns:1fr;}
-  .lp-cta-banner{padding:56px 20px;}
-  .lp-footer{flex-direction:column;gap:12px;text-align:center;padding:28px 20px;}
-  .lp-stat{padding:20px 24px;}
-}
-`;
 
 const QUOTES = [
   {
@@ -258,137 +96,255 @@ const QUOTES = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
 export default function CcIndex() {
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <div className="lp-root">
+      <Header />
+      <main className="min-h-screen bg-white">
+        {/* Hero */}
+        <section className="relative w-full overflow-hidden border-b border-neutral-900 bg-violet-500 py-12 md:py-16">
+          <motion.div
+            className="w-full"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
+            <Section width="narrow" className="mx-auto text-center">
+              <motion.div variants={itemVariants} className="mb-6 inline-flex items-center gap-2 rounded-full border-2 border-white/40 bg-white/20 px-4 py-2">
+                <span className="h-2 w-2 rounded-full bg-yellow-300 animate-pulse" />
+                <span className="font-['Satoshi'] text-sm font-medium text-white">
+                  Career Coach — a real coach in your corner
+                </span>
+              </motion.div>
+              <motion.h1
+                variants={itemVariants}
+                className="font-['Clash_Display'] text-4xl font-medium leading-tight text-white md:text-6xl lg:text-7xl"
+              >
+                Know exactly how much better you are{" "}
+                <span className="text-yellow-300">than your industry.</span>
+              </motion.h1>
+              <motion.p
+                variants={itemVariants}
+                className="mx-auto mt-6 max-w-2xl font-['Satoshi'] text-lg font-normal leading-7 text-violet-100 md:text-xl"
+              >
+                Stop applying blindly. The coach reads your profile, shows you exactly where you stand against the typical fresher chasing your role, and walks you up a 3-level ladder — Industry-Ready, Well-Rounded, Standout — with daily and weekly moves that compound.
+              </motion.p>
+              <motion.div variants={itemVariants} className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Link
+                  to="/cc/chat"
+                  className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-8 font-['Satoshi'] text-base font-medium text-violet-600 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                >
+                  Get my Career DNA <FiArrowRight />
+                </Link>
+                <a
+                  href="#how-it-works"
+                  className="inline-flex h-14 items-center justify-center rounded-2xl border-2 border-white/40 px-8 font-['Satoshi'] text-base font-medium text-white hover:bg-white/10"
+                >
+                  See how it works
+                </a>
+              </motion.div>
+              <motion.p variants={itemVariants} className="mt-6 font-['Satoshi'] text-sm text-violet-200">
+                Takes 8 minutes. Gets sharper the more you talk to it.
+              </motion.p>
+            </Section>
+          </motion.div>
+        </section>
 
-        {/* NAV */}
-        <nav className="lp-nav">
-          <a href="/cc" className="lp-nav-logo">
-            studojo<span className="lp-nav-dot" />
-          </a>
-          <Link to="/cc/chat" className="lp-nav-cta">Get my Career DNA →</Link>
-        </nav>
+        {/* Stats bar */}
+        <section className="border-b border-neutral-900 bg-violet-600">
+          <Section width="wide" className="mx-auto grid grid-cols-2 md:grid-cols-4">
+            {[
+              { num: "8 min", label: "to your Career DNA" },
+              { num: "3", label: "levels to climb" },
+              { num: "Daily", label: "check-ins that compound" },
+              { num: "100%", label: "personalised to your profile" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="border-l-2 border-white/10 px-6 py-7 first:border-l-0 md:px-10"
+              >
+                <div className="font-['Clash_Display'] text-3xl font-medium text-white md:text-4xl">
+                  {s.num}
+                </div>
+                <div className="mt-1 font-['Satoshi'] text-sm text-violet-200">
+                  {s.label}
+                </div>
+              </div>
+            ))}
+          </Section>
+        </section>
 
-        {/* HERO */}
-        <section className="lp-hero">
-          <div className="lp-hero-inner">
-            <div className="lp-hero-eyebrow">
-              <span className="lp-hero-eyebrow-dot" />
-              Career Coach — A real coach in your corner
-            </div>
-            <h1>Know exactly how much<br />better you are than your industry.</h1>
-            <p className="lp-hero-sub">
-              Stop applying blindly. The coach reads your profile, shows you exactly where you stand against the typical fresher chasing your role, and walks you up a 3-level ladder — Industry-Ready, Well-Rounded, Standout — with daily and weekly moves that compound.
+        {/* How it works */}
+        <section id="how-it-works" className="border-b border-neutral-900 bg-white py-16 md:py-24">
+          <Section>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={containerVariants}
+            >
+              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
+                How it works
+              </motion.p>
+              <motion.h2
+                variants={itemVariants}
+                className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl"
+              >
+                Three steps. Your roadmap is ready.
+              </motion.h2>
+              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
+                No forms, no uploads. Just a conversation that builds your complete career picture.
+              </motion.p>
+              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
+                {HOW_IT_WORKS.map((s) => (
+                  <div
+                    key={s.num}
+                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    <div className="font-['Clash_Display'] text-5xl font-medium leading-none text-violet-100">
+                      {s.num}
+                    </div>
+                    <h3 className="mt-3 font-['Satoshi'] text-lg font-bold text-neutral-900">
+                      {s.title}
+                    </h3>
+                    <p className="mt-2 font-['Satoshi'] text-sm leading-6 text-neutral-600">
+                      {s.desc}
+                    </p>
+                  </div>
+                ))}
+              </motion.div>
+            </motion.div>
+          </Section>
+        </section>
+
+        {/* What you get */}
+        <section className="border-b border-neutral-900 bg-neutral-50 py-16 md:py-24">
+          <Section>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={containerVariants}
+            >
+              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
+                What you get
+              </motion.p>
+              <motion.h2 variants={itemVariants} className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl">
+                Everything in one session.
+              </motion.h2>
+              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
+                Built around your degree, skills, and target role — not a generic checklist.
+              </motion.p>
+              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
+                {WHAT_YOU_GET.map((c) => (
+                  <div
+                    key={c.label}
+                    className="flex h-full flex-col rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl border-2 border-neutral-900 ${c.iconBg} text-xl ${c.iconColor} shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]`}>
+                      {c.icon}
+                    </div>
+                    <p className="mt-5 font-['Satoshi'] text-xs font-bold uppercase tracking-wider text-neutral-500">
+                      {c.label}
+                    </p>
+                    <h3 className="mt-1 font-['Clash_Display'] text-xl font-medium leading-snug text-neutral-900">
+                      {c.title}
+                    </h3>
+                    <ul className="mt-5 space-y-2.5">
+                      {c.bullets.map((b) => (
+                        <li
+                          key={b}
+                          className="flex items-start gap-2 font-['Satoshi'] text-sm leading-6 text-neutral-700"
+                        >
+                          <span className={`mt-2 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full ${c.accent}`} />
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                    <Link
+                      to="/cc/chat"
+                      className="mt-auto inline-flex items-center gap-1.5 pt-6 font-['Satoshi'] text-sm font-semibold text-violet-600 hover:text-violet-800"
+                    >
+                      {c.cta} <FiArrowRight />
+                    </Link>
+                  </div>
+                ))}
+              </motion.div>
+            </motion.div>
+          </Section>
+        </section>
+
+        {/* Quotes */}
+        <section className="border-b border-neutral-900 bg-white py-16 md:py-24">
+          <Section>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+              variants={containerVariants}
+            >
+              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
+                What students say
+              </motion.p>
+              <motion.h2 variants={itemVariants} className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl">
+                Real feedback from real profiles.
+              </motion.h2>
+              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
+                {QUOTES.map((q) => (
+                  <div
+                    key={q.name}
+                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                  >
+                    <p className="font-['Satoshi'] text-base italic leading-7 text-neutral-700">
+                      "{q.text}"
+                    </p>
+                    <div className="mt-5 border-t border-neutral-200 pt-4">
+                      <p className="font-['Satoshi'] text-sm font-bold text-neutral-900">
+                        {q.name}
+                      </p>
+                      <p className="mt-0.5 font-['Satoshi'] text-xs text-neutral-500">
+                        {q.detail}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            </motion.div>
+          </Section>
+        </section>
+
+        {/* CTA banner */}
+        <section className="border-b border-neutral-900 bg-violet-600 py-16 md:py-24">
+          <Section width="narrow" className="mx-auto text-center">
+            <h2 className="font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-5xl lg:text-6xl">
+              Know exactly{" "}
+              <span className="text-yellow-300">where you stand.</span>
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl font-['Satoshi'] text-lg text-violet-100">
+              Takes 8 minutes. Built around your real profile, not a quiz.
             </p>
-            <div className="lp-hero-btns">
-              <Link to="/cc/chat" className="lp-btn-primary">Get my Career DNA →</Link>
-              <a href="#how-it-works" className="lp-btn-ghost">See how it works</a>
+            <div className="mt-10 flex justify-center">
+              <Link
+                to="/cc/chat"
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-8 font-['Satoshi'] text-base font-medium text-violet-600 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+              >
+                Get my Career DNA <FiArrowRight />
+              </Link>
             </div>
-            <div className="lp-hero-meta">Takes 8 minutes. Gets sharper the more you talk to it.</div>
-          </div>
+          </Section>
         </section>
-
-        {/* STATS BAR */}
-        <div className="lp-stats">
-          <div className="lp-stat">
-            <div className="lp-stat-num">8 min</div>
-            <div className="lp-stat-label">to your Career DNA</div>
-          </div>
-          <div className="lp-stat">
-            <div className="lp-stat-num">3</div>
-            <div className="lp-stat-label">levels to climb</div>
-          </div>
-          <div className="lp-stat">
-            <div className="lp-stat-num">Daily</div>
-            <div className="lp-stat-label">check-ins that compound</div>
-          </div>
-          <div className="lp-stat">
-            <div className="lp-stat-num">100%</div>
-            <div className="lp-stat-label">personalised to your profile</div>
-          </div>
-        </div>
-
-        {/* HOW IT WORKS */}
-        <section className="lp-section" id="how-it-works">
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <div className="lp-section-label">How it works</div>
-            <h2>Three steps. Your roadmap is ready.</h2>
-            <p className="lp-section-sub">No forms, no uploads. Just a conversation that builds your complete career picture.</p>
-            <div className="lp-steps">
-              {HOW_IT_WORKS.map((s, i) => (
-                <div key={i} className="lp-step-card">
-                  <div className="lp-step-num">{s.num}</div>
-                  <div className="lp-step-title">{s.title}</div>
-                  <div className="lp-step-desc">{s.desc}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* WHAT YOU GET */}
-        <section className="lp-section" style={{ background: "#FAFAF9", borderTop: "2px solid #111" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <div className="lp-section-label">What you get</div>
-            <h2>Everything in one session.</h2>
-            <p className="lp-section-sub">Built around your degree, skills, and target role — not a generic checklist.</p>
-            <div className="lp-cards">
-              {WHAT_YOU_GET.map((c, i) => (
-                <div key={i} className="lp-feature-card" style={{ background: c.bg }}>
-                  <div className="lp-card-label" style={{ color: c.color }}>{c.label}</div>
-                  <div className="lp-card-title" style={{ color: c.color }}>{c.title}</div>
-                  <ul className="lp-card-bullets" style={{ color: c.color }}>
-                    {c.bullets.map((b, j) => <li key={j}>{b}</li>)}
-                  </ul>
-                  <Link to={c.href} className="lp-card-cta" style={{ color: c.color }}>
-                    {c.cta} →
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* QUOTES */}
-        <section className="lp-proof-section">
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <div className="lp-section-label">What students say</div>
-            <h2 style={{ marginBottom: 48 }}>Real feedback from real profiles.</h2>
-            <div className="lp-quotes">
-              {QUOTES.map((q, i) => (
-                <div key={i} className="lp-quote">
-                  <div className="lp-quote-text">"{q.text}"</div>
-                  <div className="lp-quote-name">{q.name}</div>
-                  <div className="lp-quote-detail">{q.detail}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA BANNER */}
-        <section className="lp-cta-banner">
-          <h2>Know exactly where you stand.</h2>
-          <p>Takes 8 minutes. Built around your real profile, not a quiz.</p>
-          <Link to="/cc/chat" className="lp-btn-primary" style={{ display: "inline-block", background: "#111", color: "#fff" }}>
-            Get my Career DNA →
-          </Link>
-        </section>
-
-        {/* FOOTER */}
-        <footer className="lp-footer">
-          <div>© 2026 Studojo. All rights reserved.</div>
-          <div style={{ display: "flex", gap: 24 }}>
-            <a href="https://studojo.com">Main platform</a>
-            <a href="https://studojo.com/outreach">Outreach Dojo</a>
-            <a href="https://studojo.com/dojos/internships">Internship Dojo</a>
-          </div>
-        </footer>
-
-      </div>
+      </main>
+      <Footer />
     </>
   );
 }
