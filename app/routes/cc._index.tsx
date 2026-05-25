@@ -144,39 +144,38 @@ export default function CcIndex() {
           </div>
         </section>
 
-        {/* Stats bar */}
-        <section className="border-b border-neutral-900 bg-violet-600">
-          <Section width="wide" className="mx-auto flex flex-wrap items-center justify-center md:flex-nowrap">
-            {/* Confused → Happy transformation */}
-            <div className="flex w-full items-center justify-center gap-3 px-6 py-5 md:w-auto md:flex-none md:px-8 md:py-7">
-              <div className="flex flex-col items-center gap-1">
-                <img src="/bobie-confused.png" alt="Confused student" className="h-16 w-16 rounded-xl object-cover md:h-20 md:w-20" />
-                <span className="font-['Satoshi'] text-xs font-semibold text-violet-200">Confused</span>
-              </div>
-              <svg className="h-6 w-10 flex-shrink-0 text-white/60 md:w-14" viewBox="0 0 56 24" fill="none">
-                <path d="M4 12h44m0 0l-8-7m8 7l-8 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        {/* Confused → Clarity bar */}
+        <section className="border-b border-neutral-900 bg-violet-600 py-6 md:py-10">
+          <div className="flex items-end justify-center gap-4 md:gap-8">
+            {/* Confused */}
+            <div className="flex flex-col items-center">
+              <img
+                src="/bobie-confused.png"
+                alt="Confused"
+                className="h-32 w-32 object-cover md:h-48 md:w-48"
+                style={{ mixBlendMode: "luminosity", filter: "contrast(1.05)" }}
+              />
+              <span className="mt-2 font-['Satoshi'] text-sm font-bold tracking-wide text-white/80">Confused</span>
+            </div>
+
+            {/* Arrow */}
+            <div className="mb-10 md:mb-16">
+              <svg className="h-8 w-16 text-white/70 md:h-10 md:w-24" viewBox="0 0 96 40" fill="none">
+                <path d="M4 20h80m0 0L68 6m16 14L68 34" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <div className="flex flex-col items-center gap-1">
-                <img src="/bobie-happy.png" alt="Student with clarity" className="h-16 w-16 rounded-xl object-cover md:h-20 md:w-20" />
-                <span className="font-['Satoshi'] text-xs font-semibold text-violet-200">Clarity</span>
-              </div>
             </div>
 
-            {/* Divider */}
-            <div className="hidden h-16 w-px bg-white/10 md:block" />
-
-            {/* 3 levels */}
-            <div className="border-t-2 border-white/10 px-6 py-7 md:border-l-2 md:border-t-0 md:px-10">
-              <div className="font-['Clash_Display'] text-3xl font-medium text-white md:text-4xl">3</div>
-              <div className="mt-1 font-['Satoshi'] text-sm text-violet-200">levels to climb</div>
+            {/* Clarity */}
+            <div className="flex flex-col items-center">
+              <img
+                src="/bobie-happy.png"
+                alt="Clarity"
+                className="h-32 w-32 object-cover md:h-48 md:w-48"
+                style={{ mixBlendMode: "luminosity", filter: "contrast(1.05)" }}
+              />
+              <span className="mt-2 font-['Satoshi'] text-sm font-bold tracking-wide text-white/80">Clarity</span>
             </div>
-
-            {/* Daily */}
-            <div className="border-t-2 border-white/10 px-6 py-7 md:border-l-2 md:border-t-0 md:px-10">
-              <div className="font-['Clash_Display'] text-3xl font-medium text-white md:text-4xl">Daily</div>
-              <div className="mt-1 font-['Satoshi'] text-sm text-violet-200">check-ins that compound</div>
-            </div>
-          </Section>
+          </div>
         </section>
 
         {/* How it works */}
