@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { Link } from "react-router";
+import { authClient } from "~/lib/auth-client";
 
 export function meta() {
   return [{ title: "CareerDojo Chat | Studojo" }];
@@ -34,6 +36,9 @@ const CSS = `
    --bg-raised  raised elements inside cards (bubbles, stat boxes)
    Layered purple system: solid accent + muted + glow + lavender. */
 .cc-root{--bg-primary:#000000;--bg-secondary:#0B0B11;--bg-white:#13131A;--bg-raised:#1C1C26;--text-primary:#F2F2F5;--text-secondary:#A1A1AE;--text-muted:#6E6E78;--border:#2A2A38;--border-light:rgba(255,255,255,0.07);--shadow-c:rgba(0,0,0,0.7);--accent-purple:#9B6DF5;--accent-purple-muted:#6D4FAF;--accent-lavender:#C4B5FD;--accent-glow:rgba(155,109,245,0.45);--accent-light:#221A39;--success:#34D399;--warning:#FBBF24;--gradient-primary:#9B6DF5;--gradient-soft:linear-gradient(135deg,rgba(155,109,245,0.18) 0%,rgba(196,181,253,0.08) 100%);--sidebar-w:580px;height:100dvh;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
+/* Light theme override — three layers in the light direction. Keeps the
+   same purple accent so the brand reads consistent. */
+.cc-root.theme-light{--bg-primary:#FAFAF7;--bg-secondary:#F2F1ED;--bg-white:#FFFFFF;--bg-raised:#F6F5F1;--text-primary:#0E0E12;--text-secondary:#52525B;--text-muted:#9CA3AF;--border:#E5E5EA;--border-light:rgba(0,0,0,0.08);--shadow-c:rgba(15,15,25,0.12);--accent-purple:#9B6DF5;--accent-purple-muted:#7C5BD0;--accent-lavender:#7C3AED;--accent-glow:rgba(155,109,245,0.30);--accent-light:#F1ECFE;--gradient-soft:linear-gradient(135deg,rgba(155,109,245,0.10) 0%,rgba(196,181,253,0.04) 100%);}
 /* studojo wordmark — matches the main platform: heavy Satoshi black,
    tight tracking, no dot, no pill. Chat is dark mode so white; landing
    page uses brand ink black. */
@@ -41,9 +46,30 @@ const CSS = `
 .cc-dot{display:none;}
 /* panel toggle sits just left of the sidebar and slides with it */
 #cc-float-toggle{position:fixed;top:18px;z-index:120;display:flex;align-items:center;gap:7px;cursor:pointer;border:2px solid var(--border);border-radius:999px;padding:8px 16px;background:var(--bg-raised);color:var(--text-primary);box-shadow:3px 3px 0 var(--shadow-c);font-size:0.8rem;font-weight:700;transition:right 0.28s ease,transform 0.15s,box-shadow 0.15s;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
-#cc-float-toggle.open{right:calc(var(--sidebar-w) + 22px);}
-#cc-float-toggle.closed{right:22px;}
+/* shift left to make room for the profile avatar (~70px wide incl. gap) */
+#cc-float-toggle.open{right:calc(var(--sidebar-w) + 96px);}
+#cc-float-toggle.closed{right:96px;}
 #cc-float-toggle:hover{transform:translateY(-1px);box-shadow:4px 4px 0 var(--shadow-c);}
+
+/* PROFILE MENU (top-right avatar + dropdown). Mirrors the main platform header. */
+#cc-user-wrap{position:fixed;top:14px;right:22px;z-index:130;}
+#cc-user-btn{display:flex;align-items:center;gap:6px;background:transparent;border:none;padding:0;cursor:pointer;font-family:inherit;}
+.cc-user-avatar{height:40px;width:40px;border-radius:50%;background:var(--accent-purple);border:2px solid var(--border);box-shadow:0 4px 14px -4px var(--accent-glow);display:flex;align-items:center;justify-content:center;}
+.cc-user-avatar span{font-family:"Clash Display",ui-sans-serif,system-ui,sans-serif;font-size:0.95rem;font-weight:800;color:#fff;letter-spacing:-0.01em;user-select:none;}
+.cc-user-chev{color:var(--text-secondary);transition:transform 0.18s;}
+.cc-user-chev.up{transform:rotate(180deg);color:var(--text-primary);}
+#cc-user-menu{position:absolute;top:calc(100% + 8px);right:0;width:248px;background:var(--bg-white);border:1px solid var(--border);border-radius:18px;box-shadow:0 18px 40px -12px rgba(0,0,0,0.7),0 2px 0 rgba(155,109,245,0.08) inset;padding:8px;display:flex;flex-direction:column;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+.cc-user-item{display:flex;align-items:center;gap:11px;padding:9px 11px;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.86rem;font-weight:600;color:var(--text-primary);background:transparent;border:none;border-radius:10px;text-decoration:none;cursor:pointer;text-align:left;transition:background 0.12s;}
+.cc-user-item:hover{background:rgba(155,109,245,0.10);color:#fff;}
+.cc-user-icon{width:18px;height:18px;flex-shrink:0;color:var(--text-secondary);}
+.cc-user-item:hover .cc-user-icon{color:var(--accent-lavender);}
+.cc-user-sep{height:1px;background:var(--border-light);margin:6px 8px;}
+.cc-user-item-toggle{justify-content:space-between;}
+.cc-user-item-toggle > span:first-of-type{margin-right:auto;}
+.cc-user-switch{flex-shrink:0;width:30px;height:18px;background:var(--bg-raised);border:1px solid var(--border);border-radius:999px;position:relative;transition:background 0.18s;}
+.cc-user-switch > span{position:absolute;top:1px;left:1px;width:14px;height:14px;border-radius:50%;background:var(--text-secondary);transition:transform 0.18s,background 0.18s;}
+.cc-user-switch.on{background:var(--accent-purple);border-color:transparent;}
+.cc-user-switch.on > span{transform:translateX(12px);background:#fff;}
 #cc-layout{flex:1;display:flex;min-height:0;}
 #cc-chat-col{flex:1;display:flex;flex-direction:column;min-width:0;padding:72px 16px 16px;}
 #cc-chat-inner{flex:1;display:flex;flex-direction:column;max-width:820px;margin:0 auto;width:100%;min-height:0;}
@@ -336,11 +362,31 @@ const CSS = `
   .side-action-close{display:flex;}
   /* narrow the floating logo on mobile so it doesn't dominate the navbar area */
   #cc-float-logo{font-size:1.4rem;top:14px;left:16px;}
+  /* compact profile avatar */
+  #cc-user-wrap{top:10px;right:14px;}
+  .cc-user-avatar{height:34px;width:34px;}
+  .cc-user-avatar span{font-size:0.82rem;}
+  #cc-user-menu{width:220px;}
 }
 @media(max-width:480px){
   .cc-root{--sidebar-w:100vw;}
   #cc-sidebar{border-left:none;}
 }
+
+/* ===== Light-theme overrides for surfaces that hardcode dark gradients ===== */
+.cc-root.theme-light .chat-setup-header{background:linear-gradient(135deg,#F1ECFE 0%,#FAF6FF 100%);border-bottom:1px solid rgba(155,109,245,0.18);}
+.cc-root.theme-light .xp-hero{background:linear-gradient(135deg,#F1ECFE 0%,#FAF6FF 100%);}
+.cc-root.theme-light .xp-dash-banner{background:linear-gradient(135deg,#1B1340 0%,#2A1C4F 100%);color:#fff;}
+.cc-root.theme-light .xp-dash-banner .xp-hero-label{color:#C4B5FD;}
+.cc-root.theme-light .xp-dash-banner .xp-hero-meta{color:#DDD6FE;}
+.cc-root.theme-light #cc-input-shell{background:linear-gradient(180deg,rgba(255,255,255,0.95) 0%,rgba(246,245,241,0.9) 100%);box-shadow:0 8px 24px -12px rgba(15,15,25,0.18);}
+.cc-root.theme-light .msg-row.agent .msg-bubble{background:#F1ECFE;color:var(--text-primary);}
+.cc-root.theme-light .msg-row.user .msg-bubble{color:#fff;}
+.cc-root.theme-light .ds-chip{background:rgba(15,15,25,0.04);color:var(--text-secondary);}
+.cc-root.theme-light .ds-chip-glow{background:rgba(155,109,245,0.10);color:#5B21B6;box-shadow:none;}
+.cc-root.theme-light .ds-chip-have{background:rgba(16,185,129,0.10);color:#065F46;border-color:rgba(16,185,129,0.35);}
+.cc-root.theme-light #cc-user-menu{box-shadow:0 18px 40px -12px rgba(15,15,25,0.18);}
+.cc-root.theme-light .cc-user-item:hover{background:#F1ECFE;color:var(--accent-lavender);}
 `;
 
 type Msg = { role: string; content: string; state?: string; time: string; cta?: string };
@@ -418,6 +464,60 @@ export default function CcChat() {
   ]);
   const [ghostIdx, setGhostIdx] = useState(0);
   const [inputEmpty, setInputEmpty] = useState(true);
+
+  // profile dropdown menu (top-right avatar)
+  const { data: session } = authClient.useSession();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // theme toggle — persisted per authenticated user, falls back to a shared key
+  // for unauthenticated sessions. Default is dark to match the existing look.
+  const themeStorageKey = session?.user?.email
+    ? `studojo_cc_theme:${session.user.email}`
+    : "studojo_cc_theme";
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  // Load saved theme once we know which key to read.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(themeStorageKey);
+      if (saved === "light" || saved === "dark") setTheme(saved);
+    } catch { /* ignore */ }
+  }, [themeStorageKey]);
+
+  // Persist whenever it changes.
+  useEffect(() => {
+    try { localStorage.setItem(themeStorageKey, theme); } catch { /* ignore */ }
+  }, [theme, themeStorageKey]);
+
+  // Close the dropdown on outside click.
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [userMenuOpen]);
+
+  function handleSignOut() {
+    setUserMenuOpen(false);
+    authClient.signOut().catch(() => {});
+    // Hard reload so the chat resets cleanly post-signout.
+    setTimeout(() => { window.location.href = "/"; }, 100);
+  }
+
+  function userInitials(): string {
+    const u = session?.user;
+    if (!u) return "?";
+    const source = u.name || u.email || "";
+    const parts = source.split(" ").filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return (parts[0][0] || "?").toUpperCase();
+    return ((parts[0][0] || "") + (parts[parts.length - 1][0] || "")).toUpperCase();
+  }
   // tracks which Career-Analysis skill gap / Roadmap step is currently expanded
   const [openGap, setOpenGap] = useState<number | null>(null);
   const [openStep, setOpenStep] = useState<number | null>(null);
@@ -1404,7 +1504,7 @@ export default function CcChat() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <div className="cc-root">
+      <div className={`cc-root${theme === "light" ? " theme-light" : ""}`}>
         {/* HOOK — rotating stats, single CTA to enter the chat */}
         {hookVisible && (
           <div id="cc-hook" className={hookDismissing ? "dismissing" : ""}>
@@ -1433,6 +1533,91 @@ export default function CcChat() {
           <button id="cc-float-toggle" className={sidebarOpen ? "open" : "closed"} onClick={() => toggleSidebar()}>
             <span>{sidebarOpen ? "❯" : "❮"}</span> <span>{sidebarOpen ? "Hide panel" : "Show panel"}</span>
           </button>
+        )}
+
+        {/* PROFILE MENU — only shown when authenticated. Mirrors the main
+            platform header pattern so the dropdown layout matches. */}
+        {session && !sidebarExpanded && (
+          <div id="cc-user-wrap" ref={userMenuRef}>
+            <button
+              id="cc-user-btn"
+              type="button"
+              onClick={() => setUserMenuOpen(o => !o)}
+              aria-label="Open profile menu"
+            >
+              <div className="cc-user-avatar">
+                <span>{userInitials()}</span>
+              </div>
+              <svg
+                className={`cc-user-chev${userMenuOpen ? " up" : ""}`}
+                width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" aria-hidden
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {userMenuOpen && (
+              <div id="cc-user-menu" role="menu">
+                <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="cc-user-item">
+                  <svg className="cc-user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>My Profile</span>
+                </Link>
+                <Link to="/my-applications" onClick={() => setUserMenuOpen(false)} className="cc-user-item">
+                  <svg className="cc-user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>My Applications</span>
+                </Link>
+                <Link to="/orders" onClick={() => setUserMenuOpen(false)} className="cc-user-item">
+                  <svg className="cc-user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>My Orders</span>
+                </Link>
+
+                <div className="cc-user-sep" />
+
+                <Link to="/settings" onClick={() => setUserMenuOpen(false)} className="cc-user-item">
+                  <svg className="cc-user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Settings</span>
+                </Link>
+
+                {/* Theme toggle: lives under Settings. Persisted per account. */}
+                <button
+                  type="button"
+                  className="cc-user-item cc-user-item-toggle"
+                  onClick={() => setTheme(t => t === "dark" ? "light" : "dark")}
+                  role="menuitemcheckbox"
+                  aria-checked={theme === "light"}
+                >
+                  {theme === "dark" ? (
+                    <svg className="cc-user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  ) : (
+                    <svg className="cc-user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+                      <circle cx="12" cy="12" r="4" strokeWidth={2} />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                    </svg>
+                  )}
+                  <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+                  <span className={`cc-user-switch${theme === "light" ? " on" : ""}`}><span /></span>
+                </button>
+
+                <button type="button" onClick={handleSignOut} className="cc-user-item">
+                  <svg className="cc-user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span>Sign out</span>
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {/* LAYOUT */}
