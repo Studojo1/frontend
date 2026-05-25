@@ -43,11 +43,10 @@ const WHAT_YOU_GET = [
       "Your current level: Industry-Ready, Well-Rounded, or Standout",
     ],
     cta: "Get your Career DNA",
-    accent: "bg-violet-400",
-    iconBg: "bg-violet-50",
-    iconColor: "text-violet-500",
+    accent: "bg-violet-500",
+    iconBg: "bg-violet-200",
+    iconColor: "text-violet-600",
     icon: <FiTarget />,
-    glow: "hover:shadow-[0_8px_32px_-4px_rgba(124,58,237,0.18)]",
   },
   {
     label: "Gap Analysis",
@@ -58,11 +57,10 @@ const WHAT_YOU_GET = [
       "Experience gaps vs the top fresher candidates",
     ],
     cta: "Run your gap analysis",
-    accent: "bg-emerald-400",
-    iconBg: "bg-emerald-50",
+    accent: "bg-emerald-500",
+    iconBg: "bg-emerald-200",
     iconColor: "text-emerald-600",
     icon: <FiTrendingUp />,
-    glow: "hover:shadow-[0_8px_32px_-4px_rgba(16,185,129,0.18)]",
   },
   {
     label: "Weekly Action Plan",
@@ -73,11 +71,10 @@ const WHAT_YOU_GET = [
       "Six weeks of follow-through gets you to the next level",
     ],
     cta: "Get your action plan",
-    accent: "bg-amber-400",
-    iconBg: "bg-amber-50",
-    iconColor: "text-amber-600",
+    accent: "bg-amber-500",
+    iconBg: "bg-amber-200",
+    iconColor: "text-amber-700",
     icon: <FiCalendar />,
-    glow: "hover:shadow-[0_8px_32px_-4px_rgba(245,158,11,0.18)]",
   },
 ];
 
@@ -113,20 +110,21 @@ export default function CcIndex() {
   return (
     <>
       <Header />
-      <main className="min-h-screen" style={{ background: "linear-gradient(180deg, #faf9ff 0%, #f7f5fe 40%, #f9f8ff 100%)" }}>
-
+      <main className="min-h-screen bg-white">
         {/* Hero — 9:16 on mobile, 16:9 on desktop */}
-        <section className="relative w-full overflow-hidden" style={{ borderBottom: "1px solid rgba(124,58,237,0.15)" }}>
+        <section className="relative w-full overflow-hidden border-b-2 border-neutral-900">
           <div
             className="hero-aspect relative w-full"
             style={{ paddingBottom: "177.78%" }}
           >
+            {/* Mobile image (portrait 9:16) — hidden on md+ */}
             <img
               src="/cc-hero-mobile.png"
               alt="Bobie the career coach in front of the Studojo dojo gate"
               className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
               loading="eager"
             />
+            {/* Desktop image (landscape 16:9) — shown on md+ via aspect ratio override */}
             <img
               src="/cc-hero.png"
               alt="Bobie the career coach in front of the Studojo dojo gate"
@@ -136,30 +134,18 @@ export default function CcIndex() {
 
             {/* Gradient overlays */}
             <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 to-transparent" />
-            <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-black/50 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/40 to-transparent" />
 
-            {/* "Your Career Dojo" — top-left label */}
+            {/* How it works — top-left */}
             <motion.div
               className="absolute left-4 top-4 md:left-8 md:top-6"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-            >
-              <span className="font-['Clash_Display'] text-lg font-medium tracking-tight text-white/90 md:text-xl">
-                Your Career Dojo
-              </span>
-            </motion.div>
-
-            {/* How it works — below the label */}
-            <motion.div
-              className="absolute left-4 top-12 md:left-8 md:top-14"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <a
                 href="#how-it-works"
-                className="inline-flex items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
               >
                 How it works
                 <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none">
@@ -168,7 +154,7 @@ export default function CcIndex() {
               </a>
             </motion.div>
 
-            {/* CTA — bottom-right */}
+            {/* CTA — bottom-right on desktop, bottom-centre on mobile */}
             <motion.div
               className="absolute bottom-0 right-0 flex flex-col items-end pb-8 pr-4 md:pr-12 md:pb-12"
               initial={{ opacity: 0, y: 20 }}
@@ -180,20 +166,19 @@ export default function CcIndex() {
               </p>
               <Link
                 to="/cc/chat"
-                className="inline-flex h-13 items-center justify-center gap-2 rounded-2xl bg-white px-10 py-3.5 font-['Satoshi'] text-base font-bold text-violet-700 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] transition-all hover:shadow-[0_6px_28px_-4px_rgba(124,58,237,0.35)] hover:-translate-y-0.5 active:translate-y-0"
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-10 font-['Satoshi'] text-base font-bold text-violet-700 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
               >
                 Get my Career DNA <FiArrowRight />
               </Link>
             </motion.div>
           </div>
+          {/* Desktop: override aspect ratio to 16:9 */}
           <style>{`@media(min-width:768px){.hero-aspect{padding-bottom:56.25%!important}}`}</style>
         </section>
 
-        {/* Ambient glow transition from hero */}
-        <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.12), transparent)" }} />
 
         {/* How it works */}
-        <section id="how-it-works" className="py-20 md:py-28" style={{ borderBottom: "1px solid rgba(124,58,237,0.1)" }}>
+        <section id="how-it-works" className="border-b border-neutral-900 bg-white py-16 md:py-24">
           <Section>
             <motion.div
               initial="hidden"
@@ -201,7 +186,7 @@ export default function CcIndex() {
               viewport={{ once: true, margin: "-80px" }}
               variants={containerVariants}
             >
-              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-500">
+              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
                 How it works
               </motion.p>
               <motion.h2
@@ -210,27 +195,22 @@ export default function CcIndex() {
               >
                 Three steps. Your roadmap is ready.
               </motion.h2>
-              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-500 md:text-lg">
+              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
                 No forms, no uploads. Just a conversation that builds your complete career picture.
               </motion.p>
-              <motion.div variants={itemVariants} className="mt-12 grid gap-5 md:grid-cols-3">
+              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
                 {HOW_IT_WORKS.map((s) => (
                   <div
                     key={s.num}
-                    className="rounded-3xl p-8 transition-shadow duration-300 hover:shadow-[0_8px_32px_-4px_rgba(124,58,237,0.12)]"
-                    style={{
-                      background: "linear-gradient(135deg, #ffffff 0%, #faf8ff 100%)",
-                      border: "1px solid rgba(124,58,237,0.12)",
-                      boxShadow: "0 2px 12px -2px rgba(124,58,237,0.08)",
-                    }}
+                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
                   >
-                    <div className="font-['Clash_Display'] text-5xl font-medium leading-none" style={{ color: "rgba(124,58,237,0.15)" }}>
+                    <div className="font-['Clash_Display'] text-5xl font-medium leading-none text-violet-100">
                       {s.num}
                     </div>
-                    <h3 className="mt-4 font-['Satoshi'] text-lg font-bold text-neutral-800">
+                    <h3 className="mt-3 font-['Satoshi'] text-lg font-bold text-neutral-900">
                       {s.title}
                     </h3>
-                    <p className="mt-2 font-['Satoshi'] text-sm leading-6 text-neutral-500">
+                    <p className="mt-2 font-['Satoshi'] text-sm leading-6 text-neutral-600">
                       {s.desc}
                     </p>
                   </div>
@@ -241,7 +221,7 @@ export default function CcIndex() {
         </section>
 
         {/* What you get */}
-        <section className="py-20 md:py-28" style={{ background: "linear-gradient(180deg, #f7f5fe 0%, #f9f8ff 100%)", borderBottom: "1px solid rgba(124,58,237,0.1)" }}>
+        <section className="border-b border-neutral-900 bg-neutral-50 py-16 md:py-24">
           <Section>
             <motion.div
               initial="hidden"
@@ -249,51 +229,44 @@ export default function CcIndex() {
               viewport={{ once: true, margin: "-80px" }}
               variants={containerVariants}
             >
-              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-500">
+              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
                 What you get
               </motion.p>
               <motion.h2 variants={itemVariants} className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl">
                 Everything in one session.
               </motion.h2>
-              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-500 md:text-lg">
+              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
                 Built around your degree, skills, and target role — not a generic checklist.
               </motion.p>
-              <motion.div variants={itemVariants} className="mt-12 grid gap-5 md:grid-cols-3">
+              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
                 {WHAT_YOU_GET.map((c) => (
                   <div
                     key={c.label}
-                    className={`flex h-full flex-col rounded-3xl p-8 transition-all duration-300 ${c.glow}`}
-                    style={{
-                      background: "#ffffff",
-                      border: "1px solid rgba(124,58,237,0.1)",
-                      boxShadow: "0 2px 16px -4px rgba(124,58,237,0.07)",
-                    }}
+                    className="flex h-full flex-col rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
                   >
-                    <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${c.iconBg} text-lg ${c.iconColor}`}
-                      style={{ boxShadow: "0 2px 8px -2px rgba(124,58,237,0.12)" }}
-                    >
+                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl border-2 border-neutral-900 ${c.iconBg} text-xl ${c.iconColor} shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]`}>
                       {c.icon}
                     </div>
-                    <p className="mt-5 font-['Satoshi'] text-xs font-bold uppercase tracking-wider text-neutral-400">
+                    <p className="mt-5 font-['Satoshi'] text-xs font-bold uppercase tracking-wider text-neutral-500">
                       {c.label}
                     </p>
                     <h3 className="mt-1 font-['Clash_Display'] text-xl font-medium leading-snug text-neutral-900">
                       {c.title}
                     </h3>
-                    <ul className="mt-5 space-y-3">
+                    <ul className="mt-5 space-y-2.5">
                       {c.bullets.map((b) => (
                         <li
                           key={b}
-                          className="flex items-start gap-2.5 font-['Satoshi'] text-sm leading-6 text-neutral-600"
+                          className="flex items-start gap-2 font-['Satoshi'] text-sm leading-6 text-neutral-700"
                         >
-                          <span className={`mt-2 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full ${c.accent} opacity-70`} />
+                          <span className={`mt-2 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full ${c.accent}`} />
                           {b}
                         </li>
                       ))}
                     </ul>
                     <Link
                       to="/cc/chat"
-                      className="mt-auto inline-flex items-center gap-1.5 pt-6 font-['Satoshi'] text-sm font-semibold text-violet-500 hover:text-violet-700"
+                      className="mt-auto inline-flex items-center gap-1.5 pt-6 font-['Satoshi'] text-sm font-semibold text-violet-600 hover:text-violet-800"
                     >
                       {c.cta} <FiArrowRight />
                     </Link>
@@ -305,7 +278,7 @@ export default function CcIndex() {
         </section>
 
         {/* Quotes */}
-        <section className="py-20 md:py-28" style={{ background: "linear-gradient(180deg, #faf9ff 0%, #f7f5fe 100%)", borderBottom: "1px solid rgba(124,58,237,0.1)" }}>
+        <section className="border-b border-neutral-900 bg-white py-16 md:py-24">
           <Section>
             <motion.div
               initial="hidden"
@@ -313,33 +286,26 @@ export default function CcIndex() {
               viewport={{ once: true, margin: "-80px" }}
               variants={containerVariants}
             >
-              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-500">
+              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
                 What students say
               </motion.p>
               <motion.h2 variants={itemVariants} className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl">
                 Real feedback from real profiles.
               </motion.h2>
-              <motion.div variants={itemVariants} className="mt-12 grid gap-5 md:grid-cols-3">
+              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
                 {QUOTES.map((q) => (
                   <div
                     key={q.name}
-                    className="rounded-3xl p-8 transition-shadow duration-300 hover:shadow-[0_8px_32px_-4px_rgba(124,58,237,0.12)]"
-                    style={{
-                      background: "#ffffff",
-                      border: "1px solid rgba(124,58,237,0.1)",
-                      boxShadow: "0 2px 12px -2px rgba(124,58,237,0.06)",
-                    }}
+                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
                   >
-                    {/* Quote mark */}
-                    <div className="mb-4 font-['Clash_Display'] text-4xl leading-none" style={{ color: "rgba(124,58,237,0.2)" }}>"</div>
-                    <p className="font-['Satoshi'] text-sm leading-7 text-neutral-600">
-                      {q.text}
+                    <p className="font-['Satoshi'] text-base italic leading-7 text-neutral-700">
+                      "{q.text}"
                     </p>
-                    <div className="mt-6 border-t pt-4" style={{ borderColor: "rgba(124,58,237,0.1)" }}>
-                      <p className="font-['Satoshi'] text-sm font-bold text-neutral-800">
+                    <div className="mt-5 border-t border-neutral-200 pt-4">
+                      <p className="font-['Satoshi'] text-sm font-bold text-neutral-900">
                         {q.name}
                       </p>
-                      <p className="mt-0.5 font-['Satoshi'] text-xs text-neutral-400">
+                      <p className="mt-0.5 font-['Satoshi'] text-xs text-neutral-500">
                         {q.detail}
                       </p>
                     </div>
@@ -351,23 +317,19 @@ export default function CcIndex() {
         </section>
 
         {/* CTA banner */}
-        <section className="py-20 md:py-28" style={{ background: "linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #8b5cf6 100%)" }}>
+        <section className="border-b border-neutral-900 bg-violet-600 py-16 md:py-24">
           <Section width="narrow" className="mx-auto text-center">
-            {/* Ambient glow behind heading */}
-            <div className="relative">
-              <div className="absolute inset-0 mx-auto h-32 w-64 blur-3xl" style={{ background: "rgba(167,139,250,0.3)" }} />
-              <h2 className="relative font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-5xl lg:text-6xl">
-                Know exactly{" "}
-                <span className="text-yellow-300">where you stand.</span>
-              </h2>
-            </div>
-            <p className="mx-auto mt-5 max-w-xl font-['Satoshi'] text-lg text-violet-200">
+            <h2 className="font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-5xl lg:text-6xl">
+              Know exactly{" "}
+              <span className="text-yellow-300">where you stand.</span>
+            </h2>
+            <p className="mx-auto mt-5 max-w-xl font-['Satoshi'] text-lg text-violet-100">
               Takes 8 minutes. Built around your real profile, not a quiz.
             </p>
             <div className="mt-10 flex justify-center">
               <Link
                 to="/cc/chat"
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-white px-10 font-['Satoshi'] text-base font-bold text-violet-700 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.3)] transition-all hover:shadow-[0_8px_32px_-4px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 active:translate-y-0"
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-8 font-['Satoshi'] text-base font-medium text-violet-600 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
               >
                 Get my Career DNA <FiArrowRight />
               </Link>
