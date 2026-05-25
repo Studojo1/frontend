@@ -111,53 +111,37 @@ export default function CcIndex() {
     <>
       <Header />
       <main className="min-h-screen bg-white">
-        {/* Hero */}
-        <section className="relative w-full overflow-hidden border-b border-neutral-900 bg-violet-500 py-12 md:py-16">
-          <motion.div
-            className="w-full"
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
-          >
-            <Section width="narrow" className="mx-auto text-center">
-              <motion.div variants={itemVariants} className="mb-6 inline-flex items-center gap-2 rounded-full border-2 border-white/40 bg-white/20 px-4 py-2">
-                <span className="h-2 w-2 rounded-full bg-yellow-300 animate-pulse" />
-                <span className="font-['Satoshi'] text-sm font-medium text-white">
-                  Career Coach — a real coach in your corner
-                </span>
-              </motion.div>
-              <motion.h1
-                variants={itemVariants}
-                className="font-['Clash_Display'] text-4xl font-medium leading-tight text-white md:text-6xl lg:text-7xl"
-              >
-                Know exactly how much better you are{" "}
-                <span className="text-yellow-300">than your industry.</span>
-              </motion.h1>
-              <motion.p
-                variants={itemVariants}
-                className="mx-auto mt-6 max-w-2xl font-['Satoshi'] text-lg font-normal leading-7 text-violet-100 md:text-xl"
-              >
-                Stop applying blindly. The coach reads your profile, shows you exactly where you stand against the typical fresher chasing your role, and walks you up a 3-level ladder — Industry-Ready, Well-Rounded, Standout — with daily and weekly moves that compound.
-              </motion.p>
-              <motion.div variants={itemVariants} className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Link
-                  to="/cc/chat"
-                  className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-8 font-['Satoshi'] text-base font-medium text-violet-600 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
-                >
-                  Get my Career DNA <FiArrowRight />
-                </Link>
-                <a
-                  href="#how-it-works"
-                  className="inline-flex h-14 items-center justify-center rounded-2xl border-2 border-white/40 px-8 font-['Satoshi'] text-base font-medium text-white hover:bg-white/10"
-                >
-                  See how it works
-                </a>
-              </motion.div>
-              <motion.p variants={itemVariants} className="mt-6 font-['Satoshi'] text-sm text-violet-200">
+        {/* Hero — full-bleed 16:9 image with overlaid CTA */}
+        <section className="relative w-full overflow-hidden border-b-2 border-neutral-900">
+          {/* 16:9 aspect ratio container */}
+          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+            <img
+              src="/cc-hero.png"
+              alt="Bobie the career coach in front of the Studojo dojo gate"
+              className="absolute inset-0 h-full w-full object-cover object-center"
+              loading="eager"
+            />
+            {/* subtle gradient at the bottom so the CTA button sits on a readable surface */}
+            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 to-transparent" />
+
+            {/* CTA overlay — bottom-centre */}
+            <motion.div
+              className="absolute inset-x-0 bottom-0 flex flex-col items-center pb-8 md:pb-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <p className="mb-4 font-['Satoshi'] text-sm font-medium text-white/80 tracking-wide">
                 Takes 8 minutes. Gets sharper the more you talk to it.
-              </motion.p>
-            </Section>
-          </motion.div>
+              </p>
+              <Link
+                to="/cc/chat"
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-10 font-['Satoshi'] text-base font-bold text-violet-700 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+              >
+                Get my Career DNA <FiArrowRight />
+              </Link>
+            </motion.div>
+          </div>
         </section>
 
         {/* Stats bar */}
