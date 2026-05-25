@@ -144,56 +144,6 @@ export default function CcIndex() {
           </div>
         </section>
 
-        {/* Confused → Clarity bar */}
-        <section className="relative overflow-hidden border-b border-neutral-900 py-8 md:py-12" style={{ backgroundColor: "#7B2FBF" }}>
-          {/* Heading — centred */}
-          <p className="mb-6 text-center font-['Clash_Display'] text-xl font-medium text-white md:text-2xl">
-            Here's how you go from confused to clarity.
-          </p>
-
-          {/* Images — centred and close together */}
-          <div className="relative flex items-end justify-center gap-6 md:gap-16">
-            {/* Confused */}
-            <div className="flex flex-col items-center">
-              <img
-                src="/bobie-confused.png"
-                alt="Confused"
-                className="h-40 w-40 object-cover md:h-60 md:w-60"
-              />
-              <span className="mb-3 font-['Satoshi'] text-sm font-bold tracking-wide text-white/80">Confused</span>
-            </div>
-
-            {/* Arrow — vertically centred between the images */}
-            <div className="mb-12 flex-shrink-0 md:mb-16">
-              <svg className="h-8 w-16 text-white md:h-10 md:w-24" viewBox="0 0 96 40" fill="none">
-                <path d="M4 20h80m0 0L64 6m16 14L64 34" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-
-            {/* Clarity */}
-            <div className="flex flex-col items-center">
-              <img
-                src="/bobie-happy.png"
-                alt="Clarity"
-                className="h-40 w-40 object-cover md:h-60 md:w-60"
-              />
-              <span className="mb-3 font-['Satoshi'] text-sm font-bold tracking-wide text-white/80">Clarity</span>
-            </div>
-          </div>
-
-          {/* How it works scroll button — bottom centre */}
-          <div className="mt-6 flex justify-center">
-            <a
-              href="#how-it-works"
-              className="inline-flex items-center gap-2 rounded-2xl border-2 border-white px-8 py-3 font-['Satoshi'] text-base font-bold text-white transition-colors hover:bg-white hover:text-violet-700"
-            >
-              How it works
-              <svg className="h-5 w-5" viewBox="0 0 16 16" fill="none">
-                <path d="M8 3v10m0 0l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </a>
-          </div>
-        </section>
 
         {/* What you get */}
         <section className="border-b border-neutral-900 bg-neutral-50 py-16 md:py-24">
