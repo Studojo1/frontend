@@ -112,7 +112,7 @@ export default function CcIndex() {
       <Header />
       <main className="min-h-screen bg-white">
         {/* Hero — 9:16 on mobile, 16:9 on desktop */}
-        <section className="relative w-full overflow-hidden border-b-2 border-neutral-900">
+        <section className="relative w-full overflow-hidden border-b-2 border-neutral-900" style={{backgroundColor:"#1a0a2e"}}>
           <div
             className="hero-aspect relative w-full"
             style={{ paddingBottom: "177.78%" }}
@@ -154,9 +154,9 @@ export default function CcIndex() {
               </a>
             </motion.div>
 
-            {/* CTA — bottom-right on desktop, bottom-centre on mobile */}
+            {/* CTA — positioned 30% from bottom so it's visible without scrolling */}
             <motion.div
-              className="absolute bottom-0 right-0 flex flex-col items-end pb-8 pr-4 md:pr-12 md:pb-12"
+              className="absolute bottom-[30%] right-0 flex flex-col items-end pr-4 md:pr-12"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
