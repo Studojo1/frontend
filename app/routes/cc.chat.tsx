@@ -1108,11 +1108,12 @@ export default function CcChat() {
               {have.length ? have.map((s, i) => <span key={i} className="pill have">{s}</span>)
                 : <div className="xp-muted">No confirmed skills yet, keep talking to the coach.</div>}
             </div>
-            <div className="xp-card">
-              <div className="xp-card-title">What top performers bring</div>
-              {(b.top_performer_skills || []).length ? b.top_performer_skills.map((s: string, i: number) => <span key={i} className="pill top">{s}</span>)
-                : <div className="xp-muted">Top performer benchmark not available for this role yet.</div>}
-            </div>
+            {(b.top_performer_skills || []).length > 0 && (
+              <div className="xp-card">
+                <div className="xp-card-title">What top performers bring</div>
+                {b.top_performer_skills.map((s: string, i: number) => <span key={i} className="pill top">{s}</span>)}
+              </div>
+            )}
           </div>
 
           {b.your_standing && (
@@ -1298,7 +1299,11 @@ export default function CcChat() {
           <div className="xp-intent">{intentLine}</div>
           <div className="xp-timeline">
             {actions.map((a: any, i: number) => {
-              const action = a.action || a.skill || (typeof a === "string" ? a : "");
+              const actionFull = a.action || a.skill || (typeof a === "string" ? a : "");
+              // Show only first sentence as title; rest goes into the expanded section
+              const firstDot = actionFull.search(/[.!?]\s/);
+              const actionTitle = firstDot > 0 ? actionFull.slice(0, firstDot + 1) : actionFull;
+              const actionDetail = firstDot > 0 ? actionFull.slice(firstDot + 2).trim() : "";
               const why = a.why_it_matters || "";
               const how = a.how_to_close || a.how_to_build || "";
               const steps = howSteps(how);
@@ -1314,7 +1319,7 @@ export default function CcChat() {
                   <div className={`xp-tl-body${isOpen ? " open" : ""}`}
                     onClick={() => setOpenStep(isOpen ? null : i)}>
                     <div className="xp-tl-head">
-                      <span className="xp-tl-action">{action}</span>
+                      <span className="xp-tl-action">{actionTitle}</span>
                       <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                         {prio && <span className={`gi-prio ${prio === "high" || prio === "medium" || prio === "low" ? prio : "medium"}`}>{prio}</span>}
                         <span className="gap-chevron">{isOpen ? "▾" : "▸"}</span>
@@ -1325,6 +1330,7 @@ export default function CcChat() {
                     {isOpen && (
                       <div className="xp-tl-block">
                         <div className="xp-tl-block-label">What will help you execute this</div>
+                        {actionDetail && <div className="xp-tl-block-text" style={{ marginBottom: 10 }}>{actionDetail}</div>}
                         {steps.length > 0 ? (
                           <ul>{steps.map((s, si) => <li key={si}>{s}</li>)}</ul>
                         ) : how ? (
