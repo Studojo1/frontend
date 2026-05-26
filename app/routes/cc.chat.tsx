@@ -789,32 +789,34 @@ export default function CcChat() {
 
     // Capture filename before clearing so the display bubble can reference it
     const resumeFileName = pendingResume?.name ?? null;
+    const resumeFile = pendingResume ?? null;
+    if (pendingResume) setPendingResume(null);
 
-    // If a resume is staged, upload it silently (no agent ack) then send the
-    // user's message together — the backend sees the parsed resume in profile
-    // and responds to both the file and the text in one reply.
-    if (pendingResume) {
-      const file = pendingResume;
-      setPendingResume(null);
+    if (!content && !resumeFile) return;
+
+    // Show the user bubble immediately — never block on upload before rendering
+    const displayContent = resumeFileName
+      ? `📎 ${resumeFileName}${content ? `\n\n${content}` : ""}`
+      : content;
+
+    setMessages((prev: Msg[]) => [...prev, { role: "user", content: displayContent, time: now12h() }]);
+
+    // If a resume is staged, upload it now (after bubble is shown).
+    // The chat API call waits for the upload so the backend has the parsed
+    // profile before it generates the reply.
+    if (resumeFile) {
       setResumeUploading(true);
       try {
         const fd = new FormData();
-        fd.append("file", file);
+        fd.append("file", resumeFile);
         await fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", body: fd });
       } catch {
-        // upload failed silently — chat message still sends, backend won't have resume
+        // upload failed silently — chat message still sends
       }
       setResumeUploading(false);
     }
 
     if (!content) return;
-
-    // Show "📎 filename + message" as a single user bubble when resume was attached
-    const displayContent = resumeFileName
-      ? `📎 ${resumeFileName}\n\n${content}`
-      : content;
-
-    setMessages(prev => [...prev, { role: "user", content: displayContent, time: now12h() }]);
     setWaiting(true);
     const t0 = Date.now();
     try {
