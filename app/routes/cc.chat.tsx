@@ -226,6 +226,18 @@ const CSS = `
 #cc-ready-pop .rp-btns{display:flex;gap:8px;}
 #cc-ready-pop .rp-open{flex:1;background:var(--gradient-primary);color:white;border:2px solid var(--border);border-radius:999px;padding:7px 12px;font-weight:700;font-size:0.76rem;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
 #cc-ready-pop .rp-later{background:var(--bg-secondary);color:var(--text-primary);border:2px solid var(--border);border-radius:999px;padding:7px 12px;font-weight:700;font-size:0.76rem;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
+/* skills-unlocked banner — appears at bottom of screen after weekly check-in */
+#cc-skills-unlocked{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(160px);z-index:500;background:var(--bg-raised);border:2px solid var(--accent-purple);border-radius:18px;box-shadow:6px 6px 0 rgba(139,92,246,0.35);padding:18px 20px;width:min(420px,92vw);opacity:0;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease;}
+#cc-skills-unlocked.show{transform:translateX(-50%) translateY(0);opacity:1;}
+#cc-skills-unlocked .su-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+#cc-skills-unlocked .su-icon{width:36px;height:36px;background:var(--accent-purple);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+#cc-skills-unlocked .su-title{font-family:"Clash Display",ui-sans-serif,system-ui,sans-serif;font-size:1rem;font-weight:800;color:var(--text-primary);}
+#cc-skills-unlocked .su-sub{font-size:0.76rem;color:var(--text-secondary);margin-top:1px;}
+#cc-skills-unlocked .su-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+#cc-skills-unlocked .su-chip{background:rgba(139,92,246,0.12);border:1.5px solid var(--accent-purple);border-radius:999px;padding:3px 10px;font-size:0.72rem;font-weight:700;color:var(--accent-purple);}
+#cc-skills-unlocked .su-btns{display:flex;gap:8px;}
+#cc-skills-unlocked .su-add{flex:1;background:var(--accent-purple);color:white;border:2px solid var(--border);border-radius:999px;padding:9px 14px;font-weight:700;font-size:0.78rem;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
+#cc-skills-unlocked .su-later{background:var(--bg-secondary);color:var(--text-primary);border:2px solid var(--border);border-radius:999px;padding:9px 14px;font-weight:700;font-size:0.78rem;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
 #cc-hook{position:fixed;inset:0;z-index:600;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity 0.45s ease,transform 0.45s ease;}
 #cc-hook.dismissing{opacity:0;transform:translateY(-24px);pointer-events:none;}
 .hook-inner{max-width:580px;width:90%;text-align:center;}
@@ -548,6 +560,9 @@ export default function CcChat() {
   const [openGap, setOpenGap] = useState<number | null>(null);
   const [openStep, setOpenStep] = useState<number | null>(null);
   const [checkInSaving, setCheckInSaving] = useState(false);
+
+  // skills-unlocked banner after a weekly check-in that produced new skills
+  const [skillsUnlocked, setSkillsUnlocked] = useState<{ skills: string[]; hasResume: boolean } | null>(null);
 
   // analysis-ready popup
   const [readyPopVisible, setReadyPopVisible] = useState(false);
@@ -874,6 +889,11 @@ export default function CcChat() {
       // The agent reacts in chat with the outreach impact line or levelup message.
       if (data.outreach_message) {
         setMessages(prev => [...prev, { role: "agent", content: data.outreach_message, time: now12h() }]);
+      }
+      // After a weekly check-in, surface the skills-unlocked banner if any skill-type
+      // items were completed so the student can push them to their resume.
+      if (kind === "weekly" && Array.isArray(data.new_skills) && data.new_skills.length > 0) {
+        setSkillsUnlocked({ skills: data.new_skills, hasResume: !!data.has_resume });
       }
       setTaskBoxes({});
       await refreshSidebar();
@@ -1848,6 +1868,49 @@ export default function CcChat() {
             <button className="rp-later" onClick={() => setReadyPopVisible(false)}>Later</button>
           </div>
         </div>
+
+        {skillsUnlocked && (
+          <div id="cc-skills-unlocked" className="show">
+            <div className="su-header">
+              <div className="su-icon">⚡</div>
+              <div>
+                <div className="su-title">Skills unlocked this week</div>
+                <div className="su-sub">Want me to add these to your resume?</div>
+              </div>
+            </div>
+            <div className="su-chips">
+              {skillsUnlocked.skills.map((s, i) => <span key={i} className="su-chip">{s}</span>)}
+            </div>
+            {skillsUnlocked.hasResume ? (
+              <div className="su-btns">
+                <button className="su-add" onClick={() => {
+                  const params = new URLSearchParams({ inject_skills: skillsUnlocked.skills.join(",") });
+                  window.open(`https://studojo.com/resume-maker?${params}`, "_blank");
+                  setSkillsUnlocked(null);
+                  setMessages(prev => [...prev, {
+                    role: "agent",
+                    content: `I've opened your Resume Maker and pre-loaded ${skillsUnlocked.skills.length === 1 ? "that skill" : "those skills"}. Review what I added, adjust anything, and re-download your PDF when you're happy.`,
+                    time: now12h(),
+                  }]);
+                }}>Add to my resume →</button>
+                <button className="su-later" onClick={() => setSkillsUnlocked(null)}>Later</button>
+              </div>
+            ) : (
+              <div className="su-btns">
+                <button className="su-add" onClick={() => {
+                  setSkillsUnlocked(null);
+                  setMessages(prev => [...prev, {
+                    role: "agent",
+                    content: `You don't have a resume on file yet. Head to the Resume Maker and build one — or upload your existing PDF — and I'll be able to push your new skills straight into it after your next weekly check-in.`,
+                    time: now12h(),
+                  }]);
+                  window.open("https://studojo.com/resume-maker", "_blank");
+                }}>Create / upload resume</button>
+                <button className="su-later" onClick={() => setSkillsUnlocked(null)}>Later</button>
+              </div>
+            )}
+          </div>
+        )}
 
         <div id="cc-toast" className={toastMsg ? "show" : ""}>{toastMsg}</div>
       </div>
