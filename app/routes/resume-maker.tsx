@@ -580,9 +580,6 @@ export default function JrsRoute() {
                   rel="noopener noreferrer"
                   className="mt-4 mb-2 flex items-center gap-3 rounded-2xl border-2 border-neutral-900 bg-violet-50 px-4 py-3.5 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
                 >
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-neutral-900 bg-violet-500 text-lg text-white">
-                    ⚡
-                  </div>
                   <div className="flex-1">
                     <p className="font-['Clash_Display'] text-[0.82rem] font-bold leading-tight text-neutral-900">
                       Want more to add here?
