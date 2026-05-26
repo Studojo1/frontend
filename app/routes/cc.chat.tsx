@@ -1108,12 +1108,12 @@ export default function CcChat() {
               {have.length ? have.map((s, i) => <span key={i} className="pill have">{s}</span>)
                 : <div className="xp-muted">No confirmed skills yet, keep talking to the coach.</div>}
             </div>
-            {(b.top_performer_skills || []).length > 0 && (
-              <div className="xp-card">
-                <div className="xp-card-title">What top performers bring</div>
-                {b.top_performer_skills.map((s: string, i: number) => <span key={i} className="pill top">{s}</span>)}
-              </div>
-            )}
+            <div className="xp-card">
+              <div className="xp-card-title">What top performers bring</div>
+              {(b.top_performer_skills || []).length
+                ? b.top_performer_skills.map((s: string, i: number) => <span key={i} className="pill top">{s}</span>)
+                : <div className="xp-muted">Loading benchmark data...</div>}
+            </div>
           </div>
 
           {b.your_standing && (
