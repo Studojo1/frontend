@@ -772,15 +772,34 @@ export default function CcChat() {
     if (inputRef.current) { inputRef.current.value = ""; inputRef.current.style.height = "auto"; }
     setHeaderHidden(true);
 
-    // If a resume is staged, upload it first. The upload posts its own user
-    // bubble for the file and an agent ack. Then we continue with the text.
+    // Capture filename before clearing so the display bubble can reference it
+    const resumeFileName = pendingResume?.name ?? null;
+
+    // If a resume is staged, upload it silently (no agent ack) then send the
+    // user's message together — the backend sees the parsed resume in profile
+    // and responds to both the file and the text in one reply.
     if (pendingResume) {
-      await uploadPendingResume();
+      const file = pendingResume;
+      setPendingResume(null);
+      setResumeUploading(true);
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        await fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", body: fd });
+      } catch {
+        // upload failed silently — chat message still sends, backend won't have resume
+      }
+      setResumeUploading(false);
     }
 
     if (!content) return;
 
-    setMessages(prev => [...prev, { role: "user", content, time: now12h() }]);
+    // Show "📎 filename + message" as a single user bubble when resume was attached
+    const displayContent = resumeFileName
+      ? `📎 ${resumeFileName}\n\n${content}`
+      : content;
+
+    setMessages(prev => [...prev, { role: "user", content: displayContent, time: now12h() }]);
     setWaiting(true);
     const t0 = Date.now();
     try {
@@ -829,46 +848,6 @@ export default function CcChat() {
   function stageResume(file: File) {
     if (!file) return;
     setPendingResume(file);
-  }
-
-  // Upload the staged resume to the backend. Returns true on success.
-  // Adds a "📎 filename.pdf" bubble to the chat so there is a record of it,
-  // then triggers a short agent ack on success.
-  async function uploadPendingResume(): Promise<boolean> {
-    const sid = studentIdRef.current;
-    const file = pendingResume;
-    if (!file || !sid) return false;
-    setResumeUploading(true);
-    setMessages(prev => [...prev, { role: "user", content: "📎 " + file.name, time: now12h() }]);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        setMessages(prev => [...prev, {
-          role: "agent",
-          content: (data?.detail ? String(data.detail) : "I could not read that file, you can keep answering here instead."),
-          time: now12h(),
-        }]);
-        setPendingResume(null);
-        setResumeUploading(false);
-        return false;
-      }
-      const n = (data.fields_extracted || []).length;
-      setHeaderHidden(true);
-      await appendAgentBubbles(`Got your resume, that covers a lot.\n\nI pulled in ${n} details from it, so we can skip most of the questions.`);
-      setPendingResume(null);
-      setResumeUploading(false);
-      return true;
-    } catch {
-      setMessages(prev => [...prev, {
-        role: "agent", content: "The upload did not go through, you can keep answering here instead.", time: now12h(),
-      }]);
-      setPendingResume(null);
-      setResumeUploading(false);
-      return false;
-    }
   }
 
   async function submitCheckIn(kind: string, items: Array<{ label: string; type: string; key: string }>) {
