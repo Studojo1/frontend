@@ -800,6 +800,7 @@ export default function CcChat() {
       : content;
 
     setMessages((prev: Msg[]) => [...prev, { role: "user", content: displayContent, time: now12h() }]);
+    setWaiting(true);
 
     // If a resume is staged, upload it now (after bubble is shown).
     // The chat API call waits for the upload so the backend has the parsed
@@ -816,8 +817,10 @@ export default function CcChat() {
       setResumeUploading(false);
     }
 
-    if (!content) return;
-    setWaiting(true);
+    if (!content) {
+      setWaiting(false);
+      return;
+    }
     const t0 = Date.now();
     try {
       const body: Record<string, string> = { student_id: sid, message: content };
