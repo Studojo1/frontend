@@ -488,6 +488,7 @@ export default function CcChat() {
   const [panel, setPanel] = useState<CtaKind>("analysis");
   const [sidebarData, setSidebarData] = useState<any>(null);
   const [gapData, setGapData] = useState<any>(null);
+  const [dnaRefreshing, setDnaRefreshing] = useState(false);
   const [tasks, setTasks] = useState<{ daily: any[]; weekly: any } | null>(null);
   const [taskBoxes, setTaskBoxes] = useState<Record<string, boolean>>({});
   // staged resume file shown as a chip above the input until the student hits Send
@@ -842,6 +843,10 @@ export default function CcChat() {
       }
       const cta = ctaForState(state, o);
       await appendAgentBubbles(data.reply, cta, state);
+      if (data.dna_refreshing) {
+        setDnaRefreshing(true);
+        refreshSidebar().then(() => setDnaRefreshing(false));
+      }
       if (["DNA_REVIEW", "ROADMAP", "ONGOING_SUPPORT", "DNA_CORRECTION"].includes(state)) {
         await refreshSidebar();
         // When Career Analysis becomes ready and the panel is closed, surface
@@ -1178,7 +1183,10 @@ export default function CcChat() {
     return (
       <>
         <div className="scard">
-          <div className="scard-title">Your Career DNA</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div className="scard-title">Your Career DNA</div>
+            {dnaRefreshing && <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontStyle: "italic" }}>Currently refreshing</div>}
+          </div>
           <h3>{pp.target_role || "Your target role"}</h3>
           <div className="sub">{pp.target_industry || ""}{pp.target_geography ? " · " + pp.target_geography : ""}</div>
           <div style={{ marginTop: 10, fontSize: "0.86rem", fontWeight: 700, lineHeight: 1.5 }}>
