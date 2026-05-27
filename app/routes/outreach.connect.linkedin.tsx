@@ -66,7 +66,7 @@ export default function LinkedInConnectPage() {
       linkedin_connected: true,
       log_entry: "LinkedIn account connected and campaign created",
     });
-    navigate("/outreach/campaign/dashboard");
+    navigate("/outreach/campaign/linkedin-safety");
   };
 
   if (authLoading) {
@@ -108,13 +108,13 @@ export default function LinkedInConnectPage() {
             </div>
             <h1 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">LinkedIn Connected</h1>
             <p className="text-base text-studojo-muted mb-8 font-satoshi">
-              Your LinkedIn account is ready. We'll start sending connection requests within your daily safety limit.
+              Your LinkedIn account is ready. Next, review your safe sending limits before we start.
             </p>
             <button
-              onClick={() => navigate("/outreach/campaign/dashboard")}
+              onClick={() => navigate("/outreach/campaign/linkedin-safety")}
               className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
             >
-              Open Dashboard
+              Review Safe Sending →
             </button>
           </div>
         </div>
