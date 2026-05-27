@@ -13,7 +13,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [challenge, setChallenge] = useState<{ type: "pin" | "phone_tap"; sessionKey: string } | null>(null);
+  const [challenge, setChallenge] = useState<{ type: "pin" | "phone_tap" | "captcha"; sessionKey: string } | null>(null);
   const [pin, setPin] = useState("");
   const [pinLoading, setPinLoading] = useState(false);
   const [phoneTapLoading, setPhoneTapLoading] = useState(false);
@@ -52,10 +52,13 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
         { method: "POST", body: JSON.stringify({ email, password }), ...LOGIN_FETCH_OPTS },
       );
       if (res.challenge_required) {
-        setChallenge({
-          type: res.challenge_type === "phone_tap" ? "phone_tap" : "pin",
-          sessionKey: res.session_key || "",
-        });
+        const challengeType: "pin" | "phone_tap" | "captcha" =
+          res.challenge_type === "phone_tap"
+            ? "phone_tap"
+            : res.challenge_type === "captcha"
+            ? "captcha"
+            : "pin";
+        setChallenge({ type: challengeType, sessionKey: res.session_key || "" });
         return;
       }
       await afterLogin();
@@ -112,6 +115,57 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
       <div className="flex flex-col items-center gap-4 py-12">
         <div className="w-8 h-8 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin" />
         <p className="text-sm text-studojo-muted font-satoshi">Setting up your LinkedIn campaign...</p>
+      </div>
+    );
+  }
+
+  if (challenge?.type === "captcha") {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border-2 border-red-200">
+          <FiAlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold font-satoshi text-red-800">LinkedIn is asking for a CAPTCHA</p>
+            <p className="text-sm text-red-700 font-satoshi mt-1">
+              This happens when LinkedIn doesn't recognise the IP signing in. We can't solve CAPTCHAs from
+              the server. Here's how to clear it in 2 minutes:
+            </p>
+            <ol className="mt-3 space-y-1.5 text-sm text-red-700 font-satoshi list-none">
+              <li className="flex items-start gap-2">
+                <span className="font-bold flex-shrink-0">1.</span>
+                <span>
+                  Open{" "}
+                  <a
+                    href="https://www.linkedin.com/login"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline font-bold"
+                  >
+                    linkedin.com/login
+                  </a>{" "}
+                  in a new tab and sign in normally.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-bold flex-shrink-0">2.</span>
+                <span>Solve any CAPTCHA / "I'm not a robot" check there.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-bold flex-shrink-0">3.</span>
+                <span>Come back here, click "Use different credentials" below, and try again.</span>
+              </li>
+            </ol>
+            <p className="text-xs text-red-600 font-satoshi mt-3">
+              Tip: if it still asks for a CAPTCHA, wait 30 minutes. Repeated login attempts make the block worse, not better.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => { setChallenge(null); setError(""); }}
+          className="w-full h-11 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+        >
+          ← Use different credentials
+        </button>
       </div>
     );
   }
