@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { FiEye, FiEyeOff, FiShield, FiAlertCircle, FiLinkedin, FiExternalLink } from "react-icons/fi";
+import { useState } from "react";
+import { FiEye, FiEyeOff, FiShield, FiAlertCircle, FiLinkedin } from "react-icons/fi";
 import { outreachFetch } from "~/lib/outreach/api";
 
 interface Props {
@@ -7,36 +7,19 @@ interface Props {
   onSuccess: (campaignId: number) => void;
 }
 
-type LoginTab = "password" | "cookies" | "extension";
-
 export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [liAt, setLiAt] = useState("");
-  const [jsessionid, setJsessionid] = useState("");
-  const [cookieLoading, setCookieLoading] = useState(false);
-
-  const [extInstalled, setExtInstalled] = useState(false);
-  const [extLoading, setExtLoading] = useState(false);
-
   const [challenge, setChallenge] = useState<{ type: "pin" | "phone_tap"; sessionKey: string } | null>(null);
   const [pin, setPin] = useState("");
   const [pinLoading, setPinLoading] = useState(false);
   const [phoneTapLoading, setPhoneTapLoading] = useState(false);
 
-  const [tab, setTab] = useState<LoginTab>("password");
   const [error, setError] = useState("");
   const [creatingCampaign, setCreatingCampaign] = useState(false);
-
-  useEffect(() => {
-    const onReady = () => setExtInstalled(true);
-    window.addEventListener("STUDOJO_EXT_READY", onReady);
-    window.dispatchEvent(new CustomEvent("STUDOJO_CHECK_EXT"));
-    return () => window.removeEventListener("STUDOJO_EXT_READY", onReady);
-  }, []);
 
   const afterLogin = async () => {
     setCreatingCampaign(true);
@@ -122,76 +105,6 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
     } finally {
       setPhoneTapLoading(false);
     }
-  };
-
-  const handleCookieLogin = async () => {
-    setCookieLoading(true);
-    setError("");
-    try {
-      await outreachFetch("/linkedin/automation/login/cookies", {
-        method: "POST",
-        body: JSON.stringify({ li_at: liAt.trim(), jsessionid: jsessionid.trim() }),
-        ...LOGIN_FETCH_OPTS,
-      });
-      await afterLogin();
-    } catch (err: any) {
-      setError(err?.body?.detail || err.message || "Invalid cookies. Please check and try again.");
-    } finally {
-      setCookieLoading(false);
-    }
-  };
-
-  const handleExtensionLogin = () => {
-    setExtLoading(true);
-    setError("");
-    let timeoutId: ReturnType<typeof setTimeout>;
-    const friendlyExtError = (code: string): string => {
-      const map: Record<string, string> = {
-        not_logged_in_linkedin: "You're not signed into LinkedIn in this browser. Open www.linkedin.com, sign in, then try again.",
-        no_jsessionid: "LinkedIn session incomplete. Open www.linkedin.com/feed once to refresh the session, then try again.",
-        extension_runtime_error: "The extension hit an internal error. Try removing and reinstalling it.",
-        no_response: "The extension didn't respond. Make sure it's enabled and try again.",
-      };
-      return map[code] || `Extension error: ${code}`;
-    };
-    const onCookies = (e: Event) => {
-      clearTimeout(timeoutId);
-      const { li_at, jsessionid: jsid, cookies, error: extErr } = (e as CustomEvent).detail || {};
-      window.removeEventListener("STUDOJO_LI_COOKIES", onCookies);
-      if (extErr) {
-        setError(friendlyExtError(extErr));
-        setExtLoading(false);
-        return;
-      }
-      if (!li_at) {
-        setError("Extension could not read LinkedIn cookies. Make sure you're logged in to LinkedIn.");
-        setExtLoading(false);
-        return;
-      }
-      outreachFetch("/linkedin/automation/login/cookies", {
-        method: "POST",
-        body: JSON.stringify({ li_at, jsessionid: jsid || "", is_extension: true, cookies }),
-        ...LOGIN_FETCH_OPTS,
-      })
-        .then(() => {
-          // Tell the extension to include outreach in its 7-day cookie refresh.
-          window.dispatchEvent(new CustomEvent("STUDOJO_MARK_OUTREACH_CONNECTED"));
-          return afterLogin();
-        })
-        .catch((err: any) => {
-          setError(err?.body?.detail || err.message || "LinkedIn session invalid. Please re-login to LinkedIn and try again.");
-        })
-        .finally(() => setExtLoading(false));
-    };
-    window.addEventListener("STUDOJO_LI_COOKIES", onCookies);
-    window.dispatchEvent(new CustomEvent("STUDOJO_REQUEST_LI_COOKIES"));
-    timeoutId = setTimeout(() => {
-      window.removeEventListener("STUDOJO_LI_COOKIES", onCookies);
-      setExtLoading((prev) => {
-        if (prev) setError("Extension did not respond. Make sure it's enabled and refresh this page, or reinstall it.");
-        return false;
-      });
-    }, 5000);
   };
 
   if (creatingCampaign) {
@@ -281,135 +194,48 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
         </div>
       </div>
 
-      <div className="flex gap-2 rounded-xl border-2 border-studojo-ink/20 p-1 bg-studojo-surface-muted">
-        {(["password", "cookies", "extension"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => { setTab(t); setError(""); }}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold font-satoshi transition-all ${
-              tab === t ? "bg-white border border-studojo-ink/10 shadow-sm text-studojo-purple" : "text-studojo-muted"
-            }`}
-          >
-            {t === "password" ? "Email & Password" : t === "cookies" ? "Paste Cookies" : "Extension"}
-          </button>
-        ))}
-      </div>
-
-      {tab === "password" && (
-        <div className="space-y-4">
+      <div className="space-y-4">
+        <input
+          type="email"
+          autoComplete="username"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="LinkedIn email"
+          className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-sm font-satoshi"
+        />
+        <div className="relative">
           <input
-            type="email"
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="LinkedIn email"
-            className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-sm font-satoshi"
+            type={showPass ? "text" : "password"}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="LinkedIn password"
+            className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-sm font-satoshi pr-12"
+            onKeyDown={(e) => e.key === "Enter" && handleConnect()}
           />
-          <div className="relative">
-            <input
-              type={showPass ? "text" : "password"}
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="LinkedIn password"
-              className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-sm font-satoshi pr-12"
-              onKeyDown={(e) => e.key === "Enter" && handleConnect()}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPass(!showPass)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-studojo-muted"
-            >
-              {showPass ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
-            </button>
-          </div>
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
-            <FiAlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-700 font-satoshi">
-              LinkedIn may ask you to approve a notification on your phone. If that happens, just tap "Yes, it's me" in the LinkedIn app and come back here.
-            </p>
-          </div>
-          {error && <p className="text-red-600 text-sm font-satoshi">{error}</p>}
           <button
-            onClick={handleConnect}
-            disabled={loading || !email || !password}
-            className="w-full h-11 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+            type="button"
+            onClick={() => setShowPass(!showPass)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-studojo-muted"
           >
-            <FiLinkedin className="w-4 h-4" /> {loading ? "Connecting..." : "Connect LinkedIn"}
+            {showPass ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
           </button>
         </div>
-      )}
-
-      {tab === "cookies" && (
-        <div className="space-y-4">
-          <p className="text-xs text-studojo-muted font-satoshi">
-            Open LinkedIn in your browser → F12 → Application → Cookies → copy{" "}
-            <code className="bg-studojo-surface-muted px-1 rounded">li_at</code> and{" "}
-            <code className="bg-studojo-surface-muted px-1 rounded">JSESSIONID</code> values.
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200">
+          <FiAlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-700 font-satoshi">
+            LinkedIn may ask you to approve a notification on your phone. If that happens, just tap "Yes, it's me" in the LinkedIn app and come back here.
           </p>
-          <input
-            type="text"
-            value={liAt}
-            onChange={(e) => setLiAt(e.target.value)}
-            placeholder="li_at cookie value"
-            className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-sm font-satoshi font-mono"
-          />
-          <input
-            type="text"
-            value={jsessionid}
-            onChange={(e) => setJsessionid(e.target.value)}
-            placeholder="JSESSIONID cookie value"
-            className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-sm font-satoshi font-mono"
-          />
-          {error && <p className="text-red-600 text-sm font-satoshi">{error}</p>}
-          <button
-            onClick={handleCookieLogin}
-            disabled={cookieLoading || !liAt || !jsessionid}
-            className="w-full h-11 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
-          >
-            <FiLinkedin className="w-4 h-4" /> {cookieLoading ? "Connecting..." : "Connect with Cookies"}
-          </button>
         </div>
-      )}
-
-      {tab === "extension" && (
-        <div className="space-y-4">
-          {!extInstalled ? (
-            <div className="p-4 rounded-xl border-2 border-studojo-ink/20 bg-studojo-surface-muted space-y-3">
-              <p className="text-sm font-satoshi text-studojo-muted">
-                Install the Studojo browser extension, then come back here to connect with one click — no password needed.
-              </p>
-              <a
-                href="/studojo-linkedin-connector.zip"
-                download
-                className="inline-flex items-center gap-2 text-sm font-bold text-studojo-purple font-satoshi"
-              >
-                Download Extension (.zip) <FiExternalLink className="w-3.5 h-3.5" />
-              </a>
-              <ol className="text-xs text-studojo-muted font-satoshi list-decimal pl-5 space-y-1 pt-2 border-t border-studojo-ink/10">
-                <li>Unzip the downloaded file</li>
-                <li>Open <code className="bg-white px-1 rounded">chrome://extensions</code> in Chrome</li>
-                <li>Toggle <span className="font-bold">Developer mode</span> on (top-right)</li>
-                <li>Click <span className="font-bold">Load unpacked</span> and select the unzipped folder</li>
-                <li>Come back here — this page will auto-detect the extension</li>
-              </ol>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-studojo-green-bg border-2 border-studojo-ink/20">
-              <div className="w-2 h-2 rounded-full bg-studojo-green" />
-              <p className="text-sm font-bold font-satoshi text-studojo-green">Studojo extension detected</p>
-            </div>
-          )}
-          {error && <p className="text-red-600 text-sm font-satoshi">{error}</p>}
-          <button
-            onClick={handleExtensionLogin}
-            disabled={extLoading || !extInstalled}
-            className="w-full h-11 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
-          >
-            <FiLinkedin className="w-4 h-4" /> {extLoading ? "Connecting..." : "Connect via Extension"}
-          </button>
-        </div>
-      )}
+        {error && <p className="text-red-600 text-sm font-satoshi">{error}</p>}
+        <button
+          onClick={handleConnect}
+          disabled={loading || !email || !password}
+          className="w-full h-11 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+        >
+          <FiLinkedin className="w-4 h-4" /> {loading ? "Connecting..." : "Connect LinkedIn"}
+        </button>
+      </div>
     </div>
   );
 }
