@@ -53,6 +53,8 @@ const CSS = `
 #cc-float-toggle.open{right:calc(var(--sidebar-w) + 24px);}
 #cc-float-toggle.closed{right:24px;}
 #cc-float-toggle:hover{transform:translateY(-1px);box-shadow:4px 4px 0 var(--shadow-c);}
+.dna-refresh-dot{width:8px;height:8px;border-radius:50%;background:var(--violet);display:inline-block;animation:dna-pulse 1.4s ease-in-out infinite;}
+@keyframes dna-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.7);}}
 
 /* PROFILE MENU (top-right avatar + dropdown). Mirrors the main platform header. */
 #cc-user-wrap{position:fixed;top:14px;right:22px;z-index:130;}
@@ -672,6 +674,8 @@ export default function CcChat() {
     if (willOpen) {
       setReadyPopVisible(false);
       if (!sidebarLoadedRef.current) refreshSidebar();
+      // Clear the refreshing indicator once the user opens the panel to see the update
+      if (dnaRefreshing) setDnaRefreshing(false);
     }
   }
   function openSidebarTo(p: CtaKind) {
@@ -848,7 +852,12 @@ export default function CcChat() {
       await appendAgentBubbles(data.reply, cta, state);
       if (data.dna_refreshing) {
         setDnaRefreshing(true);
-        refreshSidebar().then(() => setDnaRefreshing(false));
+        // Don't clear dnaRefreshing until user opens the sidebar — so the indicator
+        // persists even when the sidebar is closed during the background update.
+        refreshSidebar().then(() => {
+          if (sidebarOpenRef.current) setDnaRefreshing(false);
+          // If sidebar is closed, dnaRefreshing stays true until toggleSidebar clears it.
+        });
       }
       if (["DNA_REVIEW", "ROADMAP", "ONGOING_SUPPORT", "DNA_CORRECTION"].includes(state)) {
         // Fire the DNA_REVIEW notification immediately — before awaiting the sidebar fetch.
@@ -1638,6 +1647,7 @@ export default function CcChat() {
         {!sidebarExpanded && (
           <button id="cc-float-toggle" className={sidebarOpen ? "open" : "closed"} onClick={() => toggleSidebar()}>
             <span>{sidebarOpen ? "❯" : "❮"}</span> <span>{sidebarOpen ? "Hide panel" : "Show panel"}</span>
+            {dnaRefreshing && !sidebarOpen && <span className="dna-refresh-dot" title="Career DNA is updating" />}
           </button>
         )}
 
