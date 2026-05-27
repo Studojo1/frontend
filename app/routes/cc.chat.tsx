@@ -220,6 +220,10 @@ const CSS = `
 .btn-primary:hover{transform:translateY(-2px);box-shadow:6px 6px 0 var(--shadow-c);}
 .btn-ghost{background:var(--bg-raised);color:var(--text-primary);border:2px solid var(--border);border-radius:999px;box-shadow:3px 3px 0 var(--shadow-c);padding:9px 18px;font-weight:700;font-size:0.8rem;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;width:100%;transition:all 0.15s;}
 .btn-ghost:hover{transform:translateY(-1px);background:var(--bg-secondary);}
+.cc-unsaved-banner{position:fixed;top:0;left:0;right:0;z-index:300;background:#1e1344;border-bottom:2px solid var(--border);padding:9px 16px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:0.8rem;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
+.cc-unsaved-banner span{color:#c4b5fd;}
+.cc-unsaved-banner a{color:#a78bfa;font-weight:700;text-decoration:underline;cursor:pointer;}
+.cc-unsaved-banner button{margin-left:auto;background:transparent;border:none;color:#c4b5fd;cursor:pointer;font-size:1rem;line-height:1;padding:0 4px;}
 #cc-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg-raised);color:var(--text-primary);border:2px solid var(--border);padding:12px 22px;border-radius:999px;font-size:0.85rem;font-weight:600;z-index:500;transition:transform 0.3s ease;box-shadow:4px 4px 0 var(--shadow-c);}
 #cc-toast.show{transform:translateX(-50%) translateY(0);}
 /* analysis-ready popup, shown only when panel is collapsed */
@@ -573,6 +577,9 @@ export default function CcChat() {
   const [readyPopVisible, setReadyPopVisible] = useState(false);
   const analysisAnnouncedRef = useRef(false);
 
+  // unsaved-session banner for logged-out users
+  const [unsavedBannerDismissed, setUnsavedBannerDismissed] = useState(false);
+
   // hook
   const [hookVisible, setHookVisible] = useState(false);
   const [hookDismissing, setHookDismissing] = useState(false);
@@ -633,6 +640,18 @@ export default function CcChat() {
 
   useEffect(() => { sidebarOpenRef.current = sidebarOpen; }, [sidebarOpen]);
 
+  // Warn on tab/window close if logged out and chat has messages
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (!session && messages.length > 0) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [session, messages.length]);
+
   // ---- sidebar refresh ----
   const refreshSidebar = useCallback(async () => {
     const sid = studentIdRef.current;
@@ -690,7 +709,9 @@ export default function CcChat() {
 
     (async () => {
       try {
+        const authEmail = session?.user?.email;
         const body: Record<string, string> = existingId ? { student_id: existingId } : {};
+        if (authEmail) body.email = authEmail;
         const res = await fetch(`${CC_API}/session/start`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
@@ -1627,10 +1648,19 @@ export default function CcChat() {
     dashboard: { title: "Open your Dashboard", sub: "Track progress and log a check-in" },
   };
 
+  const showUnsavedBanner = !session && messages.length > 0 && !unsavedBannerDismissed;
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <Header />
+      {showUnsavedBanner && (
+        <div className="cc-unsaved-banner">
+          <span>Your chat is saved on this device only. Sign in to access it from anywhere.</span>
+          <a href="/auth">Sign in to save</a>
+          <button onClick={() => setUnsavedBannerDismissed(true)} aria-label="Dismiss">✕</button>
+        </div>
+      )}
       <div className="cc-root">
 
 
