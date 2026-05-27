@@ -19,6 +19,7 @@ export function useOutreachAuth(requireAuth = true) {
     setCandidateId,
     setCampaignId,
     setEmailAccountId,
+    setLinkedInCampaignId,
   } = useOutreachStore();
 
   const [recovered, setRecovered] = useState(false);
@@ -28,7 +29,7 @@ export function useOutreachAuth(requireAuth = true) {
     if (!session?.user || recovered) return;
 
     if (!orderId) {
-      outreachFetch<{ order: { id: number; candidate_id?: number; campaign_id?: number; email_account_id?: number } | null }>("/orders/active")
+      outreachFetch<{ order: { id: number; candidate_id?: number; campaign_id?: number; email_account_id?: number; linkedin_campaign_id?: number } | null }>("/orders/active")
         .then((data) => {
           const order = data?.order;
           if (order) {
@@ -36,6 +37,7 @@ export function useOutreachAuth(requireAuth = true) {
             if (order.candidate_id) setCandidateId(order.candidate_id);
             if (order.campaign_id) setCampaignId(order.campaign_id);
             if (order.email_account_id) setEmailAccountId(order.email_account_id);
+            if (order.linkedin_campaign_id) setLinkedInCampaignId(order.linkedin_campaign_id);
           }
         })
         .catch(() => {
@@ -43,7 +45,7 @@ export function useOutreachAuth(requireAuth = true) {
         });
     }
     setRecovered(true);
-  }, [session?.user, recovered, orderId, setOrderId, setCandidateId, setCampaignId, setEmailAccountId]);
+  }, [session?.user, recovered, orderId, setOrderId, setCandidateId, setCampaignId, setEmailAccountId, setLinkedInCampaignId]);
 
   // Redirect if not authenticated after loading completes
   useEffect(() => {
