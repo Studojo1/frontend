@@ -771,7 +771,6 @@ export default function CcChat() {
   }
 
   function ctaForState(state: string, o: any): CtaKind | undefined {
-    if (state === "DNA_REVIEW" || o?.show_dna_card) return "analysis";
     if (state === "ROADMAP") return "roadmap";
     if (state === "ONGOING_SUPPORT" || o?.show_dashboard) return "dashboard";
     return undefined;
@@ -848,14 +847,14 @@ export default function CcChat() {
         refreshSidebar().then(() => setDnaRefreshing(false));
       }
       if (["DNA_REVIEW", "ROADMAP", "ONGOING_SUPPORT", "DNA_CORRECTION"].includes(state)) {
-        await refreshSidebar();
-        // When Career Analysis becomes ready and the panel is closed, surface
-        // a popup instead of a card in the chat.
+        // Fire the DNA_REVIEW notification immediately — before awaiting the sidebar fetch.
         if (state === "DNA_REVIEW" && !analysisAnnouncedRef.current) {
           analysisAnnouncedRef.current = true;
           if (sidebarOpenRef.current) openSidebarTo("analysis");
           else setReadyPopVisible(true);
-        } else if (state === "ROADMAP" && sidebarOpenRef.current) {
+        }
+        await refreshSidebar();
+        if (state === "ROADMAP" && sidebarOpenRef.current) {
           openSidebarTo("roadmap");
         }
       }
