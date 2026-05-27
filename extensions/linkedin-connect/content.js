@@ -13,7 +13,7 @@
  * outreach flow, because the page owns the auth + endpoint URL).
  */
 
-const VERSION = "2.2.0";
+const VERSION = "2.3.0";
 
 // ── Announce readiness ────────────────────────────────────────────────────────
 // Fire both protocols so old (autoapply) and new (outreach) pages both see us.
