@@ -160,6 +160,16 @@ const CSS = `
 @keyframes shimmer{0%{background-position:-600px 0;}100%{background-position:600px 0;}}
 .skel-wrap{padding:4px 0 20px;display:flex;flex-direction:column;gap:14px;}
 .skel-card{border:2px solid var(--border);border-radius:14px;padding:18px;background:var(--bg-raised);box-shadow:3px 3px 0 var(--shadow-c);}
+.hist-wrap{padding:8px 0 20px;display:flex;flex-direction:column;gap:6px;}
+.hist-day{margin-bottom:2px;}
+.hist-day-label{font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:10px 4px 6px;}
+.hist-msg{border:2px solid var(--border);border-radius:12px;padding:10px 13px;background:var(--bg-raised);box-shadow:2px 2px 0 var(--shadow-c);}
+.hist-msg.user{background:var(--bg-secondary);}
+.hist-msg.agent{background:var(--bg-white);}
+.hist-role{font-size:0.66rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;}
+.hist-role.agent{color:var(--accent-purple);}
+.hist-body{font-size:0.82rem;line-height:1.55;color:var(--text-primary);white-space:pre-wrap;word-break:break-word;}
+.hist-empty{padding:32px 16px;text-align:center;color:var(--text-muted);font-size:0.85rem;}
 .skel-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:600px 100%;animation:shimmer 1.4s infinite linear;margin-bottom:10px;}
 .skel-line.short{width:40%;}
 .skel-line.medium{width:65%;}
@@ -436,7 +446,7 @@ const CSS = `
 `;
 
 type Msg = { role: string; content: string; state?: string; time: string; cta?: string };
-type CtaKind = "analysis" | "roadmap" | "dashboard";
+type CtaKind = "analysis" | "roadmap" | "dashboard" | "history";
 
 // Recognise any spelling of the Resume Maker URL: with or without protocol,
 // optional www, trailing slash or path tail.
@@ -497,6 +507,8 @@ export default function CcChat() {
   const [sidebarData, setSidebarData] = useState<any>(null);
   const [gapData, setGapData] = useState<any>(null);
   const [dnaRefreshing, setDnaRefreshing] = useState(false);
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [tasks, setTasks] = useState<{ daily: any[]; weekly: any } | null>(null);
   const [taskBoxes, setTaskBoxes] = useState<Record<string, boolean>>({});
   // staged resume file shown as a chip above the input until the student hits Send
@@ -684,6 +696,23 @@ export default function CcChat() {
       } catch { /* tasks optional */ }
     })();
   }, [sidebarOpen, panel, sidebarData]);
+
+  // load history when history panel is opened (or after new messages arrive)
+  useEffect(() => {
+    const sid = studentIdRef.current;
+    if (!sidebarOpen || panel !== "history" || !sid) return;
+    setHistoryLoading(true);
+    (async () => {
+      try {
+        const r = await fetch(`${CC_API}/session/${sid}/history`);
+        if (r.ok) {
+          const data = await r.json();
+          setHistoryData(data.history || []);
+        }
+      } catch { /* history optional */ }
+      setHistoryLoading(false);
+    })();
+  }, [sidebarOpen, panel]);
 
   function toggleSidebar(forceOpen?: boolean) {
     const willOpen = forceOpen === true ? true : !sidebarOpen;
@@ -1641,11 +1670,63 @@ export default function CcChat() {
     );
   }
 
+  function renderHistory() {
+    if (historyLoading) {
+      return (
+        <div className="skel-wrap">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="skel-card">
+              <div className="skel-line short" style={{ marginBottom: 6 }} />
+              <div className="skel-line full" style={{ marginBottom: 0 }} />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (!historyData.length) {
+      return <div className="hist-empty">No conversation history yet. Your messages will appear here as you chat.</div>;
+    }
+
+    // Group messages by day
+    const groups: Record<string, any[]> = {};
+    historyData.forEach(m => {
+      const date = m.created_at
+        ? new Date(m.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+        : "This session";
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(m);
+    });
+
+    return (
+      <div className="hist-wrap">
+        {Object.entries(groups).map(([day, msgs]) => (
+          <div key={day} className="hist-day">
+            <div className="hist-day-label">{day}</div>
+            {msgs.map((m, i) => {
+              const role = m.role === "assistant" ? "agent" : m.role;
+              // Split agent bubbles on double-newline, show as separate blocks
+              const bubbles = role === "agent"
+                ? String(m.content || "").split(/\n\s*\n/).map((s: string) => s.trim()).filter(Boolean)
+                : [m.content];
+              return bubbles.map((b: string, j: number) => (
+                <div key={`${i}-${j}`} className={`hist-msg ${role}`} style={{ marginBottom: 4 }}>
+                  {j === 0 && <div className={`hist-role ${role}`}>{role === "agent" ? "Coach" : "You"}</div>}
+                  <div className="hist-body">{b}</div>
+                </div>
+              ));
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const stat = HOOK_STATS[statIdx];
   const ctaCopy: Record<CtaKind, { title: string; sub: string }> = {
     analysis: { title: "Your Career Analysis is ready", sub: "See how you compare to top performers" },
     roadmap: { title: "Your Roadmap is ready", sub: "The steps that move your readiness fastest" },
     dashboard: { title: "Open your Dashboard", sub: "Track progress and log a check-in" },
+    history: { title: "Your chat history", sub: "Everything you and the coach have discussed" },
   };
 
   const showUnsavedBanner = !session && messages.length > 0 && !unsavedBannerDismissed;
@@ -1869,9 +1950,9 @@ export default function CcChat() {
               <div id="cc-xp-nav">
                 <button id="cc-xp-back" onClick={() => setSidebarExpanded(false)}>← Take me to chat</button>
                 <div id="cc-xp-tabs">
-                  {(["analysis", "roadmap", "dashboard"] as CtaKind[]).map(p => (
+                  {(["analysis", "roadmap", "dashboard", "history"] as CtaKind[]).map(p => (
                     <button key={p} className={`cc-xp-tab${panel === p ? " active" : ""}`} onClick={() => setPanel(p)}>
-                      {p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}
+                      {p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : p === "dashboard" ? "Dashboard" : "Chat History"}
                     </button>
                   ))}
                 </div>
@@ -1881,10 +1962,10 @@ export default function CcChat() {
               /* COLLAPSED PANEL: pill-button nav, same system as the expanded view */
               <div id="cc-sidebar-nav">
                 <div id="cc-sidebar-tabs">
-                  {(["analysis", "roadmap", "dashboard"] as CtaKind[]).map(p => (
+                  {(["analysis", "roadmap", "dashboard", "history"] as CtaKind[]).map(p => (
                     <button key={p} className={`side-tab${panel === p ? " active" : ""}`} onClick={() => setPanel(p)}>
-                      <span className="tab-full">{p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}</span>
-                      <span className="tab-short">{p === "analysis" ? "Analysis" : p === "roadmap" ? "Roadmap" : "Dashboard"}</span>
+                      <span className="tab-full">{p === "analysis" ? "Career Analysis" : p === "roadmap" ? "Roadmap" : p === "dashboard" ? "Dashboard" : "Chat History"}</span>
+                      <span className="tab-short">{p === "analysis" ? "Analysis" : p === "roadmap" ? "Roadmap" : p === "dashboard" ? "Stats" : "History"}</span>
                     </button>
                   ))}
                 </div>
@@ -1902,6 +1983,7 @@ export default function CcChat() {
               {panel === "analysis" && renderAnalysis(sidebarExpanded)}
               {panel === "roadmap" && renderRoadmap(sidebarExpanded)}
               {panel === "dashboard" && renderDashboard(sidebarExpanded)}
+              {panel === "history" && renderHistory()}
             </div>
           </aside>
         </div>
