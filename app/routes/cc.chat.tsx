@@ -7,6 +7,10 @@ export function meta() {
   return [{ title: "CareerDojo Chat | Studojo" }];
 }
 
+export function links() {
+  return [{ rel: "stylesheet", href: "data:text/css,body{background:%23130D24}" }];
+}
+
 const CC_API = "/api/v1/cc";
 const STORAGE_KEY = "studojo_student_id";
 

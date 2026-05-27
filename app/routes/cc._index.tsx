@@ -15,6 +15,10 @@ export function meta() {
   ];
 }
 
+export function links() {
+  return [{ rel: "stylesheet", href: "data:text/css,body{background:%23130D24}" }];
+}
+
 /* ─── accent palette ─────────────────────────────────────────────────────────
    Purple  #7C3AED / #A78BFA  → navigation, steps, identity
    Teal    #0D9488 / #2DD4BF  → growth, analysis, Career DNA
