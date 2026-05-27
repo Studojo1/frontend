@@ -28,25 +28,22 @@ const HOW_IT_WORKS = [
     num: "01",
     title: "Tell the coach about yourself",
     desc: "No forms. Just a conversation. The AI asks about your degree, skills, experience, and what you're going after — and listens. The more you talk to it, the sharper it gets.",
-    glow: "rgba(124,58,237,0.35)",
     accent: "#A78BFA",
-    border: "rgba(124,58,237,0.3)",
+    border: "rgba(167,139,250,0.2)",
   },
   {
     num: "02",
     title: "Get your Career DNA",
     desc: "You see exactly how much better you are than the typical fresher chasing your role in your industry, the specific gaps holding that number back, and your current level on the 3-step ladder.",
-    glow: "rgba(13,148,136,0.35)",
     accent: "#2DD4BF",
-    border: "rgba(13,148,136,0.3)",
+    border: "rgba(45,212,191,0.2)",
   },
   {
     num: "03",
     title: "Climb the three levels",
     desc: "Show up daily, log your weekly progress, and watch your standing climb. Six weeks of consistent follow-through promotes you to the next level: Industry-Ready → Well-Rounded → Standout.",
-    glow: "rgba(180,83,9,0.35)",
     accent: "#FCD34D",
-    border: "rgba(180,83,9,0.3)",
+    border: "rgba(252,211,77,0.2)",
   },
 ];
 
@@ -60,10 +57,9 @@ const WHAT_YOU_GET = [
       "Your current level: Industry-Ready, Well-Rounded, or Standout",
     ],
     cta: "Get your Career DNA",
-    glow: "rgba(13,148,136,0.4)",
     accent: "#2DD4BF",
-    border: "rgba(13,148,136,0.25)",
-    iconBg: "rgba(13,148,136,0.15)",
+    border: "rgba(45,212,191,0.2)",
+    iconBg: "rgba(45,212,191,0.1)",
     iconColor: "#2DD4BF",
     dotColor: "#2DD4BF",
     icon: <FiTarget />,
@@ -77,10 +73,9 @@ const WHAT_YOU_GET = [
       "Experience gaps vs the top fresher candidates",
     ],
     cta: "Run your gap analysis",
-    glow: "rgba(124,58,237,0.4)",
     accent: "#A78BFA",
-    border: "rgba(124,58,237,0.25)",
-    iconBg: "rgba(124,58,237,0.15)",
+    border: "rgba(167,139,250,0.2)",
+    iconBg: "rgba(167,139,250,0.1)",
     iconColor: "#A78BFA",
     dotColor: "#A78BFA",
     icon: <FiTrendingUp />,
@@ -94,10 +89,9 @@ const WHAT_YOU_GET = [
       "Six weeks of follow-through gets you to the next level",
     ],
     cta: "Get your action plan",
-    glow: "rgba(180,83,9,0.4)",
     accent: "#FCD34D",
-    border: "rgba(180,83,9,0.25)",
-    iconBg: "rgba(180,83,9,0.15)",
+    border: "rgba(252,211,77,0.2)",
+    iconBg: "rgba(252,211,77,0.08)",
     iconColor: "#FCD34D",
     dotColor: "#FCD34D",
     icon: <FiCalendar />,
@@ -209,7 +203,6 @@ export default function CcIndex() {
                 style={{
                   background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
                   color: "#1a0a2e",
-                  boxShadow: "0 0 32px rgba(252,211,77,0.35), 0 4px 16px rgba(0,0,0,0.4)",
                 }}
               >
                 Get my Career DNA <FiArrowRight />
@@ -264,7 +257,6 @@ export default function CcIndex() {
                     style={{
                       background: GLASS_BG,
                       border: `1px solid ${s.border}`,
-                      boxShadow: `0 0 32px ${s.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
                       borderTop: `2px solid ${s.accent}`,
                     }}
                   >
@@ -336,7 +328,6 @@ export default function CcIndex() {
                     style={{
                       background: GLASS_BG,
                       border: `1px solid ${c.border}`,
-                      boxShadow: `0 0 40px ${c.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
                       borderTop: `2px solid ${c.accent}`,
                     }}
                   >
@@ -426,7 +417,6 @@ export default function CcIndex() {
                     style={{
                       background: GLASS_BG,
                       border: `1px solid rgba(255,255,255,0.07)`,
-                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
                       borderTop: `2px solid ${q.accent}`,
                     }}
                   >
@@ -466,14 +456,7 @@ export default function CcIndex() {
           }}
         >
           <Section width="narrow" className="mx-auto text-center">
-            {/* subtle purple radial glow behind the headline */}
-            <div
-              className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-96 opacity-30"
-              style={{
-                background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(124,58,237,0.5) 0%, transparent 70%)",
-              }}
-            />
-            <h2 className="relative font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-5xl lg:text-6xl">
+            <h2 className="font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-5xl lg:text-6xl">
               Know exactly{" "}
               <span style={{ color: "#FCD34D" }}>where you stand.</span>
             </h2>
@@ -490,7 +473,6 @@ export default function CcIndex() {
                 style={{
                   background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
                   color: "#130D24",
-                  boxShadow: "0 0 40px rgba(252,211,77,0.4), 0 4px 20px rgba(0,0,0,0.5)",
                 }}
               >
                 Get my Career DNA <FiArrowRight />
