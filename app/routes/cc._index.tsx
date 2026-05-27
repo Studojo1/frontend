@@ -15,21 +15,38 @@ export function meta() {
   ];
 }
 
+/* ─── accent palette ─────────────────────────────────────────────────────────
+   Purple  #7C3AED / #A78BFA  → navigation, steps, identity
+   Teal    #0D9488 / #2DD4BF  → growth, analysis, Career DNA
+   Gold    #B45309 / #FCD34D  → action, plans, roadmap
+   Base    #130D24             → page ground
+   Glass   rgba(255,255,255,0.04) + border rgba(255,255,255,0.08)
+────────────────────────────────────────────────────────────────────────────── */
+
 const HOW_IT_WORKS = [
   {
     num: "01",
     title: "Tell the coach about yourself",
     desc: "No forms. Just a conversation. The AI asks about your degree, skills, experience, and what you're going after — and listens. The more you talk to it, the sharper it gets.",
+    glow: "rgba(124,58,237,0.35)",
+    accent: "#A78BFA",
+    border: "rgba(124,58,237,0.3)",
   },
   {
     num: "02",
     title: "Get your Career DNA",
     desc: "You see exactly how much better you are than the typical fresher chasing your role in your industry, the specific gaps holding that number back, and your current level on the 3-step ladder.",
+    glow: "rgba(13,148,136,0.35)",
+    accent: "#2DD4BF",
+    border: "rgba(13,148,136,0.3)",
   },
   {
     num: "03",
     title: "Climb the three levels",
     desc: "Show up daily, log your weekly progress, and watch your standing climb. Six weeks of consistent follow-through promotes you to the next level: Industry-Ready → Well-Rounded → Standout.",
+    glow: "rgba(180,83,9,0.35)",
+    accent: "#FCD34D",
+    border: "rgba(180,83,9,0.3)",
   },
 ];
 
@@ -43,9 +60,12 @@ const WHAT_YOU_GET = [
       "Your current level: Industry-Ready, Well-Rounded, or Standout",
     ],
     cta: "Get your Career DNA",
-    accent: "bg-violet-500",
-    iconBg: "bg-violet-200",
-    iconColor: "text-violet-600",
+    glow: "rgba(13,148,136,0.4)",
+    accent: "#2DD4BF",
+    border: "rgba(13,148,136,0.25)",
+    iconBg: "rgba(13,148,136,0.15)",
+    iconColor: "#2DD4BF",
+    dotColor: "#2DD4BF",
     icon: <FiTarget />,
   },
   {
@@ -57,9 +77,12 @@ const WHAT_YOU_GET = [
       "Experience gaps vs the top fresher candidates",
     ],
     cta: "Run your gap analysis",
-    accent: "bg-emerald-500",
-    iconBg: "bg-emerald-200",
-    iconColor: "text-emerald-600",
+    glow: "rgba(124,58,237,0.4)",
+    accent: "#A78BFA",
+    border: "rgba(124,58,237,0.25)",
+    iconBg: "rgba(124,58,237,0.15)",
+    iconColor: "#A78BFA",
+    dotColor: "#A78BFA",
     icon: <FiTrendingUp />,
   },
   {
@@ -71,9 +94,12 @@ const WHAT_YOU_GET = [
       "Six weeks of follow-through gets you to the next level",
     ],
     cta: "Get your action plan",
-    accent: "bg-amber-500",
-    iconBg: "bg-amber-200",
-    iconColor: "text-amber-700",
+    glow: "rgba(180,83,9,0.4)",
+    accent: "#FCD34D",
+    border: "rgba(180,83,9,0.25)",
+    iconBg: "rgba(180,83,9,0.15)",
+    iconColor: "#FCD34D",
+    dotColor: "#FCD34D",
     icon: <FiCalendar />,
   },
 ];
@@ -83,16 +109,19 @@ const QUOTES = [
     text: "I had no idea what was actually stopping me from getting replies. Seeing exactly where I stood vs other CS freshers — and the one skill that was dragging it down — told me what to build first. Got an interview at Razorpay two weeks later.",
     name: "Arjun S.",
     detail: "B.Tech CS, SRM — targeting Product",
+    accent: "#A78BFA",
   },
   {
     text: "Every career counsellor I talked to gave me the same generic advice. This actually read my profile and told me the specific gap I needed to close.",
     name: "Priya M.",
     detail: "BCom, Mumbai — Finance track",
+    accent: "#2DD4BF",
   },
   {
     text: "I was applying to everything and getting nothing. The coach told me I was going too broad. Narrowed my target, updated my approach, got three replies in 10 days.",
     name: "Rahul K.",
     detail: "MBA, non-IIM — Consulting pivot",
+    accent: "#FCD34D",
   },
 ];
 
@@ -106,25 +135,31 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
+const PAGE_BG = "#130D24";
+const GLASS_BG = "rgba(255,255,255,0.04)";
+const GLASS_BORDER = "rgba(255,255,255,0.08)";
+
 export default function CcIndex() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-white">
-        {/* Hero — 9:16 on mobile, 16:9 on desktop */}
-        <section className="relative w-full overflow-hidden border-b-2 border-neutral-900" style={{backgroundColor:"#1a0a2e"}}>
-          <div
-            className="hero-aspect relative w-full"
-            style={{ paddingBottom: "177.78%" }}
-          >
-            {/* Mobile image (portrait 9:16) — hidden on md+ */}
+      <main className="min-h-screen" style={{ backgroundColor: PAGE_BG }}>
+
+        {/* ── Hero ─────────────────────────────────────────────────────── */}
+        <section
+          className="relative w-full overflow-hidden"
+          style={{
+            backgroundColor: PAGE_BG,
+            borderBottom: `1px solid ${GLASS_BORDER}`,
+          }}
+        >
+          <div className="hero-aspect relative w-full" style={{ paddingBottom: "177.78%" }}>
             <img
               src="/cc-hero-mobile.png"
               alt="Bobie the career coach in front of the Studojo dojo gate"
               className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
               loading="eager"
             />
-            {/* Desktop image (landscape 16:9) — shown on md+ via aspect ratio override */}
             <img
               src="/cc-hero.png"
               alt="Bobie the career coach in front of the Studojo dojo gate"
@@ -132,11 +167,10 @@ export default function CcIndex() {
               loading="eager"
             />
 
-            {/* Gradient overlays */}
-            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 to-transparent" />
-            <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/40 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/80 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/50 to-transparent" />
 
-            {/* How it works — top-left */}
+            {/* How it works pill — purple accent */}
             <motion.div
               className="absolute left-4 top-4 md:left-8 md:top-6"
               initial={{ opacity: 0, y: -10 }}
@@ -145,7 +179,12 @@ export default function CcIndex() {
             >
               <a
                 href="#how-it-works"
-                className="inline-flex items-center gap-1.5 rounded-xl border border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 font-['Satoshi'] text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/10"
+                style={{
+                  border: "1px solid rgba(167,139,250,0.4)",
+                  background: "rgba(124,58,237,0.15)",
+                  color: "#A78BFA",
+                }}
               >
                 How it works
                 <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none">
@@ -154,31 +193,42 @@ export default function CcIndex() {
               </a>
             </motion.div>
 
-            {/* CTA — positioned 30% from bottom so it's visible without scrolling */}
+            {/* CTA — gold action accent */}
             <motion.div
               className="absolute bottom-[30%] right-0 flex flex-col items-end pr-4 md:pr-12"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <p className="mb-4 text-right font-['Satoshi'] text-sm font-medium tracking-wide text-white/80">
+              <p className="mb-4 text-right font-['Satoshi'] text-sm font-medium tracking-wide text-white/70">
                 Takes 8 minutes. Gets sharper the more you talk to it.
               </p>
               <Link
                 to="/cc/chat"
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-10 font-['Satoshi'] text-base font-bold text-violet-700 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl px-10 font-['Satoshi'] text-base font-bold transition-all hover:brightness-110 active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
+                  color: "#1a0a2e",
+                  boxShadow: "0 0 32px rgba(252,211,77,0.35), 0 4px 16px rgba(0,0,0,0.4)",
+                }}
               >
                 Get my Career DNA <FiArrowRight />
               </Link>
             </motion.div>
           </div>
-          {/* Desktop: override aspect ratio to 16:9 */}
           <style>{`@media(min-width:768px){.hero-aspect{padding-bottom:56.25%!important}}`}</style>
         </section>
 
 
-        {/* How it works */}
-        <section id="how-it-works" className="border-b border-neutral-900 bg-white py-16 md:py-24">
+        {/* ── How it works ─────────────────────────────────────────────── */}
+        <section
+          id="how-it-works"
+          className="py-16 md:py-24"
+          style={{
+            backgroundColor: PAGE_BG,
+            borderBottom: `1px solid ${GLASS_BORDER}`,
+          }}
+        >
           <Section>
             <motion.div
               initial="hidden"
@@ -186,31 +236,54 @@ export default function CcIndex() {
               viewport={{ once: true, margin: "-80px" }}
               variants={containerVariants}
             >
-              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
+              <motion.p
+                variants={itemVariants}
+                className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest"
+                style={{ color: "#A78BFA" }}
+              >
                 How it works
               </motion.p>
               <motion.h2
                 variants={itemVariants}
-                className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl"
+                className="font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-4xl lg:text-5xl"
               >
                 Three steps. Your roadmap is ready.
               </motion.h2>
-              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
+              <motion.p
+                variants={itemVariants}
+                className="mt-3 max-w-2xl font-['Satoshi'] text-base md:text-lg"
+                style={{ color: "rgba(255,255,255,0.55)" }}
+              >
                 No forms, no uploads. Just a conversation that builds your complete career picture.
               </motion.p>
               <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
                 {HOW_IT_WORKS.map((s) => (
                   <div
                     key={s.num}
-                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                    className="rounded-2xl p-7 transition-all duration-300 hover:brightness-110"
+                    style={{
+                      background: GLASS_BG,
+                      border: `1px solid ${s.border}`,
+                      boxShadow: `0 0 32px ${s.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+                      borderTop: `2px solid ${s.accent}`,
+                    }}
                   >
-                    <div className="font-['Clash_Display'] text-5xl font-medium leading-none text-violet-100">
+                    <div
+                      className="font-['Clash_Display'] text-5xl font-medium leading-none"
+                      style={{ color: s.accent, opacity: 0.25 }}
+                    >
                       {s.num}
                     </div>
-                    <h3 className="mt-3 font-['Satoshi'] text-lg font-bold text-neutral-900">
+                    <h3
+                      className="mt-3 font-['Satoshi'] text-lg font-bold"
+                      style={{ color: s.accent }}
+                    >
                       {s.title}
                     </h3>
-                    <p className="mt-2 font-['Satoshi'] text-sm leading-6 text-neutral-600">
+                    <p
+                      className="mt-2 font-['Satoshi'] text-sm leading-6"
+                      style={{ color: "rgba(255,255,255,0.6)" }}
+                    >
                       {s.desc}
                     </p>
                   </div>
@@ -220,8 +293,14 @@ export default function CcIndex() {
           </Section>
         </section>
 
-        {/* What you get */}
-        <section className="border-b border-neutral-900 bg-neutral-50 py-16 md:py-24">
+        {/* ── What you get ─────────────────────────────────────────────── */}
+        <section
+          className="py-16 md:py-24"
+          style={{
+            backgroundColor: "#0e0820",
+            borderBottom: `1px solid ${GLASS_BORDER}`,
+          }}
+        >
           <Section>
             <motion.div
               initial="hidden"
@@ -229,44 +308,78 @@ export default function CcIndex() {
               viewport={{ once: true, margin: "-80px" }}
               variants={containerVariants}
             >
-              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
+              <motion.p
+                variants={itemVariants}
+                className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest"
+                style={{ color: "#2DD4BF" }}
+              >
                 What you get
               </motion.p>
-              <motion.h2 variants={itemVariants} className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl">
+              <motion.h2
+                variants={itemVariants}
+                className="font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-4xl lg:text-5xl"
+              >
                 Everything in one session.
               </motion.h2>
-              <motion.p variants={itemVariants} className="mt-3 max-w-2xl font-['Satoshi'] text-base text-neutral-600 md:text-lg">
+              <motion.p
+                variants={itemVariants}
+                className="mt-3 max-w-2xl font-['Satoshi'] text-base md:text-lg"
+                style={{ color: "rgba(255,255,255,0.55)" }}
+              >
                 Built around your degree, skills, and target role — not a generic checklist.
               </motion.p>
               <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
                 {WHAT_YOU_GET.map((c) => (
                   <div
                     key={c.label}
-                    className="flex h-full flex-col rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                    className="flex h-full flex-col rounded-2xl p-7 transition-all duration-300 hover:brightness-110"
+                    style={{
+                      background: GLASS_BG,
+                      border: `1px solid ${c.border}`,
+                      boxShadow: `0 0 40px ${c.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+                      borderTop: `2px solid ${c.accent}`,
+                    }}
                   >
-                    <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl border-2 border-neutral-900 ${c.iconBg} text-xl ${c.iconColor} shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]`}>
+                    <div
+                      className="inline-flex h-12 w-12 items-center justify-center rounded-xl text-xl"
+                      style={{
+                        background: c.iconBg,
+                        border: `1px solid ${c.border}`,
+                        color: c.iconColor,
+                      }}
+                    >
                       {c.icon}
                     </div>
-                    <p className="mt-5 font-['Satoshi'] text-xs font-bold uppercase tracking-wider text-neutral-500">
+                    <p
+                      className="mt-5 font-['Satoshi'] text-xs font-bold uppercase tracking-wider"
+                      style={{ color: c.accent, opacity: 0.7 }}
+                    >
                       {c.label}
                     </p>
-                    <h3 className="mt-1 font-['Clash_Display'] text-xl font-medium leading-snug text-neutral-900">
+                    <h3
+                      className="mt-1 font-['Clash_Display'] text-xl font-medium leading-snug text-white"
+                    >
                       {c.title}
                     </h3>
                     <ul className="mt-5 space-y-2.5">
                       {c.bullets.map((b) => (
                         <li
                           key={b}
-                          className="flex items-start gap-2 font-['Satoshi'] text-sm leading-6 text-neutral-700"
+                          className="flex items-start gap-2 font-['Satoshi'] text-sm leading-6"
+                          style={{ color: "rgba(255,255,255,0.65)" }}
                         >
-                          <span className={`mt-2 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full ${c.accent}`} />
+                          <span
+                            className="mt-2 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full"
+                            style={{ backgroundColor: c.dotColor }}
+                          />
                           {b}
                         </li>
                       ))}
                     </ul>
                     <Link
                       to="/cc/chat"
-                      className="mt-auto inline-flex items-center gap-1.5 pt-6 font-['Satoshi'] text-sm font-semibold text-violet-600 hover:text-violet-800"
+                      className="mt-auto inline-flex items-center gap-1.5 pt-6 font-['Satoshi'] text-sm font-semibold transition-opacity hover:opacity-80"
+                      style={{ color: c.accent }}
                     >
                       {c.cta} <FiArrowRight />
                     </Link>
@@ -277,8 +390,14 @@ export default function CcIndex() {
           </Section>
         </section>
 
-        {/* Quotes */}
-        <section className="border-b border-neutral-900 bg-white py-16 md:py-24">
+        {/* ── Quotes ───────────────────────────────────────────────────── */}
+        <section
+          className="py-16 md:py-24"
+          style={{
+            backgroundColor: PAGE_BG,
+            borderBottom: `1px solid ${GLASS_BORDER}`,
+          }}
+        >
           <Section>
             <motion.div
               initial="hidden"
@@ -286,26 +405,48 @@ export default function CcIndex() {
               viewport={{ once: true, margin: "-80px" }}
               variants={containerVariants}
             >
-              <motion.p variants={itemVariants} className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest text-violet-600">
+              <motion.p
+                variants={itemVariants}
+                className="mb-3 font-['Satoshi'] text-sm font-semibold uppercase tracking-widest"
+                style={{ color: "#A78BFA" }}
+              >
                 What students say
               </motion.p>
-              <motion.h2 variants={itemVariants} className="font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900 md:text-4xl lg:text-5xl">
+              <motion.h2
+                variants={itemVariants}
+                className="font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-4xl lg:text-5xl"
+              >
                 Real feedback from real profiles.
               </motion.h2>
               <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
                 {QUOTES.map((q) => (
                   <div
                     key={q.name}
-                    className="rounded-2xl border-2 border-neutral-900 bg-white p-7 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                    className="rounded-2xl p-7 transition-all duration-300 hover:brightness-110"
+                    style={{
+                      background: GLASS_BG,
+                      border: `1px solid rgba(255,255,255,0.07)`,
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+                      borderTop: `2px solid ${q.accent}`,
+                    }}
                   >
-                    <p className="font-['Satoshi'] text-base italic leading-7 text-neutral-700">
+                    <p
+                      className="font-['Satoshi'] text-base italic leading-7"
+                      style={{ color: "rgba(255,255,255,0.75)" }}
+                    >
                       "{q.text}"
                     </p>
-                    <div className="mt-5 border-t border-neutral-200 pt-4">
-                      <p className="font-['Satoshi'] text-sm font-bold text-neutral-900">
+                    <div
+                      className="mt-5 pt-4"
+                      style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+                    >
+                      <p className="font-['Satoshi'] text-sm font-bold text-white">
                         {q.name}
                       </p>
-                      <p className="mt-0.5 font-['Satoshi'] text-xs text-neutral-500">
+                      <p
+                        className="mt-0.5 font-['Satoshi'] text-xs"
+                        style={{ color: q.accent, opacity: 0.7 }}
+                      >
                         {q.detail}
                       </p>
                     </div>
@@ -316,26 +457,48 @@ export default function CcIndex() {
           </Section>
         </section>
 
-        {/* CTA banner */}
-        <section className="border-b border-neutral-900 bg-violet-600 py-16 md:py-24">
+        {/* ── CTA banner ───────────────────────────────────────────────── */}
+        <section
+          className="py-16 md:py-24"
+          style={{
+            background: "linear-gradient(160deg, #1a0a3e 0%, #130D24 50%, #0a1a2e 100%)",
+            borderBottom: `1px solid ${GLASS_BORDER}`,
+          }}
+        >
           <Section width="narrow" className="mx-auto text-center">
-            <h2 className="font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-5xl lg:text-6xl">
+            {/* subtle purple radial glow behind the headline */}
+            <div
+              className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-96 opacity-30"
+              style={{
+                background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(124,58,237,0.5) 0%, transparent 70%)",
+              }}
+            />
+            <h2 className="relative font-['Clash_Display'] text-3xl font-medium leading-tight text-white md:text-5xl lg:text-6xl">
               Know exactly{" "}
-              <span className="text-yellow-300">where you stand.</span>
+              <span style={{ color: "#FCD34D" }}>where you stand.</span>
             </h2>
-            <p className="mx-auto mt-5 max-w-xl font-['Satoshi'] text-lg text-violet-100">
+            <p
+              className="relative mx-auto mt-5 max-w-xl font-['Satoshi'] text-lg"
+              style={{ color: "rgba(255,255,255,0.55)" }}
+            >
               Takes 8 minutes. Built around your real profile, not a quiz.
             </p>
-            <div className="mt-10 flex justify-center">
+            <div className="relative mt-10 flex justify-center">
               <Link
                 to="/cc/chat"
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-8 font-['Satoshi'] text-base font-medium text-violet-600 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl px-8 font-['Satoshi'] text-base font-bold transition-all hover:brightness-110 active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
+                  color: "#130D24",
+                  boxShadow: "0 0 40px rgba(252,211,77,0.4), 0 4px 20px rgba(0,0,0,0.5)",
+                }}
               >
                 Get my Career DNA <FiArrowRight />
               </Link>
             </div>
           </Section>
         </section>
+
       </main>
       <Footer />
     </>
