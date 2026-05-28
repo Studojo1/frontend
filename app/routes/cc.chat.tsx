@@ -914,10 +914,40 @@ export default function CcChat() {
         }
       }
     } catch {
-      setWaiting(false);
-      setMessages(prev => [...prev, {
-        role: "agent", content: "Something went wrong on my end, try sending that again.", time: now12h(),
-      }]);
+      // Clear stale session and retry once with a fresh session
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        const authEmail = session?.user?.email;
+        const body2: Record<string, string> = {};
+        if (authEmail) body2.email = authEmail;
+        const rs = await fetch(`${CC_API}/session/start`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body2),
+        });
+        const sd = await rs.json();
+        studentIdRef.current = sd.student_id;
+        conversationIdRef.current = sd.conversation_id;
+        localStorage.setItem(STORAGE_KEY, sd.student_id);
+
+        const res2 = await fetch(`${CC_API}/api/chat`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ student_id: sd.student_id, message: content, conversation_id: sd.conversation_id }),
+        });
+        if (!res2.ok) throw new Error("retry failed");
+        const data2 = await res2.json();
+        setWaiting(false);
+        const o2 = data2.orchestration || {};
+        const state2 = o2.current_state || agentState;
+        setAgentState(state2);
+        if (data2.conversation_id) conversationIdRef.current = data2.conversation_id;
+        if (Array.isArray(data2.suggestion_chips) && data2.suggestion_chips.length) setChips(data2.suggestion_chips.slice(0, 3));
+        await appendAgentBubbles(data2.reply, ctaForState(state2, o2), state2);
+      } catch {
+        setWaiting(false);
+        setMessages(prev => [...prev, {
+          role: "agent", content: "Something went wrong on my end, try sending that again.", time: now12h(),
+        }]);
+      }
     }
   }
 
