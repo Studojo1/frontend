@@ -6,6 +6,7 @@ import { SmoothLink } from "./smooth-link";
 
 const NAV_LINKS = [
   { to: "/", label: "Home", active: true },
+  { to: "/cc", label: "Career Coach" },
   { to: "/outreach", label: "Outreach" },
   { to: "#reviews", label: "Reviews" },
   { to: "/about", label: "About" },
@@ -229,7 +230,7 @@ export function Header() {
                           <span>My Applications</span>
                         </Link>
                         <Link
-                          to="/orders"
+                          to="/outreach/orders"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-3 px-4 py-2 font-['Satoshi'] text-sm text-neutral-700 hover:bg-neutral-50"
                         >

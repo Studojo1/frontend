@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MetaFunction } from "react-router";
+import { useSearchParams } from "react-router";
 import {
   type ResumeData,
+  type SkillGroup,
   type TemplateId,
   type Density,
   type JrsChatMsg,
@@ -25,6 +27,7 @@ import {
   starterResume,
   hasSavedResume,
   isStarterSample,
+  uid,
 } from "~/lib/jrs/types";
 import { ResumeTemplate } from "~/lib/jrs/templates";
 import {
@@ -133,6 +136,7 @@ function PreviewPane({
 }
 
 export default function JrsRoute() {
+  const [searchParams] = useSearchParams();
   const [mounted, setMounted] = useState(false);
   const [data, setData] = useState<ResumeData>(() => starterResume());
   const [templateId, setTemplateId] = useState<TemplateId>("harvard");
@@ -150,6 +154,9 @@ export default function JrsRoute() {
   // True once the user has opened the Chat tab; we drop the opener message
   // only at that point so we don't burn a slot if they never use chat.
   const [chatPrimed, setChatPrimed] = useState(false);
+  // Skills injected from Career Coach via ?inject_skills=skill1,skill2,...
+  const [injectedSkills, setInjectedSkills] = useState<string[]>([]);
+  const [skillsBannerDismissed, setSkillsBannerDismissed] = useState(false);
 
   const pushBot = useCallback(
     (content: string, current: JrsChatMsg[]): JrsChatMsg[] => {
@@ -179,6 +186,38 @@ export default function JrsRoute() {
     setScriptStep((loadScriptStep() as ScriptedStep) || null);
     setMounted(true);
   }, []);
+
+  // Parse ?inject_skills= on mount and merge them into the resume's skills section.
+  // Called once after the resume is loaded so we don't overwrite before load.
+  useEffect(() => {
+    if (!mounted) return;
+    const raw = searchParams.get("inject_skills");
+    if (!raw) return;
+    const incoming = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
+    if (!incoming.length) return;
+    setInjectedSkills(incoming);
+    setData((prev: ResumeData) => {
+      const updated = { ...prev, skills: [...prev.skills] };
+      // Try to append to an existing "Skills" or first group; create new group if none.
+      const targetIdx = updated.skills.findIndex((g: SkillGroup) =>
+        /skills?|technical|tools/i.test(g.category) || updated.skills.indexOf(g) === 0
+      );
+      if (targetIdx >= 0) {
+        const existing = updated.skills[targetIdx];
+        const existingItems = existing.items ? existing.items.split(",").map((s: string) => s.trim()).filter(Boolean) : [];
+        const merged = [...existingItems, ...incoming.filter((s: string) => !existingItems.includes(s))];
+        updated.skills[targetIdx] = { ...existing, items: merged.join(", ") };
+      } else {
+        updated.skills.push({ id: uid(), category: "Skills", items: incoming.join(", ") });
+      }
+      saveResume(updated);
+      return updated;
+    });
+    // Skip the welcome screen and go straight to editor so they can review
+    setHasSaved(true);
+    setPhase("editor");
+    setTab("edit");
+  }, [mounted]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // First-open opener: only when the user actually visits the Chat tab and
   // there's no chat history yet. Cheap because it's scripted, not an LLM call.
@@ -437,6 +476,18 @@ export default function JrsRoute() {
 
         {/* Primary actions */}
         <div className="flex items-center gap-2">
+          <a
+            href="https://studojo.com/career-coach"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold text-violet-700 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)] hover:bg-violet-50"
+            title="Upskill with CareerDojo to add more to this resume"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
+            </svg>
+            Upskill with CareerDojo
+          </a>
           <button
             type="button"
             onClick={autoFormat}
@@ -523,6 +574,24 @@ export default function JrsRoute() {
                   }}
                 />
                 <Editor data={data} onChange={updateData} />
+                <a
+                  href="https://studojo.com/career-coach"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 mb-2 flex items-center gap-3 rounded-2xl border-2 border-neutral-900 bg-violet-50 px-4 py-3.5 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[0px_0px_0px_0px_rgba(25,26,35,1)]"
+                >
+                  <div className="flex-1">
+                    <p className="font-['Clash_Display'] text-[0.82rem] font-bold leading-tight text-neutral-900">
+                      Want more to add here?
+                    </p>
+                    <p className="mt-0.5 text-[0.72rem] leading-snug text-neutral-500">
+                      CareerDojo helps you build the skills, projects, and experience that belong on this resume. Track your progress and push updates straight in.
+                    </p>
+                  </div>
+                  <svg className="flex-shrink-0 text-neutral-400" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                  </svg>
+                </a>
               </>
             )}
             {tab === "ats" && <AtsPanel data={data} />}
@@ -564,6 +633,39 @@ export default function JrsRoute() {
           />
         </div>
       </div>
+
+      {/* Skills injected by Career Coach — dismissible confirmation banner */}
+      {injectedSkills.length > 0 && !skillsBannerDismissed && (
+        <div className="fixed bottom-6 left-1/2 z-50 w-[min(480px,92vw)] -translate-x-1/2 rounded-2xl border-2 border-violet-600 bg-white p-4 shadow-[5px_5px_0px_0px_rgba(109,40,217,0.3)]">
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <div>
+              <p className="font-['Clash_Display'] text-[0.95rem] font-bold text-neutral-900">
+                Skills added from Career Coach ⚡
+              </p>
+              <p className="mt-0.5 text-[0.74rem] text-neutral-500">
+                Review them in the Skills section below. Edit, reorder, or remove anything that doesn't fit.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSkillsBannerDismissed(true)}
+              className="flex-shrink-0 rounded-md border-2 border-neutral-200 bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-500 hover:bg-neutral-200"
+            >
+              Got it
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {injectedSkills.map((s: string, i: number) => (
+              <span key={i} className="rounded-full border-[1.5px] border-violet-400 bg-violet-50 px-2.5 py-0.5 text-[0.72rem] font-bold text-violet-700">
+                {s}
+              </span>
+            ))}
+          </div>
+          <p className="mt-3 text-[0.72rem] text-neutral-400">
+            Happy with these? Download your updated PDF above.
+          </p>
+        </div>
+      )}
 
       {/* Print-only copy — portaled to <body> so print CSS can isolate it. */}
       {createPortal(

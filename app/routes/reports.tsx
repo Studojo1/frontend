@@ -39,6 +39,30 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "singapore-remote-from-india-2026",
+    publishDate: "2026-05-23",
+    title: "Singapore Remote Jobs from India 2026: The Real Map",
+    subtitle: "Singapore Remote · 2026",
+    excerpt: "Nine in ten Singapore remote listings filter India out before you click apply. The ones that do not pay two to three times the Indian market. We map which roles cross borders, which Singapore companies already employ India remote, how the money actually moves through EORs and contractor structures, and the channels where these roles surface before they ever hit LinkedIn.",
+    category: "Cities",
+    type: "Cities" as ReportType,
+    date: "May 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
+    slug: "rejection-report-what-happens-after-you-apply-2026",
+    publishDate: "2026-05-20",
+    title: "The Rejection Report: What Happens After You Apply",
+    subtitle: "The Rejection Report · 2026",
+    excerpt: "You clicked submit. Then nothing, or a generic rejection three weeks later. This report traces what happens inside ATS queues, why silence is the default outcome, how ghost jobs and post-interview ghosting differ, and how to run a pipeline when rejection is normal rather than personal.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 8,
+    badge: "New",
+  },
+  {
     slug: "referrals-vs-applications-how-people-get-hired-2026",
     publishDate: "2026-05-20",
     title: "Referrals vs Applications: The Data on How People Actually Get Hired",

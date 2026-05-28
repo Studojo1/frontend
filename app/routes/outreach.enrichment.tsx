@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiArrowRight } from "react-icons/fi";
+import { FiCheckCircle, FiTag, FiArrowRight, FiMail, FiLinkedin } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
-import { TierSelector } from "~/components/outreach/TierSelector";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { useOrder } from "~/lib/outreach/hooks";
@@ -27,8 +26,47 @@ interface CouponResult {
   distributor: string | null;
 }
 
+type Channel = "email" | "linkedin" | "both";
+type Size = "starter" | "growth" | "scale";
+
+interface Plan {
+  id: string;
+  channel: Channel;
+  size: Size;
+  name: string;
+  emailCount: number;
+  linkedinCount: number;
+  tier: 200 | 350 | 500;
+  recommended: boolean;
+  priceUSD: number;
+  priceINR: number;
+  bundlePriceUSD?: number;
+  bundlePriceINR?: number;
+  savingsLabel?: string;
+}
+
+const PLANS: Plan[] = [
+  // Email
+  { id: "email_200", channel: "email", size: "starter", name: "Starter", emailCount: 200, linkedinCount: 0, tier: 200, recommended: false, priceUSD: 20, priceINR: 1775 },
+  { id: "email_350", channel: "email", size: "growth", name: "Growth", emailCount: 350, linkedinCount: 0, tier: 350, recommended: true, priceUSD: 27, priceINR: 2295 },
+  { id: "email_500", channel: "email", size: "scale", name: "Scale", emailCount: 500, linkedinCount: 0, tier: 500, recommended: false, priceUSD: 50, priceINR: 3465 },
+  // LinkedIn
+  { id: "linkedin_200", channel: "linkedin", size: "starter", name: "Starter", emailCount: 0, linkedinCount: 200, tier: 200, recommended: false, priceUSD: 20, priceINR: 1775 },
+  { id: "linkedin_350", channel: "linkedin", size: "growth", name: "Growth", emailCount: 0, linkedinCount: 350, tier: 350, recommended: true, priceUSD: 27, priceINR: 2295 },
+  { id: "linkedin_500", channel: "linkedin", size: "scale", name: "Scale", emailCount: 0, linkedinCount: 500, tier: 500, recommended: false, priceUSD: 50, priceINR: 3465 },
+  // Both (bundle)
+  { id: "both_200", channel: "both", size: "starter", name: "Starter", emailCount: 200, linkedinCount: 200, tier: 200, recommended: false, priceUSD: 35, priceINR: 2999, bundlePriceUSD: 40, bundlePriceINR: 3550, savingsLabel: "Save 12%" },
+  { id: "both_350", channel: "both", size: "growth", name: "Growth", emailCount: 350, linkedinCount: 350, tier: 350, recommended: true, priceUSD: 45, priceINR: 3999, bundlePriceUSD: 54, bundlePriceINR: 4590, savingsLabel: "Save 17%" },
+  { id: "both_500", channel: "both", size: "scale", name: "Scale", emailCount: 500, linkedinCount: 500, tier: 500, recommended: false, priceUSD: 70, priceINR: 4999, bundlePriceUSD: 100, bundlePriceINR: 6930, savingsLabel: "Save 30%" },
+];
+
+const CHANNEL_TABS: { id: Channel; label: string; icon: typeof FiMail }[] = [
+  { id: "email", label: "Send Emails", icon: FiMail },
+  { id: "linkedin", label: "Send LinkedIn", icon: FiLinkedin },
+  { id: "both", label: "Send Both", icon: FiArrowRight },
+];
+
 export default function EnrichmentPage() {
-  // If rendered inside the Dodo modal iframe after payment redirect, show minimal UI
   const isInIframe = typeof window !== "undefined" && window.self !== window.top;
   if (isInIframe) {
     return (
@@ -46,21 +84,16 @@ export default function EnrichmentPage() {
 
   const navigate = useNavigate();
   const { user, loading: authLoading } = useOutreachAuth();
-  const { candidateId, selectedTier, setSelectedTier, orderId } = useOutreachStore();
+  const { candidateId, selectedTier, setSelectedTier, orderId, setPlanType, setSelectedPlanId } = useOutreachStore();
   const { createOrder, updateOrder } = useOrder();
+  const planTypeRef = useRef<Channel>("email");
 
-  // Ensure an order record exists — create one if this is a fresh user
   useEffect(() => {
     if (!orderId && candidateId) {
       createOrder(candidateId);
     }
   }, [orderId, candidateId]);
 
-  // Funnel: stamp "payment_page_reached" the first time the user lands on
-  // this page. This page is where pricing is shown, so it's the true
-  // "saw paywall" signal — much more accurate than only counting users
-  // who later clicked Pay (which already lives in PaymentOrder.created_at).
-  // Idempotent on the server; safe to fire on every mount. Fire-and-forget.
   const funnelPingedRef = useRef(false);
   useEffect(() => {
     if (funnelPingedRef.current) return;
@@ -69,9 +102,10 @@ export default function EnrichmentPage() {
     outreachFetch("/orders/funnel/mark", {
       method: "POST",
       body: JSON.stringify({ stage: "payment_page_reached" }),
-    }).catch(() => { /* never break the page */ });
+    }).catch(() => {});
   }, [authLoading, user]);
 
+  const [channel, setChannel] = useState<Channel>("email");
   const [pricing, setPricing] = useState<TierPricing[]>([]);
   const [currency, setCurrency] = useState("USD");
   const [credits, setCredits] = useState<{ total_credits: number; used_credits: number; available_credits: number } | null>(null);
@@ -80,11 +114,11 @@ export default function EnrichmentPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [paying, setPaying] = useState(false);
+  const [payingPlanId, setPayingPlanId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [dodoCheckoutUrl, setDodoCheckoutUrl] = useState<string | null>(null);
   const dodoSessionRef = useRef<string>("");
-  const dodoTierRef = useRef<number>(0);
   const dodoPollingRef = useRef(false);
 
   const closeDodoModal = () => {
@@ -92,17 +126,16 @@ export default function EnrichmentPage() {
     dodoPollingRef.current = false;
   };
 
-  // After payment succeeds, advance order and navigate to campaign setup
   const onPaymentSuccess = async () => {
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
-    // JIT: skip enrichment, go directly to Gmail connect / campaign setup
-    updateOrder({ status: "campaign_setup", log_entry: `Payment completed for ${selectedTier} credits (JIT enrichment)` });
-    navigate("/outreach/connect/gmail");
+    const pt = planTypeRef.current;
+    updateOrder({ status: "campaign_setup", log_entry: `Payment completed (plan_type=${pt})` });
+    // LinkedIn-only → connect/linkedin. Email or Both → start at gmail (gmail page chains to linkedin for 'both').
+    navigate(pt === "linkedin" ? "/outreach/connect/linkedin" : "/outreach/connect/gmail");
   };
 
-  // Poll verify-dodo while modal is open
   const pollDodoVerify = async (attempt: number) => {
     if (!dodoPollingRef.current) return;
     try {
@@ -113,6 +146,7 @@ export default function EnrichmentPage() {
       if (res.status === "paid") {
         closeDodoModal();
         setPaying(false);
+        setPayingPlanId(null);
         onPaymentSuccess();
         return;
       }
@@ -120,6 +154,7 @@ export default function EnrichmentPage() {
         closeDodoModal();
         setError("Payment failed. Please try again.");
         setPaying(false);
+        setPayingPlanId(null);
         return;
       }
       if (attempt < 60 && dodoPollingRef.current) {
@@ -132,7 +167,6 @@ export default function EnrichmentPage() {
     }
   };
 
-  // Load Razorpay script
   useEffect(() => {
     if (typeof window !== "undefined" && !window.Razorpay) {
       const script = document.createElement("script");
@@ -148,21 +182,24 @@ export default function EnrichmentPage() {
     const loadData = async () => {
       try {
         const [pricingData, creditsData] = await Promise.all([
-          outreachFetch<{ tiers: TierPricing[]; currency: string }>("/payment/pricing"),
+          outreachFetch<{ plans?: any[]; tiers?: TierPricing[]; currency: string }>("/payment/pricing"),
           outreachFetch<{ total_credits: number; used_credits: number; available_credits: number }>("/payment/credits"),
         ]);
-        setPricing(pricingData.tiers || []);
+        // Backend returns `plans` (new) — pull out the email-only entries for the legacy TierPricing shape
+        if (pricingData.plans) {
+          setPricing(pricingData.plans
+            .filter((p) => p.plan_type === "email")
+            .map((p) => ({ tier: p.email_credits, label: p.label, amount_cents: p.amount_cents, currency: p.currency, display_price: p.display_price })));
+        } else if (pricingData.tiers) {
+          setPricing(pricingData.tiers);
+        }
         if (pricingData.currency) setCurrency(pricingData.currency);
         setCredits(creditsData);
-        // If the user already has credits but the store defaulted to a higher
-        // tier than they can afford, snap down to the highest affordable tier.
         const available = creditsData.available_credits;
         if (available > 0 && available < selectedTier) {
           if (available >= 200) setSelectedTier(200);
         }
-      } catch {
-        // fallback tiers
-      }
+      } catch {}
     };
     loadData();
   }, []);
@@ -173,9 +210,11 @@ export default function EnrichmentPage() {
     setCouponError("");
     setCouponResult(null);
     try {
+      // Validate against the recommended (Growth) plan for the active channel
+      const previewPlan = PLANS.find((p) => p.channel === channel && p.recommended) ?? PLANS.find((p) => p.channel === channel);
       const data = await outreachFetch<CouponResult>("/payment/coupon/validate", {
         method: "POST",
-        body: JSON.stringify({ code: couponCode.trim(), tier: selectedTier, currency }),
+        body: JSON.stringify({ code: couponCode.trim(), plan_id: previewPlan?.id, currency }),
       });
       setCouponResult(data);
     } catch (err: any) {
@@ -185,21 +224,27 @@ export default function EnrichmentPage() {
     }
   };
 
-  const handlePayAndContinue = async () => {
+  const handlePayAndContinue = async (plan: Plan) => {
     if (!candidateId) return;
 
-    // If user already has enough credits, skip payment
-    if (credits && credits.available_credits >= selectedTier) {
+    setSelectedTier(plan.tier);
+    setPlanType(plan.channel);
+    setSelectedPlanId(plan.id);
+    planTypeRef.current = plan.channel;
+
+    // Existing credits cover this email-only plan? Skip payment.
+    if (plan.channel === "email" && credits && credits.available_credits >= plan.tier) {
       onPaymentSuccess();
       return;
     }
 
     setPaying(true);
+    setPayingPlanId(plan.id);
     setError("");
     try {
       const orderData = await outreachFetch<any>("/payment/create-order", {
         method: "POST",
-        body: JSON.stringify({ tier: selectedTier, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined }),
+        body: JSON.stringify({ plan_id: plan.id, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined }),
       });
 
       if (orderData.free) {
@@ -208,27 +253,25 @@ export default function EnrichmentPage() {
           : { total_credits: orderData.credits_granted, used_credits: 0, available_credits: orderData.credits_granted }
         );
         setPaying(false);
+        setPayingPlanId(null);
         onPaymentSuccess();
         return;
       }
 
-      // Dodo Payments modal checkout (international users)
       if (orderData.checkout_url) {
         dodoSessionRef.current = orderData.session_id;
-        dodoTierRef.current = selectedTier;
         dodoPollingRef.current = true;
         setDodoCheckoutUrl(orderData.checkout_url);
         pollDodoVerify(0);
         return;
       }
 
-      // Razorpay modal checkout (India)
       const options = {
         key: orderData.key_id,
         amount: orderData.amount,
         currency: orderData.currency,
         name: "Outreach",
-        description: `Contact ${selectedTier} Hiring Managers`,
+        description: `Contact ${plan.tier} Hiring Managers`,
         order_id: orderData.order_id,
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           try {
@@ -241,26 +284,30 @@ export default function EnrichmentPage() {
               }),
             });
             setPaying(false);
+            setPayingPlanId(null);
             onPaymentSuccess();
           } catch (err: any) {
             setError(err?.body?.detail || err.message || "Payment verification failed");
             setPaying(false);
+            setPayingPlanId(null);
           }
         },
         prefill: { email: user?.email || "", name: user?.name || "" },
         theme: { color: "#7C3AED" },
-        modal: { ondismiss: () => setPaying(false) },
+        modal: { ondismiss: () => { setPaying(false); setPayingPlanId(null); } },
       };
 
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", (response: any) => {
         setError(response.error?.description || "Payment failed");
         setPaying(false);
+        setPayingPlanId(null);
       });
       rzp.open();
     } catch (err: any) {
       setError(err?.body?.detail || err.message || "Failed to create payment order");
       setPaying(false);
+      setPayingPlanId(null);
     }
   };
 
@@ -281,62 +328,59 @@ export default function EnrichmentPage() {
   }
 
   const currSymbol = currency === "INR" ? "₹" : "$";
-  const hasEnoughCredits = credits ? credits.available_credits >= selectedTier : false;
+  const isINR = currency === "INR";
+  const visiblePlans = PLANS.filter((p) => p.channel === channel);
 
-  const SHARED_FEATURES = (count: number) => [
-    `We scrape 20,000+ databases and sites to find ${count} hiring decision makers for the exact role you are targeting`,
-    "Tailored based on your company and industry preferences",
-    "Professionally written, personalised emails for each contact to land you the role",
-    "Emails sent periodically so they land in the primary inbox. Your email health stays intact",
-    "Fully custom dashboard to track your emails",
-    "Email support",
-  ];
+  const formatPrice = (n: number) => isINR ? `₹${n.toLocaleString("en-IN")}` : `$${n}`;
 
-  const TIERS = [
-    {
-      value: 200 as const,
-      name: "Starter",
-      tagline: "200 decision makers. 200 chances.",
-      fallbackPrice: "$20",
-      features: SHARED_FEATURES(200),
-    },
-    {
-      value: 350 as const,
-      name: "Growth",
-      tagline: "Everything in Starter, plus 150 more emails.",
-      fallbackPrice: "$27",
-      recommended: true,
-      features: SHARED_FEATURES(350),
-    },
-    {
-      value: 500 as const,
-      name: "Scale",
-      tagline: "Everything in Starter, plus 300 more emails.",
-      fallbackPrice: "$40",
-      features: SHARED_FEATURES(500),
-    },
-  ];
-
-
-  const getTierPrice = (tierValue: number) => {
-    const match = pricing.find((p) => p.tier === tierValue);
-    if (match) {
-      const discounted = couponResult?.valid && selectedTier === tierValue ? couponResult.discounted_amount : null;
-      const raw = match.amount_cents;
-      return {
-        display: match.display_price || `${currSymbol}${(raw / 100).toFixed(0)}`,
-        discounted: discounted ? `${currSymbol}${(discounted / 100).toFixed(0)}` : null,
-      };
+  const getPlanPrice = (plan: Plan) => {
+    // For email plans, use backend-served price if available (handles regional/coupon variants)
+    if (plan.channel === "email") {
+      const match = pricing.find((p) => p.tier === plan.tier);
+      if (match) {
+        const discounted = couponResult?.valid && selectedTier === plan.tier ? couponResult.discounted_amount : null;
+        return {
+          display: match.display_price || `${currSymbol}${(match.amount_cents / 100).toFixed(0)}`,
+          discounted: discounted ? `${currSymbol}${(discounted / 100).toFixed(0)}` : null,
+          original: null as string | null,
+        };
+      }
     }
-    const fallback = TIERS.find((t) => t.value === tierValue)?.fallbackPrice ?? "—";
-    return { display: fallback, discounted: null };
+    // Hardcoded for LinkedIn / Both plans (and email fallback)
+    const price = isINR ? plan.priceINR : plan.priceUSD;
+    const bundle = isINR ? plan.bundlePriceINR : plan.bundlePriceUSD;
+    return {
+      display: formatPrice(price),
+      discounted: null,
+      original: bundle ? formatPrice(bundle) : null,
+    };
+  };
+
+  const buildFeatures = (plan: Plan): string[] => {
+    const out: string[] = [];
+    const contacts = Math.max(plan.emailCount, plan.linkedinCount);
+    if (plan.emailCount > 0) {
+      out.push(`${plan.emailCount} verified hiring-manager contacts found and matched to your profile`);
+      out.push(`${plan.emailCount * 3} personalised emails sent (initial + 2 follow-ups per contact)`);
+    }
+    if (plan.linkedinCount > 0) {
+      out.push(`${plan.linkedinCount} personalised LinkedIn connection requests sent for you`);
+      out.push("Personalised follow-up message sent automatically after each accepted connection");
+      out.push("Daily safety limits + acceptance monitoring so your LinkedIn account stays healthy");
+    }
+    out.push("Targeted to your role, industry and company preferences");
+    out.push(`Live dashboard tracking every ${plan.linkedinCount > 0 && plan.emailCount > 0 ? "email and request" : plan.linkedinCount > 0 ? "request, accept and reply" : "send and reply"}`);
+    if (plan.emailCount > 0) {
+      out.push("Emails staggered across days so they land in the primary inbox");
+    }
+    out.push("Email support");
+    return out;
   };
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
 
-      {/* Colleges marquee */}
       <div className="py-5 bg-studojo-surface-muted border-b-2 border-studojo-ink overflow-hidden">
         <p className="font-satoshi text-xs font-bold uppercase tracking-widest text-studojo-muted text-center mb-4">
           Students from these colleges use Studojo
@@ -359,15 +403,37 @@ export default function EnrichmentPage() {
 
       <div className="mx-auto max-w-5xl px-4 py-10 md:px-8">
 
-        {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink">Contact Hiring Managers Directly</h1>
           <p className="text-base text-studojo-muted mt-3 font-satoshi max-w-xl mx-auto">
-            Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
+            Skip the job board queue. We find verified contacts, write personalised messages, and reach out on your behalf.
           </p>
         </div>
 
-        {/* Credits banner */}
+        {/* Channel tabs */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex p-1.5 rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal">
+            {CHANNEL_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = channel === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => { setChannel(tab.id); setCouponResult(null); setCouponError(""); }}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-satoshi font-bold transition-all ${
+                    isActive
+                      ? "bg-studojo-purple text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                      : "text-studojo-ink hover:bg-studojo-surface-muted"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {credits && credits.total_credits > 0 && (
           <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg/30 p-4 mb-8 flex items-center justify-between max-w-md mx-auto">
             <div className="flex items-center gap-3">
@@ -385,26 +451,26 @@ export default function EnrichmentPage() {
           </div>
         )}
 
-        {/* Tier cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-          {TIERS.map((tier) => {
-            const price = getTierPrice(tier.value);
-            const isSelected = selectedTier === tier.value;
-            const hasCredits = credits ? credits.available_credits >= tier.value : false;
+          {visiblePlans.map((plan) => {
+            const price = getPlanPrice(plan);
+            const isSelected = selectedTier === plan.tier && channel === "email";
+            const hasCredits = plan.channel === "email" && credits ? credits.available_credits >= plan.tier : false;
+            const isPaying = payingPlanId === plan.id;
 
             return (
               <div
-                key={tier.value}
-                onClick={() => { setSelectedTier(tier.value); setCouponResult(null); setCouponError(""); }}
-                className={`relative rounded-2xl border-2 p-6 cursor-pointer transition-all flex flex-col ${
-                  tier.recommended
+                key={plan.id}
+                onClick={() => { if (plan.channel === "email") { setSelectedTier(plan.tier); setCouponResult(null); setCouponError(""); } }}
+                className={`relative rounded-2xl border-2 p-6 transition-all flex flex-col ${plan.channel === "email" ? "cursor-pointer" : ""} ${
+                  plan.recommended
                     ? "border-studojo-purple bg-studojo-purple-bg/20 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)]"
                     : isSelected
                     ? "border-studojo-ink bg-white shadow-brutal"
                     : "border-studojo-ink/30 bg-white hover:border-studojo-ink/60"
                 }`}
               >
-                {tier.recommended && (
+                {plan.recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="px-3 py-1 rounded-full bg-studojo-purple text-white text-xs font-bold font-satoshi border-2 border-studojo-ink whitespace-nowrap">
                       Most Popular
@@ -412,22 +478,34 @@ export default function EnrichmentPage() {
                   </div>
                 )}
 
+                {plan.savingsLabel && (
+                  <div className="absolute -top-3 right-4">
+                    <span className="px-3 py-1 rounded-full bg-studojo-green text-white text-xs font-bold font-satoshi border-2 border-studojo-ink whitespace-nowrap">
+                      {plan.savingsLabel}
+                    </span>
+                  </div>
+                )}
+
                 <div className="mb-4">
-                  <p className="font-clash text-xs font-bold text-studojo-muted uppercase tracking-wider mb-1">{tier.name}</p>
-                  <div className="flex items-end gap-2">
+                  <p className="font-clash text-xs font-bold text-studojo-muted uppercase tracking-wider mb-1">{plan.name}</p>
+                  <div className="flex items-end gap-2 flex-wrap">
                     <span className="font-clash text-4xl font-black text-studojo-ink">{price.display}</span>
-                    {price.discounted && (
-                      <span className="text-base line-through text-studojo-muted font-satoshi mb-1">{price.display}</span>
+                    {price.original && (
+                      <span className="text-base line-through text-studojo-muted font-satoshi mb-1.5">{price.original}</span>
                     )}
                   </div>
                   {price.discounted && (
                     <span className="font-clash text-4xl font-black text-studojo-green">{price.discounted}</span>
                   )}
-                  <p className="text-xs text-studojo-muted font-satoshi mt-1">{tier.tagline}</p>
+                  <p className="text-xs text-studojo-muted font-satoshi mt-1">
+                    {plan.channel === "email" && `${plan.emailCount} contacts · ${plan.emailCount * 3} emails sent (incl. follow-ups)`}
+                    {plan.channel === "linkedin" && `${plan.linkedinCount} contacts · requests + follow-up messages, fully monitored`}
+                    {plan.channel === "both" && `${plan.emailCount} contacts · ${plan.emailCount * 3} emails + ${plan.linkedinCount} LinkedIn requests with follow-ups`}
+                  </p>
                 </div>
 
                 <ul className="space-y-2.5 mb-6 flex-1">
-                  {tier.features.map((feat) => (
+                  {buildFeatures(plan).map((feat) => (
                     <li key={feat} className="flex items-start gap-2 text-sm font-satoshi text-studojo-ink">
                       <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
                       {feat}
@@ -438,17 +516,16 @@ export default function EnrichmentPage() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedTier(tier.value);
-                    handlePayAndContinue();
+                    handlePayAndContinue(plan);
                   }}
-                  disabled={paying && isSelected}
+                  disabled={paying && isPaying}
                   className={`w-full h-11 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-2 ${
-                    tier.recommended
+                    plan.recommended
                       ? "bg-studojo-purple text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                       : "bg-white text-studojo-ink shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                   } disabled:opacity-50 disabled:pointer-events-none`}
                 >
-                  {paying && isSelected ? (
+                  {isPaying ? (
                     "Processing..."
                   ) : hasCredits ? (
                     <>Use Credits <FiArrowRight className="w-3.5 h-3.5" /></>
@@ -461,7 +538,6 @@ export default function EnrichmentPage() {
           })}
         </div>
 
-        {/* Coupon */}
         <div className="rounded-2xl border-2 border-studojo-ink/20 bg-white p-5 mb-6 max-w-md mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <FiTag className="w-4 h-4 text-studojo-purple" />
@@ -498,19 +574,21 @@ export default function EnrichmentPage() {
         {error && <p className="text-red-600 text-sm text-center mb-4 font-satoshi">{error}</p>}
 
         <p className="text-xs text-studojo-muted font-satoshi text-center mt-6">
-          Emails sent gradually over several days. Most students get their first reply within a week.
+          {channel === "linkedin"
+            ? "LinkedIn requests sent gradually within daily safety limits. Most students see their first accepted connection within 48 hours."
+            : channel === "both"
+            ? "Emails and LinkedIn requests sent gradually. Two channels = roughly 2x the reply rate of email alone."
+            : "Emails sent gradually over several days. Most students get their first reply within a week."}
         </p>
       </div>
       <Footer />
 
-      {/* Consultation qualifying modal */}
-      {/* Dodo Payments checkout modal */}
       {dodoCheckoutUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60" onClick={() => { closeDodoModal(); setPaying(false); }} />
+          <div className="absolute inset-0 bg-black/60" onClick={() => { closeDodoModal(); setPaying(false); setPayingPlanId(null); }} />
           <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden" style={{ width: "min(480px, 95vw)", height: "min(640px, 90vh)" }}>
             <button
-              onClick={() => { closeDodoModal(); setPaying(false); }}
+              onClick={() => { closeDodoModal(); setPaying(false); setPayingPlanId(null); }}
               className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold"
             >
               &times;
@@ -523,6 +601,7 @@ export default function EnrichmentPage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

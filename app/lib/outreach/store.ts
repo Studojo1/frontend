@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { ChatMessage, EmailTemplate, PsychometricResult } from "./types";
 
+export type PlanType = "email" | "linkedin" | "both";
+
 interface OutreachState {
   // Onboarding flow
   candidateId: number | null;
@@ -22,6 +24,14 @@ interface OutreachState {
   // Lead discovery
   selectedTier: 200 | 350 | 500;
   setSelectedTier: (tier: 200 | 350 | 500) => void;
+
+  // Plan / channel
+  planType: PlanType;
+  setPlanType: (t: PlanType) => void;
+  selectedPlanId: string | null;
+  setSelectedPlanId: (id: string | null) => void;
+  linkedInCampaignId: number | null;
+  setLinkedInCampaignId: (id: number | null) => void;
 
   // Campaign
   selectedTemplate: EmailTemplate | null;
@@ -65,6 +75,13 @@ export const useOutreachStore = create<OutreachState>()(
       selectedTier: 350,
       setSelectedTier: (selectedTier) => set({ selectedTier }),
 
+      planType: "email",
+      setPlanType: (planType) => set({ planType }),
+      selectedPlanId: null,
+      setSelectedPlanId: (selectedPlanId) => set({ selectedPlanId }),
+      linkedInCampaignId: null,
+      setLinkedInCampaignId: (linkedInCampaignId) => set({ linkedInCampaignId }),
+
       selectedTemplate: null,
       setSelectedTemplate: (selectedTemplate) => set({ selectedTemplate }),
 
@@ -93,6 +110,9 @@ export const useOutreachStore = create<OutreachState>()(
         campaignId: state.campaignId,
         emailAccountId: state.emailAccountId,
         orderId: state.orderId,
+        planType: state.planType,
+        selectedPlanId: state.selectedPlanId,
+        linkedInCampaignId: state.linkedInCampaignId,
       }),
     },
   ),

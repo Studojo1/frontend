@@ -12,7 +12,7 @@ export default function GmailConnectPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { loading: authLoading } = useOutreachAuth();
-  const { emailAccountId, setEmailAccountId } = useOutreachStore();
+  const { emailAccountId, setEmailAccountId, planType } = useOutreachStore();
   const { updateOrder } = useOrder();
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -87,7 +87,12 @@ export default function GmailConnectPage() {
   };
 
   const handleContinue = () => {
-    navigate("/outreach/campaign/style-pick");
+    // 'both' plans chain into LinkedIn connect before campaign setup
+    if (planType === "both") {
+      navigate("/outreach/connect/linkedin");
+    } else {
+      navigate("/outreach/campaign/style-pick");
+    }
   };
 
   const permissions = [
@@ -138,7 +143,7 @@ export default function GmailConnectPage() {
               onClick={handleContinue}
               className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
             >
-              Continue to Campaign Setup
+              {planType === "both" ? "Continue to LinkedIn" : "Continue to Campaign Setup"}
             </button>
           </div>
         ) : (
