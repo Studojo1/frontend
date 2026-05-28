@@ -593,6 +593,9 @@ export default function CcChat() {
   const [unsavedBannerDismissed, setUnsavedBannerDismissed] = useState(false);
 
   // hook
+  const [outreachNote, setOutreachNote] = useState<{ toolRec: string; jbPct: number; orPct: number } | null>(null);
+  const [discountEmailInput, setDiscountEmailInput] = useState("");
+  const [discountEmailSent, setDiscountEmailSent] = useState(false);
   const [hookVisible, setHookVisible] = useState(false);
   const [hookDismissing, setHookDismissing] = useState(false);
   const [statIdx, setStatIdx] = useState(0);
@@ -830,6 +833,27 @@ export default function CcChat() {
     return undefined;
   }
 
+  function showOutreachNote(toolRec: string | null) {
+    if (!toolRec || !toolRec.startsWith("outreach_dojo")) return;
+    if (toolRec === "outreach_dojo_not_ready" || toolRec === "resume_maker") return;
+    sessionStorage.setItem("outreach_note_shown", "1");
+    const jbPct = sidebarData?.primary_path?.job_board_reply_pct ?? 2;
+    const orPct = sidebarData?.primary_path?.outreach_reply_pct ?? 10;
+    setOutreachNote({ toolRec, jbPct, orPct });
+  }
+
+  async function submitDiscountEmail() {
+    const sid = studentIdRef.current;
+    if (!sid || !discountEmailInput.trim()) return;
+    try {
+      await fetch(`${CC_API}/api/student/${sid}/save-discount-intent`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: discountEmailInput.trim() }),
+      });
+      setDiscountEmailSent(true);
+    } catch { /* ignore */ }
+  }
+
   async function sendMsg(overrideText?: string) {
     const content = (overrideText ?? inputRef.current?.value ?? "").trim();
     const sid = studentIdRef.current;
@@ -879,8 +903,10 @@ export default function CcChat() {
     try {
       const body: Record<string, string> = { student_id: sid, message: content };
       if (conversationIdRef.current) body.conversation_id = conversationIdRef.current;
+      const outreachShown = sessionStorage.getItem("outreach_conv_shown") === "1" ? "1" : "0";
       const res = await fetch(`${CC_API}/api/chat`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Outreach-Shown": outreachShown },
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
@@ -893,6 +919,10 @@ export default function CcChat() {
       if (data.conversation_id) conversationIdRef.current = data.conversation_id;
       if (Array.isArray(data.suggestion_chips) && data.suggestion_chips.length) {
         setChips(data.suggestion_chips.slice(0, 3));
+      }
+      // Track outreach upsell shown so backend won't repeat it this session
+      if (typeof data.tool_recommendation === "string" && data.tool_recommendation.startsWith("outreach_dojo")) {
+        sessionStorage.setItem("outreach_conv_shown", "1");
       }
       const cta = ctaForState(state, o);
       await appendAgentBubbles(data.reply, cta, state);
@@ -911,6 +941,10 @@ export default function CcChat() {
         await refreshSidebar();
         if (state === "ROADMAP" && sidebarOpenRef.current) {
           openSidebarTo("roadmap");
+        }
+        // Show outreach sticky note once per session after DNA_REVIEW or ROADMAP
+        if (["DNA_REVIEW", "ROADMAP"].includes(state) && !sessionStorage.getItem("outreach_note_shown")) {
+          showOutreachNote(data.tool_recommendation);
         }
       }
     } catch {
@@ -1490,7 +1524,43 @@ export default function CcChat() {
           );
         })}
         <button className="btn-primary" onClick={() => setPanel("dashboard")}>Go to dashboard →</button>
+        {renderOutreachCallout()}
       </>
+    );
+  }
+
+  function renderOutreachCallout() {
+    const cta = sidebarData?.cta_tool as string | undefined;
+    if (!cta || !cta.startsWith("outreach_dojo") || cta === "outreach_dojo_not_ready") return null;
+    const jbPct = sidebarData?.primary_path?.job_board_reply_pct ?? 2;
+    const orPct = sidebarData?.primary_path?.outreach_reply_pct ?? 10;
+
+    if (cta === "outreach_dojo_getting_close") {
+      return (
+        <div className="scard" style={{ background: "#FFFBEB", borderColor: "#F59E0B", marginTop: 12 }}>
+          <div className="scard-title" style={{ color: "#92400E" }}>Almost ready for outreach</div>
+          <div style={{ fontSize: 13, color: "#78350F", marginBottom: 10 }}>
+            Once you close your key skill gap, your reply rate will jump to ~{orPct}%. We can send a discount code for Outreach Dojo when you are ready.
+          </div>
+          <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: 13, fontWeight: 600, color: "#D97706" }}>Save a discount code →</a>
+        </div>
+      );
+    }
+    const isFirstMove = cta === "outreach_dojo_first_move";
+    return (
+      <div className="scard" style={{ background: "#FFFBEB", borderColor: "#F59E0B", marginTop: 12 }}>
+        <div className="scard-title" style={{ color: "#92400E" }}>⚡ Tool that speeds this up</div>
+        <div style={{ fontSize: 13, color: "#78350F", marginBottom: 10 }}>
+          {isFirstMove
+            ? `Job boards get ~${jbPct}% reply rate. Skip them. Direct outreach to hiring managers gets ~${orPct}% for your profile.`
+            : `Job boards get ~${jbPct}% reply rate for your profile. Direct outreach to hiring managers gets ~${orPct}%. Outreach Dojo finds the right person at your target company and helps you reach them directly.`}
+        </div>
+        <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 13, fontWeight: 600, color: "#D97706" }}>
+          {isFirstMove ? "See Outreach Dojo →" : "Try Outreach Dojo →"}
+        </a>
+      </div>
     );
   }
 
@@ -1692,11 +1762,41 @@ export default function CcChat() {
           <div className="stat-box"><div className="sb-num">{milestonesDone}/{milestones.length || 0}</div><div className="sb-label">Roadmap steps</div></div>
         </div>
         {tracker}
+        {renderOutreachDashboardNote()}
         <div className="scard">
           <div className="scard-title">Tools to move faster</div>
           {toolButtons()}
         </div>
       </>
+    );
+  }
+
+  function renderOutreachDashboardNote() {
+    const cta = sidebarData?.cta_tool as string | undefined;
+    if (!cta || !cta.startsWith("outreach_dojo") || cta === "outreach_dojo_not_ready") return null;
+    const jbPct = sidebarData?.primary_path?.job_board_reply_pct ?? 2;
+    const orPct = sidebarData?.primary_path?.outreach_reply_pct ?? 10;
+
+    if (cta === "outreach_dojo_getting_close") {
+      return (
+        <div className="scard" style={{ background: "#FFFBEB", borderColor: "#F59E0B", marginBottom: 10 }}>
+          <div style={{ fontSize: 13, color: "#78350F" }}>
+            You are almost at the skill level where direct outreach converts. Once you close your gap, your reply rate will jump to ~{orPct}%.{" "}
+            <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer" style={{ color: "#D97706", fontWeight: 600 }}>Save a discount code →</a>
+          </div>
+        </div>
+      );
+    }
+    const isFirstMove = cta === "outreach_dojo_first_move";
+    return (
+      <div className="scard" style={{ background: "#FFFBEB", borderColor: "#F59E0B", marginBottom: 10 }}>
+        <div style={{ fontSize: 13, color: "#78350F" }}>
+          {isFirstMove
+            ? `You have not applied yet, that is an advantage. Skip job boards. Direct outreach gets ~${orPct}% reply rate vs ~${jbPct}% on portals.`
+            : `Naukri and LinkedIn EasyApply get ~${jbPct}% reply rate for your profile. The students who break through do direct outreach to hiring managers. Your estimated reply rate via outreach: ~${orPct}%.`}{" "}
+          <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer" style={{ color: "#D97706", fontWeight: 600 }}>See how Outreach Dojo works →</a>
+        </div>
+      </div>
     );
   }
 
@@ -1919,6 +2019,40 @@ export default function CcChat() {
                       <div className="msg-bubble-wrap">
                         <div className="msg-bubble"><div className="typing-dots"><span /><span /><span /></div></div>
                       </div>
+                    </div>
+                  )}
+                  {outreachNote && (
+                    <div style={{ background: "#FFFBEB", border: "2px solid #F59E0B", borderRadius: 12, padding: "12px 14px", margin: "10px 0", display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, lineHeight: 1.5 }}>
+                      <span style={{ fontSize: 16 }}>📌</span>
+                      <span style={{ flex: 1 }}>
+                        {outreachNote.toolRec === "outreach_dojo_getting_close" ? (
+                          <>You are nearly at the skill level where direct outreach will convert well. Want a discount code for when you are ready?{" "}
+                            {discountEmailSent ? (
+                              <span style={{ color: "#065F46", fontWeight: 600 }}>✓ Saved. We will send it when you are ready.</span>
+                            ) : (
+                              <span style={{ display: "inline-flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                                <input type="email" placeholder="your@email.com" value={discountEmailInput}
+                                  onChange={e => setDiscountEmailInput(e.target.value)}
+                                  style={{ padding: "4px 8px", border: "1.5px solid #F59E0B", borderRadius: 6, fontSize: 12, width: 160 }} />
+                                <button onClick={submitDiscountEmail}
+                                  style={{ padding: "4px 10px", background: "#F59E0B", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
+                                  Send me the code
+                                </button>
+                              </span>
+                            )}
+                          </>
+                        ) : outreachNote.toolRec === "outreach_dojo_first_move" ? (
+                          <>Skip job boards. Your estimated reply rate via direct outreach is ~{outreachNote.orPct}% vs ~{outreachNote.jbPct}% on portals.{" "}
+                            <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer" style={{ color: "#D97706", fontWeight: 600 }}>See Outreach Dojo →</a>
+                          </>
+                        ) : (
+                          <>Job boards get ~{outreachNote.jbPct}% reply rate. Direct outreach to hiring managers gets ~{outreachNote.orPct}% for your profile.{" "}
+                            <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer" style={{ color: "#D97706", fontWeight: 600 }}>See how Outreach Dojo works →</a>
+                          </>
+                        )}
+                      </span>
+                      <button onClick={() => setOutreachNote(null)}
+                        style={{ background: "none", border: "none", cursor: "pointer", padding: 0, marginLeft: 4, fontSize: 16, color: "#9CA3AF", lineHeight: 1 }}>×</button>
                     </div>
                   )}
                   <div ref={messagesEndRef} />
