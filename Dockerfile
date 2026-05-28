@@ -31,7 +31,7 @@ ENV PORT=3000
 
 # Copy package files and install production dependencies
 COPY package.json ./
-RUN npm install --production && \
+RUN npm install --production --legacy-peer-deps && \
     npm cache clean --force
 
 # Install global tools needed for migrations and scripts (smaller footprint)
