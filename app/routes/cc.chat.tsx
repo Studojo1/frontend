@@ -963,8 +963,10 @@ export default function CcChat() {
         conversationIdRef.current = sd.conversation_id;
         localStorage.setItem(STORAGE_KEY, sd.student_id);
 
+        const outreachShown2 = sessionStorage.getItem("outreach_conv_shown") === "1" ? "1" : "0";
         const res2 = await fetch(`${CC_API}/api/chat`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Outreach-Shown": outreachShown2 },
           body: JSON.stringify({ student_id: sd.student_id, message: content, conversation_id: sd.conversation_id }),
         });
         if (!res2.ok) throw new Error("retry failed");
