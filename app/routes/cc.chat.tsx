@@ -911,13 +911,14 @@ export default function CcChat() {
       setResumeUploading(false);
     }
 
-    if (!content) {
-      setWaiting(false);
-      return;
-    }
+    // If no text was typed but a resume was uploaded, send a trigger message so
+    // the agent acknowledges the resume rather than silently dropping the turn.
+    const messageToSend = content || (resumeFileName ? "I just uploaded my resume." : "");
+    if (!messageToSend) { setWaiting(false); return; }
+
     const t0 = Date.now();
     try {
-      const body: Record<string, string> = { student_id: sid, message: content };
+      const body: Record<string, string> = { student_id: sid, message: messageToSend };
       if (conversationIdRef.current) body.conversation_id = conversationIdRef.current;
       const outreachShown = sessionStorage.getItem("outreach_conv_shown") === "1" ? "1" : "0";
       const res = await fetch(`${CC_API}/api/chat`, {
@@ -988,7 +989,7 @@ export default function CcChat() {
         const res2 = await fetch(`${CC_API}/api/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-Outreach-Shown": outreachShown2 },
-          body: JSON.stringify({ student_id: sd.student_id, message: content, conversation_id: sd.conversation_id }),
+          body: JSON.stringify({ student_id: sd.student_id, message: messageToSend, conversation_id: sd.conversation_id }),
         });
         if (!res2.ok) throw new Error("retry failed");
         const data2 = await res2.json();
