@@ -594,6 +594,7 @@ export default function CcChat() {
 
   // hook
   const [outreachNote, setOutreachNote] = useState<{ toolRec: string; jbPct: number; orPct: number } | null>(null);
+  const [resumeStatusMsg, setResumeStatusMsg] = useState<string | null>(null);
   const [discountEmailInput, setDiscountEmailInput] = useState("");
   const [discountEmailSent, setDiscountEmailSent] = useState(false);
   const [hookVisible, setHookVisible] = useState(false);
@@ -885,6 +886,19 @@ export default function CcChat() {
     // profile before it generates the reply.
     if (resumeFile) {
       setResumeUploading(true);
+      const resumeMsgs = [
+        "Analysing resume...",
+        "Reading your experience...",
+        "Extracting skills...",
+        "Building your profile...",
+        "Almost done...",
+      ];
+      let msgIdx = 0;
+      setResumeStatusMsg(resumeMsgs[0]);
+      const msgInterval = setInterval(() => {
+        msgIdx = (msgIdx + 1) % resumeMsgs.length;
+        setResumeStatusMsg(resumeMsgs[msgIdx]);
+      }, 1800);
       try {
         const fd = new FormData();
         fd.append("file", resumeFile);
@@ -892,6 +906,8 @@ export default function CcChat() {
       } catch {
         // upload failed silently — chat message still sends
       }
+      clearInterval(msgInterval);
+      setResumeStatusMsg(null);
       setResumeUploading(false);
     }
 
@@ -2019,7 +2035,16 @@ export default function CcChat() {
                     <div className="msg-row agent">
                       <div className="agent-avatar"><img src="/bobie-hat.png" alt="Bobie" /></div>
                       <div className="msg-bubble-wrap">
-                        <div className="msg-bubble"><div className="typing-dots"><span /><span /><span /></div></div>
+                        <div className="msg-bubble">
+                          {resumeStatusMsg ? (
+                            <span style={{ fontSize: 13, color: "var(--text-secondary, #6B7280)", display: "flex", alignItems: "center", gap: 8 }}>
+                              <div className="typing-dots" style={{ display: "inline-flex" }}><span /><span /><span /></div>
+                              {resumeStatusMsg}
+                            </span>
+                          ) : (
+                            <div className="typing-dots"><span /><span /><span /></div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
