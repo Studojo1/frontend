@@ -168,6 +168,16 @@ export default function CcIndex() {
             <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/50 to-transparent" />
 
+            {/* Hero title */}
+            <motion.h1
+              className="absolute inset-x-0 top-[14%] z-10 px-4 text-center font-['Clash_Display'] text-4xl font-semibold leading-none text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:text-5xl md:top-[16%] md:text-6xl lg:text-7xl"
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+            >
+              Your Career Coach
+            </motion.h1>
+
             {/* How it works pill — purple accent */}
             <motion.div
               className="absolute left-4 top-4 md:left-8 md:top-6"
