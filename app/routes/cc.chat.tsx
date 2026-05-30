@@ -105,6 +105,10 @@ const CSS = `
 .rm-upload-icon{font-size:1.2rem;flex-shrink:0;}
 .rm-upload-title{display:block;font-size:0.86rem;font-weight:800;color:var(--text-primary);}
 .rm-upload-sub{display:block;font-size:0.74rem;color:var(--text-secondary);margin-top:2px;line-height:1.4;}
+/* Inline link-as-button for studojo tool/dojo URLs mentioned in chat */
+.cc-link-btn{display:inline-flex;align-items:center;gap:7px;margin-top:9px;padding:9px 15px;background:var(--accent-purple);border:2px solid var(--accent-purple);border-radius:12px;text-decoration:none;color:#fff;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.84rem;font-weight:700;box-shadow:3px 3px 0 var(--shadow-c);transition:all 0.15s;}
+.cc-link-btn:hover{transform:translateY(-1px);box-shadow:5px 5px 0 var(--shadow-c);}
+.cc-link-btn-icon{font-size:1rem;}
 .typing-dots{display:flex;gap:5px;padding:4px 0;}
 .typing-dots span{width:7px;height:7px;border-radius:50%;background:var(--accent-purple);animation:dotPulse 600ms ease-in-out infinite alternate;opacity:0.3;}
 .typing-dots span:nth-child(2){animation-delay:200ms;}
@@ -452,18 +456,28 @@ type CtaKind = "analysis" | "roadmap" | "dashboard" | "history";
 // optional www, trailing slash or path tail.
 const RESUME_MAKER_RE = /(?:https?:\/\/)?(?:www\.)?studojo\.com\/resume-maker[^\s)]*/gi;
 
+// Known studojo tool/dojo links the agent mentions — rendered as a button
+// instead of a raw URL. Each entry: a matcher regex, the button label, an icon,
+// and the canonical href.
+const STUDOJO_LINK_BUTTONS: { re: RegExp; label: string; icon: string; href: string }[] = [
+  { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/dojos\/internships[^\s)]*/gi, label: "Browse Internship Dojo", icon: "🎯", href: "https://studojo.com/dojos/internships" },
+  { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/outreach[^\s)]*/gi, label: "Open Outreach Dojo", icon: "✉️", href: "https://studojo.com/outreach" },
+  { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/reports[^\s)]*/gi, label: "Browse Reports", icon: "📊", href: "https://studojo.com/reports" },
+  { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/dojos\/ai-risk[^\s)]*/gi, label: "Open AI Risk Dojo", icon: "🤖", href: "https://studojo.com/dojos/ai-risk" },
+];
+
 // Render a plain-text bubble:
 // - capitalize the first letter
-// - if the bubble mentions the Resume Maker URL, strip the URL out of the
-//   text entirely and render a styled "Upload your resume" button instead
-//   (hides the raw /resume-maker URL from the chat)
-// - all other URLs are linkified normally
+// - if the bubble mentions the Resume Maker URL, strip it and render the
+//   styled Resume Maker button instead
+// - if the bubble mentions a known studojo dojo/tool URL, strip it and render
+//   a button at the end of the bubble
+// - any other URLs are linkified normally
 function renderBubbleText(text: string) {
   let t = String(text || "");
   t = t.replace(/^(\s*)([a-z])/, (_m, ws, ch) => ws + ch.toUpperCase());
 
-  // Detect Resume Maker URL, strip it (and a leading colon/dash before it),
-  // then render a button at the end of the bubble.
+  // Detect Resume Maker URL, strip it (and a leading colon/dash before it).
   const hasResumeUrl = RESUME_MAKER_RE.test(t);
   RESUME_MAKER_RE.lastIndex = 0;
   if (hasResumeUrl) {
@@ -471,9 +485,22 @@ function renderBubbleText(text: string) {
     t = t.replace(/\s{2,}/g, " ").replace(/[\s,;.]+$/, "");
   }
 
+  // Detect known studojo dojo/tool links, strip them and queue buttons.
+  const linkButtons: { label: string; icon: string; href: string }[] = [];
+  for (const b of STUDOJO_LINK_BUTTONS) {
+    b.re.lastIndex = 0;
+    if (b.re.test(t)) {
+      b.re.lastIndex = 0;
+      t = t.replace(b.re, "").trim();
+      // Clean up a dangling "here:" / colon / trailing punctuation the URL left behind
+      t = t.replace(/\s*:\s*$/, "").replace(/\s{2,}/g, " ").replace(/[\s,;.]+$/, "");
+      linkButtons.push({ label: b.label, icon: b.icon, href: b.href });
+    }
+  }
+
   const urlRe = /(https?:\/\/[^\s)]+)/g;
   const parts = t.split(urlRe);
-  const rendered = parts.map((part, i) =>
+  const rendered: JSX.Element[] = parts.map((part, i) =>
     urlRe.test(part)
       ? <a key={i} href={part} target="_blank" rel="noopener noreferrer">{part}</a>
       : <span key={i}>{part}</span>
@@ -484,12 +511,22 @@ function renderBubbleText(text: string) {
       <a key="rm-btn" className="rm-upload-btn" href="https://studojo.com/resume-maker" target="_blank" rel="noopener noreferrer">
         <span className="rm-upload-icon">📄</span>
         <span>
-          <span className="rm-upload-title">If you don't have a resume, make one using this link</span>
-          <span className="rm-upload-sub">If you already have one, just continue chatting here, that's fine.</span>
+          <span className="rm-upload-title">Resume Maker</span>
+          <span className="rm-upload-sub">If you don't have a resume, make one here. If you already have one, just keep chatting.</span>
         </span>
       </a>
     );
   }
+
+  linkButtons.forEach((b, i) => {
+    rendered.push(
+      <a key={`lnk-${i}`} className="cc-link-btn" href={b.href} target="_blank" rel="noopener noreferrer">
+        <span className="cc-link-btn-icon">{b.icon}</span>
+        {b.label}
+      </a>
+    );
+  });
+
   return rendered;
 }
 
