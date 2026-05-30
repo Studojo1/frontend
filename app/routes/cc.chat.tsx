@@ -927,6 +927,11 @@ export default function CcChat() {
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
+      // If the backend returned a technical error AND has no message_id, the session
+      // is stale — treat it like a network failure and auto-recover.
+      if (data.reply === "i'm having a small technical issue, give me a moment and try again" && !data.message_id) {
+        throw new Error("stale session detected");
+      }
       await new Promise(r => setTimeout(r, Math.max(0, 600 - (Date.now() - t0))));
       setWaiting(false);
       const o = data.orchestration || {};
