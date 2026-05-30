@@ -174,6 +174,16 @@ const CSS = `
 .hist-role.agent{color:var(--accent-purple);}
 .hist-body{font-size:0.82rem;line-height:1.55;color:var(--text-primary);white-space:pre-wrap;word-break:break-word;}
 .hist-empty{padding:32px 16px;text-align:center;color:var(--text-muted);font-size:0.85rem;}
+/* New-chat button + conversation thread list */
+.hist-new-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:11px;background:var(--accent-purple);border:2px solid var(--accent-purple);border-radius:12px;color:#fff;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.86rem;font-weight:700;cursor:pointer;box-shadow:3px 3px 0 var(--shadow-c);transition:all 0.15s;}
+.hist-new-btn:hover{transform:translateY(-1px);box-shadow:5px 5px 0 var(--shadow-c);}
+.hist-conv-list{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+.hist-conv-card{display:flex;flex-direction:column;gap:5px;text-align:left;width:100%;padding:12px 14px;background:var(--bg-white);border:2px solid var(--border);border-radius:12px;cursor:pointer;box-shadow:2px 2px 0 var(--shadow-c);transition:all 0.15s;}
+.hist-conv-card:hover{transform:translateY(-1px);box-shadow:4px 4px 0 var(--shadow-c);border-color:var(--accent-purple);}
+.hist-conv-card.active{border-color:var(--accent-purple);background:var(--accent-light);}
+.hist-conv-title{font-size:0.86rem;font-weight:700;color:var(--text-primary);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hist-conv-meta{display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--text-muted);font-weight:500;}
+.hist-conv-badge{margin-left:auto;padding:1px 8px;background:var(--accent-purple);color:#fff;border-radius:999px;font-size:0.64rem;font-weight:700;letter-spacing:0.04em;}
 .skel-line{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--bg-secondary) 25%,var(--border) 50%,var(--bg-secondary) 75%);background-size:600px 100%;animation:shimmer 1.4s infinite linear;margin-bottom:10px;}
 .skel-line.short{width:40%;}
 .skel-line.medium{width:65%;}
@@ -460,7 +470,7 @@ const RESUME_MAKER_RE = /(?:https?:\/\/)?(?:www\.)?studojo\.com\/resume-maker[^\
 // instead of a raw URL. Each entry: a matcher regex, the button label, an icon,
 // and the canonical href.
 const STUDOJO_LINK_BUTTONS: { re: RegExp; label: string; icon: string; href: string }[] = [
-  { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/dojos\/internships[^\s)]*/gi, label: "Browse Internship Dojo", icon: "🎯", href: "https://studojo.com/dojos/internships" },
+  { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/dojos\/internships[^\s)]*/gi, label: "Browse Internship Dojo", icon: "", href: "https://studojo.com/dojos/internships" },
   { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/outreach[^\s)]*/gi, label: "Open Outreach Dojo", icon: "✉️", href: "https://studojo.com/outreach" },
   { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/reports[^\s)]*/gi, label: "Browse Reports", icon: "📊", href: "https://studojo.com/reports" },
   { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/dojos\/ai-risk[^\s)]*/gi, label: "Open AI Risk Dojo", icon: "🤖", href: "https://studojo.com/dojos/ai-risk" },
@@ -521,7 +531,7 @@ function renderBubbleText(text: string) {
   linkButtons.forEach((b, i) => {
     rendered.push(
       <a key={`lnk-${i}`} className="cc-link-btn" href={b.href} target="_blank" rel="noopener noreferrer">
-        <span className="cc-link-btn-icon">{b.icon}</span>
+        {b.icon && <span className="cc-link-btn-icon">{b.icon}</span>}
         {b.label}
       </a>
     );
@@ -544,8 +554,9 @@ export default function CcChat() {
   const [sidebarData, setSidebarData] = useState<any>(null);
   const [gapData, setGapData] = useState<any>(null);
   const [dnaRefreshing, setDnaRefreshing] = useState(false);
-  const [historyData, setHistoryData] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  // List of past chat threads, shown as resumable buttons in the history panel
+  const [conversations, setConversations] = useState<any[]>([]);
   const [tasks, setTasks] = useState<{ daily: any[]; weekly: any } | null>(null);
   const [taskBoxes, setTaskBoxes] = useState<Record<string, boolean>>({});
   // staged resume file shown as a chip above the input until the student hits Send
@@ -738,22 +749,82 @@ export default function CcChat() {
     })();
   }, [sidebarOpen, panel, sidebarData]);
 
-  // load history when history panel is opened (or after new messages arrive)
-  useEffect(() => {
+  // Load the LIST of past chat threads when the history panel is opened.
+  // Each is shown as a button the student can click to resume that conversation.
+  const loadConversationList = useCallback(async () => {
     const sid = studentIdRef.current;
-    if (!sidebarOpen || panel !== "history" || !sid) return;
+    if (!sid) return;
     setHistoryLoading(true);
-    (async () => {
-      try {
-        const r = await fetch(`${CC_API}/session/${sid}/history`);
-        if (r.ok) {
-          const data = await r.json();
-          setHistoryData(data.history || []);
-        }
-      } catch { /* history optional */ }
-      setHistoryLoading(false);
-    })();
-  }, [sidebarOpen, panel]);
+    try {
+      const r = await fetch(`${CC_API}/session/${sid}/conversations`);
+      if (r.ok) {
+        const data = await r.json();
+        setConversations(data.conversations || []);
+      }
+    } catch { /* history optional */ }
+    setHistoryLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!sidebarOpen || panel !== "history") return;
+    loadConversationList();
+  }, [sidebarOpen, panel, loadConversationList]);
+
+  // Load a specific conversation thread into the chat and make it active.
+  async function loadConversation(convId: string) {
+    const sid = studentIdRef.current;
+    if (!sid || !convId) return;
+    if (convId === conversationIdRef.current) {
+      // Already viewing this thread — just close the panel
+      setSidebarOpen(false);
+      return;
+    }
+    setWaiting(true);
+    try {
+      const r = await fetch(`${CC_API}/session/${sid}/conversation/${convId}/history`);
+      const data = await r.json();
+      const hist: Msg[] = [];
+      for (const m of (data.history || [])) {
+        const role = m.role === "assistant" ? "agent" : m.role;
+        const chunks = role === "agent"
+          ? String(m.content || "").split(/\n\s*\n/).map((s: string) => s.trim()).filter(Boolean)
+          : [m.content];
+        (chunks.length ? chunks : [""]).forEach((c: string) =>
+          hist.push({ role, content: c, state: m.state, time: now12h() }));
+      }
+      conversationIdRef.current = convId;
+      setMessages(hist);
+      if (data.last_state) setAgentState(data.last_state);
+      setHeaderHidden(true);
+      setReturning(false);
+      analysisAnnouncedRef.current = true; // don't re-announce DNA on a loaded thread
+      setSidebarOpen(false);
+      refreshSidebar();
+    } catch { /* ignore */ }
+    setWaiting(false);
+  }
+
+  // Start a brand-new chat thread.
+  async function startNewConversation() {
+    const sid = studentIdRef.current;
+    if (!sid) return;
+    setWaiting(true);
+    try {
+      const r = await fetch(`${CC_API}/session/${sid}/new-conversation`, { method: "POST" });
+      const data = await r.json();
+      conversationIdRef.current = data.conversation_id;
+      setMessages([]);
+      setAgentState("GREETING");
+      setReturning(false);
+      setHeaderHidden(true);
+      analysisAnnouncedRef.current = false;
+      setSidebarOpen(false);
+      setWaiting(false);
+      if (data.greeting) showGreeting(data.greeting);
+    } catch {
+      setWaiting(false);
+    }
+  }
 
   function toggleSidebar(forceOpen?: boolean) {
     const willOpen = forceOpen === true ? true : !sidebarOpen;
@@ -1862,52 +1933,58 @@ export default function CcChat() {
   }
 
   function renderHistory() {
-    if (historyLoading) {
-      return (
-        <div className="skel-wrap">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="skel-card">
-              <div className="skel-line short" style={{ marginBottom: 6 }} />
-              <div className="skel-line full" style={{ marginBottom: 0 }} />
-            </div>
-          ))}
-        </div>
-      );
-    }
-    if (!historyData.length) {
-      return <div className="hist-empty">No conversation history yet. Your messages will appear here as you chat.</div>;
-    }
+    const activeConvId = conversationIdRef.current;
 
-    // Group messages by day
-    const groups: Record<string, any[]> = {};
-    historyData.forEach(m => {
-      const date = m.created_at
-        ? new Date(m.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-        : "This session";
-      if (!groups[date]) groups[date] = [];
-      groups[date].push(m);
-    });
+    function fmtWhen(iso?: string) {
+      if (!iso) return "";
+      const d = new Date(iso);
+      const now = new Date();
+      const sameDay = d.toDateString() === now.toDateString();
+      if (sameDay) return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+      return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+    }
 
     return (
       <div className="hist-wrap">
-        {Object.entries(groups).map(([day, msgs]) => (
-          <div key={day} className="hist-day">
-            <div className="hist-day-label">{day}</div>
-            {msgs.map((m, i) => {
-              const role = m.role === "assistant" ? "agent" : m.role;
-              // Split agent bubbles on double-newline, show as separate blocks
-              const bubbles = role === "agent"
-                ? String(m.content || "").split(/\n\s*\n/).map((s: string) => s.trim()).filter(Boolean)
-                : [m.content];
-              return bubbles.map((b: string, j: number) => (
-                <div key={`${i}-${j}`} className={`hist-msg ${role}`} style={{ marginBottom: 4 }}>
-                  {j === 0 && <div className={`hist-role ${role}`}>{role === "agent" ? "Coach" : "You"}</div>}
-                  <div className="hist-body">{b}</div>
-                </div>
-              ));
+        <button className="hist-new-btn" onClick={startNewConversation}>
+          <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>＋</span> New chat
+        </button>
+
+        {historyLoading ? (
+          <div className="skel-wrap" style={{ marginTop: 12 }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="skel-card">
+                <div className="skel-line short" style={{ marginBottom: 6 }} />
+                <div className="skel-line full" style={{ marginBottom: 0 }} />
+              </div>
+            ))}
+          </div>
+        ) : !conversations.length ? (
+          <div className="hist-empty" style={{ marginTop: 12 }}>
+            No past chats yet. Start chatting and your conversations will appear here.
+          </div>
+        ) : (
+          <div className="hist-conv-list">
+            {conversations.map((c) => {
+              const isActive = c.conversation_id === activeConvId;
+              return (
+                <button
+                  key={c.conversation_id}
+                  className={`hist-conv-card${isActive ? " active" : ""}`}
+                  onClick={() => loadConversation(c.conversation_id)}
+                >
+                  <div className="hist-conv-title">{c.title || "New chat"}</div>
+                  <div className="hist-conv-meta">
+                    <span>{c.message_count} message{c.message_count === 1 ? "" : "s"}</span>
+                    <span>·</span>
+                    <span>{fmtWhen(c.last_activity || c.created_at)}</span>
+                    {isActive && <span className="hist-conv-badge">Current</span>}
+                  </div>
+                </button>
+              );
             })}
           </div>
-        ))}
+        )}
       </div>
     );
   }
