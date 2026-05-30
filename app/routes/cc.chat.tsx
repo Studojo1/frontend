@@ -992,6 +992,7 @@ export default function CcChat() {
     // If a resume is staged, upload it now (after bubble is shown).
     // The chat API call waits for the upload so the backend has the parsed
     // profile before it generates the reply.
+    let resumeWasParsed = false;
     if (resumeFile) {
       setResumeUploading(true);
       const resumeMsgs = [
@@ -1010,13 +1011,20 @@ export default function CcChat() {
       try {
         const fd = new FormData();
         fd.append("file", resumeFile);
-        await fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", body: fd });
+        const upRes = await fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", body: fd });
+        if (upRes.ok) {
+          const upData = await upRes.json().catch(() => ({}));
+          resumeWasParsed = Array.isArray(upData?.fields_extracted) && upData.fields_extracted.length > 0;
+        }
       } catch {
         // upload failed silently — chat message still sends
       }
       clearInterval(msgInterval);
       setResumeStatusMsg(null);
       setResumeUploading(false);
+      // Give the backend a moment to finish committing the parsed profile
+      // before the chat request reads it, to avoid a read/write race.
+      if (resumeWasParsed) await new Promise(r => setTimeout(r, 400));
     }
 
     // If no text was typed but a resume was uploaded, send a trigger message so
@@ -1029,15 +1037,27 @@ export default function CcChat() {
       const body: Record<string, string> = { student_id: sid, message: messageToSend };
       if (conversationIdRef.current) body.conversation_id = conversationIdRef.current;
       const outreachShown = sessionStorage.getItem("outreach_conv_shown") === "1" ? "1" : "0";
-      const res = await fetch(`${CC_API}/api/chat`, {
+
+      // Send the chat. After a resume upload, the backend may briefly be busy
+      // committing the parsed profile / generating DNA — retry the SAME
+      // conversation once before giving up, so we don't lose the resume context.
+      const postChat = () => fetch(`${CC_API}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Outreach-Shown": outreachShown },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      // If the backend returned a technical error AND has no message_id, the session
-      // is stale — treat it like a network failure and auto-recover.
+      let res = await postChat();
+      let data = res.ok ? await res.json() : null;
+      const isFail = (d: any, r: Response) =>
+        !r.ok || (d?.reply === "i'm having a small technical issue, give me a moment and try again" && !d?.message_id);
+      if (resumeWasParsed && isFail(data, res)) {
+        await new Promise(r => setTimeout(r, 1500));
+        res = await postChat();
+        data = res.ok ? await res.json() : null;
+      }
+      if (!res.ok || !data) throw new Error("HTTP " + res.status);
+      // If still a technical error with no message_id, the session is stale —
+      // fall through to the catch for full session recovery.
       if (data.reply === "i'm having a small technical issue, give me a moment and try again" && !data.message_id) {
         throw new Error("stale session detected");
       }
