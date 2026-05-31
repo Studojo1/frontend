@@ -11,13 +11,51 @@ const ADMIN_EMAILS = [
   "studojo@gmail.com",
 ];
 
+// The admin panel runs on its own subdomain and calls this route directly from
+// the browser with the shared `.studojo.com` / `.studojo.pro` session cookie.
+// Credentialed CORS requires echoing the exact origin (cannot use "*").
+const ALLOWED_ORIGINS = [
+  "https://admin.studojo.com",
+  "https://admin.studojo.pro",
+  "https://studojo.com",
+  "https://studojo.pro",
+  "http://localhost:3000",
+  "http://localhost:3001",
+];
+
+function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("Origin") || "";
+  const allow = ALLOWED_ORIGINS.includes(origin) ? origin : "";
+  const h: Record<string, string> = {
+    Vary: "Origin",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, x-cc-admin-secret",
+    "Access-Control-Allow-Credentials": "true",
+  };
+  if (allow) h["Access-Control-Allow-Origin"] = allow;
+  return h;
+}
+
+function jsonCors(request: Request, data: unknown, status = 200) {
+  return Response.json(data, { status, headers: corsHeaders(request) });
+}
+
+// Browser preflight (OPTIONS) for the cross-origin credentialed fetch.
+export async function action({ request }: Route.ActionArgs) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders(request) });
+  }
+  return jsonCors(request, { error: "Method not allowed" }, 405);
+}
+
 /**
  * Cross-platform user-activity feed for the Career Coach admin dashboard.
  *
  * Auth (either is accepted):
- *   - a logged-in admin BetterAuth session, OR
- *   - the shared secret header `x-cc-admin-secret` (server-to-server, used by
- *     the Career Coach backend proxy).
+ *   - a logged-in admin BetterAuth session (cookie shared across studojo
+ *     subdomains, e.g. admin.studojo.com calling studojo.com), OR
+ *   - the shared secret header `x-cc-admin-secret` matching CC_ADMIN_SECRET_KEY
+ *     (server-to-server, used by the Career Coach backend proxy).
  *
  * Returns, for a given email: sign-up method + when, login history (last
  * sessions with IP/device), and tool usage (Resume Maker resumes, internship
@@ -26,7 +64,7 @@ const ADMIN_EMAILS = [
 export async function loader({ request }: Route.LoaderArgs) {
   // --- auth ---
   const secret = request.headers.get("x-cc-admin-secret");
-  const expected = process.env.CC_ADMIN_SECRET || "";
+  const expected = process.env.CC_ADMIN_SECRET_KEY || process.env.CC_ADMIN_SECRET || "";
   let authorized = false;
 
   if (expected && secret && secret === expected) {
@@ -36,13 +74,13 @@ export async function loader({ request }: Route.LoaderArgs) {
     if (session && ADMIN_EMAILS.includes(session.user.email)) authorized = true;
   }
   if (!authorized) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return jsonCors(request, { error: "Unauthorized" }, 401);
   }
 
   const url = new URL(request.url);
   const email = (url.searchParams.get("email") || "").trim().toLowerCase();
   if (!email) {
-    return Response.json({ error: "email query param required" }, { status: 400 });
+    return jsonCors(request, { error: "email query param required" }, 400);
   }
 
   // --- resolve the user by email ---
@@ -56,7 +94,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (!user) {
     // Not a registered main-platform user (e.g. anonymous coach session).
-    return Response.json({ found: false, email });
+    return jsonCors(request, { found: false, email });
   }
   const userId: string = user.id;
 
@@ -119,7 +157,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     linked_at: a.created_at,
   }));
 
-  return Response.json({
+  return jsonCors(request, {
     found: true,
     email,
     user: {
