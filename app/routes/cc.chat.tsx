@@ -720,7 +720,8 @@ export default function CcChat() {
     const sid = studentIdRef.current;
     if (!sid) return;
     try {
-      const dRes = await fetch(`${CC_API}/dashboard/${sid}`);
+      const cid = conversationIdRef.current;
+      const dRes = await fetch(`${CC_API}/dashboard/${sid}${cid ? `?conversation_id=${cid}` : ""}`);
       const dData = await dRes.json();
       setSidebarData(dData);
       const pid = dData?.primary_path?.path_id;
@@ -1311,6 +1312,21 @@ export default function CcChat() {
   }
 
   function renderAnalysis(expanded: boolean) {
+    // Fresh "explore a new direction" chat — old analysis is intentionally not
+    // carried over. Show a clean prompt instead of the previous path's DNA.
+    if (sidebarData?.fresh_explore) {
+      return (
+        <div className="scard" style={{ textAlign: "center", padding: "32px 20px" }}>
+          <div className="scard-title" style={{ marginBottom: 8 }}>Fresh start</div>
+          <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+            {sidebarData.message || "Tell the coach the new direction you want to explore and a fresh Career Analysis will build here."}
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 14 }}>
+            Your previous analysis is safe — switch back anytime from Chat History.
+          </div>
+        </div>
+      );
+    }
     if (!dnaReady) {
       return (
         <div className="skel-wrap">
