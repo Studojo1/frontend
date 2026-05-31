@@ -127,6 +127,16 @@ const CSS = `
 #cc-pending-resume .pr-remove{background:none;border:none;color:var(--text-secondary);font-size:1rem;cursor:pointer;padding:0 4px;line-height:1;font-family:inherit;}
 #cc-pending-resume .pr-remove:hover{color:var(--text-primary);}
 #cc-pending-resume .pr-remove:disabled{opacity:0.4;cursor:not-allowed;}
+/* Profiling progress strip — sits above the input during PROFILING */
+#cc-profile-progress{flex-shrink:0;margin:0 22px 4px;padding:10px 14px;background:var(--accent-light);border:2px solid var(--accent-purple);border-radius:12px;box-shadow:3px 3px 0 var(--shadow-c);}
+#cc-profile-progress .pf-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;}
+#cc-profile-progress .pf-msg{font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.82rem;font-weight:700;color:var(--text-primary);line-height:1.35;}
+#cc-profile-progress .pf-meta{flex-shrink:0;font-size:0.72rem;font-weight:700;color:var(--accent-purple);white-space:nowrap;}
+#cc-profile-progress .pf-bar-track{height:8px;border-radius:999px;background:rgba(124,58,237,0.15);overflow:hidden;}
+#cc-profile-progress .pf-bar-fill{height:100%;border-radius:999px;background:var(--accent-purple);transition:width 0.6s ease;}
+#cc-profile-progress .pf-idle{margin-top:7px;font-size:0.74rem;color:var(--text-secondary);line-height:1.4;}
+#cc-profile-progress .pf-skip{margin-top:8px;background:none;border:none;padding:0;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.76rem;font-weight:700;color:var(--accent-purple);}
+#cc-profile-progress .pf-skip:hover{text-decoration:underline;}
 /* PREMIUM INPUT AREA — translucent surface, soft border, integrated attach
    + send, suggestion chips floating above, glow-on-focus halo. */
 #cc-input-area{flex-shrink:0;background:transparent;border-top:none;padding:10px 22px 18px;display:flex;flex-direction:column;gap:10px;}
@@ -647,6 +657,17 @@ export default function CcChat() {
   const [readyPopVisible, setReadyPopVisible] = useState(false);
   const analysisAnnouncedRef = useRef(false);
 
+  // Live profiling progress (drives the progress strip above the input that
+  // tells students how close they are to their Career DNA — reduces drop-off).
+  const [profileProgress, setProfileProgress] = useState<{
+    pct: number; areas: Record<string, any>; dnaReady: boolean; canSkip: boolean;
+  } | null>(null);
+  // Idle re-engagement hint: shows after the student leaves the input untouched
+  // mid-profiling. Cleared the moment they type or send.
+  const [idleHint, setIdleHint] = useState(false);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (idleTimerRef.current) clearTimeout(idleTimerRef.current); }, []);
+
   // unsaved-session banner for logged-out users
   const [unsavedBannerDismissed, setUnsavedBannerDismissed] = useState(false);
 
@@ -935,16 +956,46 @@ export default function CcChat() {
     }
   }
 
+  // Pull the profiling progress out of an orchestration payload and into state.
+  // Only relevant during GREETING/PROFILING; cleared once the DNA exists.
+  function applyProgress(o: any, state: string) {
+    if (!o) return;
+    if (state === "GREETING" || state === "PROFILING") {
+      setProfileProgress({
+        pct: Math.max(0, Math.min(100, Math.round(o.profile_completion ?? 0))),
+        areas: o.profile_areas || {},
+        dnaReady: !!o.dna_ready,
+        canSkip: !!o.enable_skip_profiling,
+      });
+    } else {
+      setProfileProgress(null);
+    }
+  }
+
+  // Restart the idle re-engagement timer. Fires once if the student goes quiet
+  // mid-profiling with an empty input. Any keystroke/submit clears it.
+  function armIdleTimer() {
+    setIdleHint(false);
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      if (agentState === "PROFILING" && (inputRef.current?.value ?? "") === "") {
+        setIdleHint(true);
+      }
+    }, 25000);
+  }
+
   function showGreeting(gd: any) {
     setWaiting(true);
     setTimeout(async () => {
       setWaiting(false);
       const state = gd.orchestration?.current_state || "GREETING";
       setAgentState(state);
+      applyProgress(gd.orchestration, state);
       if (Array.isArray(gd.suggestion_chips) && gd.suggestion_chips.length) {
         setChips(gd.suggestion_chips.slice(0, 3));
       }
       await appendAgentBubbles(gd.reply || gd.message || "Hey, what's going on? What are you trying to figure out?", undefined, state);
+      armIdleTimer();
     }, 500);
   }
 
@@ -976,6 +1027,9 @@ export default function CcChat() {
     const content = (overrideText ?? inputRef.current?.value ?? "").trim();
     const sid = studentIdRef.current;
     if (!sid) return;
+    // Any send clears the idle re-engagement hint/timer.
+    setIdleHint(false);
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     // Allow sending when text is empty if a resume is staged: that's how the
     // student commits the upload without typing anything.
     if (!content && !pendingResume) return;
@@ -1075,6 +1129,7 @@ export default function CcChat() {
       const o = data.orchestration || {};
       const state = o.current_state || agentState;
       setAgentState(state);
+      applyProgress(o, state);
       if (data.conversation_id) conversationIdRef.current = data.conversation_id;
       if (Array.isArray(data.suggestion_chips) && data.suggestion_chips.length) {
         setChips(data.suggestion_chips.slice(0, 3));
@@ -1085,6 +1140,7 @@ export default function CcChat() {
       }
       const cta = ctaForState(state, o);
       await appendAgentBubbles(data.reply, cta, state);
+      armIdleTimer();
       if (data.dna_refreshing) {
         setDnaRefreshing(true);
         openSidebarTo("analysis");
@@ -1134,6 +1190,7 @@ export default function CcChat() {
         const o2 = data2.orchestration || {};
         const state2 = o2.current_state || agentState;
         setAgentState(state2);
+        applyProgress(o2, state2);
         if (data2.conversation_id) conversationIdRef.current = data2.conversation_id;
         if (Array.isArray(data2.suggestion_chips) && data2.suggestion_chips.length) setChips(data2.suggestion_chips.slice(0, 3));
         await appendAgentBubbles(data2.reply, ctaForState(state2, o2), state2);
@@ -2271,6 +2328,36 @@ export default function CcChat() {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
+                {agentState === "PROFILING" && profileProgress && (() => {
+                  const pct = profileProgress.dnaReady ? 100 : profileProgress.pct;
+                  const coreAreas = ["identity", "career_direction", "experience", "skills", "motivation", "depth"];
+                  const areaVals = profileProgress.areas || {};
+                  const left = coreAreas.filter(a => areaVals[a] && areaVals[a].status !== "complete").length
+                    || (pct >= 100 ? 0 : Math.max(1, Math.round((100 - pct) / 17)));
+                  let msg: string;
+                  if (profileProgress.dnaReady) msg = "Building your Career DNA now…";
+                  else if (pct < 25) msg = "Just getting started — tell me your degree and the role you're aiming for.";
+                  else if (pct < 55) msg = "Good progress. A few more answers and I can build your Career DNA.";
+                  else if (pct < 85) msg = `Almost there — ${left} quick thing${left === 1 ? "" : "s"} left and your Career DNA is ready.`;
+                  else msg = "One more answer and your full Career Analysis unlocks.";
+                  return (
+                    <div id="cc-profile-progress">
+                      <div className="pf-row">
+                        <span className="pf-msg">{msg}</span>
+                        <span className="pf-meta">{profileProgress.dnaReady ? "100%" : `${left} of 6 left`}</span>
+                      </div>
+                      <div className="pf-bar-track"><div className="pf-bar-fill" style={{ width: `${pct}%` }} /></div>
+                      {idleHint && !profileProgress.dnaReady && (
+                        <div className="pf-idle">You're {pct}% of the way to your Career DNA — just keep going, this is quick.</div>
+                      )}
+                      {profileProgress.canSkip && !profileProgress.dnaReady && (
+                        <button className="pf-skip" onClick={() => sendMsg("I'm ready, show my analysis")}>
+                          I'm ready, show my analysis →
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
                 {pendingResume && (
                   <div id="cc-pending-resume">
                     <span className="pr-icon">📎</span>
@@ -2312,6 +2399,7 @@ export default function CcChat() {
                         e.target.style.height = "auto";
                         e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
                         setInputEmpty(!e.target.value);
+                        if (idleHint) setIdleHint(false);
                       }}
                     />
                     <button id="cc-send-btn" disabled={waiting || resumeUploading} onClick={() => sendMsg()} aria-label="Send">→</button>
