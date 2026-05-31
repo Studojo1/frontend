@@ -643,8 +643,6 @@ export default function CcChat() {
   // hook
   const [outreachNote, setOutreachNote] = useState<{ toolRec: string; jbPct: number; orPct: number } | null>(null);
   const [resumeStatusMsg, setResumeStatusMsg] = useState<string | null>(null);
-  const [discountEmailInput, setDiscountEmailInput] = useState("");
-  const [discountEmailSent, setDiscountEmailSent] = useState(false);
   const [hookVisible, setHookVisible] = useState(false);
   const [hookDismissing, setHookDismissing] = useState(false);
   const [statIdx, setStatIdx] = useState(0);
@@ -839,6 +837,13 @@ export default function CcChat() {
     toggleSidebar(true);
   }
 
+  // Discount-code path: take the student to their dashboard to log progress,
+  // then open the Resume Maker so they can add their new skills.
+  function goToDashboardThenResume() {
+    openSidebarTo("dashboard");
+    window.open("https://studojo.com/resume-maker", "_blank", "noopener,noreferrer");
+  }
+
   // ---- session init ----
   useEffect(() => {
     if (initDone.current) return;
@@ -949,18 +954,6 @@ export default function CcChat() {
     const jbPct = sidebarData?.primary_path?.job_board_reply_pct ?? 2;
     const orPct = sidebarData?.primary_path?.outreach_reply_pct ?? 10;
     setOutreachNote({ toolRec, jbPct, orPct });
-  }
-
-  async function submitDiscountEmail() {
-    const sid = studentIdRef.current;
-    if (!sid || !discountEmailInput.trim()) return;
-    try {
-      await fetch(`${CC_API}/api/student/${sid}/save-discount-intent`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: discountEmailInput.trim() }),
-      });
-      setDiscountEmailSent(true);
-    } catch { /* ignore */ }
   }
 
   async function sendMsg(overrideText?: string) {
@@ -1628,6 +1621,7 @@ export default function CcChat() {
               );
             })}
           </div>
+          {renderOutreachCallout()}
           <div className="xp-actions">
             <button className="btn-primary" onClick={() => setPanel("dashboard")}>Go to dashboard →</button>
           </div>
@@ -1690,12 +1684,14 @@ export default function CcChat() {
     if (cta === "outreach_dojo_getting_close") {
       return (
         <div className="scard" style={{ background: "#FFFBEB", borderColor: "#F59E0B", marginTop: 12 }}>
-          <div className="scard-title" style={{ color: "#92400E" }}>Almost ready for outreach</div>
+          <div className="scard-title" style={{ color: "#92400E" }}>Unlock a discount code</div>
           <div style={{ fontSize: 13, color: "#78350F", marginBottom: 10 }}>
-            Once you close your key skill gap, your reply rate will jump to ~{orPct}%. We can send a discount code for Outreach Dojo when you are ready.
+            Stay consistent for 4 weeks to earn a discount code. Log your progress and add your new skills to your resume to unlock it.
           </div>
-          <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: 13, fontWeight: 600, color: "#D97706" }}>Save a discount code →</a>
+          <button onClick={goToDashboardThenResume}
+            style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#D97706" }}>
+            Log progress and update your resume →
+          </button>
         </div>
       );
     }
@@ -1893,6 +1889,8 @@ export default function CcChat() {
 
           {tracker}
 
+          {renderOutreachDashboardNote()}
+
           <div className="xp-card">
             <div className="xp-card-title">Tools to move faster</div>
             {toolButtons()}
@@ -1933,8 +1931,11 @@ export default function CcChat() {
       return (
         <div className="scard" style={{ background: "#FFFBEB", borderColor: "#F59E0B", marginBottom: 10 }}>
           <div style={{ fontSize: 13, color: "#78350F" }}>
-            You are almost at the skill level where direct outreach converts. Once you close your gap, your reply rate will jump to ~{orPct}%.{" "}
-            <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer" style={{ color: "#D97706", fontWeight: 600 }}>Save a discount code →</a>
+            Stay consistent for 4 weeks to earn a discount code. Log your progress and add your new skills to your resume to unlock it.{" "}
+            <button onClick={goToDashboardThenResume}
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#D97706", fontWeight: 600, fontSize: 13 }}>
+              Log progress and update your resume →
+            </button>
           </div>
         </div>
       );
@@ -2193,20 +2194,11 @@ export default function CcChat() {
                       <span style={{ fontSize: 16 }}>📌</span>
                       <span style={{ flex: 1 }}>
                         {outreachNote.toolRec === "outreach_dojo_getting_close" ? (
-                          <>You are nearly at the skill level where direct outreach will convert well. Want a discount code for when you are ready?{" "}
-                            {discountEmailSent ? (
-                              <span style={{ color: "#065F46", fontWeight: 600 }}>✓ Saved. We will send it when you are ready.</span>
-                            ) : (
-                              <span style={{ display: "inline-flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-                                <input type="email" placeholder="your@email.com" value={discountEmailInput}
-                                  onChange={e => setDiscountEmailInput(e.target.value)}
-                                  style={{ padding: "4px 8px", border: "1.5px solid #F59E0B", borderRadius: 6, fontSize: 12, width: 160 }} />
-                                <button onClick={submitDiscountEmail}
-                                  style={{ padding: "4px 10px", background: "#F59E0B", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
-                                  Send me the code
-                                </button>
-                              </span>
-                            )}
+                          <>Stay consistent for 4 weeks to earn a discount code. Log your progress and add your new skills to your resume to unlock it.{" "}
+                            <button onClick={goToDashboardThenResume}
+                              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#D97706", fontWeight: 600, fontSize: 13 }}>
+                              Log progress and update your resume →
+                            </button>
                           </>
                         ) : outreachNote.toolRec === "outreach_dojo_first_move" ? (
                           <>Skip job boards. Your estimated reply rate via direct outreach is ~{outreachNote.orPct}% vs ~{outreachNote.jbPct}% on portals.{" "}
