@@ -574,9 +574,18 @@ export default function CcChat() {
   const [inputEmpty, setInputEmpty] = useState(true);
 
   // profile dropdown menu (top-right avatar)
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending: sessionPending } = authClient.useSession();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Require login to use the career coach. Once the session check resolves with
+  // no session, send the student to sign in and return here afterward.
+  useEffect(() => {
+    if (!sessionPending && !session) {
+      const here = typeof window !== "undefined" ? window.location.pathname : "/cc/chat";
+      window.location.href = `/auth?redirect=${encodeURIComponent(here)}`;
+    }
+  }, [sessionPending, session]);
 
   // theme toggle — persisted per authenticated user, falls back to a shared key
   // for unauthenticated sessions. Default is dark to match the existing look.
@@ -849,8 +858,11 @@ export default function CcChat() {
   }
 
   // ---- session init ----
+  // Wait until the auth check has resolved AND the student is logged in before
+  // starting a coach session — login is required to use the tool.
   useEffect(() => {
     if (initDone.current) return;
+    if (sessionPending || !session) return;
     initDone.current = true;
 
     // Skip the hook overlay — go straight to chat.
@@ -900,7 +912,7 @@ export default function CcChat() {
         if (hookDismissedRef.current) showGreeting(pendingGreetingRef.current);
       }
     })();
-  }, [refreshSidebar]);
+  }, [refreshSidebar, sessionPending, session]);
 
   function splitBubbles(text: string): string[] {
     const parts = String(text || "").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
@@ -2046,6 +2058,22 @@ export default function CcChat() {
   };
 
   const showUnsavedBanner = !session && messages.length > 0 && !unsavedBannerDismissed;
+
+  // Login required: while the auth check resolves, or before we redirect an
+  // unauthenticated visitor to sign in, don't render the chat at all.
+  if (sessionPending || !session) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <Header />
+        <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ fontFamily: "'Satoshi',sans-serif", color: "var(--text-secondary,#6B7280)", fontSize: 15 }}>
+            {sessionPending ? "Loading your career coach…" : "Please sign in to use the Career Coach. Redirecting…"}
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
