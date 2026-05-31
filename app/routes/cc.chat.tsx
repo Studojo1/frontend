@@ -820,6 +820,8 @@ export default function CcChat() {
       setSidebarOpen(false);
       setWaiting(false);
       if (data.greeting) showGreeting(data.greeting);
+      // Refresh the thread list so the previous chat (and this new one) show up
+      loadConversationList();
     } catch {
       setWaiting(false);
     }
