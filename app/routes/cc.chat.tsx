@@ -106,7 +106,7 @@ const CSS = `
 .rm-upload-title{display:block;font-size:0.86rem;font-weight:800;color:var(--text-primary);}
 .rm-upload-sub{display:block;font-size:0.74rem;color:var(--text-secondary);margin-top:2px;line-height:1.4;}
 /* Inline link-as-button for studojo tool/dojo URLs mentioned in chat */
-.cc-link-btn{display:inline-flex;align-items:center;gap:7px;margin-top:9px;padding:9px 15px;background:var(--accent-purple);border:2px solid var(--accent-purple);border-radius:12px;text-decoration:none;color:#fff;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.84rem;font-weight:700;box-shadow:3px 3px 0 var(--shadow-c);transition:all 0.15s;}
+.cc-link-btn{display:flex;width:fit-content;align-items:center;gap:7px;margin-top:10px;padding:10px 16px;background:var(--accent-purple);border:2px solid var(--accent-purple);border-radius:12px;text-decoration:none;color:#fff;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.84rem;font-weight:700;box-shadow:3px 3px 0 var(--shadow-c);transition:all 0.15s;white-space:nowrap;}
 .cc-link-btn:hover{transform:translateY(-1px);box-shadow:5px 5px 0 var(--shadow-c);}
 .cc-link-btn-icon{font-size:1rem;}
 .typing-dots{display:flex;gap:5px;padding:4px 0;}
@@ -532,7 +532,8 @@ function renderBubbleText(text: string) {
     rendered.push(
       <a key={`lnk-${i}`} className="cc-link-btn" href={b.href} target="_blank" rel="noopener noreferrer">
         {b.icon && <span className="cc-link-btn-icon">{b.icon}</span>}
-        {b.label}
+        <span>{b.label}</span>
+        <span aria-hidden="true">→</span>
       </a>
     );
   });
