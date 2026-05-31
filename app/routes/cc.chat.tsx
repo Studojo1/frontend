@@ -1583,6 +1583,7 @@ export default function CcChat() {
               const how = a.how_to_close || a.how_to_build || "";
               const steps = howSteps(how);
               const tool = toolLabel(a.linked_tool);
+              const execResource = a.execution_resource || "";
               const prio = (a.priority || "").toString().toLowerCase();
               const isOpen = openStep === i;
               return (
@@ -1611,7 +1612,12 @@ export default function CcChat() {
                         ) : how ? (
                           <ul><li>{how}</li></ul>
                         ) : null}
-                        {tool && (
+                        {execResource && (
+                          <div className="xp-tl-tool">
+                            {tool ? `Studojo tool: ${tool}` : `Use: ${execResource}`}
+                          </div>
+                        )}
+                        {!execResource && tool && (
                           <div className="xp-tl-tool">Studojo tool: {tool}</div>
                         )}
                       </div>
@@ -1642,6 +1648,7 @@ export default function CcChat() {
           const how = a.how_to_close || a.how_to_build || "";
           const steps = howSteps(how);
           const tool = toolLabel(a.linked_tool);
+          const execResource = a.execution_resource || "";
           const isOpen = openStep === i;
           return (
             <div key={i} className={`rm-step rm-clickable${isOpen ? " open" : ""}`}
@@ -1662,7 +1669,8 @@ export default function CcChat() {
                       ? steps.map((s, si) => <li key={"s" + si}>{s}</li>)
                       : how && <li><strong>How to start:</strong> {how}</li>}
                     {a.priority && <li><strong>Priority:</strong> {String(a.priority)}</li>}
-                    {tool && <li><strong>Tool that helps:</strong> {tool}</li>}
+                    {execResource && <li><strong>{tool ? "Tool that helps:" : "What helps you execute this:"}</strong> {tool || execResource}</li>}
+                    {!execResource && tool && <li><strong>Tool that helps:</strong> {tool}</li>}
                   </ul>
                 </div>
               )}
