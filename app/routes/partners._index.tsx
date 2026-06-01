@@ -14,32 +14,26 @@ export function meta({}: Route.MetaArgs) {
 
 const FEATURES = [
   {
-    icon: "🎯",
     title: "200 leads per run",
     desc: "Every run returns exactly 200 verified hiring managers — scored, ranked, and ready to use.",
   },
   {
-    icon: "✉️",
     title: "Verified emails",
     desc: "Every lead includes a verified work email with bounce-rate protection built in.",
   },
   {
-    icon: "🧠",
     title: "Personalised outreach intel",
     desc: "Each lead comes with a connection point, outreach angle, suggested opening, and timing rationale — written by AI for the specific candidate.",
   },
   {
-    icon: "🔗",
     title: "Webhook delivery",
     desc: "Get notified the moment a job completes. Or poll the status endpoint — your call.",
   },
   {
-    icon: "⚡",
     title: "10–15 min per run",
     desc: "Full discovery, scoring, web research, and email enrichment — delivered in under 15 minutes.",
   },
   {
-    icon: "💰",
     title: "₹7.5 per lead",
     desc: "₹1,500 per candidate run. 200 leads per run. No monthly fee, no seat license, no renewal.",
   },
@@ -134,12 +128,14 @@ export default function PartnersLanding() {
           </h2>
           <p className="mb-10 text-neutral-500">No setup. No scraping. No prompt engineering.</p>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((f) => (
+            {FEATURES.map((f, i) => (
               <div
                 key={f.title}
                 className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
               >
-                <div className="mb-3 text-3xl">{f.icon}</div>
+                <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg border-2 border-neutral-900 bg-violet-100 text-xs font-bold text-violet-700">
+                  {String(i + 1).padStart(2, "0")}
+                </div>
                 <h3 className="mb-1 font-['Clash_Display'] text-lg font-bold text-neutral-900">{f.title}</h3>
                 <p className="text-sm text-neutral-600">{f.desc}</p>
               </div>
