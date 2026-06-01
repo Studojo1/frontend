@@ -37,7 +37,9 @@ const API_DOCS_URL = "https://partners.studojo.com/docs";
 
 export default function PartnersDashboard() {
   const navigate = useNavigate();
-  const storedUser = getStoredUser();
+  // Stabilise with useState — getStoredUser() does JSON.parse and returns a new
+  // object on every call, so calling it directly causes an infinite useEffect loop.
+  const [storedUser] = useState(getStoredUser);
   const [me, setMe] = useState<Me | null>(null);
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [newKey, setNewKey] = useState<NewKeyData | null>(null);
@@ -74,7 +76,7 @@ export default function PartnersDashboard() {
   useEffect(() => {
     if (!storedUser) { navigate("/partners/login"); return; }
     load();
-  }, [load, navigate, storedUser]);
+  }, [load]); // storedUser/navigate are stable refs — omitting prevents re-trigger on object identity change
 
   const createKey = async () => {
     setCreatingKey(true);
