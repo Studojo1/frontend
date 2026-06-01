@@ -7,7 +7,7 @@ export function meta({}: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "The Studojo B2B API delivers 215 verified hiring manager contacts per candidate run — complete with personalised outreach intel. Build hiring intelligence into your product.",
+        "The Studojo B2B API delivers 200 verified hiring manager contacts per candidate run — complete with personalised outreach intel. Build hiring intelligence into your product.",
     },
   ];
 }
@@ -15,8 +15,8 @@ export function meta({}: Route.MetaArgs) {
 const FEATURES = [
   {
     icon: "🎯",
-    title: "215 leads per run",
-    desc: "Every run returns exactly 215 verified hiring managers — scored, ranked, and ready to use.",
+    title: "200 leads per run",
+    desc: "Every run returns exactly 200 verified hiring managers — scored, ranked, and ready to use.",
   },
   {
     icon: "✉️",
@@ -41,7 +41,7 @@ const FEATURES = [
   {
     icon: "💰",
     title: "₹7.5 per lead",
-    desc: "₹1,500 per candidate run. 215 leads per run. No monthly fee, no seat license, no renewal.",
+    desc: "₹1,500 per candidate run. 200 leads per run. No monthly fee, no seat license, no renewal.",
   },
 ];
 
@@ -88,7 +88,7 @@ export default function PartnersLanding() {
           into your product.
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-600">
-          The Studojo API delivers 215 verified hiring manager contacts per candidate run — complete with
+          The Studojo API delivers 200 verified hiring manager contacts per candidate run — complete with
           personalised outreach intel. Drop it into your platform and let your users start reaching decision-makers
           in minutes.
         </p>
@@ -115,7 +115,7 @@ export default function PartnersLanding() {
           </div>
           <div className="h-10 w-px bg-neutral-300" />
           <div className="text-center">
-            <div className="font-['Clash_Display'] text-3xl font-bold text-neutral-900">215</div>
+            <div className="font-['Clash_Display'] text-3xl font-bold text-neutral-900">200</div>
             <div className="text-xs text-neutral-500">leads per run</div>
           </div>
           <div className="h-10 w-px bg-neutral-300" />

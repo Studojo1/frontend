@@ -56,7 +56,7 @@ export default function PartnersPaymentSuccess() {
             {candidates && (
               <p className="mt-2 text-neutral-600">
                 <strong>{candidates.toLocaleString("en-IN")} candidate credits</strong> have been added to your account.
-                That's <strong>{(candidates * 215).toLocaleString("en-IN")} leads</strong> to deliver.
+                That's <strong>{(candidates * 200).toLocaleString("en-IN")} leads</strong> to deliver.
               </p>
             )}
             <Link

@@ -238,7 +238,7 @@ export default function PartnersDashboard() {
               <div className="mb-4 flex items-start justify-between">
                 <div>
                   <h2 className="font-['Clash_Display'] text-xl font-bold text-neutral-900">Candidate credits</h2>
-                  <p className="text-sm text-neutral-500">Each credit = 215 leads delivered</p>
+                  <p className="text-sm text-neutral-500">Each credit = 200 leads delivered</p>
                 </div>
                 <Link
                   to="/partners/checkout"
