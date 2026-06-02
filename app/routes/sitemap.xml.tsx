@@ -46,6 +46,7 @@ export async function loader() {
     { loc: "/reports/referrals-vs-applications-how-people-get-hired-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/rejection-report-what-happens-after-you-apply-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/singapore-remote-from-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/first-job-india-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
@@ -110,6 +111,7 @@ export async function loader() {
     "/reports/referrals-vs-applications-how-people-get-hired-2026": "2026-05-20",
     "/reports/rejection-report-what-happens-after-you-apply-2026": "2026-05-20",
     "/reports/singapore-remote-from-india-2026": "2026-05-23",
+    "/reports/first-job-india-2026": "2026-06-02",
   };
 
   const urls = [

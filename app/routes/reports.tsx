@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "first-job-india-2026",
+    publishDate: "2026-06-02",
+    title: "First Job Report India 2026: What Entry-Level Actually Looks Like",
+    subtitle: "First Jobs · India 2026",
+    excerpt: "India's first-job market in 2026 is not one ladder. IT services, GCCs, startups, BFSI, and sales teams all hire at 0 to 2 years, but campus brand, city, and proof shape who gets shortlists. This report maps where entry-level hiring concentrates, what CTC bands look like without fairy tales, and how to search when portals feel noisy.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "June 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "singapore-remote-from-india-2026",
     publishDate: "2026-05-23",
     title: "Singapore Remote Jobs from India 2026: The Real Map",
