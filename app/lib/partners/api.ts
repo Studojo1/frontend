@@ -63,11 +63,13 @@ export async function partnersFetch<T = unknown>(
 
   const data = await res.json();
   if (!res.ok) {
-    throw new PartnersApiError(
-      data?.detail ?? data?.message ?? `Request failed (${res.status})`,
-      res.status,
-      data,
-    );
+    const detail = data?.detail;
+    const errorMessage = typeof detail === "string"
+      ? detail
+      : Array.isArray(detail)
+      ? detail.map((e: any) => e.msg ?? JSON.stringify(e)).join(", ")
+      : data?.message ?? `Request failed (${res.status})`;
+    throw new PartnersApiError(errorMessage, res.status, data);
   }
   return data as T;
 }
