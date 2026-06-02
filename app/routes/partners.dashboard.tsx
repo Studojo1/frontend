@@ -186,7 +186,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
                 ["Base URL", "partners.studojo.com"],
                 ["Auth header", "X-API-Key"],
                 ["Leads per run", "215 verified contacts"],
-                ["Turnaround", "10–15 minutes"],
+                ["Turnaround", "30–45 minutes"],
                 ["Pricing", "1 credit per run"],
                 ["Format", "JSON over HTTPS"],
               ].map(([label, value]) => (
@@ -220,7 +220,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
               ["Hiring Authority Relevance", "The API identifies the specific individuals with the authority and organisational context to make a hiring decision for this candidate's profile. This requires reasoning about company size, structure, and stage — not just title matching."],
               ["Org-Stage Compatibility", "Companies at different funding stages hire differently. A very early-stage company's founder makes every hire personally. A later-stage company has formalised hiring infrastructure. The API models this — a lead's ranking reflects whether the specific person has the authority and accessibility to act."],
               ["Outreach Intelligence", "Each lead comes with five structured fields of pre-researched context synthesised from live company research — funding events, product direction, hiring signals, team composition — not generated from static profile pages."],
-              ["Async Processing", "Each run requires live company research, multi-step compatibility analysis, and per-lead content generation. Jobs complete asynchronously within 10–15 minutes. The API returns a job_id immediately and exposes a status endpoint for tracking."],
+              ["Async Processing", "Each run requires live company research, multi-step compatibility analysis, and per-lead content generation. Jobs complete asynchronously within 30–45 minutes. The API returns a job_id immediately and exposes a status endpoint for tracking."],
             ].map(([title, desc]) => (
               <div key={title as string} className="mb-5 rounded-xl border-2 border-neutral-200 p-5">
                 <div className="font-['Clash_Display'] font-bold text-neutral-900 mb-1">{title}</div>
