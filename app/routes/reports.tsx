@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "growth-marketing-jobs-skills-pay-hiring-2026",
+    publishDate: "2026-05-30",
+    title: "Growth Marketing Jobs 2026: Skills, Pay, and Who's Hiring",
+    subtitle: "Growth Marketing · 2026",
+    excerpt: "Growth marketing roles exploded on job boards, but titles vary wildly. This report defines what employers mean in 2026, which skills actually show up in reqs, illustrative US pay bands, who is hiring, and how students and career switchers break in with experiments instead of adjectives.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "first-job-india-2026",
     publishDate: "2026-06-02",
     title: "First Job Report India 2026: What Entry-Level Actually Looks Like",
