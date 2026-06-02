@@ -8,14 +8,14 @@ export function meta({}: Route.MetaArgs) {
 }
 
 const PRICE_PER_CANDIDATE = 1500; // ₹
-const LEADS_PER_RUN = 200;
+const LEADS_PER_RUN = 215;
 const MIN_CANDIDATES = 10;
 const MAX_CANDIDATES = 10_000;
 
 const PRESETS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
 const INCLUDED = [
-  "200 verified hiring manager contacts per run",
+  "215 verified hiring manager contacts per run",
   "Personalised outreach intel (5 fields per lead)",
   "Verified work emails with bounce rate protection",
   "Web research + company context per lead",
