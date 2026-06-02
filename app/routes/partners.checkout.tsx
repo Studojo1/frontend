@@ -9,10 +9,10 @@ export function meta({}: Route.MetaArgs) {
 
 const PRICE_PER_CANDIDATE = 1500; // ₹
 const LEADS_PER_RUN = 200;
-const MIN_CANDIDATES = 50;
+const MIN_CANDIDATES = 10;
 const MAX_CANDIDATES = 10_000;
 
-const PRESETS = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
+const PRESETS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
 const INCLUDED = [
   "200 verified hiring manager contacts per run",
@@ -146,7 +146,7 @@ export default function PartnersCheckout() {
                 type="range"
                 min={MIN_CANDIDATES}
                 max={MAX_CANDIDATES}
-                step={50}
+                step={5}
                 value={candidates}
                 onChange={(e) => { setCandidates(Number(e.target.value)); setCouponState({}); }}
                 className="w-full accent-violet-500"
