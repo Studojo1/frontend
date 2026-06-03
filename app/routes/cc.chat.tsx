@@ -1132,20 +1132,41 @@ export default function CcChat() {
         msgIdx = (msgIdx + 1) % resumeMsgs.length;
         setResumeStatusMsg(resumeMsgs[msgIdx]);
       }, 1800);
-      try {
+      let uploadReason: string | null = null;   // user-facing reason if it didn't parse
+      const uploadOnce = () => {
         const fd = new FormData();
         fd.append("file", resumeFile);
-        const upRes = await fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", body: fd });
+        return fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", body: fd });
+      };
+      try {
+        let upRes = await uploadOnce();
+        // Retry once on a transient (5xx / network) — but NOT on a 4xx, which is
+        // a real "this file can't be read" answer we should show the student.
+        if (!upRes.ok && upRes.status >= 500) {
+          await new Promise(r => setTimeout(r, 1500));
+          upRes = await uploadOnce();
+        }
         if (upRes.ok) {
           const upData = await upRes.json().catch(() => ({}));
           resumeWasParsed = Array.isArray(upData?.fields_extracted) && upData.fields_extracted.length > 0;
+        } else if (upRes.status >= 400 && upRes.status < 500) {
+          // e.g. scanned image / not a resume — surface the backend's message.
+          const errData = await upRes.json().catch(() => ({}));
+          uploadReason = errData?.detail || "I couldn't read that file. You can keep answering in the chat instead.";
         }
       } catch {
-        // upload failed silently — chat message still sends
+        uploadReason = "The upload didn't go through. You can try again, or just answer in the chat.";
       }
       clearInterval(msgInterval);
       setResumeStatusMsg(null);
       setResumeUploading(false);
+      // If the file couldn't be parsed, tell the student plainly and stop here —
+      // don't send a misleading "I uploaded my resume" turn the agent can't honour.
+      if (uploadReason && !content) {
+        setWaiting(false);
+        setMessages(prev => [...prev, { role: "agent", content: uploadReason as string, time: now12h() }]);
+        return;
+      }
       // Give the backend a moment to finish committing the parsed profile
       // before the chat request reads it, to avoid a read/write race.
       if (resumeWasParsed) await new Promise(r => setTimeout(r, 400));
@@ -1162,22 +1183,27 @@ export default function CcChat() {
       if (conversationIdRef.current) body.conversation_id = conversationIdRef.current;
       const outreachShown = sessionStorage.getItem("outreach_conv_shown") === "1" ? "1" : "0";
 
-      // Send the chat. After a resume upload, the backend may briefly be busy
-      // committing the parsed profile / generating DNA — retry the SAME
-      // conversation once before giving up, so we don't lose the resume context.
+      // Send the chat with resilient retries. Transient failures (a pod
+      // restart during a deploy, a brief DB hiccup, or the backend still
+      // committing a freshly-parsed resume) resolve within a few seconds, so we
+      // retry the SAME conversation with backoff before ever giving up — the
+      // student should never hit a dead end for a passing blip.
       const postChat = () => fetch(`${CC_API}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Outreach-Shown": outreachShown },
         body: JSON.stringify(body),
       });
-      let res = await postChat();
-      let data = res.ok ? await res.json() : null;
       const isFail = (d: any, r: Response) =>
         !r.ok || (d?.reply === "i'm having a small technical issue, give me a moment and try again" && !d?.message_id);
-      if (resumeWasParsed && isFail(data, res)) {
-        await new Promise(r => setTimeout(r, 1500));
+
+      let res = await postChat();
+      let data = res.ok ? await res.json().catch(() => null) : null;
+      // More patience after a resume upload (DNA/profile commit can take longer).
+      const backoffs = resumeWasParsed ? [1500, 2500, 4000] : [1200, 2500];
+      for (let i = 0; i < backoffs.length && isFail(data, res); i++) {
+        await new Promise(r => setTimeout(r, backoffs[i]));
         res = await postChat();
-        data = res.ok ? await res.json() : null;
+        data = res.ok ? await res.json().catch(() => null) : null;
       }
       if (!res.ok || !data) throw new Error("HTTP " + res.status);
       // If still a technical error with no message_id, the session is stale —
@@ -1224,7 +1250,8 @@ export default function CcChat() {
         }
       }
     } catch {
-      // Clear stale session and retry once with a fresh session
+      // Full session recovery: the session looked stale, so start fresh and
+      // replay the message (with one backoff retry) on the new session.
       try {
         localStorage.removeItem(STORAGE_KEY);
         const authEmail = session?.user?.email;
@@ -1234,19 +1261,27 @@ export default function CcChat() {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body2),
         });
+        if (!rs.ok) throw new Error("session restart failed");
         const sd = await rs.json();
+        if (!sd?.student_id) throw new Error("no student_id");
         studentIdRef.current = sd.student_id;
         conversationIdRef.current = sd.conversation_id;
         localStorage.setItem(STORAGE_KEY, sd.student_id);
 
         const outreachShown2 = sessionStorage.getItem("outreach_conv_shown") === "1" ? "1" : "0";
-        const res2 = await fetch(`${CC_API}/api/chat`, {
+        const postRetry = () => fetch(`${CC_API}/api/chat`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-Outreach-Shown": outreachShown2 },
           body: JSON.stringify({ student_id: sd.student_id, message: messageToSend, conversation_id: sd.conversation_id }),
         });
-        if (!res2.ok) throw new Error("retry failed");
-        const data2 = await res2.json();
+        let res2 = await postRetry();
+        let data2 = res2.ok ? await res2.json().catch(() => null) : null;
+        if (!res2.ok || !data2) {
+          await new Promise(r => setTimeout(r, 2000));
+          res2 = await postRetry();
+          data2 = res2.ok ? await res2.json().catch(() => null) : null;
+        }
+        if (!res2.ok || !data2) throw new Error("retry failed");
         setWaiting(false);
         const o2 = data2.orchestration || {};
         const state2 = o2.current_state || agentState;
@@ -1256,9 +1291,19 @@ export default function CcChat() {
         if (Array.isArray(data2.suggestion_chips) && data2.suggestion_chips.length) setChips(data2.suggestion_chips.slice(0, 3));
         await appendAgentBubbles(data2.reply, ctaForState(state2, o2), state2);
       } catch {
+        // Genuine, persistent failure. Never strand the student: restore the
+        // text they typed so they don't lose it, and tell them to tap send.
         setWaiting(false);
+        if (inputRef.current && messageToSend && messageToSend !== "I just uploaded my resume.") {
+          inputRef.current.value = messageToSend;
+          inputRef.current.style.height = "auto";
+          inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 140) + "px";
+          setInputEmpty(false);
+        }
         setMessages(prev => [...prev, {
-          role: "agent", content: "Something went wrong on my end, try sending that again.", time: now12h(),
+          role: "agent",
+          content: "I couldn't get that through just now — give it a couple of seconds and tap send again. Your message is still in the box.",
+          time: now12h(),
         }]);
       }
     }
