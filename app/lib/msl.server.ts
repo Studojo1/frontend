@@ -100,7 +100,6 @@ export interface MslStats {
   generatedAt: string;
 }
 
-const PAID_STATUSES = ["paid", "captured", "succeeded", "completed"];
 
 export async function getMslStats(): Promise<MslStats> {
   const [
@@ -133,28 +132,28 @@ export async function getMslStats(): Promise<MslStats> {
         COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr,
         COALESCE(SUM(CASE WHEN currency<>'INR' OR currency IS NULL THEN amount_cents END),0)::bigint AS usd
       FROM payment_orders
-      WHERE status = ANY(${PAID_STATUSES}) AND created_at >= NOW() - INTERVAL '1 day'
+      WHERE status IN ('paid','captured','succeeded','completed') AND created_at >= NOW() - INTERVAL '1 day'
     `),
     db.execute(sql`
       SELECT
         COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr,
         COALESCE(SUM(CASE WHEN currency<>'INR' OR currency IS NULL THEN amount_cents END),0)::bigint AS usd
       FROM payment_orders
-      WHERE status = ANY(${PAID_STATUSES}) AND created_at >= NOW() - INTERVAL '7 days'
+      WHERE status IN ('paid','captured','succeeded','completed') AND created_at >= NOW() - INTERVAL '7 days'
     `),
     db.execute(sql`
       SELECT
         COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr,
         COALESCE(SUM(CASE WHEN currency<>'INR' OR currency IS NULL THEN amount_cents END),0)::bigint AS usd
       FROM payment_orders
-      WHERE status = ANY(${PAID_STATUSES}) AND created_at >= NOW() - INTERVAL '30 days'
+      WHERE status IN ('paid','captured','succeeded','completed') AND created_at >= NOW() - INTERVAL '30 days'
     `),
     db.execute(sql`
       SELECT
         COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr,
         COALESCE(SUM(CASE WHEN currency<>'INR' OR currency IS NULL THEN amount_cents END),0)::bigint AS usd
       FROM payment_orders
-      WHERE status = ANY(${PAID_STATUSES})
+      WHERE status IN ('paid','captured','succeeded','completed')
     `),
     db.execute(sql`
       SELECT
@@ -163,12 +162,12 @@ export async function getMslStats(): Promise<MslStats> {
         COALESCE(SUM(CASE WHEN currency<>'INR' OR currency IS NULL THEN amount_cents END),0)::bigint AS usd,
         COUNT(*)::int AS orders
       FROM payment_orders
-      WHERE status = ANY(${PAID_STATUSES}) AND created_at >= NOW() - INTERVAL '30 days'
+      WHERE status IN ('paid','captured','succeeded','completed') AND created_at >= NOW() - INTERVAL '30 days'
       GROUP BY day
       ORDER BY day ASC
     `),
-    db.execute(sql`SELECT COUNT(DISTINCT user_id)::int AS c FROM payment_orders WHERE status = ANY(${PAID_STATUSES})`),
-    db.execute(sql`SELECT COUNT(DISTINCT user_id)::int AS c FROM payment_orders WHERE status = ANY(${PAID_STATUSES}) AND created_at >= NOW() - INTERVAL '30 days'`),
+    db.execute(sql`SELECT COUNT(DISTINCT user_id)::int AS c FROM payment_orders WHERE status IN ('paid','captured','succeeded','completed')`),
+    db.execute(sql`SELECT COUNT(DISTINCT user_id)::int AS c FROM payment_orders WHERE status IN ('paid','captured','succeeded','completed') AND created_at >= NOW() - INTERVAL '30 days'`),
   ]);
 
   const cents = (n: unknown) => Number(n ?? 0) / 100;
