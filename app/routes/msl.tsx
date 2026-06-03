@@ -1,4 +1,4 @@
-import { Form, redirect, useLoaderData, useSearchParams } from "react-router";
+import { Form, redirect, useLoaderData } from "react-router";
 import {
   buildSessionCookie,
   clearSessionCookie,
@@ -17,13 +17,15 @@ export function meta() {
   return [{ title: "MSL Dashboard" }, { name: "robots", content: "noindex,nofollow" }];
 }
 
-interface LoaderData { authed: boolean; loginError?: string | null; stats?: MslStats }
+interface LoaderData { authed: boolean; loginError?: string | null; stats?: MslStats; selectedDay?: CalendarDay | null }
 
 export async function loader({ request }: Route.LoaderArgs): Promise<LoaderData> {
   const url = new URL(request.url);
   if (!isAuthed(request)) return { authed: false, loginError: url.searchParams.get("error") };
   const stats = await getMslStats();
-  return { authed: true, stats };
+  const dayParam = url.searchParams.get("day");
+  const selectedDay = dayParam ? (stats.calendar.find((d) => d.date === dayParam) ?? null) : null;
+  return { authed: true, stats, selectedDay };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -38,7 +40,7 @@ export async function action({ request }: Route.ActionArgs) {
 export default function MslPage() {
   const data = useLoaderData<typeof loader>() as LoaderData;
   if (!data.authed) return <LoginView error={data.loginError ?? null} />;
-  return <DashboardView stats={data.stats!} />;
+  return <DashboardView stats={data.stats!} selectedDay={data.selectedDay ?? null} />;
 }
 
 function LoginView({ error }: { error: string | null }) {
@@ -75,15 +77,12 @@ const fmtInr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 const fmtUsd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 const fmtInt = (n: number) => n.toLocaleString("en-IN");
 
-function DashboardView({ stats }: { stats: MslStats }) {
-  const [params] = useSearchParams();
-  const selected = params.get("day") ?? null;
+function DashboardView({ stats, selectedDay }: { stats: MslStats; selectedDay: CalendarDay | null }) {
+  const selected = selectedDay?.date ?? null;
 
   const generated = new Date(stats.generatedAt).toLocaleString("en-IN", {
     day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
   });
-
-  const selectedDay = selected ? stats.calendar.find((d) => d.date === selected) ?? null : null;
 
   return (
     <div className="min-h-screen bg-studojo-surface">
