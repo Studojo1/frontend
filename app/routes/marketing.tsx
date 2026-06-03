@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   FiSearch, FiBriefcase, FiUser, FiLinkedin, FiMail, FiCheck, FiAlertCircle,
-  FiRefreshCw, FiZap, FiCopy, FiExternalLink, FiTrendingUp,
+  FiRefreshCw, FiZap, FiCopy, FiExternalLink, FiTrendingUp, FiMapPin,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -45,6 +45,7 @@ interface EnrichResponse {
 export default function MarketingDojoPage() {
   const [company, setCompany] = useState("");
   const [position, setPosition] = useState("");
+  const [location, setLocation] = useState("");
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState<FindLeadResponse | null>(null);
   const [error, setError] = useState("");
@@ -54,7 +55,7 @@ export default function MarketingDojoPage() {
   const [enrichConfirm, setEnrichConfirm] = useState(false);
   const [emailCopied, setEmailCopied] = useState(false);
 
-  const runSearch = async (companyName: string, role: string) => {
+  const runSearch = async (companyName: string, role: string, loc: string) => {
     if (!companyName.trim() || !role.trim()) {
       setError("Enter both a company and a position.");
       return;
@@ -67,7 +68,11 @@ export default function MarketingDojoPage() {
     try {
       const r = await outreachFetch<FindLeadResponse>("/marketing/find-lead", {
         method: "POST",
-        body: JSON.stringify({ company: companyName.trim(), position: role.trim() }),
+        body: JSON.stringify({
+          company: companyName.trim(),
+          position: role.trim(),
+          location: loc.trim() || undefined,
+        }),
       });
       setResult(r);
     } catch (err: any) {
@@ -79,12 +84,12 @@ export default function MarketingDojoPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    runSearch(company, position);
+    runSearch(company, position, location);
   };
 
   const handleSimilarClick = (cName: string) => {
     setCompany(cName);
-    runSearch(cName, position);
+    runSearch(cName, position, location);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -175,6 +180,20 @@ export default function MarketingDojoPage() {
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
                   placeholder="e.g. Head of Marketing, Analyst, VP Sales"
+                  className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold font-satoshi text-studojo-ink uppercase tracking-wide mb-1.5">
+                Location <span className="text-studojo-muted font-medium normal-case">(optional)</span>
+              </label>
+              <div className="relative">
+                <FiMapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-studojo-muted" />
+                <input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="e.g. India, San Francisco, London"
                   className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
                 />
               </div>
