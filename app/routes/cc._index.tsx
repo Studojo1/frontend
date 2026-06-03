@@ -1,8 +1,60 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { FiTarget, FiTrendingUp, FiCalendar, FiArrowRight } from "react-icons/fi";
 import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
+import { authClient } from "~/lib/auth-client";
+
+// For a returning, logged-in student who already has a Career DNA, show their
+// progress + a "continue" action ON the coach page (not a homepage banner).
+// New/logged-out users see nothing here. Uses the same-origin summary proxy.
+function ReturningStudentProgress() {
+  const { data: auth } = authClient.useSession();
+  const [summary, setSummary] = useState<any>(null);
+  useEffect(() => {
+    if (!auth?.user) return;
+    fetch("/api/career-coach/summary")
+      .then((r) => r.json())
+      .then((d) => setSummary(d))
+      .catch(() => setSummary(null));
+  }, [auth?.user]);
+
+  if (!auth?.user || !summary?.found || !summary?.has_analysis) return null;
+  return (
+    <section className="px-4 py-6 md:px-8" style={{ backgroundColor: PAGE_BG }}>
+      <div className="mx-auto max-w-3xl rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-full border-2 border-violet-500 bg-violet-100">
+            <span className="font-['Clash_Display'] text-xl font-black leading-none text-violet-700">{summary.readiness_score ?? 0}</span>
+            <span className="font-['Satoshi'] text-[9px] text-violet-500">/100</span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-['Clash_Display'] text-lg font-bold text-neutral-900">Welcome back</span>
+              {summary.level_label && (
+                <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-bold text-violet-700">
+                  Level {summary.level} · {summary.level_label}
+                </span>
+              )}
+            </div>
+            {summary.next_action && (
+              <p className="mt-1 font-['Satoshi'] text-sm text-neutral-600">
+                <span className="font-semibold text-neutral-800">Next step:</span> {summary.next_action}
+              </p>
+            )}
+          </div>
+          <Link
+            to={summary.chat_url || "/cc/chat"}
+            className="inline-flex h-12 flex-shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-neutral-900 bg-violet-500 px-6 font-['Satoshi'] text-sm font-bold text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+          >
+            Continue with your Career Coach <FiArrowRight />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export function meta() {
   return [
@@ -225,6 +277,9 @@ export default function CcIndex() {
           </div>
           <style>{`@media(min-width:768px){.hero-aspect{padding-bottom:56.25%!important}}`}</style>
         </section>
+
+        {/* Returning logged-in students see their progress here (not a banner) */}
+        <ReturningStudentProgress />
 
 
         {/* ── How it works ─────────────────────────────────────────────── */}
