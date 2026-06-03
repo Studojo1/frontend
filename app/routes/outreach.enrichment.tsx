@@ -326,10 +326,12 @@ export default function EnrichmentPage() {
       return {
         display: match.display_price || `${currSymbol}${(raw / 100).toFixed(0)}`,
         discounted: discounted ? `${currSymbol}${(discounted / 100).toFixed(0)}` : null,
+        anchor: match.anchor_display ?? null,         // e.g. "₹2500" — struck-out
+        discountPct: match.discount_pct ?? null,      // e.g. 27 — "Save 27%"
       };
     }
     const fallback = TIERS.find((t) => t.value === tierValue)?.fallbackPrice ?? "—";
-    return { display: fallback, discounted: null };
+    return { display: fallback, discounted: null, anchor: null, discountPct: null };
   };
 
   return (
@@ -414,7 +416,13 @@ export default function EnrichmentPage() {
 
                 <div className="mb-4">
                   <p className="font-clash text-xs font-bold text-studojo-muted uppercase tracking-wider mb-1">{tier.name}</p>
-                  <div className="flex items-end gap-2">
+                  <div className="flex items-end gap-2 flex-wrap">
+                    {/* Anchor (was-price) only when no coupon override is active */}
+                    {price.anchor && !price.discounted && (
+                      <span className="text-lg line-through text-studojo-muted font-clash font-bold mb-1">
+                        {price.anchor}
+                      </span>
+                    )}
                     <span className="font-clash text-4xl font-black text-studojo-ink">{price.display}</span>
                     {price.discounted && (
                       <span className="text-base line-through text-studojo-muted font-satoshi mb-1">{price.display}</span>
@@ -423,7 +431,12 @@ export default function EnrichmentPage() {
                   {price.discounted && (
                     <span className="font-clash text-4xl font-black text-studojo-green">{price.discounted}</span>
                   )}
-                  <p className="text-xs text-studojo-muted font-satoshi mt-1">{tier.tagline}</p>
+                  {price.discountPct != null && price.discountPct > 0 && !price.discounted && (
+                    <span className="inline-flex items-center mt-2 px-2 py-0.5 rounded-full text-xs font-satoshi font-bold bg-studojo-green/15 text-studojo-green border border-studojo-green/40">
+                      Save {price.discountPct}%
+                    </span>
+                  )}
+                  <p className="text-xs text-studojo-muted font-satoshi mt-2">{tier.tagline}</p>
                 </div>
 
                 <ul className="space-y-2.5 mb-6 flex-1">
