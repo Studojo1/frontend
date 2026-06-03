@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useState, useCallback, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { FiUpload, FiFileText, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -19,6 +19,23 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<ResumePreview | null>(null);
   const [error, setError] = useState("");
+
+  // Qualified handoff from the Career Coach: it passes the student's target
+  // companies so this flow starts pre-populated. Stash them for later steps.
+  const [searchParams] = useSearchParams();
+  const fromCoach = searchParams.get("from") === "coach";
+  const coachCompanies = (searchParams.get("companies") || "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
+  useEffect(() => {
+    if (fromCoach && coachCompanies.length) {
+      try {
+        sessionStorage.setItem("coach_target_companies", JSON.stringify(coachCompanies));
+      } catch {}
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromCoach]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -92,9 +109,21 @@ export default function UploadPage() {
           {!preview ? (
             <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8">
               <h1 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Upload Your Resume</h1>
-              <p className="text-sm text-studojo-muted font-satoshi mb-8">
+              <p className="text-sm text-studojo-muted font-satoshi mb-4">
                 We'll read your resume and find hiring managers who match your background.
               </p>
+
+              {fromCoach && coachCompanies.length > 0 && (
+                <div className="mb-8 rounded-xl border-2 border-studojo-purple bg-studojo-purple-bg/50 p-4">
+                  <p className="text-sm font-satoshi font-semibold text-studojo-ink mb-1">
+                    Brought over from your Career Coach
+                  </p>
+                  <p className="text-xs font-satoshi text-studojo-muted">
+                    We'll target the companies you've been working towards:{" "}
+                    <span className="font-semibold text-studojo-ink">{coachCompanies.join(", ")}</span>.
+                  </p>
+                </div>
+              )}
 
               <div
                 onDragOver={(e) => e.preventDefault()}
