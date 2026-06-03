@@ -928,6 +928,38 @@ export default function CcChat() {
         const gRes = await fetch(`${CC_API}/chat/greeting?student_id=${sd.student_id}&conversation_id=${sd.conversation_id}`);
         pendingGreetingRef.current = await gRes.json();
         if (hookDismissedRef.current) showGreeting(pendingGreetingRef.current);
+
+        // Entry seed: arrived from another Studojo tool (e.g. AI Risk Dojo).
+        // Pre-fill the first message with the role they just analysed so the
+        // coach starts on-topic. The student still presses send (stays in control).
+        try {
+          const sp = new URLSearchParams(window.location.search);
+          const seedRole = sp.get("seed_role");
+          const src = sp.get("src");
+          if (seedRole && inputRef.current && !inputRef.current.value) {
+            const risk = sp.get("risk");
+            inputRef.current.value =
+              src === "ai-risk"
+                ? `I just checked and my target role "${seedRole}" is ${risk ?? "highly"}% at risk from AI. Help me build a future-proof plan.`
+                : `I want to work towards becoming a ${seedRole}.`;
+            inputRef.current.style.height = "auto";
+            inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 140) + "px";
+            setInputEmpty(false);
+            inputRef.current.focus();
+            // Fire acquisition analytics (best-effort).
+            if (src) {
+              fetch(`${CC_API}/admin/track`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  event_type: src === "ai-risk" ? "acq_from_ai_risk" : "acq_from_tool",
+                  student_id: sd.student_id,
+                  event_data: { src, seed_role: seedRole, risk: sp.get("risk") },
+                }),
+              }).catch(() => {});
+            }
+          }
+        } catch {}
       } catch {
         pendingGreetingRef.current = { reply: "Hey, what are you working through? Job search stuff, or something else?" };
         if (hookDismissedRef.current) showGreeting(pendingGreetingRef.current);
@@ -1792,6 +1824,31 @@ export default function CcChat() {
       );
     }
     const isFirstMove = cta === "outreach_dojo_first_move";
+    // Qualified handoff: carry the student's target companies into Outreach
+    // onboarding so it starts pre-populated, and flag the source.
+    const companies: string[] = Array.isArray(sidebarData?.primary_path?.target_companies)
+      ? sidebarData!.primary_path!.target_companies
+      : [];
+    const handoffParams = new URLSearchParams({ from: "coach" });
+    if (companies.length) handoffParams.set("companies", companies.slice(0, 10).join(","));
+    const handoffUrl = `/outreach/onboarding/upload?${handoffParams.toString()}`;
+
+    function goToOutreach() {
+      const sid = studentIdRef.current;
+      if (sid) {
+        fetch(`${CC_API}/admin/track`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event_type: "handoff_to_outreach",
+            student_id: sid,
+            event_data: { companies: companies.slice(0, 10), cta },
+          }),
+        }).catch(() => {});
+      }
+      window.location.href = handoffUrl;
+    }
+
     return (
       <div className="scard" style={{ background: "#FFFBEB", borderColor: "#F59E0B", marginTop: 12 }}>
         <div className="scard-title" style={{ color: "#92400E" }}>⚡ Tool that speeds this up</div>
@@ -1799,11 +1856,14 @@ export default function CcChat() {
           {isFirstMove
             ? `Job boards get ~${jbPct}% reply rate. Skip them. Direct outreach to hiring managers gets ~${orPct}% for your profile.`
             : `Job boards get ~${jbPct}% reply rate for your profile. Direct outreach to hiring managers gets ~${orPct}%. Outreach Dojo finds the right person at your target company and helps you reach them directly.`}
+          {companies.length > 0 && (
+            <span> We'll carry your target companies ({companies.slice(0, 3).join(", ")}{companies.length > 3 ? "…" : ""}) straight over.</span>
+          )}
         </div>
-        <a href="https://studojo.com/outreach" target="_blank" rel="noopener noreferrer"
-          style={{ fontSize: 13, fontWeight: 600, color: "#D97706" }}>
+        <button onClick={goToOutreach}
+          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#D97706" }}>
           {isFirstMove ? "See Outreach Dojo →" : "Try Outreach Dojo →"}
-        </a>
+        </button>
       </div>
     );
   }
