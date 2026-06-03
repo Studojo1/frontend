@@ -141,4 +141,6 @@ export interface TierPricing {
   amount_cents: number;
   currency: string;
   display_price: string;
+  anchor_display?: string | null;  // e.g. "₹2500" (struck out next to display_price)
+  discount_pct?: number | null;     // e.g. 27 — rendered as "Save 27%"
 }
