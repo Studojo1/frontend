@@ -28,6 +28,9 @@ interface SimilarCompany {
 interface FindLeadResponse {
   lead: Lead | null;
   similar_companies: SimilarCompany[];
+  searched_company: string;
+  searched_position: string;
+  swapped: boolean;
 }
 
 interface EnrichResponse {
@@ -147,24 +150,34 @@ export default function MarketingDojoPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5 space-y-3">
-            <div className="relative">
-              <FiBriefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-studojo-muted" />
-              <input
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="Company name (e.g. Razorpay)"
-                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
-              />
+          <form onSubmit={handleSubmit} className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5 space-y-4">
+            <div>
+              <label className="block text-xs font-bold font-satoshi text-studojo-ink uppercase tracking-wide mb-1.5">
+                Company
+              </label>
+              <div className="relative">
+                <FiBriefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-studojo-muted" />
+                <input
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  placeholder="e.g. Razorpay, Bain, Zomato"
+                  className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                />
+              </div>
             </div>
-            <div className="relative">
-              <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-studojo-muted" />
-              <input
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-                placeholder="Position (e.g. Head of Marketing)"
-                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
-              />
+            <div>
+              <label className="block text-xs font-bold font-satoshi text-studojo-ink uppercase tracking-wide mb-1.5">
+                Position you want to reach
+              </label>
+              <div className="relative">
+                <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-studojo-muted" />
+                <input
+                  value={position}
+                  onChange={(e) => setPosition(e.target.value)}
+                  placeholder="e.g. Head of Marketing, Analyst, VP Sales"
+                  className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                />
+              </div>
             </div>
             <button
               type="submit"
@@ -203,8 +216,22 @@ export default function MarketingDojoPage() {
             <FiSearch className="w-10 h-10 text-studojo-muted mx-auto mb-3" />
             <p className="text-base font-bold font-satoshi text-studojo-ink mb-1">No match found</p>
             <p className="text-sm text-studojo-muted font-satoshi">
-              We couldn't find someone matching <span className="font-bold">{position}</span> at{" "}
-              <span className="font-bold">{company}</span>. Try a different title (e.g. "Marketing Manager" instead of "CMO").
+              We searched for <span className="font-bold">{result.searched_position}</span> at{" "}
+              <span className="font-bold">{result.searched_company}</span> and couldn't find anyone.
+              Double-check the company name is in the <span className="font-bold">Company</span> field
+              and the job title is in the <span className="font-bold">Position</span> field, or try a different title.
+            </p>
+          </div>
+        )}
+
+        {/* Swap notice */}
+        {lead && result?.swapped && (
+          <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-3 mb-4 flex items-start gap-2">
+            <FiAlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <p className="text-xs font-satoshi text-amber-800">
+              Looked like your fields were swapped. We searched for{" "}
+              <span className="font-bold">{result.searched_position}</span> at{" "}
+              <span className="font-bold">{result.searched_company}</span> instead. Showing that result.
             </p>
           </div>
         )}
