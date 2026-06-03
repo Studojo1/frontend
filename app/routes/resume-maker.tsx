@@ -219,6 +219,18 @@ export default function JrsRoute() {
     setTab("edit");
   }, [mounted]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Reverse sync to the Career Coach: once the student has a real saved resume,
+  // tell the coach (resume_maker_ready=true). Fire-once per browser session.
+  // The proxy is session-authed; logged-out users get a harmless 401.
+  useEffect(() => {
+    if (!mounted || !hasSaved) return;
+    try {
+      if (sessionStorage.getItem("cc_resume_synced") === "1") return;
+      sessionStorage.setItem("cc_resume_synced", "1");
+    } catch {}
+    fetch("/api/career-coach/mark-resume-ready", { method: "POST" }).catch(() => {});
+  }, [mounted, hasSaved]);
+
   // First-open opener: only when the user actually visits the Chat tab and
   // there's no chat history yet. Cheap because it's scripted, not an LLM call.
   useEffect(() => {
