@@ -24,7 +24,11 @@ export async function loader({ request }: Route.LoaderArgs): Promise<LoaderData>
   if (!isAuthed(request)) {
     return { authed: false, loginError: url.searchParams.get("error") };
   }
-  const stats = await getMslStats();
+  const stats = await getMslStats({
+    start: url.searchParams.get("start"),
+    end: url.searchParams.get("end"),
+    fx: url.searchParams.get("fx"),
+  });
   return { authed: true, stats };
 }
 
@@ -105,6 +109,17 @@ function fmtInt(n: number) {
   return n.toLocaleString("en-IN");
 }
 
+function isoDaysAgo(days: number): string {
+  const d = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  d.setUTCDate(d.getUTCDate() - days);
+  return d.toISOString().slice(0, 10);
+}
+
+function presetHref(start: string, end: string, fxRate: number) {
+  const qs = new URLSearchParams({ start, end, fx: String(fxRate) });
+  return `?${qs.toString()}`;
+}
+
 function DashboardView({ stats }: { stats: MslStats }) {
   const generated = new Date(stats.generatedAt).toLocaleString("en-IN", {
     day: "2-digit",
@@ -112,6 +127,7 @@ function DashboardView({ stats }: { stats: MslStats }) {
     hour: "2-digit",
     minute: "2-digit",
   });
+  const todayIso = isoDaysAgo(0);
 
   return (
     <div className="min-h-screen bg-studojo-surface">
@@ -134,48 +150,57 @@ function DashboardView({ stats }: { stats: MslStats }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8 space-y-10">
-        <Section title="Signups">
+        <FilterBar stats={stats} todayIso={todayIso} />
+
+        <Section title="Headline — fixed buckets">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <Stat label="Today" value={fmtInt(stats.signups.today)} />
-            <Stat label="Last 7 days" value={fmtInt(stats.signups.last7)} />
-            <Stat label="Last 30 days" value={fmtInt(stats.signups.last30)} />
-            <Stat label="All time" value={fmtInt(stats.signups.allTime)} />
+            <Stat label="Signups today" value={fmtInt(stats.signups.today)} />
+            <Stat label="Signups · 7d" value={fmtInt(stats.signups.last7)} />
+            <Stat label="Signups · 30d" value={fmtInt(stats.signups.last30)} />
+            <Stat label="Signups · all-time" value={fmtInt(stats.signups.allTime)} />
+            <RevStat label="Revenue today" t={stats.revenue.today} />
+            <RevStat label="Revenue · 7d" t={stats.revenue.last7} />
+            <RevStat label="Revenue · 30d" t={stats.revenue.last30} />
+            <RevStat label="Revenue · all-time" t={stats.revenue.allTime} />
           </div>
-          <BarChart
-            data={stats.signups.daily.map((d) => ({ day: d.day, value: d.count }))}
-            label="Signups per day (last 30)"
-          />
         </Section>
 
-        <Section title="Revenue (paid orders only)">
+        <Section
+          title={`Range: ${stats.range.start} → ${stats.range.end}`}
+          subtitle={`FX: 1 USD = ₹${stats.fxRate}  (editable above)`}
+        >
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <Stat label="Today (INR)" value={fmtInr(stats.revenue.todayInr)} />
-            <Stat label="Today (USD)" value={fmtUsd(stats.revenue.todayUsd)} />
-            <Stat label="Last 30d (INR)" value={fmtInr(stats.revenue.last30Inr)} />
-            <Stat label="Last 30d (USD)" value={fmtUsd(stats.revenue.last30Usd)} />
-            <Stat label="Last 7d (INR)" value={fmtInr(stats.revenue.last7Inr)} />
-            <Stat label="Last 7d (USD)" value={fmtUsd(stats.revenue.last7Usd)} />
-            <Stat label="All time (INR)" value={fmtInr(stats.revenue.allTimeInr)} />
-            <Stat label="All time (USD)" value={fmtUsd(stats.revenue.allTimeUsd)} />
+            <Stat label="Signups in range" value={fmtInt(stats.signups.range)} />
+            <Stat label="Paid users in range" value={fmtInt(stats.paidUsers.range)} />
+            <RevStat label="Revenue in range" t={stats.revenue.range} />
+            <Stat
+              label="Avg revenue / day"
+              value={fmtInr(
+                stats.revenue.range.totalInr / Math.max(1, stats.revenue.daily.length),
+              )}
+            />
           </div>
+
           <BarChart
-            data={stats.revenue.daily.map((d) => ({
-              day: d.day,
-              value: d.amount_inr + d.amount_usd * 83,
-            }))}
-            label="Revenue per day (last 30, INR equivalent)"
+            data={stats.signups.daily.map((d) => ({ day: d.day, value: d.count }))}
+            label="Signups per day"
+          />
+
+          <BarChart
+            data={stats.revenue.daily.map((d) => ({ day: d.day, value: d.amount_total_inr }))}
+            label="Revenue per day (INR equivalent)"
             valueFormatter={(v) => fmtInr(v)}
           />
         </Section>
 
         <Section title="Paid users">
           <div className="grid grid-cols-2 gap-4">
-            <Stat label="Distinct paid users (all time)" value={fmtInt(stats.paidUsers.total)} />
-            <Stat label="Distinct paid users (last 30d)" value={fmtInt(stats.paidUsers.last30)} />
+            <Stat label="Distinct paid users · all-time" value={fmtInt(stats.paidUsers.allTime)} />
+            <Stat label="Distinct paid users · last 30d" value={fmtInt(stats.paidUsers.last30)} />
           </div>
         </Section>
 
-        <Section title="Daily breakdown — last 30 days">
+        <Section title="Daily breakdown — selected range">
           <div className="overflow-x-auto border-2 border-studojo-ink bg-white">
             <table className="w-full text-sm">
               <thead className="bg-studojo-ink text-white">
@@ -185,6 +210,7 @@ function DashboardView({ stats }: { stats: MslStats }) {
                   <th className="px-3 py-2 text-right font-semibold">Orders</th>
                   <th className="px-3 py-2 text-right font-semibold">INR</th>
                   <th className="px-3 py-2 text-right font-semibold">USD</th>
+                  <th className="px-3 py-2 text-right font-semibold">Total (₹ equiv)</th>
                 </tr>
               </thead>
               <tbody>
@@ -195,6 +221,9 @@ function DashboardView({ stats }: { stats: MslStats }) {
                     <td className="px-3 py-2 text-right">{fmtInt(row.orders)}</td>
                     <td className="px-3 py-2 text-right">{row.inr ? fmtInr(row.inr) : "—"}</td>
                     <td className="px-3 py-2 text-right">{row.usd ? fmtUsd(row.usd) : "—"}</td>
+                    <td className="px-3 py-2 text-right font-semibold">
+                      {row.totalInr ? fmtInr(row.totalInr) : "—"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -206,10 +235,85 @@ function DashboardView({ stats }: { stats: MslStats }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function FilterBar({ stats, todayIso }: { stats: MslStats; todayIso: string }) {
+  const presets = [
+    { label: "7d", start: isoDaysAgo(6), end: todayIso },
+    { label: "30d", start: isoDaysAgo(29), end: todayIso },
+    { label: "90d", start: isoDaysAgo(89), end: todayIso },
+    { label: "YTD", start: `${new Date().getUTCFullYear()}-01-01`, end: todayIso },
+  ];
+
+  return (
+    <div className="border-2 border-studojo-ink bg-white p-4 shadow-brutal">
+      <Form method="get" className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">Start</span>
+          <input
+            type="date"
+            name="start"
+            defaultValue={stats.range.start}
+            max={stats.range.end}
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">End</span>
+          <input
+            type="date"
+            name="end"
+            defaultValue={stats.range.end}
+            max={todayIso}
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink"
+          />
+        </label>
+        <label className="flex flex-col">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">USD → INR rate</span>
+          <input
+            type="number"
+            name="fx"
+            step="0.01"
+            min="1"
+            defaultValue={stats.fxRate}
+            className="w-28 border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink"
+          />
+        </label>
+        <button
+          type="submit"
+          className="border-2 border-studojo-ink bg-studojo-ink px-4 py-1.5 text-sm font-semibold text-white shadow-brutal hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+        >
+          Update
+        </button>
+        <div className="ml-auto flex flex-wrap items-end gap-2">
+          {presets.map((p) => (
+            <a
+              key={p.label}
+              href={presetHref(p.start, p.end, stats.fxRate)}
+              className="border-2 border-studojo-ink bg-white px-3 py-1.5 text-xs font-semibold text-studojo-ink hover:bg-studojo-ink hover:text-white"
+            >
+              {p.label}
+            </a>
+          ))}
+        </div>
+      </Form>
+    </div>
+  );
+}
+
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section>
-      <h2 className="font-clash text-lg font-bold text-studojo-ink mb-3">{title}</h2>
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 className="font-clash text-lg font-bold text-studojo-ink">{title}</h2>
+        {subtitle && <span className="text-xs text-studojo-muted">{subtitle}</span>}
+      </div>
       <div className="space-y-4">{children}</div>
     </section>
   );
@@ -220,6 +324,18 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="border-2 border-studojo-ink bg-white p-4 shadow-brutal">
       <div className="text-xs font-semibold uppercase tracking-wide text-studojo-muted">{label}</div>
       <div className="mt-1 font-clash text-2xl font-bold text-studojo-ink">{value}</div>
+    </div>
+  );
+}
+
+function RevStat({ label, t }: { label: string; t: { inr: number; usd: number; totalInr: number } }) {
+  return (
+    <div className="border-2 border-studojo-ink bg-white p-4 shadow-brutal">
+      <div className="text-xs font-semibold uppercase tracking-wide text-studojo-muted">{label}</div>
+      <div className="mt-1 font-clash text-2xl font-bold text-studojo-ink">{fmtInr(t.totalInr)}</div>
+      <div className="mt-1 text-[11px] text-studojo-muted">
+        {fmtInr(t.inr)} + {fmtUsd(t.usd)} <span className="text-neutral-400">→ ₹</span>
+      </div>
     </div>
   );
 }
@@ -240,18 +356,22 @@ function BarChart({
       {data.length === 0 ? (
         <div className="text-sm text-studojo-muted">No data in range.</div>
       ) : (
-        <div className="flex h-32 items-end gap-1">
+        <div className="flex h-40 items-end gap-1">
           {data.map((d) => {
             const h = (d.value / max) * 100;
             const fmt = valueFormatter ? valueFormatter(d.value) : fmtInt(d.value);
             return (
-              <div key={d.day} className="group relative flex-1" title={`${d.day}: ${fmt}`}>
-                <div className="absolute -top-6 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-studojo-ink px-2 py-0.5 text-[10px] text-white group-hover:block">
+              <div
+                key={d.day}
+                className="group relative flex h-full flex-1 items-end"
+                title={`${d.day}: ${fmt}`}
+              >
+                <div className="absolute -top-7 left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded bg-studojo-ink px-2 py-0.5 text-[10px] text-white group-hover:block">
                   {d.day}: {fmt}
                 </div>
                 <div
                   className="w-full bg-studojo-purple"
-                  style={{ height: `${Math.max(2, h)}%` }}
+                  style={{ height: `${Math.max(2, h)}%`, minHeight: "2px" }}
                 />
               </div>
             );
@@ -263,15 +383,26 @@ function BarChart({
 }
 
 function mergeDaily(stats: MslStats) {
-  const map = new Map<string, { day: string; signups: number; orders: number; inr: number; usd: number }>();
+  const map = new Map<
+    string,
+    { day: string; signups: number; orders: number; inr: number; usd: number; totalInr: number }
+  >();
   for (const s of stats.signups.daily) {
-    map.set(s.day, { day: s.day, signups: s.count, orders: 0, inr: 0, usd: 0 });
+    map.set(s.day, { day: s.day, signups: s.count, orders: 0, inr: 0, usd: 0, totalInr: 0 });
   }
   for (const r of stats.revenue.daily) {
-    const row = map.get(r.day) ?? { day: r.day, signups: 0, orders: 0, inr: 0, usd: 0 };
+    const row = map.get(r.day) ?? {
+      day: r.day,
+      signups: 0,
+      orders: 0,
+      inr: 0,
+      usd: 0,
+      totalInr: 0,
+    };
     row.orders = r.orders;
     row.inr = r.amount_inr;
     row.usd = r.amount_usd;
+    row.totalInr = r.amount_total_inr;
     map.set(r.day, row);
   }
   return Array.from(map.values()).sort((a, b) => (a.day < b.day ? 1 : -1));
