@@ -27,8 +27,6 @@ export async function loader({ request }: Route.LoaderArgs): Promise<LoaderData>
   const stats = await getMslStats({
     start: url.searchParams.get("start"),
     end: url.searchParams.get("end"),
-    fx: url.searchParams.get("fx"),
-    b2b: url.searchParams.get("b2b"),
   });
   return { authed: true, stats };
 }
@@ -93,20 +91,18 @@ function isoDaysAgo(days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-function presetHref(start: string, end: string, fxRate: number, b2b: number) {
-  return `?${new URLSearchParams({ start, end, fx: String(fxRate), b2b: String(b2b) })}`;
-}
-
 function DashboardView({ stats }: { stats: MslStats }) {
   const generated = new Date(stats.generatedAt).toLocaleString("en-IN", {
     day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
   });
   const todayIso = isoDaysAgo(0);
 
-  // All-time total including B2B
-  const allTimeTotal = stats.revenue.allTime.totalInr + stats.b2bInr;
-  // Today total including B2B (B2B is shown as a manual add-on, not date-scoped)
-  const todayTotal = stats.revenue.today.totalInr;
+  const presets = [
+    { label: "7d", start: isoDaysAgo(6), end: todayIso },
+    { label: "30d", start: isoDaysAgo(29), end: todayIso },
+    { label: "90d", start: isoDaysAgo(89), end: todayIso },
+    { label: "YTD", start: `${new Date().getUTCFullYear()}-01-01`, end: todayIso },
+  ];
 
   return (
     <div className="min-h-screen bg-studojo-surface">
@@ -114,7 +110,7 @@ function DashboardView({ stats }: { stats: MslStats }) {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div>
             <h1 className="font-clash text-2xl font-bold text-studojo-ink">MSL Dashboard</h1>
-            <p className="text-xs text-studojo-muted">Live numbers · updated {generated}</p>
+            <p className="text-xs text-studojo-muted">Live · updated {generated} · 1 USD = ₹{stats.fxRate}</p>
           </div>
           <Form method="post">
             <input type="hidden" name="intent" value="logout" />
@@ -129,22 +125,46 @@ function DashboardView({ stats }: { stats: MslStats }) {
       <main className="mx-auto max-w-6xl px-6 py-8 space-y-10">
 
         {/* TODAY HERO */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div className="col-span-2 border-2 border-studojo-ink bg-studojo-ink p-5 shadow-brutal md:col-span-2">
-            <div className="text-xs font-semibold uppercase tracking-wide text-white/60">Today's revenue (Razorpay/Dodo)</div>
-            <div className="mt-1 font-clash text-4xl font-bold text-white">{fmtInr(todayTotal)}</div>
-            <div className="mt-1 text-xs text-white/60">{fmtInr(stats.revenue.today.inr)} INR + {fmtUsd(stats.revenue.today.usd)} USD</div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="border-2 border-studojo-ink bg-studojo-ink p-5 shadow-brutal">
+            <div className="text-xs font-semibold uppercase tracking-wide text-white/60">Today's revenue</div>
+            <div className="mt-1 font-clash text-4xl font-bold text-white">{fmtInr(stats.revenue.today.totalInr)}</div>
+            <div className="mt-1 text-xs text-white/60">{fmtInr(stats.revenue.today.inr)} + {fmtUsd(stats.revenue.today.usd)}</div>
           </div>
-          <div className="col-span-2 border-2 border-studojo-ink bg-white p-5 shadow-brutal md:col-span-2">
+          <div className="border-2 border-studojo-ink bg-white p-5 shadow-brutal">
             <div className="text-xs font-semibold uppercase tracking-wide text-studojo-muted">Today's signups</div>
             <div className="mt-1 font-clash text-4xl font-bold text-studojo-ink">{fmtInt(stats.signups.today)}</div>
             <div className="mt-1 text-xs text-studojo-muted">7d: {fmtInt(stats.signups.last7)} · 30d: {fmtInt(stats.signups.last30)}</div>
           </div>
         </div>
 
-        <FilterBar stats={stats} todayIso={todayIso} />
+        {/* DATE RANGE FILTER */}
+        <Form method="get" className="flex flex-wrap items-end gap-3 border-2 border-studojo-ink bg-white p-4">
+          <label className="flex flex-col">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">Start</span>
+            <input type="date" name="start" defaultValue={stats.range.start} max={stats.range.end}
+              className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink" />
+          </label>
+          <label className="flex flex-col">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">End</span>
+            <input type="date" name="end" defaultValue={stats.range.end} max={todayIso}
+              className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink" />
+          </label>
+          <button type="submit"
+            className="border-2 border-studojo-ink bg-studojo-ink px-4 py-1.5 text-sm font-semibold text-white shadow-brutal hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none">
+            Update
+          </button>
+          <div className="ml-auto flex flex-wrap items-end gap-2">
+            {presets.map((p) => (
+              <a key={p.label} href={`?start=${p.start}&end=${p.end}`}
+                className="border-2 border-studojo-ink bg-white px-3 py-1.5 text-xs font-semibold text-studojo-ink hover:bg-studojo-ink hover:text-white">
+                {p.label}
+              </a>
+            ))}
+          </div>
+        </Form>
 
-        {/* FIXED BUCKETS */}
+        {/* REVENUE SUMMARY */}
         <Section title="Revenue summary">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <RevStat label="Today" t={stats.revenue.today} />
@@ -152,42 +172,41 @@ function DashboardView({ stats }: { stats: MslStats }) {
             <RevStat label="Last 30 days" t={stats.revenue.last30} />
             <div className="border-2 border-studojo-purple bg-white p-4 shadow-brutal">
               <div className="text-xs font-semibold uppercase tracking-wide text-studojo-muted">All-time (incl. B2B)</div>
-              <div className="mt-1 font-clash text-2xl font-bold text-studojo-ink">{fmtInr(allTimeTotal)}</div>
+              <div className="mt-1 font-clash text-2xl font-bold text-studojo-ink">{fmtInr(stats.revenue.allTimeWithB2b)}</div>
               <div className="mt-1 text-[11px] text-studojo-muted">
-                DB: {fmtInr(stats.revenue.allTime.totalInr)}
-                {stats.b2bInr > 0 && <span className="ml-1 text-studojo-purple">+ {fmtInr(stats.b2bInr)} B2B</span>}
+                {fmtInr(stats.revenue.allTime.inr)} + {fmtUsd(stats.revenue.allTime.usd)}
+                <span className="ml-1 text-studojo-purple">+ {fmtInr(stats.b2bInr)} B2B</span>
               </div>
             </div>
           </div>
         </Section>
 
-        {/* RANGE SECTION */}
-        <Section
-          title={`Range: ${stats.range.start} → ${stats.range.end}`}
-          subtitle={`FX: 1 USD = ₹${stats.fxRate}`}
-        >
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            <Stat label="Signups in range" value={fmtInt(stats.signups.range)} />
-            <RevStat label="Revenue in range" t={stats.revenue.range} />
-            <Stat
-              label="Avg revenue / day"
-              value={fmtInr(stats.revenue.range.totalInr / Math.max(1, stats.revenue.daily.length))}
-            />
+        {/* SIGNUPS */}
+        <Section title="Signups">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <Stat label="Today" value={fmtInt(stats.signups.today)} />
+            <Stat label="Last 7 days" value={fmtInt(stats.signups.last7)} />
+            <Stat label="Last 30 days" value={fmtInt(stats.signups.last30)} />
+            <Stat label="All-time" value={fmtInt(stats.signups.allTime)} />
           </div>
-
-          <BarChart
-            data={stats.signups.daily.map((d) => ({ day: d.day, value: d.count }))}
-            label="Signups per day"
-          />
-          <BarChart
-            data={stats.revenue.daily.map((d) => ({ day: d.day, value: d.amount_total_inr }))}
-            label="Revenue per day (INR equivalent)"
-            valueFormatter={fmtInr}
-          />
         </Section>
 
-        {/* DAILY TABLE */}
-        <Section title="Daily breakdown — selected range">
+        {/* RANGE */}
+        <Section title={`Range: ${stats.range.start} → ${stats.range.end}`}>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            <Stat label="Signups" value={fmtInt(stats.signups.range)} />
+            <RevStat label="Revenue" t={stats.revenue.range} />
+            <Stat label="Avg revenue / day"
+              value={fmtInr(stats.revenue.range.totalInr / Math.max(1, stats.revenue.daily.length))} />
+          </div>
+          <BarChart data={stats.signups.daily.map((d) => ({ day: d.day, value: d.count }))} label="Signups per day" />
+          <BarChart
+            data={stats.revenue.daily.map((d) => ({ day: d.day, value: d.amount_total_inr }))}
+            label="Revenue per day (INR equiv)" valueFormatter={fmtInr} />
+        </Section>
+
+        {/* TABLE */}
+        <Section title="Daily breakdown">
           <div className="overflow-x-auto border-2 border-studojo-ink bg-white">
             <table className="w-full text-sm">
               <thead className="bg-studojo-ink text-white">
@@ -220,62 +239,10 @@ function DashboardView({ stats }: { stats: MslStats }) {
   );
 }
 
-function FilterBar({ stats, todayIso }: { stats: MslStats; todayIso: string }) {
-  const presets = [
-    { label: "7d", start: isoDaysAgo(6), end: todayIso },
-    { label: "30d", start: isoDaysAgo(29), end: todayIso },
-    { label: "90d", start: isoDaysAgo(89), end: todayIso },
-    { label: "YTD", start: `${new Date().getUTCFullYear()}-01-01`, end: todayIso },
-  ];
-  return (
-    <div className="border-2 border-studojo-ink bg-white p-4 shadow-brutal">
-      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-studojo-muted">Filters</div>
-      <Form method="get" className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">Start</span>
-          <input type="date" name="start" defaultValue={stats.range.start} max={stats.range.end}
-            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink" />
-        </label>
-        <label className="flex flex-col">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">End</span>
-          <input type="date" name="end" defaultValue={stats.range.end} max={todayIso}
-            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink" />
-        </label>
-        <label className="flex flex-col">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">USD → INR</span>
-          <input type="number" name="fx" step="0.01" min="1" defaultValue={stats.fxRate}
-            className="w-24 border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink" />
-        </label>
-        <label className="flex flex-col">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-purple">B2B revenue (₹)</span>
-          <input type="number" name="b2b" step="1" min="0" defaultValue={stats.b2bInr || ""}
-            placeholder="e.g. 17550"
-            className="w-32 border-2 border-studojo-purple bg-white px-2 py-1.5 text-sm text-studojo-ink placeholder:text-neutral-400" />
-        </label>
-        <button type="submit"
-          className="border-2 border-studojo-ink bg-studojo-ink px-4 py-1.5 text-sm font-semibold text-white shadow-brutal hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none">
-          Update
-        </button>
-        <div className="ml-auto flex flex-wrap items-end gap-2">
-          {presets.map((p) => (
-            <a key={p.label} href={presetHref(p.start, p.end, stats.fxRate, stats.b2bInr)}
-              className="border-2 border-studojo-ink bg-white px-3 py-1.5 text-xs font-semibold text-studojo-ink hover:bg-studojo-ink hover:text-white">
-              {p.label}
-            </a>
-          ))}
-        </div>
-      </Form>
-    </div>
-  );
-}
-
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <div className="mb-3 flex items-baseline justify-between gap-3">
-        <h2 className="font-clash text-lg font-bold text-studojo-ink">{title}</h2>
-        {subtitle && <span className="text-xs text-studojo-muted">{subtitle}</span>}
-      </div>
+      <h2 className="font-clash text-lg font-bold text-studojo-ink mb-3">{title}</h2>
       <div className="space-y-4">{children}</div>
     </section>
   );

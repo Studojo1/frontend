@@ -6,7 +6,10 @@ const USERNAME = "msl123";
 const PASSWORD = "msl1/2/3";
 const COOKIE_NAME = "msl_session";
 const COOKIE_MAX_AGE_SEC = 60 * 60 * 12;
-export const DEFAULT_FX_RATE = 83.5;
+
+// Hardcoded constants — update here when B2B deals change
+const FX_RATE = 94; // 1 USD = ₹94
+const B2B_INR = 17550; // ₹15,000 (2026-06-02) + ₹2,550 (2026-06-03)
 
 function getSecret(): string {
   const s = process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET;
@@ -79,8 +82,6 @@ function shiftIso(iso: string, days: number): string {
 export interface RangeInput {
   start?: string | null;
   end?: string | null;
-  fx?: string | null;
-  b2b?: string | null;
 }
 
 export function resolveRange(input: RangeInput) {
@@ -88,15 +89,13 @@ export function resolveRange(input: RangeInput) {
   const startDefault = shiftIso(end, -29);
   let start = input.start && ISO_DATE.test(input.start) ? input.start : startDefault;
   if (start > end) start = end;
-  const fxParsed = Number(input.fx ?? "");
-  const fxRate = Number.isFinite(fxParsed) && fxParsed > 0 ? fxParsed : DEFAULT_FX_RATE;
-  const b2bParsed = Number(input.b2b ?? "");
-  const b2bInr = Number.isFinite(b2bParsed) && b2bParsed >= 0 ? b2bParsed : 0;
-  return { start, end, fxRate, b2bInr };
+  return { start, end, fxRate: FX_RATE, b2bInr: B2B_INR };
 }
 
 export interface DailyPoint { day: string; count: number }
-export interface DailyRevenuePoint { day: string; amount_inr: number; amount_usd: number; amount_total_inr: number; orders: number }
+export interface DailyRevenuePoint {
+  day: string; amount_inr: number; amount_usd: number; amount_total_inr: number; orders: number;
+}
 export interface RevenueTriple { inr: number; usd: number; totalInr: number }
 
 export interface MslStats {
@@ -109,7 +108,7 @@ export interface MslStats {
   };
   revenue: {
     today: RevenueTriple; last7: RevenueTriple; last30: RevenueTriple;
-    allTime: RevenueTriple; range: RevenueTriple;
+    allTime: RevenueTriple; allTimeWithB2b: number; range: RevenueTriple;
     daily: DailyRevenuePoint[];
   };
   generatedAt: string;
@@ -117,14 +116,14 @@ export interface MslStats {
 
 function cents(n: unknown): number { return Number(n ?? 0) / 100; }
 
-function triple(inrCents: unknown, usdCents: unknown, fxRate: number): RevenueTriple {
+function triple(inrCents: unknown, usdCents: unknown): RevenueTriple {
   const inr = cents(inrCents);
   const usd = cents(usdCents);
-  return { inr, usd, totalInr: inr + usd * fxRate };
+  return { inr, usd, totalInr: inr + usd * FX_RATE };
 }
 
 export async function getMslStats(input: RangeInput = {}): Promise<MslStats> {
-  const { start, end, fxRate, b2bInr } = resolveRange(input);
+  const { start, end } = resolveRange(input);
   const endExclusive = shiftIso(end, 1);
 
   const [
@@ -186,12 +185,14 @@ export async function getMslStats(input: RangeInput = {}): Promise<MslStats> {
 
   const num = (r: { rows: { c?: number }[] }) => Number(r.rows[0]?.c ?? 0);
   const tripleOf = (r: { rows: { inr?: bigint | number; usd?: bigint | number }[] }) =>
-    triple(r.rows[0]?.inr, r.rows[0]?.usd, fxRate);
+    triple(r.rows[0]?.inr, r.rows[0]?.usd);
+
+  const allTime = tripleOf(revAll);
 
   return {
     range: { start, end },
-    fxRate,
-    b2bInr,
+    fxRate: FX_RATE,
+    b2bInr: B2B_INR,
     signups: {
       today: num(signupsToday),
       last7: num(signups7),
@@ -207,7 +208,8 @@ export async function getMslStats(input: RangeInput = {}): Promise<MslStats> {
       today: tripleOf(revToday),
       last7: tripleOf(rev7),
       last30: tripleOf(rev30),
-      allTime: tripleOf(revAll),
+      allTime,
+      allTimeWithB2b: allTime.totalInr + B2B_INR,
       range: tripleOf(revRange),
       daily: (revDaily.rows as { day: string; inr: bigint | number; usd: bigint | number; orders: number }[]).map((r) => {
         const inr = cents(r.inr);
@@ -216,7 +218,7 @@ export async function getMslStats(input: RangeInput = {}): Promise<MslStats> {
           day: String(r.day).slice(0, 10),
           amount_inr: inr,
           amount_usd: usd,
-          amount_total_inr: inr + usd * fxRate,
+          amount_total_inr: inr + usd * FX_RATE,
           orders: Number(r.orders ?? 0),
         };
       }),
