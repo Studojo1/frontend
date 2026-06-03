@@ -12,8 +12,6 @@ import type { Route } from "./+types/msl";
 // ─── Auth constants ────────────────────────────────────────────────────────
 const USERNAME = "msl123";
 const PASSWORD = "msl1/2/3";
-// Hardcoded session token — never changes, never sent to browser in body,
-// only set/read via HttpOnly cookie. Safe for a single shared internal user.
 const SESSION_TOKEN = "msl-s3ss10n-t0k3n-studojo-int3rn4l";
 const COOKIE_NAME = "msl_auth";
 const COOKIE_MAX_AGE = 60 * 60 * 12;
@@ -24,7 +22,7 @@ const B2B_BY_DATE: Record<string, number> = {
   "2026-06-02": 15000,
   "2026-06-03": 2550,
 };
-const FX_RATE = 94; // 1 USD = ₹94
+const DEFAULT_FX = 94; // 1 USD = ₹94
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function buildCookie(): string {
@@ -58,21 +56,24 @@ function b2bSum(start: string, end: string): number {
   return Object.entries(B2B_BY_DATE).filter(([d]) => d >= start && d <= end).reduce((s, [, v]) => s + v, 0);
 }
 function cents(n: unknown): number { return Number(n ?? 0) / 100; }
-function mkTriple(inrCents: unknown, usdCents: unknown, b2b: number) {
+function mkTriple(inrCents: unknown, usdCents: unknown, b2b: number, fx = DEFAULT_FX) {
   const inr = cents(inrCents); const usd = cents(usdCents);
-  const db2 = inr + usd * FX_RATE;
+  const db2 = inr + usd * fx;
   return { inr, usd, db: db2, b2b, total: db2 + b2b };
 }
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 interface CalDay { date: string; signups: number; orders: number; inr: number; usd: number; b2b: number; total: number }
 interface Triple { inr: number; usd: number; db: number; b2b: number; total: number }
+interface RangeStats { start: string; end: string; fxRate: number; b2bTotal: number; signups: number; rev: Triple }
 interface Stats {
   fxRate: number; today: string; yesterday: string;
   rev: { today: Triple; yesterday: Triple; last7: Triple; last30: Triple; allTime: Triple };
   signups: { today: number; yesterday: number; last7: number; last30: number; allTime: number };
   calendar: CalDay[];
   selectedDay: CalDay | null;
+  customRange: RangeStats | null;
+  filter: { start: string; end: string; fx: string; b2b: string };
   generatedAt: string;
 }
 
@@ -86,9 +87,16 @@ export async function loader({ request }: Route.LoaderArgs) {
   const calStart = shiftIso(today, -59);
   const dayParam = url.searchParams.get("day");
 
-  const [sToday, sYest, s7, s30, sAll,
-    rToday, rYest, r7, r30, rAll,
-    calSig, calRev] = await Promise.all([
+  // Custom range params
+  const startParam = url.searchParams.get("start") ?? "";
+  const endParam = url.searchParams.get("end") ?? "";
+  const fxParam = url.searchParams.get("fx") ?? "";
+  const b2bParam = url.searchParams.get("b2b") ?? "";
+
+  const hasRange = startParam.length === 10 && endParam.length === 10 && startParam <= endParam;
+
+  // Build all queries
+  const baseQueries = Promise.all([
     db.execute(sql`SELECT COUNT(*)::int AS c FROM "user" WHERE created_at >= NOW() - INTERVAL '1 day'`),
     db.execute(sql`SELECT COUNT(*)::int AS c FROM "user" WHERE DATE(created_at + INTERVAL '5.5 hours') = ${yesterday}::date`),
     db.execute(sql`SELECT COUNT(*)::int AS c FROM "user" WHERE created_at >= NOW() - INTERVAL '7 days'`),
@@ -102,6 +110,17 @@ export async function loader({ request }: Route.LoaderArgs) {
     db.execute(sql`SELECT DATE(created_at + INTERVAL '5.5 hours') AS day, COUNT(*)::int AS c FROM "user" WHERE DATE(created_at + INTERVAL '5.5 hours') >= ${calStart}::date GROUP BY day ORDER BY day DESC`),
     db.execute(sql`SELECT DATE(created_at + INTERVAL '5.5 hours') AS day, COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr, COALESCE(SUM(CASE WHEN currency<>'INR' THEN amount_cents END),0)::bigint AS usd, COUNT(*)::int AS orders FROM payment_orders WHERE status='paid' AND DATE(created_at + INTERVAL '5.5 hours') >= ${calStart}::date GROUP BY day ORDER BY day DESC`),
   ]);
+
+  const rangeQuery = hasRange ? Promise.all([
+    db.execute(sql`SELECT COUNT(*)::int AS c FROM "user" WHERE DATE(created_at + INTERVAL '5.5 hours') BETWEEN ${startParam}::date AND ${endParam}::date`),
+    db.execute(sql`SELECT COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr, COALESCE(SUM(CASE WHEN currency<>'INR' THEN amount_cents END),0)::bigint AS usd FROM payment_orders WHERE status='paid' AND DATE(created_at + INTERVAL '5.5 hours') BETWEEN ${startParam}::date AND ${endParam}::date`),
+  ]) : null;
+
+  const [base, range] = await Promise.all([baseQueries, rangeQuery]);
+
+  const [sToday, sYest, s7, s30, sAll,
+    rToday, rYest, r7, r30, rAll,
+    calSig, calRev] = base;
 
   const n = (r: { rows: { c?: number }[] }) => Number(r.rows[0]?.c ?? 0);
   const t = (r: { rows: { inr?: unknown; usd?: unknown }[] }, b2b: number) => mkTriple(r.rows[0]?.inr, r.rows[0]?.usd, b2b);
@@ -117,14 +136,26 @@ export async function loader({ request }: Route.LoaderArgs) {
     const s = sigMap.get(date) ?? 0;
     const r = revMap.get(date) ?? { inr: 0, usd: 0, orders: 0 };
     const b2b = B2B_BY_DATE[date] ?? 0;
-    const dbTotal = r.inr + r.usd * FX_RATE;
+    const dbTotal = r.inr + r.usd * DEFAULT_FX;
     return { date, signups: s, orders: r.orders, inr: r.inr, usd: r.usd, b2b, total: dbTotal + b2b };
   });
 
   const b2bAll = Object.values(B2B_BY_DATE).reduce((s, v) => s + v, 0);
 
+  // Custom range calculation
+  let customRange: RangeStats | null = null;
+  if (hasRange && range) {
+    const [cSig, cRev] = range;
+    const rangeFx = fxParam ? parseFloat(fxParam) : DEFAULT_FX;
+    // b2b param: explicit number (including 0) overrides B2B_BY_DATE sum for the period
+    const rangeB2b = b2bParam !== "" ? parseFloat(b2bParam) : b2bSum(startParam, endParam);
+    const rangeSignups = Number(cSig.rows[0]?.c ?? 0);
+    const rangeRev = mkTriple(cRev.rows[0]?.inr, cRev.rows[0]?.usd, rangeB2b, rangeFx);
+    customRange = { start: startParam, end: endParam, fxRate: rangeFx, b2bTotal: rangeB2b, signups: rangeSignups, rev: rangeRev };
+  }
+
   const stats: Stats = {
-    fxRate: FX_RATE, today, yesterday,
+    fxRate: DEFAULT_FX, today, yesterday,
     rev: {
       today: t(rToday, b2bSum(today, today)),
       yesterday: t(rYest, b2bSum(yesterday, yesterday)),
@@ -135,6 +166,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     signups: { today: n(sToday), yesterday: n(sYest), last7: n(s7), last30: n(s30), allTime: n(sAll) },
     calendar,
     selectedDay: dayParam ? (calendar.find(d => d.date === dayParam) ?? null) : null,
+    customRange,
+    filter: { start: startParam, end: endParam, fx: fxParam, b2b: b2bParam },
     generatedAt: new Date().toISOString(),
   };
 
@@ -192,7 +225,7 @@ function LoginView({ error }: { error: string | null }) {
 }
 
 const fmtInr = (n: number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
-const fmtUsd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
+const fmtUsd = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtInt = (n: number) => n.toLocaleString("en-IN");
 
 function DashboardView({ stats }: { stats: Stats }) {
@@ -213,13 +246,21 @@ function DashboardView({ stats }: { stats: Stats }) {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-8 space-y-10">
+        {/* DATE RANGE FILTER */}
+        <RangeFilter filter={stats.filter} />
+
+        {/* CUSTOM RANGE (shown when start+end set) */}
+        {stats.customRange && <CustomRangeSection cr={stats.customRange} />}
+
         {/* HERO */}
-        <div className="grid grid-cols-2 gap-4">
-          <HeroTile dark label="Today's revenue" main={fmtInr(stats.rev.today.total)} sub={`${fmtInr(stats.rev.today.db)} DB${stats.rev.today.b2b ? ` + ${fmtInr(stats.rev.today.b2b)} B2B` : ""}`} />
-          <HeroTile label="Today's signups" main={fmtInt(stats.signups.today)} sub={`7d: ${fmtInt(stats.signups.last7)} · 30d: ${fmtInt(stats.signups.last30)}`} />
-          <HeroTile label="Yesterday's revenue" main={fmtInr(stats.rev.yesterday.total)} sub={`${fmtInr(stats.rev.yesterday.db)} DB${stats.rev.yesterday.b2b ? ` + ${fmtInr(stats.rev.yesterday.b2b)} B2B` : ""}`} />
-          <HeroTile label="Yesterday's signups" main={fmtInt(stats.signups.yesterday)} sub={`All-time: ${fmtInt(stats.signups.allTime)}`} />
-        </div>
+        <Section title="Live snapshot">
+          <div className="grid grid-cols-2 gap-4">
+            <HeroTile dark label="Today's revenue" main={fmtInr(stats.rev.today.total)} sub={`${fmtInr(stats.rev.today.db)} DB${stats.rev.today.b2b ? ` + ${fmtInr(stats.rev.today.b2b)} B2B` : ""}`} />
+            <HeroTile label="Today's signups" main={fmtInt(stats.signups.today)} sub={`7d: ${fmtInt(stats.signups.last7)} · 30d: ${fmtInt(stats.signups.last30)}`} />
+            <HeroTile label="Yesterday's revenue" main={fmtInr(stats.rev.yesterday.total)} sub={`${fmtInr(stats.rev.yesterday.db)} DB${stats.rev.yesterday.b2b ? ` + ${fmtInr(stats.rev.yesterday.b2b)} B2B` : ""}`} />
+            <HeroTile label="Yesterday's signups" main={fmtInt(stats.signups.yesterday)} sub={`All-time: ${fmtInt(stats.signups.allTime)}`} />
+          </div>
+        </Section>
 
         {/* REVENUE SUMMARY */}
         <Section title="Revenue summary">
@@ -271,6 +312,108 @@ function DashboardView({ stats }: { stats: Stats }) {
         </Section>
       </main>
     </div>
+  );
+}
+
+function RangeFilter({ filter }: { filter: Stats["filter"] }) {
+  const hasRange = filter.start && filter.end;
+  return (
+    <div className="border-2 border-studojo-ink bg-white p-5 shadow-brutal">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-clash text-base font-bold text-studojo-ink">Custom date range</h2>
+        {hasRange && (
+          <a href="/msl" className="text-xs text-studojo-muted underline hover:text-studojo-ink">Clear range</a>
+        )}
+      </div>
+      <form method="get" action="/msl" className="flex flex-wrap gap-3 items-end">
+        <label className="flex flex-col gap-1 min-w-[140px]">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">From</span>
+          <input name="start" type="date" defaultValue={filter.start || ""}
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+        </label>
+        <label className="flex flex-col gap-1 min-w-[140px]">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">To</span>
+          <input name="end" type="date" defaultValue={filter.end || ""}
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+        </label>
+        <label className="flex flex-col gap-1 w-28">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">FX (₹/USD)</span>
+          <input name="fx" type="number" step="0.1" min="1" placeholder={String(DEFAULT_FX)} defaultValue={filter.fx || ""}
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+        </label>
+        <label className="flex flex-col gap-1 w-36">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">B2B total (₹)</span>
+          <input name="b2b" type="number" step="1" min="0" placeholder="Auto from log" defaultValue={filter.b2b || ""}
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+        </label>
+        <button type="submit"
+          className="border-2 border-studojo-ink bg-studojo-ink px-4 py-1.5 text-sm font-semibold text-white shadow-brutal hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none">
+          Apply
+        </button>
+      </form>
+      {!hasRange && (
+        <p className="mt-3 text-xs text-studojo-muted">Set From + To to generate a range report. FX and B2B are optional overrides.</p>
+      )}
+    </div>
+  );
+}
+
+function CustomRangeSection({ cr }: { cr: RangeStats }) {
+  const label = `${cr.start} → ${cr.end}`;
+  const days = Math.round((new Date(cr.end).getTime() - new Date(cr.start).getTime()) / 86400000) + 1;
+  const avgRev = cr.signups > 0 ? cr.rev.total / cr.signups : 0;
+  return (
+    <section className="border-2 border-studojo-purple bg-white p-5 shadow-brutal">
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h2 className="font-clash text-lg font-bold text-studojo-ink">Range report</h2>
+          <p className="text-xs text-studojo-muted">{label} · {days} day{days !== 1 ? "s" : ""} · 1 USD = ₹{cr.fxRate}{cr.b2bTotal > 0 ? ` · B2B ₹${cr.b2bTotal.toLocaleString("en-IN")}` : ""}</p>
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-wide text-studojo-purple border border-studojo-purple px-2 py-0.5">Custom range</span>
+      </div>
+
+      {/* Big numbers */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="border-2 border-studojo-ink bg-studojo-ink p-4">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-white/60">Total revenue</div>
+          <div className="mt-1 font-clash text-3xl font-bold text-white">{fmtInr(cr.rev.total)}</div>
+          <div className="mt-1 text-[10px] text-white/60">
+            {fmtInr(cr.rev.db)} DB{cr.rev.b2b > 0 ? ` + ${fmtInr(cr.rev.b2b)} B2B` : ""}
+          </div>
+        </div>
+        <div className="border-2 border-studojo-ink bg-white p-4">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">Signups</div>
+          <div className="mt-1 font-clash text-3xl font-bold text-studojo-ink">{fmtInt(cr.signups)}</div>
+          <div className="mt-1 text-[10px] text-studojo-muted">{days > 0 ? `${(cr.signups / days).toFixed(1)}/day avg` : ""}</div>
+        </div>
+        <div className="border-2 border-studojo-ink bg-white p-4">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">INR collected</div>
+          <div className="mt-1 font-clash text-3xl font-bold text-studojo-ink">{fmtInr(cr.rev.inr)}</div>
+          <div className="mt-1 text-[10px] text-studojo-muted">Direct INR payments</div>
+        </div>
+        <div className="border-2 border-studojo-ink bg-white p-4">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">USD collected</div>
+          <div className="mt-1 font-clash text-3xl font-bold text-studojo-ink">{fmtUsd(cr.rev.usd)}</div>
+          <div className="mt-1 text-[10px] text-studojo-muted">= {fmtInr(cr.rev.usd * cr.fxRate)} at ₹{cr.fxRate}/USD</div>
+        </div>
+      </div>
+
+      {/* Secondary stats */}
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="border border-neutral-200 bg-neutral-50 px-3 py-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">Rev/day avg</div>
+          <div className="mt-0.5 font-clash text-lg font-bold text-studojo-ink">{fmtInr(days > 0 ? cr.rev.total / days : 0)}</div>
+        </div>
+        <div className="border border-neutral-200 bg-neutral-50 px-3 py-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">Rev/signup</div>
+          <div className="mt-0.5 font-clash text-lg font-bold text-studojo-ink">{cr.signups > 0 ? fmtInr(avgRev) : "—"}</div>
+        </div>
+        <div className="border border-neutral-200 bg-neutral-50 px-3 py-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">B2B included</div>
+          <div className="mt-0.5 font-clash text-lg font-bold text-studojo-ink">{cr.b2bTotal > 0 ? fmtInr(cr.b2bTotal) : "None"}</div>
+        </div>
+      </div>
+    </section>
   );
 }
 
