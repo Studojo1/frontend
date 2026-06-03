@@ -35,7 +35,7 @@ export function buildSessionCookie(): string {
   const isProd = process.env.NODE_ENV === "production";
   const flags = [
     `${COOKIE_NAME}=${value}`,
-    "Path=/msl",
+    "Path=/",
     "HttpOnly",
     "SameSite=Lax",
     `Max-Age=${COOKIE_MAX_AGE_SEC}`,
@@ -45,7 +45,7 @@ export function buildSessionCookie(): string {
 }
 
 export function clearSessionCookie(): string {
-  return `${COOKIE_NAME}=; Path=/msl; HttpOnly; SameSite=Lax; Max-Age=0`;
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 }
 
 export function isAuthed(request: Request): boolean {
