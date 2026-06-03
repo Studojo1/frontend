@@ -297,13 +297,63 @@ export default function EnrichmentPage() {
         modal: { ondismiss: () => { setPaying(false); setPayingPlanId(null); } },
       };
 
-      const rzp = new window.Razorpay(options);
+      // ── Instrumentation: 20/20 customers in the last 6 days never had the
+      // Razorpay modal open after this point. Capture exactly why for the
+      // next failure: missing global, constructor throw, or open() throw.
+      const reportCheckout = (stage: string, info: Record<string, unknown>) => {
+        // eslint-disable-next-line no-console
+        console.error(`[CHECKOUT-DIAG] ${stage}`, info);
+        try {
+          outreachFetch("/payment/checkout-diag", {
+            method: "POST",
+            body: JSON.stringify({
+              stage,
+              user_agent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+              razorpay_loaded: typeof window !== "undefined" && !!window.Razorpay,
+              order_id: orderData.order_id,
+              amount: orderData.amount,
+              currency: orderData.currency,
+              plan_id: plan.id,
+              ...info,
+            }),
+          }).catch(() => {});
+        } catch {}
+      };
+
+      if (typeof window === "undefined" || !window.Razorpay) {
+        reportCheckout("razorpay_global_missing", {});
+        setError("The payment widget didn't load. Disable ad blockers and refresh the page, or try a different browser.");
+        setPaying(false);
+        setPayingPlanId(null);
+        return;
+      }
+
+      let rzp: any;
+      try {
+        rzp = new window.Razorpay(options);
+      } catch (ctorErr: any) {
+        reportCheckout("razorpay_constructor_threw", { error: String(ctorErr?.message || ctorErr) });
+        setError(`Could not start checkout: ${ctorErr?.message || "unknown error"}. Try refreshing the page.`);
+        setPaying(false);
+        setPayingPlanId(null);
+        return;
+      }
+
       rzp.on("payment.failed", (response: any) => {
+        reportCheckout("razorpay_payment_failed", { error: response?.error });
         setError(response.error?.description || "Payment failed");
         setPaying(false);
         setPayingPlanId(null);
       });
-      rzp.open();
+
+      try {
+        rzp.open();
+      } catch (openErr: any) {
+        reportCheckout("razorpay_open_threw", { error: String(openErr?.message || openErr) });
+        setError(`Could not open payment window: ${openErr?.message || "unknown"}. Try a different browser.`);
+        setPaying(false);
+        setPayingPlanId(null);
+      }
     } catch (err: any) {
       setError(err?.body?.detail || err.message || "Failed to create payment order");
       setPaying(false);
