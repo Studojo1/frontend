@@ -9,17 +9,13 @@ import { outreachFetch } from "~/lib/outreach/api";
 
 interface Lead {
   apollo_person_id: string;
-  name: string;
   first_name: string;
-  last_name: string;
+  last_name_obfuscated: string;
+  display_name: string;
   title: string;
-  linkedin_url: string | null;
-  headline: string;
   company: string;
-  company_domain: string | null;
-  company_logo_url: string | null;
-  city: string | null;
-  country: string | null;
+  has_email: boolean;
+  last_refreshed_at: string | null;
 }
 
 interface SimilarCompany {
@@ -103,9 +99,7 @@ export default function MarketingDojoPage() {
         method: "POST",
         body: JSON.stringify({
           apollo_person_id: result.lead.apollo_person_id,
-          linkedin_url: result.lead.linkedin_url,
           first_name: result.lead.first_name,
-          last_name: result.lead.last_name,
           company: result.lead.company,
         }),
       });
@@ -221,31 +215,28 @@ export default function MarketingDojoPage() {
             <div className="flex items-start gap-4 mb-5">
               <div className="w-14 h-14 rounded-2xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-purple text-2xl font-clash font-bold flex-shrink-0">
                 {lead.first_name?.[0] || "?"}
-                {lead.last_name?.[0] || ""}
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="font-clash text-2xl font-bold text-studojo-ink leading-tight">
-                  {lead.name}
+                  {enriched?.name || lead.display_name}
+                  {!enriched && lead.last_name_obfuscated && (
+                    <span className="ml-2 text-xs font-satoshi font-medium text-studojo-muted align-middle">
+                      (last name hidden — enrich to reveal)
+                    </span>
+                  )}
                 </h2>
-                <p className="text-sm font-satoshi text-studojo-muted mt-1">
-                  {lead.title}
-                </p>
+                <p className="text-sm font-satoshi text-studojo-muted mt-1">{lead.title}</p>
                 <div className="flex flex-wrap items-center gap-2 mt-2 text-xs font-satoshi text-studojo-muted">
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-studojo-surface-muted border border-studojo-ink/10">
                     <FiBriefcase className="w-3 h-3" /> {lead.company}
                   </span>
-                  {lead.city && (
-                    <span className="px-2 py-0.5 rounded-full bg-studojo-surface-muted border border-studojo-ink/10">
-                      {lead.city}{lead.country ? `, ${lead.country}` : ""}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
 
-            {lead.linkedin_url && (
+            {enriched?.linkedin_url && (
               <a
-                href={lead.linkedin_url}
+                href={enriched.linkedin_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm font-satoshi font-bold text-studojo-purple hover:underline mb-5"
@@ -280,7 +271,7 @@ export default function MarketingDojoPage() {
                       <p className="text-sm font-bold font-satoshi text-amber-900 mb-1">Confirm enrichment</p>
                       <p className="text-xs font-satoshi text-amber-800 mb-3">
                         This will burn <span className="font-bold">1 Apollo credit</span> to reveal{" "}
-                        {lead.name}'s verified work email.
+                        {lead.first_name}'s verified work email, full name, and LinkedIn URL.
                       </p>
                       <div className="flex gap-2">
                         <button
