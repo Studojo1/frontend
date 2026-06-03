@@ -47,6 +47,17 @@ type Application = {
 
 type OutreachOrder = { id: number; status: string; created_at?: string };
 
+type CoachSummary = {
+  found: boolean;
+  has_analysis?: boolean;
+  chat_url?: string;
+  readiness_score?: number;
+  level?: number;
+  level_label?: string;
+  target_role?: string | null;
+  next_action?: string | null;
+};
+
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800 border-amber-300",
   shortlisted: "bg-violet-100 text-violet-800 border-violet-300",
@@ -142,6 +153,7 @@ function ProfileContent() {
   const [outreachOrders, setOutreachOrders] = useState<OutreachOrder[] | null>(null);
   const [outreachOrdersError, setOutreachOrdersError] = useState(false);
   const [jobs, setJobs] = useState<any[] | null>(null);
+  const [coachSummary, setCoachSummary] = useState<CoachSummary | null>(null);
 
   // Edit state
   const [editing, setEditing] = useState(false);
@@ -189,6 +201,12 @@ function ProfileContent() {
       .then((r) => r.json())
       .then((d) => setApplications(Array.isArray(d?.applications) ? d.applications : []))
       .catch(() => setApplications([]));
+
+    // Career Coach readiness summary (same-origin, session-authed proxy)
+    fetch("/api/career-coach/summary")
+      .then((r) => r.json())
+      .then((d) => setCoachSummary(d ?? null))
+      .catch(() => setCoachSummary(null));
 
     outreachFetch<{ orders?: Array<{ order?: OutreachOrder } & OutreachOrder> }>("/orders/list")
       .then((d) => {
@@ -401,6 +419,68 @@ function ProfileContent() {
               </div>
             )}
           </div>
+
+          {/* Career Coach readiness card */}
+          {coachSummary && coachSummary.found && coachSummary.has_analysis ? (
+            <div className="bg-white border-2 border-neutral-900 rounded-2xl shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-6 mb-8">
+              <div className="flex items-start gap-5">
+                <div className="flex-shrink-0 w-16 h-16 rounded-full bg-violet-100 border-2 border-violet-500 flex flex-col items-center justify-center">
+                  <span className="font-['Clash_Display'] text-xl font-black text-violet-700 leading-none">
+                    {coachSummary.readiness_score ?? 0}
+                  </span>
+                  <span className="font-['Satoshi'] text-[9px] text-violet-500 mt-0.5">/100</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="font-['Clash_Display'] text-lg font-bold text-neutral-900">Career Readiness</h2>
+                    {coachSummary.level_label && (
+                      <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-bold text-violet-700">
+                        Level {coachSummary.level} · {coachSummary.level_label}
+                      </span>
+                    )}
+                  </div>
+                  {coachSummary.target_role && (
+                    <p className="font-['Satoshi'] text-sm text-neutral-600 mt-1">
+                      Working towards <span className="font-semibold text-neutral-900">{coachSummary.target_role}</span>
+                    </p>
+                  )}
+                  {coachSummary.next_action && (
+                    <p className="font-['Satoshi'] text-sm text-neutral-500 mt-2">
+                      <span className="font-semibold text-neutral-700">Next step:</span> {coachSummary.next_action}
+                    </p>
+                  )}
+                  <Link
+                    to={coachSummary.chat_url || "/cc/chat"}
+                    className="inline-block mt-3 px-4 py-2 bg-violet-500 text-white font-bold text-xs border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all font-['Satoshi']"
+                  >
+                    Continue with your Career Coach →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : coachSummary && coachSummary.found && coachSummary.has_analysis === false ? (
+            <div className="bg-white border-2 border-neutral-900 rounded-2xl shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-6 mb-8">
+              <h2 className="font-['Clash_Display'] text-lg font-bold text-neutral-900">Finish your Career DNA</h2>
+              <p className="font-['Satoshi'] text-sm text-neutral-600 mt-1 mb-3">
+                You started with the Career Coach but haven't completed your analysis. A few more answers unlock your readiness score and action plan.
+              </p>
+              <Link to={coachSummary.chat_url || "/cc/chat"}
+                className="inline-block px-4 py-2 bg-violet-500 text-white font-bold text-xs border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all font-['Satoshi']">
+                Continue your analysis →
+              </Link>
+            </div>
+          ) : coachSummary && !coachSummary.found ? (
+            <div className="bg-white border-2 border-neutral-900 rounded-2xl shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-6 mb-8">
+              <h2 className="font-['Clash_Display'] text-lg font-bold text-neutral-900">Get your free Career DNA</h2>
+              <p className="font-['Satoshi'] text-sm text-neutral-600 mt-1 mb-3">
+                Your free AI Career Coach builds a readiness score, gap analysis, and a weekly action plan tailored to your target role.
+              </p>
+              <Link to="/cc"
+                className="inline-block px-4 py-2 bg-violet-500 text-white font-bold text-xs border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all font-['Satoshi']">
+                Start your Career DNA →
+              </Link>
+            </div>
+          ) : null}
 
           {/* Outreach Orders — first so it's visible above the fold on mobile */}
           <Section title="Outreach Orders" cta="View in Outreach →" ctaHref="/outreach">
