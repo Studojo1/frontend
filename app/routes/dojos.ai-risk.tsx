@@ -657,6 +657,30 @@ export default function AIRiskPage() {
                 </button>
               </div>
 
+              {/* ── CAREER COACH HANDOFF ── */}
+              <div className="mb-6 rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-4 flex items-center justify-between gap-4 flex-wrap">
+                <div className="min-w-0">
+                  <p className="font-clash text-base font-bold text-studojo-ink leading-snug">
+                    {result.risk_pct >= 50
+                      ? `This role is ${result.risk_pct}% exposed to AI. Build a future-proof plan.`
+                      : "Turn this into a concrete career plan."}
+                  </p>
+                  <p className="text-xs font-satoshi text-studojo-muted mt-0.5">
+                    Your free Career Coach builds a step-by-step pivot plan around {result.matched_title}.
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    navigate(
+                      `/cc/chat?src=ai-risk&seed_role=${encodeURIComponent(result.matched_title)}&risk=${result.risk_pct}`,
+                    )
+                  }
+                  className="flex-shrink-0 flex items-center gap-2 h-10 px-5 rounded-xl bg-studojo-ink text-white font-satoshi font-semibold text-sm border-2 border-studojo-ink hover:bg-studojo-ink/90 transition-all"
+                >
+                  Build my plan <FiArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+
               {/* ── RISK / EDGES ── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
