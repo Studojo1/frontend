@@ -674,6 +674,9 @@ export default function CcChat() {
   // hook
   const [outreachNote, setOutreachNote] = useState<{ toolRec: string; jbPct: number; orPct: number } | null>(null);
   const [resumeStatusMsg, setResumeStatusMsg] = useState<string | null>(null);
+  // Rotating "thinking" status shown during the (LLM-bound) wait so the ~10s
+  // pause feels purposeful instead of dead. Advances while `waiting` is true.
+  const [thinkingMsg, setThinkingMsg] = useState<string | null>(null);
   const [hookVisible, setHookVisible] = useState(false);
   const [hookDismissing, setHookDismissing] = useState(false);
   const [statIdx, setStatIdx] = useState(0);
@@ -723,6 +726,32 @@ export default function CcChat() {
     const t = setInterval(() => setGhostIdx((i: number) => (i + 1) % Math.max(1, chips.length)), 3500);
     return () => clearInterval(t);
   }, [inputEmpty, waiting, resumeUploading, chips.length]);
+
+  // While waiting on a reply, rotate a reassuring status so the LLM pause feels
+  // intentional. Skipped during resume upload (that has its own status). The
+  // copy is state-aware: analysis/roadmap turns do heavier work, so say so.
+  useEffect(() => {
+    // Only while genuinely awaiting the first reply (last bubble is the user's).
+    // appendAgentBubbles toggles `waiting` between split bubbles — don't flash
+    // the status text during those short inter-bubble pauses.
+    const lastIsUser = messages.length > 0 && messages[messages.length - 1].role === "user";
+    if (!waiting || resumeUploading || resumeStatusMsg || !lastIsUser) { setThinkingMsg(null); return; }
+    const heavy = ["CAREER_ANALYSIS", "DNA_REVIEW", "ROADMAP", "DNA_CORRECTION"].includes(agentState);
+    const msgs = heavy
+      ? ["Thinking through your background...",
+         "Benchmarking you against your target role...",
+         "Working out where you stand...",
+         "Putting the pieces together...",
+         "Almost there..."]
+      : ["Thinking...",
+         "Taking in what you said...",
+         "Working out the right next question...",
+         "One sec..."];
+    let i = 0;
+    setThinkingMsg(msgs[0]);
+    const t = setInterval(() => { i = (i + 1) % msgs.length; setThinkingMsg(msgs[i]); }, 2600);
+    return () => clearInterval(t);
+  }, [waiting, resumeUploading, resumeStatusMsg, agentState, messages]);
 
   // Reset ghost index when a new set of chips arrives.
   useEffect(() => { setGhostIdx(0); }, [chips]);
@@ -2353,6 +2382,11 @@ export default function CcChat() {
                             <span style={{ fontSize: 13, color: "var(--text-secondary, #6B7280)", display: "flex", alignItems: "center", gap: 8 }}>
                               <div className="typing-dots" style={{ display: "inline-flex" }}><span /><span /><span /></div>
                               {resumeStatusMsg}
+                            </span>
+                          ) : thinkingMsg ? (
+                            <span style={{ fontSize: 13, color: "var(--text-secondary, #6B7280)", display: "flex", alignItems: "center", gap: 8 }}>
+                              <div className="typing-dots" style={{ display: "inline-flex" }}><span /><span /><span /></div>
+                              {thinkingMsg}
                             </span>
                           ) : (
                             <div className="typing-dots"><span /><span /><span /></div>
