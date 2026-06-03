@@ -15,7 +15,6 @@ import {
   TrustStrip,
 } from "~/components";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
-import { authClient } from "~/lib/auth-client";
 import type { Route } from "./+types/home";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -172,52 +171,11 @@ function InternshipPopup() {
   );
 }
 
-// Slim "your career progress" strip shown to logged-in students who have a
-// Career Coach analysis. Reuses the same-origin /api/career-coach/summary proxy.
-function CareerProgressStrip() {
-  const { data: auth } = authClient.useSession();
-  const [summary, setSummary] = useState<any>(null);
-  useEffect(() => {
-    if (!auth?.user) return;
-    fetch("/api/career-coach/summary")
-      .then((r) => r.json())
-      .then((d) => setSummary(d))
-      .catch(() => setSummary(null));
-  }, [auth?.user]);
-
-  if (!auth?.user || !summary?.found || !summary?.has_analysis) return null;
-  return (
-    <Link
-      to={summary.chat_url || "/cc/chat"}
-      className="block border-b-2 border-neutral-900 bg-violet-50 hover:bg-violet-100 transition-colors"
-    >
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5">
-        <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-violet-500 px-2 font-['Clash_Display'] text-sm font-black text-white">
-          {summary.readiness_score ?? 0}
-        </span>
-        <span className="font-['Satoshi'] text-sm font-semibold text-neutral-900">
-          Career readiness
-          {summary.level_label ? ` · Level ${summary.level} ${summary.level_label}` : ""}
-        </span>
-        {summary.next_action && (
-          <span className="font-['Satoshi'] text-sm text-neutral-600 truncate max-w-full sm:max-w-md">
-            Next: {summary.next_action}
-          </span>
-        )}
-        <span className="ml-auto font-['Satoshi'] text-sm font-bold text-violet-700 whitespace-nowrap">
-          Continue with your Career Coach →
-        </span>
-      </div>
-    </Link>
-  );
-}
-
 export default function Home() {
   return (
     <>
       <AnnouncementBar />
       <Header />
-      <CareerProgressStrip />
       <InternshipPopup />
       <motion.main
         variants={containerVariants}
