@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "unpaid-internship-report-where-legal-2026",
+    publishDate: "2026-06-01",
+    title: "The Unpaid Internship Report: Where It's Legal and Where It Isn't",
+    subtitle: "The Unpaid Internship Report · 2026",
+    excerpt: "Unpaid does not mean the same thing in every country. This report maps where zero-pay internships can be lawful, where minimum stipends apply, the tests courts and regulators use, and the practical questions students should ask before accepting an offer. Informational only, not legal advice.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "June 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026",
     publishDate: "2026-05-30",
     title: "Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai",
