@@ -97,12 +97,12 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // Build all queries
   const baseQueries = Promise.all([
-    db.execute(sql`SELECT COUNT(*)::int AS c FROM "user" WHERE created_at >= NOW() - INTERVAL '1 day'`),
+    db.execute(sql`SELECT COUNT(*)::int AS c FROM "user" WHERE DATE(created_at + INTERVAL '5.5 hours') = ${today}::date`),
     db.execute(sql`SELECT COUNT(*)::int AS c FROM "user" WHERE DATE(created_at + INTERVAL '5.5 hours') = ${yesterday}::date`),
     db.execute(sql`SELECT COUNT(*)::int AS c FROM "user" WHERE created_at >= NOW() - INTERVAL '7 days'`),
     db.execute(sql`SELECT COUNT(*)::int AS c FROM "user" WHERE created_at >= NOW() - INTERVAL '30 days'`),
     db.execute(sql`SELECT COUNT(*)::int AS c FROM "user"`),
-    db.execute(sql`SELECT COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr, COALESCE(SUM(CASE WHEN currency<>'INR' THEN amount_cents END),0)::bigint AS usd FROM payment_orders WHERE status='paid' AND created_at >= NOW() - INTERVAL '1 day'`),
+    db.execute(sql`SELECT COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr, COALESCE(SUM(CASE WHEN currency<>'INR' THEN amount_cents END),0)::bigint AS usd FROM payment_orders WHERE status='paid' AND DATE(created_at + INTERVAL '5.5 hours') = ${today}::date`),
     db.execute(sql`SELECT COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr, COALESCE(SUM(CASE WHEN currency<>'INR' THEN amount_cents END),0)::bigint AS usd FROM payment_orders WHERE status='paid' AND DATE(created_at + INTERVAL '5.5 hours') = ${yesterday}::date`),
     db.execute(sql`SELECT COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr, COALESCE(SUM(CASE WHEN currency<>'INR' THEN amount_cents END),0)::bigint AS usd FROM payment_orders WHERE status='paid' AND created_at >= NOW() - INTERVAL '7 days'`),
     db.execute(sql`SELECT COALESCE(SUM(CASE WHEN currency='INR' THEN amount_cents END),0)::bigint AS inr, COALESCE(SUM(CASE WHEN currency<>'INR' THEN amount_cents END),0)::bigint AS usd FROM payment_orders WHERE status='paid' AND created_at >= NOW() - INTERVAL '30 days'`),
