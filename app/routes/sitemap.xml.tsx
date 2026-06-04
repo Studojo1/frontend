@@ -49,9 +49,9 @@ export async function loader() {
     { loc: "/reports/first-job-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/unpaid-internship-report-where-legal-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/data-ai-internships-entry-level-reality-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/growth-marketing-jobs-skills-pay-hiring-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/finance-internships-india-ib-consulting-fintech-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/data-ai-internships-entry-level-reality-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
@@ -119,9 +119,9 @@ export async function loader() {
     "/reports/first-job-india-2026": "2026-06-02",
     "/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026": "2026-05-30",
     "/reports/unpaid-internship-report-where-legal-2026": "2026-06-01",
-    "/reports/data-ai-internships-entry-level-reality-2026": "2026-06-01",
     "/reports/growth-marketing-jobs-skills-pay-hiring-2026": "2026-05-30",
     "/reports/finance-internships-india-ib-consulting-fintech-2026": "2026-06-04",
+    "/reports/data-ai-internships-entry-level-reality-2026": "2026-06-01",
   };
 
   const urls = [

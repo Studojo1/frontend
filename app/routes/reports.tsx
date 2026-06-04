@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "data-ai-internships-entry-level-reality-2026",
+    publishDate: "2026-06-01",
+    title: "Data and AI Internships 2026: Entry-Level Reality",
+    subtitle: "Data & AI Internships · 2026",
+    excerpt: "Every job post says AI, but most entry-level internships are still SQL, dashboards, and careful experimentation. This report maps what data and AI intern roles actually involve in 2026, which skills move shortlists, illustrative pay bands, who's hiring, and how to build proof when you do not have a PhD.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "June 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "finance-internships-india-ib-consulting-fintech-2026",
     publishDate: "2026-06-04",
     title: "Finance Internships India 2026: IB, Consulting, and Fintech",
@@ -59,18 +71,6 @@ const REPORTS = [
     category: "Career",
     type: "Sector" as ReportType,
     date: "May 2026",
-    findings: 6,
-    badge: "New",
-  },
-  {
-    slug: "data-ai-internships-entry-level-reality-2026",
-    publishDate: "2026-06-01",
-    title: "Data and AI Internships 2026: Entry-Level Reality",
-    subtitle: "Data & AI Internships · 2026",
-    excerpt: "Every job post says AI, but most entry-level internships are still SQL, dashboards, and careful experimentation. This report maps what data and AI intern roles actually involve in 2026, which skills move shortlists, illustrative pay bands, who's hiring, and how to build proof when you do not have a PhD.",
-    category: "Internships",
-    type: "Internships" as ReportType,
-    date: "June 2026",
     findings: 6,
     badge: "New",
   },

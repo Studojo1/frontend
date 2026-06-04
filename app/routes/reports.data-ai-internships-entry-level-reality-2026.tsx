@@ -110,7 +110,7 @@ function initCharts() {
     new Chart(dataAiPayIndexChartEl, {
       type: "bar",
       data: {
-        labels: ["US data/ML intern (large tech)", "US data analyst intern (finance)", "India structured tech intern (Bengaluru)", "India GCC data intern", "India startup data intern (variance)", "Unpaid or "stipend TBD" (avoid)"],
+        labels: ["US data/ML intern (large tech)", "US data analyst intern (finance)", "India structured tech intern (Bengaluru)", "India GCC data intern", "India startup data intern (variance)", "Unpaid or \"stipend TBD\" (avoid)"],
         datasets: [{
           label: "Illustrative monthly pay index (US tech/finance vs India product/GCC, index 0 to 25)",
           data: [22.0, 20.0, 16.5, 14.0, 10.5, 2.0],
@@ -235,26 +235,26 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
       <main>
         <div className="rpt-hero">
           <div className="rpt-hero-inner">
-            <div className="rpt-badge">Internships · June 2026</div>
+            <div className="rpt-badge">{"Internships · June 2026"}</div>
             <nav className="rpt-breadcrumb" aria-label="Breadcrumb">
               <Link to="/reports" className="rpt-breadcrumb-link">Reports</Link>
               <span className="rpt-breadcrumb-sep">›</span>
-              <span>Data and AI Internships 2026: Entry-Level Reality</span>
+              <span>{"Data and AI Internships 2026: Entry-Level Reality"}</span>
             </nav>
             <h1 dangerouslySetInnerHTML={{ __html: "Data and AI Internships 2026:<br /><em>Entry-Level Reality</em>" }} />
-            <p className="rpt-hero-sub">Hiring posts mention LLMs and agents. Intern work still clusters around clean data, SQL, notebooks, evaluation, and shipping small models or features with supervision. This report separates hype from the entry-level work employers pay for in 2026, the skills that survive screens, pay bands in the US and India, who is actually hiring, and how to stand out without pretending you built GPT-5.</p>
+            <p className="rpt-hero-sub">{"Hiring posts mention LLMs and agents. Intern work still clusters around clean data, SQL, notebooks, evaluation, and shipping small models or features with supervision. This report separates hype from the entry-level work employers pay for in 2026, the skills that survive screens, pay bands in the US and India, who is actually hiring, and how to stand out without pretending you built GPT-5."}</p>
             <div className="rpt-meta">
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Scope</span>
-                <span className="rpt-meta-value">Global · Undergrad through early master's · Data analyst, data science, ML, and AI-adjacent intern pathways</span>
+                <span className="rpt-meta-value">{"Global · Undergrad through early master's · Data analyst, data science, ML, and AI-adjacent intern pathways"}</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Report type</span>
-                <span className="rpt-meta-value">Career / Internships</span>
+                <span className="rpt-meta-value">{"Career / Internships"}</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">June 2026</span>
+                <span className="rpt-meta-value">{"June 2026"}</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -267,38 +267,38 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">~62%</div>
-              <div className="sc-label">Illustrative share of entry-level data/AI-titled intern reqs that emphasize SQL, Python, and analytics over training frontier models (Studojo job-post synthesis, 2026)</div>
-              <div className="sc-source">Studojo job-posting scrape synthesis, 2026</div>
+              <div className="sc-num">{"~62%"}</div>
+              <div className="sc-label">{"Illustrative share of entry-level data/AI-titled intern reqs that emphasize SQL, Python, and analytics over training frontier models (Studojo job-post synthesis, 2026)"}</div>
+              <div className="sc-source">{"Studojo job-posting scrape synthesis, 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">$35–$55/hr</div>
-              <div className="sc-label">Typical US hourly range for paid data science or ML intern roles at large tech and finance employers (varies by city and year of study)</div>
-              <div className="sc-source">Levels.fyi and employer intern cohorts, synthesised June 2026</div>
+              <div className="sc-num">{"$35–$55/hr"}</div>
+              <div className="sc-label">{"Typical US hourly range for paid data science or ML intern roles at large tech and finance employers (varies by city and year of study)"}</div>
+              <div className="sc-source">{"Levels.fyi and employer intern cohorts, synthesised June 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">4 proofs</div>
-              <div className="sc-label">What hiring managers weight most: SQL + one dataset story, one notebook with clear metrics, basic stats/ML literacy, and communication in a short write-up</div>
-              <div className="sc-source">Studojo data hiring-manager interview synthesis, 2025 to 2026</div>
+              <div className="sc-num">{"4 proofs"}</div>
+              <div className="sc-label">{"What hiring managers weight most: SQL + one dataset story, one notebook with clear metrics, basic stats/ML literacy, and communication in a short write-up"}</div>
+              <div className="sc-source">{"Studojo data hiring-manager interview synthesis, 2025 to 2026"}</div>
             </div>
           </div>
 
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#6366f1" }}>1</div>
+              <div className="sec-num" style={{ background: "#6366f1" }}>{"1"}</div>
               <div>
-                <div className="sec-title">Entry-level reality: most "AI" interns do data work</div>
-                <div className="sec-sub">Titles say AI. Week one is still tables and metrics.</div>
+                <div className="sec-title">{"Entry-level reality: most \"AI\" interns do data work"}</div>
+                <div className="sec-sub">{"Titles say AI. Week one is still tables and metrics."}</div>
               </div>
             </div>
-            <p>Job boards bundle data analyst intern, data science intern, ML intern, AI research intern, and business intelligence intern into one hype bucket. In 2026, most undergrad and master's interns spend time on definable data work: writing SQL, fixing datasets, building dashboards, running A/B analysis, labeling and evaluating model outputs, or wiring APIs into product features. Training foundation models from scratch is rare at intern level outside a handful of research labs.</p>
-            <p>GenAI shifted the stack, not the entry bar. Employers want interns who can measure quality, debug bad outputs, and ship small features with guardrails. That is closer to analytics plus software hygiene than to Hollywood AI.</p>
+            <p>{"Job boards bundle data analyst intern, data science intern, ML intern, AI research intern, and business intelligence intern into one hype bucket. In 2026, most undergrad and master's interns spend time on definable data work: writing SQL, fixing datasets, building dashboards, running A/B analysis, labeling and evaluating model outputs, or wiring APIs into product features. Training foundation models from scratch is rare at intern level outside a handful of research labs."}</p>
+            <p>{"GenAI shifted the stack, not the entry bar. Employers want interns who can measure quality, debug bad outputs, and ship small features with guardrails. That is closer to analytics plus software hygiene than to Hollywood AI."}</p>
 
-            <div className="highlight"><strong>Key insight:</strong> Optimize for data credibility first. AI fluency is a layer on top of SQL, Python, and clear metrics.</div>
+            <div className="highlight">{"<strong>Key insight:</strong> Optimize for data credibility first. AI fluency is a layer on top of SQL, Python, and clear metrics."}</div>
 
             <div className="chart-wrap">
-              <div className="chart-label">What "data/AI" intern roles actually do (illustrative mix of work, %)</div>
+              <div className="chart-label">{"What \"data/AI\" intern roles actually do (illustrative mix of work, %)"}</div>
               <div style={{ height: 280 }}>
                 <canvas id="dataAiRoleMixChart" />
               </div>
@@ -308,193 +308,193 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Research intern ≠ corporate intern.</strong> University labs and FAANG research programmes expect coursework and papers. Product companies expect shipping and communication.</span>
+                <span><strong>{"Research intern ≠ corporate intern."}</strong> {"University labs and FAANG research programmes expect coursework and papers. Product companies expect shipping and communication."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Data ops is a valid foot in the door.</strong> Cleaning data and building pipelines teaches how models fail in production. Do not dismiss it if paid and mentored.</span>
+                <span><strong>{"Data ops is a valid foot in the door."}</strong> {"Cleaning data and building pipelines teaches how models fail in production. Do not dismiss it if paid and mentored."}</span>
               </div>
             </div>
 
-            <div className="callout"><strong>Title decoder:</strong> "Data analyst intern" → SQL + dashboards. "Data science intern" → notebooks + experiments. "ML intern" → features + evaluation. "AI intern" → read the bullets; often product analytics with LLM APIs.</div>
+            <div className="callout">{"<strong>Title decoder:</strong> \"Data analyst intern\" → SQL + dashboards. \"Data science intern\" → notebooks + experiments. \"ML intern\" → features + evaluation. \"AI intern\" → read the bullets; often product analytics with LLM APIs."}</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#6366f1" }}>2</div>
+              <div className="sec-num" style={{ background: "#6366f1" }}>{"2"}</div>
               <div>
-                <div className="sec-title">Skills that actually move shortlists</div>
-                <div className="sec-sub">SQL, Python, stats, and one story you can defend</div>
+                <div className="sec-title">{"Skills that actually move shortlists"}</div>
+                <div className="sec-sub">{"SQL, Python, stats, and one story you can defend"}</div>
               </div>
             </div>
-            <p>Recruiters skim for SQL depth (joins, window functions, sane data models), Python in notebooks (pandas, matplotlib or plotly), basic statistics (hypothesis tests, confidence, train/test intuition), and one portfolio project with a metric that moved. GitHub with readable README beats twenty Kaggle medals with no narrative.</p>
-            <p>For GenAI-facing roles, show prompt evaluation, RAG basics, or failure analysis on a small corpus. You do not need to fine-tune a 70B model. You need to show you can define success, measure it, and iterate.</p>
+            <p>{"Recruiters skim for SQL depth (joins, window functions, sane data models), Python in notebooks (pandas, matplotlib or plotly), basic statistics (hypothesis tests, confidence, train/test intuition), and one portfolio project with a metric that moved. GitHub with readable README beats twenty Kaggle medals with no narrative."}</p>
+            <p>{"For GenAI-facing roles, show prompt evaluation, RAG basics, or failure analysis on a small corpus. You do not need to fine-tune a 70B model. You need to show you can define success, measure it, and iterate."}</p>
 
             <div className="chart-wrap">
-              <div className="chart-label">Skill priority in data/AI intern job posts (index 0 to 10)</div>
+              <div className="chart-label">{"Skill priority in data/AI intern job posts (index 0 to 10)"}</div>
               <div style={{ height: 300 }}>
                 <canvas id="dataAiSkillsChart" />
               </div>
             </div>
 
-            <div className="highlight"><strong>Key insight:</strong> One end-to-end project (question → data → analysis → decision) beats listing sklearn on your resume without context.</div>
+            <div className="highlight">{"<strong>Key insight:</strong> One end-to-end project (question → data → analysis → decision) beats listing sklearn on your resume without context."}</div>
 
             <div className="pull-quote">
-              <p>"I hire data interns who explain one decision their analysis changed. Most portfolios only show plots."</p>
-              <span className="pq-source">Analytics manager, B2B SaaS (Studojo community, 2025)</span>
+              <p>{"\"I hire data interns who explain one decision their analysis changed. Most portfolios only show plots.\""}</p>
+              <span className="pq-source">{"Analytics manager, B2B SaaS (Studojo community, 2025)"}</span>
             </div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>LeetCode-heavy ML interviews are niche.</strong> Many data intern screens are SQL + case study + take-home, not hard competitive programming.</span>
+                <span><strong>{"LeetCode-heavy ML interviews are niche."}</strong> {"Many data intern screens are SQL + case study + take-home, not hard competitive programming."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Cloud certs are optional.</strong> BigQuery or Snowflake exposure helps. A project that queries a warehouse beats a badge alone.</span>
+                <span><strong>{"Cloud certs are optional."}</strong> {"BigQuery or Snowflake exposure helps. A project that queries a warehouse beats a badge alone."}</span>
               </div>
             </div>
 
-            <div className="callout-amber"><strong>90-day skill stack:</strong> Week 1–4: SQL on a real schema. Week 5–8: one Kaggle or public dataset with a written report. Week 9–12: small app or dashboard plus 5-slide presentation. Optional: one LLM eval notebook with labeled examples.</div>
+            <div className="callout-amber">{"<strong>90-day skill stack:</strong> Week 1–4: SQL on a real schema. Week 5–8: one Kaggle or public dataset with a written report. Week 9–12: small app or dashboard plus 5-slide presentation. Optional: one LLM eval notebook with labeled examples."}</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#6366f1" }}>3</div>
+              <div className="sec-num" style={{ background: "#6366f1" }}>{"3"}</div>
               <div>
-                <div className="sec-title">Pay in 2026: US, India, and the unpaid trap</div>
-                <div className="sec-sub">What paid looks like when it is real</div>
+                <div className="sec-title">{"Pay in 2026: US, India, and the unpaid trap"}</div>
+                <div className="sec-sub">{"What paid looks like when it is real"}</div>
               </div>
             </div>
-            <p>In the United States, large tech and finance data interns often land roughly $35 to $55 per hour in major metros, with housing stipends sometimes added. Smaller startups vary from competitive hourly to low stipends. Unpaid data internships at for-profit firms remain a red flag (see Studojo's unpaid internship report).</p>
-            <p>In India, structured tech and GCC data interns often see monthly stipends roughly in the ₹25K–₹80K band for summer programmes, highly employer-dependent. Startups may offer less cash plus project ownership. Always confirm in the offer letter.</p>
+            <p>{"In the United States, large tech and finance data interns often land roughly $35 to $55 per hour in major metros, with housing stipends sometimes added. Smaller startups vary from competitive hourly to low stipends. Unpaid data internships at for-profit firms remain a red flag (see Studojo's unpaid internship report)."}</p>
+            <p>{"In India, structured tech and GCC data interns often see monthly stipends roughly in the ₹25K–₹80K band for summer programmes, highly employer-dependent. Startups may offer less cash plus project ownership. Always confirm in the offer letter."}</p>
 
             <div className="chart-wrap">
-              <div className="chart-label">Illustrative monthly pay index (US tech/finance vs India product/GCC, index 0 to 25)</div>
+              <div className="chart-label">{"Illustrative monthly pay index (US tech/finance vs India product/GCC, index 0 to 25)"}</div>
               <div style={{ height: 280 }}>
                 <canvas id="dataAiPayIndexChart" />
               </div>
             </div>
 
-            <div className="highlight"><strong>Key insight:</strong> Paid data interns exist in volume at employers with real data teams. If everyone on the team is paid except interns, question the setup.</div>
+            <div className="highlight">{"<strong>Key insight:</strong> Paid data interns exist in volume at employers with real data teams. If everyone on the team is paid except interns, question the setup."}</div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Remote US intern from India.</strong> Confirm currency, hours, and tax. Some US employers hire contractors with different rules than US campus interns.</span>
+                <span><strong>{"Remote US intern from India."}</strong> {"Confirm currency, hours, and tax. Some US employers hire contractors with different rules than US campus interns."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>PhD vs undergrad bands differ.</strong> Research labs and quant firms pay premiums. Do not compare your offer to a friend's without matching level and city.</span>
+                <span><strong>{"PhD vs undergrad bands differ."}</strong> {"Research labs and quant firms pay premiums. Do not compare your offer to a friend's without matching level and city."}</span>
               </div>
             </div>
 
-            <div className="callout-green"><strong>Negotiate scope, not only stipend:</strong> Ask about mentor, warehouse access, presentation to leadership, and return offer history.</div>
+            <div className="callout-green">{"<strong>Negotiate scope, not only stipend:</strong> Ask about mentor, warehouse access, presentation to leadership, and return offer history."}</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#6366f1" }}>4</div>
+              <div className="sec-num" style={{ background: "#6366f1" }}>{"4"}</div>
               <div>
-                <div className="sec-title">Who's hiring data and AI interns</div>
-                <div className="sec-sub">Tech, finance, GCCs, and verticals with real data teams</div>
+                <div className="sec-title">{"Who's hiring data and AI interns"}</div>
+                <div className="sec-sub">{"Tech, finance, GCCs, and verticals with real data teams"}</div>
               </div>
             </div>
-            <p>Large tech, fintech, and e-commerce run the biggest cohorts: product analytics, risk, search, ads, and platform data. Banks and asset managers hire quant-leaning and analytics interns. GCCs in India hire data engineering and BI interns for global stacks. Health, retail, and logistics hire when they have centralized data teams, not when "AI" is a press release only.</p>
-            <p>Consulting and agencies hire analytics interns for client dashboards. AI startups hire if you can ship evaluations and prototypes, not because you watched a transformer lecture.</p>
+            <p>{"Large tech, fintech, and e-commerce run the biggest cohorts: product analytics, risk, search, ads, and platform data. Banks and asset managers hire quant-leaning and analytics interns. GCCs in India hire data engineering and BI interns for global stacks. Health, retail, and logistics hire when they have centralized data teams, not when \"AI\" is a press release only."}</p>
+            <p>{"Consulting and agencies hire analytics interns for client dashboards. AI startups hire if you can ship evaluations and prototypes, not because you watched a transformer lecture."}</p>
 
-            <div className="highlight"><strong>Key insight:</strong> Target employers with a named data org chart. "AI-first" marketing without data job postings is a warning.</div>
+            <div className="highlight">{"<strong>Key insight:</strong> Target employers with a named data org chart. \"AI-first\" marketing without data job postings is a warning."}</div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Capstone and university labs count.</strong> Professor research with a publication or shipped artifact helps research intern screens.</span>
+                <span><strong>{"Capstone and university labs count."}</strong> {"Professor research with a publication or shipped artifact helps research intern screens."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Hackathons are side doors.</strong> Winning a data track with a reproducible repo sometimes skips the queue for startups.</span>
+                <span><strong>{"Hackathons are side doors."}</strong> {"Winning a data track with a reproducible repo sometimes skips the queue for startups."}</span>
               </div>
             </div>
 
-            <div className="callout"><strong>Search strings:</strong> "data analyst intern," "analytics intern," "data science intern summer 2026," "ML intern," plus company careers filter. Add city if you target India GCC or US hub.</div>
+            <div className="callout">{"<strong>Search strings:</strong> \"data analyst intern,\" \"analytics intern,\" \"data science intern summer 2026,\" \"ML intern,\" plus company careers filter. Add city if you target India GCC or US hub."}</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#6366f1" }}>5</div>
+              <div className="sec-num" style={{ background: "#6366f1" }}>{"5"}</div>
               <div>
-                <div className="sec-title">Interviews: what entry-level looks like in the room</div>
-                <div className="sec-sub">SQL, cases, take-homes, and honest communication</div>
+                <div className="sec-title">{"Interviews: what entry-level looks like in the room"}</div>
+                <div className="sec-sub">{"SQL, cases, take-homes, and honest communication"}</div>
               </div>
             </div>
-            <p>Typical loops: SQL screen (live or timed), statistics and product sense questions, take-home analysis with a deck, and behavioral questions on ambiguity. ML-leaning roles may add Python coding or model metric questions. Rarely will undergrads face deep architecture proofs unless applying to elite research programmes.</p>
-            <p>Take-homes should be time-boxed (2 to 4 hours of real work). If an employer assigns a week of unpaid labor, decline or negotiate. Present insights, not notebook dumps.</p>
+            <p>{"Typical loops: SQL screen (live or timed), statistics and product sense questions, take-home analysis with a deck, and behavioral questions on ambiguity. ML-leaning roles may add Python coding or model metric questions. Rarely will undergrads face deep architecture proofs unless applying to elite research programmes."}</p>
+            <p>{"Take-homes should be time-boxed (2 to 4 hours of real work). If an employer assigns a week of unpaid labor, decline or negotiate. Present insights, not notebook dumps."}</p>
 
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
-                <h4>Reach data hiring managers directly</h4>
-                <p>Studojo Outreach helps you message analytics and ML leads with one project link before you are buried in a generic intern queue.</p>
-                <Link to="/dojos/internships" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <h4>{"Reach data hiring managers directly"}</h4>
+                <p>{"Studojo Outreach helps you message analytics and ML leads with one project link before you are buried in a generic intern queue."}</p>
+                <Link to="/dojos/internships" className="rpt-cta-mid-btn">{"Try Studojo Outreach →"}</Link>
               </div>
             </div>
 
-            <div className="highlight"><strong>Key insight:</strong> Interviewers reward clarity: metric, method, limitation, next step. Practice saying "I don't know, but I would test X."</div>
+            <div className="highlight">{"<strong>Key insight:</strong> Interviewers reward clarity: metric, method, limitation, next step. Practice saying \"I don't know, but I would test X.\""}</div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Explain tradeoffs aloud.</strong> Why median vs mean, why logistic vs linear, why you dropped outliers. Junior hires win on judgment narration.</span>
+                <span><strong>{"Explain tradeoffs aloud."}</strong> {"Why median vs mean, why logistic vs linear, why you dropped outliers. Junior hires win on judgment narration."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>GenAI take-homes often test evaluation.</strong> Design rubrics, human rating samples, and failure buckets. That is real 2026 work.</span>
+                <span><strong>{"GenAI take-homes often test evaluation."}</strong> {"Design rubrics, human rating samples, and failure buckets. That is real 2026 work."}</span>
               </div>
             </div>
 
-            <div className="callout-amber"><strong>Take-home template:</strong> Problem → Data quirks → Analysis → Chart → Recommendation → What I'd do with two more weeks.</div>
+            <div className="callout-amber">{"<strong>Take-home template:</strong> Problem → Data quirks → Analysis → Chart → Recommendation → What I'd do with two more weeks."}</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#6366f1" }}>6</div>
+              <div className="sec-num" style={{ background: "#6366f1" }}>{"6"}</div>
               <div>
-                <div className="sec-title">A realistic 60-day break-in plan</div>
-                <div className="sec-sub">Proof, targets, and channel mix</div>
+                <div className="sec-title">{"A realistic 60-day break-in plan"}</div>
+                <div className="sec-sub">{"Proof, targets, and channel mix"}</div>
               </div>
             </div>
-            <p>Days 1–20: finish SQL + one portfolio project with a README and slides. Days 21–40: apply to 15 tailored roles (5 large tech/finance, 5 India GCC or product, 5 startups). Days 41–60: ten outreaches to data managers with your project link; mock SQL twice a week.</p>
-            <p>Track screens per ten tailored applies. If only startups reply, tighten dashboards. If only GCC replies, emphasize SQL and pipeline hygiene. Do not spray "AI enthusiast" resumes.</p>
+            <p>{"Days 1–20: finish SQL + one portfolio project with a README and slides. Days 21–40: apply to 15 tailored roles (5 large tech/finance, 5 India GCC or product, 5 startups). Days 41–60: ten outreaches to data managers with your project link; mock SQL twice a week."}</p>
+            <p>{"Track screens per ten tailored applies. If only startups reply, tighten dashboards. If only GCC replies, emphasize SQL and pipeline hygiene. Do not spray \"AI enthusiast\" resumes."}</p>
 
-            <div className="highlight"><strong>Summary insight:</strong> Entry-level data and AI hiring is a data credibility game with an AI accent. Build the base, then add LLM literacy with measured projects.</div>
+            <div className="highlight">{"<strong>Summary insight:</strong> Entry-level data and AI hiring is a data credibility game with an AI accent. Build the base, then add LLM literacy with measured projects."}</div>
 
             <div className="pull-quote">
-              <p>"The intern who got the return offer explained one dashboard that changed a team's sprint priority. The others had pretty plots."</p>
-              <span className="pq-source">Head of data, consumer marketplace (Studojo community, 2025)</span>
+              <p>{"\"The intern who got the return offer explained one dashboard that changed a team's sprint priority. The others had pretty plots.\""}</p>
+              <span className="pq-source">{"Head of data, consumer marketplace (Studojo community, 2025)"}</span>
             </div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Avoid fake AI projects.</strong> Wrappers around ChatGPT with no evaluation metric hurt trust. Show evals, costs, and failure modes.</span>
+                <span><strong>{"Avoid fake AI projects."}</strong> {"Wrappers around ChatGPT with no evaluation metric hurt trust. Show evals, costs, and failure modes."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Return offers follow communication.</strong> Interns who present weekly to mentors convert more than interns who only code in silence.</span>
+                <span><strong>{"Return offers follow communication."}</strong> {"Interns who present weekly to mentors convert more than interns who only code in silence."}</span>
               </div>
             </div>
 
-            <div className="callout"><strong>Portfolio must-haves:</strong> One SQL repo, one notebook with business recommendation, one slide deck under 6 pages, LinkedIn headline that names your stack honestly.</div>
+            <div className="callout">{"<strong>Portfolio must-haves:</strong> One SQL repo, one notebook with business recommendation, one slide deck under 6 pages, LinkedIn headline that names your stack honestly."}</div>
           </div>
 
           <div className="takeaway-section">
@@ -508,30 +508,30 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
             <div className="blist">
               <div className="blist-item" key="Most AI interns do data work">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Most AI interns do data work.</strong> SQL, cleaning, dashboards, and evaluation beat frontier training at entry level. Read the job bullets, not only the title.</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Most AI interns do data work"}.</strong> {"SQL, cleaning, dashboards, and evaluation beat frontier training at entry level. Read the job bullets, not only the title."}</span>
               </div>
               <div className="blist-item" key="Ship one defensible project">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Ship one defensible project.</strong> Question, data, method, metric, recommendation. That narrative beats tool lists and buzzwords.</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Ship one defensible project"}.</strong> {"Question, data, method, metric, recommendation. That narrative beats tool lists and buzzwords."}</span>
               </div>
               <div className="blist-item" key="Target employers with real data teams">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Target employers with real data teams.</strong> Large tech, finance, GCCs, and verticals with centralized analytics hire paid cohorts. Skip vague "AI-first" posts with no data org.</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Target employers with real data teams"}.</strong> {"Large tech, finance, GCCs, and verticals with centralized analytics hire paid cohorts. Skip vague \"AI-first\" posts with no data org."}</span>
               </div>
               <div className="blist-item" key="Practice SQL and communication">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Practice SQL and communication.</strong> Screens are often SQL + case + take-home. Present tradeoffs clearly; time-box unpaid homework and walk if abused.</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Practice SQL and communication"}.</strong> {"Screens are often SQL + case + take-home. Present tradeoffs clearly; time-box unpaid homework and walk if abused."}</span>
               </div>
             </div>
           </div>
 
           <div className="rpt-cta">
             <div className="rpt-cta-left">
-              <h3>Land a paid data intern role with proof.</h3>
-              <p>Studojo helps you find structured data and analytics internships and reach hiring managers with a project link, not a generic AI resume.</p>
+              <h3>{"Land a paid data intern role with proof."}</h3>
+              <p>{"Studojo helps you find structured data and analytics internships and reach hiring managers with a project link, not a generic AI resume."}</p>
             </div>
             <Link to="/dojos/internships" className="rpt-cta-btn">
-              Explore Studojo Internships →
+              {"Explore Studojo Internships →"}
             </Link>
           </div>
         </div>
