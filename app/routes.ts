@@ -70,4 +70,5 @@ export default [
   route("reports/finance-internships-india-ib-consulting-fintech-2026", "routes/reports.finance-internships-india-ib-consulting-fintech-2026.tsx"),
   route("reports/data-ai-internships-entry-level-reality-2026", "routes/reports.data-ai-internships-entry-level-reality-2026.tsx"),
   route("reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026", "routes/reports.tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026.tsx"),
+  route("reports/interview-report-why-candidates-fail-after-shortlist-2026", "routes/reports.interview-report-why-candidates-fail-after-shortlist-2026.tsx"),
 ] satisfies RouteConfig;

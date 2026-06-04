@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "interview-report-why-candidates-fail-after-shortlist-2026",
+    publishDate: "2026-06-04",
+    title: "The Interview Report: Why Candidates Fail After Getting Shortlisted",
+    subtitle: "The Interview Report · 2026",
+    excerpt: "Getting shortlisted means your paper profile passed. Most rejections after that happen for reasons candidates rarely hear: unclear structure, shallow prep, misread scope, or a stronger peer in the same week. This report maps why interviews fail after the shortlist, what changes by round, and how to protect the slot you already earned.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "June 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026",
     publishDate: "2026-05-30",
     title: "Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai",
