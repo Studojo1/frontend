@@ -264,7 +264,7 @@ export default function CcIndex() {
                 Takes 8 minutes. Gets sharper the more you talk to it.
               </p>
               <Link
-                to="/cc/chat"
+                to="/cc/chat?new=1"
                 className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl px-10 font-['Satoshi'] text-base font-bold transition-all hover:brightness-110 active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
@@ -437,7 +437,7 @@ export default function CcIndex() {
                       ))}
                     </ul>
                     <Link
-                      to="/cc/chat"
+                      to="/cc/chat?new=1"
                       className="mt-auto inline-flex items-center gap-1.5 pt-6 font-['Satoshi'] text-sm font-semibold transition-opacity hover:opacity-80"
                       style={{ color: c.accent }}
                     >
@@ -537,7 +537,7 @@ export default function CcIndex() {
             </p>
             <div className="relative mt-10 flex justify-center">
               <Link
-                to="/cc/chat"
+                to="/cc/chat?new=1"
                 className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl px-8 font-['Satoshi'] text-base font-bold transition-all hover:brightness-110 active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
