@@ -933,6 +933,34 @@ export default function CcChat() {
         conversationIdRef.current = sd.conversation_id;
         localStorage.setItem(STORAGE_KEY, sd.student_id);
 
+        // "Get my Career DNA" CTAs pass ?new=1 — start a FRESH chat thread
+        // instead of resuming history. The prior conversation stays in history.
+        const wantsNew = new URLSearchParams(window.location.search).get("new") === "1";
+        if (wantsNew) {
+          try {
+            const nc = await fetch(`${CC_API}/session/${sd.student_id}/new-conversation`, { method: "POST" });
+            const ncd = await nc.json();
+            if (ncd?.conversation_id) {
+              conversationIdRef.current = ncd.conversation_id;
+              setReturning(false);
+              setMessages([]);
+              setAgentState("GREETING");
+              // Clean the URL so a refresh doesn't keep spawning new threads.
+              window.history.replaceState({}, "", "/cc/chat");
+              if (ncd.greeting) { pendingGreetingRef.current = ncd.greeting; showGreeting(ncd.greeting); }
+              else {
+                const gRes = await fetch(`${CC_API}/chat/greeting?student_id=${sd.student_id}&conversation_id=${ncd.conversation_id}`);
+                pendingGreetingRef.current = await gRes.json();
+                showGreeting(pendingGreetingRef.current);
+              }
+              refreshSidebar();
+              return;
+            }
+          } catch (e) {
+            console.warn("new-chat init failed, falling back to normal session", e);
+          }
+        }
+
         if (sd.returning && sd.history?.length > 0) {
           // Hook stays visible — student dismisses it themselves. We just
           // load the history in the background so it is ready when they enter.
