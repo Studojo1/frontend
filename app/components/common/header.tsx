@@ -134,20 +134,16 @@ export function Header() {
               <LinkComponent
                 key={link.label}
                 to={link.to}
-                className={`relative font-['Satoshi'] text-base leading-6 ${
-                  "active" in link && link.active
+                title={link.to === "/cc" && coachHasProgress ? "Continue with your Career Coach" : undefined}
+                className={`font-['Satoshi'] text-base leading-6 ${
+                  link.to === "/cc" && coachHasProgress
+                    ? "font-bold text-violet-600 hover:text-violet-700"
+                    : "active" in link && link.active
                     ? "font-black text-neutral-700"
                     : "font-normal text-neutral-700"
                 }`}
               >
                 {link.label}
-                {link.to === "/cc" && coachHasProgress && (
-                  <span
-                    className="absolute -right-2.5 -top-1 h-2 w-2 rounded-full bg-violet-500"
-                    title="Continue with your Career Coach"
-                    aria-label="You have Career Coach progress"
-                  />
-                )}
               </LinkComponent>
             );
           })}
@@ -382,12 +378,13 @@ export function Header() {
                   <LinkComponent
                     to={to}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                    className={`block rounded-lg py-2 font-['Satoshi'] hover:bg-neutral-50 ${
+                      to === "/cc" && coachHasProgress
+                        ? "font-bold text-violet-600"
+                        : "text-neutral-700"
+                    }`}
                   >
                     {label}
-                    {to === "/cc" && coachHasProgress && (
-                      <span className="h-2 w-2 rounded-full bg-violet-500" aria-label="You have Career Coach progress" />
-                    )}
                   </LinkComponent>
                 </li>
               );
