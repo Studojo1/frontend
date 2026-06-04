@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026",
+    publishDate: "2026-05-30",
+    title: "Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai",
+    subtitle: "India Labour Market · 2026",
+    excerpt: "Bangalore and Mumbai still dominate headlines, but GCCs, IT services, and cost-conscious product teams are expanding in Pune, Hyderabad, Chennai, Ahmedabad, and other tier 2 hubs. This report maps which job lanes are actually shifting, what pay looks like in INR, and how to target the right city without guessing from LinkedIn noise.",
+    category: "Cities",
+    type: "Cities" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "growth-marketing-jobs-skills-pay-hiring-2026",
     publishDate: "2026-05-30",
     title: "Growth Marketing Jobs 2026: Skills, Pay, and Who's Hiring",

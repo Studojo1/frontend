@@ -66,4 +66,5 @@ export default [
   route("reports/singapore-remote-from-india-2026", "routes/reports.singapore-remote-from-india-2026.tsx"),
   route("reports/first-job-india-2026", "routes/reports.first-job-india-2026.tsx"),
   route("reports/growth-marketing-jobs-skills-pay-hiring-2026", "routes/reports.growth-marketing-jobs-skills-pay-hiring-2026.tsx"),
+  route("reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026", "routes/reports.tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026.tsx"),
 ] satisfies RouteConfig;
