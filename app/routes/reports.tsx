@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "finance-internships-india-ib-consulting-fintech-2026",
+    publishDate: "2026-06-04",
+    title: "Finance Internships India 2026: IB, Consulting, and Fintech",
+    subtitle: "Finance Internships · India 2026",
+    excerpt: "Finance internships in India split across investment banking, consulting, and fintech, each with different screens, stipend bands, and conversion paths. This report maps where hiring energy sits in 2026, what serious programmes pay in INR, and how students get shortlists when portals feel noisy.",
+    category: "Finance",
+    type: "Internships" as ReportType,
+    date: "June 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "growth-marketing-jobs-skills-pay-hiring-2026",
     publishDate: "2026-05-30",
     title: "Growth Marketing Jobs 2026: Skills, Pay, and Who's Hiring",

@@ -69,4 +69,5 @@ export default [
   route("reports/unpaid-internship-report-where-legal-2026", "routes/reports.unpaid-internship-report-where-legal-2026.tsx"),
   route("reports/data-ai-internships-entry-level-reality-2026", "routes/reports.data-ai-internships-entry-level-reality-2026.tsx"),
   route("reports/growth-marketing-jobs-skills-pay-hiring-2026", "routes/reports.growth-marketing-jobs-skills-pay-hiring-2026.tsx"),
+  route("reports/finance-internships-india-ib-consulting-fintech-2026", "routes/reports.finance-internships-india-ib-consulting-fintech-2026.tsx"),
 ] satisfies RouteConfig;
