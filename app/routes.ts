@@ -65,8 +65,8 @@ export default [
   route("reports/rejection-report-what-happens-after-you-apply-2026", "routes/reports.rejection-report-what-happens-after-you-apply-2026.tsx"),
   route("reports/singapore-remote-from-india-2026", "routes/reports.singapore-remote-from-india-2026.tsx"),
   route("reports/first-job-india-2026", "routes/reports.first-job-india-2026.tsx"),
-  route("reports/growth-marketing-jobs-skills-pay-hiring-2026", "routes/reports.growth-marketing-jobs-skills-pay-hiring-2026.tsx"),
   route("reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026", "routes/reports.tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026.tsx"),
   route("reports/unpaid-internship-report-where-legal-2026", "routes/reports.unpaid-internship-report-where-legal-2026.tsx"),
   route("reports/data-ai-internships-entry-level-reality-2026", "routes/reports.data-ai-internships-entry-level-reality-2026.tsx"),
+  route("reports/growth-marketing-jobs-skills-pay-hiring-2026", "routes/reports.growth-marketing-jobs-skills-pay-hiring-2026.tsx"),
 ] satisfies RouteConfig;

@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "growth-marketing-jobs-skills-pay-hiring-2026",
+    publishDate: "2026-05-30",
+    title: "Growth Marketing Jobs 2026: Skills, Pay, and Who's Hiring",
+    subtitle: "Growth Marketing · 2026",
+    excerpt: "Growth marketing roles exploded on job boards, but titles vary wildly. This report defines what employers mean in 2026, which skills actually show up in reqs, illustrative US pay bands, who is hiring, and how students and career switchers break in with experiments instead of adjectives.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "May 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "data-ai-internships-entry-level-reality-2026",
     publishDate: "2026-06-01",
     title: "Data and AI Internships 2026: Entry-Level Reality",
@@ -70,18 +82,6 @@ const REPORTS = [
     excerpt: "Bangalore and Mumbai still dominate headlines, but GCCs, IT services, and cost-conscious product teams are expanding in Pune, Hyderabad, Chennai, Ahmedabad, and other tier 2 hubs. This report maps which job lanes are actually shifting, what pay looks like in INR, and how to target the right city without guessing from LinkedIn noise.",
     category: "Cities",
     type: "Cities" as ReportType,
-    date: "May 2026",
-    findings: 6,
-    badge: "New",
-  },
-  {
-    slug: "growth-marketing-jobs-skills-pay-hiring-2026",
-    publishDate: "2026-05-30",
-    title: "Growth Marketing Jobs 2026: Skills, Pay, and Who's Hiring",
-    subtitle: "Growth Marketing · 2026",
-    excerpt: "Growth marketing roles exploded on job boards, but titles vary wildly. This report defines what employers mean in 2026, which skills actually show up in reqs, illustrative US pay bands, who is hiring, and how students and career switchers break in with experiments instead of adjectives.",
-    category: "Career",
-    type: "Sector" as ReportType,
     date: "May 2026",
     findings: 6,
     badge: "New",
