@@ -51,6 +51,19 @@ export function Header() {
   const isHomePage = location.pathname === "/";
   const { data: session, isPending } = authClient.useSession();
 
+  // Subtle nav cue: dot on "Career Coach" for a logged-in student who already
+  // has a Career DNA (so returning users are nudged back without any banner).
+  const [coachHasProgress, setCoachHasProgress] = useState(false);
+  useEffect(() => {
+    if (!session?.user) { setCoachHasProgress(false); return; }
+    let cancelled = false;
+    fetch("/api/career-coach/summary")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled) setCoachHasProgress(!!(d?.found && d?.has_analysis)); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [session?.user]);
+
   // Listen for session update events and refetch session
   useEffect(() => {
     const handleSessionUpdate = async () => {
@@ -121,13 +134,20 @@ export function Header() {
               <LinkComponent
                 key={link.label}
                 to={link.to}
-                className={`font-['Satoshi'] text-base leading-6 ${
+                className={`relative font-['Satoshi'] text-base leading-6 ${
                   "active" in link && link.active
                     ? "font-black text-neutral-700"
                     : "font-normal text-neutral-700"
                 }`}
               >
                 {link.label}
+                {link.to === "/cc" && coachHasProgress && (
+                  <span
+                    className="absolute -right-2.5 -top-1 h-2 w-2 rounded-full bg-violet-500"
+                    title="Continue with your Career Coach"
+                    aria-label="You have Career Coach progress"
+                  />
+                )}
               </LinkComponent>
             );
           })}
@@ -362,9 +382,12 @@ export function Header() {
                   <LinkComponent
                     to={to}
                     onClick={() => setMobileOpen(false)}
-                    className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                    className="flex items-center gap-2 rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                   >
                     {label}
+                    {to === "/cc" && coachHasProgress && (
+                      <span className="h-2 w-2 rounded-full bg-violet-500" aria-label="You have Career Coach progress" />
+                    )}
                   </LinkComponent>
                 </li>
               );
