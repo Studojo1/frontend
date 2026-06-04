@@ -235,26 +235,26 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
       <main>
         <div className="rpt-hero">
           <div className="rpt-hero-inner">
-            <div className="rpt-badge">Cities · May 2026</div>
+            <div className="rpt-badge">{"Cities · May 2026"}</div>
             <nav className="rpt-breadcrumb" aria-label="Breadcrumb">
               <Link to="/reports" className="rpt-breadcrumb-link">Reports</Link>
               <span className="rpt-breadcrumb-sep">›</span>
-              <span>Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai</span>
+              <span>{"Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai"}</span>
             </nav>
             <h1 dangerouslySetInnerHTML={{ __html: "Tier 2 Cities Are Hiring:<br /><em>The Jobs Leaving Bangalore and Mumbai</em>" }} />
-            <p className="rpt-hero-sub">Not every role is leaving the metros. But in 2026, a growing share of engineering, operations, analytics, and shared-services hiring is landing in Pune, Hyderabad, Chennai, and other tier 2 cities where employers save cost, hire faster, and keep retention higher. This report shows which lanes are shifting, what INR pay really looks like, who is posting reqs, and how to build a city strategy that is data, not nostalgia.</p>
+            <p className="rpt-hero-sub">{"Not every role is leaving the metros. But in 2026, a growing share of engineering, operations, analytics, and shared-services hiring is landing in Pune, Hyderabad, Chennai, and other tier 2 cities where employers save cost, hire faster, and keep retention higher. This report shows which lanes are shifting, what INR pay really looks like, who is posting reqs, and how to build a city strategy that is data, not nostalgia."}</p>
             <div className="rpt-meta">
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Scope</span>
-                <span className="rpt-meta-value">India · Early-career through mid-level roles (0 to 5 years) · Metro vs tier 2 comparison</span>
+                <span className="rpt-meta-value">{"India · Early-career through mid-level roles (0 to 5 years) · Metro vs tier 2 comparison"}</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Report type</span>
-                <span className="rpt-meta-value">Career / Cities</span>
+                <span className="rpt-meta-value">{"Career / Cities"}</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Published</span>
-                <span className="rpt-meta-value">May 2026</span>
+                <span className="rpt-meta-value">{"May 2026"}</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Prepared by</span>
@@ -267,38 +267,38 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">~35%</div>
-              <div className="sc-label">Illustrative share of new GCC and captives capacity added outside Bangalore and Mumbai in Studojo's 2026 India employer map</div>
-              <div className="sc-source">Studojo GCC and labour-market synthesis, 2026</div>
+              <div className="sc-num">{"~35%"}</div>
+              <div className="sc-label">{"Illustrative share of new GCC and captives capacity added outside Bangalore and Mumbai in Studojo's 2026 India employer map"}</div>
+              <div className="sc-source">{"Studojo GCC and labour-market synthesis, 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">6 cities</div>
-              <div className="sc-label">Highest visible hiring momentum in tier 2: Pune, Hyderabad, Chennai, Ahmedabad, Kochi, and Jaipur (plus Chandigarh and Indore for select lanes)</div>
-              <div className="sc-source">Studojo city hiring index, 2026</div>
+              <div className="sc-num">{"6 cities"}</div>
+              <div className="sc-label">{"Highest visible hiring momentum in tier 2: Pune, Hyderabad, Chennai, Ahmedabad, Kochi, and Jaipur (plus Chandigarh and Indore for select lanes)"}</div>
+              <div className="sc-source">{"Studojo city hiring index, 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">~15–25%</div>
-              <div className="sc-label">Typical gross pay gap vs Bangalore for the same job title at the same employer, before cost-of-living adjustment (wide variance by sector)</div>
-              <div className="sc-source">Employer pay band surveys and Studojo compensation synthesis, 2026</div>
+              <div className="sc-num">{"~15–25%"}</div>
+              <div className="sc-label">{"Typical gross pay gap vs Bangalore for the same job title at the same employer, before cost-of-living adjustment (wide variance by sector)"}</div>
+              <div className="sc-source">{"Employer pay band surveys and Studojo compensation synthesis, 2026"}</div>
             </div>
           </div>
 
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0d9488" }}>1</div>
+              <div className="sec-num" style={{ background: "#0d9488" }}>{"1"}</div>
               <div>
-                <div className="sec-title">Jobs are not "leaving" metros. Lanes are splitting</div>
-                <div className="sec-sub">What moves to tier 2 and what stays in Bangalore and Mumbai</div>
+                <div className="sec-title">{"Jobs are not \"leaving\" metros. Lanes are splitting"}</div>
+                <div className="sec-sub">{"What moves to tier 2 and what stays in Bangalore and Mumbai"}</div>
               </div>
             </div>
-            <p>Headlines sound like an exodus. The labour market is more precise. Core product invention, venture-backed founding teams, front-office finance, and top-tier consulting partnership tracks still cluster in Bangalore, Mumbai, Gurgaon, and Hyderabad's established corridors. What spreads to tier 2 cities are scale lanes: GCC engineering pods, IT services delivery, analytics and shared services, inside sales, customer operations, and regional commercial teams.</p>
-            <p>Employers chase three wins: lower office and salary cost, faster hiring from local colleges, and retention when commute and housing stress drop. Candidates chase rent relief and manager access. Neither side is pretending the metro brand disappeared. They are optimizing where each role type should sit.</p>
+            <p>{"Headlines sound like an exodus. The labour market is more precise. Core product invention, venture-backed founding teams, front-office finance, and top-tier consulting partnership tracks still cluster in Bangalore, Mumbai, Gurgaon, and Hyderabad's established corridors. What spreads to tier 2 cities are scale lanes: GCC engineering pods, IT services delivery, analytics and shared services, inside sales, customer operations, and regional commercial teams."}</p>
+            <p>{"Employers chase three wins: lower office and salary cost, faster hiring from local colleges, and retention when commute and housing stress drop. Candidates chase rent relief and manager access. Neither side is pretending the metro brand disappeared. They are optimizing where each role type should sit."}</p>
 
-            <div className="highlight"><strong>Key insight:</strong> Ask "which lane is my target role in?" before you ask "which city is fashionable."</div>
+            <div className="highlight">{"<strong>Key insight:</strong> Ask \"which lane is my target role in?\" before you ask \"which city is fashionable.\""}</div>
 
             <div className="chart-wrap">
-              <div className="chart-label">Job lanes with the most tier 2 expansion (momentum index, 0 to 10)</div>
+              <div className="chart-label">{"Job lanes with the most tier 2 expansion (momentum index, 0 to 10)"}</div>
               <div style={{ height: 300 }}>
                 <canvas id="jobsShiftingChart" />
               </div>
@@ -308,191 +308,191 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Hybrid blurred the map.</strong> A Bangalore payroll with three days in Pune is common. Read the job location field and the team anchor city, not only the employer HQ.</span>
+                <span><strong>{"Hybrid blurred the map."}</strong> {"A Bangalore payroll with three days in Pune is common. Read the job location field and the team anchor city, not only the employer HQ."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Mumbai is finance-heavy.</strong> More Mumbai back-office and ops roles appear in Pune and Ahmedabad than front-office banking moves.</span>
+                <span><strong>{"Mumbai is finance-heavy."}</strong> {"More Mumbai back-office and ops roles appear in Pune and Ahmedabad than front-office banking moves."}</span>
               </div>
             </div>
 
-            <div className="callout"><strong>Stays metro-heavy:</strong> VC-backed product manager at 50-person startup, MBB consulting, sell-side research, elite fintech trading, and many design-led consumer roles.<br /><br /><strong>Shifts tier 2 faster:</strong> GCC software, testing and SRE at scale, BPO and KPO upgrades, captive analytics, and inside sales for India market.</div>
+            <div className="callout">{"<strong>Stays metro-heavy:</strong> VC-backed product manager at 50-person startup, MBB consulting, sell-side research, elite fintech trading, and many design-led consumer roles.<br /><br /><strong>Shifts tier 2 faster:</strong> GCC software, testing and SRE at scale, BPO and KPO upgrades, captive analytics, and inside sales for India market."}</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0d9488" }}>2</div>
+              <div className="sec-num" style={{ background: "#0d9488" }}>{"2"}</div>
               <div>
-                <div className="sec-title">Which tier 2 cities win which sectors</div>
-                <div className="sec-sub">Pune, Hyderabad, Chennai, and the specialists</div>
+                <div className="sec-title">{"Which tier 2 cities win which sectors"}</div>
+                <div className="sec-sub">{"Pune, Hyderabad, Chennai, and the specialists"}</div>
               </div>
             </div>
-            <p>Pune picks up automotive tech, manufacturing IT, GCC expansions, and Bangalore overflow engineering. Hyderabad already behaves like a metro for tech but still absorbs GCC and cloud operations at lower land cost. Chennai leads automotive, electronics, and industrial IT services with strong campus pipelines. Ahmedabad and Gandhinagar grow fintech back office, pharma analytics, and government-linked digital projects. Kochi and Thiruvananthapuram host IT services and GCC support functions with quality-of-life positioning.</p>
-            <p>Jaipur, Indore, Chandigarh, Coimbatore, and Visakhapatnam show up in employer plans, but with narrower employer sets. Your city pick should follow sector fit, not a generic "tier 2 is hot" post.</p>
+            <p>{"Pune picks up automotive tech, manufacturing IT, GCC expansions, and Bangalore overflow engineering. Hyderabad already behaves like a metro for tech but still absorbs GCC and cloud operations at lower land cost. Chennai leads automotive, electronics, and industrial IT services with strong campus pipelines. Ahmedabad and Gandhinagar grow fintech back office, pharma analytics, and government-linked digital projects. Kochi and Thiruvananthapuram host IT services and GCC support functions with quality-of-life positioning."}</p>
+            <p>{"Jaipur, Indore, Chandigarh, Coimbatore, and Visakhapatnam show up in employer plans, but with narrower employer sets. Your city pick should follow sector fit, not a generic \"tier 2 is hot\" post."}</p>
 
             <div className="chart-wrap">
-              <div className="chart-label">Where tier 2 hiring activity concentrates (illustrative share of net new roles, %)</div>
+              <div className="chart-label">{"Where tier 2 hiring activity concentrates (illustrative share of net new roles, %)"}</div>
               <div style={{ height: 280 }}>
                 <canvas id="tier2CityMixChart" />
               </div>
             </div>
 
-            <div className="highlight"><strong>Key insight:</strong> Match city to sector gravity. One strong employer in the right city beats five weak applies in a trendy one.</div>
+            <div className="highlight">{"<strong>Key insight:</strong> Match city to sector gravity. One strong employer in the right city beats five weak applies in a trendy one."}</div>
 
             <div className="pull-quote">
-              <p>"We opened forty seats in Pune because Bangalore hiring time doubled and offer acceptance fell. Same stack, different city."</p>
-              <span className="pq-source">Engineering director, global SaaS GCC (Studojo community, 2025)</span>
+              <p>{"\"We opened forty seats in Pune because Bangalore hiring time doubled and offer acceptance fell. Same stack, different city.\""}</p>
+              <span className="pq-source">{"Engineering director, global SaaS GCC (Studojo community, 2025)"}</span>
             </div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Pune vs Bangalore is not a downgrade by default.</strong> Many candidates keep the same employer and title with a location transfer and modest pay adjustment.</span>
+                <span><strong>{"Pune vs Bangalore is not a downgrade by default."}</strong> {"Many candidates keep the same employer and title with a location transfer and modest pay adjustment."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Chennai rewards manufacturing and industrial interest.</strong> If your resume screams consumer app only, Chennai industrial IT may feel foreign until you tailor.</span>
+                <span><strong>{"Chennai rewards manufacturing and industrial interest."}</strong> {"If your resume screams consumer app only, Chennai industrial IT may feel foreign until you tailor."}</span>
               </div>
             </div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0d9488" }}>3</div>
+              <div className="sec-num" style={{ background: "#0d9488" }}>{"3"}</div>
               <div>
-                <div className="sec-title">Pay in INR: the tradeoff is real but not always bad</div>
-                <div className="sec-sub">CTC bands, rent math, and when tier 2 wins on savings</div>
+                <div className="sec-title">{"Pay in INR: the tradeoff is real but not always bad"}</div>
+                <div className="sec-sub">{"CTC bands, rent math, and when tier 2 wins on savings"}</div>
               </div>
             </div>
-            <p>For the same employer and level, tier 2 CTC often lands roughly 15 to 25% below Bangalore on paper, sometimes less for ops roles. Fresher programmes at large GCCs may narrow the gap to single digits. Startups vary wildly.</p>
-            <p>Cost of living can flip the story. Rent and commute in Bangalore or Mumbai frequently eat more than the headline premium. A ₹14 LPA offer in Pune versus ₹18 LPA in Bangalore can leave similar monthly savings for many renters when you include commute and WFH flexibility.</p>
+            <p>{"For the same employer and level, tier 2 CTC often lands roughly 15 to 25% below Bangalore on paper, sometimes less for ops roles. Fresher programmes at large GCCs may narrow the gap to single digits. Startups vary wildly."}</p>
+            <p>{"Cost of living can flip the story. Rent and commute in Bangalore or Mumbai frequently eat more than the headline premium. A ₹14 LPA offer in Pune versus ₹18 LPA in Bangalore can leave similar monthly savings for many renters when you include commute and WFH flexibility."}</p>
 
             <div className="chart-wrap">
-              <div className="chart-label">Tier 2 CTC index vs Bangalore for same role (Bangalore = 10, illustrative)</div>
+              <div className="chart-label">{"Tier 2 CTC index vs Bangalore for same role (Bangalore = 10, illustrative)"}</div>
               <div style={{ height: 280 }}>
                 <canvas id="tier2PayIndexChart" />
               </div>
             </div>
 
-            <div className="highlight"><strong>Key insight:</strong> Compare savings, not sticker CTC. Ask take-home, rent, and office-day count.</div>
+            <div className="highlight">{"<strong>Key insight:</strong> Compare savings, not sticker CTC. Ask take-home, rent, and office-day count."}</div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Negotiate location band explicitly.</strong> If you are offered a transfer, confirm revision cycle, promotion path, and whether pay is tied to city forever.</span>
+                <span><strong>{"Negotiate location band explicitly."}</strong> {"If you are offered a transfer, confirm revision cycle, promotion path, and whether pay is tied to city forever."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Watch ESOP and bonus at startups.</strong> A metro startup offer with paper equity may lose to a tier 2 profitable services firm on cash flow. Run twelve-month cash, not vibes.</span>
+                <span><strong>{"Watch ESOP and bonus at startups."}</strong> {"A metro startup offer with paper equity may lose to a tier 2 profitable services firm on cash flow. Run twelve-month cash, not vibes."}</span>
               </div>
             </div>
 
-            <div className="callout-green"><strong>Illustrative annual CTC ranges (2026, early-career, varies by employer):</strong><br />GCC / IT services engineer (0 to 2y): tier 2 often ₹6–12 LPA, Bangalore often ₹8–14 LPA.<br />Data and analytics (1 to 3y): tier 2 often ₹8–14 LPA, Bangalore often ₹10–18 LPA.<br />Inside sales / SDR: tier 2 often ₹5–9 LPA fixed + variable, metros slightly higher base.</div>
+            <div className="callout-green">{"<strong>Illustrative annual CTC ranges (2026, early-career, varies by employer):</strong><br />GCC / IT services engineer (0 to 2y): tier 2 often ₹6–12 LPA, Bangalore often ₹8–14 LPA.<br />Data and analytics (1 to 3y): tier 2 often ₹8–14 LPA, Bangalore often ₹10–18 LPA.<br />Inside sales / SDR: tier 2 often ₹5–9 LPA fixed + variable, metros slightly higher base."}</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0d9488" }}>4</div>
+              <div className="sec-num" style={{ background: "#0d9488" }}>{"4"}</div>
               <div>
-                <div className="sec-title">Who's hiring in tier 2 right now</div>
-                <div className="sec-sub">GCCs, captives, IT services, and cost-aware product orgs</div>
+                <div className="sec-title">{"Who's hiring in tier 2 right now"}</div>
+                <div className="sec-sub">{"GCCs, captives, IT services, and cost-aware product orgs"}</div>
               </div>
             </div>
-            <p>Global capability centres and captives lead visible hiring: engineering, cloud, cybersecurity, ERP, and business operations. IT services majors continue large intake from tier 2 campuses with training hubs. Indian product companies use tier 2 for support engineering, QA, analytics, and regional sales, while keeping core product leadership in metros.</p>
-            <p>Pharma, automotive, and industrial conglomerates hire analysts and digital ops in Ahmedabad, Chennai, and Pune. Fintech compliance and operations pods grow in Gujarat and Kerala. Do not expect every unicorn to clone its Bangalore office; expect function-specific pods.</p>
+            <p>{"Global capability centres and captives lead visible hiring: engineering, cloud, cybersecurity, ERP, and business operations. IT services majors continue large intake from tier 2 campuses with training hubs. Indian product companies use tier 2 for support engineering, QA, analytics, and regional sales, while keeping core product leadership in metros."}</p>
+            <p>{"Pharma, automotive, and industrial conglomerates hire analysts and digital ops in Ahmedabad, Chennai, and Pune. Fintech compliance and operations pods grow in Gujarat and Kerala. Do not expect every unicorn to clone its Bangalore office; expect function-specific pods."}</p>
 
-            <div className="highlight"><strong>Key insight:</strong> Search employer name + city on the careers site. Aggregators often tag Bangalore while the req sits in Pune.</div>
+            <div className="highlight">{"<strong>Key insight:</strong> Search employer name + city on the careers site. Aggregators often tag Bangalore while the req sits in Pune."}</div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Campus pipelines differ by city.</strong> Local colleges feed IT services and GCC grad programmes. Metro college grads can still apply but may need relocation clarity in the first call.</span>
+                <span><strong>{"Campus pipelines differ by city."}</strong> {"Local colleges feed IT services and GCC grad programmes. Metro college grads can still apply but may need relocation clarity in the first call."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Government and PSU digital units matter.</strong> Tier 2 hubs tied to state capitals post stable ops and compliance roles students overlook.</span>
+                <span><strong>{"Government and PSU digital units matter."}</strong> {"Tier 2 hubs tied to state capitals post stable ops and compliance roles students overlook."}</span>
               </div>
             </div>
 
-            <div className="callout-amber"><strong>Weekly search strings:</strong> "GCC Pune," "Hyderabad captive," "Chennai automotive digital," "Ahmedabad fintech operations," plus your skill (data, Java, Salesforce, etc.).</div>
+            <div className="callout-amber">{"<strong>Weekly search strings:</strong> \"GCC Pune,\" \"Hyderabad captive,\" \"Chennai automotive digital,\" \"Ahmedabad fintech operations,\" plus your skill (data, Java, Salesforce, etc.)."}</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0d9488" }}>5</div>
+              <div className="sec-num" style={{ background: "#0d9488" }}>{"5"}</div>
               <div>
-                <div className="sec-title">Should you move, stay in a metro, or go hybrid?</div>
-                <div className="sec-sub">A decision tree without shame</div>
+                <div className="sec-title">{"Should you move, stay in a metro, or go hybrid?"}</div>
+                <div className="sec-sub">{"A decision tree without shame"}</div>
               </div>
             </div>
-            <p>Move or target tier 2 if you want cash savings, slower burnout, GCC or services paths, or family proximity. Stay metro-focused if you want early-stage startup product ownership, investing, consulting, or dense peer networks for your niche. Hybrid if your employer allows metro pay with limited office days in a cheaper city (confirm tax, payroll city, and promotion rules).</p>
-            <p>Students can shortlist both: metro summer intern for brand proof, tier 2 return offer for savings. Career switchers should prioritize lane fit over city prestige.</p>
+            <p>{"Move or target tier 2 if you want cash savings, slower burnout, GCC or services paths, or family proximity. Stay metro-focused if you want early-stage startup product ownership, investing, consulting, or dense peer networks for your niche. Hybrid if your employer allows metro pay with limited office days in a cheaper city (confirm tax, payroll city, and promotion rules)."}</p>
+            <p>{"Students can shortlist both: metro summer intern for brand proof, tier 2 return offer for savings. Career switchers should prioritize lane fit over city prestige."}</p>
 
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
-                <h4>Reach hiring managers in your target city</h4>
-                <p>Studojo Outreach helps you message GCC recruiters and team leads in Pune, Hyderabad, or Chennai with a tight proof link, not a Bangalore-generic blast.</p>
-                <Link to="/outreach" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <h4>{"Reach hiring managers in your target city"}</h4>
+                <p>{"Studojo Outreach helps you message GCC recruiters and team leads in Pune, Hyderabad, or Chennai with a tight proof link, not a Bangalore-generic blast."}</p>
+                <Link to="/outreach" className="rpt-cta-mid-btn">{"Try Studojo Outreach →"}</Link>
               </div>
             </div>
 
-            <div className="highlight"><strong>Key insight:</strong> City strategy is a five-year cash and skills plan. Optimize for the work you want to be known for, then pick the map pin.</div>
+            <div className="highlight">{"<strong>Key insight:</strong> City strategy is a five-year cash and skills plan. Optimize for the work you want to be known for, then pick the map pin."}</div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Do not relocate without offer clarity.</strong> Joining date, bond, remote days, and relocation reimbursement should be written, not WhatsApp promises.</span>
+                <span><strong>{"Do not relocate without offer clarity."}</strong> {"Joining date, bond, remote days, and relocation reimbursement should be written, not WhatsApp promises."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Build city-specific alumni lists.</strong> Fifty LinkedIn profiles in Pune for your stack beats 500 blind applies tagged Bangalore.</span>
+                <span><strong>{"Build city-specific alumni lists."}</strong> {"Fifty LinkedIn profiles in Pune for your stack beats 500 blind applies tagged Bangalore."}</span>
               </div>
             </div>
 
-            <div className="callout"><strong>Three questions before you relocate:</strong> (1) Is my lane growing here? (2) Does pay survive rent and family costs? (3) Can I switch back to a metro team later without a title reset?</div>
+            <div className="callout">{"<strong>Three questions before you relocate:</strong> (1) Is my lane growing here? (2) Does pay survive rent and family costs? (3) Can I switch back to a metro team later without a title reset?"}</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
-              <div className="sec-num" style={{ background: "#0d9488" }}>6</div>
+              <div className="sec-num" style={{ background: "#0d9488" }}>{"6"}</div>
               <div>
-                <div className="sec-title">A simple 30-day tier 2 job hunt</div>
-                <div className="sec-sub">Targets, proof, and channel mix</div>
+                <div className="sec-title">{"A simple 30-day tier 2 job hunt"}</div>
+                <div className="sec-sub">{"Targets, proof, and channel mix"}</div>
               </div>
             </div>
-            <p>Week 1: pick two cities and two sectors (example: Pune + GCC, Chennai + automotive IT). Build a list of 40 employers with careers pages. Week 2: tailor resume to lane language (platform, captive, delivery centre). Week 3: ten outreach messages to recruiters and hiring managers citing city and skill. Week 4: track screens per channel; double down where replies appear.</p>
-            <p>Pair tier 2 applies with two metro backup targets in the same sector so you are not hostage to one geography. Measure interview rate per ten serious attempts, not apply count.</p>
+            <p>{"Week 1: pick two cities and two sectors (example: Pune + GCC, Chennai + automotive IT). Build a list of 40 employers with careers pages. Week 2: tailor resume to lane language (platform, captive, delivery centre). Week 3: ten outreach messages to recruiters and hiring managers citing city and skill. Week 4: track screens per channel; double down where replies appear."}</p>
+            <p>{"Pair tier 2 applies with two metro backup targets in the same sector so you are not hostage to one geography. Measure interview rate per ten serious attempts, not apply count."}</p>
 
-            <div className="highlight"><strong>Summary insight:</strong> Tier 2 hiring is a lane shift, not a downgrade by default. The winners treat city as part of sector strategy.</div>
+            <div className="highlight">{"<strong>Summary insight:</strong> Tier 2 hiring is a lane shift, not a downgrade by default. The winners treat city as part of sector strategy."}</div>
 
             <div className="pull-quote">
-              <p>"I moved the search to Pune and closed an offer in six weeks. Same skills, half the rent, manager I actually meet."</p>
-              <span className="pq-source">Software engineer, 2 YOE (Studojo community, 2025)</span>
+              <p>{"\"I moved the search to Pune and closed an offer in six weeks. Same skills, half the rent, manager I actually meet.\""}</p>
+              <span className="pq-source">{"Software engineer, 2 YOE (Studojo community, 2025)"}</span>
             </div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Interview stories should match the employer type.</strong> GCC screens love stability, tooling, and collaboration across time zones. Startup screens love ownership. Do not swap scripts.</span>
+                <span><strong>{"Interview stories should match the employer type."}</strong> {"GCC screens love stability, tooling, and collaboration across time zones. Startup screens love ownership. Do not swap scripts."}</span>
               </div>
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Visit before you sign if you can.</strong> One day in the office park and commute route prevents expensive regret.</span>
+                <span><strong>{"Visit before you sign if you can."}</strong> {"One day in the office park and commute route prevents expensive regret."}</span>
               </div>
             </div>
 
-            <div className="callout"><strong>Resume line that helps:</strong> "Open to Bangalore, Pune, or Hyderabad for GCC platform roles" beats hiding location until the last call.</div>
+            <div className="callout">{"<strong>Resume line that helps:</strong> \"Open to Bangalore, Pune, or Hyderabad for GCC platform roles\" beats hiding location until the last call."}</div>
           </div>
 
           <div className="takeaway-section">
@@ -506,30 +506,30 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
             <div className="blist">
               <div className="blist-item" key="Split lanes, not cities">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Split lanes, not cities.</strong> GCC, services, and ops move tier 2 faster than core product and front-office finance. Match your lane before you move.</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Split lanes, not cities"}.</strong> {"GCC, services, and ops move tier 2 faster than core product and front-office finance. Match your lane before you move."}</span>
               </div>
               <div className="blist-item" key="Pick city by sector">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Pick city by sector.</strong> Pune for engineering overflow, Chennai for industrial IT, Ahmedabad for fintech ops, Kochi for services. One map fits all is wrong.</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Pick city by sector"}.</strong> {"Pune for engineering overflow, Chennai for industrial IT, Ahmedabad for fintech ops, Kochi for services. One map fits all is wrong."}</span>
               </div>
               <div className="blist-item" key="Compare savings, not CTC">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Compare savings, not CTC.</strong> Tier 2 pay can be 15–25% lower on paper but net monthly cash often competes after rent and commute.</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Compare savings, not CTC"}.</strong> {"Tier 2 pay can be 15–25% lower on paper but net monthly cash often competes after rent and commute."}</span>
               </div>
               <div className="blist-item" key="Hunt with city in the query">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Hunt with city in the query.</strong> Use careers pages and outreach tagged to Pune, Hyderabad, or Chennai. Boards often mislabel location as Bangalore.</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Hunt with city in the query"}.</strong> {"Use careers pages and outreach tagged to Pune, Hyderabad, or Chennai. Boards often mislabel location as Bangalore."}</span>
               </div>
             </div>
           </div>
 
           <div className="rpt-cta">
             <div className="rpt-cta-left">
-              <h3>Hire where the reqs actually are.</h3>
-              <p>Studojo Outreach helps you reach GCC and hiring managers in tier 2 cities with proof that fits their lane, not a metro-generic spam loop.</p>
+              <h3>{"Hire where the reqs actually are."}</h3>
+              <p>{"Studojo Outreach helps you reach GCC and hiring managers in tier 2 cities with proof that fits their lane, not a metro-generic spam loop."}</p>
             </div>
             <Link to="/outreach" className="rpt-cta-btn">
-              Try Studojo Outreach →
+              {"Try Studojo Outreach →"}
             </Link>
           </div>
         </div>
