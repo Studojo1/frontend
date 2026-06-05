@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "luck-report-how-much-career-success-is-luck-2026",
+    publishDate: "2026-06-05",
+    title: "The Luck Report: How Much of Career Success Is Actually Luck?",
+    subtitle: "The Luck Report · 2026",
+    excerpt: "Every career story is told backward: skill and grit explain the outcome. Forward-looking data tells a messier story. Macro timing, family networks, geographic lottery, and random meetings explain a large share of who lands the role, who gets promoted, and who stalls. This report separates what luck actually means in careers, quantifies what researchers can measure, and maps a practical playbook for increasing your exposure to good fortune without pretending you control the dice.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "June 2026",
+    findings: 7,
+    badge: "New",
+  },
+  {
     slug: "interview-report-why-candidates-fail-after-shortlist-2026",
     publishDate: "2026-06-04",
     title: "The Interview Report: Why Candidates Fail After Getting Shortlisted",

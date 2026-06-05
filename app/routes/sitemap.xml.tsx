@@ -53,6 +53,7 @@ export async function loader() {
     { loc: "/reports/data-ai-internships-entry-level-reality-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/interview-report-why-candidates-fail-after-shortlist-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/luck-report-how-much-career-success-is-luck-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
@@ -124,6 +125,7 @@ export async function loader() {
     "/reports/data-ai-internships-entry-level-reality-2026": "2026-06-01",
     "/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026": "2026-05-30",
     "/reports/interview-report-why-candidates-fail-after-shortlist-2026": "2026-06-04",
+    "/reports/luck-report-how-much-career-success-is-luck-2026": "2026-06-05",
   };
 
   const urls = [
