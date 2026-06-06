@@ -1016,6 +1016,14 @@ export default function CcChat() {
           setMessages(hist);
           const lastState = [...sd.history].reverse().find((m: any) => m.state)?.state;
           if (lastState) setAgentState(lastState);
+          // Restore progress bar if this is still a PROFILING session (persisted
+          // across network drops / page reloads via sessionStorage).
+          if (!lastState || lastState === "PROFILING" || lastState === "GREETING") {
+            try {
+              const saved = sessionStorage.getItem("cc_profile_progress");
+              if (saved) setProfileProgress(JSON.parse(saved));
+            } catch { /* ignore */ }
+          }
           refreshSidebar();
           return;
         }
@@ -1085,17 +1093,21 @@ export default function CcChat() {
 
   // Pull the profiling progress out of an orchestration payload and into state.
   // Only relevant during GREETING/PROFILING; cleared once the DNA exists.
+  // Persisted to sessionStorage so network blips / reconnects don't wipe the bar.
   function applyProgress(o: any, state: string) {
     if (!o) return;
     if (state === "GREETING" || state === "PROFILING") {
-      setProfileProgress({
+      const p = {
         pct: Math.max(0, Math.min(100, Math.round(o.profile_completion ?? 0))),
         areas: o.profile_areas || {},
         dnaReady: !!o.dna_ready,
         canSkip: !!o.enable_skip_profiling,
-      });
+      };
+      setProfileProgress(p);
+      sessionStorage.setItem("cc_profile_progress", JSON.stringify(p));
     } else {
       setProfileProgress(null);
+      sessionStorage.removeItem("cc_profile_progress");
     }
   }
 
