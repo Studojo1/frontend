@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "ai-interns-using-ai-wont-replace-interns-2026",
+    publishDate: "2026-06-06",
+    title: "AI Won't Replace Interns. Interns Using AI Will Replace Interns Who Don't",
+    subtitle: "AI & Internships · 2026",
+    excerpt: "Companies still hire interns in 2026, but the bar moved. Managers do not want ChatGPT paste jobs. They want interns who research faster, draft cleaner, and still show judgment. This report maps what changed, where AI helps versus hurts, and a 60-day plan to become the intern who gets kept.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "June 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "luck-report-how-much-career-success-is-luck-2026",
     publishDate: "2026-06-05",
     title: "The Luck Report: How Much of Career Success Is Actually Luck?",
