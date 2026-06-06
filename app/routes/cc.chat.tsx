@@ -52,6 +52,8 @@ const CSS = `
 /* Header's avatar is in the top bar now; toggle just clears the sidebar */
 #cc-float-toggle.open{right:calc(var(--sidebar-w) + 24px);}
 #cc-float-toggle.closed{right:24px;}
+#cc-float-toggle.cc-toggle-pulse{border-color:#7c3aed;color:#fff;background:#7c3aed;box-shadow:3px 3px 0 var(--shadow-c);animation:ccTogglePulse 1.1s ease-in-out infinite;}
+@keyframes ccTogglePulse{0%,100%{transform:translateX(0) scale(1);box-shadow:3px 3px 0 var(--shadow-c);}50%{transform:translateX(-4px) scale(1.05);box-shadow:6px 6px 0 var(--shadow-c);}}
 #cc-float-toggle:hover{transform:translateY(-1px);box-shadow:4px 4px 0 var(--shadow-c);}
 
 /* PROFILE MENU (top-right avatar + dropdown). Mirrors the main platform header. */
@@ -325,6 +327,13 @@ const CSS = `
 .ds-tile-label{font-size:0.6rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
 .ds-tile-body{font-size:0.86rem;font-weight:600;line-height:1.45;color:var(--text-primary);text-transform:capitalize;}
 .ds-tile-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.ds-tile-skel{opacity:0.55;border-style:dashed;}
+.ds-tile-skel:hover{transform:none;border-color:var(--border);}
+.ds-skel-lines{display:flex;flex-direction:column;gap:6px;}
+.ds-skel-line{height:9px;border-radius:6px;background:linear-gradient(90deg,rgba(124,58,237,0.10),rgba(124,58,237,0.20),rgba(124,58,237,0.10));background-size:200% 100%;animation:dsShimmer 1.5s ease-in-out infinite;}
+.ds-skel-line.short{width:55%;}
+.ds-skel-hint{font-size:0.7rem;color:var(--text-muted);margin-top:2px;}
+@keyframes dsShimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 .ds-chip{display:inline-block;font-size:0.74rem;font-weight:600;padding:4px 11px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--text-secondary);}
 .ds-chip-have{background:rgba(52,211,153,0.10);border-color:rgba(52,211,153,0.35);color:#6EE7B7;}
 .ds-chip-glow{background:rgba(124,58,237,0.12);border-color:rgba(124,58,237,0.4);color:var(--accent-lavender);box-shadow:0 0 10px rgba(124,58,237,0.18);}
@@ -653,6 +662,13 @@ export default function CcChat() {
   // skills-unlocked banner after a weekly check-in that produced new skills
   const [skillsUnlocked, setSkillsUnlocked] = useState<{ skills: string[]; hasResume: boolean } | null>(null);
 
+  // Profiling auto-open: when profiling starts we auto-open the analysis panel
+  // so the student watches their Career Analysis build live. If they close it,
+  // we re-open it on their next answer — up to 5 times — then stop forcing it
+  // and instead make the "Show panel" button pulse to draw attention.
+  const profileAutoOpenCountRef = useRef(0);
+  const [pulseShowPanel, setPulseShowPanel] = useState(false);
+
   // analysis-ready popup
   const [readyPopVisible, setReadyPopVisible] = useState(false);
   const analysisAnnouncedRef = useRef(false);
@@ -892,12 +908,34 @@ export default function CcChat() {
     setSidebarOpen(willOpen);
     if (willOpen) {
       setReadyPopVisible(false);
+      setPulseShowPanel(false);
       if (!sidebarLoadedRef.current) refreshSidebar();
     }
   }
   function openSidebarTo(p: CtaKind) {
     setPanel(p);
     toggleSidebar(true);
+  }
+
+  // During PROFILING, keep the live Career Analysis in front of the student.
+  // Refresh its data each turn; auto-open it to "analysis" if it's closed —
+  // up to 5 times total — then stop forcing it and pulse the Show-panel button.
+  function maybeAutoOpenAnalysis(state: string) {
+    if (state !== "PROFILING") return;
+    refreshSidebar();
+    if (sidebarOpenRef.current) {
+      // It's open — make sure it's showing the analysis panel.
+      if (panel !== "analysis") setPanel("analysis");
+      return;
+    }
+    if (profileAutoOpenCountRef.current < 5) {
+      profileAutoOpenCountRef.current += 1;
+      setPanel("analysis");
+      toggleSidebar(true);
+    } else {
+      // Stop forcing — nudge them with a pulsing button instead.
+      setPulseShowPanel(true);
+    }
   }
 
   // Discount-code path: take the student to their dashboard to log progress,
@@ -1245,6 +1283,7 @@ export default function CcChat() {
       const state = o.current_state || agentState;
       setAgentState(state);
       applyProgress(o, state);
+      maybeAutoOpenAnalysis(state);
       if (data.conversation_id) conversationIdRef.current = data.conversation_id;
       if (Array.isArray(data.suggestion_chips) && data.suggestion_chips.length) {
         setChips(data.suggestion_chips.slice(0, 3));
@@ -1424,30 +1463,44 @@ export default function CcChat() {
     const skills: string[] = Array.isArray(d.skills_confirmed) ? d.skills_confirmed : [];
     const tools: string[] = Array.isArray(d.tools_and_tech) ? d.tools_and_tech : [];
     const directionPct = typeof d.direction_confidence_pct === "number" ? d.direction_confidence_pct : 0;
-    const nothingYet =
-      !educationFields.length && !direction.length && !motivators.length &&
-      !skills.length && !tools.length && !d.archetype;
-
-    if (nothingYet) {
+    // Skeleton + live-fill: always render the full Career Analysis layout. Each
+    // tile shows its real value once detected, or a greyed "skeleton" placeholder
+    // while the coach is still learning it — so the student sees the SHAPE of what
+    // they're building and watches it fill in as they answer.
+    const wrapClass = expanded ? "xp ds-wrap" : "ds-wrap";
+    const Tile = ({ label, body, wide, hint, chips, chipClass }: {
+      label: string; body?: string | null; wide?: boolean; hint?: string;
+      chips?: string[]; chipClass?: string;
+    }) => {
+      const filled = (body && body.length > 0) || (chips && chips.length > 0);
       return (
-        <div className="ds-empty">
-          <div className="ds-empty-icon">⌁</div>
-          <div className="ds-empty-title">Your Career Analysis is building.</div>
-          <div className="ds-empty-sub">
-            Tiles light up here as the coach learns about you, your goals, and where you stand.
-            Keep chatting.
-          </div>
+        <div className={`ds-tile${wide ? " ds-tile-wide" : ""}${filled ? "" : " ds-tile-skel"}`}>
+          <div className="ds-tile-label">{label}</div>
+          {filled ? (
+            chips ? (
+              <div className="ds-tile-chips">
+                {chips.slice(0, 12).map((c, i) => <span key={i} className={`ds-chip ${chipClass || ""}`}>{c}</span>)}
+              </div>
+            ) : (
+              <div className="ds-tile-body">{body}</div>
+            )
+          ) : (
+            <div className="ds-skel-lines">
+              <span className="ds-skel-line" />
+              <span className="ds-skel-line short" />
+              <span className="ds-skel-hint">{hint}</span>
+            </div>
+          )}
         </div>
       );
-    }
+    };
 
-    const wrapClass = expanded ? "xp ds-wrap" : "ds-wrap";
     return (
       <div className={wrapClass}>
         <div className="ds-header">
-          <div className="ds-eyebrow">Detected so far</div>
-          <div className="ds-title">What the coach has picked up</div>
-          <div className="ds-sub">Live snapshot from your conversation. Full Career DNA generates when there's enough signal.</div>
+          <div className="ds-eyebrow">Career Analysis · building live</div>
+          <div className="ds-title">This fills in as you answer</div>
+          <div className="ds-sub">Every answer sharpens it. Your full Career DNA unlocks once there's enough signal.</div>
           <div className="ds-conf-row">
             <div className="ds-conf-track"><div className="ds-conf-fill" style={{ width: `${directionPct}%` }} /></div>
             <div className="ds-conf-pct">{directionPct}%</div>
@@ -1456,54 +1509,13 @@ export default function CcChat() {
         </div>
 
         <div className="ds-grid">
-          {educationFields.length > 0 && (
-            <div className="ds-tile">
-              <div className="ds-tile-label">Background</div>
-              <div className="ds-tile-body">{educationFields.join(" · ")}</div>
-            </div>
-          )}
-          {direction.length > 0 && (
-            <div className="ds-tile">
-              <div className="ds-tile-label">Direction</div>
-              <div className="ds-tile-body">{direction.join(" · ")}</div>
-            </div>
-          )}
-          {d.archetype && (
-            <div className="ds-tile">
-              <div className="ds-tile-label">Read of you</div>
-              <div className="ds-tile-body">{String(d.archetype).replace(/_/g, " ")}</div>
-            </div>
-          )}
-          {d.confidence_level && (
-            <div className="ds-tile">
-              <div className="ds-tile-label">Confidence</div>
-              <div className="ds-tile-body">{String(d.confidence_level)}</div>
-            </div>
-          )}
-          {motivators.length > 0 && (
-            <div className="ds-tile ds-tile-wide">
-              <div className="ds-tile-label">What's driving you</div>
-              <div className="ds-tile-chips">
-                {motivators.slice(0, 6).map((m, i) => <span key={i} className="ds-chip ds-chip-glow">{m}</span>)}
-              </div>
-            </div>
-          )}
-          {skills.length > 0 && (
-            <div className="ds-tile ds-tile-wide">
-              <div className="ds-tile-label">Skills detected</div>
-              <div className="ds-tile-chips">
-                {skills.slice(0, 12).map((s, i) => <span key={i} className="ds-chip ds-chip-have">{s}</span>)}
-              </div>
-            </div>
-          )}
-          {tools.length > 0 && (
-            <div className="ds-tile ds-tile-wide">
-              <div className="ds-tile-label">Tools & tech</div>
-              <div className="ds-tile-chips">
-                {tools.slice(0, 12).map((s, i) => <span key={i} className="ds-chip">{s}</span>)}
-              </div>
-            </div>
-          )}
+          <Tile label="Background" body={educationFields.join(" · ")} hint="Your degree & college" />
+          <Tile label="Direction" body={direction.join(" · ")} hint="Target role & industry" />
+          <Tile label="Read of you" body={d.archetype ? String(d.archetype).replace(/_/g, " ") : null} hint="How the coach reads you" />
+          <Tile label="Confidence" body={d.confidence_level ? String(d.confidence_level) : null} hint="Where your head's at" />
+          <Tile label="What's driving you" wide chips={motivators} chipClass="ds-chip-glow" hint="Your motivators" />
+          <Tile label="Skills detected" wide chips={skills} chipClass="ds-chip-have" hint="Skills you mention" />
+          <Tile label="Tools & tech" wide chips={tools} hint="Tools you use" />
         </div>
 
         <div className="ds-footer">
@@ -1531,48 +1543,9 @@ export default function CcChat() {
       );
     }
     if (!dnaReady) {
-      return (
-        <div className="skel-wrap">
-          {/* Score hero skeleton */}
-          <div className="skel-card">
-            <div className="skel-line short" style={{ marginBottom: 8 }} />
-            <div className="skel-line heading" />
-            <div className="skel-score">
-              <div className="skel-ring" />
-              <div style={{ flex: 1 }}>
-                <div className="skel-line medium" />
-                <div className="skel-line short" style={{ marginBottom: 0 }} />
-              </div>
-            </div>
-            <div className="skel-building"><span className="skel-pulse" />Building your Career Analysis as you chat...</div>
-          </div>
-          {/* Skills grid skeleton */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            <div className="skel-card">
-              <div className="skel-line short" />
-              <div className="skel-pills">
-                {[70, 90, 60, 80, 50].map((w, i) => <div key={i} className="skel-pill" style={{ width: w }} />)}
-              </div>
-            </div>
-            <div className="skel-card">
-              <div className="skel-line short" />
-              <div className="skel-pills">
-                {[80, 65, 95, 55, 75].map((w, i) => <div key={i} className="skel-pill" style={{ width: w }} />)}
-              </div>
-            </div>
-          </div>
-          {/* Gap items skeleton */}
-          <div className="skel-card">
-            <div className="skel-line short" />
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{ borderTop: i > 1 ? "1px solid var(--border-light)" : "none", paddingTop: i > 1 ? 10 : 0, marginTop: i > 1 ? 10 : 6 }}>
-                <div className="skel-line medium" style={{ marginBottom: 6 }} />
-                <div className="skel-line full" style={{ marginBottom: 0 }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      );
+      // Live-building Career Analysis: a skeleton that fills in with what the
+      // coach has detected so far as the student answers.
+      return renderDetectedSoFar(expanded);
     }
     const b = pp.benchmark || {};
     const have: string[] = pp.skills_you_have || [];
@@ -2311,8 +2284,8 @@ export default function CcChat() {
         {/* FLOATING LOGO + PANEL TOGGLE (toggle slides with the panel) */}
         <a id="cc-float-logo" href="/cc">studojo<span className="cc-dot" /></a>
         {!sidebarExpanded && (
-          <button id="cc-float-toggle" className={sidebarOpen ? "open" : "closed"} onClick={() => toggleSidebar()}>
-            <span>{sidebarOpen ? "❯" : "❮"}</span> <span>{sidebarOpen ? "Hide panel" : "Show panel"}</span>
+          <button id="cc-float-toggle" className={`${sidebarOpen ? "open" : "closed"}${pulseShowPanel && !sidebarOpen ? " cc-toggle-pulse" : ""}`} onClick={() => toggleSidebar()}>
+            <span>{sidebarOpen ? "❯" : "❮"}</span> <span>{sidebarOpen ? "Hide panel" : (pulseShowPanel ? "See your analysis →" : "Show panel")}</span>
           </button>
         )}
 
