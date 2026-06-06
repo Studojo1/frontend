@@ -62,7 +62,7 @@ export function meta() {
     {
       name: "description",
       content:
-        "See exactly how much better you are than the typical fresher chasing your role. Climb three levels — Industry-Ready, Well-Rounded, Standout — with a weekly action plan built around your profile.",
+        "See exactly how much better you are than the typical fresher chasing your role. Climb three levels (Industry-Ready, Well-Rounded, Standout) with a weekly action plan built around your profile.",
     },
   ];
 }
@@ -83,7 +83,7 @@ const HOW_IT_WORKS = [
   {
     num: "01",
     title: "Tell the coach about yourself",
-    desc: "No forms. Just a conversation. The AI asks about your degree, skills, experience, and what you're going after — and listens. The more you talk to it, the sharper it gets.",
+    desc: "No forms. Just a conversation. The AI asks about your degree, skills, experience, and what you're going after, and listens. The more you talk to it, the sharper it gets.",
     accent: "#A78BFA",
     border: "rgba(167,139,250,0.2)",
   },
@@ -156,21 +156,21 @@ const WHAT_YOU_GET = [
 
 const QUOTES = [
   {
-    text: "I had no idea what was actually stopping me from getting replies. Seeing exactly where I stood vs other CS freshers — and the one skill that was dragging it down — told me what to build first. Got an interview at Razorpay two weeks later.",
+    text: "I had no idea what was actually stopping me from getting replies. Seeing exactly where I stood vs other CS freshers, and the one skill that was dragging it down, told me what to build first. Got an interview at Razorpay two weeks later.",
     name: "Arjun S.",
-    detail: "B.Tech CS, SRM — targeting Product",
+    detail: "B.Tech CS, SRM, targeting Product",
     accent: "#A78BFA",
   },
   {
     text: "Every career counsellor I talked to gave me the same generic advice. This actually read my profile and told me the specific gap I needed to close.",
     name: "Priya M.",
-    detail: "BCom, Mumbai — Finance track",
+    detail: "BCom, Mumbai, Finance track",
     accent: "#2DD4BF",
   },
   {
     text: "I was applying to everything and getting nothing. The coach told me I was going too broad. Narrowed my target, updated my approach, got three replies in 10 days.",
     name: "Rahul K.",
-    detail: "MBA, non-IIM — Consulting pivot",
+    detail: "MBA, non-IIM, Consulting pivot",
     accent: "#FCD34D",
   },
 ];
@@ -387,7 +387,7 @@ export default function CcIndex() {
                 className="mt-3 max-w-2xl font-['Satoshi'] text-base md:text-lg"
                 style={{ color: "rgba(255,255,255,0.55)" }}
               >
-                Built around your degree, skills, and target role — not a generic checklist.
+                Built around your degree, skills, and target role. Not a generic checklist.
               </motion.p>
               <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
                 {WHAT_YOU_GET.map((c) => (
