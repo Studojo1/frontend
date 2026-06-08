@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { FiBriefcase, FiBarChart2, FiFileText } from "react-icons/fi";
+import { FiBriefcase, FiMessageCircle, FiFileText } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
 
 type FreeTool = {
@@ -41,15 +41,15 @@ const FREE_TOOLS: FreeTool[] = [
     badge: "Free",
   },
   {
-    id: "ai-risk",
-    title: "AI Risk Dojo",
-    description: "Find out how likely your job or career path is to be replaced by AI and what you can do to stay ahead.",
-    checklist: ["Role replacement probability", "Smart upskilling paths", "Future-proof your career"],
-    accent: "bg-rose-500",
-    accentIcon: "text-rose-500",
-    cta: "Check my role",
-    href: "/dojos/ai-risk",
-    icon: <FiBarChart2 />,
+    id: "career-coach",
+    title: "Career Coach",
+    description: "Chat with your personal AI career coach. Get a tailored roadmap, skill gaps, and target companies for your goals.",
+    checklist: ["Personalised career roadmap", "Skill gap analysis", "Target company matches"],
+    accent: "bg-violet-500",
+    accentIcon: "text-violet-500",
+    cta: "Talk to my coach",
+    href: "/cc",
+    icon: <FiMessageCircle />,
     badge: "Free",
   },
   {
