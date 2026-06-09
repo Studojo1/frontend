@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "return-offer-report-why-some-interns-get-hired-2026",
+    publishDate: "2026-06-06",
+    title: "The Return Offer Report: Why Some Interns Get Hired and Others Don't",
+    subtitle: "Return Offers · 2026",
+    excerpt: "Interns assume the best worker gets the return offer. Managers decide on headcount, team fit, and who made their life easier, often weeks before the final presentation. This report maps what actually drives conversion in 2026, what interns control, and an eight-week playbook to become the candidate managers fight to keep.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "June 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "placement-cell-report-what-they-can-cannot-do-2026",
     publishDate: "2026-06-06",
     title: "The Placement Cell Report: What Placement Cells Can and Cannot Actually Do",

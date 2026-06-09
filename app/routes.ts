@@ -74,4 +74,5 @@ export default [
   route("reports/luck-report-how-much-career-success-is-luck-2026", "routes/reports.luck-report-how-much-career-success-is-luck-2026.tsx"),
   route("reports/ai-interns-using-ai-wont-replace-interns-2026", "routes/reports.ai-interns-using-ai-wont-replace-interns-2026.tsx"),
   route("reports/placement-cell-report-what-they-can-cannot-do-2026", "routes/reports.placement-cell-report-what-they-can-cannot-do-2026.tsx"),
+  route("reports/return-offer-report-why-some-interns-get-hired-2026", "routes/reports.return-offer-report-why-some-interns-get-hired-2026.tsx"),
 ] satisfies RouteConfig;
