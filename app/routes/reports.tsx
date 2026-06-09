@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "placement-cell-report-what-they-can-cannot-do-2026",
+    publishDate: "2026-06-06",
+    title: "The Placement Cell Report: What Placement Cells Can and Cannot Actually Do",
+    subtitle: "Placement Cells · 2026",
+    excerpt: "Students treat the placement cell like a hiring agency. It is closer to an operations desk: schedules, policies, recruiter logistics, and compliance. This report maps what placement offices actually deliver in 2026, where they stop, and how to pair campus processes with the off-campus work most students still need.",
+    category: "Career",
+    type: "Colleges" as ReportType,
+    date: "June 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "ai-interns-using-ai-wont-replace-interns-2026",
     publishDate: "2026-06-06",
     title: "AI Won't Replace Interns. Interns Using AI Will Replace Interns Who Don't",
