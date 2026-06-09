@@ -125,7 +125,7 @@ export default function InternshipsDojo() {
         <div className="mb-8 grid grid-cols-1 gap-6 md:mb-12 md:grid-cols-2">
           {/* Resume Builder CTA */}
           <Link
-            to="/dojos/careers"
+            to="/resume-maker"
             className="group flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-emerald-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:p-8"
           >
             <div className="flex items-center gap-3">
