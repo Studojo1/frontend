@@ -165,8 +165,11 @@ export default function ChatPage() {
           });
 
           if (user?.id) {
+            // New efficient flow: completing the outreach onboarding means the
+            // student used the outreach tool. Starts the high-intent push
+            // sequence and cancels any pending not-used nudge chain.
             import("~/lib/events").then(({ publishEmailEvent }) => {
-              publishEmailEvent("event.funnel.segmentation_v1", {
+              publishEmailEvent("event.cc.outreach_used", {
                 user_id: user.id,
                 email: user.email,
                 name: user.name,
