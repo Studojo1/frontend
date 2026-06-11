@@ -167,9 +167,11 @@ export default function ChatPage() {
           if (user?.id) {
             // New efficient flow: completing the outreach onboarding means the
             // student used the outreach tool. Starts the high-intent push
-            // sequence and cancels any pending not-used nudge chain.
-            import("~/lib/events").then(({ publishEmailEvent }) => {
-              publishEmailEvent("event.cc.outreach_used", {
+            // sequence and cancels any pending not-used nudge chain. This runs
+            // in the browser, so it goes through the server resource route which
+            // holds the internal secret (the emailer endpoint is gated).
+            import("~/lib/events").then(({ publishEmailEventFromClient }) => {
+              publishEmailEventFromClient("event.cc.outreach_used", {
                 user_id: user.id,
                 email: user.email,
                 name: user.name,
