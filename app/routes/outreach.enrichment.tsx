@@ -70,6 +70,20 @@ export default function EnrichmentPage() {
       method: "POST",
       body: JSON.stringify({ stage: "payment_page_reached" }),
     }).catch(() => { /* never break the page */ });
+
+    // New efficient flow: reaching the payment page schedules the abandoned-
+    // checkout sequence (2h buffer, then "you were right there" + a founder
+    // coupon). It is DEFERRED, so a student who pays within the window never
+    // gets it: payment success cancels all pending cc_ emails. Runs in the
+    // browser, so it goes through the server resource route that holds the
+    // internal secret (the emailer endpoint is gated).
+    import("~/lib/events").then(({ publishEmailEventFromClient }) => {
+      publishEmailEventFromClient("event.cc.outreach_payment_page", {
+        user_id: user.id,
+        email: user.email,
+        name: user.name,
+      }).catch(() => {});
+    }).catch(() => {});
   }, [authLoading, user]);
 
   const [pricing, setPricing] = useState<TierPricing[]>([]);
@@ -94,6 +108,13 @@ export default function EnrichmentPage() {
 
   // After payment succeeds, advance order and navigate to campaign setup
   const onPaymentSuccess = async () => {
+    // New efficient flow: cancel any pending abandoned-checkout / nudge emails
+    // now that the user has paid. event.cc.paid is cancel-only (no email).
+    if (user?.id) {
+      import("~/lib/events").then(({ publishEmailEventFromClient }) => {
+        publishEmailEventFromClient("event.cc.paid", { user_id: user.id }).catch(() => {});
+      }).catch(() => {});
+    }
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}

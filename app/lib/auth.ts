@@ -396,12 +396,22 @@ export const auth = betterAuth({
           // Fire for ALL signup methods (email/password, Google OAuth, etc.)
           try {
             const { publishEmailEvent } = await import("./events");
+            // Transactional account welcome (unchanged).
             publishEmailEvent("event.user.signup", {
               user_id: user.id,
               email: user.email,
               name: user.name,
             }).catch((err) => {
               console.error("[auth] Failed to publish signup event via databaseHook:", err);
+            });
+            // New efficient flow: starts the Outreach welcome + not-used nudge
+            // sequence. Suppressed automatically for paid users by the emailer.
+            publishEmailEvent("event.cc.welcome_new_user", {
+              user_id: user.id,
+              email: user.email,
+              name: user.name,
+            }).catch((err) => {
+              console.error("[auth] Failed to publish cc welcome event:", err);
             });
           } catch (err) {
             console.error("[auth] Error in user.create databaseHook:", err);
