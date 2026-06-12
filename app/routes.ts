@@ -76,4 +76,5 @@ export default [
   route("reports/placement-cell-report-what-they-can-cannot-do-2026", "routes/reports.placement-cell-report-what-they-can-cannot-do-2026.tsx"),
   route("reports/return-offer-report-why-some-interns-get-hired-2026", "routes/reports.return-offer-report-why-some-interns-get-hired-2026.tsx"),
   route("reports/nepotism-report-how-much-hiring-happens-through-connections-2026", "routes/reports.nepotism-report-how-much-hiring-happens-through-connections-2026.tsx"),
+  route("reports/first-1-lakh-month-report-fastest-paths-students-2026", "routes/reports.first-1-lakh-month-report-fastest-paths-students-2026.tsx"),
 ] satisfies RouteConfig;

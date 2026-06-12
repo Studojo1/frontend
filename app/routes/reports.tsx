@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "first-1-lakh-month-report-fastest-paths-students-2026",
+    publishDate: "2026-06-12",
+    title: "The First ₹1 Lakh/Month Report: The Fastest Paths Students Actually Use",
+    subtitle: "The First ₹1 Lakh/Month Report · 2026",
+    excerpt: "₹1 lakh per month sounds like a fantasy number until you reverse-engineer who actually hits it. For most students it is not one lucky break. It is a lane: top product campus offers, funded startup engineering, an IT-services-to-product switch, international freelancing, commission-heavy sales, or a finance credential track. This report maps the six paths students actually use, what each pays in INR, how long each takes, and which popular strategies stall below ₹30,000/month for years.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "June 2026",
+    findings: 7,
+    badge: "New",
+  },
+  {
     slug: "nepotism-report-how-much-hiring-happens-through-connections-2026",
     publishDate: "2026-06-12",
     title: "The Nepotism Report: How Much Hiring Actually Happens Through Connections",
