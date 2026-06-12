@@ -1,4 +1,4 @@
-import { getEmailerServiceUrl, emailerInternalHeaders } from "~/lib/emailer";
+import { getEmailerServiceUrl } from "~/lib/emailer";
 import type { Route } from "./+types/api.contact";
 
 export async function action({ request }: Route.ActionArgs) {
@@ -67,7 +67,7 @@ export async function action({ request }: Route.ActionArgs) {
     const base = getEmailerServiceUrl();
     const res = await fetch(`${base}/v1/email/events`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...emailerInternalHeaders() },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         routing_key: "event.contact.form-submitted",
         event: {

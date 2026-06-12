@@ -6,24 +6,6 @@ export function getEmailerServiceUrl(): string {
   return getControlPlaneUrl();
 }
 
-// emailerInternalHeaders returns the X-Internal-Secret header required by the
-// emailer's service-to-service routes (preferences, events). SERVER-SIDE ONLY —
-// the secret must never reach the browser, so these calls have to run from a
-// loader/action/resource route, never a client component. Throws if the secret
-// is missing so a misconfiguration fails loudly rather than silently 401-ing.
-export function emailerInternalHeaders(): Record<string, string> {
-  const secret =
-    typeof process !== "undefined" && process.env
-      ? process.env.EMAILER_INTERNAL_SECRET
-      : undefined;
-  if (!secret) {
-    throw new Error(
-      "EMAILER_INTERNAL_SECRET is not set — emailer internal calls must run server-side with the secret configured"
-    );
-  }
-  return { "X-Internal-Secret": secret };
-}
-
 export interface ForgotPasswordRequest {
   email: string;
 }
@@ -114,15 +96,18 @@ export async function changePassword(userId: string, currentPassword: string, ne
   return data;
 }
 
-// SERVER-SIDE ONLY (uses the internal secret). Call from a loader/action/resource
-// route, scoping userId to the authenticated session — never from the browser.
 export async function getEmailPreferences(userId: string): Promise<EmailPreferences> {
+  const token = await getToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+
   const base = getEmailerServiceUrl();
   const res = await fetchWithRetry(`${base}/v1/email/preferences/${userId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      ...emailerInternalHeaders(),
+      Authorization: `Bearer ${token}`,
     },
     maxRetries: 3,
     timeout: 30 * 1000,
@@ -135,18 +120,21 @@ export async function getEmailPreferences(userId: string): Promise<EmailPreferen
   return data;
 }
 
-// SERVER-SIDE ONLY (uses the internal secret). Call from a loader/action/resource
-// route, scoping userId to the authenticated session — never from the browser.
 export async function updateEmailPreferences(
   userId: string,
   preferences: EmailPreferencesUpdate
 ): Promise<EmailPreferences> {
+  const token = await getToken();
+  if (!token) {
+    throw new Error("Authentication required");
+  }
+
   const base = getEmailerServiceUrl();
   const res = await fetchWithRetry(`${base}/v1/email/preferences/${userId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      ...emailerInternalHeaders(),
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(preferences),
     maxRetries: 3,

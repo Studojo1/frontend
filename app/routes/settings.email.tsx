@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
-import { type EmailPreferences } from "~/lib/emailer";
+import { getEmailPreferences, updateEmailPreferences, type EmailPreferences } from "~/lib/emailer";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { toast } from "sonner";
 import type { Route } from "./+types/settings.email";
@@ -49,28 +49,14 @@ export default function EmailSettings() {
     setLoading(true);
     setError(null);
     try {
-      // Server-side proxy holds the emailer secret and scopes to the session.
-      const res = await fetch("/api/email-preferences");
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to load email preferences");
-      setPreferences(data);
+      const prefs = await getEmailPreferences(session.user.id);
+      setPreferences(prefs);
     } catch (err: any) {
       setError(err.message || "Failed to load email preferences");
       toast.error("Failed to load email preferences");
     } finally {
       setLoading(false);
     }
-  };
-
-  const savePreferences = async (update: Partial<EmailPreferences>) => {
-    const res = await fetch("/api/email-preferences", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(update),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to update preferences");
-    return data as EmailPreferences;
   };
 
   const handleToggle = async (field: keyof EmailPreferences, value: boolean) => {
@@ -87,7 +73,9 @@ export default function EmailSettings() {
     setSuccess(null);
 
     try {
-      const updated = await savePreferences({ [field]: value });
+      const updated = await updateEmailPreferences(session.user.id, {
+        [field]: value,
+      });
       setPreferences(updated);
       setSuccess("Email preferences updated successfully");
       toast.success("Preferences saved");
@@ -107,7 +95,7 @@ export default function EmailSettings() {
     setSuccess(null);
 
     try {
-      const updated = await savePreferences({
+      const updated = await updateEmailPreferences(session.user.id, {
         product_emails: preferences.product_emails,
         resume_emails: preferences.resume_emails,
         internship_emails: preferences.internship_emails,
