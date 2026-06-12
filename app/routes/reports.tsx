@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "nepotism-report-how-much-hiring-happens-through-connections-2026",
+    publishDate: "2026-06-12",
+    title: "The Nepotism Report: How Much Hiring Actually Happens Through Connections",
+    subtitle: "The Nepotism Report · 2026",
+    excerpt: "Job boards feel like the main path. Worker surveys tell a different story: more than half of U.S. professionals say they landed a role through a personal or professional connection, and nearly everyone has watched someone else get hired because of who they knew. This report separates nepotism from legitimate networking, quantifies how much hiring runs on connections across markets, and maps what students and early-career candidates can do when they do not start with a rolodex.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "June 2026",
+    findings: 7,
+    badge: "New",
+  },
+  {
     slug: "return-offer-report-why-some-interns-get-hired-2026",
     publishDate: "2026-06-06",
     title: "The Return Offer Report: Why Some Interns Get Hired and Others Don't",
