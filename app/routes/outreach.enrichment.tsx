@@ -70,6 +70,14 @@ export default function EnrichmentPage() {
       method: "POST",
       body: JSON.stringify({ stage: "payment_page_reached" }),
     }).catch(() => { /* never break the page */ });
+    // New email flow: deferred abandoned-checkout sequence (cancelled on payment).
+    import("~/lib/events").then(({ publishEmailEventFromClient }) => {
+      publishEmailEventFromClient("event.cc.outreach_payment_page", {
+        user_id: user.id,
+        email: user.email,
+        name: user.name,
+      }).catch(() => {});
+    }).catch(() => {});
   }, [authLoading, user]);
 
   const [pricing, setPricing] = useState<TierPricing[]>([]);
@@ -94,6 +102,13 @@ export default function EnrichmentPage() {
 
   // After payment succeeds, advance order and navigate to campaign setup
   const onPaymentSuccess = async () => {
+    // New email flow: cancel any pending cc marketing sequences for this user
+    // now that the user has paid. event.cc.paid is cancel-only (no email).
+    if (user?.id) {
+      import("~/lib/events").then(({ publishEmailEventFromClient }) => {
+        publishEmailEventFromClient("event.cc.paid", { user_id: user.id }).catch(() => {});
+      }).catch(() => {});
+    }
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
