@@ -403,6 +403,14 @@ export const auth = betterAuth({
             }).catch((err) => {
               console.error("[auth] Failed to publish signup event via databaseHook:", err);
             });
+            // New email flow: starts the Outreach "not used" nudge sequence.
+            publishEmailEvent("event.cc.welcome_new_user", {
+              user_id: user.id,
+              email: user.email,
+              name: user.name,
+            }).catch((err) => {
+              console.error("[auth] Failed to publish cc welcome_new_user event:", err);
+            });
           } catch (err) {
             console.error("[auth] Error in user.create databaseHook:", err);
           }

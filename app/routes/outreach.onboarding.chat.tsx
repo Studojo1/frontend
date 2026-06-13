@@ -165,8 +165,10 @@ export default function ChatPage() {
           });
 
           if (user?.id) {
-            import("~/lib/events").then(({ publishEmailEvent }) => {
-              publishEmailEvent("event.funnel.segmentation_v1", {
+            // New email flow: Outreach "used" push/convert sequence. Goes via the
+            // server proxy so the internal secret stays off the client.
+            import("~/lib/events").then(({ publishEmailEventFromClient }) => {
+              publishEmailEventFromClient("event.cc.outreach_used", {
                 user_id: user.id,
                 email: user.email,
                 name: user.name,

@@ -260,6 +260,21 @@ export async function action({ request, params }: Route.ActionArgs) {
       resume_id: null,
       timestamp: newApplication.createdAt.toISOString(),
     });
+
+    // New efficient flow: once a user has applied heavily on the job board,
+    // offer the two-tool path (Outreach / Career Coach). Threshold from the
+    // flow spec; the emailer dedups by template so this fires at most once.
+    const [{ count: appCount }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(internshipApplications)
+      .where(eq(internshipApplications.userId, session.user.id));
+    if (appCount >= 15) {
+      await publishEmailEvent("event.cc.id_two_tools", {
+        user_id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+      });
+    }
   } catch (error) {
     // Log but don't fail the request
     console.error("Failed to publish internship application event:", error);
