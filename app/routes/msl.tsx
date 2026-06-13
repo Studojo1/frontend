@@ -21,6 +21,7 @@ const COOKIE_MAX_AGE = 60 * 60 * 12;
 const B2B_BY_DATE: Record<string, number> = {
   "2026-06-02": 15000,
   "2026-06-03": 2550,
+  "2026-06-09": 9650,
 };
 const DEFAULT_FX = 94; // 1 USD = ₹94
 
