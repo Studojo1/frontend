@@ -82,5 +82,18 @@ export async function action({ request }: Route.ActionArgs) {
     createdBy: session.user.id,
   });
 
+  // Creating a resume IS using Resume Maker — fire the used signal so the
+  // emailer routes engagement (stops not-used chases across tools). Non-blocking.
+  try {
+    const { publishEmailEvent } = await import("~/lib/events");
+    await publishEmailEvent("event.cc.resume_used", {
+      user_id: session.user.id,
+      email: session.user.email,
+      name: session.user.name,
+    });
+  } catch (err) {
+    console.error("Failed to publish resume_used event:", err);
+  }
+
   return Response.json({ resume: newResume[0] }, { status: 201 });
 }

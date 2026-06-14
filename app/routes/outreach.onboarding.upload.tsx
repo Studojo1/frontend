@@ -13,7 +13,7 @@ import type { ResumePreview } from "~/lib/outreach/types";
 
 export default function UploadPage() {
   const navigate = useNavigate();
-  useOutreachAuth();
+  const { user } = useOutreachAuth();
   const { setCandidateId, setCurrentStep } = useOutreachStore();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -86,6 +86,17 @@ export default function UploadPage() {
         experience_years: data.preview?.experience_years ?? null,
         char_count: data.preview?.char_count ?? null,
       });
+      // Uploading a resume IS using Outreach — fire the used signal now (the
+      // earliest "they're using the tool" moment), not only at quiz completion.
+      if (user?.id) {
+        import("~/lib/events").then(({ publishEmailEventFromClient }) => {
+          publishEmailEventFromClient("event.cc.outreach_used", {
+            user_id: user.id,
+            email: user.email,
+            name: user.name,
+          }).catch(() => {});
+        }).catch(() => {});
+      }
     } catch (err: any) {
       setError(err?.body?.detail || err.message || "Upload failed. Please try again.");
     } finally {
