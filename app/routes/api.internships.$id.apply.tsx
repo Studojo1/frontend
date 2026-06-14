@@ -261,6 +261,15 @@ export async function action({ request, params }: Route.ActionArgs) {
       timestamp: newApplication.createdAt.toISOString(),
     });
 
+    // Applying to an internship IS using Internship Dojo — fire the used signal
+    // on every apply (earliest usage moment), so the emailer routes engagement
+    // and stops not-used chases. Idempotent on the emailer side.
+    await publishEmailEvent("event.cc.internship_used", {
+      user_id: session.user.id,
+      email: session.user.email,
+      name: session.user.name,
+    });
+
     // New efficient flow: once a user has applied heavily on the job board,
     // offer the two-tool path (Outreach / Career Coach). Threshold from the
     // flow spec; the emailer dedups by template so this fires at most once.
