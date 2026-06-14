@@ -17,6 +17,11 @@ const CLIENT_ALLOWED_ROUTING_KEYS = new Set<string>([
   "event.cc.outreach_used",
   "event.cc.outreach_payment_page",
   "event.cc.paid",
+  // Per-tool "used" signals — fired the moment a user actually uses a tool, so
+  // the emailer can route engagement and stop not-used chases across all tools.
+  "event.cc.resume_used",
+  "event.cc.internship_used",
+  "event.cc.coach_used",
 ]);
 
 export async function action({ request }: Route.ActionArgs) {
