@@ -32,7 +32,7 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
-  let body: { routingKey?: string; event?: any } = {};
+  let body: { routing_key?: string; event?: any } = {};
   try {
     body = await request.json();
   } catch {
@@ -42,7 +42,7 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
-  const routingKey = body.routingKey || "";
+  const routingKey = body.routing_key || "";
   if (!routingKey || !CLIENT_ALLOWED_ROUTING_KEYS.has(routingKey)) {
     // Silently ignore anything not on the client allowlist.
     return new Response(JSON.stringify({ ok: false }), {

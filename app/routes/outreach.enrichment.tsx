@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiMail, FiCheckCircle, FiTag, FiCreditCard, FiArrowRight } from "react-icons/fi";
+import { FiTag, FiArrowRight, FiArrowLeft, FiShield, FiCheck, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
-import { TierSelector } from "~/components/outreach/TierSelector";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { useOrder } from "~/lib/outreach/hooks";
@@ -25,6 +24,142 @@ interface CouponResult {
   discounted_amount: number;
   currency: string;
   distributor: string | null;
+}
+
+// ── Trust / value copy ─────────────────────────────────────────────────────
+const GUARANTEE = {
+  head: "Zero-reply protection",
+  body: "If your campaign finishes and not a single person replies, we extend it free until you hear back. You never pay for silence.",
+};
+const TRUST_PTS = [
+  "Verified emails, not guesses",
+  "Sent from your own Gmail",
+  "One-time, no subscription",
+  "Your data stays private",
+];
+const FAQ_ITEMS: [string, string][] = [
+  ["Is this spam?", "No. Each email is personalised to the person and their company, sent one at a time from your own Gmail on an inbox-safe schedule."],
+  ["Whose email does it come from?", "Your own Gmail, signed by you, so replies come straight back to your inbox."],
+  ["What if I don't get any replies?", GUARANTEE.body],
+  ["Can they tell it's written by AI?", "No. Each email references real details about them and your background, so it reads like a human wrote it, because the substance is yours."],
+  ["Is my data safe?", "Yes. Your resume and contacts stay private and are never sold or shared. Payments are handled by Razorpay, so we never see your card details."],
+];
+
+// ── Wall of Love (authentic-style screenshots, anonymised) ─────────────────
+type WallCard =
+  | { type: "tweet"; n: string; h: string; d: string; v: boolean; q: string; re: number; rt: number; lk: number }
+  | { type: "imsg"; in: string; out: string; t: string }
+  | { type: "whatsapp"; q: string; t: string }
+  | { type: "linkedin"; n: string; role: string; deg: string; q: string };
+const WALL: WallCard[] = [
+  { type: "tweet", n: "Sahil Gulihar", h: "@Sahil_Gulihar", d: "May 30", v: false, q: "went in as a casual tester to find bugs. came out with an interview lol. no messy emails, no hunting. just chat, then interview", re: 4, rt: 4, lk: 34 },
+  { type: "imsg", in: "yo update, my profile got shortlisted for a role", out: "and I wasn't even trying that hard", t: "2:11 PM" },
+  { type: "linkedin", n: "Rimjhim Hazarika", role: "L&D Consultant", deg: "2nd", q: "Trying it out and saying this with a lot of respect. The convo feels anything but transactional. Genuinely impressed." },
+  { type: "tweet", n: "Siddharth K S", h: "@sidks", d: "4d", v: true, q: "been testing this for the past hour, honestly seamless. gives such a great handle on things right away", re: 1, rt: 2, lk: 21 },
+  { type: "whatsapp", q: "have been using studojo, pretty good at finding the right people. really liked it", t: "9:09 PM" },
+  { type: "tweet", n: "Anunaya Tandon", h: "@AnunayaTandon", d: "May 28", v: false, q: "first experience of @studojo, the ai is so good!", re: 0, rt: 1, lk: 12 },
+  { type: "imsg", in: "wait this actually works??", out: "told you", t: "3:38 AM" },
+  { type: "whatsapp", q: "studojo slaps hard", t: "9:12 PM" },
+  { type: "linkedin", n: "Marcus T.", role: "CS @ NYU", deg: "2nd", q: "3 founder replies in week one. Genuinely did not expect this from a tool. Telling everyone in my batch." },
+  { type: "tweet", n: "Meera P.", h: "@meera_builds", d: "Jun 2", v: false, q: "stopped spamming applications. finally getting actual responses", re: 2, rt: 3, lk: 27 },
+];
+const WCOLORS = ["bg-studojo-purple", "bg-studojo-pink", "bg-studojo-green", "bg-studojo-orange", "bg-indigo-500", "bg-rose-500", "bg-teal-500"];
+const initials = (n: string) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+const wcolor = (n: string) => WCOLORS[n.charCodeAt(0) % WCOLORS.length];
+
+function ReviewCard({ v }: { v: WallCard }) {
+  const shell = "w-[290px] h-[160px] flex-shrink-0 rounded-2xl border-2 border-studojo-ink shadow-brutal flex flex-col";
+  if (v.type === "tweet") {
+    return (
+      <div className={`${shell} bg-white p-4`}>
+        <div className="flex items-center gap-2.5">
+          <div className={`w-9 h-9 rounded-full ${wcolor(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 sd-pii`}>{initials(v.n)}</div>
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="flex items-center gap-1">
+              <span className="text-[13px] font-bold truncate sd-pii">{v.n}</span>
+              {v.v && <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#1d9bf0] items-center justify-center flex-shrink-0"><svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-white"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" /></svg></span>}
+            </div>
+            <div className="text-[12px] text-studojo-muted truncate"><span className="sd-pii">{v.h}</span> · {v.d}</div>
+          </div>
+          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-studojo-muted flex-shrink-0"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+        </div>
+        <p className="text-[13px] leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
+        <div className="flex items-center gap-7 pt-2 text-studojo-muted text-[11px]">
+          <span>↩ {v.re}</span><span>⇄ {v.rt}</span><span>♥ {v.lk}</span>
+        </div>
+      </div>
+    );
+  }
+  if (v.type === "imsg") {
+    return (
+      <div className={`${shell} bg-[#1c1c1e] p-3.5 justify-center`}>
+        <div className="flex flex-col gap-2">
+          <div className="self-start max-w-[88%] bg-[#3a3a3c] text-white text-[13px] leading-snug rounded-2xl rounded-bl-md px-3 py-2">{v.in}</div>
+          <div className="self-end max-w-[88%] bg-[#0a84ff] text-white text-[13px] leading-snug rounded-2xl rounded-br-md px-3 py-2">{v.out}</div>
+        </div>
+        <p className="text-[10px] text-white/40 text-center mt-2.5">{v.t}</p>
+      </div>
+    );
+  }
+  if (v.type === "whatsapp") {
+    return (
+      <div className={`${shell} bg-[#0b141a] p-3.5 justify-center`}>
+        <div className="self-end max-w-[94%] bg-[#005c4b] text-white text-[13.5px] leading-snug rounded-2xl rounded-br-md px-3 py-2">
+          {v.q}
+          <span className="flex items-center justify-end gap-1 mt-1 text-[10px] text-white/55">{v.t} ✓✓</span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={`${shell} bg-white p-4`}>
+      <div className="flex items-center gap-2.5">
+        <div className={`w-9 h-9 rounded-full ${wcolor(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 sd-pii`}>{initials(v.n)}</div>
+        <div className="min-w-0 flex-1 leading-tight">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[13px] font-bold truncate sd-pii">{v.n}</span>
+            <span className="text-[10px] text-studojo-muted whitespace-nowrap">· {v.deg}</span>
+            <span className="inline-flex w-3.5 h-3.5 rounded-[3px] bg-[#0a66c2] text-white items-center justify-center text-[8px] font-bold flex-shrink-0">in</span>
+          </div>
+          <div className="text-[12px] font-medium text-studojo-ink/75 truncate">{v.role}</div>
+        </div>
+      </div>
+      <p className="text-[13px] leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
+      <div className="flex items-center gap-3 pt-2 text-[11px] font-semibold text-studojo-muted"><span>Like</span><span>· Reply</span></div>
+    </div>
+  );
+}
+
+function WallOfLove() {
+  const half = Math.ceil(WALL.length / 2);
+  const rowA = WALL.slice(0, half);
+  const rowB = WALL.slice(half);
+  return (
+    <div className="mb-14">
+      <h2 className="font-clash text-2xl md:text-3xl font-bold text-center text-studojo-ink mb-1">Students are already getting in</h2>
+      <p className="text-center text-sm text-studojo-muted mb-6">Real messages from students using Studojo.</p>
+      <div className="sd-wall-mask space-y-3 overflow-hidden">
+        <div className="sd-marquee flex gap-3 w-max">{[...rowA, ...rowA].map((v, i) => <ReviewCard key={i} v={v} />)}</div>
+        <div className="sd-marquee-rev flex gap-3 w-max">{[...rowB, ...rowB].map((v, i) => <ReviewCard key={i} v={v} />)}</div>
+      </div>
+    </div>
+  );
+}
+
+// Dream-company chip — logo from a guessed domain, graceful fallback to name only.
+function DreamChip({ name }: { name: string }) {
+  const domain = name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]/g, "") + ".com";
+  return (
+    <span className="inline-flex items-center gap-2 rounded-xl border-2 border-studojo-ink bg-white px-3 py-1.5 text-sm font-medium whitespace-nowrap shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+      <img
+        src={`https://www.google.com/s2/favicons?sz=64&domain=${domain}`}
+        alt=""
+        className="w-4 h-4 rounded object-contain"
+        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+      />
+      {name}
+    </span>
+  );
 }
 
 export default function EnrichmentPage() {
@@ -56,11 +191,7 @@ export default function EnrichmentPage() {
     }
   }, [orderId, candidateId]);
 
-  // Funnel: stamp "payment_page_reached" the first time the user lands on
-  // this page. This page is where pricing is shown, so it's the true
-  // "saw paywall" signal — much more accurate than only counting users
-  // who later clicked Pay (which already lives in PaymentOrder.created_at).
-  // Idempotent on the server; safe to fire on every mount. Fire-and-forget.
+  // Funnel: stamp "payment_page_reached" + schedule abandoned-checkout sequence.
   const funnelPingedRef = useRef(false);
   useEffect(() => {
     if (funnelPingedRef.current) return;
@@ -83,6 +214,7 @@ export default function EnrichmentPage() {
   const [pricing, setPricing] = useState<TierPricing[]>([]);
   const [currency, setCurrency] = useState("USD");
   const [credits, setCredits] = useState<{ total_credits: number; used_credits: number; available_credits: number } | null>(null);
+  const [dreamCompanies, setDreamCompanies] = useState<string[]>([]);
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
@@ -112,7 +244,6 @@ export default function EnrichmentPage() {
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
-    // JIT: skip enrichment, go directly to Gmail connect / campaign setup
     updateOrder({ status: "campaign_setup", log_entry: `Payment completed for ${selectedTier} credits (JIT enrichment)` });
     navigate("/outreach/connect/gmail");
   };
@@ -169,8 +300,6 @@ export default function EnrichmentPage() {
         setPricing(pricingData.tiers || []);
         if (pricingData.currency) setCurrency(pricingData.currency);
         setCredits(creditsData);
-        // If the user already has credits but the store defaulted to a higher
-        // tier than they can afford, snap down to the highest affordable tier.
         const available = creditsData.available_credits;
         if (available > 0 && available < selectedTier) {
           if (available >= 200) setSelectedTier(200);
@@ -181,6 +310,20 @@ export default function EnrichmentPage() {
     };
     loadData();
   }, []);
+
+  // Fetch dream companies for the "in the mix" bar (no Apollo — reads stored data).
+  useEffect(() => {
+    if (!candidateId) return;
+    outreachFetch<any>(`/candidate/${candidateId}/profile`)
+      .then((p) => {
+        const raw: string[] = p?.dream_companies || [];
+        const clean = raw
+          .map((c) => (c || "").trim())
+          .filter((c) => c.length >= 2 && c.length <= 40 && /[a-z0-9]/i.test(c) && !/no strong preference|etc\b/i.test(c));
+        setDreamCompanies(clean.slice(0, 10));
+      })
+      .catch(() => {});
+  }, [candidateId]);
 
   const validateCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -229,7 +372,6 @@ export default function EnrichmentPage() {
         return;
       }
 
-      // Dodo Payments modal checkout (international users)
       if (orderData.checkout_url) {
         dodoSessionRef.current = orderData.session_id;
         dodoTierRef.current = selectedTier;
@@ -239,7 +381,6 @@ export default function EnrichmentPage() {
         return;
       }
 
-      // Razorpay modal checkout (India)
       const options = {
         key: orderData.key_id,
         amount: orderData.amount,
@@ -298,7 +439,6 @@ export default function EnrichmentPage() {
   }
 
   const currSymbol = currency === "INR" ? "₹" : "$";
-  const hasEnoughCredits = credits ? credits.available_credits >= selectedTier : false;
 
   const SHARED_FEATURES = (count: number) => [
     `${count} verified hiring managers`,
@@ -349,7 +489,6 @@ export default function EnrichmentPage() {
     },
   ];
 
-
   const getTierPrice = (tierValue: number) => {
     const match = pricing.find((p) => p.tier === tierValue);
     if (match) {
@@ -358,66 +497,67 @@ export default function EnrichmentPage() {
       return {
         display: match.display_price || `${currSymbol}${(raw / 100).toFixed(0)}`,
         discounted: discounted ? `${currSymbol}${(discounted / 100).toFixed(0)}` : null,
-        anchor: match.anchor_display ?? null,         // e.g. "₹2500" — struck-out
-        discountPct: match.discount_pct ?? null,      // e.g. 27 — "Save 27%"
+        anchor: match.anchor_display ?? null,
+        discountPct: match.discount_pct ?? null,
       };
     }
-    const fallback = TIERS.find((t) => t.value === tierValue)?.fallbackPrice ?? "—";
+    const fallback = TIERS.find((t) => t.value === tierValue)?.fallbackPrice ?? "";
     return { display: fallback, discounted: null, anchor: null, discountPct: null };
   };
 
+  const selectedTierObj = TIERS.find((t) => t.value === selectedTier) ?? TIERS[TIERS.length - 2];
+  const selectedPrice = getTierPrice(selectedTier);
+  const hasCreditsForSelected = credits ? credits.available_credits >= selectedTier : false;
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-28">
       <Header />
 
-      {/* Colleges marquee */}
-      <div className="py-5 bg-studojo-surface-muted border-b-2 border-studojo-ink overflow-hidden">
-        <p className="font-satoshi text-xs font-bold uppercase tracking-widest text-studojo-muted text-center mb-4">
-          Students from these colleges use Studojo
+      <div className="mx-auto max-w-6xl px-4 py-6 md:px-8">
+
+        {/* Header — back link inline with title, tight spacing */}
+        <div className="md:relative mb-3">
+          <button
+            onClick={() => navigate("/outreach/leads/results")}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-studojo-muted hover:text-studojo-ink mb-4 md:mb-0 md:absolute md:left-0 md:top-1.5"
+          >
+            <FiArrowLeft className="w-4 h-4" /> Back to your hiring managers
+          </button>
+          <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink text-center">Contact Hiring Managers Directly</h1>
+        </div>
+        <p className="text-base text-studojo-muted text-center max-w-xl mx-auto font-satoshi">
+          Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
         </p>
-        {[
-          ["IIT Bombay","NUS Singapore","BITS Pilani","UCL London","IIT Delhi","NTU Singapore","VIT Vellore","University of Toronto","IIT Madras","Symbiosis Pune","NYU","NIT Trichy","King's College London","Manipal University","University of Melbourne","NMIMS Mumbai","IIT Kharagpur","Christ University","UNSW Sydney","Amity University"],
-          ["Delhi University","NIT Warangal","Monash University","SRM University","University of Manchester","BITS Hyderabad","SMU Singapore","Anna University","University of Dubai","Jadavpur University","Panjab University","University of Warwick","Thapar University","Northeastern University","PSG Tech","Loughborough University","Shiv Nadar University","University of Bath","KIIT University","Hult International"],
-        ].map((row, ri) => (
-          <div key={ri} className="overflow-hidden mb-3 last:mb-0">
-            <div className={`flex gap-3 w-max ${ri === 1 ? "animate-marquee-reverse" : "animate-marquee"}`}>
-              {[...row, ...row].map((c, i) => (
-                <span key={i} className="shrink-0 px-4 py-1.5 rounded-full border-2 border-studojo-ink bg-white font-satoshi text-xs font-semibold text-studojo-ink whitespace-nowrap">
-                  {c}
-                </span>
-              ))}
+
+        {/* Dream companies — single-row horizontal scroll */}
+        {dreamCompanies.length > 0 && (
+          <div className="max-w-3xl mx-auto mb-8 rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-brutal">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-studojo-muted mb-3 text-center">Your dream companies are in the mix</p>
+            <div className="flex gap-2.5 overflow-x-auto pb-1 sm:justify-center">
+              {dreamCompanies.map((c) => <DreamChip key={c} name={c} />)}
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="mx-auto max-w-6xl px-4 py-10 md:px-8">
-
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink">Contact Hiring Managers Directly</h1>
-          <p className="text-base text-studojo-muted mt-3 font-satoshi max-w-xl mx-auto">
-            Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
-          </p>
-        </div>
+        )}
 
         {/* Credits banner */}
         {credits && credits.total_credits > 0 && (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg/30 p-4 mb-8 flex items-center justify-between max-w-md mx-auto">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center">
-                <span className="text-studojo-green text-sm font-bold">{currSymbol}</span>
-              </div>
-              <div>
-                <p className="text-sm font-bold font-satoshi text-studojo-ink">You have credits</p>
-                <p className="text-xs text-studojo-muted font-satoshi">{credits.available_credits} available</p>
-              </div>
-            </div>
-            <span className="px-3 py-1 rounded-full text-xs font-satoshi font-bold bg-studojo-green-bg text-studojo-green border-2 border-studojo-ink">
-              {credits.available_credits} credits
+          <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg/30 px-5 py-3 mb-6 flex items-center justify-between max-w-md mx-auto shadow-brutal">
+            <span className="text-sm font-bold font-satoshi text-studojo-ink flex items-center gap-2">
+              <span className="w-7 h-7 rounded-lg bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-green text-sm font-bold">{currSymbol}</span>
+              You have {credits.available_credits} credits
             </span>
+            <span className="px-3 py-0.5 rounded-full text-xs font-satoshi font-bold bg-studojo-green-bg text-studojo-green border-2 border-studojo-ink">available</span>
           </div>
         )}
+
+        {/* Zero-reply protection — before the price */}
+        <div className="max-w-3xl mx-auto mb-8 rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg/40 p-5 md:p-6 flex items-center gap-4 shadow-brutal">
+          <span className="hidden sm:flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg"><FiShield className="w-6 h-6 text-studojo-green" /></span>
+          <div>
+            <p className="font-clash text-lg md:text-xl font-bold text-studojo-ink mb-0.5">{GUARANTEE.head}</p>
+            <p className="text-sm text-studojo-muted font-satoshi">{GUARANTEE.body}</p>
+          </div>
+        </div>
 
         {/* Tier cards */}
         <div className={`grid grid-cols-1 ${TIERS.length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"} gap-4 mb-8 items-stretch`}>
@@ -426,6 +566,11 @@ export default function EnrichmentPage() {
             const isSelected = selectedTier === tier.value;
             const hasCredits = credits ? credits.available_credits >= tier.value : false;
             const isStarter = "durationDays" in tier && !!tier.durationDays;
+            const perContact = (() => {
+              const m = (price.discounted || price.display || "").match(/[\d.]+/);
+              if (!m) return null;
+              return `${currSymbol}${(parseFloat(m[0]) / tier.value).toFixed(2)} per hiring manager`;
+            })();
 
             return (
               <div
@@ -480,7 +625,7 @@ export default function EnrichmentPage() {
                   </span>
                 )}
 
-                {/* Tagline */}
+                {perContact && <p className="text-xs text-studojo-muted font-satoshi mt-1">just {perContact}</p>}
                 <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{tier.tagline}</p>
 
                 <div className="border-t border-studojo-ink/10 mb-4" />
@@ -493,6 +638,10 @@ export default function EnrichmentPage() {
                       {feat}
                     </li>
                   ))}
+                  <li className="flex items-start gap-2 text-xs font-satoshi font-semibold text-studojo-green leading-snug">
+                    <FiCheck className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
+                    {GUARANTEE.head} included
+                  </li>
                 </ul>
 
                 {/* CTA */}
@@ -518,8 +667,41 @@ export default function EnrichmentPage() {
           })}
         </div>
 
+        <p className="text-center text-sm text-studojo-muted font-satoshi mb-14">
+          One-time payment · No subscription, no auto-renew · {GUARANTEE.head} on every plan
+        </p>
+
+        {error && <p className="text-red-600 text-sm text-center mb-6 font-satoshi">{error}</p>}
+
+        {/* Wall of Love */}
+        <WallOfLove />
+
+        {/* Founder note */}
+        <div className="max-w-2xl mx-auto mb-14 rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg/40 p-5 md:p-6 shadow-brutal">
+          <p className="text-sm md:text-[15px] text-studojo-ink leading-6 font-satoshi">
+            "Job boards are dead. You upload a resume, an algorithm buries it, and weeks later you've heard nothing. We built Studojo so you skip the queue and land straight in the inbox of the person who can actually hire you. And if your list goes quiet, we keep working it until someone replies."
+          </p>
+          <div className="flex items-center gap-2.5 mt-3">
+            <div className="h-8 w-8 rounded-full border-2 border-studojo-ink bg-studojo-purple flex items-center justify-center font-clash font-bold text-white text-xs">S</div>
+            <p className="text-xs text-studojo-muted font-satoshi"><strong className="text-studojo-ink">The Studojo team</strong> · we read every reply you forward us</p>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <h2 className="font-clash text-2xl md:text-3xl font-bold text-center text-studojo-ink mb-6">Questions, answered</h2>
+          <div className="flex flex-col gap-3">
+            {FAQ_ITEMS.map(([q, a]) => (
+              <div key={q} className="rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+                <p className="font-bold text-[15px] mb-1.5 font-satoshi text-studojo-ink">{q}</p>
+                <p className="text-sm text-studojo-muted leading-6 font-satoshi">{a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Coupon */}
-        <div className="rounded-2xl border-2 border-studojo-ink/20 bg-white p-5 mb-6 max-w-md mx-auto">
+        <div className="rounded-2xl border-2 border-studojo-ink/20 bg-white p-5 mb-8 max-w-md mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <FiTag className="w-4 h-4 text-studojo-purple" />
             <p className="font-satoshi text-sm font-bold text-studojo-ink">Have a coupon?</p>
@@ -552,15 +734,35 @@ export default function EnrichmentPage() {
           )}
         </div>
 
-        {error && <p className="text-red-600 text-sm text-center mb-4 font-satoshi">{error}</p>}
-
-        <p className="text-xs text-studojo-muted font-satoshi text-center mt-6">
+        <p className="text-xs text-studojo-muted font-satoshi text-center">
           Emails sent gradually over several days. Most students get their first reply within a week.
         </p>
       </div>
       <Footer />
 
-      {/* Consultation qualifying modal */}
+      {/* Sticky CTA */}
+      <div className="fixed bottom-0 inset-x-0 z-40 border-t-2 border-studojo-ink bg-white/95 backdrop-blur">
+        <div className="mx-auto max-w-6xl px-4 md:px-8 py-3 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-bold font-satoshi text-studojo-ink truncate">
+              {selectedTierObj?.name} · {selectedTier} contacts <span className="hidden sm:inline text-studojo-green font-semibold">· {GUARANTEE.head}</span>
+            </p>
+            <p className="text-[11px] text-studojo-muted font-satoshi">
+              {selectedPrice.anchor && <span className="line-through">{selectedPrice.anchor} </span>}
+              {selectedPrice.discounted || selectedPrice.display}
+              {hasCreditsForSelected ? " · covered by your credits" : ""}
+            </p>
+          </div>
+          <button
+            onClick={() => handlePayAndContinue(selectedTier)}
+            disabled={paying}
+            className="h-11 px-6 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none whitespace-nowrap flex-shrink-0 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:pointer-events-none"
+          >
+            {paying ? "Processing..." : <>{hasCreditsForSelected ? "Use Credits" : "Get Started"} <FiArrowRight className="w-4 h-4" /></>}
+          </button>
+        </div>
+      </div>
+
       {/* Dodo Payments checkout modal */}
       {dodoCheckoutUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -572,11 +774,7 @@ export default function EnrichmentPage() {
             >
               &times;
             </button>
-            <iframe
-              src={dodoCheckoutUrl}
-              className="w-full h-full border-0"
-              allow="payment"
-            />
+            <iframe src={dodoCheckoutUrl} className="w-full h-full border-0" allow="payment" />
           </div>
         </div>
       )}

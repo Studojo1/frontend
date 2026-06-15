@@ -2,11 +2,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { FiArrowRight, FiArrowDown, FiMail, FiUser, FiMessageSquare } from "react-icons/fi";
 
-const PROOF_STATS = [
-  { value: "138+", label: "students" },
-  { value: "95%", label: "satisfied" },
-  { value: "4.9", label: "rating" },
-];
 
 export function Hero() {
   return (
@@ -17,16 +12,16 @@ export function Hero() {
         <div className="flex flex-col gap-5 md:max-w-lg md:gap-7 lg:max-w-xl">
           {/* H1 */}
           <h1 className="font-['Clash_Display'] text-4xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl lg:text-6xl">
-            Don&apos;t apply.{" "}
+            Job boards are dead.{" "}
             <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-purple-300 px-3 py-1 font-['Satoshi'] text-2xl font-medium text-neutral-900 md:text-4xl lg:text-5xl">
-              Get contacted.
+              We get you replies.
             </span>
           </h1>
 
           {/* Subtext */}
           <p className="font-['Satoshi'] text-base font-normal leading-7 text-neutral-700 md:text-lg md:leading-8">
-            Upload your resume. Our AI finds the hiring managers who&apos;d actually interview you, researches their company, and sends a personal email as you.{" "}
-            <strong className="font-semibold text-neutral-900">Most students get their first reply within a week.</strong>
+            We find people who can hire you, write them a personal email, and send it as you.{" "}
+            <strong className="font-semibold text-neutral-900">Most students get a reply within a week.</strong>
           </p>
 
           {/* CTAs */}
@@ -45,19 +40,6 @@ export function Hero() {
             </Link>
           </div>
 
-          {/* Proof strip */}
-          <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1">
-            {PROOF_STATS.map((s) => (
-              <div key={s.label} className="flex items-baseline gap-1">
-                <span className="font-['Clash_Display'] text-lg font-bold text-neutral-900 md:text-xl">
-                  {s.value}
-                </span>
-                <span className="font-['Satoshi'] text-xs text-neutral-500 md:text-sm">
-                  {s.label}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Right: app simulation cards — stacked, gentle float only on y-axis */}

@@ -92,6 +92,7 @@ export interface Lead {
   name: string;
   title: string;
   company: string;
+  company_domain: string | null;
   industry: string | null;
   location: string | null;
   linkedin_url: string | null;

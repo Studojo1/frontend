@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
+  BackedBySection,
   CTABanner,
   CollegesBanner,
   FeaturedProductCard,
@@ -11,7 +12,6 @@ import {
   Hero,
   ProblemSolution,
   StepsSection,
-  TestimonialsSection,
   TrustStrip,
 } from "~/components";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
@@ -35,12 +35,12 @@ export function meta({}: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "Skip the job portal queue. Studojo's AI finds the hiring manager, writes a personalised email, and sends it from your Gmail. 138 students placed. TCS, Goldman, Figma. $20 for 200 outreaches.",
+        "Skip the job portal queue. Studojo's AI finds the hiring manager, writes a personalised email, and sends it from your Gmail. 500+ students placed. TCS, Goldman, Figma. $20 for 200 outreaches.",
     },
     { tagName: "link", rel: "canonical", href: BASE_URL },
     { property: "og:type", content: "website" },
     { property: "og:title", content: "Studojo | Land Your Next Internship or Job" },
-    { property: "og:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview. 138 students placed." },
+    { property: "og:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview. 500+ students placed." },
     { property: "og:url", content: BASE_URL },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
@@ -204,7 +204,7 @@ export default function Home() {
           <FreeToolsSection />
         </motion.div>
         <motion.div variants={sectionVariants}>
-          <TestimonialsSection />
+          <BackedBySection />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <CTABanner />

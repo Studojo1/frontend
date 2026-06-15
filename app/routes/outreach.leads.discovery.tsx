@@ -1,145 +1,293 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { FiCheck, FiSearch, FiUsers, FiBarChart2, FiBriefcase } from "react-icons/fi";
-import { RiRobot2Fill } from "react-icons/ri";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 
-// Phase 1: discovery stages (run while /discovery/search is in-flight, ~70s)
-const DISCOVERY_STAGES = [
-  { icon: RiRobot2Fill, label: "Building your professional profile...", duration: 4000 },
-  { icon: FiSearch, label: "Mapping your niche across the market...", duration: 5000 },
-  { icon: FiUsers, label: "Identifying decision-makers at target companies...", duration: 18000 },
-  { icon: FiBarChart2, label: "Filtering for the highest-signal opportunities...", duration: 8000 },
-  { icon: FiBriefcase, label: "Assembling your lead list...", duration: 60000 },
-];
-
-// Phase 2: scoring stages (run while polling /discovery/scoring-ready, ~90s)
-const SCORING_STAGES = [
-  { icon: FiBarChart2, label: "Analysing fit across hundreds of companies..." },
-  { icon: RiRobot2Fill, label: "Crafting your personalised outreach intel..." },
-];
-
-const PREVIEW_POOL = [
-  { initials: "AR", name: "Arjun R.", title: "Engineering Manager", company: "Razorpay", location: "Bangalore", color: "bg-studojo-purple" },
-  { initials: "SK", name: "Shreya K.", title: "Product Director", company: "Meesho", location: "Bangalore", color: "bg-studojo-pink" },
-  { initials: "NP", name: "Nikhil P.", title: "Head of Engineering", company: "CRED", location: "Bangalore", color: "bg-emerald-500" },
-  { initials: "AM", name: "Aditya M.", title: "CTO", company: "Licious", location: "Bangalore", color: "bg-amber-500" },
-  { initials: "RS", name: "Rohan S.", title: "VP Engineering", company: "PhonePe", location: "Bangalore", color: "bg-blue-500" },
-  { initials: "PT", name: "Priya T.", title: "Founding Engineer", company: "Sarvam AI", location: "Bangalore", color: "bg-rose-500" },
-  { initials: "DL", name: "David L.", title: "Head of Product", company: "Stripe", location: "San Francisco", color: "bg-indigo-500" },
-  { initials: "JW", name: "Jamie W.", title: "Engineering Lead", company: "Vercel", location: "Remote", color: "bg-studojo-purple" },
-  { initials: "MC", name: "Maya C.", title: "VP Engineering", company: "Deel", location: "New York", color: "bg-teal-500" },
-  { initials: "RK", name: "Raj K.", title: "Director of Engineering", company: "Zepto", location: "Mumbai", color: "bg-orange-500" },
-  { initials: "SB", name: "Siddharth B.", title: "Co-founder & CTO", company: "Krutrim", location: "Bangalore", color: "bg-studojo-pink" },
-  { initials: "LN", name: "Lena N.", title: "Principal Engineer", company: "Figma", location: "London", color: "bg-emerald-500" },
-  { initials: "VM", name: "Varun M.", title: "Head of Data", company: "Groww", location: "Bangalore", color: "bg-violet-500" },
-  { initials: "TH", name: "Tanya H.", title: "Engineering Manager", company: "Notion", location: "Remote", color: "bg-amber-500" },
-  { initials: "AS", name: "Aryan S.", title: "Director of Product", company: "Slice", location: "Bangalore", color: "bg-blue-500" },
-  { initials: "KP", name: "Kiran P.", title: "Founding Engineer", company: "Ola Krutrim", location: "Bangalore", color: "bg-rose-500" },
-];
-
-const _startOffset = Math.floor(Math.random() * PREVIEW_POOL.length);
-
 const POLL_INTERVAL_MS = 5000;
-// Bar fills 0→99 over this duration. Freezes at 99 if leads aren't ready yet,
-// then jumps to 100 the moment scoring-ready returns true.
-const BAR_TOTAL_MS = 120_000;
+// The counter + bar ramp over this window, then HOLD until results are actually
+// ready (allDone) — so the user never sees a "finished" screen with nothing happening.
+const RAMP_MS = 95000;
+const BAR_CAP = 96; // bar holds here until allDone, then jumps to 100
+
+// Named, recognizable sources — concrete names make "scouring the web" credible.
+const SOURCES = [
+  "Company career pages", "LinkedIn", "Naukri", "Wellfound", "Crunchbase",
+  "Y Combinator", "Product Hunt", "AngelList", "Indeed", "Glassdoor",
+  "Internshala", "Instahyre", "Cutshort", "Foundit", "Hirect",
+  "Hacker News (Who's hiring)", "TechCrunch", "Funding & news feeds", "Twitter / X",
+];
+
+// Rotating headline — ~50% conversion lines (c: true), interleaved with status.
+const HEADLINES: { t: string; c?: boolean }[] = [
+  { t: "Scouring the internet for your people…" },
+  { t: "The average student lands 3 interview calls in week one.", c: true },
+  { t: "Mapping your niche across the market…" },
+  { t: "One warm intro beats 100 cold applications.", c: true },
+  { t: "Identifying decision-makers everywhere…" },
+  { t: "95% of students say this beat cold-applying.", c: true },
+  { t: "Filtering for the highest-signal matches…" },
+  { t: "Your personalised pitches are being written right now.", c: true },
+  { t: "Cross-referencing who's hiring this week…" },
+  { t: "Students who finish setup get 3× more replies.", c: true },
+];
+
+// Matches keyed by market — NO company names, location-aware.
+type Person = { i: string; n: string; t: string; c: string; m: number };
+const PEOPLE_BY_MARKET: Record<string, Person[]> = {
+  India: [
+    { i: "AR", n: "Arjun R.", t: "Engineering Manager", c: "Bangalore", m: 96 },
+    { i: "PT", n: "Priya T.", t: "Founding Engineer", c: "Bangalore", m: 94 },
+    { i: "KV", n: "Karthik V.", t: "Product Director", c: "Bangalore", m: 95 },
+    { i: "RS", n: "Rohan S.", t: "VP Engineering", c: "Hyderabad", m: 92 },
+    { i: "SM", n: "Sneha M.", t: "Growth Lead", c: "Mumbai", m: 91 },
+    { i: "AD", n: "Ananya D.", t: "Marketing Head", c: "Delhi", m: 90 },
+    { i: "VN", n: "Vikram N.", t: "Head of Design", c: "Bangalore", m: 93 },
+    { i: "AS", n: "Aditya S.", t: "Co-founder", c: "Bangalore", m: 95 },
+    { i: "NK", n: "Neha K.", t: "Product Manager", c: "Gurgaon", m: 88 },
+    { i: "SC", n: "Sanjay C.", t: "CTO", c: "Chennai", m: 91 },
+    { i: "RP", n: "Riya P.", t: "Brand Lead", c: "Mumbai", m: 90 },
+    { i: "IR", n: "Isha R.", t: "Talent Partner", c: "Pune", m: 89 },
+  ],
+  US: [
+    { i: "DL", n: "David L.", t: "Head of Product", c: "San Francisco", m: 95 },
+    { i: "MC", n: "Maya C.", t: "VP Engineering", c: "New York", m: 93 },
+    { i: "JB", n: "Jordan B.", t: "Growth Director", c: "San Francisco", m: 91 },
+    { i: "EK", n: "Emily K.", t: "Talent Lead", c: "New York", m: 90 },
+    { i: "CP", n: "Chris P.", t: "Founding Engineer", c: "Austin", m: 92 },
+    { i: "SW", n: "Sarah W.", t: "Marketing Director", c: "Seattle", m: 89 },
+    { i: "MR", n: "Mike R.", t: "Head of Design", c: "San Francisco", m: 90 },
+    { i: "LT", n: "Laura T.", t: "Product Manager", c: "Boston", m: 88 },
+  ],
+  UK: [
+    { i: "LN", n: "Lena N.", t: "Principal Engineer", c: "London", m: 95 },
+    { i: "OH", n: "Oliver H.", t: "Product Lead", c: "London", m: 92 },
+    { i: "SM", n: "Sophie M.", t: "Marketing Director", c: "Manchester", m: 90 },
+    { i: "JC", n: "James C.", t: "Head of Growth", c: "London", m: 91 },
+    { i: "AR", n: "Amelia R.", t: "Talent Partner", c: "London", m: 89 },
+    { i: "HB", n: "Harry B.", t: "Founding Engineer", c: "Bristol", m: 90 },
+  ],
+  UAE: [
+    { i: "OH", n: "Omar H.", t: "Marketing Director", c: "Dubai", m: 94 },
+    { i: "LA", n: "Layla A.", t: "Head of Growth", c: "Dubai", m: 92 },
+    { i: "RK", n: "Rashid K.", t: "Product Manager", c: "Dubai", m: 90 },
+    { i: "FZ", n: "Fatima Z.", t: "Brand Lead", c: "Abu Dhabi", m: 89 },
+    { i: "YM", n: "Yusuf M.", t: "Engineering Manager", c: "Dubai", m: 91 },
+    { i: "NS", n: "Noor S.", t: "Talent Lead", c: "Dubai", m: 88 },
+  ],
+  Singapore: [
+    { i: "WZ", n: "Wei Z.", t: "Head of Growth", c: "Singapore", m: 94 },
+    { i: "ML", n: "Mei L.", t: "Engineering Manager", c: "Singapore", m: 92 },
+    { i: "DT", n: "Daniel T.", t: "Product Director", c: "Singapore", m: 91 },
+    { i: "AR", n: "Aisha R.", t: "Marketing Lead", c: "Singapore", m: 90 },
+    { i: "JH", n: "Jun H.", t: "Founding Engineer", c: "Singapore", m: 89 },
+    { i: "PN", n: "Priya N.", t: "Talent Partner", c: "Singapore", m: 88 },
+  ],
+  Global: [
+    { i: "DL", n: "David L.", t: "Head of Product", c: "San Francisco", m: 95 },
+    { i: "AR", n: "Arjun R.", t: "Engineering Manager", c: "Bangalore", m: 96 },
+    { i: "LN", n: "Lena N.", t: "Principal Engineer", c: "London", m: 94 },
+    { i: "OH", n: "Omar H.", t: "Marketing Director", c: "Dubai", m: 92 },
+    { i: "WZ", n: "Wei Z.", t: "Head of Growth", c: "Singapore", m: 93 },
+    { i: "MC", n: "Maya C.", t: "VP Engineering", c: "New York", m: 91 },
+    { i: "PT", n: "Priya T.", t: "Founding Engineer", c: "Bangalore", m: 90 },
+    { i: "SW", n: "Sarah W.", t: "Marketing Director", c: "Seattle", m: 89 },
+  ],
+};
+
+const MARKET_CITIES: Record<string, string[]> = {
+  India: ["india", "bangalore", "bengaluru", "mumbai", "delhi", "hyderabad", "pune", "chennai", "gurgaon", "noida", "kolkata"],
+  US: ["united states", "usa", "san francisco", "new york", "austin", "seattle", "boston", "los angeles"],
+  UK: ["united kingdom", " uk", "london", "manchester", "bristol", "england"],
+  UAE: ["uae", "united arab", "dubai", "abu dhabi"],
+  Singapore: ["singapore"],
+};
+function detectMarket(locations: string[]): string {
+  const hay = (" " + locations.join(" ") + " ").toLowerCase();
+  for (const [m, keys] of Object.entries(MARKET_CITIES)) if (keys.some((k) => hay.includes(k))) return m;
+  return "Global";
+}
+
+// Wall of Love — mixed authentic "screenshots": X, iMessage, WhatsApp, LinkedIn.
+type Card =
+  | { type: "tweet"; n: string; h: string; d: string; v: boolean; q: string; re: number; rt: number; lk: number }
+  | { type: "imsg"; in: string; out: string; t: string }
+  | { type: "whatsapp"; q: string; t: string }
+  | { type: "linkedin"; n: string; role: string; deg: string; q: string };
+const WALL: Card[] = [
+  { type: "tweet", n: "Sahil Gulihar", h: "@Sahil_Gulihar", d: "May 30", v: false, q: "went in as a casual tester to find bugs. came out with an interview lol 💀 no messy emails, no hunting. just chat, then interview", re: 4, rt: 4, lk: 34 },
+  { type: "imsg", in: "yo update, my profile got shortlisted for a role 😭", out: "and I wasn't even trying that hard", t: "2:11 PM" },
+  { type: "linkedin", n: "Rimjhim Hazarika", role: "L&D Consultant · Career Coach", deg: "2nd", q: "Trying it out and saying this with a lot of respect. The convo feels anything but transactional. Genuinely impressed." },
+  { type: "tweet", n: "Siddharth K S", h: "@sidks", d: "4d", v: true, q: "been testing this for the past hour, honestly seamless. gives such a great handle on things right away :D", re: 1, rt: 2, lk: 21 },
+  { type: "whatsapp", q: "have been using studojo, it's pretty good at finding the right people. really liked it", t: "9:09 PM" },
+  { type: "tweet", n: "Anunaya Tandon", h: "@AnunayaTandon", d: "May 28", v: false, q: "first experience of @studojo, the ai is so good!", re: 0, rt: 1, lk: 12 },
+  { type: "imsg", in: "wait this actually works??", out: "told you 😎", t: "3:38 AM" },
+  { type: "whatsapp", q: "studojo slaps hard <3", t: "9:12 PM" },
+  { type: "linkedin", n: "Marcus T.", role: "CS @ NYU", deg: "2nd", q: "3 founder replies in week one. Genuinely did not expect this from a tool. Telling everyone in my batch." },
+  { type: "tweet", n: "Meera P.", h: "@meera_builds", d: "Jun 2", v: false, q: "stopped spamming applications. finally getting actual responses 🙌", re: 2, rt: 3, lk: 27 },
+];
+
+const COLORS = ["bg-studojo-purple", "bg-studojo-pink", "bg-studojo-green", "bg-studojo-orange", "bg-studojo-teal", "bg-indigo-500", "bg-rose-500", "bg-amber-500"];
+const fmt = (n: number) => Math.max(0, Math.round(n)).toLocaleString("en-US");
+const initOf = (n: string) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+const colOf = (n: string) => COLORS[n.charCodeAt(0) % COLORS.length];
+
+// ── Odometer: each digit rolls to its value ──
+function Odometer({ value }: { value: number }) {
+  const s = fmt(value);
+  return (
+    <span className="sd-odo">
+      {[...s].map((ch, i) =>
+        /\d/.test(ch) ? (
+          <span className="sd-reel" key={i}>
+            <span className="sd-col" style={{ transform: `translateY(-${(+ch) * 10}%)` }}>
+              {"0123456789".split("").map((d) => (
+                <span key={d}>{d}</span>
+              ))}
+            </span>
+          </span>
+        ) : (
+          <span className="sd-sep" key={i}>{ch}</span>
+        )
+      )}
+      {value > 0 && <span className="sd-sep">+</span>}
+    </span>
+  );
+}
+
+// ── Wall of Love icons ──
+const Verified = () => (
+  <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#1d9bf0] items-center justify-center flex-shrink-0">
+    <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-white"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" /></svg>
+  </span>
+);
+const XLogo = () => (
+  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-studojo-ink/60 flex-shrink-0"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+);
+const Ticks = () => (
+  <svg viewBox="0 0 18 12" className="w-3.5 h-3 inline-block">
+    <path d="M1 6.5 4 9.5 9.5 2.5" fill="none" stroke="#53bdeb" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M6 6.5 9 9.5 14.5 2.5" fill="none" stroke="#53bdeb" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const tweetAction = (path: string, n: number) => (
+  <span className="flex items-center gap-1 text-studojo-muted text-[11px]">
+    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current"><path d={path} /></svg>
+    {n > 0 && <span className="tabular-nums">{n}</span>}
+  </span>
+);
+const P_REPLY = "M1.75 11C1.75 5.9 5.9 1.75 11 1.75h2c5.1 0 9.25 4.15 9.25 9.25S18.1 20.25 13 20.25h-1.4l-4.6 3.1V20.1C4 18.6 1.75 15.1 1.75 11z";
+const P_RT = "M4.5 3.9 1 7.4l3.5 3.5V8.4h11v3l4-4-4-4v3h-9V3.9zm15 13.2L16 13.6v2.5h-11v-3l-4 4 4 4v-3h13z";
+const P_LIKE = "M12 21s-7.5-4.9-10-9.3C.4 8.6 1.8 5 5.2 5c2 0 3.4 1.2 4.3 2.6h1C11.4 6.2 12.8 5 14.8 5c3.4 0 4.8 3.6 3.2 6.7C19.5 16.1 12 21 12 21z";
+
+const WCARD = "w-[300px] h-[168px] flex-shrink-0 rounded-2xl shadow-sm flex flex-col";
+function ReviewCard({ v }: { v: Card }) {
+  if (v.type === "tweet") {
+    return (
+      <div className={`${WCARD} border border-studojo-ink/10 bg-white p-4`}>
+        <div className="flex items-center gap-2.5">
+          <div className={`w-9 h-9 rounded-full ${colOf(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 sd-pii`}>{initOf(v.n)}</div>
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="flex items-center gap-1">
+              <span className="text-[13px] font-bold text-studojo-ink truncate sd-pii">{v.n}</span>{v.v && <Verified />}
+            </div>
+            <div className="text-[12px] text-studojo-muted truncate"><span className="sd-pii">{v.h}</span> · {v.d}</div>
+          </div>
+          <XLogo />
+        </div>
+        <p className="text-[13px] text-studojo-ink leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
+        <div className="flex items-center gap-7 pt-2">{tweetAction(P_REPLY, v.re)}{tweetAction(P_RT, v.rt)}{tweetAction(P_LIKE, v.lk)}</div>
+      </div>
+    );
+  }
+  if (v.type === "imsg") {
+    return (
+      <div className={`${WCARD} bg-[#1c1c1e] p-3.5 justify-center`}>
+        <div className="flex flex-col gap-2">
+          <div className="self-start max-w-[88%] bg-[#3a3a3c] text-white text-[13px] leading-snug rounded-2xl rounded-bl-md px-3 py-2">{v.in}</div>
+          <div className="self-end max-w-[88%] bg-[#0a84ff] text-white text-[13px] leading-snug rounded-2xl rounded-br-md px-3 py-2">{v.out}</div>
+        </div>
+        <p className="text-[10px] text-white/40 text-center mt-2.5">{v.t}</p>
+      </div>
+    );
+  }
+  if (v.type === "whatsapp") {
+    return (
+      <div className={`${WCARD} bg-[#0b141a] p-3.5 justify-center`}>
+        <div className="self-end max-w-[94%] bg-[#005c4b] text-white text-[13.5px] leading-snug rounded-2xl rounded-br-md px-3 py-2">
+          {v.q}
+          <span className="flex items-center justify-end gap-1 mt-1 text-[10px] text-white/55">{v.t} <Ticks /></span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={`${WCARD} border border-studojo-ink/10 bg-white p-4`}>
+      <div className="flex items-center gap-2.5">
+        <div className={`w-9 h-9 rounded-full ${colOf(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 sd-pii`}>{initOf(v.n)}</div>
+        <div className="min-w-0 flex-1 leading-tight">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[13px] font-bold text-studojo-ink truncate sd-pii">{v.n}</span>
+            <span className="text-[10px] text-studojo-muted whitespace-nowrap">· {v.deg}</span>
+            <span className="inline-flex w-3.5 h-3.5 rounded-[3px] bg-[#0a66c2] text-white items-center justify-center text-[8px] font-bold flex-shrink-0">in</span>
+          </div>
+          <div className="text-[12px] font-medium text-studojo-ink/75 truncate">{v.role}</div>
+        </div>
+      </div>
+      <p className="text-[13px] text-studojo-ink leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
+      <div className="flex items-center gap-3 pt-2 text-[11px] font-semibold text-studojo-muted"><span>Like</span><span>· Reply</span></div>
+    </div>
+  );
+}
 
 export default function DiscoveryPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
-  const { candidateId } = useOutreachStore();
+  const { candidateId, profileData } = useOutreachStore();
 
-  // Phase 1: discovery stage index (0..DISCOVERY_STAGES.length)
-  const [discoveryStage, setDiscoveryStage] = useState(0);
-  // Phase 2: true once /discovery/search resolves
-  const [scoringPhase, setScoringPhase] = useState(false);
-  const [scoringStage, setScoringStage] = useState(0);
-  // bullets progress 0-500
-  const [bulletsCount, setBulletsCount] = useState(0);
-  const [allDone, setAllDone] = useState(false);
   const [error, setError] = useState("");
-  const [leadCount, setLeadCount] = useState(0);
-  const [previewOffset, setPreviewOffset] = useState(_startOffset);
+  const [allDone, setAllDone] = useState(false);
+  const [countVal, setCountVal] = useState(0);
+  const [barPct, setBarPct] = useState(0);
+  const [headIdx, setHeadIdx] = useState(0);
+  const [scanChecked, setScanChecked] = useState(0);
+  const [scanRows, setScanRows] = useState<{ src: string; n: number; key: number }[]>([]);
+  const [matchOff, setMatchOff] = useState(0);
 
-  // Time-based loading bar: 0-99 over BAR_TOTAL_MS, then 100 when ready.
-  const [barProgress, setBarProgress] = useState(0);
-  const barStartRef = useRef(Date.now());
-
-  const counterRef = useRef<ReturnType<typeof setInterval>>();
-  const cycleRef = useRef<ReturnType<typeof setInterval>>();
+  const allDoneRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval>>();
-  const barTickRef = useRef<ReturnType<typeof setInterval>>();
+  const scanCounter = useRef(0);
 
-  const cardsVisible = discoveryStage >= 2;
+  // Per-user scan total: deterministic from candidateId, 2.1M–3.4M. Stable on
+  // refresh, different across users.
+  const TARGET = useMemo(() => {
+    const seed = String(candidateId ?? "studojo").split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    const r = ((seed * 9301 + 49297) % 233280) / 233280;
+    return Math.round((2_100_000 + r * (3_400_000 - 2_100_000)) / 1000) * 1000;
+  }, [candidateId]);
 
-  const previewLeads = Array.from({ length: 4 }, (_, i) =>
-    PREVIEW_POOL[(previewOffset + i) % PREVIEW_POOL.length]
-  );
+  // Location-aware matches from the candidate's quiz preferences.
+  const locations: string[] = profileData?.parsed_json?.preferences?.locations || [];
+  const market = useMemo(() => detectMarket(locations), [locations.join(",")]);
+  const pool = PEOPLE_BY_MARKET[market] || PEOPLE_BY_MARKET.Global;
+  const marketLabel = locations[0] || (market === "Global" ? "across markets" : market);
+  const visibleMatches = Array.from({ length: 6 }, (_, k) => pool[(matchOff + k) % pool.length]);
 
-  // ── Time-based bar ticker ────────────────────────────────────────────────
-  // Runs independently of API phases. Caps at 99 until allDone flips true.
-  useEffect(() => {
-    barStartRef.current = Date.now();
-    barTickRef.current = setInterval(() => {
-      const elapsed = Date.now() - barStartRef.current;
-      const p = Math.min(Math.round((elapsed / BAR_TOTAL_MS) * 99), 99);
-      setBarProgress(p);
-    }, 500);
-    return () => clearInterval(barTickRef.current);
-  }, []);
+  useEffect(() => { allDoneRef.current = allDone; }, [allDone]);
 
-  // When leads are ready: jump bar to 100 immediately.
-  useEffect(() => {
-    if (!allDone) return;
-    clearInterval(barTickRef.current);
-    setBarProgress(100);
-  }, [allDone]);
-
-  // ── Discovery + scoring orchestration ────────────────────────────────────
+  // ── Discovery + scoring orchestration (unchanged behaviour) ──
   useEffect(() => {
     if (authLoading || !candidateId) return;
+    let cancelled = false;
 
-    const timers: ReturnType<typeof setTimeout>[] = [];
+    const finish = () => {
+      if (cancelled) return;
+      setAllDone(true);
+      setTimeout(() => navigate("/outreach/leads/results"), 900);
+    };
 
-    // Phase 1: advance discovery stages on a timer
-    let elapsed = 0;
-    const lastIdx = DISCOVERY_STAGES.length - 1;
-    DISCOVERY_STAGES.forEach((stage, i) => {
-      elapsed += stage.duration;
-      if (i < lastIdx) {
-        timers.push(setTimeout(() => setDiscoveryStage(i + 1), elapsed));
-      } else {
-        timers.push(setTimeout(() => setDiscoveryStage(lastIdx), elapsed - stage.duration));
-      }
-    });
-
-    // Lead counter: ramps to 800 starting at stage 2
-    timers.push(
-      setTimeout(() => {
-        counterRef.current = setInterval(() => {
-          setLeadCount((c) => {
-            if (c >= 800) { clearInterval(counterRef.current); return 800; }
-            const remaining = 800 - c;
-            return c + Math.min(Math.floor(Math.random() * 15) + 8, remaining);
-          });
-        }, 300);
-      }, 2000)
-    );
-
-    // Card preview cycles every 2.5s from stage 2 onward
-    const cycleStart = setTimeout(() => {
-      cycleRef.current = setInterval(() => {
-        setPreviewOffset((o) => (o + 4) % PREVIEW_POOL.length);
-      }, 2500);
-    }, DISCOVERY_STAGES[0].duration + DISCOVERY_STAGES[1].duration);
-    timers.push(cycleStart);
-
-    // Call /discovery/search
     outreachFetch("/discovery/search", {
       method: "POST",
       body: JSON.stringify({ candidate_id: candidateId }),
@@ -147,242 +295,204 @@ export default function DiscoveryPage() {
       maxRetries: 1,
     })
       .then(() => {
-        setDiscoveryStage(DISCOVERY_STAGES.length);
-        setScoringPhase(true);
-        setScoringStage(0);
-
-        // Phase 2: poll /discovery/scoring-ready
         const SCORING_TIMEOUT_MS = 6 * 60 * 1000;
-        const scoringStarted = Date.now();
-
-        let scoringTick = 0;
+        const started = Date.now();
         pollRef.current = setInterval(async () => {
-          scoringTick++;
-          setScoringStage(Math.min(Math.floor(scoringTick / 3), SCORING_STAGES.length - 1));
-
-          if (Date.now() - scoringStarted >= SCORING_TIMEOUT_MS) {
+          if (Date.now() - started >= SCORING_TIMEOUT_MS) {
             clearInterval(pollRef.current);
-            setAllDone(true);
-            setTimeout(() => navigate("/outreach/leads/results"), 800);
+            finish();
             return;
           }
-
           try {
-            const data = await outreachFetch(`/discovery/scoring-ready/${candidateId}`, {
-              method: "GET",
-            });
-            if (data?.with_bullets != null) {
-              setBulletsCount(data.with_bullets);
-            }
+            const data = await outreachFetch<any>(`/discovery/scoring-ready/${candidateId}`, { method: "GET" });
             if (data?.ready) {
               clearInterval(pollRef.current);
-              setAllDone(true);
-              setTimeout(() => navigate("/outreach/leads/results"), 800);
+              finish();
             }
           } catch {
-            // Non-fatal — keep polling
+            // non-fatal — keep polling
           }
         }, POLL_INTERVAL_MS);
       })
-      .catch((err) => {
-        setError(err?.body?.detail || err.message || "Lead discovery failed");
+      .catch((err: any) => {
+        if (!cancelled) setError(err?.body?.detail || err.message || "Lead discovery failed");
       });
 
     return () => {
-      timers.forEach(clearTimeout);
-      clearInterval(counterRef.current);
-      clearInterval(cycleRef.current);
+      cancelled = true;
       clearInterval(pollRef.current);
     };
   }, [candidateId, authLoading, navigate]);
+
+  // ── Visual animation loop ──
+  useEffect(() => {
+    if (!candidateId || authLoading) return;
+    const start = Date.now();
+
+    const step = setInterval(() => {
+      const t = Date.now() - start;
+      const done = allDoneRef.current;
+      setBarPct(done ? 100 : Math.min(BAR_CAP, Math.round((t / RAMP_MS) * BAR_CAP)));
+      setScanChecked(done ? SOURCES.length : Math.min(SOURCES.length, Math.floor((t / RAMP_MS) * (SOURCES.length + 1)) + 1));
+      setCountVal((v) => {
+        const g = done ? TARGET : Math.pow(Math.min(t / RAMP_MS, 1), 0.8) * TARGET;
+        return Math.abs(g - v) < 1 ? g : v + (g - v) * 0.34;
+      });
+    }, 450);
+
+    const head = setInterval(() => setHeadIdx((i) => (i + 1) % HEADLINES.length), 14000);
+
+    const scan = setInterval(() => {
+      const src = SOURCES[scanCounter.current % SOURCES.length];
+      const n = Math.floor(8000 + Math.random() * 240000);
+      scanCounter.current += 1;
+      setScanRows((rows) => [...rows, { src, n, key: scanCounter.current }].slice(-5));
+    }, 1200);
+
+    const match = setInterval(() => setMatchOff((o) => o + 1), 1900);
+
+    return () => { clearInterval(step); clearInterval(head); clearInterval(scan); clearInterval(match); };
+  }, [candidateId, authLoading, TARGET]);
 
   if (!candidateId) {
     navigate("/outreach/onboarding/upload");
     return null;
   }
 
-  const totalStages = DISCOVERY_STAGES.length + SCORING_STAGES.length;
-  const currentStageIdx = scoringPhase
-    ? DISCOVERY_STAGES.length + scoringStage
-    : discoveryStage;
-
-  const stageLabel = allDone
-    ? "Discovery Complete"
-    : scoringPhase
-    ? SCORING_STAGES[scoringStage]?.label
-    : DISCOVERY_STAGES[Math.min(discoveryStage, DISCOVERY_STAGES.length - 1)]?.label;
-
-  const subLabel = allDone
-    ? "Your leads are ready. Taking you there now..."
-    : scoringPhase
-    ? `Personalising ${bulletsCount > 0 ? bulletsCount.toLocaleString() : "your"} leads - almost there...`
-    : "Our AI is working across thousands of data points to find your best opportunities.";
+  const headline = HEADLINES[headIdx];
+  const rowA = WALL.slice(0, Math.ceil(WALL.length / 2));
+  const rowB = WALL.slice(Math.ceil(WALL.length / 2));
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 sm:py-12">
+      <div className="flex-1">
         {error ? (
-          <div className="max-w-md w-full rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center">
-            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
-              <span className="text-2xl">!</span>
+          <div className="flex items-center justify-center px-4 py-20">
+            <div className="max-w-md w-full rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center">
+              <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 border-2 border-red-200">
+                <span className="text-2xl">!</span>
+              </div>
+              <p className="text-red-600 text-sm font-satoshi mb-6">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="h-11 px-6 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-semibold border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              >
+                Try Again
+              </button>
             </div>
-            <p className="text-red-600 text-sm font-satoshi mb-6">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="h-11 px-6 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-semibold border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-            >
-              Try Again
-            </button>
           </div>
         ) : (
-          <div className="w-full max-w-lg text-center">
-            {/* Animated ring — driven by barProgress */}
-            <div className="relative w-32 h-32 sm:w-36 sm:h-36 mx-auto mb-6">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 160 160">
-                <circle cx="80" cy="80" r="70" fill="none" stroke="#f5f5f5" strokeWidth="6" />
-                <circle
-                  cx="80" cy="80" r="70"
-                  fill="none"
-                  stroke={allDone ? "#10b981" : "#8b5cf6"}
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  strokeDasharray={`${2 * Math.PI * 70}`}
-                  strokeDashoffset={`${2 * Math.PI * 70 * (1 - barProgress / 100)}`}
-                  className="transition-all duration-500 ease-out"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                {allDone ? (
-                  <FiCheck className="w-10 h-10 text-studojo-green" />
-                ) : (
-                  <div className="w-10 h-10 border-[3px] border-studojo-purple/20 border-t-studojo-purple rounded-full animate-spin" />
-                )}
+          <>
+            <main className="max-w-3xl mx-auto px-4 py-10 text-center">
+              {/* rotating headline */}
+              <div className="min-h-[2.25rem] mb-1">
+                <h2 key={headIdx} className={`sd-fade-up font-clash text-2xl sm:text-3xl font-bold ${headline.c ? "text-studojo-purple" : "text-studojo-ink"}`}>
+                  {headline.t}
+                </h2>
               </div>
-              {!allDone && (
-                <div className="absolute inset-0 rounded-full border-2 border-studojo-purple/10 animate-ping" style={{ animationDuration: "2s" }} />
-              )}
-            </div>
+              <p className="text-sm text-studojo-muted font-satoshi mb-7">We're searching the entire web to find the right people for you.</p>
 
-            {/* Stage label */}
-            <h2 className="font-clash text-xl sm:text-2xl font-bold text-studojo-ink mb-1">
-              {stageLabel}
-            </h2>
-            <p className="text-sm text-studojo-muted font-satoshi mb-5">{subLabel}</p>
-
-            {/* Loading bar */}
-            <div className="w-full max-w-sm mx-auto mb-6">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-satoshi text-studojo-muted">
-                  {allDone ? "Complete" : barProgress >= 99 ? "Finalising your leads..." : "Finding your leads"}
-                </span>
-                <span className={`text-xs font-satoshi font-semibold tabular-nums ${allDone ? "text-studojo-green" : "text-studojo-purple"}`}>
-                  {barProgress}%
-                </span>
+              {/* hero counter */}
+              <div className="font-clash text-4xl sm:text-6xl md:text-7xl font-bold text-studojo-purple tabular-nums leading-none">
+                <Odometer value={countVal} />
               </div>
-              <div className="h-2 w-full bg-studojo-surface-muted rounded-full overflow-hidden border border-studojo-ink/8">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ease-out ${allDone ? "bg-studojo-green" : "bg-studojo-purple"}`}
-                  style={{ width: `${barProgress}%` }}
-                />
+              <p className="text-sm font-satoshi text-studojo-muted mt-2.5">profiles scanned to find <span className="font-semibold text-studojo-ink">your best few</span></p>
+
+              {/* source chips */}
+              <div className="flex flex-wrap justify-center gap-1.5 mt-4 max-w-xl mx-auto">
+                {SOURCES.map((s, idx) => {
+                  const ok = idx < scanChecked;
+                  return (
+                    <span key={s} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-satoshi border ${ok ? "bg-studojo-green-bg border-studojo-green/30 text-studojo-green" : "bg-studojo-surface-muted border-studojo-ink/10 text-studojo-muted"}`}>
+                      {ok ? "✓" : <span className="w-1.5 h-1.5 rounded-full bg-studojo-purple animate-pulse inline-block" />} {s}
+                    </span>
+                  );
+                })}
               </div>
-            </div>
 
-            {/* Live counter */}
-            {leadCount > 0 && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-studojo-purple/8 border border-studojo-purple/20 mb-6">
-                <FiUsers className="w-4 h-4 text-studojo-purple" />
-                <span className="font-clash text-lg font-bold text-studojo-purple">{leadCount.toLocaleString()}</span>
-                <span className="text-xs font-satoshi text-studojo-muted">
-                  {scoringPhase && bulletsCount > 0
-                    ? `leads found - ${bulletsCount.toLocaleString()} personalised`
-                    : "professionals scanned"}
-                </span>
-              </div>
-            )}
-
-            {/* Step indicators */}
-            <div className="flex items-center justify-center gap-2 mb-8">
-              {Array.from({ length: totalStages }).map((_, i) => {
-                const done = currentStageIdx > i;
-                const active = currentStageIdx === i;
-                return (
-                  <div key={i} className="flex items-center gap-2">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
-                        done
-                          ? "bg-studojo-green text-white"
-                          : active
-                          ? "bg-studojo-purple text-white scale-110 shadow-lg shadow-studojo-purple/30"
-                          : "bg-studojo-surface-muted text-studojo-muted border border-studojo-ink/10"
-                      }`}
-                    >
-                      {done ? <FiCheck className="w-3.5 h-3.5" /> : i + 1}
-                    </div>
-                    {i < totalStages - 1 && (
-                      <div className={`w-6 h-0.5 rounded-full transition-all duration-500 ${done ? "bg-studojo-green" : "bg-studojo-ink/10"}`} />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Lead preview cards */}
-            <div className="grid grid-cols-2 gap-3">
-              {previewLeads.map((lead, i) => (
-                <div
-                  key={i}
-                  className={`rounded-xl border border-studojo-ink/10 bg-white p-3 sm:p-4 text-left transition-all duration-700 ${
-                    cardsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                  }`}
-                  style={{ transitionDelay: `${i * 120}ms` }}
-                >
-                  <div className="flex items-center gap-2.5 mb-2">
-                    {cardsVisible ? (
-                      <div className={`w-8 h-8 rounded-full ${lead.color} flex items-center justify-center flex-shrink-0`}>
-                        <span className="text-white text-xs font-bold font-satoshi">{lead.initials}</span>
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-studojo-ink/8 animate-pulse flex-shrink-0" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      {cardsVisible ? (
-                        <p className="text-xs font-satoshi font-semibold text-studojo-ink truncate">{lead.name}</p>
-                      ) : (
-                        <div className="h-2.5 bg-studojo-ink/8 rounded-full animate-pulse w-16" />
-                      )}
-                    </div>
-                  </div>
-                  {cardsVisible ? (
-                    <>
-                      <div className="flex items-center gap-1 mb-1">
-                        <FiBriefcase className="w-3 h-3 text-studojo-muted flex-shrink-0" />
-                        <p className="text-xs font-satoshi text-studojo-muted truncate">{lead.title}</p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <FiBriefcase className="w-3 h-3 text-studojo-muted flex-shrink-0 opacity-0" />
-                        <p className="text-xs font-satoshi text-studojo-muted truncate">{lead.company}</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="h-2 bg-studojo-ink/5 rounded-full animate-pulse mb-1.5 w-full" />
-                      <div className="h-2 bg-studojo-ink/5 rounded-full animate-pulse w-2/3" />
-                    </>
-                  )}
+              {/* single progress bar */}
+              <div className="w-full max-w-lg mx-auto mt-8 mb-9">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-satoshi text-studojo-muted">
+                    {allDone ? "Done. Opening your matches…" : barPct >= BAR_CAP ? "Finalising your matches…" : "Finding your matches"}
+                  </span>
+                  <span className={`text-sm font-satoshi font-bold tabular-nums ${allDone ? "text-studojo-green" : "text-studojo-purple"}`}>{barPct}%</span>
                 </div>
-              ))}
-            </div>
+                <div className="relative h-3.5 w-full bg-studojo-surface-muted rounded-full border border-studojo-ink/10">
+                  <div
+                    className={`relative h-full rounded-full overflow-hidden ${allDone ? "" : "sd-shimmer"}`}
+                    style={{ width: `${barPct}%`, background: allDone ? "#10b981" : "linear-gradient(90deg,#8b5cf6,#ec4899)", transition: "width .6s cubic-bezier(.2,.8,.2,1)" }}
+                  />
+                  <div
+                    className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 ${allDone ? "" : "sd-glow"}`}
+                    style={{ left: `calc(${barPct}% - 8px)`, borderColor: allDone ? "#10b981" : "#8b5cf6", transition: "left .6s cubic-bezier(.2,.8,.2,1)" }}
+                  />
+                </div>
+              </div>
 
-            {cardsVisible && (
-              <p className="text-xs text-studojo-muted font-satoshi mt-3">
-                {scoringPhase
-                  ? "Analysing each company and writing your personalised insights..."
-                  : "+ many more being ranked for you..."}
-              </p>
-            )}
-          </div>
+              {/* live scan + matches */}
+              <div className="grid sm:grid-cols-2 gap-3 text-left items-start">
+                {/* live scan */}
+                <div className="rounded-2xl border border-studojo-ink/10 bg-gradient-to-b from-studojo-purple-bg to-white p-4 overflow-hidden">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-studojo-green animate-pulse" /> Live scan
+                    </p>
+                    <span className="text-[10px] font-satoshi text-studojo-muted tabular-nums">{fmt(countVal * 0.013)} /sec</span>
+                  </div>
+                  <div className="space-y-2">
+                    {scanRows.map((r) => (
+                      <div key={r.key} className="sd-feed-in flex items-center gap-2.5 rounded-xl bg-white/70 border border-studojo-ink/8 px-2.5 py-2">
+                        <span className="w-6 h-6 rounded-md bg-studojo-purple/10 flex items-center justify-center text-[10px] font-bold text-studojo-purple flex-shrink-0">{r.src[0]}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[12px] font-satoshi font-medium text-studojo-ink truncate">{r.src}</p>
+                          <p className="text-[10px] font-satoshi text-studojo-muted tabular-nums">{fmt(r.n)} profiles indexed</p>
+                        </div>
+                        <span className="text-studojo-green text-sm">✓</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* matches forming */}
+                <div className="rounded-2xl border border-studojo-ink/10 bg-white p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted">Matches forming</p>
+                    <span className="text-[10px] font-satoshi font-semibold text-studojo-purple bg-studojo-purple/10 px-2 py-0.5 rounded-md">{marketLabel}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {visibleMatches.map((p, k) => (
+                      <div key={`${matchOff}-${k}`} className="flex items-center gap-2.5 sd-fade-up">
+                        <div className={`w-8 h-8 rounded-full ${colOf(p.i)} flex items-center justify-center flex-shrink-0`}><span className="text-white text-xs font-bold">{p.i}</span></div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-satoshi font-semibold text-studojo-ink truncate">{p.n}</p>
+                          <p className="text-[11px] font-satoshi text-studojo-muted truncate">{p.t} · {p.c}</p>
+                        </div>
+                        <span className="text-[10px] font-satoshi font-bold text-studojo-green bg-studojo-green-bg px-1.5 py-0.5 rounded-md">{p.m}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </main>
+
+            {/* Wall of Love */}
+            <section className="mt-6 pb-16 max-w-3xl mx-auto px-4">
+              <div className="text-center mb-6">
+                <p className="font-clash text-2xl font-bold">Students are already getting in</p>
+                <p className="text-sm font-satoshi text-studojo-muted mt-1">Don't take it from us. Real messages from students using Studojo.</p>
+              </div>
+              <div className="sd-wall-mask space-y-3 overflow-hidden">
+                <div className="sd-marquee flex gap-3 w-max">
+                  {[...rowA, ...rowA].map((v, i) => <ReviewCard key={i} v={v} />)}
+                </div>
+                <div className="sd-marquee-rev flex gap-3 w-max">
+                  {[...rowB, ...rowB].map((v, i) => <ReviewCard key={i} v={v} />)}
+                </div>
+              </div>
+            </section>
+          </>
         )}
       </div>
 
