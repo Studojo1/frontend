@@ -529,16 +529,6 @@ export default function EnrichmentPage() {
           Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
         </p>
 
-      <div className="mx-auto max-w-6xl px-4 py-10 md:px-8">
-
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink">Contact Hiring Managers Directly</h1>
-          <p className="text-base text-studojo-muted mt-3 font-satoshi max-w-xl mx-auto">
-            Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
-          </p>
-        </div>
-
         {/* Dream companies — single-row horizontal scroll */}
         {dreamCompanies.length > 0 && (
           <div className="max-w-3xl mx-auto mb-8 rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-brutal">
