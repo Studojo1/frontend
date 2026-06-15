@@ -87,6 +87,15 @@ jobs:
             --name studojo-aks \
             --overwrite-existing
 
+      - name: Ensure emailer internal secret
+        run: |
+          # Service-to-service secret for the emailer's gated routes (event
+          # publishing). Must match the emailer's INTERNAL_SECRET, which is
+          # sourced from the same EMAILER_INTERNAL_SECRET GitHub secret.
+          # No-op when unchanged, so it only triggers a rollout when the value moves.
+          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            EMAILER_INTERNAL_SECRET="${{ secrets.EMAILER_INTERNAL_SECRET }}"
+
       - name: Apply schema migrations
         env:
           JOB_NAME: frontend-migrate-${{ github.run_id }}

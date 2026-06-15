@@ -84,15 +84,25 @@ export async function action({ request }: Route.ActionArgs) {
 
   // Creating a resume IS using Resume Maker — fire the used signal so the
   // emailer routes engagement (stops not-used chases across tools). Non-blocking.
+  //
+  // Distinguish HOW they got here: originalFile is set only on the PDF-import
+  // path (they uploaded an EXISTING resume), absent when they built from
+  // scratch. An existing resume means they don't need the maker — they need
+  // direction — so route them to Career Coach. Building from scratch is genuine
+  // Resume Maker usage.
   try {
     const { publishEmailEvent } = await import("~/lib/events");
-    await publishEmailEvent("event.cc.resume_used", {
-      user_id: session.user.id,
-      email: session.user.email,
-      name: session.user.name,
-    });
+    const isImportedExisting = !!originalFile;
+    await publishEmailEvent(
+      isImportedExisting ? "event.cc.resume_imported_existing" : "event.cc.resume_used",
+      {
+        user_id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+      },
+    );
   } catch (err) {
-    console.error("Failed to publish resume_used event:", err);
+    console.error("Failed to publish resume usage event:", err);
   }
 
   return Response.json({ resume: newResume[0] }, { status: 201 });

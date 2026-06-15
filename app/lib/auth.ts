@@ -411,7 +411,7 @@ export const auth = betterAuth({
               email: user.email,
               name: user.name,
             }).catch((err) => {
-              console.error("[auth] Failed to publish cc welcome event:", err);
+              console.error("[auth] Failed to publish cc welcome_new_user event:", err);
             });
           } catch (err) {
             console.error("[auth] Error in user.create databaseHook:", err);

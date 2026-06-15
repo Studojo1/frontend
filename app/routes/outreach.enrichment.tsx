@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiTag, FiArrowRight, FiArrowLeft, FiShield, FiCheck } from "react-icons/fi";
+import { FiTag, FiArrowRight, FiArrowLeft, FiShield, FiCheck, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
@@ -201,7 +201,7 @@ export default function EnrichmentPage() {
       method: "POST",
       body: JSON.stringify({ stage: "payment_page_reached" }),
     }).catch(() => { /* never break the page */ });
-
+    // New email flow: deferred abandoned-checkout sequence (cancelled on payment).
     import("~/lib/events").then(({ publishEmailEventFromClient }) => {
       publishEmailEventFromClient("event.cc.outreach_payment_page", {
         user_id: user.id,
@@ -234,6 +234,8 @@ export default function EnrichmentPage() {
 
   // After payment succeeds, advance order and navigate to campaign setup
   const onPaymentSuccess = async () => {
+    // New email flow: cancel any pending cc marketing sequences for this user
+    // now that the user has paid. event.cc.paid is cancel-only (no email).
     if (user?.id) {
       import("~/lib/events").then(({ publishEmailEventFromClient }) => {
         publishEmailEventFromClient("event.cc.paid", { user_id: user.id }).catch(() => {});
@@ -344,6 +346,9 @@ export default function EnrichmentPage() {
   const handlePayAndContinue = async (tierValue: number = selectedTier) => {
     if (!candidateId) return;
 
+    // If user already has enough credits for this specific tier, skip payment.
+    // tierValue is passed explicitly from the button to avoid stale closure
+    // (setSelectedTier is async; reading selectedTier here would get the old value).
     if (credits && credits.available_credits >= tierValue) {
       onPaymentSuccess();
       return;
@@ -437,10 +442,11 @@ export default function EnrichmentPage() {
 
   const SHARED_FEATURES = (count: number) => [
     `${count} verified hiring managers`,
+    "Tailored to your role & industry",
     "AI-personalised email per contact",
-    "Sent from your own Gmail",
     "Inbox-safe drip schedule",
-    "Live reply tracking",
+    "Live reply tracking dashboard",
+    "Email support",
   ];
 
   const TIERS = [
@@ -452,10 +458,11 @@ export default function EnrichmentPage() {
       durationDays: 8,
       features: [
         "50 verified hiring managers",
+        "Tailored to your role & industry",
         "AI-personalised email per contact",
-        "Sent from your own Gmail",
         "8-day controlled send window",
-        "Live reply tracking",
+        "Reply tracking dashboard",
+        "Email support",
       ],
     }] : []),
     {
@@ -522,16 +529,14 @@ export default function EnrichmentPage() {
           Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
         </p>
 
-        {/* Trust pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 mt-5 mb-7">
-          <span className="inline-flex items-center gap-1.5 rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg px-3 py-1 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
-            <FiShield className="w-4 h-4" /> {GUARANTEE.head}
-          </span>
-          {TRUST_PTS.map((t) => (
-            <span key={t} className="inline-flex items-center gap-1 rounded-2xl border-2 border-studojo-ink bg-white px-3 py-1 text-xs font-medium shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
-              <FiCheck className="w-3.5 h-3.5 text-studojo-green" /> {t}
-            </span>
-          ))}
+      <div className="mx-auto max-w-6xl px-4 py-10 md:px-8">
+
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink">Contact Hiring Managers Directly</h1>
+          <p className="text-base text-studojo-muted mt-3 font-satoshi max-w-xl mx-auto">
+            Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
+          </p>
         </div>
 
         {/* Dream companies — single-row horizontal scroll */}
@@ -565,7 +570,7 @@ export default function EnrichmentPage() {
         </div>
 
         {/* Tier cards */}
-        <div className={`grid grid-cols-1 ${TIERS.length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"} gap-4 mb-4 items-stretch`}>
+        <div className={`grid grid-cols-1 ${TIERS.length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"} gap-4 mb-8 items-stretch`}>
           {TIERS.map((tier) => {
             const price = getTierPrice(tier.value);
             const isSelected = selectedTier === tier.value;
@@ -589,29 +594,41 @@ export default function EnrichmentPage() {
                     : "border-studojo-ink/20 bg-white hover:border-studojo-ink/50"
                 }`}
               >
+                {/* Badges */}
                 {isStarter && (
                   <div className="absolute -top-3 left-4">
-                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-ink text-white text-[11px] font-bold font-satoshi whitespace-nowrap">8-day sprint</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-ink text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
+                      8-day sprint
+                    </span>
                   </div>
                 )}
                 {tier.recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-purple text-white text-[11px] font-bold font-satoshi whitespace-nowrap">Most Popular</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-purple text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
+                      Most Popular
+                    </span>
                   </div>
                 )}
 
-                <p className="text-[11px] font-clash font-bold text-studojo-muted uppercase tracking-widest mb-3 mt-1">{tier.name}</p>
+                {/* Plan name */}
+                <p className="text-[11px] font-clash font-bold text-studojo-muted uppercase tracking-widest mb-3 mt-1">
+                  {tier.name}
+                </p>
 
+                {/* Price */}
                 <div className="flex items-baseline gap-2 flex-wrap mb-1">
                   {price.anchor && !price.discounted && (
                     <span className="text-sm line-through text-studojo-muted font-satoshi">{price.anchor}</span>
                   )}
-                  <span className="font-clash text-3xl font-black text-studojo-ink leading-none">{price.discounted || price.display}</span>
+                  <span className="font-clash text-3xl font-black text-studojo-ink leading-none">
+                    {price.discounted || price.display}
+                  </span>
                   {price.discounted && (
                     <span className="text-sm line-through text-studojo-muted font-satoshi">{price.display}</span>
                   )}
                 </div>
 
+                {/* Discount pill */}
                 {price.discountPct != null && price.discountPct > 0 && !price.discounted && (
                   <span className="inline-flex items-center mb-1 px-2 py-0.5 rounded-full text-[11px] font-satoshi font-bold bg-studojo-green/15 text-studojo-green border border-studojo-green/40 w-fit">
                     Save {price.discountPct}%
@@ -623,10 +640,11 @@ export default function EnrichmentPage() {
 
                 <div className="border-t border-studojo-ink/10 mb-4" />
 
+                {/* Features */}
                 <ul className="space-y-2.5 mb-5 flex-1">
                   {tier.features.map((feat) => (
                     <li key={feat} className="flex items-start gap-2 text-xs font-satoshi text-studojo-ink leading-snug">
-                      <FiCheck className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
+                      <FiCheckCircle className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
                       {feat}
                     </li>
                   ))}
@@ -636,8 +654,13 @@ export default function EnrichmentPage() {
                   </li>
                 </ul>
 
+                {/* CTA */}
                 <button
-                  onClick={(e) => { e.stopPropagation(); setSelectedTier(tier.value); handlePayAndContinue(tier.value); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTier(tier.value);
+                    handlePayAndContinue(tier.value);
+                  }}
                   disabled={paying && isSelected}
                   className={`w-full h-10 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-1.5 ${
                     tier.recommended
