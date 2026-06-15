@@ -69,8 +69,8 @@ const FREE_TOOLS: FreeTool[] = [
 function CheckIcon({ className }: { className?: string }) {
   return (
     <svg
-      width="18"
-      height="18"
+      width="16"
+      height="16"
       viewBox="0 0 20 20"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -92,54 +92,54 @@ export function FreeToolsSection() {
   return (
     <section
       id="free-tools"
-      className="scroll-mt-24 border-b border-neutral-900 bg-white px-4 pt-8 pb-8 md:px-8 md:pt-24 md:pb-16"
+      className="scroll-mt-24 border-b-2 border-neutral-900 bg-white px-4 pt-8 pb-8 md:px-8 md:pt-16 md:pb-12"
     >
       <div className="mx-auto max-w-[var(--section-max-width)]">
-        <div className="mb-8 text-center md:mb-16">
+        <div className="mb-6 text-center md:mb-10">
           <h2 className="font-['Clash_Display'] text-3xl font-medium leading-8 text-neutral-900 md:text-4xl lg:text-5xl">
             Free tools,{" "}
             <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-emerald-300 px-3 py-1 font-['Satoshi'] text-xl font-medium leading-8 text-neutral-900 md:text-3xl">
               no catch
             </span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl font-['Satoshi'] text-base font-normal leading-6 text-neutral-700 md:text-xl md:leading-7">
+          <p className="mx-auto mt-3 max-w-2xl font-['Satoshi'] text-base font-normal leading-6 text-neutral-700 md:text-lg md:leading-7">
             While you're waiting for replies, use these to sharpen everything else.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           {FREE_TOOLS.map((tool) => (
             <article
               key={tool.id}
-              className={`flex flex-col gap-5 rounded-[32px] border-2 border-neutral-900 p-6 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] md:rounded-[40px] md:p-8 ${tool.accent}`}
+              className={`flex flex-col gap-3 rounded-2xl border-2 border-neutral-900 p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] ${tool.accent}`}
             >
               <div className="flex items-start justify-between">
-                <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white" aria-hidden>
-                  <span className={`text-2xl ${tool.accentIcon}`}>{tool.icon}</span>
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border-2 border-neutral-900 bg-white" aria-hidden>
+                  <span className={`text-lg ${tool.accentIcon}`}>{tool.icon}</span>
                 </div>
                 {tool.badge && (
-                  <span className="inline-flex items-center rounded-full border-2 border-white/40 bg-white/20 px-3 py-1 font-['Satoshi'] text-xs font-bold text-white">
+                  <span className="inline-flex items-center rounded-full border border-white/40 bg-white/20 px-2.5 py-0.5 font-['Satoshi'] text-xs font-bold text-white">
                     {tool.badge}
                   </span>
                 )}
               </div>
-              <h3 className="font-['Clash_Display'] text-2xl font-medium leading-7 text-white md:text-3xl">
+              <h3 className="font-['Clash_Display'] text-lg font-medium leading-6 text-white">
                 {tool.title}
               </h3>
-              <p className="font-['Satoshi'] text-base font-normal leading-6 text-white/90 md:text-lg">
+              <p className="font-['Satoshi'] text-sm font-normal leading-5 text-white/90">
                 {tool.description}
               </p>
-              <ul className="flex flex-col gap-2" role="list">
+              <ul className="flex flex-col gap-1.5" role="list">
                 {tool.checklist.map((item) => (
-                  <li key={item} className="flex items-center gap-2 font-['Satoshi'] text-sm font-normal leading-5 text-white md:text-base md:leading-6">
-                    <CheckIcon className="h-4 w-4 text-white" />
+                  <li key={item} className="flex items-center gap-1.5 font-['Satoshi'] text-xs font-normal leading-5 text-white">
+                    <CheckIcon className="h-3.5 w-3.5 text-white" />
                     {item}
                   </li>
                 ))}
               </ul>
               <Link
                 to={tool.href}
-                className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 transition-transform hover:translate-x-[2px] hover:translate-y-[2px] md:w-fit ${tool.accentIcon}`}
+                className={`mt-auto inline-flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-neutral-900 bg-white px-4 py-2 font-['Satoshi'] text-sm font-medium leading-5 transition-transform hover:translate-x-[2px] hover:translate-y-[2px] ${tool.accentIcon}`}
               >
                 {tool.cta} →
               </Link>

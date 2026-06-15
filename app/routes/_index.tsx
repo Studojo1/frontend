@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
+  BackedBySection,
   CTABanner,
   CollegesBanner,
   FeaturedProductCard,
@@ -11,7 +12,6 @@ import {
   Hero,
   ProblemSolution,
   StepsSection,
-  TestimonialsSection,
   TrustStrip,
 } from "~/components";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
@@ -204,7 +204,7 @@ export default function Home() {
           <FreeToolsSection />
         </motion.div>
         <motion.div variants={sectionVariants}>
-          <TestimonialsSection />
+          <BackedBySection />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <CTABanner />

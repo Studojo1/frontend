@@ -20,3 +20,4 @@ export { ValuePropSection } from "./home/value-prop-section";
 export { TrustStrip } from "./home/trust-strip";
 export { ProblemSolution } from "./home/problem-solution";
 export { FreeToolsSection } from "./home/free-tools-section";
+export { BackedBySection } from "./home/backed-by-section";
