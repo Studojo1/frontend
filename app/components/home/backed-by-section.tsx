@@ -4,6 +4,7 @@ type Backer = {
   logo: string | null;
   bgColor: string;
   invert: boolean;
+  textColor?: string;
 };
 
 const BACKERS: Backer[] = [
@@ -12,6 +13,14 @@ const BACKERS: Backer[] = [
     description: "Startup Accelerator",
     logo: null,
     bgColor: "#0D0D0D",
+    invert: true,
+    textColor: "#FFFFFF",
+  },
+  {
+    name: "Startup Grind",
+    description: "Global Community",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/b/b6/Startup_Grind_logo.svg",
+    bgColor: "#E8192C",
     invert: true,
   },
   {
@@ -22,11 +31,11 @@ const BACKERS: Backer[] = [
     invert: false,
   },
   {
-    name: "Microsoft Azure",
-    description: "Cloud Infrastructure",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg",
-    bgColor: "#0078D4",
-    invert: true,
+    name: "Microsoft",
+    description: "for Startups",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg",
+    bgColor: "#FFFFFF",
+    invert: false,
   },
   {
     name: "Google Cloud",
@@ -41,6 +50,14 @@ const BACKERS: Backer[] = [
     logo: "https://cdn.simpleicons.org/anthropic",
     bgColor: "#191919",
     invert: true,
+  },
+  {
+    name: "Emergent",
+    description: "Venture Partner",
+    logo: null,
+    bgColor: "#1A1A2E",
+    invert: true,
+    textColor: "#FFFFFF",
   },
 ];
 
@@ -57,11 +74,11 @@ export function BackedBySection() {
           </h2>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-5">
           {BACKERS.map((backer) => (
             <div key={backer.name} className="flex flex-col items-center gap-2">
               <div
-                className="flex h-16 w-44 flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-neutral-900 px-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+                className="flex h-16 w-40 flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-neutral-900 px-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
                 style={{ backgroundColor: backer.bgColor }}
               >
                 {backer.logo ? (
@@ -71,7 +88,10 @@ export function BackedBySection() {
                     className={`h-6 max-w-[100px] object-contain${backer.invert ? " brightness-0 invert" : ""}`}
                   />
                 ) : (
-                  <span className="font-['Clash_Display'] text-base font-bold text-white">
+                  <span
+                    className="font-['Clash_Display'] text-base font-bold"
+                    style={{ color: backer.textColor ?? "#FFFFFF" }}
+                  >
                     {backer.name}
                   </span>
                 )}

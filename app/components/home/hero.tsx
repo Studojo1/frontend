@@ -12,16 +12,16 @@ export function Hero() {
         <div className="flex flex-col gap-5 md:max-w-lg md:gap-7 lg:max-w-xl">
           {/* H1 */}
           <h1 className="font-['Clash_Display'] text-4xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl lg:text-6xl">
-            Don&apos;t apply.{" "}
+            They applied.{" "}
             <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-purple-300 px-3 py-1 font-['Satoshi'] text-2xl font-medium text-neutral-900 md:text-4xl lg:text-5xl">
-              Get contacted.
+              You got the call.
             </span>
           </h1>
 
           {/* Subtext */}
           <p className="font-['Satoshi'] text-base font-normal leading-7 text-neutral-700 md:text-lg md:leading-8">
-            Upload your resume. Our AI finds the hiring managers who&apos;d actually interview you, researches their company, and sends a personal email as you.{" "}
-            <strong className="font-semibold text-neutral-900">Most students get their first reply within a week.</strong>
+            Our AI finds the hiring managers who&apos;d actually interview you, writes a personal email, and sends it for you.{" "}
+            <strong className="font-semibold text-neutral-900">Most students hear back within a week.</strong>
           </p>
 
           {/* CTAs */}
