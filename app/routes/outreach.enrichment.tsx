@@ -147,16 +147,34 @@ function WallOfLove() {
 }
 
 // Dream-company chip — logo from a guessed domain, graceful fallback to name only.
-function DreamChip({ name }: { name: string }) {
-  const domain = name.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]/g, "") + ".com";
+function DreamChip({ name, domain }: { name: string; domain: string | null }) {
+  // Same logo waterfall as FlashCard: Clearbit (crisp brand mark) → Google
+  // favicon → hide. We ONLY guess "{name}.com" when no real domain is known
+  // from the user's actual leads — and even then we prefer to hide than show
+  // the wrong brand (e.g. swish.com is the Swedish payment app, not the
+  // Indian food-delivery startup the user wants).
+  const realDomain = domain || null;
+  const [src, setSrc] = useState<string | null>(
+    realDomain ? `https://logo.clearbit.com/${realDomain}` : null,
+  );
+  const [step, setStep] = useState(0);
   return (
     <span className="inline-flex items-center gap-2 rounded-xl border-2 border-studojo-ink bg-white px-3 py-1.5 text-sm font-medium whitespace-nowrap shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
-      <img
-        src={`https://www.google.com/s2/favicons?sz=64&domain=${domain}`}
-        alt=""
-        className="w-4 h-4 rounded object-contain"
-        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-      />
+      {src && (
+        <img
+          src={src}
+          alt=""
+          className="w-4 h-4 rounded object-contain"
+          onError={() => {
+            if (step === 0 && realDomain) {
+              setStep(1);
+              setSrc(`https://www.google.com/s2/favicons?sz=64&domain=${realDomain}`);
+            } else {
+              setSrc(null);
+            }
+          }}
+        />
+      )}
       {name}
     </span>
   );
@@ -214,7 +232,7 @@ export default function EnrichmentPage() {
   const [pricing, setPricing] = useState<TierPricing[]>([]);
   const [currency, setCurrency] = useState("USD");
   const [credits, setCredits] = useState<{ total_credits: number; used_credits: number; available_credits: number } | null>(null);
-  const [dreamCompanies, setDreamCompanies] = useState<string[]>([]);
+  const [dreamCompanies, setDreamCompanies] = useState<Array<{ name: string; domain: string | null }>>([]);
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
@@ -312,17 +330,40 @@ export default function EnrichmentPage() {
   }, []);
 
   // Fetch dream companies for the "in the mix" bar (no Apollo — reads stored data).
+  // We also pull the user's actual leads so we can resolve each dream company's
+  // REAL domain (Apollo-verified) instead of guessing "{name}.com" — that guess
+  // grabs the wrong site for ambiguous names ("swish.com" is a Swedish payment
+  // app, not the Indian food-delivery startup the candidate targeted).
   useEffect(() => {
     if (!candidateId) return;
-    outreachFetch<any>(`/candidate/${candidateId}/profile`)
-      .then((p) => {
-        const raw: string[] = p?.dream_companies || [];
-        const clean = raw
-          .map((c) => (c || "").trim())
-          .filter((c) => c.length >= 2 && c.length <= 40 && /[a-z0-9]/i.test(c) && !/no strong preference|etc\b/i.test(c));
-        setDreamCompanies(clean.slice(0, 10));
-      })
-      .catch(() => {});
+    Promise.all([
+      outreachFetch<any>(`/candidate/${candidateId}/profile`).catch(() => null),
+      outreachFetch<{ leads: any[] } | any[]>(`/candidate/${candidateId}/leads`).catch(() => null),
+    ]).then(([profile, leadsResp]) => {
+      const raw: string[] = profile?.dream_companies || [];
+      const clean = raw
+        .map((c) => (c || "").trim())
+        .filter((c) => c.length >= 2 && c.length <= 40 && /[a-z0-9]/i.test(c) && !/no strong preference|etc\b/i.test(c));
+
+      // Build a {company-name → domain} map from the candidate's leads.
+      const leadArr: any[] = Array.isArray(leadsResp)
+        ? leadsResp
+        : (leadsResp?.leads ?? []);
+      const domainByCompany = new Map<string, string>();
+      for (const l of leadArr) {
+        const co = (l?.company || "").trim().toLowerCase();
+        const dom = (l?.company_domain || "").trim();
+        if (co && dom && !domainByCompany.has(co)) {
+          domainByCompany.set(co, dom);
+        }
+      }
+
+      const resolved = clean.slice(0, 10).map((name) => ({
+        name,
+        domain: domainByCompany.get(name.toLowerCase()) || null,
+      }));
+      setDreamCompanies(resolved);
+    });
   }, [candidateId]);
 
   const validateCoupon = async () => {
@@ -515,16 +556,17 @@ export default function EnrichmentPage() {
 
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-8">
 
-        {/* Header — back link inline with title, tight spacing */}
-        <div className="md:relative mb-3">
+        {/* Header — back button gets its own row above the centered title so
+            it reads as a distinct action, not as title-adjacent floating text. */}
+        <div className="mb-5">
           <button
             onClick={() => navigate("/outreach/leads/results")}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-studojo-muted hover:text-studojo-ink mb-4 md:mb-0 md:absolute md:left-0 md:top-1.5"
+            className="inline-flex items-center gap-1.5 rounded-xl border-2 border-studojo-ink/15 bg-white px-3 py-1.5 text-sm font-semibold text-studojo-ink hover:bg-studojo-surface-muted hover:border-studojo-ink/40 transition-colors"
           >
             <FiArrowLeft className="w-4 h-4" /> Back to your hiring managers
           </button>
-          <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink text-center">Contact Hiring Managers Directly</h1>
         </div>
+        <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink text-center mb-3">Contact Hiring Managers Directly</h1>
         <p className="text-base text-studojo-muted text-center max-w-xl mx-auto font-satoshi">
           Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
         </p>
@@ -534,7 +576,7 @@ export default function EnrichmentPage() {
           <div className="max-w-3xl mx-auto mb-8 rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-brutal">
             <p className="text-[11px] font-bold uppercase tracking-widest text-studojo-muted mb-3 text-center">Your dream companies are in the mix</p>
             <div className="flex gap-2.5 overflow-x-auto pb-1 sm:justify-center">
-              {dreamCompanies.map((c) => <DreamChip key={c} name={c} />)}
+              {dreamCompanies.map((c) => <DreamChip key={c.name} name={c.name} domain={c.domain} />)}
             </div>
           </div>
         )}
