@@ -1,228 +1,119 @@
-import { useState, useEffect } from "react";
-import { FiMapPin, FiBriefcase, FiExternalLink } from "react-icons/fi";
-import { BsBuilding } from "react-icons/bs";
-import type { Lead, LeadJustification } from "~/lib/outreach/types";
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import type { Lead } from "~/lib/outreach/types";
 
 interface FlashCardProps {
   lead: Lead;
 }
 
-const SIGNAL_BADGE: Record<LeadJustification["signal_strength"], string> = {
-  high: "bg-studojo-purple text-white border-studojo-purple",
-  medium: "bg-studojo-surface-muted text-studojo-ink border-studojo-ink/30",
-  low: "bg-white text-studojo-muted border-studojo-ink/20",
-};
+const COLORS = ["bg-studojo-purple", "bg-studojo-pink", "bg-studojo-green", "bg-studojo-orange", "bg-studojo-teal", "bg-indigo-500", "bg-rose-500", "bg-amber-500"];
+const colOf = (n: string) => COLORS[(n || "x").charCodeAt(0) % COLORS.length];
+const cleanCo = (c: string) => (c || "").replace(/\s+(Pvt\.?\s*Ltd\.?|Private Limited|Pvt Ltd)\.?$/i, "").trim();
+const STAGE: Record<string, string> = { "early-stage": "Early-stage", growth: "Growth", seed: "Seed", "series-a": "Series A", "series-b": "Series B" };
 
-const SIGNAL_LABEL: Record<LeadJustification["signal_strength"], string> = {
-  high: "Strong signal",
-  medium: "Solid match",
-  low: "Worth a shot",
-};
-
+// Fallback "why" when a lead has no LLM justification yet.
 function buildContactReason(lead: Lead): string {
-  const title = lead.title || "";
-  const company = lead.company || "";
-  const industry = lead.industry || "";
-  const tl = title.toLowerCase();
-  const score = lead.score;
+  const tl = (lead.title || "").toLowerCase();
+  if (/\b(founder|co-founder|ceo|cto|cfo|coo|chief)\b/.test(tl)) return `As ${lead.company ? `${cleanCo(lead.company)}'s` : "a"} founder or C-suite exec, they own key hires personally.`;
+  if (/\bvp\b|vice president/.test(tl)) return "VPs carry direct budget and headcount authority. No committee needed.";
+  if (/\bdirector\b/.test(tl)) return "Directors own their team's roadmap and can approve talent without going up the chain.";
+  if (/\bhead of\b/.test(tl)) return "Heads of departments set their own priorities and hire directly into their teams.";
+  if (/\bmanager\b/.test(tl)) return "Managers are closest to the work. They know exactly what their team is missing and can act fast.";
+  return "Their position puts them close to the decision-making on new hires.";
+}
 
-  // ── 1. Authority line — what their role means for hiring power ──────────
-  let authorityLine: string;
-  if (/\b(founder|co-founder|ceo|cto|cfo|coo|chief)\b/.test(tl)) {
-    authorityLine = `As ${company ? `${company}'s` : "a"} founder or C-suite exec, they own every key hire personally.`;
-  } else if (/\bvp\b|vice president/.test(tl)) {
-    authorityLine = `VPs carry direct budget and headcount authority. No committee needed to say yes.`;
-  } else if (/\bdirector\b/.test(tl)) {
-    authorityLine = `Directors own their team's roadmap and can approve talent without going up the chain.`;
-  } else if (/\bhead of\b/.test(tl)) {
-    authorityLine = `Heads of departments set their own priorities and hire directly into their teams.`;
-  } else if (/\bmanager\b/.test(tl)) {
-    authorityLine = `Managers are closest to the actual work. They know exactly what their team is missing and can act fast.`;
-  } else if (/\b(lead|principal|staff)\b/.test(tl)) {
-    authorityLine = `Tech leads and principals often drive or heavily influence hiring decisions for their squad.`;
-  } else {
-    authorityLine = `Their position puts them close to the decision-making on new hires.`;
-  }
-
-  // ── 2. Fit line — why this company / industry matches ───────────────────
-  let fitLine: string;
-  const titleScore = score?.title_relevance ?? 0;
-  const industryScore = score?.industry_relevance ?? 0;
-
-  if (titleScore >= 28 && company) {
-    fitLine = `Their title maps directly to the kind of work you do, making ${company} a strong target.`;
-  } else if (industryScore >= 12 && industry) {
-    fitLine = `${industry} is squarely in your target space, so this outreach will feel relevant, not random.`;
-  } else if (company) {
-    fitLine = `${company} is the type of organisation where your background would stand out.`;
-  } else {
-    fitLine = `The overlap between their focus area and your background makes the conversation a natural one.`;
-  }
-
-  // ── 3. Action line — why now / what to do ───────────────────────────────
-  const senScore = score?.seniority_relevance ?? 0;
-  let actionLine: string;
-  if (senScore >= 9) {
-    actionLine = `Reach out now. This is the seniority sweet spot where you get a real conversation.`;
-  } else if (lead.email_verified) {
-    actionLine = `Their email is verified, so you can reach them directly without guesswork.`;
-  } else {
-    actionLine = `A short personalised note referencing their work is all it takes to get noticed.`;
-  }
-
-  return `${authorityLine} ${fitLine} ${actionLine}`;
+// Company logo: Clearbit (crisp for known brands) → Google favicon (covers
+// obscure startups) → coloured letter tile. Browser-side only, no Apollo.
+function CompanyLogo({ domain, name, size = 48 }: { domain: string | null; name: string; size?: number }) {
+  const co = cleanCo(name);
+  const [src, setSrc] = useState<string | null>(domain ? `https://logo.clearbit.com/${domain}` : null);
+  const [step, setStep] = useState(0);
+  return (
+    <span className="relative inline-block flex-shrink-0" style={{ width: size, height: size }}>
+      <span className={`absolute inset-0 rounded-xl ${colOf(co)} text-white flex items-center justify-center font-bold`} style={{ fontSize: Math.round(size * 0.4) }}>
+        {(co[0] || "?").toUpperCase()}
+      </span>
+      {src && (
+        <img
+          src={src}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 rounded-xl object-contain bg-white border border-studojo-ink/10"
+          style={{ width: size, height: size }}
+          onError={() => {
+            if (step === 0 && domain) { setStep(1); setSrc(`https://www.google.com/s2/favicons?sz=128&domain=${domain}`); }
+            else setSrc(null);
+          }}
+        />
+      )}
+    </span>
+  );
 }
 
 export function FlashCard({ lead }: FlashCardProps) {
-  const [flipped, setFlipped] = useState(false);
-  const [isTouch, setIsTouch] = useState(false);
+  const navigate = useNavigate();
+  const company = cleanCo(lead.company);
 
-  useEffect(() => {
-    setIsTouch(window.matchMedia("(hover: none)").matches);
-  }, []);
-
-  const justification = lead.score?.justification ?? null;
-  const reason = justification ? null : buildContactReason(lead);
+  // Build the "why" — prefer LLM bullets, then fit_reason, then a generated reason.
+  const j = lead.score?.justification;
+  const bullets = j?.bullets ?? [];
+  let desc = "";
+  let stage = "";
+  let fit: string[] = [];
+  if (bullets.length) {
+    desc = bullets[0];
+    const m = desc.match(/\s·\s([^·]+)$/);
+    if (m) { stage = STAGE[(m[1] || "").trim().toLowerCase()] || ""; desc = desc.slice(0, m.index).trim(); }
+    fit = bullets.slice(1, 3);
+  } else if (j?.fit_reason) {
+    desc = j.fit_reason;
+    if (j.talk_track) fit = [j.talk_track];
+  } else {
+    desc = buildContactReason(lead);
+  }
 
   return (
     <div
-      className="cursor-pointer"
-      style={{ perspective: "1000px", height: "290px" }}
-      onMouseEnter={() => !isTouch && setFlipped(true)}
-      onMouseLeave={() => !isTouch && setFlipped(false)}
-      onClick={() => isTouch && setFlipped((f) => !f)}
+      onClick={() => navigate("/outreach/enrichment")}
+      className="group relative overflow-hidden rounded-2xl border-2 border-studojo-ink shadow-brutal bg-white p-4 cursor-pointer transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-brutal-lg"
     >
-      <div
-        className="relative w-full h-full transition-transform duration-500 ease-in-out"
-        style={{
-          transformStyle: "preserve-3d",
-          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-        }}
-      >
-        {/* Front */}
-        <div
-          className="absolute inset-0 bg-white border-2 border-studojo-ink rounded-2xl shadow-brutal px-4 py-3 flex flex-col justify-between"
-          style={{ backfaceVisibility: "hidden" }}
-        >
-          <div>
-            <div className="flex items-start justify-between mb-2">
-              <div className="min-w-0 flex-1 mr-2">
-                <h3 className="text-sm font-bold text-studojo-ink truncate font-satoshi">{lead.name}</h3>
-                <p className="text-xs text-studojo-muted mt-0.5 truncate font-satoshi">{lead.title}</p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 text-xs text-studojo-muted font-satoshi">
-              <div className="flex items-center gap-1.5">
-                <BsBuilding className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{lead.company}</span>
-              </div>
-              {lead.location && (
-                <div className="flex items-center gap-1.5">
-                  <FiMapPin className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{lead.location}</span>
-                </div>
-              )}
-              {lead.industry && (
-                <div className="flex items-center gap-1.5">
-                  <FiBriefcase className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{lead.industry}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-satoshi font-medium border ${
-                lead.email_verified
-                  ? "bg-studojo-green-bg text-studojo-green border-studojo-green/30"
-                  : "bg-studojo-surface-muted text-studojo-muted border-studojo-ink/20"
-              }`}
-            >
-              {lead.email_verified ? "Verified" : lead.status}
-            </span>
-            <span className="text-[10px] text-studojo-muted font-satoshi">{isTouch ? "Tap to flip" : "Hover to flip"}</span>
-          </div>
+      <div className="flex items-center gap-3">
+        <CompanyLogo domain={lead.company_domain} name={lead.company} size={48} />
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-[15px] text-studojo-ink truncate leading-tight font-satoshi">{lead.name}</p>
+          <p className="text-sm text-studojo-ink/70 font-medium truncate mt-0.5 font-satoshi">{lead.title}</p>
         </div>
+      </div>
 
-        {/* Back — "Why contact them" write-up */}
-        <div
-          className="absolute inset-0 bg-white border-2 border-studojo-purple rounded-2xl shadow-brutal px-4 py-3 flex flex-col justify-between"
-          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-        >
-          <div className="flex-1 min-h-0 flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-studojo-purple" />
-                <h4 className="text-[11px] font-bold text-studojo-purple uppercase tracking-wide font-satoshi">
-                  Why contact them
-                </h4>
-              </div>
-              {justification && (
-                <span
-                  className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-satoshi font-bold uppercase tracking-wide border ${SIGNAL_BADGE[justification.signal_strength]}`}
-                >
-                  {SIGNAL_LABEL[justification.signal_strength]}
-                </span>
-              )}
-            </div>
-            {justification ? (
-              <div className="flex flex-col gap-2 flex-1">
-                <p className="text-[11px] font-satoshi font-bold text-studojo-ink leading-snug">
-                  {justification.headline}
-                </p>
-                {justification.bullets && justification.bullets.length > 0 ? (
-                  <ul className="space-y-1.5 flex-1">
-                    {justification.bullets.slice(0, 3).map((b, i) => (
-                      <li
-                        key={i}
-                        className="text-[11px] font-satoshi text-studojo-ink leading-snug flex gap-1.5"
-                      >
-                        <span className="text-studojo-purple font-bold flex-shrink-0 mt-0.5">▸</span>
-                        <span>{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <>
-                    {justification.fit_reason && (
-                      <p className="text-[11px] font-satoshi text-studojo-ink leading-snug line-clamp-3">
-                        {justification.fit_reason}
-                      </p>
-                    )}
-                    {justification.talk_track && (
-                      <p className="text-[10px] font-satoshi italic text-studojo-muted leading-snug line-clamp-2">
-                        {justification.talk_track}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : (
-              <p className="text-xs font-satoshi text-studojo-ink leading-relaxed line-clamp-[8]">
-                {reason}
-              </p>
-            )}
-          </div>
+      <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+        {company && <p className="text-[13px] font-semibold text-studojo-ink truncate font-satoshi">{company}</p>}
+        {stage && (
+          <span className="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-studojo-purple/10 text-studojo-purple border border-studojo-purple/20 whitespace-nowrap flex-shrink-0 font-satoshi">{stage}</span>
+        )}
+        {lead.location && <span className="text-[11px] text-studojo-muted truncate font-satoshi">· {lead.location}</span>}
+      </div>
+      {lead.industry && <p className="text-[11px] text-studojo-muted mt-0.5 truncate font-satoshi">{lead.industry}</p>}
 
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-studojo-ink/8">
-            {lead.linkedin_url ? (
-              <a
-                href={lead.linkedin_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-studojo-purple text-xs hover:underline font-satoshi font-medium"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <FiExternalLink className="w-3 h-3" /> View on LinkedIn
-              </a>
-            ) : (
-              <span />
-            )}
-            {justification?.signal_strength === "high" && (
-              <span className="text-[10px] font-satoshi text-studojo-muted">Web-researched</span>
-            )}
-          </div>
-        </div>
+      <div className="mt-3 pt-3 border-t border-studojo-ink/8">
+        <p className="text-[11px] font-bold text-studojo-purple uppercase tracking-wide mb-1.5 font-satoshi">Why contact them</p>
+        {desc && <p className="text-[13px] text-studojo-ink leading-snug mb-1.5 font-satoshi line-clamp-3">{desc}</p>}
+        {fit.length > 0 && (
+          <ul className="space-y-1">
+            {fit.map((b, i) => (
+              <li key={i} className="text-[12px] text-studojo-ink/90 flex gap-1.5 leading-snug font-satoshi">
+                <span className="text-studojo-purple font-bold flex-shrink-0">▸</span>
+                <span className="line-clamp-2">{b}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-3 -mx-4 -mb-4 px-4 py-2.5 border-t border-studojo-ink/8 flex items-center justify-between transition-colors group-hover:bg-studojo-purple">
+        <span className="text-[12px] font-medium text-studojo-muted group-hover:text-white transition-colors font-satoshi">
+          {lead.email_verified ? "Verified email" : "Hiring decision-maker"}
+        </span>
+        <span className="text-[12px] font-bold text-studojo-purple group-hover:text-white transition-colors font-satoshi">Contact them →</span>
       </div>
     </div>
   );

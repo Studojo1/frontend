@@ -90,7 +90,7 @@ export default function ResultsPage() {
           <div>
             <h1 className="font-clash text-xl sm:text-2xl font-bold text-studojo-ink">Your Hiring Managers</h1>
             <p className="text-sm text-studojo-muted font-satoshi mt-0.5">
-              {sorted.length} quality matches from {leads.length} professionals scanned. Tap any card to see why.
+              <span className="font-semibold text-studojo-ink">{sorted.length} hand-picked matches</span> from 2,000,000+ profiles scanned. Hover any card to reach out.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -124,7 +124,7 @@ export default function ResultsPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {paginated.map((lead) => (
                 <FlashCard key={lead.id} lead={lead} />
               ))}
