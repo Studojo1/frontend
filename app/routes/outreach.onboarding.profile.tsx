@@ -25,7 +25,7 @@ function formatSizeBand(band: string | undefined | null): string {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  useOutreachAuth();
+  const { user } = useOutreachAuth();
   const { candidateId, profileData, setProfileData } = useOutreachStore();
   const [profile, setProfile] = useState<any>(profileData ?? null);
   const [loading, setLoading] = useState(!profileData);
@@ -69,7 +69,7 @@ export default function ProfilePage() {
   const preferences = parsed.preferences || {};
   const career = parsed.career_analysis || {};
   const skills = personalInfo.skills_detected || [];
-  const name = personalInfo.name || personalInfo.full_name || "";
+  const name = personalInfo.name || personalInfo.full_name || user?.name || "";
   const initials = name
     ? name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
     : "";
@@ -239,21 +239,51 @@ export default function ProfilePage() {
                 {locations.length > 0 && (
                   <div>
                     <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">Where</p>
-                    <p className="text-sm font-satoshi text-studojo-ink">
-                      {locations.join(", ")}{workMode ? ` — ${workMode} roles` : ""}
-                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {locations.map((loc) => (
+                        <span key={loc} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi font-medium text-studojo-ink border border-studojo-ink/10">
+                          <FiMapPin className="w-3 h-3 text-studojo-muted" />
+                          {loc}
+                        </span>
+                      ))}
+                      {workMode && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi font-medium text-studojo-ink border border-studojo-ink/10 capitalize">
+                          <FiHome className="w-3 h-3 text-studojo-muted" />
+                          {workMode}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
 
                 {/* Company kind */}
                 <div>
                   <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">At companies that look like</p>
-                  <ul className="text-sm font-satoshi text-studojo-ink space-y-1">
-                    <li>• {sizeBands.length > 0 && sizeBands[0] ? `Size band: ${sizeBands.join(", ")} employees` : "Any company size"}</li>
-                    {nicheKeywords.length > 0 && <li>• Niche: {nicheKeywords.join(", ")}</li>}
-                    {techStack.length > 0 && <li>• Stack overlaps with: {techStack.join(", ")}</li>}
-                    <li>• Currently posting jobs for {targetRole || "your target role"} (last 30 days)</li>
-                  </ul>
+                  <div className="flex flex-wrap gap-1.5">
+                    {sizeBands.length > 0 && sizeBands[0] && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-ink border border-studojo-ink/10">
+                        <BsBuilding className="w-3 h-3 text-studojo-muted" />
+                        {sizeBands.join(", ")} employees
+                      </span>
+                    )}
+                    {nicheKeywords.map((kw) => (
+                      <span key={kw} className="px-2.5 py-1 rounded-lg bg-studojo-purple/8 text-xs font-satoshi text-studojo-purple border border-studojo-purple/15">
+                        {kw}
+                      </span>
+                    ))}
+                    {techStack.length > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-ink border border-studojo-ink/10">
+                        <FiTool className="w-3 h-3 text-studojo-muted" />
+                        {techStack.slice(0, 3).join(", ")}
+                      </span>
+                    )}
+                    {targetRole && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-studojo-green/8 text-xs font-satoshi text-studojo-green border border-studojo-green/20">
+                        <FiSearch className="w-3 h-3" />
+                        Hiring for {targetRole}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Dream company callout */}
@@ -270,7 +300,7 @@ export default function ProfilePage() {
                 )}
 
                 <p className="text-[11px] text-studojo-muted font-satoshi italic pt-1">
-                  We'll fall back gracefully if a filter cuts volume too low — never below 500 leads if we can help it.
+                  We'll fall back gracefully if a filter cuts volume too low. Never below 500 leads if we can help it.
                 </p>
               </div>
             </div>
