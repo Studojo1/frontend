@@ -305,42 +305,41 @@ export default function EnrichmentPage() {
   const hasEnoughCredits = credits ? credits.available_credits >= selectedTier : false;
 
   const SHARED_FEATURES = (count: number) => [
-    `We scrape 20,000+ databases and sites to find ${count} hiring decision makers for the exact role you are targeting`,
-    "Tailored based on your company and industry preferences",
-    "Professionally written, personalised emails for each contact to land you the role",
-    "Emails sent periodically so they land in the primary inbox. Your email health stays intact",
-    "Fully custom dashboard to track your emails",
+    `${count} verified hiring managers`,
+    "Tailored to your role & industry",
+    "AI-personalised email per contact",
+    "Inbox-safe drip schedule",
+    "Live reply tracking dashboard",
     "Email support",
   ];
 
   const TIERS = [
-    // Starter (₹499 / 50 emails / 8 days) — India only, shown when currency=INR
     ...(currency === "INR" ? [{
       value: 50 as const,
       name: "Starter",
-      tagline: "50 targeted emails. 8 days. Perfect for a focused sprint.",
+      tagline: "50 emails over 8 days. A focused sprint.",
       fallbackPrice: "₹499",
       durationDays: 8,
       features: [
-        "50 verified hiring decision makers for your exact role",
-        "Tailored based on your company and industry preferences",
-        "Professionally written, personalised emails",
-        "Emails sent in a controlled 8-day window",
-        "Dashboard to track replies",
+        "50 verified hiring managers",
+        "Tailored to your role & industry",
+        "AI-personalised email per contact",
+        "8-day controlled send window",
+        "Reply tracking dashboard",
         "Email support",
       ],
     }] : []),
     {
       value: 200 as const,
       name: "Growth",
-      tagline: "200 decision makers. 200 chances.",
+      tagline: "200 decision makers. Cast a wide net.",
       fallbackPrice: "$20",
       features: SHARED_FEATURES(200),
     },
     {
       value: 350 as const,
       name: "Pro",
-      tagline: "350 contacts. The sweet spot for serious outreach.",
+      tagline: "350 contacts. The most popular choice.",
       fallbackPrice: "$27",
       recommended: true,
       features: SHARED_FEATURES(350),
@@ -348,7 +347,7 @@ export default function EnrichmentPage() {
     {
       value: 500 as const,
       name: "Scale",
-      tagline: "Maximum coverage across your target market.",
+      tagline: "500 contacts. Maximum coverage.",
       fallbackPrice: "$40",
       features: SHARED_FEATURES(500),
     },
@@ -396,7 +395,7 @@ export default function EnrichmentPage() {
         ))}
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 py-10 md:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-10 md:px-8">
 
         {/* Header */}
         <div className="text-center mb-10">
@@ -425,73 +424,82 @@ export default function EnrichmentPage() {
         )}
 
         {/* Tier cards */}
-        <div className={`grid grid-cols-1 ${TIERS.length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"} gap-5 mb-8`}>
+        <div className={`grid grid-cols-1 ${TIERS.length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"} gap-4 mb-8 items-stretch`}>
           {TIERS.map((tier) => {
             const price = getTierPrice(tier.value);
             const isSelected = selectedTier === tier.value;
             const hasCredits = credits ? credits.available_credits >= tier.value : false;
+            const isStarter = "durationDays" in tier && !!tier.durationDays;
 
             return (
               <div
                 key={tier.value}
                 onClick={() => { setSelectedTier(tier.value); setCouponResult(null); setCouponError(""); }}
-                className={`relative rounded-2xl border-2 p-6 cursor-pointer transition-all flex flex-col ${
+                className={`relative rounded-2xl border-2 p-5 cursor-pointer transition-all flex flex-col ${
                   tier.recommended
                     ? "border-studojo-purple bg-studojo-purple-bg/20 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)]"
                     : isSelected
                     ? "border-studojo-ink bg-white shadow-brutal"
-                    : "border-studojo-ink/30 bg-white hover:border-studojo-ink/60"
+                    : "border-studojo-ink/20 bg-white hover:border-studojo-ink/50"
                 }`}
               >
-                {"durationDays" in tier && tier.durationDays && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-1 rounded-full bg-studojo-ink text-white text-xs font-bold font-satoshi border-2 border-studojo-ink whitespace-nowrap">
+                {/* Badges */}
+                {isStarter && (
+                  <div className="absolute -top-3 left-4">
+                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-ink text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
                       8-day sprint
                     </span>
                   </div>
                 )}
                 {tier.recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-1 rounded-full bg-studojo-purple text-white text-xs font-bold font-satoshi border-2 border-studojo-ink whitespace-nowrap">
+                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-purple text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
                       Most Popular
                     </span>
                   </div>
                 )}
 
-                <div className="mb-4">
-                  <p className="font-clash text-xs font-bold text-studojo-muted uppercase tracking-wider mb-1">{tier.name}</p>
-                  <div className="flex items-end gap-2 flex-wrap">
-                    {/* Anchor (was-price) only when no coupon override is active */}
-                    {price.anchor && !price.discounted && (
-                      <span className="text-lg line-through text-studojo-muted font-clash font-bold mb-1">
-                        {price.anchor}
-                      </span>
-                    )}
-                    <span className="font-clash text-4xl font-black text-studojo-ink">{price.display}</span>
-                    {price.discounted && (
-                      <span className="text-base line-through text-studojo-muted font-satoshi mb-1">{price.display}</span>
-                    )}
-                  </div>
+                {/* Plan name */}
+                <p className="text-[11px] font-clash font-bold text-studojo-muted uppercase tracking-widest mb-3 mt-1">
+                  {tier.name}
+                </p>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-2 flex-wrap mb-1">
+                  {price.anchor && !price.discounted && (
+                    <span className="text-sm line-through text-studojo-muted font-satoshi">{price.anchor}</span>
+                  )}
+                  <span className="font-clash text-3xl font-black text-studojo-ink leading-none">
+                    {price.discounted || price.display}
+                  </span>
                   {price.discounted && (
-                    <span className="font-clash text-4xl font-black text-studojo-green">{price.discounted}</span>
+                    <span className="text-sm line-through text-studojo-muted font-satoshi">{price.display}</span>
                   )}
-                  {price.discountPct != null && price.discountPct > 0 && !price.discounted && (
-                    <span className="inline-flex items-center mt-2 px-2 py-0.5 rounded-full text-xs font-satoshi font-bold bg-studojo-green/15 text-studojo-green border border-studojo-green/40">
-                      Save {price.discountPct}%
-                    </span>
-                  )}
-                  <p className="text-xs text-studojo-muted font-satoshi mt-2">{tier.tagline}</p>
                 </div>
 
-                <ul className="space-y-2.5 mb-6 flex-1">
+                {/* Discount pill */}
+                {price.discountPct != null && price.discountPct > 0 && !price.discounted && (
+                  <span className="inline-flex items-center mb-1 px-2 py-0.5 rounded-full text-[11px] font-satoshi font-bold bg-studojo-green/15 text-studojo-green border border-studojo-green/40 w-fit">
+                    Save {price.discountPct}%
+                  </span>
+                )}
+
+                {/* Tagline */}
+                <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{tier.tagline}</p>
+
+                <div className="border-t border-studojo-ink/10 mb-4" />
+
+                {/* Features */}
+                <ul className="space-y-2.5 mb-5 flex-1">
                   {tier.features.map((feat) => (
-                    <li key={feat} className="flex items-start gap-2 text-sm font-satoshi text-studojo-ink">
-                      <FiCheckCircle className="w-4 h-4 text-studojo-green mt-0.5 flex-shrink-0" />
+                    <li key={feat} className="flex items-start gap-2 text-xs font-satoshi text-studojo-ink leading-snug">
+                      <FiCheckCircle className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
                       {feat}
                     </li>
                   ))}
                 </ul>
 
+                {/* CTA */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -499,19 +507,15 @@ export default function EnrichmentPage() {
                     handlePayAndContinue();
                   }}
                   disabled={paying && isSelected}
-                  className={`w-full h-11 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-2 ${
+                  className={`w-full h-10 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-1.5 ${
                     tier.recommended
                       ? "bg-studojo-purple text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-                      : "bg-white text-studojo-ink shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                      : "bg-white text-studojo-ink shadow-[2px_2px_0px_0px_rgba(25,26,35,0.7)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                   } disabled:opacity-50 disabled:pointer-events-none`}
                 >
-                  {paying && isSelected ? (
-                    "Processing..."
-                  ) : hasCredits ? (
-                    <>Use Credits <FiArrowRight className="w-3.5 h-3.5" /></>
-                  ) : (
-                    <>Get Started <FiArrowRight className="w-3.5 h-3.5" /></>
-                  )}
+                  {paying && isSelected ? "Processing..." : hasCredits
+                    ? <><span>Use Credits</span><FiArrowRight className="w-3 h-3" /></>
+                    : <><span>Get Started</span><FiArrowRight className="w-3 h-3" /></>}
                 </button>
               </div>
             );
