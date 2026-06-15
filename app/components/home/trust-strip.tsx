@@ -43,27 +43,27 @@ export function TrustStrip() {
         Positive replies from
       </p>
       <div className="overflow-hidden">
-        <div className="flex gap-3 w-max animate-marquee">
+        <div className="flex items-center gap-8 w-max animate-marquee">
           {doubled.map((company, i) => (
             <span
               key={i}
-              className="shrink-0 flex items-center gap-2.5 px-4 py-2.5 rounded-full border-2 border-studojo-ink bg-studojo-purple-bg font-['Satoshi'] text-sm font-bold text-studojo-ink whitespace-nowrap"
+              className="shrink-0 flex items-center gap-2 font-['Satoshi'] text-sm font-semibold text-studojo-ink whitespace-nowrap"
             >
               {company.logo ? (
                 <span
-                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full overflow-hidden"
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full overflow-hidden"
                   style={{ backgroundColor: company.color }}
                   aria-hidden
                 >
                   <img
                     src={company.logo}
                     alt=""
-                    className={`h-3.5 w-3.5 object-contain${company.invert ? " brightness-0 invert" : ""}`}
+                    className={`h-4 w-4 object-contain${company.invert ? " brightness-0 invert" : ""}`}
                   />
                 </span>
               ) : (
                 <span
-                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-white"
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-black text-white"
                   style={{ backgroundColor: company.color }}
                   aria-hidden
                 >

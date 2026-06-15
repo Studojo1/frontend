@@ -206,18 +206,18 @@ function MarqueeRow({ items, reverse = false }: { items: College[]; reverse?: bo
   return (
     <div className="overflow-hidden relative">
       <div
-        className={`flex gap-3 w-max ${reverse ? "animate-marquee-reverse" : "animate-marquee"}`}
+        className={`flex items-center gap-8 w-max ${reverse ? "animate-marquee-reverse" : "animate-marquee"}`}
       >
         {doubled.map((college, i) => (
           <span
             key={i}
-            className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-full border-2 border-studojo-ink bg-white font-['Satoshi'] text-sm font-semibold text-studojo-ink whitespace-nowrap shadow-[2px_2px_0px_0px_rgba(25,26,35,0.08)]"
+            className="shrink-0 flex items-center gap-2.5 font-['Satoshi'] text-sm font-semibold text-studojo-ink whitespace-nowrap"
           >
             <img
               src={college.logo}
               alt=""
               aria-hidden
-              className="h-5 w-5 object-contain rounded-sm"
+              className="h-7 w-7 object-contain rounded-sm flex-shrink-0"
             />
             {college.name}
           </span>
