@@ -2,11 +2,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router";
 import { FiArrowRight, FiArrowDown, FiMail, FiUser, FiMessageSquare } from "react-icons/fi";
 
-const PROOF_STATS = [
-  { value: "138+", label: "students" },
-  { value: "95%", label: "satisfied" },
-  { value: "4.9", label: "rating" },
-];
 
 export function Hero() {
   return (
@@ -45,19 +40,6 @@ export function Hero() {
             </Link>
           </div>
 
-          {/* Proof strip */}
-          <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1">
-            {PROOF_STATS.map((s) => (
-              <div key={s.label} className="flex items-baseline gap-1">
-                <span className="font-['Clash_Display'] text-lg font-bold text-neutral-900 md:text-xl">
-                  {s.value}
-                </span>
-                <span className="font-['Satoshi'] text-xs text-neutral-500 md:text-sm">
-                  {s.label}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Right: app simulation cards — stacked, gentle float only on y-axis */}
