@@ -3,7 +3,7 @@ type Backer = {
   description: string;
   logo: string | null;
   bgColor: string;
-  textColor: string;
+  invert: boolean;
 };
 
 const BACKERS: Backer[] = [
@@ -12,36 +12,35 @@ const BACKERS: Backer[] = [
     description: "Startup Accelerator",
     logo: null,
     bgColor: "#0D0D0D",
-    textColor: "#FFFFFF",
+    invert: true,
   },
   {
     name: "AWS",
     description: "Cloud Credits",
-    // AWS removed from Simple Icons; use their official smile logo from S3 press assets
-    logo: null,
+    logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
     bgColor: "#232F3E",
-    textColor: "#FF9900",
+    invert: false,
   },
   {
     name: "Microsoft Azure",
     description: "Cloud Infrastructure",
-    logo: null,
+    logo: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg",
     bgColor: "#0078D4",
-    textColor: "#FFFFFF",
+    invert: true,
   },
   {
     name: "Google Cloud",
     description: "AI & ML Credits",
     logo: "https://cdn.simpleicons.org/googlecloud",
     bgColor: "#FFFFFF",
-    textColor: "#4285F4",
+    invert: false,
   },
   {
     name: "Anthropic",
     description: "AI Partner",
     logo: "https://cdn.simpleicons.org/anthropic",
     bgColor: "#191919",
-    textColor: "#FFFFFF",
+    invert: true,
   },
 ];
 
@@ -62,26 +61,20 @@ export function BackedBySection() {
           {BACKERS.map((backer) => (
             <div key={backer.name} className="flex flex-col items-center gap-2">
               <div
-                className="flex h-16 w-40 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 px-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+                className="flex h-16 w-44 flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-neutral-900 px-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
                 style={{ backgroundColor: backer.bgColor }}
               >
-                {backer.logo && (
+                {backer.logo ? (
                   <img
                     src={backer.logo}
-                    alt=""
-                    aria-hidden
-                    className="h-5 w-5 object-contain"
-                    style={{
-                      filter: backer.bgColor === "#FFFFFF" ? "none" : "brightness(0) invert(1)",
-                    }}
+                    alt={backer.name}
+                    className={`h-6 max-w-[100px] object-contain${backer.invert ? " brightness-0 invert" : ""}`}
                   />
+                ) : (
+                  <span className="font-['Clash_Display'] text-base font-bold text-white">
+                    {backer.name}
+                  </span>
                 )}
-                <span
-                  className="font-['Clash_Display'] text-sm font-bold leading-tight text-center"
-                  style={{ color: backer.textColor }}
-                >
-                  {backer.name}
-                </span>
               </div>
               <span className="font-['Satoshi'] text-xs text-neutral-500">
                 {backer.description}

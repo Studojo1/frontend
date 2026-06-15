@@ -1,38 +1,38 @@
-type Company = { name: string; logo: string | null; color: string };
+type Company = { name: string; logo: string | null; color: string; invert?: boolean };
 
-// logo: Simple Icons CDN URL (null = no SI entry, falls back to colored initial)
 const COMPANIES: Company[] = [
-  { name: "Google", logo: "https://cdn.simpleicons.org/google", color: "#4285F4" },
-  { name: "Goldman Sachs", logo: "https://cdn.simpleicons.org/goldmansachs", color: "#7399C6" },
-  { name: "Stripe", logo: "https://cdn.simpleicons.org/stripe", color: "#635BFF" },
-  { name: "McKinsey", logo: null, color: "#003366" },
-  { name: "PhonePe", logo: "https://cdn.simpleicons.org/phonepe", color: "#5F259F" },
-  { name: "Figma", logo: "https://cdn.simpleicons.org/figma", color: "#F24E1E" },
-  { name: "BCG", logo: null, color: "#00843D" },
-  { name: "Amazon", logo: null, color: "#FF9900" },
-  { name: "Monzo", logo: "https://cdn.simpleicons.org/monzo", color: "#14233C" },
-  { name: "Razorpay", logo: "https://cdn.simpleicons.org/razorpay", color: "#0C2451" },
-  { name: "Deloitte", logo: null, color: "#007B40" },
-  { name: "Microsoft", logo: null, color: "#00A4EF" },
+  { name: "Google", logo: "https://cdn.simpleicons.org/google", color: "#4285F4", invert: true },
+  { name: "Goldman Sachs", logo: "https://cdn.simpleicons.org/goldmansachs", color: "#7399C6", invert: true },
+  { name: "Stripe", logo: "https://cdn.simpleicons.org/stripe", color: "#635BFF", invert: true },
+  { name: "McKinsey", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e2/McKinsey_and_Company_Logo_1.svg", color: "#003366", invert: true },
+  { name: "PhonePe", logo: "https://cdn.simpleicons.org/phonepe", color: "#5F259F", invert: true },
+  { name: "Figma", logo: "https://cdn.simpleicons.org/figma", color: "#F24E1E", invert: true },
+  { name: "BCG", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Boston_Consulting_Group_2020_logo.svg", color: "#00843D", invert: true },
+  { name: "Amazon", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg", color: "#FF9900", invert: false },
+  { name: "Monzo", logo: "https://cdn.simpleicons.org/monzo", color: "#14233C", invert: true },
+  { name: "Razorpay", logo: "https://cdn.simpleicons.org/razorpay", color: "#0C2451", invert: true },
+  { name: "Deloitte", logo: "https://upload.wikimedia.org/wikipedia/commons/e/ed/Logo_of_Deloitte.svg", color: "#007B40", invert: true },
+  { name: "Microsoft", logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg", color: "#F3F3F3", invert: false },
   { name: "CRED", logo: null, color: "#1A1A1A" },
-  { name: "Bain & Co.", logo: null, color: "#C00000" },
-  { name: "Revolut", logo: "https://cdn.simpleicons.org/revolut", color: "#191C1F" },
+  { name: "Bain & Co.", logo: "https://upload.wikimedia.org/wikipedia/commons/b/bc/Bain_%26_Company_logo.svg", color: "#C00000", invert: true },
+  { name: "Revolut", logo: "https://cdn.simpleicons.org/revolut", color: "#191C1F", invert: true },
   { name: "Zepto", logo: null, color: "#A100FF" },
-  { name: "JP Morgan", logo: null, color: "#003087" },
-  { name: "Spotify", logo: "https://cdn.simpleicons.org/spotify", color: "#1ED760" },
-  { name: "Groww", logo: null, color: "#00D09C" },
-  { name: "Notion", logo: "https://cdn.simpleicons.org/notion", color: "#000000" },
-  { name: "PwC", logo: null, color: "#D04A02" },
-  { name: "Swiggy", logo: "https://cdn.simpleicons.org/swiggy", color: "#FC8019" },
-  { name: "Airbnb", logo: "https://cdn.simpleicons.org/airbnb", color: "#FF5A5F" },
-  { name: "Morgan Stanley", logo: null, color: "#003087" },
-  { name: "Freshworks", logo: null, color: "#25C16F" },
-  { name: "EY", logo: null, color: "#2E2D62" },
-  { name: "Zomato", logo: "https://cdn.simpleicons.org/zomato", color: "#E23744" },
-  { name: "Anthropic", logo: "https://cdn.simpleicons.org/anthropic", color: "#191919" },
-  { name: "Netflix", logo: "https://cdn.simpleicons.org/netflix", color: "#E50914" },
-  { name: "Vercel", logo: "https://cdn.simpleicons.org/vercel", color: "#000000" },
-  { name: "Wise", logo: "https://cdn.simpleicons.org/wise", color: "#9FE870" },
+  { name: "JP Morgan", logo: "https://upload.wikimedia.org/wikipedia/commons/2/20/JPMorgan_logo.svg", color: "#003087", invert: true },
+  { name: "Spotify", logo: "https://cdn.simpleicons.org/spotify", color: "#1ED760", invert: true },
+  { name: "Groww", logo: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Groww_app_logo.png", color: "#00D09C", invert: false },
+  { name: "Notion", logo: "https://cdn.simpleicons.org/notion", color: "#000000", invert: true },
+  { name: "PwC", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/PricewaterhouseCoopers_Logo.svg", color: "#D04A02", invert: true },
+  { name: "Swiggy", logo: "https://cdn.simpleicons.org/swiggy", color: "#FC8019", invert: true },
+  { name: "Airbnb", logo: "https://cdn.simpleicons.org/airbnb", color: "#FF5A5F", invert: true },
+  { name: "Morgan Stanley", logo: "https://upload.wikimedia.org/wikipedia/commons/3/34/Morgan_Stanley_Logo_1.svg", color: "#003087", invert: true },
+  { name: "Freshworks", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Freshworks-vector-logo.svg", color: "#25C16F", invert: true },
+  { name: "EY", logo: "https://upload.wikimedia.org/wikipedia/commons/3/34/EY_logo_2019.svg", color: "#2E2D62", invert: true },
+  { name: "Zomato", logo: "https://cdn.simpleicons.org/zomato", color: "#E23744", invert: true },
+  { name: "Anthropic", logo: "https://cdn.simpleicons.org/anthropic", color: "#191919", invert: true },
+  { name: "Netflix", logo: "https://cdn.simpleicons.org/netflix", color: "#E50914", invert: true },
+  { name: "Vercel", logo: "https://cdn.simpleicons.org/vercel", color: "#000000", invert: true },
+  { name: "Wise", logo: "https://cdn.simpleicons.org/wise", color: "#9FE870", invert: false },
+  { name: "InMobi", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a1/InMobi_logo.svg", color: "#E8452C", invert: true },
 ];
 
 export function TrustStrip() {
@@ -51,19 +51,19 @@ export function TrustStrip() {
             >
               {company.logo ? (
                 <span
-                  className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full"
+                  className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full overflow-hidden"
                   style={{ backgroundColor: company.color }}
                   aria-hidden
                 >
                   <img
                     src={company.logo}
                     alt=""
-                    className="h-2.5 w-2.5 object-contain brightness-0 invert"
+                    className={`h-3 w-3 object-contain${company.invert ? " brightness-0 invert" : ""}`}
                   />
                 </span>
               ) : (
                 <span
-                  className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-black text-white"
+                  className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-black text-white"
                   style={{ backgroundColor: company.color }}
                   aria-hidden
                 >
