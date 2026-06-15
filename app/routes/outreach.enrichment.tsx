@@ -308,17 +308,33 @@ export default function EnrichmentPage() {
   ];
 
   const TIERS = [
+    // Starter (₹499 / 50 emails / 8 days) — India only, shown when currency=INR
+    ...(currency === "INR" ? [{
+      value: 50 as const,
+      name: "Starter",
+      tagline: "50 targeted emails. 8 days. Perfect for a focused sprint.",
+      fallbackPrice: "₹499",
+      durationDays: 8,
+      features: [
+        "50 verified hiring decision makers for your exact role",
+        "Tailored based on your company and industry preferences",
+        "Professionally written, personalised emails",
+        "Emails sent in a controlled 8-day window",
+        "Dashboard to track replies",
+        "Email support",
+      ],
+    }] : []),
     {
       value: 200 as const,
-      name: "Starter",
+      name: "Growth",
       tagline: "200 decision makers. 200 chances.",
       fallbackPrice: "$20",
       features: SHARED_FEATURES(200),
     },
     {
       value: 350 as const,
-      name: "Growth",
-      tagline: "Everything in Starter, plus 150 more emails.",
+      name: "Pro",
+      tagline: "350 contacts. The sweet spot for serious outreach.",
       fallbackPrice: "$27",
       recommended: true,
       features: SHARED_FEATURES(350),
@@ -326,7 +342,7 @@ export default function EnrichmentPage() {
     {
       value: 500 as const,
       name: "Scale",
-      tagline: "Everything in Starter, plus 300 more emails.",
+      tagline: "Maximum coverage across your target market.",
       fallbackPrice: "$40",
       features: SHARED_FEATURES(500),
     },
@@ -421,6 +437,13 @@ export default function EnrichmentPage() {
                     : "border-studojo-ink/30 bg-white hover:border-studojo-ink/60"
                 }`}
               >
+                {"durationDays" in tier && tier.durationDays && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="px-3 py-1 rounded-full bg-studojo-ink text-white text-xs font-bold font-satoshi border-2 border-studojo-ink whitespace-nowrap">
+                      8-day sprint
+                    </span>
+                  </div>
+                )}
                 {tier.recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="px-3 py-1 rounded-full bg-studojo-purple text-white text-xs font-bold font-satoshi border-2 border-studojo-ink whitespace-nowrap">

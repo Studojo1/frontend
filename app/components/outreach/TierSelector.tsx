@@ -2,8 +2,8 @@ import { FiCheck } from "react-icons/fi";
 import type { TierPricing } from "~/lib/outreach/types";
 
 interface TierSelectorProps {
-  selected: 200 | 350 | 500;
-  onSelect: (tier: 200 | 350 | 500) => void;
+  selected: 50 | 200 | 350 | 500;
+  onSelect: (tier: 50 | 200 | 350 | 500) => void;
   pricing?: TierPricing[];
 }
 

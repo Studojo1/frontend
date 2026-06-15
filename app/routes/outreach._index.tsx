@@ -36,23 +36,32 @@ const STEPS = [
 const PLANS = [
   {
     name: "Starter",
+    contacts: "50",
+    price: "₹499",
+    tagline: "50 targeted emails in an 8-day sprint. India only.",
+    recommended: false,
+    indiaOnly: true,
+    badge: "8-day sprint",
+  },
+  {
+    name: "Growth",
     contacts: "200",
     price: "$20",
     tagline: "200 decision makers. 200 chances.",
     recommended: false,
   },
   {
-    name: "Growth",
+    name: "Pro",
     contacts: "350",
     price: "$27",
-    tagline: "Everything in Starter, plus 150 more emails.",
+    tagline: "The sweet spot for serious outreach.",
     recommended: true,
   },
   {
     name: "Scale",
     contacts: "500",
     price: "$40",
-    tagline: "Everything in Starter, plus 300 more emails.",
+    tagline: "Maximum coverage across your target market.",
     recommended: false,
   },
 ];
@@ -270,12 +279,17 @@ export default function OutreachLanding() {
             <h2 className="font-clash text-3xl font-bold text-studojo-ink md:text-4xl">Simple, transparent pricing</h2>
             <p className="font-satoshi text-base text-studojo-muted mt-3">One-time payment. No subscriptions. No hidden fees.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
             {PLANS.map((plan) => (
               <div
                 key={plan.name}
                 className={`relative rounded-2xl border-2 border-studojo-ink p-8 flex flex-col gap-6 transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none ${plan.recommended ? "bg-studojo-purple shadow-brutal" : "bg-white shadow-brutal"}`}
               >
+                {"badge" in plan && plan.badge && (
+                  <div className="absolute -top-3 left-6">
+                    <span className="bg-studojo-ink text-white font-satoshi text-xs font-bold px-3 py-1 rounded-full border-2 border-studojo-ink">{plan.badge}</span>
+                  </div>
+                )}
                 {plan.recommended && (
                   <div className="absolute -top-3 left-6">
                     <span className="bg-studojo-green text-white font-satoshi text-xs font-bold px-3 py-1 rounded-full border-2 border-studojo-ink">Most popular</span>
@@ -370,7 +384,7 @@ export default function OutreachLanding() {
           >
             Find My Hiring Managers <FiArrowRight className="w-5 h-5 ml-2" />
           </button>
-          <p className="font-satoshi text-xs text-white/50 mt-4">$20 for 200 outreaches. One-time payment.</p>
+          <p className="font-satoshi text-xs text-white/50 mt-4">From ₹499 for 50 outreaches. One-time payment. No subscriptions.</p>
         </div>
       </section>
 
