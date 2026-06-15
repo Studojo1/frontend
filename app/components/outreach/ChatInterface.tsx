@@ -58,7 +58,7 @@ export function ChatInterface({ messages, children, loading, streamingText, quiz
               >
                 {parts.map((part, j) => (
                   <p key={j} className={`text-[14px] leading-relaxed font-satoshi ${j > 0 ? "mt-2" : ""}`}>
-                    {part.trim()}
+                    {part.trim().replace(/—/g, "-")}
                   </p>
                 ))}
               </div>
@@ -79,7 +79,7 @@ export function ChatInterface({ messages, children, loading, streamingText, quiz
             </div>
             <div className="max-w-[75%] bg-purple-50 rounded-2xl rounded-bl-md px-4 py-3 border border-studojo-ink/20">
               <p className="text-[14px] leading-relaxed font-satoshi text-studojo-ink">
-                {streamingText || <span className="opacity-0">…</span>}
+                {streamingText.replace(/—/g, "-") || <span className="opacity-0">…</span>}
                 <span className="inline-block w-0.5 h-4 bg-studojo-purple ml-0.5 animate-pulse align-middle" />
               </p>
             </div>
