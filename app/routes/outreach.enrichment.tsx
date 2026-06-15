@@ -206,11 +206,13 @@ export default function EnrichmentPage() {
     }
   };
 
-  const handlePayAndContinue = async () => {
+  const handlePayAndContinue = async (tierValue: number = selectedTier) => {
     if (!candidateId) return;
 
-    // If user already has enough credits, skip payment
-    if (credits && credits.available_credits >= selectedTier) {
+    // If user already has enough credits for this specific tier, skip payment.
+    // tierValue is passed explicitly from the button to avoid stale closure
+    // (setSelectedTier is async; reading selectedTier here would get the old value).
+    if (credits && credits.available_credits >= tierValue) {
       onPaymentSuccess();
       return;
     }
@@ -220,7 +222,7 @@ export default function EnrichmentPage() {
     try {
       const orderData = await outreachFetch<any>("/payment/create-order", {
         method: "POST",
-        body: JSON.stringify({ tier: selectedTier, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined }),
+        body: JSON.stringify({ tier: tierValue, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined }),
       });
 
       if (orderData.free) {
@@ -504,7 +506,7 @@ export default function EnrichmentPage() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedTier(tier.value);
-                    handlePayAndContinue();
+                    handlePayAndContinue(tier.value);
                   }}
                   disabled={paying && isSelected}
                   className={`w-full h-10 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-1.5 ${
