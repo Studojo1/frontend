@@ -1,32 +1,46 @@
-const BACKERS = [
+type Backer = {
+  name: string;
+  description: string;
+  logo: string | null;
+  bgColor: string;
+  textColor: string;
+};
+
+const BACKERS: Backer[] = [
   {
     name: "Mesa",
     description: "Startup Accelerator",
-    color: "#1A1A2E",
+    logo: null,
+    bgColor: "#0D0D0D",
     textColor: "#FFFFFF",
   },
   {
     name: "AWS",
     description: "Cloud Credits",
-    color: "#FF9900",
-    textColor: "#1A1A1A",
+    // AWS removed from Simple Icons; use their official smile logo from S3 press assets
+    logo: null,
+    bgColor: "#232F3E",
+    textColor: "#FF9900",
   },
   {
     name: "Microsoft Azure",
     description: "Cloud Infrastructure",
-    color: "#0078D4",
+    logo: null,
+    bgColor: "#0078D4",
     textColor: "#FFFFFF",
   },
   {
     name: "Google Cloud",
     description: "AI & ML Credits",
-    color: "#4285F4",
-    textColor: "#FFFFFF",
+    logo: "https://cdn.simpleicons.org/googlecloud",
+    bgColor: "#FFFFFF",
+    textColor: "#4285F4",
   },
   {
     name: "Anthropic",
     description: "AI Partner",
-    color: "#C96442",
+    logo: "https://cdn.simpleicons.org/anthropic",
+    bgColor: "#191919",
     textColor: "#FFFFFF",
   },
 ];
@@ -46,14 +60,22 @@ export function BackedBySection() {
 
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
           {BACKERS.map((backer) => (
-            <div
-              key={backer.name}
-              className="flex flex-col items-center gap-2"
-            >
+            <div key={backer.name} className="flex flex-col items-center gap-2">
               <div
-                className="flex h-14 w-36 items-center justify-center rounded-2xl border-2 border-neutral-900 px-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
-                style={{ backgroundColor: backer.color }}
+                className="flex h-16 w-40 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 px-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+                style={{ backgroundColor: backer.bgColor }}
               >
+                {backer.logo && (
+                  <img
+                    src={backer.logo}
+                    alt=""
+                    aria-hidden
+                    className="h-5 w-5 object-contain"
+                    style={{
+                      filter: backer.bgColor === "#FFFFFF" ? "none" : "brightness(0) invert(1)",
+                    }}
+                  />
+                )}
                 <span
                   className="font-['Clash_Display'] text-sm font-bold leading-tight text-center"
                   style={{ color: backer.textColor }}

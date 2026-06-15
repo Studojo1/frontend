@@ -8,7 +8,7 @@ export function CTABanner() {
           2026 recruiting won&apos;t wait for you.
         </h2>
         <p className="max-w-xl font-['Satoshi'] text-base font-normal leading-6 text-purple-100 md:text-xl md:leading-7">
-          138 students have already found their hiring managers. Takes 2 minutes to set up.
+          500+ students have already found their hiring managers. Takes 2 minutes to set up.
         </p>
         <div className="flex w-full flex-col gap-4 md:flex-row md:flex-wrap md:justify-center">
           <Link
