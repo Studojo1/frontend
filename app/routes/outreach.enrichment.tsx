@@ -419,7 +419,7 @@ export default function EnrichmentPage() {
         )}
 
         {/* Tier cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div className={`grid grid-cols-1 ${TIERS.length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"} gap-5 mb-8`}>
           {TIERS.map((tier) => {
             const price = getTierPrice(tier.value);
             const isSelected = selectedTier === tier.value;
