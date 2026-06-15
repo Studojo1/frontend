@@ -22,8 +22,8 @@ interface OutreachState {
   clearChatHistory: () => void;
 
   // Lead discovery
-  selectedTier: 200 | 350 | 500;
-  setSelectedTier: (tier: 200 | 350 | 500) => void;
+  selectedTier: 50 | 200 | 350 | 500;
+  setSelectedTier: (tier: 50 | 200 | 350 | 500) => void;
 
   // Plan / channel
   planType: PlanType;
