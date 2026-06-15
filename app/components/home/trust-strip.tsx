@@ -13,10 +13,10 @@ const COMPANIES: Company[] = [
   { name: "Razorpay", logo: "https://cdn.simpleicons.org/razorpay", color: "#0C2451", invert: true },
   { name: "Deloitte", logo: "https://upload.wikimedia.org/wikipedia/commons/e/ed/Logo_of_Deloitte.svg", color: "#007B40", invert: true },
   { name: "Microsoft", logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg", color: "#F3F3F3", invert: false },
-  { name: "CRED", logo: null, color: "#1A1A1A" },
+  { name: "CRED", logo: null, color: "#1A1A1A" }, // no public SVG available on any CDN
   { name: "Bain & Co.", logo: "https://upload.wikimedia.org/wikipedia/commons/b/bc/Bain_%26_Company_logo.svg", color: "#C00000", invert: true },
   { name: "Revolut", logo: "https://cdn.simpleicons.org/revolut", color: "#191C1F", invert: true },
-  { name: "Zepto", logo: null, color: "#A100FF" },
+  { name: "Zepto", logo: "https://upload.wikimedia.org/wikipedia/commons/8/81/Zepto_Logo.svg", color: "#A100FF", invert: true },
   { name: "JP Morgan", logo: "https://upload.wikimedia.org/wikipedia/commons/2/20/JPMorgan_logo.svg", color: "#003087", invert: true },
   { name: "Spotify", logo: "https://cdn.simpleicons.org/spotify", color: "#1ED760", invert: true },
   { name: "Groww", logo: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Groww_app_logo.png", color: "#00D09C", invert: false },
@@ -47,23 +47,23 @@ export function TrustStrip() {
           {doubled.map((company, i) => (
             <span
               key={i}
-              className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-full border-2 border-studojo-ink bg-studojo-purple-bg font-['Satoshi'] text-xs font-bold text-studojo-ink whitespace-nowrap"
+              className="shrink-0 flex items-center gap-2.5 px-4 py-2.5 rounded-full border-2 border-studojo-ink bg-studojo-purple-bg font-['Satoshi'] text-sm font-bold text-studojo-ink whitespace-nowrap"
             >
               {company.logo ? (
                 <span
-                  className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full overflow-hidden"
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full overflow-hidden"
                   style={{ backgroundColor: company.color }}
                   aria-hidden
                 >
                   <img
                     src={company.logo}
                     alt=""
-                    className={`h-3 w-3 object-contain${company.invert ? " brightness-0 invert" : ""}`}
+                    className={`h-3.5 w-3.5 object-contain${company.invert ? " brightness-0 invert" : ""}`}
                   />
                 </span>
               ) : (
                 <span
-                  className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] font-black text-white"
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-white"
                   style={{ backgroundColor: company.color }}
                   aria-hidden
                 >
