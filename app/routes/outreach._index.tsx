@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard, FiChevronDown, FiCheck } from "react-icons/fi";
+import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard, FiChevronDown, FiCheck, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TrustStrip } from "~/components";
@@ -26,46 +26,57 @@ const STEPS = [
   },
 ];
 
+const SHARED_FEATURES = (count: number) => [
+  `${count} verified hiring managers`,
+  "Tailored to your role & industry",
+  "AI-personalised email per contact",
+  "Inbox-safe drip schedule",
+  "Live reply tracking dashboard",
+  "Email support",
+];
+
 const PLANS = [
   {
     name: "Starter",
-    contacts: "50",
+    contacts: 50,
     price: "₹499",
-    tagline: "50 targeted emails in an 8-day sprint. India only.",
-    recommended: false,
-    indiaOnly: true,
+    perContact: "₹9.98",
+    tagline: "50 emails over 8 days. A focused sprint.",
     badge: "8-day sprint",
+    features: [
+      "50 verified hiring managers",
+      "Tailored to your role & industry",
+      "AI-personalised email per contact",
+      "8-day controlled send window",
+      "Reply tracking dashboard",
+      "Email support",
+    ],
   },
   {
     name: "Growth",
-    contacts: "200",
+    contacts: 200,
     price: "$20",
-    tagline: "200 decision makers. 200 chances.",
-    recommended: false,
+    perContact: "$0.10",
+    tagline: "200 decision makers. Cast a wide net.",
+    features: SHARED_FEATURES(200),
   },
   {
     name: "Pro",
-    contacts: "350",
+    contacts: 350,
     price: "$27",
-    tagline: "The sweet spot for serious outreach.",
+    perContact: "$0.08",
+    tagline: "350 contacts. The most popular choice.",
     recommended: true,
+    features: SHARED_FEATURES(350),
   },
   {
     name: "Scale",
-    contacts: "500",
+    contacts: 500,
     price: "$40",
-    tagline: "Maximum coverage across your target market.",
-    recommended: false,
+    perContact: "$0.08",
+    tagline: "500 contacts. Maximum coverage.",
+    features: SHARED_FEATURES(500),
   },
-];
-
-const PLAN_FEATURES = [
-  "Scrapes 20,000+ databases to find hiring decision makers",
-  "Tailored by company and industry preferences",
-  "Professionally written, personalised emails",
-  "Sent periodically to maintain email health",
-  "Custom dashboard to track replies",
-  "Email support",
 ];
 
 const TESTIMONIALS = [
@@ -259,50 +270,80 @@ export default function OutreachLanding() {
             <h2 className="font-clash text-3xl font-bold text-studojo-ink md:text-4xl">Simple, transparent pricing</h2>
             <p className="font-satoshi text-base text-studojo-muted mt-3">One-time payment. No subscriptions. No hidden fees.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
             {PLANS.map((plan) => (
               <div
                 key={plan.name}
-                className={`relative rounded-2xl border-2 border-studojo-ink p-8 flex flex-col gap-6 transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none ${plan.recommended ? "bg-studojo-purple shadow-brutal" : "bg-white shadow-brutal"}`}
+                className={`relative rounded-2xl border-2 p-5 flex flex-col ${
+                  plan.recommended
+                    ? "border-studojo-purple bg-studojo-purple-bg/20 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)]"
+                    : "border-studojo-ink/20 bg-white"
+                }`}
               >
+                {/* Badges */}
                 {"badge" in plan && plan.badge && (
-                  <div className="absolute -top-3 left-6">
-                    <span className="bg-studojo-ink text-white font-satoshi text-xs font-bold px-3 py-1 rounded-full border-2 border-studojo-ink">{plan.badge}</span>
+                  <div className="absolute -top-3 left-4">
+                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-ink text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
+                      {plan.badge}
+                    </span>
                   </div>
                 )}
                 {plan.recommended && (
-                  <div className="absolute -top-3 left-6">
-                    <span className="bg-studojo-green text-white font-satoshi text-xs font-bold px-3 py-1 rounded-full border-2 border-studojo-ink">Most popular</span>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-purple text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
+                      Most Popular
+                    </span>
                   </div>
                 )}
-                <div>
-                  <p className={`font-clash text-lg font-bold ${plan.recommended ? "text-white" : "text-studojo-ink"}`}>{plan.name}</p>
-                  <p className={`font-satoshi text-xs mt-1 ${plan.recommended ? "text-white/70" : "text-studojo-muted"}`}>{plan.tagline}</p>
+
+                {/* Plan name */}
+                <p className="text-[11px] font-clash font-bold text-studojo-muted uppercase tracking-widest mb-3 mt-1">
+                  {plan.name}
+                </p>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-2 flex-wrap mb-1">
+                  <span className="font-clash text-3xl font-black text-studojo-ink leading-none">
+                    {plan.price}
+                  </span>
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className={`font-clash text-5xl font-black ${plan.recommended ? "text-white" : "text-studojo-ink"}`}>{plan.price}</span>
-                  <span className={`font-satoshi text-sm ${plan.recommended ? "text-white/70" : "text-studojo-muted"}`}>one-time</span>
-                </div>
-                <div className={`text-center rounded-xl border-2 border-studojo-ink py-2 font-clash font-bold text-lg ${plan.recommended ? "bg-white/20 text-white" : "bg-studojo-purple-bg text-studojo-purple"}`}>
-                  {plan.contacts} outreaches
-                </div>
-                <ul className="flex flex-col gap-2.5">
-                  {PLAN_FEATURES.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 font-satoshi text-xs">
-                      <FiCheck className={`w-4 h-4 shrink-0 mt-0.5 ${plan.recommended ? "text-white" : "text-studojo-green"}`} />
-                      <span className={plan.recommended ? "text-white/90" : "text-studojo-muted"}>{f}</span>
+
+                <p className="text-xs text-studojo-muted font-satoshi mt-1">just {plan.perContact} per hiring manager</p>
+                <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{plan.tagline}</p>
+
+                <div className="border-t border-studojo-ink/10 mb-4" />
+
+                {/* Features */}
+                <ul className="space-y-2.5 mb-5 flex-1">
+                  {plan.features.map((feat) => (
+                    <li key={feat} className="flex items-start gap-2 text-xs font-satoshi text-studojo-ink leading-snug">
+                      <FiCheckCircle className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
+                      {feat}
                     </li>
                   ))}
+                  <li className="flex items-start gap-2 text-xs font-satoshi font-semibold text-studojo-green leading-snug">
+                    <FiCheck className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
+                    Zero-reply protection included
+                  </li>
                 </ul>
+
+                {/* CTA */}
                 <button
                   onClick={() => navigate("/outreach/onboarding/upload")}
-                  className={`mt-auto inline-flex items-center justify-center h-12 rounded-2xl border-2 border-studojo-ink font-satoshi font-bold text-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none ${plan.recommended ? "bg-white text-studojo-ink shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)]" : "bg-studojo-purple text-white shadow-brutal"}`}
+                  className={`w-full h-10 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-1.5 ${
+                    plan.recommended
+                      ? "bg-studojo-purple text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                      : "bg-white text-studojo-ink shadow-[2px_2px_0px_0px_rgba(25,26,35,0.7)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                  }`}
                 >
-                  Get started <FiArrowRight className="w-4 h-4 ml-2" />
+                  <span>Get Started</span><FiArrowRight className="w-3 h-3" />
                 </button>
               </div>
             ))}
           </div>
+          <p className="text-center text-sm text-studojo-muted font-satoshi mt-8">
+            One-time payment · No subscription, no auto-renew · Zero-reply protection on every plan
+          </p>
         </div>
       </section>
 
