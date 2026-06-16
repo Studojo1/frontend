@@ -49,5 +49,18 @@ export async function action({ request }: Route.ActionArgs) {
     lifeStage: lifeStage || undefined,
   });
 
+  // Fire the instant "registration confirmed" email. The join link is sent
+  // separately by the emailer's daily cron, one day before the webinar.
+  // Non-blocking: a failed email must never fail the registration.
+  try {
+    const { publishEmailEvent } = await import("~/lib/events");
+    await publishEmailEvent("event.cc.webinar_registered", {
+      email,
+      name: fullName,
+    });
+  } catch (err) {
+    console.error("Failed to publish webinar_registered event:", err);
+  }
+
   return Response.json({ ok: true });
 }
