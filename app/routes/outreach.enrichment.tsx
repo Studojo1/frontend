@@ -260,6 +260,9 @@ export default function EnrichmentPage() {
         publishEmailEventFromClient("event.cc.paid", { user_id: user.id }).catch(() => {});
       }).catch(() => {});
     }
+    // The outreach flow goes straight to Gmail connect (never payment-success.tsx),
+    // so fire payment_confirmed here or the funnel's "Paid" step misses these.
+    capturePostHog("payment_confirmed", { tier: selectedTier, currency });
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
