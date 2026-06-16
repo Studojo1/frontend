@@ -568,7 +568,7 @@ export default function EnrichmentPage() {
             it reads as a distinct action, not as title-adjacent floating text. */}
         <div className="mb-5">
           <button
-            onClick={() => navigate("/outreach/leads/results")}
+            onClick={() => { capturePostHog("back_to_leads_clicked", {}); navigate("/outreach/leads/results"); }}
             className="inline-flex items-center gap-1.5 rounded-xl border-2 border-studojo-ink/15 bg-white px-3 py-1.5 text-sm font-semibold text-studojo-ink hover:bg-studojo-surface-muted hover:border-studojo-ink/40 transition-colors"
           >
             <FiArrowLeft className="w-4 h-4" /> Back to your hiring managers
