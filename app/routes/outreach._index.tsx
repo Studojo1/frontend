@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard, FiChevronDown, FiCheck, FiCheckCircle } from "react-icons/fi";
+import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard, FiChevronDown, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TrustStrip } from "~/components";
@@ -23,59 +23,6 @@ const STEPS = [
     icon: <FiMail className="w-5 h-5" />,
     title: "A personal email goes out",
     desc: "Written for each person, sent from your Gmail. It sounds like you, because we research them before writing it.",
-  },
-];
-
-const SHARED_FEATURES = (count: number) => [
-  `${count} verified hiring managers`,
-  "Tailored to your role & industry",
-  "AI-personalised email per contact",
-  "Inbox-safe drip schedule",
-  "Live reply tracking dashboard",
-  "Email support",
-];
-
-const PLANS = [
-  {
-    name: "Starter",
-    contacts: 50,
-    price: "₹499",
-    perContact: "₹9.98",
-    tagline: "50 emails over 8 days. A focused sprint.",
-    badge: "8-day sprint",
-    features: [
-      "50 verified hiring managers",
-      "Tailored to your role & industry",
-      "AI-personalised email per contact",
-      "8-day controlled send window",
-      "Reply tracking dashboard",
-      "Email support",
-    ],
-  },
-  {
-    name: "Growth",
-    contacts: 200,
-    price: "$20",
-    perContact: "$0.10",
-    tagline: "200 decision makers. Cast a wide net.",
-    features: SHARED_FEATURES(200),
-  },
-  {
-    name: "Pro",
-    contacts: 350,
-    price: "$27",
-    perContact: "$0.08",
-    tagline: "350 contacts. The most popular choice.",
-    recommended: true,
-    features: SHARED_FEATURES(350),
-  },
-  {
-    name: "Scale",
-    contacts: 500,
-    price: "$40",
-    perContact: "$0.08",
-    tagline: "500 contacts. Maximum coverage.",
-    features: SHARED_FEATURES(500),
   },
 ];
 
@@ -348,90 +295,6 @@ export default function OutreachLanding() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="border-b-2 border-studojo-ink bg-white">
-        <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-16 md:px-8 md:py-24">
-          <div className="text-center mb-14">
-            <h2 className="font-clash text-3xl font-bold text-studojo-ink md:text-4xl">Simple, transparent pricing</h2>
-            <p className="font-satoshi text-base text-studojo-muted mt-3">One-time payment. No subscriptions. No hidden fees.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-            {PLANS.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl border-2 p-5 flex flex-col ${
-                  plan.recommended
-                    ? "border-studojo-purple bg-studojo-purple-bg/20 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)]"
-                    : "border-studojo-ink/20 bg-white"
-                }`}
-              >
-                {/* Badges */}
-                {"badge" in plan && plan.badge && (
-                  <div className="absolute -top-3 left-4">
-                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-ink text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
-                      {plan.badge}
-                    </span>
-                  </div>
-                )}
-                {plan.recommended && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-purple text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-
-                {/* Plan name */}
-                <p className="text-[11px] font-clash font-bold text-studojo-muted uppercase tracking-widest mb-3 mt-1">
-                  {plan.name}
-                </p>
-
-                {/* Price */}
-                <div className="flex items-baseline gap-2 flex-wrap mb-1">
-                  <span className="font-clash text-3xl font-black text-studojo-ink leading-none">
-                    {plan.price}
-                  </span>
-                </div>
-
-                <p className="text-xs text-studojo-muted font-satoshi mt-1">just {plan.perContact} per hiring manager</p>
-                <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{plan.tagline}</p>
-
-                <div className="border-t border-studojo-ink/10 mb-4" />
-
-                {/* Features */}
-                <ul className="space-y-2.5 mb-5 flex-1">
-                  {plan.features.map((feat) => (
-                    <li key={feat} className="flex items-start gap-2 text-xs font-satoshi text-studojo-ink leading-snug">
-                      <FiCheckCircle className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
-                      {feat}
-                    </li>
-                  ))}
-                  <li className="flex items-start gap-2 text-xs font-satoshi font-semibold text-studojo-green leading-snug">
-                    <FiCheck className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
-                    Zero-reply protection included
-                  </li>
-                </ul>
-
-                {/* CTA */}
-                <button
-                  onClick={() => navigate("/outreach/onboarding/upload")}
-                  className={`w-full h-10 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-1.5 ${
-                    plan.recommended
-                      ? "bg-studojo-purple text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-                      : "bg-white text-studojo-ink shadow-[2px_2px_0px_0px_rgba(25,26,35,0.7)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-                  }`}
-                >
-                  <span>Get Started</span><FiArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-          <p className="text-center text-sm text-studojo-muted font-satoshi mt-8">
-            One-time payment · No subscription, no auto-renew · Zero-reply protection on every plan
-          </p>
         </div>
       </section>
 
