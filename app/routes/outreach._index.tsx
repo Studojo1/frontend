@@ -5,19 +5,12 @@ import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TrustStrip } from "~/components";
 
-const STATS = [
-  { value: "138+", label: "students placed" },
-  { value: "95%", label: "satisfaction rate" },
-  { value: "~1 week", label: "to first reply" },
-  { value: "$20", label: "for 200 outreaches" },
-];
-
 const STEPS = [
   {
     number: "01",
     icon: <FiUpload className="w-5 h-5" />,
     title: "Upload your resume",
-    desc: "Our AI reads your background and figures out which roles and companies fit you - in under a minute.",
+    desc: "We read your background and figure out which roles and companies fit you, in under a minute.",
   },
   {
     number: "02",
@@ -29,72 +22,118 @@ const STEPS = [
     number: "03",
     icon: <FiMail className="w-5 h-5" />,
     title: "A personal email goes out",
-    desc: "Written for each person, sent from your Gmail. It sounds like you - because we research them before writing it.",
+    desc: "Written for each person, sent from your Gmail. It sounds like you, because we research them before writing it.",
   },
 ];
 
-const PLANS = [
-  {
-    name: "Starter",
-    contacts: "50",
-    price: "₹499",
-    tagline: "50 targeted emails in an 8-day sprint. India only.",
-    recommended: false,
-    indiaOnly: true,
-    badge: "8-day sprint",
-  },
-  {
-    name: "Growth",
-    contacts: "200",
-    price: "$20",
-    tagline: "200 decision makers. 200 chances.",
-    recommended: false,
-  },
-  {
-    name: "Pro",
-    contacts: "350",
-    price: "$27",
-    tagline: "The sweet spot for serious outreach.",
-    recommended: true,
-  },
-  {
-    name: "Scale",
-    contacts: "500",
-    price: "$40",
-    tagline: "Maximum coverage across your target market.",
-    recommended: false,
-  },
+// Wall of Love — mixed authentic "screenshots": X, iMessage, WhatsApp, LinkedIn.
+type WallItem =
+  | { type: "tweet"; n: string; h: string; d: string; v: boolean; q: string; re: number; rt: number; lk: number }
+  | { type: "imsg"; in: string; out: string; t: string }
+  | { type: "whatsapp"; q: string; t: string }
+  | { type: "linkedin"; n: string; role: string; deg: string; q: string };
+const WALL: WallItem[] = [
+  { type: "tweet", n: "Sahil Gulihar", h: "@Sahil_Gulihar", d: "May 30", v: false, q: "went in as a casual tester to find bugs. came out with an interview lol 💀 no messy emails, no hunting. just chat, then interview", re: 4, rt: 4, lk: 34 },
+  { type: "imsg", in: "yo update, my profile got shortlisted for a role 😭", out: "and I wasn't even trying that hard", t: "2:11 PM" },
+  { type: "linkedin", n: "Rimjhim Hazarika", role: "L&D Consultant · Career Coach", deg: "2nd", q: "Trying it out and saying this with a lot of respect. The convo feels anything but transactional. Genuinely impressed." },
+  { type: "tweet", n: "Siddharth K S", h: "@sidks", d: "4d", v: true, q: "been testing this for the past hour, honestly seamless. gives such a great handle on things right away :D", re: 1, rt: 2, lk: 21 },
+  { type: "whatsapp", q: "have been using studojo, it's pretty good at finding the right people. really liked it", t: "9:09 PM" },
+  { type: "tweet", n: "Anunaya Tandon", h: "@AnunayaTandon", d: "May 28", v: false, q: "first experience of @studojo, the ai is so good!", re: 0, rt: 1, lk: 12 },
+  { type: "imsg", in: "wait this actually works??", out: "told you 😎", t: "3:38 AM" },
+  { type: "whatsapp", q: "studojo slaps hard <3", t: "9:12 PM" },
+  { type: "linkedin", n: "Marcus T.", role: "CS @ NYU", deg: "2nd", q: "3 founder replies in week one. Genuinely did not expect this from a tool. Telling everyone in my batch." },
+  { type: "tweet", n: "Meera P.", h: "@meera_builds", d: "Jun 2", v: false, q: "stopped spamming applications. finally getting actual responses 🙌", re: 2, rt: 3, lk: 27 },
 ];
+const WALL_ROW_A = WALL.slice(0, Math.ceil(WALL.length / 2));
+const WALL_ROW_B = WALL.slice(Math.ceil(WALL.length / 2));
 
-const PLAN_FEATURES = [
-  "Scrapes 20,000+ databases to find hiring decision makers",
-  "Tailored by company and industry preferences",
-  "Professionally written, personalised emails",
-  "Sent periodically to maintain email health",
-  "Custom dashboard to track replies",
-  "Email support",
-];
+const WALL_COLORS = ["bg-studojo-purple", "bg-studojo-pink", "bg-studojo-green", "bg-studojo-orange", "bg-studojo-teal", "bg-indigo-500", "bg-rose-500", "bg-amber-500"];
+const wallInit = (n: string) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+const wallCol = (n: string) => WALL_COLORS[n.charCodeAt(0) % WALL_COLORS.length];
 
-const TESTIMONIALS = [
-  {
-    quote: "Got 4 interview calls in 10 days. I'd been applying for 3 months before this with nothing. The outreach actually works.",
-    name: "Priya M.",
-    college: "Delhi University",
-    company: "Razorpay",
-  },
-  {
-    quote: "Reached out to 12 hiring managers in Singapore through Studojo. 5 replied. 2 led to interviews. That hit rate is unreal.",
-    name: "Aisha R.",
-    college: "NUS",
-    company: "Goldman Sachs",
-  },
-  {
-    quote: "I thought cold outreach was cringe. It's not when you're saying the right thing to the right person. Studojo figures that part out.",
-    name: "Tom B.",
-    college: "UCL",
-    company: "Monzo",
-  },
-];
+const WallVerified = () => (
+  <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#1d9bf0] items-center justify-center flex-shrink-0">
+    <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-white"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" /></svg>
+  </span>
+);
+const WallXLogo = () => (
+  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-studojo-ink/60 flex-shrink-0"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+);
+const WallTicks = () => (
+  <svg viewBox="0 0 18 12" className="w-3.5 h-3 inline-block">
+    <path d="M1 6.5 4 9.5 9.5 2.5" fill="none" stroke="#53bdeb" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M6 6.5 9 9.5 14.5 2.5" fill="none" stroke="#53bdeb" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const wallTweetAction = (path: string, n: number) => (
+  <span className="flex items-center gap-1 text-studojo-muted text-[11px]">
+    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current"><path d={path} /></svg>
+    {n > 0 && <span className="tabular-nums">{n}</span>}
+  </span>
+);
+const WALL_P_REPLY = "M1.75 11C1.75 5.9 5.9 1.75 11 1.75h2c5.1 0 9.25 4.15 9.25 9.25S18.1 20.25 13 20.25h-1.4l-4.6 3.1V20.1C4 18.6 1.75 15.1 1.75 11z";
+const WALL_P_RT = "M4.5 3.9 1 7.4l3.5 3.5V8.4h11v3l4-4-4-4v3h-9V3.9zm15 13.2L16 13.6v2.5h-11v-3l-4 4 4 4v-3h13z";
+const WALL_P_LIKE = "M12 21s-7.5-4.9-10-9.3C.4 8.6 1.8 5 5.2 5c2 0 3.4 1.2 4.3 2.6h1C11.4 6.2 12.8 5 14.8 5c3.4 0 4.8 3.6 3.2 6.7C19.5 16.1 12 21 12 21z";
+
+const WALL_CARD = "w-[300px] h-[168px] flex-shrink-0 rounded-2xl shadow-sm flex flex-col";
+function WallCard({ v }: { v: WallItem }) {
+  if (v.type === "tweet") {
+    return (
+      <div className={`${WALL_CARD} border border-studojo-ink/10 bg-white p-4`}>
+        <div className="flex items-center gap-2.5">
+          <div className={`w-9 h-9 rounded-full ${wallCol(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>{wallInit(v.n)}</div>
+          <div className="min-w-0 flex-1 leading-tight">
+            <div className="flex items-center gap-1">
+              <span className="text-[13px] font-bold text-studojo-ink truncate">{v.n}</span>{v.v && <WallVerified />}
+            </div>
+            <div className="text-[12px] text-studojo-muted truncate">{v.h} · {v.d}</div>
+          </div>
+          <WallXLogo />
+        </div>
+        <p className="text-[13px] text-studojo-ink leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
+        <div className="flex items-center gap-7 pt-2">{wallTweetAction(WALL_P_REPLY, v.re)}{wallTweetAction(WALL_P_RT, v.rt)}{wallTweetAction(WALL_P_LIKE, v.lk)}</div>
+      </div>
+    );
+  }
+  if (v.type === "imsg") {
+    return (
+      <div className={`${WALL_CARD} bg-[#1c1c1e] p-3.5 justify-center`}>
+        <div className="flex flex-col gap-2">
+          <div className="self-start max-w-[88%] bg-[#3a3a3c] text-white text-[13px] leading-snug rounded-2xl rounded-bl-md px-3 py-2">{v.in}</div>
+          <div className="self-end max-w-[88%] bg-[#0a84ff] text-white text-[13px] leading-snug rounded-2xl rounded-br-md px-3 py-2">{v.out}</div>
+        </div>
+        <p className="text-[10px] text-white/40 text-center mt-2.5">{v.t}</p>
+      </div>
+    );
+  }
+  if (v.type === "whatsapp") {
+    return (
+      <div className={`${WALL_CARD} bg-[#0b141a] p-3.5 justify-center`}>
+        <div className="self-end max-w-[94%] bg-[#005c4b] text-white text-[13.5px] leading-snug rounded-2xl rounded-br-md px-3 py-2">
+          {v.q}
+          <span className="flex items-center justify-end gap-1 mt-1 text-[10px] text-white/55">{v.t} <WallTicks /></span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={`${WALL_CARD} border border-studojo-ink/10 bg-white p-4`}>
+      <div className="flex items-center gap-2.5">
+        <div className={`w-9 h-9 rounded-full ${wallCol(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>{wallInit(v.n)}</div>
+        <div className="min-w-0 flex-1 leading-tight">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[13px] font-bold text-studojo-ink truncate">{v.n}</span>
+            <span className="text-[10px] text-studojo-muted whitespace-nowrap">· {v.deg}</span>
+            <span className="inline-flex w-3.5 h-3.5 rounded-[3px] bg-[#0a66c2] text-white items-center justify-center text-[8px] font-bold flex-shrink-0">in</span>
+          </div>
+          <div className="text-[12px] font-medium text-studojo-ink/75 truncate">{v.role}</div>
+        </div>
+      </div>
+      <p className="text-[13px] text-studojo-ink leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
+      <div className="flex items-center gap-3 pt-2 text-[11px] font-semibold text-studojo-muted"><span>Like</span><span>· Reply</span></div>
+    </div>
+  );
+}
 
 const FAQS = [
   {
@@ -173,19 +212,6 @@ export default function OutreachLanding() {
           </div>
         </div>
 
-        {/* Stats bar inside hero */}
-        <div className="border-t-2 border-white/20">
-          <div className="mx-auto max-w-[var(--section-max-width)] px-4 md:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 divide-x-0 md:divide-x-2 divide-white/20">
-              {STATS.map((s) => (
-                <div key={s.label} className="py-5 px-4 text-center md:text-left">
-                  <div className="font-clash text-2xl font-bold text-white">{s.value}</div>
-                  <div className="font-satoshi text-xs text-white/70 mt-0.5">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </section>
 
       <TrustStrip />
@@ -272,87 +298,20 @@ export default function OutreachLanding() {
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className="border-b-2 border-studojo-ink bg-white">
+      {/* Wall of Love — dynamic marquee */}
+      <section className="border-b-2 border-studojo-ink bg-studojo-surface-muted overflow-hidden">
         <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-16 md:px-8 md:py-24">
-          <div className="text-center mb-14">
-            <h2 className="font-clash text-3xl font-bold text-studojo-ink md:text-4xl">Simple, transparent pricing</h2>
-            <p className="font-satoshi text-base text-studojo-muted mt-3">One-time payment. No subscriptions. No hidden fees.</p>
+          <div className="text-center mb-10">
+            <h2 className="font-clash text-3xl font-bold text-studojo-ink md:text-4xl">Students are already getting in</h2>
+            <p className="font-satoshi text-base text-studojo-muted mt-3">Don't take it from us. Real messages from students using Studojo.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-            {PLANS.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl border-2 border-studojo-ink p-8 flex flex-col gap-6 transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none ${plan.recommended ? "bg-studojo-purple shadow-brutal" : "bg-white shadow-brutal"}`}
-              >
-                {"badge" in plan && plan.badge && (
-                  <div className="absolute -top-3 left-6">
-                    <span className="bg-studojo-ink text-white font-satoshi text-xs font-bold px-3 py-1 rounded-full border-2 border-studojo-ink">{plan.badge}</span>
-                  </div>
-                )}
-                {plan.recommended && (
-                  <div className="absolute -top-3 left-6">
-                    <span className="bg-studojo-green text-white font-satoshi text-xs font-bold px-3 py-1 rounded-full border-2 border-studojo-ink">Most popular</span>
-                  </div>
-                )}
-                <div>
-                  <p className={`font-clash text-lg font-bold ${plan.recommended ? "text-white" : "text-studojo-ink"}`}>{plan.name}</p>
-                  <p className={`font-satoshi text-xs mt-1 ${plan.recommended ? "text-white/70" : "text-studojo-muted"}`}>{plan.tagline}</p>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className={`font-clash text-5xl font-black ${plan.recommended ? "text-white" : "text-studojo-ink"}`}>{plan.price}</span>
-                  <span className={`font-satoshi text-sm ${plan.recommended ? "text-white/70" : "text-studojo-muted"}`}>one-time</span>
-                </div>
-                <div className={`text-center rounded-xl border-2 border-studojo-ink py-2 font-clash font-bold text-lg ${plan.recommended ? "bg-white/20 text-white" : "bg-studojo-purple-bg text-studojo-purple"}`}>
-                  {plan.contacts} outreaches
-                </div>
-                <ul className="flex flex-col gap-2.5">
-                  {PLAN_FEATURES.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 font-satoshi text-xs">
-                      <FiCheck className={`w-4 h-4 shrink-0 mt-0.5 ${plan.recommended ? "text-white" : "text-studojo-green"}`} />
-                      <span className={plan.recommended ? "text-white/90" : "text-studojo-muted"}>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => navigate("/outreach/onboarding/upload")}
-                  className={`mt-auto inline-flex items-center justify-center h-12 rounded-2xl border-2 border-studojo-ink font-satoshi font-bold text-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none ${plan.recommended ? "bg-white text-studojo-ink shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)]" : "bg-studojo-purple text-white shadow-brutal"}`}
-                >
-                  Get started <FiArrowRight className="w-4 h-4 ml-2" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="border-b-2 border-studojo-ink bg-studojo-surface-muted">
-        <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-16 md:px-8 md:py-24">
-          <div className="text-center mb-14">
-            <h2 className="font-clash text-3xl font-bold text-studojo-ink md:text-4xl">138 students placed. As of yesterday.</h2>
-            <p className="font-satoshi text-base text-studojo-muted mt-3">Here's what a few of them said.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 flex flex-col gap-5 transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-studojo-yellow text-sm">★</span>
-                  ))}
-                </div>
-                <p className="font-satoshi text-sm text-studojo-ink leading-relaxed flex-1">"{t.quote}"</p>
-                <div className="flex items-center gap-3 pt-2 border-t-2 border-studojo-ink">
-                  <div className="w-9 h-9 rounded-full bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center font-clash text-sm font-bold text-studojo-purple shrink-0">
-                    {t.name[0]}
-                  </div>
-                  <div>
-                    <p className="font-satoshi text-sm font-bold text-studojo-ink">{t.name}</p>
-                    <p className="font-satoshi text-xs text-studojo-muted">{t.college} · Placed at {t.company}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="sd-wall-mask space-y-3 overflow-hidden">
+            <div className="sd-marquee flex gap-3 w-max">
+              {[...WALL_ROW_A, ...WALL_ROW_A].map((v, i) => <WallCard key={i} v={v} />)}
+            </div>
+            <div className="sd-marquee-rev flex gap-3 w-max">
+              {[...WALL_ROW_B, ...WALL_ROW_B].map((v, i) => <WallCard key={i} v={v} />)}
+            </div>
           </div>
         </div>
       </section>

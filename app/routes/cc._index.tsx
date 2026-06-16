@@ -1,10 +1,23 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router";
-import { FiTarget, FiTrendingUp, FiCalendar, FiArrowRight } from "react-icons/fi";
+import { FiTarget, FiTrendingUp, FiCalendar, FiArrowRight, FiZap } from "react-icons/fi";
 import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
 import { authClient } from "~/lib/auth-client";
+import { capturePostHog } from "~/lib/posthog";
+
+const CC_API = "https://studojo.pro/api/v1/cc";
+function trackCC(event: string, props?: Record<string, unknown>) {
+  // Fire to our own backend so admin dashboard can see these stats
+  fetch(`${CC_API}/analytics/track`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event_type: event, event_data: props || {} }),
+  }).catch(() => {});
+  // Also send to PostHog for session recording
+  capturePostHog(event, props as any);
+}
 
 // For a returning, logged-in student who already has a Career DNA, show their
 // progress + a "continue" action ON the coach page (not a homepage banner).
@@ -16,43 +29,70 @@ function ReturningStudentProgress() {
     if (!auth?.user) return;
     fetch("/api/career-coach/summary")
       .then((r) => r.json())
-      .then((d) => setSummary(d))
+      .then((d) => {
+        setSummary(d);
+        if (d?.found && d?.has_analysis) {
+          trackCC("cc_returning_card_shown", {
+            readiness_score: d.readiness_score,
+            level: d.level,
+          });
+        }
+      })
       .catch(() => setSummary(null));
   }, [auth?.user]);
 
   if (!auth?.user || !summary?.found || !summary?.has_analysis) return null;
+
   return (
-    <section className="px-4 py-6 md:px-8" style={{ backgroundColor: PAGE_BG }}>
-      <div className="mx-auto max-w-3xl rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]">
+    <div className="px-4 pb-4 md:px-8" style={{ backgroundColor: PAGE_BG }}>
+      <div
+        className="mx-auto max-w-3xl rounded-2xl p-5"
+        style={{
+          background: "rgba(124,58,237,0.10)",
+          border: "1px solid rgba(167,139,250,0.25)",
+        }}
+      >
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-full border-2 border-violet-500 bg-violet-100">
-            <span className="font-['Clash_Display'] text-xl font-black leading-none text-violet-700">{summary.readiness_score ?? 0}</span>
-            <span className="font-['Satoshi'] text-[9px] text-violet-500">/100</span>
+          <div
+            className="flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-full"
+            style={{ background: "rgba(124,58,237,0.25)", border: "2px solid #7C3AED" }}
+          >
+            <span className="font-['Clash_Display'] text-xl font-black leading-none text-white">
+              {summary.readiness_score ?? 0}
+            </span>
+            <span className="font-['Satoshi'] text-[9px]" style={{ color: "#A78BFA" }}>
+              /100
+            </span>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-['Clash_Display'] text-lg font-bold text-neutral-900">Welcome back</span>
+              <span className="font-['Satoshi'] text-base font-bold text-white">Welcome back</span>
               {summary.level_label && (
-                <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-bold text-violet-700">
+                <span
+                  className="rounded-full px-2.5 py-0.5 font-['Satoshi'] text-xs font-bold"
+                  style={{ background: "rgba(124,58,237,0.3)", color: "#A78BFA" }}
+                >
                   Level {summary.level} · {summary.level_label}
                 </span>
               )}
             </div>
             {summary.next_action && (
-              <p className="mt-1 font-['Satoshi'] text-sm text-neutral-600">
-                <span className="font-semibold text-neutral-800">Next step:</span> {summary.next_action}
+              <p className="mt-1 font-['Satoshi'] text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+                <span className="font-semibold text-white">Next step:</span> {summary.next_action}
               </p>
             )}
           </div>
           <Link
             to={summary.chat_url || "/cc/chat"}
-            className="inline-flex h-12 flex-shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-neutral-900 bg-violet-500 px-6 font-['Satoshi'] text-sm font-bold text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+            onClick={() => trackCC("cc_returning_card_clicked", { level: summary.level })}
+            className="inline-flex h-10 flex-shrink-0 items-center justify-center gap-2 rounded-xl px-5 font-['Satoshi'] text-sm font-bold text-white transition-all hover:brightness-110"
+            style={{ background: "linear-gradient(135deg,#7C3AED,#5B21B6)" }}
           >
-            Continue with your Career Coach <FiArrowRight />
+            Continue <FiArrowRight />
           </Link>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -190,6 +230,11 @@ const GLASS_BG = "rgba(255,255,255,0.04)";
 const GLASS_BORDER = "rgba(255,255,255,0.08)";
 
 export default function CcIndex() {
+  // Track landing page view once on mount
+  useEffect(() => {
+    trackCC("cc_landing_viewed");
+  }, []);
+
   return (
     <>
       <Header />
@@ -230,7 +275,7 @@ export default function CcIndex() {
               Your Career Coach
             </motion.h1>
 
-            {/* How it works pill — purple accent */}
+            {/* How it works pill */}
             <motion.div
               className="absolute left-4 top-4 md:left-8 md:top-6"
               initial={{ opacity: 0, y: -10 }}
@@ -253,7 +298,7 @@ export default function CcIndex() {
               </a>
             </motion.div>
 
-            {/* CTA — gold action accent */}
+            {/* CTA */}
             <motion.div
               className="absolute bottom-[30%] right-0 flex flex-col items-end pr-4 md:pr-12"
               initial={{ opacity: 0, y: 20 }}
@@ -265,6 +310,7 @@ export default function CcIndex() {
               </p>
               <Link
                 to="/cc/chat?new=1"
+                onClick={() => trackCC("cc_cta_clicked", { source: "hero" })}
                 className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl px-10 font-['Satoshi'] text-base font-bold transition-all hover:brightness-110 active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
@@ -278,14 +324,13 @@ export default function CcIndex() {
           <style>{`@media(min-width:768px){.hero-aspect{padding-bottom:56.25%!important}}`}</style>
         </section>
 
-        {/* Returning logged-in students see their progress here (not a banner) */}
+        {/* Returning logged-in students — sits flush below hero, no extra section wrapper */}
         <ReturningStudentProgress />
-
 
         {/* ── How it works ─────────────────────────────────────────────── */}
         <section
           id="how-it-works"
-          className="py-16 md:py-24"
+          className="py-10 md:py-16"
           style={{
             backgroundColor: PAGE_BG,
             borderBottom: `1px solid ${GLASS_BORDER}`,
@@ -318,11 +363,11 @@ export default function CcIndex() {
               >
                 No forms, no uploads. Just a conversation that builds your complete career picture.
               </motion.p>
-              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
+              <motion.div variants={itemVariants} className="mt-8 grid gap-5 md:grid-cols-3">
                 {HOW_IT_WORKS.map((s) => (
                   <div
                     key={s.num}
-                    className="rounded-2xl p-7 transition-all duration-300 hover:brightness-110"
+                    className="rounded-2xl p-6 transition-all duration-300 hover:brightness-110"
                     style={{
                       background: GLASS_BG,
                       border: `1px solid ${s.border}`,
@@ -356,7 +401,7 @@ export default function CcIndex() {
 
         {/* ── What you get ─────────────────────────────────────────────── */}
         <section
-          className="py-16 md:py-24"
+          className="py-10 md:py-16"
           style={{
             backgroundColor: "#0e0820",
             borderBottom: `1px solid ${GLASS_BORDER}`,
@@ -389,11 +434,11 @@ export default function CcIndex() {
               >
                 Built around your degree, skills, and target role. Not a generic checklist.
               </motion.p>
-              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
+              <motion.div variants={itemVariants} className="mt-8 grid gap-5 md:grid-cols-3">
                 {WHAT_YOU_GET.map((c) => (
                   <div
                     key={c.label}
-                    className="flex h-full flex-col rounded-2xl p-7 transition-all duration-300 hover:brightness-110"
+                    className="flex h-full flex-col rounded-2xl p-6 transition-all duration-300 hover:brightness-110"
                     style={{
                       background: GLASS_BG,
                       border: `1px solid ${c.border}`,
@@ -411,17 +456,15 @@ export default function CcIndex() {
                       {c.icon}
                     </div>
                     <p
-                      className="mt-5 font-['Satoshi'] text-xs font-bold uppercase tracking-wider"
+                      className="mt-4 font-['Satoshi'] text-xs font-bold uppercase tracking-wider"
                       style={{ color: c.accent, opacity: 0.7 }}
                     >
                       {c.label}
                     </p>
-                    <h3
-                      className="mt-1 font-['Clash_Display'] text-xl font-medium leading-snug text-white"
-                    >
+                    <h3 className="mt-1 font-['Clash_Display'] text-xl font-medium leading-snug text-white">
                       {c.title}
                     </h3>
-                    <ul className="mt-5 space-y-2.5">
+                    <ul className="mt-4 space-y-2">
                       {c.bullets.map((b) => (
                         <li
                           key={b}
@@ -438,7 +481,8 @@ export default function CcIndex() {
                     </ul>
                     <Link
                       to="/cc/chat?new=1"
-                      className="mt-auto inline-flex items-center gap-1.5 pt-6 font-['Satoshi'] text-sm font-semibold transition-opacity hover:opacity-80"
+                      onClick={() => trackCC("cc_cta_clicked", { source: `what_you_get_${c.label.toLowerCase().replace(/ /g, "_")}` })}
+                      className="mt-auto inline-flex items-center gap-1.5 pt-5 font-['Satoshi'] text-sm font-semibold transition-opacity hover:opacity-80"
                       style={{ color: c.accent }}
                     >
                       {c.cta} <FiArrowRight />
@@ -452,7 +496,7 @@ export default function CcIndex() {
 
         {/* ── Quotes ───────────────────────────────────────────────────── */}
         <section
-          className="py-16 md:py-24"
+          className="py-10 md:py-16"
           style={{
             backgroundColor: PAGE_BG,
             borderBottom: `1px solid ${GLASS_BORDER}`,
@@ -478,11 +522,11 @@ export default function CcIndex() {
               >
                 Real feedback from real profiles.
               </motion.h2>
-              <motion.div variants={itemVariants} className="mt-12 grid gap-6 md:grid-cols-3">
+              <motion.div variants={itemVariants} className="mt-8 grid gap-5 md:grid-cols-3">
                 {QUOTES.map((q) => (
                   <div
                     key={q.name}
-                    className="rounded-2xl p-7 transition-all duration-300 hover:brightness-110"
+                    className="rounded-2xl p-6 transition-all duration-300 hover:brightness-110"
                     style={{
                       background: GLASS_BG,
                       border: `1px solid rgba(255,255,255,0.07)`,
@@ -496,12 +540,10 @@ export default function CcIndex() {
                       "{q.text}"
                     </p>
                     <div
-                      className="mt-5 pt-4"
+                      className="mt-4 pt-4"
                       style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
                     >
-                      <p className="font-['Satoshi'] text-sm font-bold text-white">
-                        {q.name}
-                      </p>
+                      <p className="font-['Satoshi'] text-sm font-bold text-white">{q.name}</p>
                       <p
                         className="mt-0.5 font-['Satoshi'] text-xs"
                         style={{ color: q.accent, opacity: 0.7 }}
@@ -518,7 +560,7 @@ export default function CcIndex() {
 
         {/* ── CTA banner ───────────────────────────────────────────────── */}
         <section
-          className="py-16 md:py-24"
+          className="py-12 md:py-20"
           style={{
             background: "linear-gradient(160deg, #1a0a3e 0%, #130D24 50%, #0a1a2e 100%)",
             borderBottom: `1px solid ${GLASS_BORDER}`,
@@ -530,14 +572,15 @@ export default function CcIndex() {
               <span style={{ color: "#FCD34D" }}>where you stand.</span>
             </h2>
             <p
-              className="relative mx-auto mt-5 max-w-xl font-['Satoshi'] text-lg"
+              className="relative mx-auto mt-4 max-w-xl font-['Satoshi'] text-lg"
               style={{ color: "rgba(255,255,255,0.55)" }}
             >
               Takes 8 minutes. Built around your real profile, not a quiz.
             </p>
-            <div className="relative mt-10 flex justify-center">
+            <div className="relative mt-8 flex justify-center">
               <Link
                 to="/cc/chat?new=1"
+                onClick={() => trackCC("cc_cta_clicked", { source: "bottom_banner" })}
                 className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl px-8 font-['Satoshi'] text-base font-bold transition-all hover:brightness-110 active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
