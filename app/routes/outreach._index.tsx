@@ -5,19 +5,12 @@ import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TrustStrip } from "~/components";
 
-const STATS = [
-  { value: "138+", label: "students placed" },
-  { value: "95%", label: "satisfaction rate" },
-  { value: "~1 week", label: "to first reply" },
-  { value: "$20", label: "for 200 outreaches" },
-];
-
 const STEPS = [
   {
     number: "01",
     icon: <FiUpload className="w-5 h-5" />,
     title: "Upload your resume",
-    desc: "Our AI reads your background and figures out which roles and companies fit you - in under a minute.",
+    desc: "We read your background and figure out which roles and companies fit you, in under a minute.",
   },
   {
     number: "02",
@@ -29,7 +22,7 @@ const STEPS = [
     number: "03",
     icon: <FiMail className="w-5 h-5" />,
     title: "A personal email goes out",
-    desc: "Written for each person, sent from your Gmail. It sounds like you - because we research them before writing it.",
+    desc: "Written for each person, sent from your Gmail. It sounds like you, because we research them before writing it.",
   },
 ];
 
@@ -173,19 +166,6 @@ export default function OutreachLanding() {
           </div>
         </div>
 
-        {/* Stats bar inside hero */}
-        <div className="border-t-2 border-white/20">
-          <div className="mx-auto max-w-[var(--section-max-width)] px-4 md:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 divide-x-0 md:divide-x-2 divide-white/20">
-              {STATS.map((s) => (
-                <div key={s.label} className="py-5 px-4 text-center md:text-left">
-                  <div className="font-clash text-2xl font-bold text-white">{s.value}</div>
-                  <div className="font-satoshi text-xs text-white/70 mt-0.5">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </section>
 
       <TrustStrip />
