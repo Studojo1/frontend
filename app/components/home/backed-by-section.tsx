@@ -1,65 +1,142 @@
 type Backer = {
   name: string;
   description: string;
-  logo: string | null;
   bgColor: string;
-  invert: boolean;
-  textColor?: string;
+  render: "wordmark" | "twoLine" | "lettermark";
+  primary: string;
+  secondary?: string;
+  accent?: string;
 };
 
 const BACKERS: Backer[] = [
   {
     name: "Mesa",
     description: "Startup Accelerator",
-    logo: null,
-    bgColor: "#0D0D0D",
-    invert: true,
-    textColor: "#FFFFFF",
+    bgColor: "#1A2B2A",
+    render: "twoLine",
+    primary: "#FFFFFF",
+    secondary: "School of Business",
   },
   {
-    name: "Startup Grind",
-    description: "Global Community",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/b/b6/Startup_Grind_logo.svg",
-    bgColor: "#E8192C",
-    invert: true,
-  },
-  {
-    name: "AWS",
-    description: "Cloud Credits",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
-    bgColor: "#232F3E",
-    invert: false,
+    name: "startup grind",
+    description: "Startup of the Year",
+    bgColor: "#FFFFFF",
+    render: "twoLine",
+    primary: "#1A1A1A",
+    secondary: "Bangalore",
+    accent: "#E8192C",
   },
   {
     name: "Microsoft",
     description: "for Startups",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg",
+    bgColor: "#000000",
+    render: "twoLine",
+    primary: "#FFFFFF",
+    secondary: "for Startups",
+  },
+  {
+    name: "Google",
+    description: "for Startups",
     bgColor: "#FFFFFF",
-    invert: false,
+    render: "twoLine",
+    primary: "#1A1A1A",
+    secondary: "for Startups",
+    accent: "#4285F4",
   },
   {
-    name: "Google Cloud",
-    description: "AI & ML Credits",
-    logo: "https://cdn.simpleicons.org/googlecloud",
-    bgColor: "#FFFFFF",
-    invert: false,
-  },
-  {
-    name: "Anthropic",
-    description: "AI Partner",
-    logo: "https://cdn.simpleicons.org/anthropic",
-    bgColor: "#191919",
-    invert: true,
-  },
-  {
-    name: "Emergent",
-    description: "Venture Partner",
-    logo: null,
-    bgColor: "#1A1A2E",
-    invert: true,
-    textColor: "#FFFFFF",
+    name: "e",
+    description: "Emergent",
+    bgColor: "#1A1A1A",
+    render: "lettermark",
+    primary: "#FFFFFF",
   },
 ];
+
+function BackerTile({ backer }: { backer: Backer }) {
+  if (backer.render === "lettermark") {
+    return (
+      <div
+        className="flex h-16 w-40 items-center justify-center rounded-2xl border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+        style={{ backgroundColor: backer.bgColor }}
+      >
+        <span
+          className="font-['Clash_Display'] text-4xl font-bold leading-none"
+          style={{ color: backer.primary }}
+        >
+          {backer.name}
+        </span>
+      </div>
+    );
+  }
+
+  if (backer.render === "twoLine") {
+    const isStartupGrind = backer.name === "startup grind";
+    const isGoogle = backer.name === "Google";
+    const isMicrosoft = backer.name === "Microsoft";
+
+    return (
+      <div
+        className="flex h-16 w-40 flex-col items-center justify-center gap-0.5 rounded-2xl border-2 border-neutral-900 px-3 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+        style={{ backgroundColor: backer.bgColor }}
+      >
+        {isStartupGrind ? (
+          <>
+            <span className="font-['Satoshi'] text-sm font-black leading-tight" style={{ color: backer.primary }}>
+              startup <span style={{ color: backer.accent }}>grind</span>
+            </span>
+            <span className="font-['Satoshi'] text-[10px] font-bold uppercase tracking-widest" style={{ color: backer.accent }}>
+              {backer.secondary}
+            </span>
+          </>
+        ) : isGoogle ? (
+          <>
+            <span className="font-['Clash_Display'] text-base font-bold leading-tight">
+              <span style={{ color: "#4285F4" }}>G</span>
+              <span style={{ color: "#EA4335" }}>o</span>
+              <span style={{ color: "#FBBC04" }}>o</span>
+              <span style={{ color: "#4285F4" }}>g</span>
+              <span style={{ color: "#34A853" }}>l</span>
+              <span style={{ color: "#EA4335" }}>e</span>
+            </span>
+            <span className="font-['Satoshi'] text-[10px] font-semibold" style={{ color: "#5F6368" }}>
+              for Startups
+            </span>
+          </>
+        ) : isMicrosoft ? (
+          <>
+            <div className="flex items-center gap-1.5">
+              <div className="grid grid-cols-2 gap-[2px] w-4 h-4 flex-shrink-0">
+                <div className="bg-[#F25022]" />
+                <div className="bg-[#7FBA00]" />
+                <div className="bg-[#00A4EF]" />
+                <div className="bg-[#FFB900]" />
+              </div>
+              <span className="font-['Satoshi'] text-sm font-bold" style={{ color: backer.primary }}>
+                Microsoft
+              </span>
+            </div>
+            <span className="font-['Satoshi'] text-[10px] font-semibold" style={{ color: "#AAAAAA" }}>
+              for Startups
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="font-['Clash_Display'] text-base font-bold leading-tight" style={{ color: backer.primary }}>
+              {backer.name}
+            </span>
+            {backer.secondary && (
+              <span className="font-['Satoshi'] text-[10px] font-semibold" style={{ color: backer.accent ?? backer.primary + "99" }}>
+                {backer.secondary}
+              </span>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return null;
+}
 
 export function BackedBySection() {
   return (
@@ -74,28 +151,10 @@ export function BackedBySection() {
           </h2>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-5">
+        <div className="flex flex-wrap items-end justify-center gap-4 md:gap-6">
           {BACKERS.map((backer) => (
             <div key={backer.name} className="flex flex-col items-center gap-2">
-              <div
-                className="flex h-16 w-40 flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-neutral-900 px-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
-                style={{ backgroundColor: backer.bgColor }}
-              >
-                {backer.logo ? (
-                  <img
-                    src={backer.logo}
-                    alt={backer.name}
-                    className={`h-6 max-w-[100px] object-contain${backer.invert ? " brightness-0 invert" : ""}`}
-                  />
-                ) : (
-                  <span
-                    className="font-['Clash_Display'] text-base font-bold"
-                    style={{ color: backer.textColor ?? "#FFFFFF" }}
-                  >
-                    {backer.name}
-                  </span>
-                )}
-              </div>
+              <BackerTile backer={backer} />
               <span className="font-['Satoshi'] text-xs text-neutral-500">
                 {backer.description}
               </span>
