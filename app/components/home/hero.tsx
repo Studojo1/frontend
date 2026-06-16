@@ -13,7 +13,7 @@ export function Hero() {
           {/* H1 */}
           <h1 className="font-['Clash_Display'] text-4xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl lg:text-6xl">
             Job boards are dead.{" "}
-            <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-purple-300 px-3 py-1 font-['Satoshi'] text-2xl font-medium text-neutral-900 md:text-4xl lg:text-5xl">
+            <span className="inline-flex items-center rounded-2xl border-2 border-neutral-900 bg-purple-300 px-3 py-0.5 align-middle font-['Clash_Display'] text-4xl font-medium leading-none text-neutral-900 md:text-5xl lg:text-6xl">
               We get you replies.
             </span>
           </h1>

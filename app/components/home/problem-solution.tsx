@@ -38,7 +38,7 @@ export function ProblemSolution() {
         <div className="mb-8 text-center md:mb-14">
           <h2 className="font-['Clash_Display'] text-3xl font-medium leading-8 text-neutral-900 md:text-4xl lg:text-5xl">
             The portal game is{" "}
-            <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-red-200 px-3 py-1 font-['Satoshi'] text-xl font-medium leading-8 text-neutral-900 md:text-3xl">
+            <span className="inline-flex items-center rounded-2xl border-2 border-neutral-900 bg-red-200 px-3 py-0.5 align-middle font-['Clash_Display'] text-3xl font-medium leading-none text-neutral-900 md:text-4xl lg:text-5xl">
               broken
             </span>
           </h2>
