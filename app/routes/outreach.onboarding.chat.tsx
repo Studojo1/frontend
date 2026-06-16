@@ -78,6 +78,8 @@ export default function ChatPage() {
 
     const userMsg: ChatMessage = { role: "user", content };
     addChatMessage(userMsg);
+    // Track how far each student gets through the quiz (drop-off per question).
+    capturePostHog("quiz_question_answered", { question_number: questionsAsked + 1, candidate_id: candidateId });
     setLoading(true);
     setStreamingText(null);
 

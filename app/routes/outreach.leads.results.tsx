@@ -106,7 +106,7 @@ export default function ResultsPage() {
               </select>
             </div>
             <button
-              onClick={() => navigate("/outreach/enrichment")}
+              onClick={() => { capturePostHog("get_emails_clicked", {}); navigate("/outreach/enrichment"); }}
               className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
             >
               <FiSend className="w-4 h-4 mr-1.5" /> Get Their Emails
@@ -178,7 +178,7 @@ export default function ResultsPage() {
       {leads.length > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
           <button
-            onClick={() => navigate("/outreach/enrichment")}
+            onClick={() => { capturePostHog("get_emails_clicked", {}); navigate("/outreach/enrichment"); }}
             className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
           >
             <FiSend className="w-4 h-4 mr-2" /> Get Their Emails
