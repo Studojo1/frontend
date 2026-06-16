@@ -172,6 +172,17 @@ jobs:
             --name studojo-aks \
             --overwrite-existing
 
+      - name: Ensure zero-downtime rollout strategy
+        run: |
+          # Surge a new pod up and wait for it to become ready BEFORE the old
+          # pod is torn down. Without this (maxSurge=0/maxUnavailable=1) a
+          # single-replica deploy has a no-ready-pod gap and nginx returns 503
+          # for ~30s on every deploy. Idempotent: no-op once already set, and a
+          # strategy-only patch does not by itself trigger a rollout.
+          kubectl patch deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            --type=strategic \
+            -p '{"spec":{"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0}}}}'
+
       - name: Deploy to Kubernetes
         run: |
           kubectl set image deployment/${{ env.APP_NAME }} \
