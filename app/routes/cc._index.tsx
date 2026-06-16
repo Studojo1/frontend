@@ -7,6 +7,18 @@ import { Section } from "~/components/common/section";
 import { authClient } from "~/lib/auth-client";
 import { capturePostHog } from "~/lib/posthog";
 
+const CC_API = "https://studojo.pro/api/v1/cc";
+function trackCC(event: string, props?: Record<string, unknown>) {
+  // Fire to our own backend so admin dashboard can see these stats
+  fetch(`${CC_API}/analytics/track`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event_type: event, event_data: props || {} }),
+  }).catch(() => {});
+  // Also send to PostHog for session recording
+  capturePostHog(event, props as any);
+}
+
 // For a returning, logged-in student who already has a Career DNA, show their
 // progress + a "continue" action ON the coach page (not a homepage banner).
 // New/logged-out users see nothing here. Uses the same-origin summary proxy.
@@ -20,7 +32,7 @@ function ReturningStudentProgress() {
       .then((d) => {
         setSummary(d);
         if (d?.found && d?.has_analysis) {
-          capturePostHog("cc_returning_card_shown", {
+          trackCC("cc_returning_card_shown", {
             readiness_score: d.readiness_score,
             level: d.level,
           });
@@ -72,7 +84,7 @@ function ReturningStudentProgress() {
           </div>
           <Link
             to={summary.chat_url || "/cc/chat"}
-            onClick={() => capturePostHog("cc_returning_card_clicked", { level: summary.level })}
+            onClick={() => trackCC("cc_returning_card_clicked", { level: summary.level })}
             className="inline-flex h-10 flex-shrink-0 items-center justify-center gap-2 rounded-xl px-5 font-['Satoshi'] text-sm font-bold text-white transition-all hover:brightness-110"
             style={{ background: "linear-gradient(135deg,#7C3AED,#5B21B6)" }}
           >
@@ -220,7 +232,7 @@ const GLASS_BORDER = "rgba(255,255,255,0.08)";
 export default function CcIndex() {
   // Track landing page view once on mount
   useEffect(() => {
-    capturePostHog("cc_landing_viewed");
+    trackCC("cc_landing_viewed");
   }, []);
 
   return (
@@ -298,7 +310,7 @@ export default function CcIndex() {
               </p>
               <Link
                 to="/cc/chat?new=1"
-                onClick={() => capturePostHog("cc_cta_clicked", { source: "hero" })}
+                onClick={() => trackCC("cc_cta_clicked", { source: "hero" })}
                 className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl px-10 font-['Satoshi'] text-base font-bold transition-all hover:brightness-110 active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
@@ -469,7 +481,7 @@ export default function CcIndex() {
                     </ul>
                     <Link
                       to="/cc/chat?new=1"
-                      onClick={() => capturePostHog("cc_cta_clicked", { source: `what_you_get_${c.label.toLowerCase().replace(/ /g, "_")}` })}
+                      onClick={() => trackCC("cc_cta_clicked", { source: `what_you_get_${c.label.toLowerCase().replace(/ /g, "_")}` })}
                       className="mt-auto inline-flex items-center gap-1.5 pt-5 font-['Satoshi'] text-sm font-semibold transition-opacity hover:opacity-80"
                       style={{ color: c.accent }}
                     >
@@ -568,7 +580,7 @@ export default function CcIndex() {
             <div className="relative mt-8 flex justify-center">
               <Link
                 to="/cc/chat?new=1"
-                onClick={() => capturePostHog("cc_cta_clicked", { source: "bottom_banner" })}
+                onClick={() => trackCC("cc_cta_clicked", { source: "bottom_banner" })}
                 className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl px-8 font-['Satoshi'] text-base font-bold transition-all hover:brightness-110 active:scale-[0.98]"
                 style={{
                   background: "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)",
