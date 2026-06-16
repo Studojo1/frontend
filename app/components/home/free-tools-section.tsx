@@ -90,7 +90,7 @@ export function FreeToolsSection() {
           </p>
           <h2 className="font-['Clash_Display'] text-3xl font-medium text-neutral-900 md:text-4xl lg:text-5xl">
             Free tools,{" "}
-            <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-emerald-300 px-3 py-1 font-['Satoshi'] text-xl font-medium text-neutral-900 md:text-3xl">
+            <span className="inline-flex items-center rounded-2xl border-2 border-neutral-900 bg-emerald-300 px-3 py-0.5 align-middle font-['Clash_Display'] text-3xl font-medium leading-none text-neutral-900 md:text-4xl lg:text-5xl">
               no catch
             </span>
           </h2>

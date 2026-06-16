@@ -1,63 +1,48 @@
 type Backer = {
   name: string;
-  description: string;
-  logo: string | null;
-  bgColor: string;
-  invert: boolean;
-  textColor?: string;
+  bg: string;
+  // logo image rendered inside the tile
+  img: string;
+  imgClass: string;
+  // optional "for Startups" sublabel rendered next to the logo
+  sublabel?: string;
+  sublabelClass?: string;
 };
 
 const BACKERS: Backer[] = [
   {
     name: "Mesa",
-    description: "Startup Accelerator",
-    logo: null,
-    bgColor: "#0D0D0D",
-    invert: true,
-    textColor: "#FFFFFF",
+    bg: "#1A2B2A",
+    img: "/logos/mesa.png",
+    imgClass: "h-7 w-auto", // white logo, shows on dark tile
   },
   {
     name: "Startup Grind",
-    description: "Global Community",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/b/b6/Startup_Grind_logo.svg",
-    bgColor: "#E8192C",
-    invert: true,
+    bg: "#FFFFFF",
+    img: "/logos/startupgrind.svg",
+    imgClass: "h-8 w-auto", // black + red wordmark on white
   },
   {
-    name: "AWS",
-    description: "Cloud Credits",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
-    bgColor: "#232F3E",
-    invert: false,
+    name: "Microsoft for Startups",
+    bg: "#FFFFFF",
+    img: "/logos/microsoft.svg",
+    imgClass: "h-6 w-auto",
+    sublabel: "Microsoft for Startups",
+    sublabelClass: "text-neutral-800",
   },
   {
-    name: "Microsoft",
-    description: "for Startups",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg",
-    bgColor: "#FFFFFF",
-    invert: false,
-  },
-  {
-    name: "Google Cloud",
-    description: "AI & ML Credits",
-    logo: "https://cdn.simpleicons.org/googlecloud",
-    bgColor: "#FFFFFF",
-    invert: false,
-  },
-  {
-    name: "Anthropic",
-    description: "AI Partner",
-    logo: "https://cdn.simpleicons.org/anthropic",
-    bgColor: "#191919",
-    invert: true,
+    name: "Google for Startups",
+    bg: "#FFFFFF",
+    img: "/logos/google-g.svg",
+    imgClass: "h-6 w-auto",
+    sublabel: "Google for Startups",
+    sublabelClass: "text-neutral-800",
   },
   {
     name: "Emergent",
-    description: "Venture Partner",
-    logo: null,
-    bgColor: "#1A1A2E",
-    invert: true,
-    textColor: "#FFFFFF",
+    bg: "#1A1A1A",
+    img: "/logos/emergent.svg",
+    imgClass: "h-5 w-auto brightness-0 invert", // black wordmark -> white on dark tile
   },
 ];
 
@@ -70,35 +55,23 @@ export function BackedBySection() {
             Backed by
           </p>
           <h2 className="mt-4 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">
-            Supported by the best in tech
+            Backed by the best in tech
           </h2>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-5">
-          {BACKERS.map((backer) => (
-            <div key={backer.name} className="flex flex-col items-center gap-2">
-              <div
-                className="flex h-16 w-40 flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-neutral-900 px-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
-                style={{ backgroundColor: backer.bgColor }}
-              >
-                {backer.logo ? (
-                  <img
-                    src={backer.logo}
-                    alt={backer.name}
-                    className={`h-6 max-w-[100px] object-contain${backer.invert ? " brightness-0 invert" : ""}`}
-                  />
-                ) : (
-                  <span
-                    className="font-['Clash_Display'] text-base font-bold"
-                    style={{ color: backer.textColor ?? "#FFFFFF" }}
-                  >
-                    {backer.name}
-                  </span>
-                )}
-              </div>
-              <span className="font-['Satoshi'] text-xs text-neutral-500">
-                {backer.description}
-              </span>
+          {BACKERS.map((b) => (
+            <div
+              key={b.name}
+              className="flex h-16 w-48 items-center justify-center gap-2.5 rounded-2xl border-2 border-neutral-900 px-5 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+              style={{ backgroundColor: b.bg }}
+            >
+              <img src={b.img} alt={b.name} className={`shrink-0 object-contain ${b.imgClass}`} />
+              {b.sublabel && (
+                <span className={`font-['Satoshi'] text-xs font-semibold leading-tight ${b.sublabelClass ?? ""}`}>
+                  {b.sublabel}
+                </span>
+              )}
             </div>
           ))}
         </div>

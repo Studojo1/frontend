@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "cold-email-subject-lines-best-practices-2026",
+    publishDate: "2026-06-16",
+    title: "Cold Email Subject Lines: What Actually Gets Opened",
+    subtitle: "Cold Email · 2026",
+    excerpt: "Your subject line is the only part of a cold email most people ever see. This report ranks the subject patterns that earn opens, the phrases that train spam filters and humans to ignore you, and ready-to-adapt templates for internships, referrals, and hiring manager outreach.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "June 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "first-1-lakh-month-report-fastest-paths-students-2026",
     publishDate: "2026-06-12",
     title: "The First ₹1 Lakh/Month Report: The Fastest Paths Students Actually Use",

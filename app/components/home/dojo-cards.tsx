@@ -37,7 +37,7 @@ export function FeaturedProductCard() {
         <div className="mb-8 text-center md:mb-14">
           <h2 className="font-['Clash_Display'] text-3xl font-medium leading-8 text-neutral-900 md:text-4xl lg:text-5xl">
             Your path to the{" "}
-            <span className="inline-flex rounded-2xl border-2 border-neutral-900 bg-violet-300 px-3 py-1 font-['Satoshi'] text-xl font-medium leading-8 text-neutral-900 md:text-3xl">
+            <span className="inline-flex items-center rounded-2xl border-2 border-neutral-900 bg-violet-300 px-3 py-0.5 align-middle font-['Clash_Display'] text-3xl font-medium leading-none text-neutral-900 md:text-4xl lg:text-5xl">
               interview room
             </span>
           </h2>
