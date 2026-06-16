@@ -59,6 +59,7 @@ export async function loader() {
     { loc: "/reports/return-offer-report-why-some-interns-get-hired-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/nepotism-report-how-much-hiring-happens-through-connections-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/first-1-lakh-month-report-fastest-paths-students-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/cold-email-subject-lines-best-practices-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
@@ -136,6 +137,7 @@ export async function loader() {
     "/reports/return-offer-report-why-some-interns-get-hired-2026": "2026-06-06",
     "/reports/nepotism-report-how-much-hiring-happens-through-connections-2026": "2026-06-12",
     "/reports/first-1-lakh-month-report-fastest-paths-students-2026": "2026-06-12",
+    "/reports/cold-email-subject-lines-best-practices-2026": "2026-06-16",
   };
 
   const urls = [
