@@ -674,7 +674,7 @@ export default function EnrichmentPage() {
                 <ul className="space-y-2.5 mb-5 flex-1">
                   {tier.features.map((feat) => (
                     <li key={feat} className="flex items-start gap-2 text-xs font-satoshi text-studojo-ink leading-snug">
-                      <FiCheckCircle className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
+                      <FiCheck className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
                       {feat}
                     </li>
                   ))}
