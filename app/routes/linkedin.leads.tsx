@@ -29,14 +29,46 @@ export default function LinkedInLeads() {
     }
   }, [candidateId, navigate]);
 
-  useEffect(() => {
+  const [importing, setImporting] = useState(false);
+  const [hasOutreachLeads, setHasOutreachLeads] = useState(false);
+
+  const loadLeads = () => {
     if (!candidateId) return;
     setLoading(true);
     outreachFetch<{ leads: Lead[] } | Lead[]>(`/candidate/${candidateId}/leads`)
       .then((r: any) => setLeads(Array.isArray(r) ? r : (r?.leads ?? [])))
       .catch((e: any) => setError(e?.body?.detail || "Couldn't load matches"))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { loadLeads(); }, [candidateId]);
+
+  // Check whether the user has leads in a previous Outreach campaign to offer import.
+  useEffect(() => {
+    if (!candidateId) return;
+    outreachFetch<any>(`/discovery/outreach-sources/${candidateId}`)
+      .then((r: any) => setHasOutreachLeads((r?.sources?.length ?? 0) > 0))
+      .catch(() => setHasOutreachLeads(false));
   }, [candidateId]);
+
+  const importFromOutreach = async () => {
+    if (!candidateId || importing) return;
+    setImporting(true);
+    try {
+      const r = await outreachFetch<any>("/discovery/import-from-outreach", {
+        method: "POST",
+        body: JSON.stringify({ candidate_id: candidateId }),
+        timeout: 60_000,
+      });
+      loadLeads();
+      setHasOutreachLeads(false);
+      if ((r?.imported ?? 0) === 0) setError("No new leads to import — they're already here.");
+    } catch (e: any) {
+      setError(e?.body?.detail || "Import failed");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const sorted = useMemo(() => {
     const arr = [...leads];
@@ -77,6 +109,16 @@ export default function LinkedInLeads() {
                 <option value="name">Name (A–Z)</option>
               </select>
             </div>
+            {hasOutreachLeads && (
+              <button
+                onClick={importFromOutreach}
+                disabled={importing}
+                className="h-9 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap disabled:opacity-60"
+                title="Bring leads you already discovered in an Outreach campaign into LinkedIn"
+              >
+                {importing ? "Importing…" : "⬇ Export from Outreach"}
+              </button>
+            )}
             <button
               onClick={() => navigate("/linkedin/pricing")}
               className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
@@ -97,8 +139,23 @@ export default function LinkedInLeads() {
           </div>
         ) : sorted.length === 0 ? (
           <div className="rounded-2xl border-2 border-studojo-ink/15 bg-studojo-surface-muted p-10 text-center">
-            <p className="font-bold font-satoshi text-studojo-ink mb-1">Still finding matches…</p>
-            <p className="text-sm text-studojo-muted font-satoshi">This usually takes about 2 minutes after upload. Refresh in a bit?</p>
+            <p className="font-bold font-satoshi text-studojo-ink mb-1">
+              {hasOutreachLeads ? "No LinkedIn matches yet" : "Still finding matches…"}
+            </p>
+            <p className="text-sm text-studojo-muted font-satoshi mb-4">
+              {hasOutreachLeads
+                ? "You already have leads from an Outreach campaign — bring them in with one click."
+                : "This usually takes about 2 minutes after upload. Refresh in a bit?"}
+            </p>
+            {hasOutreachLeads && (
+              <button
+                onClick={importFromOutreach}
+                disabled={importing}
+                className="h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-60"
+              >
+                {importing ? "Importing…" : "⬇ Export from Outreach"}
+              </button>
+            )}
           </div>
         ) : (
           <>
