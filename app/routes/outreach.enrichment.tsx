@@ -257,7 +257,7 @@ export default function EnrichmentPage() {
     }
     // The outreach flow goes straight to Gmail connect (never payment-success.tsx),
     // so fire payment_confirmed here or the funnel's "Paid" step misses these.
-    capturePostHog("payment_confirmed", { tier: selectedTier, currency });
+    capturePostHog("payment_confirmed", { tier: selectedTier, currency, amount_cents: pricing.find((p) => p.tier === selectedTier)?.amount_cents });
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
@@ -376,7 +376,7 @@ export default function EnrichmentPage() {
         body: JSON.stringify({ code: couponCode.trim(), tier: selectedTier, currency }),
       });
       setCouponResult(data);
-      capturePostHog("coupon_applied", { code: couponCode.trim(), valid: !!data?.valid });
+      capturePostHog("coupon_applied", { coupon_code: couponCode.trim(), valid: !!data?.valid });
     } catch (err: any) {
       setCouponError(err?.body?.detail || err.message || "Invalid coupon");
     } finally {

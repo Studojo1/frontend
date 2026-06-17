@@ -33,7 +33,7 @@ export default function ResultsPage() {
           const list = Array.isArray(data) ? data : data.leads || [];
           setLeads(list);
           if (isInitial) {
-            capturePostHog("leads_loaded", { count: list.length, candidate_id: candidateId });
+            capturePostHog("leads_loaded", { count: list.length, leads_found: list.length, candidate_id: candidateId });
           }
           // If fewer than 50% of leads have justification, scoring is still running —
           // re-fetch in 15s so bullets appear without a manual refresh.
