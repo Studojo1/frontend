@@ -7,6 +7,7 @@ import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { useOrder } from "~/lib/outreach/hooks";
 import { outreachFetch } from "~/lib/outreach/api";
+import { capturePostHog } from "~/lib/posthog";
 import type { TierPricing } from "~/lib/outreach/types";
 
 declare global {
@@ -259,6 +260,9 @@ export default function EnrichmentPage() {
         publishEmailEventFromClient("event.cc.paid", { user_id: user.id }).catch(() => {});
       }).catch(() => {});
     }
+    // The outreach flow goes straight to Gmail connect (never payment-success.tsx),
+    // so fire payment_confirmed here or the funnel's "Paid" step misses these.
+    capturePostHog("payment_confirmed", { tier: selectedTier, currency });
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
@@ -377,6 +381,7 @@ export default function EnrichmentPage() {
         body: JSON.stringify({ code: couponCode.trim(), tier: selectedTier, currency }),
       });
       setCouponResult(data);
+      capturePostHog("coupon_applied", { code: couponCode.trim(), valid: !!data?.valid });
     } catch (err: any) {
       setCouponError(err?.body?.detail || err.message || "Invalid coupon");
     } finally {
@@ -387,10 +392,13 @@ export default function EnrichmentPage() {
   const handlePayAndContinue = async (tierValue: number = selectedTier) => {
     if (!candidateId) return;
 
+    const coveredByCredits = !!(credits && credits.available_credits >= tierValue);
+    capturePostHog("pay_now_clicked", { tier: tierValue, covered_by_credits: coveredByCredits });
+
     // If user already has enough credits for this specific tier, skip payment.
     // tierValue is passed explicitly from the button to avoid stale closure
     // (setSelectedTier is async; reading selectedTier here would get the old value).
-    if (credits && credits.available_credits >= tierValue) {
+    if (coveredByCredits) {
       onPaymentSuccess();
       return;
     }
@@ -417,6 +425,7 @@ export default function EnrichmentPage() {
         dodoSessionRef.current = orderData.session_id;
         dodoTierRef.current = selectedTier;
         dodoPollingRef.current = true;
+        capturePostHog("checkout_opened", { tier: tierValue, provider: "dodo" });
         setDodoCheckoutUrl(orderData.checkout_url);
         pollDodoVerify(0);
         return;
@@ -448,14 +457,16 @@ export default function EnrichmentPage() {
         },
         prefill: { email: user?.email || "", name: user?.name || "" },
         theme: { color: "#7C3AED" },
-        modal: { ondismiss: () => setPaying(false) },
+        modal: { ondismiss: () => { capturePostHog("checkout_abandoned", { tier: tierValue, provider: "razorpay" }); setPaying(false); } },
       };
 
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", (response: any) => {
+        capturePostHog("payment_failed", { tier: tierValue, provider: "razorpay", reason: response.error?.description });
         setError(response.error?.description || "Payment failed");
         setPaying(false);
       });
+      capturePostHog("checkout_opened", { tier: tierValue, provider: "razorpay" });
       rzp.open();
     } catch (err: any) {
       setError(err?.body?.detail || err.message || "Failed to create payment order");
@@ -560,7 +571,7 @@ export default function EnrichmentPage() {
             it reads as a distinct action, not as title-adjacent floating text. */}
         <div className="mb-5">
           <button
-            onClick={() => navigate("/outreach/leads/results")}
+            onClick={() => { capturePostHog("back_to_leads_clicked", {}); navigate("/outreach/leads/results"); }}
             className="inline-flex items-center gap-1.5 rounded-xl border-2 border-studojo-ink/15 bg-white px-3 py-1.5 text-sm font-semibold text-studojo-ink hover:bg-studojo-surface-muted hover:border-studojo-ink/40 transition-colors"
           >
             <FiArrowLeft className="w-4 h-4" /> Back to your hiring managers
@@ -617,7 +628,7 @@ export default function EnrichmentPage() {
             return (
               <div
                 key={tier.value}
-                onClick={() => { setSelectedTier(tier.value); setCouponResult(null); setCouponError(""); }}
+                onClick={() => { capturePostHog("tier_selected", { tier: tier.value }); setSelectedTier(tier.value); setCouponResult(null); setCouponError(""); }}
                 className={`relative rounded-2xl border-2 p-5 cursor-pointer transition-all flex flex-col ${
                   tier.recommended
                     ? "border-studojo-purple bg-studojo-purple-bg/20 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)]"
@@ -808,10 +819,10 @@ export default function EnrichmentPage() {
       {/* Dodo Payments checkout modal */}
       {dodoCheckoutUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/60" onClick={() => { closeDodoModal(); setPaying(false); }} />
+          <div className="absolute inset-0 bg-black/60" onClick={() => { capturePostHog("checkout_abandoned", { tier: selectedTier, provider: "dodo" }); closeDodoModal(); setPaying(false); }} />
           <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden" style={{ width: "min(480px, 95vw)", height: "min(640px, 90vh)" }}>
             <button
-              onClick={() => { closeDodoModal(); setPaying(false); }}
+              onClick={() => { capturePostHog("checkout_abandoned", { tier: selectedTier, provider: "dodo" }); closeDodoModal(); setPaying(false); }}
               className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold"
             >
               &times;

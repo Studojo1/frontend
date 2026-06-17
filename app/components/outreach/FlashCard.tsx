@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { capturePostHog } from "~/lib/posthog";
 import type { Lead } from "~/lib/outreach/types";
 
 interface FlashCardProps {
@@ -74,7 +75,7 @@ export function FlashCard({ lead }: FlashCardProps) {
 
   return (
     <div
-      onClick={() => navigate("/outreach/enrichment")}
+      onClick={() => { capturePostHog("lead_contact_clicked", { company: lead.company }); navigate("/outreach/enrichment"); }}
       className="group relative overflow-hidden rounded-2xl border-2 border-studojo-ink shadow-brutal bg-white p-4 cursor-pointer transition-all hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-brutal-lg"
     >
       <div className="flex items-center gap-3">

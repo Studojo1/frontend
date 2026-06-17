@@ -65,6 +65,7 @@ export default function ChatPage() {
       clearChatHistory();
       addChatMessage({ role: "assistant", content: Q1_STATIC.message });
       setCurrentResponse(Q1_STATIC);
+      capturePostHog("quiz_started", { candidate_id: candidateId });
     }
   }, [candidateId]);
 
@@ -73,11 +74,13 @@ export default function ChatPage() {
   const quizProgress = Math.min(100, (questionsAsked / ESTIMATED_TOTAL) * 100);
   const sidebarStep = currentResponse?.is_complete ? 3 : 2;
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, answerType: string = "text") => {
     if (!candidateId) return;
 
     const userMsg: ChatMessage = { role: "user", content };
     addChatMessage(userMsg);
+    // Track how far each student gets through the quiz (drop-off per question).
+    capturePostHog("quiz_question_answered", { question_number: questionsAsked + 1, answer_type: answerType, candidate_id: candidateId });
     setLoading(true);
     setStreamingText(null);
 
@@ -196,12 +199,12 @@ export default function ChatPage() {
   };
 
   const handleMCQSubmit = (selected: string[]) => {
-    sendMessage(selected.join(", "));
+    sendMessage(selected.join(", "), currentResponse?.mcq?.allow_multiple ? "mcq_multi" : "mcq");
   };
 
   const handleTextSubmit = () => {
     if (textInput.trim()) {
-      sendMessage(textInput.trim());
+      sendMessage(textInput.trim(), "text");
       setTextInput("");
     }
   };

@@ -7,10 +7,9 @@ import { Section } from "~/components/common/section";
 import { authClient } from "~/lib/auth-client";
 import { capturePostHog } from "~/lib/posthog";
 
-const CC_API = "https://studojo.pro/api/v1/cc";
 function trackCC(event: string, props?: Record<string, unknown>) {
-  // Fire to our own backend so admin dashboard can see these stats
-  fetch(`${CC_API}/analytics/track`, {
+  // Relative path — works on both studojo.pro and studojo.com via ingress
+  fetch(`/api/v1/cc/analytics/track`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ event_type: event, event_data: props || {} }),

@@ -60,6 +60,7 @@ export default function UploadPage() {
     if (!file) return;
     setUploading(true);
     setError("");
+    capturePostHog("resume_upload_started", { file_type: file.type || "unknown", file_size: file.size });
     try {
       const token = await getToken();
       if (!token) throw new ControlPlaneError("Not authenticated", 401);
@@ -98,6 +99,7 @@ export default function UploadPage() {
         }).catch(() => {});
       }
     } catch (err: any) {
+      capturePostHog("resume_upload_failed", { file_type: file?.type || "unknown", reason: err?.body?.detail || err?.message || "unknown" });
       setError(err?.body?.detail || err.message || "Upload failed. Please try again.");
     } finally {
       setUploading(false);
