@@ -9,10 +9,10 @@ export function meta({}: Route.MetaArgs) {
 
 const PRICE_PER_CREDIT = 1500; // ₹
 const LEADS_PER_RUN = 25;
-const MIN_CREDITS = 1;
+const MIN_CREDITS = 10;
 const MAX_CREDITS = 500;
 
-const PRESETS = [1, 5, 10, 25, 50, 100, 200, 500];
+const PRESETS = [10, 25, 50, 100, 200, 500];
 
 const INCLUDED = [
   "25 verified hiring manager contacts per run",
@@ -28,7 +28,7 @@ const INCLUDED = [
 export default function PhonePartnersCheckout() {
   const navigate = useNavigate();
   const [user] = useState(getStoredUser);
-  const [credits, setCredits] = useState(5);
+  const [credits, setCredits] = useState(10);
   const [couponCode, setCouponCode] = useState("");
   const [couponState, setCouponState] = useState<{
     valid?: boolean;
