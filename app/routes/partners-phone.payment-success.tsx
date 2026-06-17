@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { phonePartnersPost } from "~/lib/partnersPhone/api";
-import type { Route } from "./+types/partners.phone.payment-success";
+import type { Route } from "./+types/partners-phone.payment-success";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Payment Complete | Studojo Phone API" }];
@@ -15,7 +15,7 @@ export default function PhonePartnersPaymentSuccess() {
   useEffect(() => {
     const checkoutId = localStorage.getItem("phone_partner_checkout_id");
     if (!checkoutId) {
-      navigate("/partners/phone/dashboard");
+      navigate("/partners-phone/dashboard");
       return;
     }
     (async () => {
@@ -61,7 +61,7 @@ export default function PhonePartnersPaymentSuccess() {
               </p>
             )}
             <Link
-              to="/partners/phone/dashboard"
+              to="/partners-phone/dashboard"
               className="mt-8 inline-block w-full rounded-xl border-2 border-neutral-900 bg-violet-500 py-3 text-sm font-bold text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
             >
               Go to dashboard →
@@ -77,7 +77,7 @@ export default function PhonePartnersPaymentSuccess() {
               Your payment is being confirmed. Credits will appear in your dashboard within a few minutes.
             </p>
             <Link
-              to="/partners/phone/dashboard"
+              to="/partners-phone/dashboard"
               className="mt-8 inline-block w-full rounded-xl border-2 border-neutral-900 bg-neutral-900 py-3 text-sm font-bold text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
             >
               Go to dashboard
@@ -93,7 +93,7 @@ export default function PhonePartnersPaymentSuccess() {
               We could not verify your payment. If you were charged, your credits will be added shortly. Contact support if this persists.
             </p>
             <Link
-              to="/partners/phone/dashboard"
+              to="/partners-phone/dashboard"
               className="mt-8 inline-block w-full rounded-xl border-2 border-neutral-900 bg-neutral-900 py-3 text-sm font-bold text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
             >
               Go to dashboard

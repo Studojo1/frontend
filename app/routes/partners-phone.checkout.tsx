@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { phonePartnersPost, PhonePartnersApiError, getStoredUser, clearToken } from "~/lib/partnersPhone/api";
-import type { Route } from "./+types/partners.phone.checkout";
+import type { Route } from "./+types/partners-phone.checkout";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Buy Credits | Studojo Phone API" }];
@@ -41,7 +41,7 @@ export default function PhonePartnersCheckout() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) navigate("/partners/phone/login");
+    if (!user) navigate("/partners-phone/login");
   }, [user, navigate]);
 
   const basePaise = credits * PRICE_PER_CREDIT * 100;
@@ -80,7 +80,7 @@ export default function PhonePartnersCheckout() {
     setCheckingOut(true);
     setError(null);
     try {
-      const returnUrl = `${window.location.origin}/partners/phone/payment-success`;
+      const returnUrl = `${window.location.origin}/partners-phone/payment-success`;
       const res = await phonePartnersPost<{ checkout_url: string; checkout_id: string }>(
         "/api/v1/phone/partners/payment/checkout",
         {
@@ -102,7 +102,7 @@ export default function PhonePartnersCheckout() {
   return (
     <div className="min-h-screen bg-neutral-50 font-['Satoshi']">
       <nav className="border-b-2 border-neutral-900 bg-white px-6 py-4 flex items-center justify-between">
-        <Link to="/partners/phone" className="font-['Clash_Display'] text-xl font-bold text-neutral-900">
+        <Link to="/partners-phone" className="font-['Clash_Display'] text-xl font-bold text-neutral-900">
           Studojo Phone API
         </Link>
         <div className="flex items-center gap-4">
@@ -112,7 +112,7 @@ export default function PhonePartnersCheckout() {
             </span>
           )}
           <button
-            onClick={() => { clearToken(); navigate("/partners/phone/login"); }}
+            onClick={() => { clearToken(); navigate("/partners-phone/login"); }}
             className="text-sm text-neutral-500 hover:text-neutral-800"
           >
             Sign out

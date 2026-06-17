@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { phonePartnersGet, phonePartnersPost, phonePartnersDelete, clearToken, getStoredUser } from "~/lib/partnersPhone/api";
-import type { Route } from "./+types/partners.phone.dashboard";
+import type { Route } from "./+types/partners-phone.dashboard";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Dashboard | Studojo Phone API" }];
@@ -648,7 +648,7 @@ export default function PhonePartnersDashboard() {
       setMe(data);
     } catch {
       clearToken();
-      navigate("/partners/phone/login");
+      navigate("/partners-phone/login");
     } finally {
       setLoadingMe(false);
     }
@@ -666,7 +666,7 @@ export default function PhonePartnersDashboard() {
   }, []);
 
   useEffect(() => {
-    if (!storedUser) { navigate("/partners/phone/login"); return; }
+    if (!storedUser) { navigate("/partners-phone/login"); return; }
     fetchMe();
     fetchKeys();
   }, [storedUser, navigate, fetchMe, fetchKeys]);
@@ -705,7 +705,7 @@ export default function PhonePartnersDashboard() {
     <div className="min-h-screen bg-neutral-50 font-['Satoshi']">
       {/* Nav */}
       <nav className="border-b-2 border-neutral-900 bg-white px-6 py-4 flex items-center justify-between">
-        <Link to="/partners/phone" className="font-['Clash_Display'] text-xl font-bold text-neutral-900">
+        <Link to="/partners-phone" className="font-['Clash_Display'] text-xl font-bold text-neutral-900">
           Studojo Phone API
         </Link>
         <div className="flex items-center gap-3">
@@ -724,7 +724,7 @@ export default function PhonePartnersDashboard() {
             </button>
           </div>
           <button
-            onClick={() => { clearToken(); navigate("/partners/phone/login"); }}
+            onClick={() => { clearToken(); navigate("/partners-phone/login"); }}
             className="text-sm text-neutral-500 hover:text-neutral-800 ml-2"
           >
             Sign out
@@ -758,7 +758,7 @@ export default function PhonePartnersDashboard() {
                   </div>
                 </div>
                 <Link
-                  to="/partners/phone/checkout"
+                  to="/partners-phone/checkout"
                   className="rounded-xl border-2 border-neutral-900 bg-violet-500 px-5 py-2.5 text-sm font-bold text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
                 >
                   Buy credits

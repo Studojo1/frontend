@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import type { Route } from "./+types/partners.phone._index";
+import type { Route } from "./+types/partners-phone._index";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -69,13 +69,13 @@ export default function PhonePartnersLanding() {
         </Link>
         <div className="flex items-center gap-4">
           <Link
-            to="/partners/phone/login"
+            to="/partners-phone/login"
             className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
           >
             Sign in
           </Link>
           <Link
-            to="/partners/phone/signup"
+            to="/partners-phone/signup"
             className="rounded-xl border-2 border-neutral-900 bg-violet-500 px-5 py-2 text-sm font-semibold text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
           >
             Get API Access
@@ -99,13 +99,13 @@ export default function PhonePartnersLanding() {
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
-            to="/partners/phone/signup"
+            to="/partners-phone/signup"
             className="rounded-xl border-2 border-neutral-900 bg-violet-500 px-8 py-3.5 text-base font-semibold text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
           >
             Start building →
           </Link>
           <Link
-            to="/partners/phone/login"
+            to="/partners-phone/login"
             className="rounded-xl border-2 border-neutral-900 bg-white px-8 py-3.5 text-base font-semibold text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
           >
             Sign in
@@ -221,7 +221,7 @@ export default function PhonePartnersLanding() {
           No monthly fee.
         </p>
         <Link
-          to="/partners/phone/signup"
+          to="/partners-phone/signup"
           className="mt-8 inline-block rounded-xl border-2 border-neutral-900 bg-white px-8 py-3.5 text-base font-semibold text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
         >
           Get API Access →
