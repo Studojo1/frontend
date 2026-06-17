@@ -34,8 +34,8 @@ const FEATURES = [
     desc: "Full discovery, scoring, web research, and contact enrichment — delivered in under 5 minutes.",
   },
   {
-    title: "₹120 per lead",
-    desc: "₹3,000 per run. 25 leads per run. No monthly fee, no seat license, no renewal.",
+    title: "₹60 per lead",
+    desc: "₹1,500 per run. 25 leads per run. No monthly fee, no seat license, no renewal.",
   },
 ];
 
@@ -115,7 +115,7 @@ export default function PhonePartnersLanding() {
         {/* Pricing callout */}
         <div className="mx-auto mt-12 flex w-fit flex-wrap items-center justify-center gap-6 rounded-2xl border-2 border-neutral-900 bg-neutral-50 px-8 py-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
           <div className="text-center">
-            <div className="font-['Clash_Display'] text-3xl font-bold text-neutral-900">₹3,000</div>
+            <div className="font-['Clash_Display'] text-3xl font-bold text-neutral-900">₹1,500</div>
             <div className="text-xs text-neutral-500">per run</div>
           </div>
           <div className="h-10 w-px bg-neutral-300 hidden sm:block" />
@@ -125,7 +125,7 @@ export default function PhonePartnersLanding() {
           </div>
           <div className="h-10 w-px bg-neutral-300 hidden sm:block" />
           <div className="text-center">
-            <div className="font-['Clash_Display'] text-3xl font-bold text-violet-600">₹120</div>
+            <div className="font-['Clash_Display'] text-3xl font-bold text-violet-600">₹60</div>
             <div className="text-xs text-neutral-500">per verified lead</div>
           </div>
           <div className="h-10 w-px bg-neutral-300 hidden sm:block" />

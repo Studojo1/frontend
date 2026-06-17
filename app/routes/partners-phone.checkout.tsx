@@ -7,7 +7,7 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "Buy Credits | Studojo Phone API" }];
 }
 
-const PRICE_PER_CREDIT = 3000; // ₹
+const PRICE_PER_CREDIT = 1500; // ₹
 const LEADS_PER_RUN = 25;
 const MIN_CREDITS = 1;
 const MAX_CREDITS = 500;
@@ -223,7 +223,7 @@ export default function PhonePartnersCheckout() {
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-neutral-600">
-                  <span>{credits.toLocaleString("en-IN")} credits × ₹3,000</span>
+                  <span>{credits.toLocaleString("en-IN")} credits × ₹1,500</span>
                   <span className="font-semibold">₹{(credits * PRICE_PER_CREDIT).toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex justify-between text-neutral-400">
