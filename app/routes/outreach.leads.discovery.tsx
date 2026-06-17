@@ -5,6 +5,7 @@ import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
+import { capturePostHog } from "~/lib/posthog";
 
 const POLL_INTERVAL_MS = 5000;
 // The counter + bar ramp over this window, then HOLD until results are actually
@@ -282,8 +283,12 @@ export default function DiscoveryPage() {
     if (authLoading || !candidateId) return;
     let cancelled = false;
 
-    const finish = () => {
+    const startedAt = Date.now();
+    capturePostHog("discovery_started", { candidate_id: candidateId });
+
+    const finish = (leadsFound?: number) => {
       if (cancelled) return;
+      capturePostHog("discovery_completed", { candidate_id: candidateId, leads_found: leadsFound ?? null, seconds: Math.round((Date.now() - startedAt) / 1000) });
       setAllDone(true);
       setTimeout(() => navigate("/outreach/leads/results"), 900);
     };
@@ -300,6 +305,7 @@ export default function DiscoveryPage() {
         pollRef.current = setInterval(async () => {
           if (Date.now() - started >= SCORING_TIMEOUT_MS) {
             clearInterval(pollRef.current);
+            capturePostHog("discovery_failed", { candidate_id: candidateId, reason: "scoring_timeout" });
             finish();
             return;
           }
@@ -307,7 +313,7 @@ export default function DiscoveryPage() {
             const data = await outreachFetch<any>(`/discovery/scoring-ready/${candidateId}`, { method: "GET" });
             if (data?.ready) {
               clearInterval(pollRef.current);
-              finish();
+              finish(data?.with_bullets ?? data?.count ?? undefined);
             }
           } catch {
             // non-fatal — keep polling
@@ -315,7 +321,10 @@ export default function DiscoveryPage() {
         }, POLL_INTERVAL_MS);
       })
       .catch((err: any) => {
-        if (!cancelled) setError(err?.body?.detail || err.message || "Lead discovery failed");
+        if (!cancelled) {
+          capturePostHog("discovery_failed", { candidate_id: candidateId, reason: err?.body?.detail || err?.message || "search_error" });
+          setError(err?.body?.detail || err.message || "Lead discovery failed");
+        }
       });
 
     return () => {
