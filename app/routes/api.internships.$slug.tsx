@@ -49,31 +49,31 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     
     let result;
     if (isUuid) {
-      // Direct ID lookup
+      // Direct ID lookup — parameterized (value is bound, not interpolated)
       result = await db.execute(
-        sql.raw(`SELECT * FROM internships WHERE id = '${idOrSlug}' AND status = 'published' LIMIT 1`)
+        sql`SELECT * FROM internships WHERE id = ${idOrSlug} AND status = 'published' LIMIT 1`
       );
     } else {
-    // Decode URL-encoded characters and escape for SQL
-      const decodedSlug = decodeURIComponent(idOrSlug);
-    const escapedSlug = decodedSlug.replace(/'/g, "''").trim();
-    
+    // Decode URL-encoded characters; no manual SQL escaping needed — `sql`
+    // binds the value as a parameter.
+      const slug = decodeURIComponent(idOrSlug).trim();
+
     // Try exact match first (case-sensitive)
       result = await db.execute(
-      sql.raw(`SELECT * FROM internships WHERE slug = '${escapedSlug}' AND status = 'published' LIMIT 1`)
+      sql`SELECT * FROM internships WHERE slug = ${slug} AND status = 'published' LIMIT 1`
     );
 
     // If not found, try case-insensitive match
     if (result.rows.length === 0) {
       result = await db.execute(
-        sql.raw(`SELECT * FROM internships WHERE LOWER(slug) = LOWER('${escapedSlug}') AND status = 'published' LIMIT 1`)
+        sql`SELECT * FROM internships WHERE LOWER(slug) = LOWER(${slug}) AND status = 'published' LIMIT 1`
       );
     }
 
     // If still not found, check if internship exists with different status
     if (result.rows.length === 0) {
       const anyStatusResult = await db.execute(
-        sql.raw(`SELECT slug, status FROM internships WHERE LOWER(slug) = LOWER('${escapedSlug}') LIMIT 1`)
+        sql`SELECT slug, status FROM internships WHERE LOWER(slug) = LOWER(${slug}) LIMIT 1`
       );
       
       if (anyStatusResult.rows.length > 0) {
@@ -91,9 +91,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
           );
       }
       
-        // Check all slugs for debugging
+        // Check all slugs for debugging (static query, no user input)
         const allSlugsResult = await db.execute(
-          sql.raw(`SELECT slug, status FROM internships WHERE slug ILIKE '%test%' LIMIT 5`)
+          sql`SELECT slug, status FROM internships WHERE slug ILIKE '%test%' LIMIT 5`
         );
         console.log(`[api.internships.$slug] No internship found with slug '${idOrSlug}'. Found ${allSlugsResult.rows.length} internships with 'test' in slug:`, allSlugsResult.rows);
         
@@ -104,7 +104,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
             message: "No internship found with the provided slug",
             slug: idOrSlug,
             debug: {
-              searchedSlug: escapedSlug,
+              searchedSlug: idOrSlug,
               similarSlugs: allSlugsResult.rows.map((r: any) => ({ slug: r.slug, status: r.status }))
             }
           }, 
@@ -116,7 +116,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     // If UUID lookup failed, check if it exists with different status
     if (result.rows.length === 0 && isUuid) {
       const anyStatusResult = await db.execute(
-        sql.raw(`SELECT id, status FROM internships WHERE id = '${idOrSlug}' LIMIT 1`)
+        sql`SELECT id, status FROM internships WHERE id = ${idOrSlug} LIMIT 1`
       );
       
       if (anyStatusResult.rows.length > 0) {

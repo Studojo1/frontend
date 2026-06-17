@@ -18,8 +18,10 @@ function makeSlug(company: string, title: string, sourceId: string) {
 }
 
 // Safe SQL string literal — escape single quotes, truncate to 5000 chars
-function s(str: unknown, maxLen = 5000): string {
-  return "'" + String(str ?? "").replace(/'/g, "''").slice(0, maxLen) + "'";
+// Length-cap a value for insertion. Escaping is handled by parameter binding
+// (the `sql` tagged template), so this only truncates — it never builds SQL.
+function cap(str: unknown, maxLen = 5000): string {
+  return String(str ?? "").slice(0, maxLen);
 }
 
 async function timedFetch(url: string, opts: RequestInit = {}, ms = 15000) {
@@ -332,32 +334,33 @@ export async function action({ request }: Route.ActionArgs) {
       const slug = makeSlug(job.company_name, job.title, job.source_id);
       const description = job.description || job.title;
       const requirements = job.requirements || "See full listing.";
-      const deadline = job.deadline ? `'${job.deadline}'::timestamp` : "NULL";
+      // Bind the deadline as a real value (Date or null) — Postgres casts it.
+      const deadline = job.deadline ? new Date(job.deadline) : null;
 
-      const result = await db.execute(sql.raw(`
+      const result = await db.execute(sql`
         INSERT INTO internships (
           id, title, company_name, description, requirements,
           location, duration, stipend, application_deadline,
           status, slug, created_by, created_at, updated_at
         ) VALUES (
           gen_random_uuid(),
-          ${s(job.title)},
-          ${s(job.company_name)},
-          ${s(description)},
-          ${s(requirements)},
-          ${s(job.location)},
-          ${s(job.duration)},
-          ${s(job.stipend)},
+          ${cap(job.title)},
+          ${cap(job.company_name)},
+          ${cap(description)},
+          ${cap(requirements)},
+          ${cap(job.location)},
+          ${cap(job.duration)},
+          ${cap(job.stipend)},
           ${deadline},
           'published',
-          ${s(slug)},
+          ${cap(slug)},
           'scraper-system',
           NOW(),
           NOW()
         )
         ON CONFLICT (slug) DO NOTHING
         RETURNING id
-      `));
+      `);
 
       if ((result as any).rows?.length > 0) inserted++;
       else skipped++;
