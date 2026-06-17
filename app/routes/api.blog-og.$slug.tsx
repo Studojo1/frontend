@@ -70,7 +70,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 
   try {
     const result = await db.execute(
-      sql.raw(`SELECT title, categories, reading_time FROM blog_posts WHERE slug = '${(slug ?? "").replace(/'/g, "''")}' AND status = 'published' LIMIT 1`)
+      sql`SELECT title, categories, reading_time FROM blog_posts WHERE slug = ${slug ?? ""} AND status = 'published' LIMIT 1`
     );
     if (result.rows.length > 0) {
       const row = result.rows[0] as any;

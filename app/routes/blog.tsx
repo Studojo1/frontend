@@ -55,25 +55,19 @@ export async function loader({ request }: Route.LoaderArgs) {
     let countResult, result;
 
     if (search) {
-      const s = search.replace(/'/g, "''");
+      const like = `%${search}%`;
       countResult = await db.execute(
-        sql.raw(
-          `SELECT COUNT(*) as total FROM blog_posts WHERE status = 'published' AND (title ILIKE '%${s}%' OR excerpt ILIKE '%${s}%' OR content ILIKE '%${s}%')`
-        )
+        sql`SELECT COUNT(*) as total FROM blog_posts WHERE status = 'published' AND (title ILIKE ${like} OR excerpt ILIKE ${like} OR content ILIKE ${like})`
       );
       result = await db.execute(
-        sql.raw(
-          `SELECT id, title, slug, excerpt, featured_image, author_name, published_at, reading_time, view_count, categories FROM blog_posts WHERE status = 'published' AND (title ILIKE '%${s}%' OR excerpt ILIKE '%${s}%' OR content ILIKE '%${s}%') ORDER BY published_at DESC LIMIT ${LIMIT} OFFSET ${offset}`
-        )
+        sql`SELECT id, title, slug, excerpt, featured_image, author_name, published_at, reading_time, view_count, categories FROM blog_posts WHERE status = 'published' AND (title ILIKE ${like} OR excerpt ILIKE ${like} OR content ILIKE ${like}) ORDER BY published_at DESC LIMIT ${LIMIT} OFFSET ${offset}`
       );
     } else {
       countResult = await db.execute(
         sql`SELECT COUNT(*) as total FROM blog_posts WHERE status = 'published'`
       );
       result = await db.execute(
-        sql.raw(
-          `SELECT id, title, slug, excerpt, featured_image, author_name, published_at, reading_time, view_count, categories FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC LIMIT ${LIMIT} OFFSET ${offset}`
-        )
+        sql`SELECT id, title, slug, excerpt, featured_image, author_name, published_at, reading_time, view_count, categories FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC LIMIT ${LIMIT} OFFSET ${offset}`
       );
     }
 

@@ -6,19 +6,19 @@ import { sql } from "drizzle-orm";
 export async function loader({ params }: Route.LoaderArgs) {
   const { slug } = params;
 
-  // Decode URL-encoded characters and escape for SQL
-  const decodedSlug = decodeURIComponent(slug);
-  const escapedSlug = decodedSlug.replace(/'/g, "''").trim();
-  
+  // Decode URL-encoded characters; `sql` binds the value as a parameter so no
+  // manual SQL escaping is needed.
+  const decodedSlug = decodeURIComponent(slug).trim();
+
   // Try exact match first (case-sensitive)
   let result = await db.execute(
-    sql.raw(`SELECT * FROM blog_posts WHERE slug = '${escapedSlug}' AND status = 'published' LIMIT 1`)
+    sql`SELECT * FROM blog_posts WHERE slug = ${decodedSlug} AND status = 'published' LIMIT 1`
   );
 
   // If not found, try case-insensitive match
   if (result.rows.length === 0) {
     result = await db.execute(
-      sql.raw(`SELECT * FROM blog_posts WHERE LOWER(slug) = LOWER('${escapedSlug}') AND status = 'published' LIMIT 1`)
+      sql`SELECT * FROM blog_posts WHERE LOWER(slug) = LOWER(${decodedSlug}) AND status = 'published' LIMIT 1`
     );
   }
 

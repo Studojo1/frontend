@@ -145,22 +145,21 @@ interface BlogPost {
 export async function loader({ params }: Route.LoaderArgs) {
   try {
     const { slug } = params;
-    const decodedSlug = decodeURIComponent(slug);
-    const escapedSlug = decodedSlug.replace(/'/g, "''").trim();
+    const decodedSlug = decodeURIComponent(slug).trim();
 
     let result = await db.execute(
-      sql.raw(`SELECT * FROM blog_posts WHERE slug = '${escapedSlug}' AND status = 'published' LIMIT 1`)
+      sql`SELECT * FROM blog_posts WHERE slug = ${decodedSlug} AND status = 'published' LIMIT 1`
     );
 
     if (result.rows.length === 0) {
       result = await db.execute(
-        sql.raw(`SELECT * FROM blog_posts WHERE LOWER(slug) = LOWER('${escapedSlug}') AND status = 'published' LIMIT 1`)
+        sql`SELECT * FROM blog_posts WHERE LOWER(slug) = LOWER(${decodedSlug}) AND status = 'published' LIMIT 1`
       );
     }
 
     if (result.rows.length === 0) {
       const anyStatusResult = await db.execute(
-        sql.raw(`SELECT slug, status FROM blog_posts WHERE LOWER(slug) = LOWER('${escapedSlug}') LIMIT 1`)
+        sql`SELECT slug, status FROM blog_posts WHERE LOWER(slug) = LOWER(${decodedSlug}) LIMIT 1`
       );
       if (anyStatusResult.rows.length > 0) {
         const postStatus = (anyStatusResult.rows[0] as any).status;

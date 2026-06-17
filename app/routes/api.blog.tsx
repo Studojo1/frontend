@@ -14,32 +14,29 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     const offset = (page - 1) * limit;
 
-    // Build query with proper parameterization
-    let whereConditions: string[] = ["status = 'published'"];
-    
+    // Parameterized WHERE built from `sql` fragments — every user value
+    // (category/tag/search) is bound, not interpolated, so no SQL injection.
+    let whereClause = sql`status = 'published'`;
+
     if (category) {
-      const escapedCategory = category.replace(/'/g, "''");
-      whereConditions.push(`'${escapedCategory}' = ANY(categories)`);
+      whereClause = sql`${whereClause} AND ${category} = ANY(categories)`;
     }
 
     if (tag) {
-      const escapedTag = tag.replace(/'/g, "''");
-      whereConditions.push(`'${escapedTag}' = ANY(tags)`);
+      whereClause = sql`${whereClause} AND ${tag} = ANY(tags)`;
     }
 
     if (search) {
-      const escapedSearch = search.replace(/'/g, "''");
-      whereConditions.push(`(title ILIKE '%${escapedSearch}%' OR excerpt ILIKE '%${escapedSearch}%' OR content ILIKE '%${escapedSearch}%')`);
+      const like = `%${search}%`;
+      whereClause = sql`${whereClause} AND (title ILIKE ${like} OR excerpt ILIKE ${like} OR content ILIKE ${like})`;
     }
 
-    const whereClause = whereConditions.join(" AND ");
-
     const posts = await db.execute(
-      sql.raw(`SELECT * FROM blog_posts WHERE ${whereClause} ORDER BY published_at DESC LIMIT ${limit} OFFSET ${offset}`)
+      sql`SELECT * FROM blog_posts WHERE ${whereClause} ORDER BY published_at DESC LIMIT ${limit} OFFSET ${offset}`
     );
 
     const countResult = await db.execute(
-      sql.raw(`SELECT COUNT(*) as total FROM blog_posts WHERE ${whereClause}`)
+      sql`SELECT COUNT(*) as total FROM blog_posts WHERE ${whereClause}`
     );
 
     const total = parseInt((countResult.rows[0] as any)?.total || "0", 10);
