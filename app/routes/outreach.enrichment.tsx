@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
-import { FiTag, FiArrowRight, FiArrowLeft, FiShield, FiCheck, FiCheckCircle } from "react-icons/fi";
+import { FiTag, FiArrowRight, FiArrowLeft, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
@@ -28,10 +28,6 @@ interface CouponResult {
 }
 
 // ── Trust / value copy ─────────────────────────────────────────────────────
-const GUARANTEE = {
-  head: "Zero-reply protection",
-  body: "If your campaign finishes and not a single person replies, we extend it free until you hear back. You never pay for silence.",
-};
 const TRUST_PTS = [
   "Verified emails, not guesses",
   "Sent from your own Gmail",
@@ -41,7 +37,6 @@ const TRUST_PTS = [
 const FAQ_ITEMS: [string, string][] = [
   ["Is this spam?", "No. Each email is personalised to the person and their company, sent one at a time from your own Gmail on an inbox-safe schedule."],
   ["Whose email does it come from?", "Your own Gmail, signed by you, so replies come straight back to your inbox."],
-  ["What if I don't get any replies?", GUARANTEE.body],
   ["Can they tell it's written by AI?", "No. Each email references real details about them and your background, so it reads like a human wrote it, because the substance is yours."],
   ["Is my data safe?", "Yes. Your resume and contacts stay private and are never sold or shared. Payments are handled by Razorpay, so we never see your card details."],
 ];
@@ -603,14 +598,6 @@ export default function EnrichmentPage() {
           </div>
         )}
 
-        {/* Zero-reply protection — before the price */}
-        <div className="max-w-3xl mx-auto mb-8 rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg/40 p-5 md:p-6 flex items-center gap-4 shadow-brutal">
-          <span className="hidden sm:flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg"><FiShield className="w-6 h-6 text-studojo-green" /></span>
-          <div>
-            <p className="font-clash text-lg md:text-xl font-bold text-studojo-ink mb-0.5">{GUARANTEE.head}</p>
-            <p className="text-sm text-studojo-muted font-satoshi">{GUARANTEE.body}</p>
-          </div>
-        </div>
 
         {/* Tier cards */}
         <div className={`grid grid-cols-1 ${TIERS.length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"} gap-4 mb-8 items-stretch`}>
@@ -691,10 +678,6 @@ export default function EnrichmentPage() {
                       {feat}
                     </li>
                   ))}
-                  <li className="flex items-start gap-2 text-xs font-satoshi font-semibold text-studojo-green leading-snug">
-                    <FiCheck className="w-3.5 h-3.5 text-studojo-green mt-0.5 flex-shrink-0" />
-                    {GUARANTEE.head} included
-                  </li>
                 </ul>
 
                 {/* CTA */}
@@ -721,7 +704,7 @@ export default function EnrichmentPage() {
         </div>
 
         <p className="text-center text-sm text-studojo-muted font-satoshi mb-14">
-          One-time payment · No subscription, no auto-renew · {GUARANTEE.head} on every plan
+          One-time payment · No subscription, no auto-renew
         </p>
 
         {error && <p className="text-red-600 text-sm text-center mb-6 font-satoshi">{error}</p>}
@@ -798,7 +781,7 @@ export default function EnrichmentPage() {
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-bold font-satoshi text-studojo-ink truncate">
-              {selectedTierObj?.name} · {selectedTier} contacts <span className="hidden sm:inline text-studojo-green font-semibold">· {GUARANTEE.head}</span>
+              {selectedTierObj?.name} · {selectedTier} contacts
             </p>
             <p className="text-[11px] text-studojo-muted font-satoshi">
               {selectedPrice.anchor && <span className="line-through">{selectedPrice.anchor} </span>}
