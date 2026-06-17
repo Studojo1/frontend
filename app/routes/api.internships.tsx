@@ -12,23 +12,23 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const offset = (page - 1) * limit;
 
-  // Build query with proper parameterization
-  // Exclude scraper-inserted rows — map data only, not for the dojo listing
-  let whereConditions: string[] = [`status = '${status}'`, `(created_by IS NULL OR created_by != 'scraper-system')`];
-  
+  // Build the WHERE clause from parameterized sql fragments. Using the `sql`
+  // tagged template (not sql.raw) makes every interpolated value a bound
+  // parameter, so user-supplied `status`/`search` cannot inject SQL.
+  // Exclude scraper-inserted rows — map data only, not for the dojo listing.
+  let whereClause = sql`status = ${status} AND (created_by IS NULL OR created_by != 'scraper-system')`;
+
   if (search) {
-    const escapedSearch = search.replace(/'/g, "''");
-    whereConditions.push(`(title ILIKE '%${escapedSearch}%' OR company_name ILIKE '%${escapedSearch}%' OR description ILIKE '%${escapedSearch}%')`);
+    const like = `%${search}%`;
+    whereClause = sql`${whereClause} AND (title ILIKE ${like} OR company_name ILIKE ${like} OR description ILIKE ${like})`;
   }
 
-  const whereClause = whereConditions.join(" AND ");
-
   const internships = await db.execute(
-    sql.raw(`SELECT * FROM internships WHERE ${whereClause} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`)
+    sql`SELECT * FROM internships WHERE ${whereClause} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`
   );
 
   const countResult = await db.execute(
-    sql.raw(`SELECT COUNT(*) as total FROM internships WHERE ${whereClause}`)
+    sql`SELECT COUNT(*) as total FROM internships WHERE ${whereClause}`
   );
 
   const total = parseInt((countResult.rows[0] as any).total, 10);
