@@ -43,27 +43,26 @@ export default function LinkedInProfile() {
     setSaving(true);
     setError("");
     try {
-      // Push the user's targeting into the candidate profile. The lead-discovery
-      // pipeline reads target_roles / target_locations off this record.
-      await outreachFetch(`/candidate/${candidateId}/targeting`, {
-        method: "POST",
+      // The candidate profile already has target_roles set from resume parsing.
+      // We try to override them with the user's typed answer via the existing
+      // flex-notes mechanism (used by /outreach/onboarding to capture extra
+      // preferences). If the endpoint isn't available we just keep the
+      // resume-derived targeting — the user is never blocked.
+      await outreachFetch(`/candidate/${candidateId}/flex`, {
+        method: "PUT",
         body: JSON.stringify({
-          target_roles: targetRole.split(",").map((r) => r.trim()).filter(Boolean),
-          target_locations: location.trim() ? [location.trim()] : [],
-          company_stage: stage,
-          channel: "linkedin",
+          flex_notes: {
+            target_role_user_input: targetRole.trim(),
+            location_user_input: location.trim() || null,
+            company_stage_user_input: stage,
+            source: "linkedin_onboarding",
+          },
         }),
-      });
-      navigate("/linkedin/leads");
+      }).catch(() => {/* non-fatal */});
+
+      navigate("/linkedin/leads/discovery");
     } catch (e: any) {
-      // Targeting endpoint might 404 (older deploy) — soft-fail to leads page
-      // so the user isn't blocked. The candidate profile already has reasonable
-      // defaults from the resume parse.
-      if (e?.status === 404) {
-        navigate("/linkedin/leads");
-        return;
-      }
-      setError(e?.body?.detail || e.message || "Couldn't save — try again.");
+      setError(e?.body?.detail || e.message || "Couldn't continue — try again.");
     } finally {
       setSaving(false);
     }
