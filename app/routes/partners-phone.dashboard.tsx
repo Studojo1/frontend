@@ -640,6 +640,8 @@ export default function PhonePartnersDashboard() {
   const [revoking, setRevoking] = useState<string | null>(null);
   const [keyLabel, setKeyLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Read from localStorage once on mount — stable, never triggers re-runs
+  const [authed] = useState(() => !!getStoredUser());
   const storedUser = getStoredUser();
 
   const fetchMe = useCallback(async () => {
@@ -652,7 +654,7 @@ export default function PhonePartnersDashboard() {
     } finally {
       setLoadingMe(false);
     }
-  }, [navigate]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchKeys = useCallback(async () => {
     try {
@@ -665,11 +667,12 @@ export default function PhonePartnersDashboard() {
     }
   }, []);
 
+  // Empty deps: run exactly once on mount, never re-fire on re-renders
   useEffect(() => {
-    if (!storedUser) { navigate("/partners-phone/login"); return; }
+    if (!authed) { navigate("/partners-phone/login"); return; }
     fetchMe();
     fetchKeys();
-  }, [storedUser, navigate, fetchMe, fetchKeys]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCreateKey = async () => {
     setCreatingKey(true);
