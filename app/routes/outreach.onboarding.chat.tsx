@@ -162,24 +162,33 @@ export default function ChatPage() {
             }),
           }).catch(() => {});
 
-          capturePostHog("profile_quiz_completed", {
-            candidate_id: candidateId,
-            questions_asked: questionsAsked,
-          });
+          // Fire completion side-effects ONCE per candidate. Without this guard,
+          // profile_quiz_completed (and the outreach_used email) re-fired on
+          // resubmits, re-renders, and browser-back revisits — logging far more
+          // "completions" than there were quiz starts.
+          const completedKey = `quiz_completed_${candidateId}`;
+          const alreadyCompleted = typeof window !== "undefined" && localStorage.getItem(completedKey);
+          if (!alreadyCompleted) {
+            try { localStorage.setItem(completedKey, "1"); } catch {}
 
-          if (user?.id) {
-            // New efficient flow: completing the outreach onboarding means the
-            // student used the outreach tool. Starts the high-intent push
-            // sequence and cancels any pending not-used nudge chain. This runs
-            // in the browser, so it goes through the server resource route which
-            // holds the internal secret (the emailer endpoint is gated).
-            import("~/lib/events").then(({ publishEmailEventFromClient }) => {
-              publishEmailEventFromClient("event.cc.outreach_used", {
-                user_id: user.id,
-                email: user.email,
-                name: user.name,
+            capturePostHog("profile_quiz_completed", {
+              candidate_id: candidateId,
+              questions_asked: questionsAsked,
+            });
+
+            if (user?.id) {
+              // Completing outreach onboarding means the student used the outreach
+              // tool. Starts the high-intent push sequence and cancels any pending
+              // not-used nudge chain. Runs in the browser via the server resource
+              // route which holds the internal secret (emailer endpoint is gated).
+              import("~/lib/events").then(({ publishEmailEventFromClient }) => {
+                publishEmailEventFromClient("event.cc.outreach_used", {
+                  user_id: user.id,
+                  email: user.email,
+                  name: user.name,
+                }).catch(() => {});
               }).catch(() => {});
-            }).catch(() => {});
+            }
           }
 
           navigate("/outreach/onboarding/loading");
