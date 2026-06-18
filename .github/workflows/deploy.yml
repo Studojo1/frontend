@@ -96,6 +96,17 @@ jobs:
           kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
             EMAILER_INTERNAL_SECRET="${{ secrets.EMAILER_INTERNAL_SECRET }}"
 
+      - name: Ensure career-coach internal secret
+        run: |
+          # Service-to-service secret for the Career Coach's gated routes — sent as
+          # the x-studojo-internal header by the resume-ready + summary routes and
+          # checked against the coach's INTERNAL_API_SECRET (same GitHub secret).
+          # Without this, process.env.INTERNAL_API_SECRET is undefined on the
+          # frontend, the route bails "unconfigured", and the Resume Maker -> Coach
+          # cross-tool flow is dead (audit G1).
+          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            INTERNAL_API_SECRET="${{ secrets.INTERNAL_API_SECRET }}"
+
       - name: Apply schema migrations
         env:
           JOB_NAME: frontend-migrate-${{ github.run_id }}
