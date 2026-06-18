@@ -152,6 +152,23 @@ function MixpanelInit() {
         email: session.user.email,
         name: session.user.name,
       });
+
+      // Fire a one-time `signed_up` event for brand-new accounts (any method:
+      // email or Google). Anchors the admin funnel on real signups. Guarded by
+      // recency of createdAt + a per-user localStorage flag so it fires once.
+      try {
+        const u = session.user as any;
+        if (u.createdAt) {
+          const ageMs = Date.now() - new Date(u.createdAt).getTime();
+          const key = `ph_signed_up_${u.id}`;
+          if (ageMs >= 0 && ageMs < 10 * 60 * 1000 && !localStorage.getItem(key)) {
+            capturePostHog("signed_up", { email: u.email, name: u.name });
+            localStorage.setItem(key, "1");
+          }
+        }
+      } catch {
+        // analytics must never break the app
+      }
     }
   }, [session]);
 
