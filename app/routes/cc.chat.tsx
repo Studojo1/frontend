@@ -13,6 +13,19 @@ export function links() {
 
 const CC_API = "/api/v1/cc";
 const STORAGE_KEY = "studojo_student_id";
+const SESSION_TOKEN_KEY = "studojo_cc_session_token";
+
+// Per-student session token (signed by the coach at session/start). Sent as
+// X-CC-Session on every coach call so the coach can verify the caller owns the
+// student_id in the URL (closes the IDOR). Stored next to the student_id.
+function ccHeaders(extra?: Record<string, string>): Record<string, string> {
+  const h: Record<string, string> = { ...(extra || {}) };
+  try {
+    const t = localStorage.getItem(SESSION_TOKEN_KEY);
+    if (t) h["X-CC-Session"] = t;
+  } catch { /* ignore */ }
+  return h;
+}
 
 const HOOK_STATS = [
   { main: "B.Tech students applying on LinkedIn get a 1.4% callback rate.", emphasis: "Students who cold outreach hiring managers directly get 12 to 18%.", hook: "Let's figure out which companies you should be reaching." },
@@ -796,13 +809,13 @@ export default function CcChat() {
     if (!sid) return;
     try {
       const cid = conversationIdRef.current;
-      const dRes = await fetch(`${CC_API}/dashboard/${sid}${cid ? `?conversation_id=${cid}` : ""}`);
+      const dRes = await fetch(`${CC_API}/dashboard/${sid}${cid ? `?conversation_id=${cid}` : ""}`, { headers: ccHeaders() });
       const dData = await dRes.json();
       setSidebarData(dData);
       const pid = dData?.primary_path?.path_id;
       if (pid) {
         try {
-          const gRes = await fetch(`${CC_API}/gap-analysis/${sid}/${pid}`);
+          const gRes = await fetch(`${CC_API}/gap-analysis/${sid}/${pid}`, { headers: ccHeaders() });
           if (gRes.ok) setGapData(await gRes.json());
         } catch { /* gap analysis optional */ }
       }
@@ -818,7 +831,7 @@ export default function CcChat() {
     if (!sidebarOpen || panel !== "dashboard" || !sid) return;
     (async () => {
       try {
-        const tr = await fetch(`${CC_API}/api/student/${sid}/progress-tasks`);
+        const tr = await fetch(`${CC_API}/api/student/${sid}/progress-tasks`, { headers: ccHeaders() });
         if (tr.ok) setTasks(await tr.json());
       } catch { /* tasks optional */ }
     })();
@@ -831,7 +844,7 @@ export default function CcChat() {
     if (!sid) return;
     setHistoryLoading(true);
     try {
-      const r = await fetch(`${CC_API}/session/${sid}/conversations`);
+      const r = await fetch(`${CC_API}/session/${sid}/conversations`, { headers: ccHeaders() });
       if (r.ok) {
         const data = await r.json();
         setConversations(data.conversations || []);
@@ -856,7 +869,7 @@ export default function CcChat() {
     }
     setWaiting(true);
     try {
-      const r = await fetch(`${CC_API}/session/${sid}/conversation/${convId}/history`);
+      const r = await fetch(`${CC_API}/session/${sid}/conversation/${convId}/history`, { headers: ccHeaders() });
       const data = await r.json();
       const hist: Msg[] = [];
       for (const m of (data.history || [])) {
@@ -885,7 +898,7 @@ export default function CcChat() {
     if (!sid) return;
     setWaiting(true);
     try {
-      const r = await fetch(`${CC_API}/session/${sid}/new-conversation`, { method: "POST" });
+      const r = await fetch(`${CC_API}/session/${sid}/new-conversation`, { method: "POST", headers: ccHeaders() });
       const data = await r.json();
       conversationIdRef.current = data.conversation_id;
       setMessages([]);
@@ -970,6 +983,7 @@ export default function CcChat() {
         studentIdRef.current = sd.student_id;
         conversationIdRef.current = sd.conversation_id;
         localStorage.setItem(STORAGE_KEY, sd.student_id);
+        if (sd.session_token) { try { localStorage.setItem(SESSION_TOKEN_KEY, sd.session_token); } catch { /* ignore */ } }
 
         // "Get my Career DNA" CTAs pass ?new=1 — start a FRESH chat thread
         // instead of resuming history. The prior conversation stays in history.
@@ -1214,7 +1228,7 @@ export default function CcChat() {
       const uploadOnce = () => {
         const fd = new FormData();
         fd.append("file", resumeFile);
-        return fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", body: fd });
+        return fetch(`${CC_API}/api/student/${sid}/resume/upload`, { method: "POST", headers: ccHeaders(), body: fd });
       };
       try {
         let upRes = await uploadOnce();
@@ -1346,6 +1360,7 @@ export default function CcChat() {
         studentIdRef.current = sd.student_id;
         conversationIdRef.current = sd.conversation_id;
         localStorage.setItem(STORAGE_KEY, sd.student_id);
+        if (sd.session_token) { try { localStorage.setItem(SESSION_TOKEN_KEY, sd.session_token); } catch { /* ignore */ } }
 
         const outreachShown2 = sessionStorage.getItem("outreach_conv_shown") === "1" ? "1" : "0";
         const postRetry = () => fetch(`${CC_API}/api/chat`, {
@@ -1406,7 +1421,7 @@ export default function CcChat() {
     setCheckInSaving(true);
     try {
       const r = await fetch(`${CC_API}/api/student/${sid}/check-in`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: ccHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ kind, items: payload }),
       });
       const data = await r.json();
