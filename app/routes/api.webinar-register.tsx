@@ -37,7 +37,7 @@ export async function action({ request }: Route.ActionArgs) {
     return Response.json({ error: "Please enter a valid email address." }, { status: 400 });
   }
 
-  await saveWebinarRegistration({
+  const { isNew } = await saveWebinarRegistration({
     fullName,
     whatsapp,
     email,
@@ -48,6 +48,12 @@ export async function action({ request }: Route.ActionArgs) {
     graduationYear: graduationYear || undefined,
     lifeStage: lifeStage || undefined,
   });
+
+  // Already registered with this email — don't create a duplicate row and don't
+  // re-send the confirmation email. Tell the form so it can show a friendly note.
+  if (!isNew) {
+    return Response.json({ ok: true, alreadyRegistered: true });
+  }
 
   // Fire the instant "registration confirmed" email. The join link is sent
   // separately by the emailer's daily cron, one day before the webinar.

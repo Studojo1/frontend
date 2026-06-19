@@ -23,6 +23,12 @@ async function ensureTable() {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_webinar_registrations_created_at ON webinar_registrations (created_at DESC)
   `);
+  // Enforce one registration per email (case-insensitive). This makes
+  // duplicate submissions impossible at the database level, even under races.
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_webinar_registrations_email_unique
+    ON webinar_registrations (lower(email))
+  `);
   tableCreated = true;
 }
 
@@ -36,9 +42,12 @@ export async function saveWebinarRegistration(params: {
   yearOfStudy: string;
   graduationYear?: string;
   lifeStage?: string;
-}) {
+}): Promise<{ isNew: boolean }> {
   await ensureTable();
-  await db.execute(sql`
+  // Insert only if this email hasn't registered yet. ON CONFLICT DO NOTHING
+  // makes a repeat submission a no-op rather than a second row. RETURNING id
+  // is present only on a genuine insert, so we can tell new vs. duplicate.
+  const result = await db.execute(sql`
     INSERT INTO webinar_registrations (
       full_name, whatsapp, email, college, course,
       specialisation, year_of_study, graduation_year, life_stage
@@ -54,7 +63,11 @@ export async function saveWebinarRegistration(params: {
       ${params.graduationYear || null},
       ${params.lifeStage || null}
     )
+    ON CONFLICT (lower(email)) DO NOTHING
+    RETURNING id
   `);
+  const isNew = result.rows.length > 0;
+  return { isNew };
 }
 
 export async function getWebinarRegistrations(limit = 200, offset = 0) {

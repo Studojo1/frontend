@@ -67,6 +67,7 @@ export default function Webinar() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
 
   const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -94,6 +95,7 @@ export default function Webinar() {
         setSubmitting(false);
         return;
       }
+      setAlreadyRegistered(Boolean(data.alreadyRegistered));
       setDone(true);
     } catch {
       setError("Network error. Please try again.");
@@ -119,10 +121,14 @@ export default function Webinar() {
 
         {done ? (
           <div className="bg-white border-2 border-neutral-900 rounded-[32px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-10 text-center">
-            <div className="text-4xl mb-3">🎉</div>
-            <h2 className="text-2xl font-bold text-neutral-900 font-['Clash_Display']">You are registered!</h2>
+            <div className="text-4xl mb-3">{alreadyRegistered ? "✅" : "🎉"}</div>
+            <h2 className="text-2xl font-bold text-neutral-900 font-['Clash_Display']">
+              {alreadyRegistered ? "You are already registered!" : "You are registered!"}
+            </h2>
             <p className="mt-2 text-neutral-600 font-['Satoshi']">
-              See you at the webinar. Check your email for the joining link closer to the date.
+              {alreadyRegistered
+                ? "This email is already on the list, so you are all set. Check your inbox for the joining link closer to the date."
+                : "See you at the webinar. Check your email for the joining link closer to the date."}
             </p>
           </div>
         ) : (
