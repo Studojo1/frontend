@@ -17,8 +17,13 @@ async function ensureTable() {
       year_of_study TEXT NOT NULL,
       graduation_year TEXT,
       life_stage TEXT,
+      referral_source TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
+  `);
+  // Migrate older tables that predate the referral_source column.
+  await db.execute(sql`
+    ALTER TABLE webinar_registrations ADD COLUMN IF NOT EXISTS referral_source TEXT
   `);
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_webinar_registrations_created_at ON webinar_registrations (created_at DESC)
@@ -42,6 +47,7 @@ export async function saveWebinarRegistration(params: {
   yearOfStudy: string;
   graduationYear?: string;
   lifeStage?: string;
+  referralSource?: string;
 }): Promise<{ isNew: boolean }> {
   await ensureTable();
   // Insert only if this email hasn't registered yet. ON CONFLICT DO NOTHING
@@ -50,7 +56,7 @@ export async function saveWebinarRegistration(params: {
   const result = await db.execute(sql`
     INSERT INTO webinar_registrations (
       full_name, whatsapp, email, college, course,
-      specialisation, year_of_study, graduation_year, life_stage
+      specialisation, year_of_study, graduation_year, life_stage, referral_source
     )
     VALUES (
       ${params.fullName},
@@ -61,7 +67,8 @@ export async function saveWebinarRegistration(params: {
       ${params.specialisation || null},
       ${params.yearOfStudy},
       ${params.graduationYear || null},
-      ${params.lifeStage || null}
+      ${params.lifeStage || null},
+      ${params.referralSource || null}
     )
     ON CONFLICT (lower(email)) DO NOTHING
     RETURNING id
@@ -74,7 +81,8 @@ export async function getWebinarRegistrations(limit = 200, offset = 0) {
   await ensureTable();
   const result = await db.execute(sql`
     SELECT id, full_name, whatsapp, email, college, course,
-           specialisation, year_of_study, graduation_year, life_stage, created_at
+           specialisation, year_of_study, graduation_year, life_stage,
+           referral_source, created_at
     FROM webinar_registrations
     ORDER BY created_at DESC
     LIMIT ${limit} OFFSET ${offset}

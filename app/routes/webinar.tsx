@@ -17,6 +17,17 @@ const LIFE_STAGES = [
   "Working professional",
 ];
 
+const REFERRAL_SOURCES = [
+  "Instagram",
+  "LinkedIn",
+  "WhatsApp",
+  "Friend or classmate",
+  "College or professor",
+  "Email from Studojo",
+  "Google search",
+  "Other",
+];
+
 const YEARS_OF_STUDY = [
   "1st year",
   "2nd year",
@@ -48,6 +59,7 @@ interface FormState {
   yearOfStudy: string;
   graduationYear: string;
   lifeStage: string;
+  referralSource: string;
 }
 
 const EMPTY: FormState = {
@@ -60,6 +72,7 @@ const EMPTY: FormState = {
   yearOfStudy: "",
   graduationYear: "",
   lifeStage: "",
+  referralSource: "",
 };
 
 export default function Webinar() {
@@ -192,12 +205,21 @@ export default function Webinar() {
             <h2 className="mt-10 text-lg font-bold text-violet-700 uppercase tracking-wide font-['Clash_Display'] mb-5">
               About you <span className="normal-case text-neutral-400 text-sm font-['Satoshi']">(optional)</span>
             </h2>
-            <div>
-              <label className={LABEL}>What stage are you in your life?</label>
-              <select className={INPUT} value={form.lifeStage} onChange={set("lifeStage")}>
-                <option value="">Prefer not to say</option>
-                {LIFE_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className={LABEL}>What stage are you in your life?</label>
+                <select className={INPUT} value={form.lifeStage} onChange={set("lifeStage")}>
+                  <option value="">Prefer not to say</option>
+                  {LIFE_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={LABEL}>How did you hear about the webinar?</label>
+                <select className={INPUT} value={form.referralSource} onChange={set("referralSource")}>
+                  <option value="">Prefer not to say</option>
+                  {REFERRAL_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
             </div>
 
             {error && (
