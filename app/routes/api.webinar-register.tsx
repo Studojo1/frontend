@@ -29,6 +29,7 @@ export async function action({ request }: Route.ActionArgs) {
   const specialisation = clamp(body.specialisation);
   const graduationYear = clamp(body.graduationYear, 10);
   const lifeStage = clamp(body.lifeStage, 60);
+  const referralSource = clamp(body.referralSource, 60);
 
   if (!fullName || !whatsapp || !email || !college || !course || !yearOfStudy) {
     return Response.json({ error: "Please fill in all required fields." }, { status: 400 });
@@ -47,6 +48,7 @@ export async function action({ request }: Route.ActionArgs) {
     yearOfStudy,
     graduationYear: graduationYear || undefined,
     lifeStage: lifeStage || undefined,
+    referralSource: referralSource || undefined,
   });
 
   // Already registered with this email — don't create a duplicate row and don't
