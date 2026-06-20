@@ -702,6 +702,7 @@ export default function CcChat() {
 
   // hook
   const [outreachNote, setOutreachNote] = useState<{ toolRec: string; jbPct: number; orPct: number } | null>(null);
+  const [toolNudge, setToolNudge] = useState<string | null>(null);
   const [resumeStatusMsg, setResumeStatusMsg] = useState<string | null>(null);
   // Rotating "thinking" status shown during the (LLM-bound) wait so the ~10s
   // pause feels purposeful instead of dead. Advances while `waiting` is true.
@@ -1340,6 +1341,11 @@ export default function CcChat() {
         // Show outreach sticky note once per session after DNA_REVIEW or ROADMAP
         if (["DNA_REVIEW", "ROADMAP"].includes(state) && !sessionStorage.getItem("outreach_note_shown")) {
           showOutreachNote(data.tool_recommendation);
+        }
+        // Show tool nudge card immediately when DNA first generates
+        if (state === "DNA_REVIEW" && o.dna_generated && o.tool_nudge && !sessionStorage.getItem("cc_tool_nudge_shown")) {
+          sessionStorage.setItem("cc_tool_nudge_shown", "1");
+          setToolNudge(o.tool_nudge);
         }
       }
     } catch {
@@ -2493,6 +2499,33 @@ export default function CcChat() {
                         style={{ background: "none", border: "none", cursor: "pointer", padding: 0, marginLeft: 4, fontSize: 16, color: "#9CA3AF", lineHeight: 1 }}>×</button>
                     </div>
                   )}
+                  {toolNudge && (() => {
+                    const nudgeConfig: Record<string, { icon: string; title: string; sub: string; href: string; cta: string }> = {
+                      resume_maker: { icon: "📄", title: "Build your resume first", sub: "Your Career DNA shows gaps that a strong resume can cover. Use the free Resume Maker to get a recruiter-ready resume.", href: "/dojos/careers", cta: "Open Resume Maker →" },
+                      internship_dojo: { icon: "🎯", title: "Find your first internship", sub: "Browse live internship listings curated for Indian students — no login, no spam.", href: "/dojos/internships", cta: "Browse Internship Dojo →" },
+                      outreach_dojo: { icon: "📬", title: "Reach out to hiring managers directly", sub: "Job boards get 2% reply rates. Personalised outreach gets 10-15%. Your DNA is ready — let's put it to work.", href: "/outreach", cta: "See Outreach Dojo →" },
+                      skill_building: { icon: "🛠️", title: "Close your skill gaps first", sub: "Your roadmap has the exact skills to build. Check your analysis for the fastest path.", href: "#", cta: "View your roadmap →" },
+                    };
+                    const cfg = nudgeConfig[toolNudge] || nudgeConfig["skill_building"];
+                    const isInternal = cfg.href.startsWith("/") && cfg.href !== "#";
+                    return (
+                      <div style={{ background: "#F0FDF4", border: "2px solid #22C55E", borderRadius: 12, padding: "12px 14px", margin: "10px 0", display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, lineHeight: 1.5 }}>
+                        <span style={{ fontSize: 18, lineHeight: 1 }}>{cfg.icon}</span>
+                        <span style={{ flex: 1 }}>
+                          <strong style={{ display: "block", marginBottom: 3, fontSize: 13 }}>{cfg.title}</strong>
+                          {cfg.sub}{" "}
+                          {cfg.href === "#" ? (
+                            <button onClick={() => openSidebarTo("roadmap")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#16A34A", fontWeight: 600, fontSize: 13 }}>{cfg.cta}</button>
+                          ) : isInternal ? (
+                            <a href={cfg.href} style={{ color: "#16A34A", fontWeight: 600 }}>{cfg.cta}</a>
+                          ) : (
+                            <a href={cfg.href} target="_blank" rel="noopener noreferrer" style={{ color: "#16A34A", fontWeight: 600 }}>{cfg.cta}</a>
+                          )}
+                        </span>
+                        <button onClick={() => setToolNudge(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, marginLeft: 4, fontSize: 16, color: "#9CA3AF", lineHeight: 1 }}>×</button>
+                      </div>
+                    );
+                  })()}
                   <div ref={messagesEndRef} />
                 </div>
                 {agentState === "PROFILING" && profileProgress && (() => {
