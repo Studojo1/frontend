@@ -2501,13 +2501,13 @@ export default function CcChat() {
                   )}
                   {toolNudge && (() => {
                     const nudgeConfig: Record<string, { icon: string; title: string; sub: string; href: string; cta: string }> = {
-                      resume_maker: { icon: "📄", title: "Build your resume first", sub: "Your Career DNA shows gaps that a strong resume can cover. Use the free Resume Maker to get a recruiter-ready resume.", href: "/dojos/careers", cta: "Open Resume Maker →" },
-                      internship_dojo: { icon: "🎯", title: "Find your first internship", sub: "Browse live internship listings curated for Indian students — no login, no spam.", href: "/dojos/internships", cta: "Browse Internship Dojo →" },
-                      outreach_dojo: { icon: "📬", title: "Reach out to hiring managers directly", sub: "Job boards get 2% reply rates. Personalised outreach gets 10-15%. Your DNA is ready — let's put it to work.", href: "/outreach", cta: "See Outreach Dojo →" },
+                      resume_maker: { icon: "📄", title: "Build your resume first", sub: "Your Career DNA shows gaps that a strong resume can cover. Use the free Resume Maker to get a recruiter-ready resume.", href: "https://studojo.com/resume-maker", cta: "Open Resume Maker →" },
+                      internship_dojo: { icon: "🎯", title: "Find your first internship", sub: "Browse live internship listings curated for Indian students — no login, no spam.", href: "https://studojo.com/dojos/internships?page=1", cta: "Browse Internship Dojo →" },
+                      outreach_dojo: { icon: "📬", title: "Reach out to hiring managers directly", sub: "Job boards get 2% reply rates. Personalised outreach gets 10-15%. Your DNA is ready — let's put it to work.", href: "https://studojo.com/outreach", cta: "See Outreach Dojo →" },
                       skill_building: { icon: "🛠️", title: "Close your skill gaps first", sub: "Your roadmap has the exact skills to build. Check your analysis for the fastest path.", href: "#", cta: "View your roadmap →" },
                     };
                     const cfg = nudgeConfig[toolNudge] || nudgeConfig["skill_building"];
-                    const isInternal = cfg.href.startsWith("/") && cfg.href !== "#";
+                    const isInternal = false;
                     return (
                       <div style={{ background: "#F0FDF4", border: "2px solid #22C55E", borderRadius: 12, padding: "12px 14px", margin: "10px 0", display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, lineHeight: 1.5 }}>
                         <span style={{ fontSize: 18, lineHeight: 1 }}>{cfg.icon}</span>
