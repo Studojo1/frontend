@@ -91,7 +91,7 @@ export default function GmailConnectPage() {
     if (planType === "both") {
       navigate("/outreach/connect/linkedin");
     } else {
-      navigate("/outreach/campaign/style-pick");
+      navigate("/outreach/connect/debrief");
     }
   };
 
@@ -143,7 +143,7 @@ export default function GmailConnectPage() {
               onClick={handleContinue}
               className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
             >
-              {planType === "both" ? "Continue to LinkedIn" : "Continue to Campaign Setup"}
+              {planType === "both" ? "Continue to LinkedIn" : "Continue"}
             </button>
           </div>
         ) : (
