@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { FiZap, FiArrowRight, FiSkipForward } from "react-icons/fi";
+import { FiArrowRight, FiSkipForward } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -20,7 +20,7 @@ function buildPreviewEmail(
   const company = dreamCompany || "your target company";
 
   return {
-    subject: `Quick note — ${role} at ${company}`,
+    subject: `Quick note: ${role} at ${company}`,
     projectSlot,
     outcomeSlot,
     whySlot,
@@ -103,12 +103,6 @@ export default function DebriefPage() {
       <div className="mx-auto max-w-6xl px-4 py-10 md:px-8">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-studojo-purple-bg border-2 border-studojo-ink rounded-full px-4 py-1.5 mb-4">
-            <FiZap className="w-4 h-4 text-studojo-purple" />
-            <span className="font-satoshi text-sm font-bold text-studojo-purple">
-              Final step — load your ammunition
-            </span>
-          </div>
           <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink mb-2">
             Make your emails <span className="text-studojo-purple">impossible to ignore</span>
           </h1>
@@ -208,8 +202,12 @@ export default function DebriefPage() {
               className="w-full h-10 rounded-2xl bg-white text-studojo-muted font-satoshi text-sm border-2 border-studojo-ink/20 transition-all hover:border-studojo-ink hover:text-studojo-ink flex items-center justify-center gap-2"
             >
               <FiSkipForward className="w-3.5 h-3.5" />
-              Skip — launch with my profile details only
+              Skip, launch with my profile details only
             </button>
+
+            <p className="font-satoshi text-xs text-studojo-purple font-bold text-center">
+              Skipping means your emails will be generic. We strongly recommend filling this in.
+            </p>
           </div>
 
           {/* Right — live email preview */}
@@ -224,7 +222,7 @@ export default function DebriefPage() {
                 </div>
                 <div className="flex-1 bg-white rounded-lg border border-studojo-ink/20 px-3 py-1">
                   <p className="font-satoshi text-xs text-studojo-muted truncate">
-                    New message — {preview.company}
+                    New message to {preview.company}
                   </p>
                 </div>
               </div>
@@ -249,13 +247,13 @@ export default function DebriefPage() {
                   <p>Hi [First Name],</p>
 
                   <p>
-                    I came across {preview.company} while researching companies doing interesting work in this space — and I wanted to reach out directly.
+                    I came across {preview.company} while researching companies doing interesting work in this space, and I wanted to reach out directly.
                   </p>
 
                   <p>
                     <Slot
                       filled={preview.projectSlot}
-                      placeholder="[describe your best project — what you built and for whom]"
+                      placeholder="[describe your best project, what you built and for whom]"
                     />
                     {preview.projectSlot && preview.outcomeSlot ? " " : ""}
                     <Slot
@@ -268,7 +266,7 @@ export default function DebriefPage() {
                     I'm specifically targeting {preview.role} roles because{" "}
                     <Slot
                       filled={preview.whySlot}
-                      placeholder="[your reason — one sentence]"
+                      placeholder="[your reason, one sentence]"
                     />
                     .
                   </p>
@@ -300,7 +298,7 @@ export default function DebriefPage() {
             </div>
 
             <p className="font-satoshi text-xs text-studojo-muted text-center mt-3">
-              Your AI will personalise this further for each company and contact.
+              Will personalise this further for each company and contact.
             </p>
           </div>
         </div>
