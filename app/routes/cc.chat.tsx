@@ -1326,6 +1326,13 @@ export default function CcChat() {
         openSidebarTo("analysis");
         refreshSidebar().then(() => setDnaRefreshing(false));
       }
+      // When a full reset drops the student back to PROFILING, clear the sidebar
+      // so the old Career DNA doesn't show while they rebuild their profile.
+      const _postProfilingStates = ["DNA_REVIEW", "CAREER_ANALYSIS", "ROADMAP", "ONGOING_SUPPORT", "DNA_CORRECTION"];
+      if (state === "PROFILING" && o.previous_state && _postProfilingStates.includes(o.previous_state)) {
+        setSidebarData(null);
+        analysisAnnouncedRef.current = false;
+      }
       if (["DNA_REVIEW", "ROADMAP", "ONGOING_SUPPORT", "DNA_CORRECTION"].includes(state)) {
         // Fire the DNA_REVIEW notification immediately — before awaiting the sidebar fetch.
         if (state === "DNA_REVIEW" && !analysisAnnouncedRef.current) {
@@ -1340,6 +1347,14 @@ export default function CcChat() {
         // Show outreach sticky note once per session after DNA_REVIEW or ROADMAP
         if (["DNA_REVIEW", "ROADMAP"].includes(state) && !sessionStorage.getItem("outreach_note_shown")) {
           showOutreachNote(data.tool_recommendation);
+        }
+        // Show tool nudge card only on first-ever DNA generation (not resets/corrections).
+        // previous_state === "PROFILING" distinguishes fresh generation from correction reruns.
+        if (state === "DNA_REVIEW" && o.dna_generated && o.tool_nudge
+            && o.previous_state === "PROFILING"
+            && !localStorage.getItem("cc_tool_nudge_shown")) {
+          localStorage.setItem("cc_tool_nudge_shown", "1");
+          setToolNudge(o.tool_nudge);
         }
       }
     } catch {
