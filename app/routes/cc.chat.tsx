@@ -720,6 +720,7 @@ export default function CcChat() {
   const sidebarLoadedRef = useRef(false);
   const sidebarOpenRef = useRef(false);
   const initDone = useRef(false);
+  const checkInFiringRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -990,7 +991,7 @@ export default function CcChat() {
         const wantsNew = new URLSearchParams(window.location.search).get("new") === "1";
         if (wantsNew) {
           try {
-            const nc = await fetch(`${CC_API}/session/${sd.student_id}/new-conversation`, { method: "POST" });
+            const nc = await fetch(`${CC_API}/session/${sd.student_id}/new-conversation`, { method: "POST", headers: ccHeaders() });
             const ncd = await nc.json();
             if (ncd?.conversation_id) {
               conversationIdRef.current = ncd.conversation_id;
@@ -1261,7 +1262,7 @@ export default function CcChat() {
       }
       // Give the backend a moment to finish committing the parsed profile
       // before the chat request reads it, to avoid a read/write race.
-      if (resumeWasParsed) await new Promise(r => setTimeout(r, 400));
+      if (resumeWasParsed) await new Promise(r => setTimeout(r, 1500));
     }
 
     // If no text was typed but a resume was uploaded, send a trigger message so
@@ -1344,8 +1345,8 @@ export default function CcChat() {
         if (state === "ROADMAP" && sidebarOpenRef.current) {
           openSidebarTo("roadmap");
         }
-        // Show outreach sticky note once per session after DNA_REVIEW or ROADMAP
-        if (["DNA_REVIEW", "ROADMAP"].includes(state) && !sessionStorage.getItem("outreach_note_shown")) {
+        // Show outreach sticky note once per session after DNA_REVIEW, always at ROADMAP
+        if (state === "ROADMAP" || (state === "DNA_REVIEW" && !sessionStorage.getItem("outreach_note_shown"))) {
           showOutreachNote(data.tool_recommendation);
         }
         // Show tool nudge card only on first-ever DNA generation (not resets/corrections).
@@ -1365,6 +1366,7 @@ export default function CcChat() {
         const authEmail = session?.user?.email;
         const body2: Record<string, string> = {};
         if (authEmail) body2.email = authEmail;
+        if (studentIdRef.current) body2.student_id = studentIdRef.current;
         const rs = await fetch(`${CC_API}/session/start`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body2),
@@ -1429,10 +1431,12 @@ export default function CcChat() {
   async function submitCheckIn(kind: string, items: Array<{ label: string; type: string; key: string }>) {
     const sid = studentIdRef.current;
     if (!sid) return;
+    if (checkInFiringRef.current) return;
     const payload = items.map(it => ({
       label: it.label, type: it.type, status: taskBoxes[it.key] ? "done" : "skipped",
     }));
     if (!payload.some(p => p.status === "done")) { toast("Tick at least one thing you did"); return; }
+    checkInFiringRef.current = true;
     setCheckInSaving(true);
     try {
       const r = await fetch(`${CC_API}/api/student/${sid}/check-in`, {
@@ -1461,6 +1465,7 @@ export default function CcChat() {
     } catch {
       toast("Could not save your check-in");
     }
+    checkInFiringRef.current = false;
     setCheckInSaving(false);
   }
 
@@ -2146,7 +2151,7 @@ export default function CcChat() {
               <div className="xp-card-title">Your climb over time</div>
               <div className="xp-chart">
                 {hist.slice(-8).map((h: any, i: number) => {
-                  const v = Math.min(95, Math.round((h.score || 0) * 0.9));
+                  const v = Math.min(95, Math.round(h.score || 0));
                   return (
                     <div key={i} className="xp-bar-col">
                       <div className="xp-bar" style={{ height: `${v}%` }}>
@@ -2582,9 +2587,10 @@ export default function CcChat() {
                         e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
                         setInputEmpty(!e.target.value);
                         if (idleHint) setIdleHint(false);
+                        armIdleTimer();
                       }}
                     />
-                    <button id="cc-send-btn" disabled={waiting || resumeUploading} onClick={() => sendMsg()} aria-label="Send">→</button>
+                    <button id="cc-send-btn" disabled={waiting || resumeUploading || !studentIdRef.current} onClick={() => sendMsg()} aria-label="Send">→</button>
                   </div>
                 </div>
               </div>
