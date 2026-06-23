@@ -55,15 +55,39 @@ export default function Playbook() {
           </div>
         </div>
 
-        {/* Inline PDF reader */}
-        <div className="rounded-[24px] border-2 border-neutral-900 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] overflow-hidden bg-white">
+        {/* Mobile: phones can't embed PDFs inline (iOS Safari / most Android),
+            so show a clear action card instead of a broken/empty embed box. */}
+        <div className="md:hidden rounded-[24px] border-2 border-neutral-900 bg-white p-7 text-center shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]">
+          <p className="text-neutral-700 font-semibold mb-1">The playbook is a PDF.</p>
+          <p className="text-neutral-600 mb-5 text-sm">Open it in a new tab or save it to your phone.</p>
+          <div className="flex flex-col gap-3">
+            <a
+              href={PLAYBOOK_PDF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 bg-violet-500 text-white font-bold px-6 py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+            >
+              Open the playbook ↗
+            </a>
+            <a
+              href={PLAYBOOK_PDF}
+              download
+              className="inline-flex items-center justify-center gap-2 bg-white text-neutral-900 font-bold px-6 py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+            >
+              Download PDF ↓
+            </a>
+          </div>
+        </div>
+
+        {/* Desktop: inline PDF reader (browsers here embed PDFs reliably) */}
+        <div className="hidden md:block rounded-[24px] border-2 border-neutral-900 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] overflow-hidden bg-white">
           <object
             data={`${PLAYBOOK_PDF}#view=FitH`}
             type="application/pdf"
             className="w-full"
             style={{ height: "80vh", minHeight: "600px" }}
           >
-            {/* Fallback if the browser can't embed PDFs (some mobile browsers) */}
+            {/* Fallback if a desktop browser still can't embed PDFs */}
             <div className="p-10 text-center">
               <p className="text-neutral-600 mb-4">
                 Prefer to read it in a new tab?

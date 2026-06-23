@@ -62,7 +62,7 @@ export default function Toolkit() {
         <span className="inline-block bg-violet-100 text-violet-700 text-xs font-bold tracking-wider uppercase px-3 py-1.5 rounded-full border-2 border-neutral-900 mb-6">
           Your webinar toolkit
         </span>
-        <h1 className="font-['Clash_Display'] text-5xl sm:text-6xl font-extrabold text-neutral-900 leading-[1.05]">
+        <h1 className="font-['Clash_Display'] text-4xl sm:text-6xl font-extrabold text-neutral-900 leading-[1.05]">
           The Studojo<br />Career Toolkit
         </h1>
         <p className="mt-5 text-lg sm:text-xl text-neutral-600 max-w-2xl mx-auto">
