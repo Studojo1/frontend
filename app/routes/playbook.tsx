@@ -66,7 +66,7 @@ export default function Playbook() {
             {/* Fallback if the browser can't embed PDFs (some mobile browsers) */}
             <div className="p-10 text-center">
               <p className="text-neutral-600 mb-4">
-                Your browser can't show the PDF inline. You can still read it:
+                Prefer to read it in a new tab?
               </p>
               <a
                 href={PLAYBOOK_PDF}
