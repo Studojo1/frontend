@@ -23,9 +23,9 @@ export default function Playbook() {
     <div className="min-h-screen bg-neutral-50 font-['Satoshi']">
       <Header />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-10 pb-16">
+      <main className="pt-10 pb-16">
         {/* Heading */}
-        <div className="mb-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 mb-8">
           <span className="inline-block bg-violet-100 text-violet-700 text-xs font-bold tracking-wider uppercase px-3 py-1.5 rounded-full border-2 border-neutral-900 mb-5">
             The Playbook
           </span>
@@ -57,7 +57,7 @@ export default function Playbook() {
 
         {/* Mobile: phones can't embed PDFs inline (iOS Safari / most Android),
             so show a clear action card instead of a broken/empty embed box. */}
-        <div className="md:hidden rounded-[24px] border-2 border-neutral-900 bg-white p-7 text-center shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]">
+        <div className="md:hidden mx-4 sm:mx-6 rounded-[24px] border-2 border-neutral-900 bg-white p-7 text-center shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]">
           <p className="text-neutral-700 font-semibold mb-1">The playbook is a PDF.</p>
           <p className="text-neutral-600 mb-5 text-sm">Open it in a new tab or save it to your phone.</p>
           <div className="flex flex-col gap-3">
@@ -79,13 +79,13 @@ export default function Playbook() {
           </div>
         </div>
 
-        {/* Desktop: inline PDF reader (browsers here embed PDFs reliably) */}
-        <div className="hidden md:block rounded-[24px] border-2 border-neutral-900 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] overflow-hidden bg-white">
+        {/* Desktop: full-width inline PDF reader (browsers here embed PDFs reliably) */}
+        <div className="hidden md:block border-y-2 border-neutral-900 overflow-hidden bg-white">
           <object
             data={`${PLAYBOOK_PDF}#view=FitH`}
             type="application/pdf"
             className="w-full"
-            style={{ height: "80vh", minHeight: "600px" }}
+            style={{ height: "calc(100vh - 100px)", minHeight: "700px" }}
           >
             {/* Fallback if a desktop browser still can't embed PDFs */}
             <div className="p-10 text-center">
@@ -105,17 +105,19 @@ export default function Playbook() {
         </div>
 
         {/* Soft CTA back to the toolkit */}
-        <div className="mt-10 rounded-[24px] border-2 border-neutral-900 bg-violet-50 p-6 sm:p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
-          <div>
-            <h2 className="font-['Clash_Display'] text-2xl font-extrabold text-neutral-900">Ready to put it into action?</h2>
-            <p className="text-neutral-600 mt-1">Open the toolkit and start with the tool the playbook points you to.</p>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-10">
+          <div className="rounded-[24px] border-2 border-neutral-900 bg-violet-50 p-6 sm:p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+            <div>
+              <h2 className="font-['Clash_Display'] text-2xl font-extrabold text-neutral-900">Ready to put it into action?</h2>
+              <p className="text-neutral-600 mt-1">Open the toolkit and start with the tool the playbook points you to.</p>
+            </div>
+            <a
+              href="/toolkit"
+              className="inline-flex items-center gap-2 whitespace-nowrap bg-neutral-900 text-white font-bold px-6 py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(124,58,237,1)] transition-all"
+            >
+              Open the toolkit →
+            </a>
           </div>
-          <a
-            href="/toolkit"
-            className="inline-flex items-center gap-2 whitespace-nowrap bg-neutral-900 text-white font-bold px-6 py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(124,58,237,1)] transition-all"
-          >
-            Open the toolkit →
-          </a>
         </div>
       </main>
 
