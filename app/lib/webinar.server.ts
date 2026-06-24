@@ -50,6 +50,15 @@ async function ensureTable() {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_webinar_registrations_email_webinar_unique
     ON webinar_registrations (lower(email), webinar_id)
   `);
+  // Standing subscribers: people who clicked "register for the next one too".
+  // They are auto-enrolled into every future webinar created in admin.
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS webinar_standing_subscribers (
+      email TEXT PRIMARY KEY,
+      full_name TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
   tableCreated = true;
 }
 
@@ -63,6 +72,65 @@ async function getActiveWebinarId(): Promise<number | null> {
   `);
   const row = result.rows[0] as { id: number } | undefined;
   return row ? row.id : null;
+}
+
+// quickRegister handles the one-click "register for the next one too" button.
+// It (1) registers the person for the currently active webinar using their
+// known email/name (no form), and (2) records them as a standing subscriber so
+// every future webinar auto-enrols them. Idempotent: clicking twice is safe.
+export async function quickRegister(params: {
+  email: string;
+  fullName: string;
+}): Promise<{ activeWebinarId: number | null; alreadyRegistered: boolean }> {
+  await ensureTable();
+  const email = params.email.trim().toLowerCase();
+  const fullName = (params.fullName || "").trim();
+
+  // Standing subscriber (upsert — keep the latest known name).
+  await db.execute(sql`
+    INSERT INTO webinar_standing_subscribers (email, full_name)
+    VALUES (${email}, ${fullName})
+    ON CONFLICT (email) DO UPDATE SET full_name = EXCLUDED.full_name
+  `);
+
+  // Register for the active webinar, if there is one.
+  const webinarId = await getActiveWebinarId();
+  let alreadyRegistered = false;
+  if (webinarId !== null) {
+    const res = await db.execute(sql`
+      INSERT INTO webinar_registrations (
+        full_name, whatsapp, email, college, course,
+        year_of_study, referral_source, webinar_id
+      )
+      VALUES (
+        ${fullName || "there"}, '', ${email}, '', '',
+        '', 'one-click-from-email', ${webinarId}
+      )
+      ON CONFLICT (lower(email), webinar_id) DO NOTHING
+      RETURNING id
+    `);
+    alreadyRegistered = res.rows.length === 0;
+  }
+  return { activeWebinarId: webinarId, alreadyRegistered };
+}
+
+// Auto-enrol all standing subscribers as registrants of a given webinar. Called
+// when a new webinar is created in admin. Returns the emails newly enrolled
+// (so the caller can fire confirmation emails). Idempotent per (email,webinar).
+export async function enrollStandingSubscribers(webinarId: number): Promise<{ email: string; full_name: string }[]> {
+  await ensureTable();
+  const res = await db.execute(sql`
+    INSERT INTO webinar_registrations (
+      full_name, whatsapp, email, college, course,
+      year_of_study, referral_source, webinar_id
+    )
+    SELECT COALESCE(NULLIF(s.full_name, ''), 'there'), '', s.email, '', '',
+           '', 'standing-subscriber', ${webinarId}
+    FROM webinar_standing_subscribers s
+    ON CONFLICT (lower(email), webinar_id) DO NOTHING
+    RETURNING email, full_name
+  `);
+  return res.rows as { email: string; full_name: string }[];
 }
 
 export async function saveWebinarRegistration(params: {
