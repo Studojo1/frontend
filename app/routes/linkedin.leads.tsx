@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiArrowRight, FiArrowLeft, FiFilter, FiLinkedin, FiSend } from "react-icons/fi";
 import { Header } from "~/components/common/header";
@@ -31,17 +31,56 @@ export default function LinkedInLeads() {
 
   const [importing, setImporting] = useState(false);
   const [hasOutreachLeads, setHasOutreachLeads] = useState(false);
+  const [discovering, setDiscovering] = useState(false);
+  const discoverStartedRef = useRef(false);
 
-  const loadLeads = () => {
-    if (!candidateId) return;
-    setLoading(true);
-    outreachFetch<{ leads: Lead[] } | Lead[]>(`/candidate/${candidateId}/leads`)
-      .then((r: any) => setLeads(Array.isArray(r) ? r : (r?.leads ?? [])))
-      .catch((e: any) => setError(e?.body?.detail || "Couldn't load matches"))
-      .finally(() => setLoading(false));
+  // Fetch leads; resolves to the count so callers can poll for completion.
+  const loadLeads = (silent = false): Promise<number> => {
+    if (!candidateId) return Promise.resolve(0);
+    if (!silent) setLoading(true);
+    return outreachFetch<{ leads: Lead[] } | Lead[]>(`/candidate/${candidateId}/leads`)
+      .then((r: any) => {
+        const arr = Array.isArray(r) ? r : (r?.leads ?? []);
+        setLeads(arr);
+        return arr.length as number;
+      })
+      .catch((e: any) => { setError(e?.body?.detail || "Couldn't load matches"); return 0; })
+      .finally(() => { if (!silent) setLoading(false); });
   };
 
-  useEffect(() => { loadLeads(); }, [candidateId]);
+  // Find real LinkedIn profiles via public web search — no login, no Apollo.
+  // Backend runs in the background (~1-2 min), so we poll for the new rows.
+  const findLinkedInLeads = async () => {
+    if (!candidateId || discovering) return;
+    setDiscovering(true);
+    setError("");
+    try {
+      await outreachFetch<any>("/discovery/linkedin-discover", {
+        method: "POST",
+        body: JSON.stringify({ candidate_id: candidateId }),
+        timeout: 30_000,
+      });
+      for (let i = 0; i < 24; i++) {
+        await new Promise((r) => setTimeout(r, 10_000));
+        const n = await loadLeads(true);
+        if (n > 0) break;
+      }
+    } catch (e: any) {
+      setError(e?.body?.detail || "Couldn't find LinkedIn leads right now. Try again in a moment.");
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
+  useEffect(() => {
+    loadLeads().then((n) => {
+      // Works on its own: if there are no leads yet, kick off web discovery once.
+      if (n === 0 && !discoverStartedRef.current) {
+        discoverStartedRef.current = true;
+        findLinkedInLeads();
+      }
+    });
+  }, [candidateId]);
 
   // Check whether the user has leads in a previous Outreach campaign to offer import.
   useEffect(() => {
@@ -128,34 +167,51 @@ export default function LinkedInLeads() {
           </div>
         </div>
 
-        {loading ? (
+        {loading || (discovering && sorted.length === 0) ? (
           <div className="flex flex-col items-center justify-center py-24">
             <div className="w-10 h-10 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-sm font-satoshi text-studojo-muted">Scanning 2,000,000+ profiles for your matches…</p>
+            <p className="text-sm font-satoshi text-studojo-muted">
+              {discovering
+                ? "Finding real LinkedIn profiles for you… this takes about a minute."
+                : "Scanning 2,000,000+ profiles for your matches…"}
+            </p>
           </div>
-        ) : error ? (
+        ) : error && sorted.length === 0 ? (
           <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8 text-center">
-            <p className="text-red-600 font-satoshi">{error}</p>
+            <p className="text-red-600 font-satoshi mb-4">{error}</p>
+            <button
+              onClick={findLinkedInLeads}
+              disabled={discovering}
+              className="h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-60"
+            >
+              {discovering ? "Finding…" : "Find LinkedIn leads"}
+            </button>
           </div>
         ) : sorted.length === 0 ? (
           <div className="rounded-2xl border-2 border-studojo-ink/15 bg-studojo-surface-muted p-10 text-center">
-            <p className="font-bold font-satoshi text-studojo-ink mb-1">
-              {hasOutreachLeads ? "No LinkedIn matches yet" : "Still finding matches…"}
-            </p>
+            <p className="font-bold font-satoshi text-studojo-ink mb-1">No LinkedIn matches yet</p>
             <p className="text-sm text-studojo-muted font-satoshi mb-4">
-              {hasOutreachLeads
-                ? "You already have leads from an Outreach campaign — bring them in with one click."
-                : "This usually takes about 2 minutes after upload. Refresh in a bit?"}
+              We find these by searching the public web — no LinkedIn login needed.
+              {hasOutreachLeads ? " You can also pull in leads from an Outreach campaign." : ""}
             </p>
-            {hasOutreachLeads && (
+            <div className="flex items-center justify-center gap-2 flex-wrap">
               <button
-                onClick={importFromOutreach}
-                disabled={importing}
+                onClick={findLinkedInLeads}
+                disabled={discovering}
                 className="h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-60"
               >
-                {importing ? "Importing…" : "⬇ Export from Outreach"}
+                {discovering ? "Finding…" : "Find LinkedIn leads"}
               </button>
-            )}
+              {hasOutreachLeads && (
+                <button
+                  onClick={importFromOutreach}
+                  disabled={importing}
+                  className="h-10 px-5 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center disabled:opacity-60"
+                >
+                  {importing ? "Importing…" : "⬇ Export from Outreach"}
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <>
