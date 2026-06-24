@@ -14,9 +14,14 @@ async function ensureTable() {
       source TEXT NOT NULL,
       confidence REAL NOT NULL DEFAULT 0,
       intent_id TEXT,
+      ip_address TEXT,
+      user_agent TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  // Backfill columns on pre-existing tables (CREATE IF NOT EXISTS won't add them).
+  await db.execute(sql`ALTER TABLE support_chat_logs ADD COLUMN IF NOT EXISTS ip_address TEXT`);
+  await db.execute(sql`ALTER TABLE support_chat_logs ADD COLUMN IF NOT EXISTS user_agent TEXT`);
   // Index for admin queries
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_support_chat_logs_created_at ON support_chat_logs (created_at DESC)
@@ -31,18 +36,22 @@ export async function logChatInteraction(params: {
   source: string;
   confidence: number;
   intentId?: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
 }) {
   try {
     await ensureTable();
     await db.execute(sql`
-      INSERT INTO support_chat_logs (session_id, user_message, bot_response, source, confidence, intent_id)
+      INSERT INTO support_chat_logs (session_id, user_message, bot_response, source, confidence, intent_id, ip_address, user_agent)
       VALUES (
         ${params.sessionId},
         ${params.userMessage},
         ${params.botResponse},
         ${params.source},
         ${params.confidence},
-        ${params.intentId || null}
+        ${params.intentId || null},
+        ${params.ipAddress || null},
+        ${params.userAgent || null}
       )
     `);
   } catch (error) {
@@ -53,7 +62,7 @@ export async function logChatInteraction(params: {
 export async function getChatLogs(limit = 100, offset = 0) {
   await ensureTable();
   const rows = await db.execute(sql`
-    SELECT id, session_id, user_message, bot_response, source, confidence, intent_id, created_at
+    SELECT id, session_id, user_message, bot_response, source, confidence, intent_id, ip_address, user_agent, created_at
     FROM support_chat_logs
     ORDER BY created_at DESC
     LIMIT ${limit} OFFSET ${offset}
