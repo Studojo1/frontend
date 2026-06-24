@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { FiLinkedin, FiExternalLink } from "react-icons/fi";
 import { capturePostHog } from "~/lib/posthog";
 import type { Lead } from "~/lib/outreach/types";
 
@@ -55,6 +56,12 @@ export function FlashCard({ lead }: FlashCardProps) {
   const navigate = useNavigate();
   const company = cleanCo(lead.company);
 
+  // LinkedIn profile (the "id") — show it on the card and make it clickable.
+  const liUrl = lead.linkedin_url || "";
+  const liHandle = liUrl
+    ? liUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "").replace(/\?.*$/, "")
+    : "";
+
   // Build the "why" — prefer LLM bullets, then fit_reason, then a generated reason.
   const j = lead.score?.justification;
   const bullets = j?.bullets ?? [];
@@ -94,6 +101,21 @@ export function FlashCard({ lead }: FlashCardProps) {
         {lead.location && <span className="text-[11px] text-studojo-muted truncate font-satoshi">· {lead.location}</span>}
       </div>
       {lead.industry && <p className="text-[11px] text-studojo-muted mt-0.5 truncate font-satoshi">{lead.industry}</p>}
+
+      {liUrl && (
+        <a
+          href={liUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => { e.stopPropagation(); capturePostHog("lead_linkedin_opened", { url: liUrl }); }}
+          title={liUrl}
+          className="mt-2 inline-flex items-center gap-1.5 max-w-full text-[12px] font-semibold text-[#0a66c2] hover:underline font-satoshi"
+        >
+          <FiLinkedin className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="truncate">{liHandle}</span>
+          <FiExternalLink className="w-3 h-3 flex-shrink-0 opacity-70" />
+        </a>
+      )}
 
       <div className="mt-3 pt-3 border-t border-studojo-ink/8">
         <p className="text-[11px] font-bold text-studojo-purple uppercase tracking-wide mb-1.5 font-satoshi">Why contact them</p>
