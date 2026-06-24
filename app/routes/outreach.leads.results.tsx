@@ -77,6 +77,22 @@ export default function ResultsPage() {
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
   const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  // LinkedIn-sourced leads (have a profile URL, no email) → the CTA should start
+  // LinkedIn automation rather than email enrichment.
+  const isLinkedInLeads =
+    leads.length > 0 &&
+    leads.filter((l) => l.linkedin_url && !l.email).length > leads.length / 2;
+  const ctaLabel = isLinkedInLeads ? "Start LinkedIn automation" : "Get Their Emails";
+  const onCta = () => {
+    if (isLinkedInLeads) {
+      capturePostHog("start_linkedin_automation_clicked", {});
+      navigate("/linkedin/pricing");
+    } else {
+      capturePostHog("get_emails_clicked", {});
+      navigate("/outreach/enrichment");
+    }
+  };
+
   if (!candidateId) {
     navigate("/outreach/onboarding/upload");
     return null;
@@ -106,10 +122,10 @@ export default function ResultsPage() {
               </select>
             </div>
             <button
-              onClick={() => { capturePostHog("get_emails_clicked", {}); navigate("/outreach/enrichment"); }}
+              onClick={onCta}
               className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
             >
-              <FiSend className="w-4 h-4 mr-1.5" /> Get Their Emails
+              <FiSend className="w-4 h-4 mr-1.5" /> {ctaLabel}
             </button>
           </div>
         </div>
@@ -174,14 +190,14 @@ export default function ResultsPage() {
       </div>
       <Footer />
 
-      {/* Floating Send Emails button — always visible */}
+      {/* Floating CTA — always visible */}
       {leads.length > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
           <button
-            onClick={() => { capturePostHog("get_emails_clicked", {}); navigate("/outreach/enrichment"); }}
+            onClick={onCta}
             className="h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
           >
-            <FiSend className="w-4 h-4 mr-2" /> Get Their Emails
+            <FiSend className="w-4 h-4 mr-2" /> {ctaLabel}
           </button>
         </div>
       )}
