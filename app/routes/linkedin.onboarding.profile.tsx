@@ -60,7 +60,16 @@ export default function LinkedInProfile() {
         }),
       }).catch(() => {/* non-fatal */});
 
-      navigate("/linkedin/leads/discovery");
+      // Kick off web discovery with the just-saved role+location so the leads
+      // page is already populating when the user lands on it. The ?fresh=1
+      // flag tells the leads page to re-discover even if stale leads exist.
+      outreachFetch(`/discovery/linkedin-discover`, {
+        method: "POST",
+        body: JSON.stringify({ candidate_id: candidateId }),
+        timeout: 30_000,
+      }).catch(() => {/* non-fatal — leads page will retry */});
+
+      navigate("/linkedin/leads/discovery?fresh=1");
     } catch (e: any) {
       setError(e?.body?.detail || e.message || "Couldn't continue — try again.");
     } finally {

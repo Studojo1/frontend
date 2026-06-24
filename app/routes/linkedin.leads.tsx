@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { FiArrowRight, FiArrowLeft, FiFilter, FiLinkedin, FiSend } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -13,6 +13,7 @@ const PAGE_SIZE = 12;
 
 export default function LinkedInLeads() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   useOutreachAuth();
   const { candidateId } = useOutreachStore();
 
@@ -73,10 +74,18 @@ export default function LinkedInLeads() {
   };
 
   useEffect(() => {
+    const fresh = searchParams.get("fresh") === "1";
     loadLeads().then((n) => {
-      // Works on its own: if there are no leads yet, kick off web discovery once.
-      if (n === 0 && !discoverStartedRef.current) {
+      if (discoverStartedRef.current) return;
+      // Re-discover when arriving from an edited search (?fresh=1) even if
+      // stale leads exist, or auto-discover the first time there are none.
+      if (fresh || n === 0) {
         discoverStartedRef.current = true;
+        if (fresh) {
+          // Drop the flag so a refresh doesn't keep re-running.
+          searchParams.delete("fresh");
+          setSearchParams(searchParams, { replace: true });
+        }
         findLinkedInLeads();
       }
     });
@@ -182,6 +191,13 @@ export default function LinkedInLeads() {
             </button>
           </div>
         </div>
+
+        {discovering && sorted.length > 0 && (
+          <div className="mb-4 flex items-center gap-2 rounded-xl border-2 border-studojo-ink/15 bg-studojo-surface-muted px-4 py-2.5">
+            <div className="w-4 h-4 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            <p className="text-sm font-satoshi text-studojo-muted">Refreshing results for your new search… this takes about a minute.</p>
+          </div>
+        )}
 
         {loading || (discovering && sorted.length === 0) ? (
           <div className="flex flex-col items-center justify-center py-24">
