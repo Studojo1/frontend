@@ -148,6 +148,22 @@ export default function LinkedInLeads() {
                 <option value="name">Name (A–Z)</option>
               </select>
             </div>
+            <button
+              onClick={() => navigate("/linkedin/onboarding/profile")}
+              disabled={discovering}
+              className="h-9 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap disabled:opacity-60"
+              title="Change the role or location you're searching for"
+            >
+              Edit search
+            </button>
+            <button
+              onClick={findLinkedInLeads}
+              disabled={discovering}
+              className="h-9 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap disabled:opacity-60"
+              title="Find a fresh set of LinkedIn profiles for your current role + location"
+            >
+              {discovering ? "Finding…" : "↻ Re-run search"}
+            </button>
             {hasOutreachLeads && (
               <button
                 onClick={importFromOutreach}
