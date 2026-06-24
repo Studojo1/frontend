@@ -28,6 +28,14 @@ export async function action({ request }: Route.ActionArgs) {
   const trimmed = message.trim();
   const sid = sessionId || "anonymous";
 
+  // Capture caller identity for the support chat log (behind nginx ingress, the
+  // real client IP is the first hop of x-forwarded-for).
+  const ipAddress =
+    request.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    request.headers.get("x-real-ip") ||
+    null;
+  const userAgent = request.headers.get("user-agent") || null;
+
   if (trimmed.length > 500) {
     return Response.json({ error: "Message too long (max 500 characters)" }, { status: 400 });
   }
@@ -46,6 +54,8 @@ export async function action({ request }: Route.ActionArgs) {
       source: "nlp",
       confidence: match.confidence,
       intentId: match.intent.id,
+      ipAddress,
+      userAgent,
     });
 
     return Response.json({
@@ -66,6 +76,8 @@ export async function action({ request }: Route.ActionArgs) {
       botResponse: llmReply,
       source: "llm",
       confidence: match.confidence,
+      ipAddress,
+      userAgent,
     });
 
     return Response.json({
@@ -86,6 +98,8 @@ export async function action({ request }: Route.ActionArgs) {
       botResponse: escalationReply,
       source: "escalation",
       confidence: 0,
+      ipAddress,
+      userAgent,
     });
 
     return Response.json({
