@@ -61,10 +61,20 @@ export default function LinkedInLeads() {
         body: JSON.stringify({ candidate_id: candidateId }),
         timeout: 30_000,
       });
-      for (let i = 0; i < 24; i++) {
-        await new Promise((r) => setTimeout(r, 10_000));
+      // High-volume discovery saves leads progressively over several minutes.
+      // Poll for up to ~10 min, refreshing as the count grows; stop once it
+      // plateaus (no growth for 5 polls) so we don't spin forever.
+      let prev = -1;
+      let flat = 0;
+      for (let i = 0; i < 50; i++) {
+        await new Promise((r) => setTimeout(r, 12_000));
         const n = await loadLeads(true);
-        if (n > 0) break;
+        if (n > 0 && n === prev) {
+          if (++flat >= 5) break;
+        } else {
+          flat = 0;
+        }
+        prev = n;
       }
     } catch (e: any) {
       setError(e?.body?.detail || "Couldn't find LinkedIn leads right now. Try again in a moment.");
