@@ -90,7 +90,8 @@ export default function Webinar() {
     setError(null);
 
     if (!form.fullName.trim() || !form.whatsapp.trim() || !form.email.trim() ||
-        !form.college.trim() || !form.course.trim() || !form.yearOfStudy) {
+        !form.college.trim() || !form.course.trim() || !form.yearOfStudy ||
+        !form.lifeStage) {
       setError("Please fill in all required fields (marked with *).");
       return;
     }
@@ -201,20 +202,20 @@ export default function Webinar() {
               </div>
             </div>
 
-            {/* Optional stage */}
+            {/* About you */}
             <h2 className="mt-10 text-lg font-bold text-violet-700 uppercase tracking-wide font-['Clash_Display'] mb-5">
-              About you <span className="normal-case text-neutral-400 text-sm font-['Satoshi']">(optional)</span>
+              About you
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className={LABEL}>What stage are you in your life?</label>
+                <label className={LABEL}>What stage are you in your life? <span className="text-red-500">*</span></label>
                 <select className={INPUT} value={form.lifeStage} onChange={set("lifeStage")}>
-                  <option value="">Prefer not to say</option>
+                  <option value="">Select your stage</option>
                   {LIFE_STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label className={LABEL}>How did you hear about the webinar?</label>
+                <label className={LABEL}>How did you hear about the webinar? <span className="normal-case text-neutral-400 text-xs font-['Satoshi']">(optional)</span></label>
                 <select className={INPUT} value={form.referralSource} onChange={set("referralSource")}>
                   <option value="">Prefer not to say</option>
                   {REFERRAL_SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}

@@ -25,13 +25,13 @@ export async function action({ request }: Route.ActionArgs) {
   const college = clamp(body.college);
   const course = clamp(body.course);
   const yearOfStudy = clamp(body.yearOfStudy, 40);
+  const lifeStage = clamp(body.lifeStage, 60); // required (the intent question)
   // Optional fields
   const specialisation = clamp(body.specialisation);
   const graduationYear = clamp(body.graduationYear, 10);
-  const lifeStage = clamp(body.lifeStage, 60);
   const referralSource = clamp(body.referralSource, 60);
 
-  if (!fullName || !whatsapp || !email || !college || !course || !yearOfStudy) {
+  if (!fullName || !whatsapp || !email || !college || !course || !yearOfStudy || !lifeStage) {
     return Response.json({ error: "Please fill in all required fields." }, { status: 400 });
   }
   if (!EMAIL_RE.test(email)) {
