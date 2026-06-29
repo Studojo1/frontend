@@ -27,7 +27,7 @@ export default function LinkedInUpload() {
       return;
     }
     if (f.size > 10 * 1024 * 1024) {
-      setError("File too large — please keep it under 10 MB.");
+      setError("File too large, please keep it under 10 MB.");
       return;
     }
     setError("");

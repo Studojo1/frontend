@@ -49,7 +49,7 @@ export default function LinkedInLeads() {
       .finally(() => { if (!silent) setLoading(false); });
   };
 
-  // Find real LinkedIn profiles via public web search — no login, no Apollo.
+  // Find real LinkedIn profiles via public web search, no login, no Apollo.
   // Backend runs in the background (~1-2 min), so we poll for the new rows.
   const findLinkedInLeads = async () => {
     if (!candidateId || discovering) return;
@@ -120,7 +120,7 @@ export default function LinkedInLeads() {
       });
       loadLeads();
       setHasOutreachLeads(false);
-      if ((r?.imported ?? 0) === 0) setError("No new leads to import — they're already here.");
+      if ((r?.imported ?? 0) === 0) setError("No new leads to import, they're already here.");
     } catch (e: any) {
       setError(e?.body?.detail || "Import failed");
     } finally {
@@ -164,7 +164,7 @@ export default function LinkedInLeads() {
                 className="flex-1 sm:flex-none text-sm border-2 border-studojo-ink/20 rounded-xl px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-studojo-purple font-satoshi"
               >
                 <option value="score">Highest score</option>
-                <option value="name">Name (A–Z)</option>
+                <option value="name">Name (A-Z)</option>
               </select>
             </div>
             <button
@@ -233,7 +233,7 @@ export default function LinkedInLeads() {
           <div className="rounded-2xl border-2 border-studojo-ink/15 bg-studojo-surface-muted p-10 text-center">
             <p className="font-bold font-satoshi text-studojo-ink mb-1">No LinkedIn matches yet</p>
             <p className="text-sm text-studojo-muted font-satoshi mb-4">
-              We find these by searching the public web — no LinkedIn login needed.
+              We find these by searching the public web, no LinkedIn login needed.
               {hasOutreachLeads ? " You can also pull in leads from an Outreach campaign." : ""}
             </p>
             <div className="flex items-center justify-center gap-2 flex-wrap">
@@ -285,7 +285,7 @@ export default function LinkedInLeads() {
         )}
       </div>
 
-      {/* Sticky CTA — drives them to pricing */}
+      {/* Sticky CTA, drives them to pricing */}
       {!loading && sorted.length > 0 && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10">
           <button

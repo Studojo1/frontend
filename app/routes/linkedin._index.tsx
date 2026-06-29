@@ -8,7 +8,7 @@ import { Footer } from "~/components/common/footer";
 
 export function meta() {
   return [
-    { title: "Studojo LinkedIn — Auto-send connection requests to hiring managers" },
+    { title: "Studojo LinkedIn, Auto-send connection requests to hiring managers" },
     { name: "description", content: "Upload your resume. We find decision-makers. You connect on LinkedIn at scale, safely." },
   ];
 }
@@ -24,13 +24,13 @@ const STEPS = [
     n: 2,
     icon: <FiUsers className="w-5 h-5" />,
     title: "We find the right hiring managers",
-    body: "200+ decision-makers matched to your profile — founders, heads, hiring leads. Not random recruiters.",
+    body: "200+ decision-makers matched to your profile, founders, heads, hiring leads. Not random recruiters.",
   },
   {
     n: 3,
     icon: <FiLinkedin className="w-5 h-5" />,
     title: "Connect your LinkedIn",
-    body: "One-time secure login. We send connection requests on your behalf — paced safely, hand-personalised notes.",
+    body: "One-time secure login. We send connection requests on your behalf, paced safely, hand-personalised notes.",
   },
   {
     n: 4,
@@ -41,11 +41,11 @@ const STEPS = [
 ];
 
 const FEATURES = [
-  "Sends 8–12 invites per day (LinkedIn-safe pacing)",
+  "Sends 8-12 invites per day (LinkedIn-safe pacing)",
   "AI-written personal notes referencing their company",
   "Auto-follow-up message when they accept",
   "Withdraws stale invites after 14 days to keep your limit clean",
-  "Full transparency — see every invite, every reply",
+  "Full transparency, see every invite, every reply",
 ];
 
 const TIERS = [
@@ -55,10 +55,10 @@ const TIERS = [
 ];
 
 const FAQ: [string, string][] = [
-  ["Is this safe for my LinkedIn account?", "Yes. We pace invites at 8–12/day (well below LinkedIn's 100/week limit), use your own session cookies, and randomise send times to mirror human behaviour. We don't use bots or third-party automation tools — everything runs through real browser sessions."],
+  ["Is this safe for my LinkedIn account?", "Yes. We pace invites at 8-12/day (well below LinkedIn's 100/week limit), use your own session cookies, and randomise send times to mirror human behaviour. We don't use bots or third-party automation tools, everything runs through real browser sessions."],
   ["What if someone reports me?", "Reports are rare because every invite has a real personal note. We also let you blacklist companies or titles you don't want contacted. If LinkedIn ever asks you to verify, we pause automatically."],
-  ["Will I be the one signing in?", "Yes. You log into LinkedIn once on our connect page. We never store your password — only the session token. You can revoke access from LinkedIn → Settings → Sessions at any time."],
-  ["What's the reply rate?", "Acceptance rate is usually 25–40% (depends on profile match). Of those who accept, about 8–15% reply to the follow-up message."],
+  ["Will I be the one signing in?", "Yes. You log into LinkedIn once on our connect page. We never store your password, only the session token. You can revoke access from LinkedIn → Settings → Sessions at any time."],
+  ["What's the reply rate?", "Acceptance rate is usually 25-40% (depends on profile match). Of those who accept, about 8-15% reply to the follow-up message."],
 ];
 
 export default function LinkedInLanding() {
@@ -81,7 +81,7 @@ export default function LinkedInLanding() {
             <span className="text-studojo-ink/80">Automatically.</span>
           </h1>
           <p className="text-base md:text-xl text-studojo-muted font-satoshi max-w-2xl mx-auto mb-8">
-            Upload your resume. We find the right decision-makers. You connect with 200+ hand-personalised invites — sent safely on autopilot.
+            Upload your resume. We find the right decision-makers. You connect with 200+ hand-personalised invites, sent safely on autopilot.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
@@ -101,7 +101,7 @@ export default function LinkedInLanding() {
 
           {/* Quick trust row */}
           <div className="flex flex-wrap justify-center gap-3 max-w-2xl mx-auto">
-            {["200+ matched contacts", "8–12 invites/day", "Auto follow-ups", "LinkedIn-safe pacing"].map((t) => (
+            {["200+ matched contacts", "8-12 invites/day", "Auto follow-ups", "LinkedIn-safe pacing"].map((t) => (
               <span key={t} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold font-satoshi bg-white border-2 border-studojo-ink/15 text-studojo-ink">
                 <FiCheckCircle className="w-3.5 h-3.5 text-studojo-green" /> {t}
               </span>
@@ -165,14 +165,14 @@ export default function LinkedInLanding() {
                 <span className="text-blue-300">Hi Aarav,</span>
               </p>
               <p className="mb-3 text-white/90">
-                Saw you're scaling Polymath AI's LLM orchestration stack —
+                Saw you're scaling Polymath AI's LLM orchestration stack,
                 I've been building production voice AI pipelines at Cred and
                 am drawn to teams shipping real-time inference at your stage.
               </p>
               <p className="mb-3 text-white/90">
                 Would love to connect.
               </p>
-              <p className="text-blue-300">— Himanshu</p>
+              <p className="text-blue-300">Himanshu</p>
               <div className="mt-4 pt-3 border-t border-white/15 flex items-center justify-between text-[10px] text-white/40">
                 <span>≤ 300 chars · LinkedIn-safe</span>
                 <span>Sent · Tuesday 10:42 AM</span>
@@ -251,7 +251,7 @@ export default function LinkedInLanding() {
           <div className="rounded-2xl border-2 border-studojo-ink bg-[#0a66c2] text-white shadow-brutal p-10 text-center">
             <h2 className="font-clash text-3xl md:text-4xl font-bold mb-3">Ready to connect with the right people?</h2>
             <p className="text-base font-satoshi text-white/80 mb-6 max-w-xl mx-auto">
-              Upload your resume — we'll have your contact list ready in 3 minutes.
+              Upload your resume, we'll have your contact list ready in 3 minutes.
             </p>
             <button
               onClick={() => navigate("/linkedin/onboarding/upload")}

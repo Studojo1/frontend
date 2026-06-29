@@ -54,7 +54,7 @@ export default function LinkedInPricing() {
         setPlans(li);
         if (r.currency) setCurrency(r.currency);
       })
-      .catch(() => setError("Couldn't load pricing — refresh the page."));
+      .catch(() => setError("Couldn't load pricing, refresh the page."));
   }, []);
 
   const validateCoupon = async () => {
@@ -107,7 +107,7 @@ export default function LinkedInPricing() {
         return;
       }
 
-      // Dodo (international) handled later if needed — for now require Razorpay path
+      // Dodo (international) handled later if needed, for now require Razorpay path
       if (!order.order_id) {
         setError("Payment route not available. Try refreshing or contact studojo@gmail.com.");
         setPaying(false);
@@ -259,7 +259,7 @@ export default function LinkedInPricing() {
                     <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> {p.linkedin_credits} hand-personalised invites</li>
                     <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> AI follow-up message on accept</li>
                     <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Reply tracking + inbox</li>
-                    <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> ~{Math.round(p.linkedin_credits / 30)} invites/day — safe pacing</li>
+                    <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> ~{Math.round(p.linkedin_credits / 30)} invites/day, safe pacing</li>
                     <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Auto-withdraw stale invites at 14d</li>
                   </ul>
                   <button

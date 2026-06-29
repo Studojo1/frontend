@@ -53,7 +53,7 @@ export default function LinkedInDashboard() {
   const [error, setError] = useState("");
   const [toggling, setToggling] = useState(false);
 
-  // Resolve which campaign to show — prefer store value, then look up the
+  // Resolve which campaign to show, prefer store value, then look up the
   // user's most-recent LinkedIn campaign as a fallback.
   const refresh = async () => {
     setLoading(true);
@@ -193,7 +193,7 @@ export default function LinkedInDashboard() {
                 <div className="flex-1">
                   <p className="text-sm font-bold font-satoshi text-amber-900">LinkedIn session expired</p>
                   <p className="text-xs font-satoshi text-amber-800 mt-0.5">
-                    Reconnect to resume sending. Your queue is preserved — invites will pick up right where they left off.
+                    Reconnect to resume sending. Your queue is preserved, invites will pick up right where they left off.
                   </p>
                   <button
                     onClick={() => navigate("/linkedin/connect")}

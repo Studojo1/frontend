@@ -37,7 +37,7 @@ export default function LinkedInLeadsDiscovery() {
     let cancelled = false;
 
     // Walk the user through the three "stages" UI even though the backend
-    // is just one search call — feels less janky on a slow connection.
+    // is just one search call, feels less janky on a slow connection.
     const stageTimer = setInterval(() => {
       setStage((s) => Math.min(s + 1, STAGES.length - 1));
     }, 7000);
@@ -70,7 +70,7 @@ export default function LinkedInLeadsDiscovery() {
               finish();
             }
           } catch {
-            // non-fatal — keep polling
+            // non-fatal, keep polling
           }
         }, POLL_INTERVAL_MS);
       })

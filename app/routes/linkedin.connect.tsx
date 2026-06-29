@@ -18,7 +18,7 @@ export default function LinkedInConnectPage() {
   const [checking, setChecking] = useState(true);
 
   // If the user is already connected (has a LinkedIn campaign), skip the connect
-  // form and go straight to the dashboard — otherwise a connected user lands back
+  // form and go straight to the dashboard, otherwise a connected user lands back
   // on this form and thinks it's "stuck".
   useEffect(() => {
     let cancelled = false;
@@ -89,7 +89,7 @@ export default function LinkedInConnectPage() {
           <FiShield className="w-5 h-5 text-studojo-green flex-shrink-0 mt-0.5" />
           <div className="text-xs font-satoshi text-studojo-ink/90 space-y-1">
             <p><span className="font-bold">Your account is safe.</span></p>
-            <p>Invites go out at 8–12/day (well below LinkedIn's 100/week cap), 9 AM–7 PM in your timezone, with hand-personalised notes. We never use bots, scrapers, or third-party automation tools.</p>
+            <p>Invites go out at 8-12/day (well below LinkedIn's 100/week cap), 9 AM-7 PM in your timezone, with hand-personalised notes. We never use bots, scrapers, or third-party automation tools.</p>
           </div>
         </div>
 

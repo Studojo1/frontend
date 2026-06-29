@@ -56,13 +56,13 @@ export function FlashCard({ lead }: FlashCardProps) {
   const navigate = useNavigate();
   const company = cleanCo(lead.company);
 
-  // LinkedIn profile (the "id") — show it on the card and make it clickable.
+  // LinkedIn profile (the "id"), show it on the card and make it clickable.
   const liUrl = lead.linkedin_url || "";
   const liHandle = liUrl
     ? liUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "").replace(/\?.*$/, "")
     : "";
 
-  // Build the "why" — prefer LLM bullets, then fit_reason, then a generated reason.
+  // Build the "why", prefer LLM bullets, then fit_reason, then a generated reason.
   const j = lead.score?.justification;
   const bullets = j?.bullets ?? [];
   let desc = "";
