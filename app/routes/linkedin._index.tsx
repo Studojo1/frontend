@@ -49,9 +49,8 @@ const FEATURES = [
 ];
 
 const TIERS = [
-  { id: "linkedin_200", label: "Starter", count: 200, priceUSD: 20, priceINR: 1825, anchorINR: 2500, save: "27%" },
-  { id: "linkedin_350", label: "Growth", count: 350, priceUSD: 27, priceINR: 2325, anchorINR: 3500, save: "34%", popular: true },
-  { id: "linkedin_500", label: "Scale", count: 500, priceUSD: 50, priceINR: 3465, anchorINR: 5000, save: "31%" },
+  { id: "linkedin_weekly", label: "Weekly", count: 80, priceUSD: 8, priceINR: 500, per: "week", duration: 7 },
+  { id: "linkedin_monthly", label: "Monthly", count: 350, priceUSD: 25, priceINR: 1800, per: "month", duration: 30, popular: true },
 ];
 
 const FAQ: [string, string][] = [
@@ -81,7 +80,7 @@ export default function LinkedInLanding() {
             <span className="text-studojo-ink/80">Automatically.</span>
           </h1>
           <p className="text-base md:text-xl text-studojo-muted font-satoshi max-w-2xl mx-auto mb-8">
-            Upload your resume. We find the right decision-makers. You connect with 200+ hand-personalised invites, sent safely on autopilot.
+            Upload your resume. We find the right decision-makers. You connect with hand-personalised invites, sent safely on autopilot.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
@@ -185,10 +184,10 @@ export default function LinkedInLanding() {
         <section className="py-16 border-t border-studojo-ink/10">
           <div className="text-center mb-10">
             <span className="text-xs font-bold font-satoshi text-studojo-purple uppercase tracking-wider">Pricing</span>
-            <h2 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink mt-2">Pay once. Send 200+ invites.</h2>
-            <p className="text-base text-studojo-muted font-satoshi mt-2">No subscription. No hidden costs. India launch pricing.</p>
+            <h2 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink mt-2">Weekly or monthly. Your call.</h2>
+            <p className="text-base text-studojo-muted font-satoshi mt-2">No hidden costs. Cancel any time. India launch pricing.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
             {TIERS.map((t) => (
               <div
                 key={t.id}
@@ -201,18 +200,15 @@ export default function LinkedInLanding() {
                 )}
                 <p className="text-xs font-bold font-satoshi text-studojo-muted uppercase mb-1">{t.label}</p>
                 <h3 className="font-clash text-2xl font-bold text-studojo-ink">{t.count} invites</h3>
-                <div className="mt-3 mb-1 flex items-baseline gap-2 flex-wrap">
-                  <span className="text-base font-clash font-bold text-studojo-muted line-through">₹{t.anchorINR}</span>
+                <div className="mt-3 mb-4 flex items-baseline gap-1 flex-wrap">
                   <span className="font-clash text-3xl font-bold text-studojo-ink">₹{t.priceINR}</span>
+                  <span className="text-sm font-satoshi text-studojo-muted">/{t.per}</span>
                 </div>
-                <span className="self-start mb-4 px-2 py-0.5 rounded-full text-[10px] font-bold font-satoshi bg-studojo-green/15 text-studojo-green border border-studojo-green/40">
-                  Save {t.save}
-                </span>
                 <ul className="space-y-2 mb-5 flex-1 text-sm font-satoshi text-studojo-ink">
                   <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> {t.count} hand-personalised invites</li>
                   <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> AI-written follow-up on accept</li>
                   <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Reply tracking + inbox</li>
-                  <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Safe pacing (~{Math.round(t.count / 30)}/day)</li>
+                  <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Safe pacing (~{Math.round(t.count / t.duration)}/day)</li>
                 </ul>
                 <button
                   onClick={() => navigate("/linkedin/onboarding/upload")}

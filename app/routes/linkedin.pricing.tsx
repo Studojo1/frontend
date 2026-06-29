@@ -17,6 +17,7 @@ interface PlanRow {
   amount_cents: number;
   currency: string;
   display_price: string;
+  duration_days: number;
   anchor_display?: string | null;
   discount_pct?: number | null;
 }
@@ -61,11 +62,12 @@ export default function LinkedInPricing() {
     if (!coupon.trim()) return;
     setCouponError("");
     try {
-      const recommended = plans.find((p) => p.linkedin_credits === 350) || plans[0];
-      if (!recommended) return;
+      // Coupons apply to the weekly plan only — validate against it.
+      const weekly = plans.find((p) => p.plan_id === "linkedin_weekly") || plans[0];
+      if (!weekly) return;
       const res = await outreachFetch<{ valid: boolean; discounted_amount: number }>("/payment/coupon/validate", {
         method: "POST",
-        body: JSON.stringify({ code: coupon.trim(), plan_id: recommended.plan_id, currency }),
+        body: JSON.stringify({ code: coupon.trim(), plan_id: weekly.plan_id, currency }),
       });
       if (res.valid) {
         setCouponApplied({ code: coupon.trim().toUpperCase(), discounted: res.discounted_amount });
@@ -97,7 +99,8 @@ export default function LinkedInPricing() {
         body: JSON.stringify({
           plan_id: plan.plan_id,
           currency,
-          coupon_code: couponApplied ? couponApplied.code : undefined,
+          // Coupons apply to the weekly plan only.
+          coupon_code: couponApplied && plan.plan_id === "linkedin_weekly" ? couponApplied.code : undefined,
         }),
       });
 
@@ -156,7 +159,7 @@ export default function LinkedInPricing() {
     }
   };
 
-  const popularId = "linkedin_350";
+  const popularId = "linkedin_monthly";
 
   return (
     <div className="min-h-screen bg-white pb-12">
@@ -215,6 +218,7 @@ export default function LinkedInPricing() {
                 </button>
               </div>
               {couponError && <p className="text-xs text-red-600 font-satoshi mt-2">{couponError}</p>}
+              <p className="text-[11px] text-studojo-muted font-satoshi mt-2">Coupons apply to the Weekly plan only.</p>
             </>
           )}
         </div>
@@ -230,36 +234,31 @@ export default function LinkedInPricing() {
         {plans.length === 0 ? (
           <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin" /></div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
             {plans.map((p) => {
               const popular = p.plan_id === popularId;
               const isPaying = payingId === p.plan_id;
+              const cadence = p.duration_days === 7 ? "week" : p.duration_days >= 28 ? "month" : `${p.duration_days}d`;
+              const perDay = p.duration_days ? Math.round(p.linkedin_credits / p.duration_days) : Math.round(p.linkedin_credits / 30);
               return (
                 <div key={p.plan_id} className={`rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6 flex flex-col relative ${popular ? "ring-4 ring-studojo-purple/20" : ""}`}>
                   {popular && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold font-satoshi bg-studojo-purple text-white border-2 border-studojo-ink whitespace-nowrap">
-                      MOST POPULAR
+                      BEST VALUE
                     </span>
                   )}
                   <p className="text-xs font-bold font-satoshi text-studojo-muted uppercase mb-1">{p.label}</p>
                   <h3 className="font-clash text-2xl font-bold text-studojo-ink">{p.linkedin_credits} invites</h3>
-                  <div className="mt-3 mb-1 flex items-baseline gap-2 flex-wrap">
-                    {p.anchor_display && (
-                      <span className="text-base font-clash font-bold text-studojo-muted line-through">{p.anchor_display}</span>
-                    )}
+                  <div className="mt-3 mb-4 flex items-baseline gap-1 flex-wrap">
                     <span className="font-clash text-3xl font-bold text-studojo-ink">{p.display_price}</span>
+                    <span className="text-sm font-satoshi text-studojo-muted">/{cadence}</span>
                   </div>
-                  {p.discount_pct ? (
-                    <span className="self-start mb-4 px-2 py-0.5 rounded-full text-[10px] font-bold font-satoshi bg-studojo-green/15 text-studojo-green border border-studojo-green/40">
-                      Save {p.discount_pct}%
-                    </span>
-                  ) : <div className="mb-4" />}
 
                   <ul className="space-y-2 mb-5 flex-1 text-sm font-satoshi text-studojo-ink">
                     <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> {p.linkedin_credits} hand-personalised invites</li>
                     <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> AI follow-up message on accept</li>
                     <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Reply tracking + inbox</li>
-                    <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> ~{Math.round(p.linkedin_credits / 30)} invites/day, safe pacing</li>
+                    <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> ~{perDay} invites/day, safe pacing</li>
                     <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Auto-withdraw stale invites at 14d</li>
                   </ul>
                   <button
