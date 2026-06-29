@@ -7,6 +7,7 @@ import { LinkedInConnectPanel } from "~/components/outreach/LinkedInConnectPanel
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { useOrder } from "~/lib/outreach/hooks";
+import { outreachFetch } from "~/lib/outreach/api";
 
 export default function LinkedInConnectPage() {
   const navigate = useNavigate();
@@ -14,6 +15,25 @@ export default function LinkedInConnectPage() {
   const { orderId, setLinkedInCampaignId } = useOutreachStore();
   const { createOrder, updateOrder } = useOrder();
   const [resolvedOrderId, setResolvedOrderId] = useState<number | null>(orderId);
+  const [checking, setChecking] = useState(true);
+
+  // If the user is already connected (has a LinkedIn campaign), skip the connect
+  // form and go straight to the dashboard — otherwise a connected user lands back
+  // on this form and thinks it's "stuck".
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const camps = await outreachFetch<any[]>("/linkedin/automation/campaigns").catch(() => null);
+        if (!cancelled && camps && camps.length) {
+          navigate("/linkedin/dashboard");
+          return;
+        }
+      } catch {}
+      if (!cancelled) setChecking(false);
+    })();
+    return () => { cancelled = true; };
+  }, [navigate]);
 
   // LinkedInConnectPanel requires an orderId. If the user got here from the
   // /linkedin pricing flow there's already an OutreachOrder; otherwise create
@@ -36,6 +56,19 @@ export default function LinkedInConnectPage() {
     });
     navigate("/linkedin/dashboard");
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex flex-col items-center justify-center py-32">
+          <div className="w-10 h-10 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-sm font-satoshi text-studojo-muted">Checking your LinkedIn connection…</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
