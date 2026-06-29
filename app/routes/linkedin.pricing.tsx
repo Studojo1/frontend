@@ -62,7 +62,7 @@ export default function LinkedInPricing() {
     if (!coupon.trim()) return;
     setCouponError("");
     try {
-      // Coupons apply to the weekly plan only — validate against it.
+      // Coupons apply to the weekly plan only, validate against it.
       const weekly = plans.find((p) => p.plan_id === "linkedin_weekly") || plans[0];
       if (!weekly) return;
       const res = await outreachFetch<{ valid: boolean; discounted_amount: number }>("/payment/coupon/validate", {
