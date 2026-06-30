@@ -139,12 +139,25 @@ export default function Mesa() {
 
   const runNow = async (id: number) => {
     setRunning(true); setError("");
+    const before = searches.find((s) => s.id === id)?.last_run_at || null;
     try {
-      const r = await outreachFetch<{ scraped: number; new: number }>(`/mesa/searches/${id}/run`, { method: "POST", timeout: 180_000, maxRetries: 0 });
-      await loadSearches(); await loadJobs(id);
-      setError(`Done — ${r.new} new job${r.new === 1 ? "" : "s"} found (${r.scraped} scraped).`);
-    } catch (e: any) { setError(e?.message || "Run failed"); }
-    finally { setRunning(false); }
+      await outreachFetch(`/mesa/searches/${id}/run`, { method: "POST", maxRetries: 0 });
+    } catch (e: any) { setError(e?.message || "Failed to start run"); setRunning(false); return; }
+    setError("Scraping in the background — a deep run takes 1-3 minutes. Results refresh automatically.");
+    // Poll for completion via last_run_at changing (DB-backed, works across replicas).
+    let tries = 0;
+    const poll = async () => {
+      tries++;
+      try {
+        const d = await outreachFetch<{ searches: Search[] }>("/mesa/searches");
+        setSearches(d.searches);
+        const now = d.searches.find((s) => s.id === id)?.last_run_at || null;
+        if (now && now !== before) { await loadJobs(id); setRunning(false); setError("Done — results updated."); return; }
+      } catch {}
+      if (tries >= 30) { setRunning(false); setError("Still scraping — it'll finish shortly; refresh to see new jobs."); return; }
+      setTimeout(poll, 10_000);
+    };
+    setTimeout(poll, 10_000);
   };
 
   const exportCsv = async (s: Search) => {
