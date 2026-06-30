@@ -140,7 +140,7 @@ export default function Mesa() {
   const runNow = async (id: number) => {
     setRunning(true); setError("");
     try {
-      const r = await outreachFetch<{ scraped: number; new: number }>(`/mesa/searches/${id}/run`, { method: "POST" });
+      const r = await outreachFetch<{ scraped: number; new: number }>(`/mesa/searches/${id}/run`, { method: "POST", timeout: 180_000, maxRetries: 0 });
       await loadSearches(); await loadJobs(id);
       setError(`Done — ${r.new} new job${r.new === 1 ? "" : "s"} found (${r.scraped} scraped).`);
     } catch (e: any) { setError(e?.message || "Run failed"); }
