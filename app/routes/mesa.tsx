@@ -47,11 +47,18 @@ const SOURCES = [
   { v: "remotive", l: "Remotive" },
   { v: "remoteok", l: "RemoteOK" },
   { v: "arbeitnow", l: "Arbeitnow" },
+  { v: "jobicy", l: "Jobicy" },
+  { v: "weworkremotely", l: "WeWorkRemotely" },
+  { v: "instahyre", l: "InstaHyre (beta)" },
+  { v: "indeed", l: "Indeed (beta)" },
+  { v: "naukri", l: "Naukri (beta)" },
 ];
 const SOURCE_STYLE: Record<string, string> = {
   linkedin: "bg-[#0a66c2] text-white", themuse: "bg-violet-500 text-white",
   remotive: "bg-emerald-500 text-white", remoteok: "bg-neutral-800 text-white",
-  arbeitnow: "bg-amber-500 text-neutral-900",
+  arbeitnow: "bg-amber-500 text-neutral-900", instahyre: "bg-rose-500 text-white",
+  jobicy: "bg-teal-500 text-white", weworkremotely: "bg-blue-600 text-white",
+  indeed: "bg-indigo-600 text-white", naukri: "bg-sky-600 text-white",
 };
 const srcLabel = (v: string) => SOURCES.find((s) => s.v === v)?.l || v;
 
@@ -298,7 +305,11 @@ export default function Mesa() {
               </Field>
               <Field label="Workplace type"><Chips opts={WORKPLACE} sel={form.workplace_types} onTap={(v) => setForm({ ...form, workplace_types: toggle(form.workplace_types, v) })} /></Field>
               <Field label="Seniority"><Chips opts={EXPERIENCE} sel={form.experience_levels} onTap={(v) => setForm({ ...form, experience_levels: toggle(form.experience_levels, v) })} /></Field>
-              <Field label="Job sources"><Chips opts={SOURCES} sel={form.sources} onTap={(v) => setForm({ ...form, sources: toggle(form.sources, v) })} /></Field>
+              <div>
+                <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-neutral-500">Job sources</label>
+                <Chips opts={SOURCES} sel={form.sources} onTap={(v) => setForm({ ...form, sources: toggle(form.sources, v) })} />
+                <p className="mt-1.5 text-[11px] text-neutral-400">(beta) sources are bot-walled (Indeed/Naukri) or login-gated (InstaHyre) and may return few or no results.</p>
+              </div>
               <label className="flex items-center gap-2 text-sm font-medium">
                 <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="h-4 w-4" />
                 Active (include in the daily run)
