@@ -41,22 +41,35 @@ const EXPERIENCE = [
   { v: "director", l: "Director" },
   { v: "executive", l: "Executive" },
 ];
+const SOURCES = [
+  { v: "linkedin", l: "LinkedIn" },
+  { v: "themuse", l: "The Muse" },
+  { v: "remotive", l: "Remotive" },
+  { v: "remoteok", l: "RemoteOK" },
+  { v: "arbeitnow", l: "Arbeitnow" },
+];
+const SOURCE_STYLE: Record<string, string> = {
+  linkedin: "bg-[#0a66c2] text-white", themuse: "bg-violet-500 text-white",
+  remotive: "bg-emerald-500 text-white", remoteok: "bg-neutral-800 text-white",
+  arbeitnow: "bg-amber-500 text-neutral-900",
+};
+const srcLabel = (v: string) => SOURCES.find((s) => s.v === v)?.l || v;
 
 type Search = {
   id: number; name: string; keywords: string; location: string;
   date_posted: string; workplace_types: string[]; experience_levels: string[];
-  is_active: boolean; last_run_at: string | null; job_count: number;
+  sources: string[]; is_active: boolean; last_run_at: string | null; job_count: number;
 };
 type Job = {
   id: number; title: string; company: string; location: string;
-  posted_date: string | null; url: string; scraped_at: string | null;
+  posted_date: string | null; url: string; source: string; scraped_at: string | null;
 };
 
 const card = "rounded-2xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]";
 const btn = "inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 px-3.5 py-2 text-sm font-semibold shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:opacity-50";
 const blankForm = (): Omit<Search, "id" | "last_run_at" | "job_count"> => ({
   name: "", keywords: "", location: "", date_posted: "24h",
-  workplace_types: [], experience_levels: [], is_active: true,
+  workplace_types: [], experience_levels: [], sources: ["linkedin", "themuse", "remotive"], is_active: true,
 });
 const toggle = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "never");
@@ -130,8 +143,8 @@ export default function Mesa() {
   const exportCsv = async (s: Search) => {
     try {
       const data = await outreachFetch<{ jobs: Job[] }>(`/mesa/searches/${s.id}/jobs?limit=1000&sort=scraped`);
-      const rows = [["Title", "Company", "Location", "Posted", "URL"]];
-      data.jobs.forEach((j) => rows.push([j.title, j.company, j.location, j.posted_date || "", j.url]));
+      const rows = [["Title", "Company", "Location", "Posted", "Source", "URL"]];
+      data.jobs.forEach((j) => rows.push([j.title, j.company, j.location, j.posted_date || "", srcLabel(j.source), j.url]));
       const csv = rows.map((r) => r.map((c) => `"${(c || "").replace(/"/g, '""')}"`).join(",")).join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       const a = document.createElement("a");
@@ -143,7 +156,7 @@ export default function Mesa() {
 
   const openForm = (s: Search | "new") => {
     setEditing(s);
-    setForm(s === "new" ? blankForm() : { name: s.name, keywords: s.keywords, location: s.location, date_posted: s.date_posted, workplace_types: s.workplace_types, experience_levels: s.experience_levels, is_active: s.is_active });
+    setForm(s === "new" ? blankForm() : { name: s.name, keywords: s.keywords, location: s.location, date_posted: s.date_posted, workplace_types: s.workplace_types, experience_levels: s.experience_levels, sources: s.sources?.length ? s.sources : ["linkedin"], is_active: s.is_active });
   };
 
   const current = searches.find((s) => s.id === selected) || null;
@@ -239,6 +252,7 @@ export default function Mesa() {
                           <th className="px-4 py-2 font-semibold border-b border-neutral-200">Company</th>
                           <th className="px-4 py-2 font-semibold border-b border-neutral-200">Location</th>
                           <th className="px-4 py-2 font-semibold border-b border-neutral-200 whitespace-nowrap">Posted</th>
+                          <th className="px-4 py-2 font-semibold border-b border-neutral-200">Source</th>
                           <th className="px-4 py-2 font-semibold border-b border-neutral-200"></th>
                         </tr></thead>
                         <tbody>
@@ -248,6 +262,7 @@ export default function Mesa() {
                               <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-700">{j.company}</td>
                               <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500">{j.location}</td>
                               <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500 whitespace-nowrap">{j.posted_date || "—"}</td>
+                              <td className="px-4 py-2.5 border-b border-neutral-100"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${SOURCE_STYLE[j.source] || "bg-neutral-200 text-neutral-700"}`}>{srcLabel(j.source)}</span></td>
                               <td className="px-4 py-2.5 border-b border-neutral-100">
                                 <a href={j.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-violet-600 hover:underline"><FiExternalLink size={14} /> Open</a>
                               </td>
@@ -283,6 +298,7 @@ export default function Mesa() {
               </Field>
               <Field label="Workplace type"><Chips opts={WORKPLACE} sel={form.workplace_types} onTap={(v) => setForm({ ...form, workplace_types: toggle(form.workplace_types, v) })} /></Field>
               <Field label="Seniority"><Chips opts={EXPERIENCE} sel={form.experience_levels} onTap={(v) => setForm({ ...form, experience_levels: toggle(form.experience_levels, v) })} /></Field>
+              <Field label="Job sources"><Chips opts={SOURCES} sel={form.sources} onTap={(v) => setForm({ ...form, sources: toggle(form.sources, v) })} /></Field>
               <label className="flex items-center gap-2 text-sm font-medium">
                 <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} className="h-4 w-4" />
                 Active (include in the daily run)
