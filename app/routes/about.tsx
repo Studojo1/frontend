@@ -38,19 +38,6 @@ const itemVariants = {
 
 const DOJOS = [
   {
-    title: "Assignment Dojo",
-    description: "AI-powered assignment help. Plagiarism-safe, formatted, properly referenced. Built for students who need something done right, not just done.",
-    checklist: ["Plagiarism-safe content", "Properly formatted", "References included"],
-    accent: "bg-violet-500",
-    iconBg: "bg-violet-200",
-    iconColor: "text-violet-500",
-    ctaColor: "text-violet-600",
-    icon: <FiBookOpen />,
-    href: "/dojos/assignment",
-    cta: "Try it now",
-    comingSoon: false,
-  },
-  {
     title: "Internship Dojo",
     description: "Global internship discovery, ATS resume builder, AI-powered outreach to hiring managers and founders, application tracking. The full pipeline from zero to interview.",
     checklist: ["AI finds the right roles", "Outreach to real humans", "Full application tracking"],
