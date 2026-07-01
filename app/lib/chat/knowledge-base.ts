@@ -206,7 +206,7 @@ export const INTENTS: Intent[] = [
       "can i get assignment help",
     ],
     response: "Assignment Dojo generates formatted, referenced, plagiarism-safe assignments. Pick your topic, set your level and word count, and get a ready document in minutes. Pay per assignment, no subscription.",
-    links: [{ label: "Try Assignment Dojo", url: "/dojos/assignment" }],
+    links: [],
   },
 
   // -- Resume builder (non-technical) --
@@ -678,7 +678,7 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 - Browse internship opportunities globally with an interactive map
 - Works well combined with the Outreach Tool
 
-**Assignment Dojo** (studojo.com/dojos/assignment) — AI assignment help
+**Assignment Dojo** — AI assignment help
 - AI-generated assignments, plagiarism-safe, formatted, referenced
 - Pay per assignment, no subscription
 

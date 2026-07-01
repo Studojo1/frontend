@@ -62,7 +62,6 @@ export async function loader() {
     { loc: "/reports/cold-email-subject-lines-best-practices-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
-    { loc: "/dojos/assignment", priority: "0.7", changefreq: "monthly" },
     { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },
     { loc: "/about", priority: "0.6", changefreq: "monthly" },
     { loc: "/contact", priority: "0.5", changefreq: "yearly" },
