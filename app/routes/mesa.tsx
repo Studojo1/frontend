@@ -143,7 +143,10 @@ export default function Mesa() {
     setRunning(true); setError("");
     const before = searches.find((s) => s.id === id)?.last_run_at || null;
     try {
-      await outreachFetch(`/mesa/searches/${id}/run`, { method: "POST", maxRetries: 0 });
+      // maxRetries: 1 = exactly one attempt, no retry. (maxRetries: 0 is a no-op —
+      // fetchWithRetry's loop is `attempt < maxRetries`, so 0 sends zero requests
+      // and throws "Request failed: Unknown error" without ever calling the API.)
+      await outreachFetch(`/mesa/searches/${id}/run`, { method: "POST", maxRetries: 1 });
     } catch (e: any) { setError(e?.message || "Failed to start run"); setRunning(false); return; }
     setError("Scraping in the background — a deep run takes 1-3 minutes. Results refresh automatically.");
     // Poll for completion via last_run_at changing (DB-backed, works across replicas).
