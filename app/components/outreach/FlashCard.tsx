@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { FiLinkedin, FiExternalLink } from "react-icons/fi";
 import { capturePostHog } from "~/lib/posthog";
@@ -30,6 +30,13 @@ function CompanyLogo({ domain, name, size = 48 }: { domain: string | null; name:
   const co = cleanCo(name);
   const [src, setSrc] = useState<string | null>(domain ? `https://logo.clearbit.com/${domain}` : null);
   const [step, setStep] = useState(0);
+  // Domains resolve after the card mounts (the page now loads before justification
+  // finishes, and domains stream in via polling). Without this, the initial null
+  // domain sticks and the logo never appears. Re-init the source whenever it arrives.
+  useEffect(() => {
+    setStep(0);
+    setSrc(domain ? `https://logo.clearbit.com/${domain}` : null);
+  }, [domain]);
   return (
     <span className="relative inline-block flex-shrink-0" style={{ width: size, height: size }}>
       <span className={`absolute inset-0 rounded-xl ${colOf(co)} text-white flex items-center justify-center font-bold`} style={{ fontSize: Math.round(size * 0.4) }}>
