@@ -11,6 +11,9 @@ import { outreachFetch } from "~/lib/outreach/api";
 import type { Lead } from "~/lib/outreach/types";
 
 const PAGE_SIZE = 20;
+// Only surface the top 100 leads (matches the backend's JUSTIFY_TOP_K=100 — the
+// only leads that get AI justifications). Showing 500 meant 400 un-justified leads.
+const SHOWN_LIMIT = 100;
 
 export default function ResultsPage() {
   const navigate = useNavigate();
@@ -27,7 +30,7 @@ export default function ResultsPage() {
 
     let pollTimer: ReturnType<typeof setTimeout>;
 
-    const fetchLeads = (isInitial = false) => {
+    const fetchLeads = (isInitial = false, pollCount = 0) => {
       outreachFetch<{ leads: Lead[] } | Lead[]>(`/candidate/${candidateId}/leads`)
         .then((data) => {
           const list = Array.isArray(data) ? data : data.leads || [];
@@ -35,11 +38,13 @@ export default function ResultsPage() {
           if (isInitial) {
             capturePostHog("leads_loaded", { count: list.length, leads_found: list.length, candidate_id: candidateId });
           }
-          // If fewer than 50% of leads have justification, scoring is still running —
-          // re-fetch in 15s so bullets appear without a manual refresh.
+          // We only justify + show the top 100. Keep re-fetching every 15s so bullets
+          // stream in without a manual refresh, until ~90% of the shown pool has them
+          // (or we've polled ~12 times / 3 min, so a few slow bullets never hang it).
+          const shown = Math.min(list.length, SHOWN_LIMIT);
           const withBullets = list.filter((l) => l.score?.justification).length;
-          if (list.length > 0 && withBullets < list.length * 0.5) {
-            pollTimer = setTimeout(() => fetchLeads(false), 15_000);
+          if (shown > 0 && withBullets < shown * 0.9 && pollCount < 12) {
+            pollTimer = setTimeout(() => fetchLeads(false, pollCount + 1), 15_000);
           }
         })
         .catch((err) => setError(err?.body?.detail || err.message || "Failed to load leads"))
@@ -72,7 +77,7 @@ export default function ResultsPage() {
       return (b.score?.overall || 0) - (a.score?.overall || 0);
     }
     return (a.name || "").localeCompare(b.name || "");
-  }).slice(0, 500);
+  }).slice(0, SHOWN_LIMIT);
 
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
   const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
