@@ -43,6 +43,7 @@ const EXPERIENCE = [
 ];
 const SOURCES = [
   { v: "linkedin", l: "LinkedIn" },
+  { v: "linkedin_posts", l: "LinkedIn Posts" },
   { v: "themuse", l: "The Muse" },
   { v: "remotive", l: "Remotive" },
   { v: "remoteok", l: "RemoteOK" },
@@ -54,7 +55,7 @@ const SOURCES = [
   { v: "naukri", l: "Naukri (beta)" },
 ];
 const SOURCE_STYLE: Record<string, string> = {
-  linkedin: "bg-[#0a66c2] text-white", themuse: "bg-violet-500 text-white",
+  linkedin: "bg-[#0a66c2] text-white", linkedin_posts: "bg-[#004182] text-white", themuse: "bg-violet-500 text-white",
   remotive: "bg-emerald-500 text-white", remoteok: "bg-neutral-800 text-white",
   arbeitnow: "bg-amber-500 text-neutral-900", instahyre: "bg-rose-500 text-white",
   jobicy: "bg-teal-500 text-white", weworkremotely: "bg-blue-600 text-white",
