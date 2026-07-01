@@ -71,6 +71,7 @@ type Search = {
 type Job = {
   id: number; title: string; company: string; location: string;
   posted_date: string | null; url: string; source: string; scraped_at: string | null;
+  author?: string | null; apply_link?: string | null; post_text?: string | null;
 };
 
 const card = "rounded-2xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]";
@@ -164,8 +165,8 @@ export default function Mesa() {
   const exportCsv = async (s: Search) => {
     try {
       const data = await outreachFetch<{ jobs: Job[] }>(`/mesa/searches/${s.id}/jobs?limit=1000&sort=scraped`);
-      const rows = [["Title", "Company", "Location", "Posted", "Source", "URL"]];
-      data.jobs.forEach((j) => rows.push([j.title, j.company, j.location, j.posted_date || "", srcLabel(j.source), j.url]));
+      const rows = [["Title", "Company", "Author", "Apply", "LinkedIn URL", "Location", "Posted", "Source", "Post"]];
+      data.jobs.forEach((j) => rows.push([j.title, j.company, j.author || "", (j.apply_link || "").replace(/^mailto:/, ""), j.url, j.location, j.posted_date || "", srcLabel(j.source), (j.post_text || "").slice(0, 500)]));
       const csv = rows.map((r) => r.map((c) => `"${(c || "").replace(/"/g, '""')}"`).join(",")).join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       const a = document.createElement("a");
@@ -284,8 +285,15 @@ export default function Mesa() {
                               <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500">{j.location}</td>
                               <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500 whitespace-nowrap">{j.posted_date || "—"}</td>
                               <td className="px-4 py-2.5 border-b border-neutral-100"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${SOURCE_STYLE[j.source] || "bg-neutral-200 text-neutral-700"}`}>{srcLabel(j.source)}</span></td>
-                              <td className="px-4 py-2.5 border-b border-neutral-100">
-                                <a href={j.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-violet-600 hover:underline"><FiExternalLink size={14} /> Open</a>
+                              <td className="px-4 py-2.5 border-b border-neutral-100 whitespace-nowrap">
+                                <div className="flex items-center gap-3">
+                                  {j.url ? (
+                                    <a href={j.url} target="_blank" rel="noreferrer" title={j.author ? `Open ${j.author} on LinkedIn` : "Open on LinkedIn"} className="inline-flex items-center gap-1 text-violet-600 hover:underline"><FiExternalLink size={14} /> {j.source === "linkedin_posts" ? "LinkedIn" : "Open"}</a>
+                                  ) : <span className="text-neutral-300">—</span>}
+                                  {j.apply_link ? (
+                                    <a href={j.apply_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald-600 hover:underline" title={j.apply_link.replace(/^mailto:/, "")}>✉ Apply</a>
+                                  ) : null}
+                                </div>
                               </td>
                             </tr>
                           ))}
