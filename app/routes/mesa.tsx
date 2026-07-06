@@ -3,7 +3,7 @@ import { redirect } from "react-router";
 import { Header, Footer } from "~/components";
 import {
   FiPlus, FiPlay, FiDownload, FiTrash2, FiEdit2, FiSearch,
-  FiMapPin, FiClock, FiExternalLink, FiRefreshCw, FiX,
+  FiMapPin, FiClock, FiExternalLink, FiRefreshCw, FiX, FiZap,
 } from "react-icons/fi";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { outreachFetch } from "~/lib/outreach/api";
@@ -17,8 +17,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Mesa — LinkedIn Job Tracker | Studojo" },
-    { name: "description", content: "Daily LinkedIn job scraping for the roles and keywords you care about." },
+    { title: "Mesa — Job & Hiring-Signal Tracker | Studojo" },
+    { name: "description", content: "Daily job scraping plus company hiring signals for the roles and keywords you care about." },
   ];
 }
 
@@ -44,6 +44,7 @@ const EXPERIENCE = [
 const SOURCES = [
   { v: "linkedin", l: "LinkedIn" },
   { v: "linkedin_posts", l: "LinkedIn Posts" },
+  { v: "getro", l: "VC Boards (Getro)" },
   { v: "themuse", l: "The Muse" },
   { v: "remotive", l: "Remotive" },
   { v: "remoteok", l: "RemoteOK" },
@@ -55,7 +56,8 @@ const SOURCES = [
   { v: "naukri", l: "Naukri (beta)" },
 ];
 const SOURCE_STYLE: Record<string, string> = {
-  linkedin: "bg-[#0a66c2] text-white", linkedin_posts: "bg-[#004182] text-white", themuse: "bg-violet-500 text-white",
+  linkedin: "bg-[#0a66c2] text-white", linkedin_posts: "bg-[#004182] text-white", getro: "bg-fuchsia-600 text-white",
+  themuse: "bg-violet-500 text-white",
   remotive: "bg-emerald-500 text-white", remoteok: "bg-neutral-800 text-white",
   arbeitnow: "bg-amber-500 text-neutral-900", instahyre: "bg-rose-500 text-white",
   jobicy: "bg-teal-500 text-white", weworkremotely: "bg-blue-600 text-white",
@@ -73,15 +75,24 @@ type Job = {
   posted_date: string | null; url: string; source: string; scraped_at: string | null;
   author?: string | null; apply_link?: string | null; post_text?: string | null;
 };
+type Brief = { confidence?: number; verdict?: string; narrative?: string; outreach_opener?: string; kill_signal?: boolean };
+type CompanySignal = {
+  company: string; score: number; n_families: number; confluence: boolean;
+  families: string[]; signals: string[]; top_role: string; role_count: number;
+  sample_roles: string[]; sources: string[]; freshest_posted?: string | null;
+  read: string; enriched?: boolean; brief?: Brief | null; news_headlines?: string[];
+};
+type Enrichment = { running: boolean; done: number; total: number };
 
 const card = "rounded-2xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]";
 const btn = "inline-flex items-center gap-2 rounded-xl border-2 border-neutral-900 px-3.5 py-2 text-sm font-semibold shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:opacity-50";
 const blankForm = (): Omit<Search, "id" | "last_run_at" | "job_count"> => ({
   name: "", keywords: "", location: "", date_posted: "24h",
-  workplace_types: [], experience_levels: [], sources: ["linkedin", "themuse", "remotive"], is_active: true,
+  workplace_types: [], experience_levels: [], sources: ["linkedin", "getro", "themuse", "remotive"], is_active: true,
 });
 const toggle = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "never");
+const scoreColor = (s: number) => (s >= 70 ? "bg-emerald-500 text-white" : s >= 45 ? "bg-amber-400 text-neutral-900" : "bg-neutral-300 text-neutral-700");
 
 export default function Mesa() {
   const [searches, setSearches] = useState<Search[]>([]);
@@ -96,6 +107,12 @@ export default function Mesa() {
   const [form, setForm] = useState(blankForm());
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"scraped" | "posted" | "company" | "title">("scraped");
+  // Signals view
+  const [view, setView] = useState<"jobs" | "signals">("jobs");
+  const [signals, setSignals] = useState<CompanySignal[]>([]);
+  const [sigInfo, setSigInfo] = useState<{ total_companies: number; confluence_count: number; enrichment?: Enrichment } | null>(null);
+  const [sigLoading, setSigLoading] = useState(false);
+  const [enriching, setEnriching] = useState(false);
 
   const loadSearches = useCallback(async () => {
     setLoading(true); setError("");
@@ -118,8 +135,41 @@ export default function Mesa() {
     finally { setJobsLoading(false); }
   }, [q, sort]);
 
+  const loadSignals = useCallback(async (id: number) => {
+    setSigLoading(true);
+    try {
+      const d = await outreachFetch<{ total_companies: number; confluence_count: number; enrichment?: Enrichment; companies: CompanySignal[] }>(`/mesa/searches/${id}/signals?limit=60`);
+      setSignals(d.companies || []);
+      setSigInfo({ total_companies: d.total_companies, confluence_count: d.confluence_count, enrichment: d.enrichment });
+    } catch (e: any) { setError(e?.message || "Failed to load signals"); }
+    finally { setSigLoading(false); }
+  }, []);
+
   useEffect(() => { loadSearches(); }, [loadSearches]);
-  useEffect(() => { if (selected) loadJobs(selected); }, [selected, loadJobs]);
+  useEffect(() => { if (selected && view === "jobs") loadJobs(selected); }, [selected, view, loadJobs]);
+  useEffect(() => { if (selected && view === "signals") loadSignals(selected); }, [selected, view, loadSignals]);
+
+  const enrichSignals = async (id: number) => {
+    setEnriching(true); setError("");
+    try {
+      await outreachFetch(`/mesa/searches/${id}/signals/enrich?limit=15`, { method: "POST", maxRetries: 1 });
+    } catch (e: any) { setError(e?.message || "Failed to start enrichment"); setEnriching(false); return; }
+    setError("Enriching the top companies with funding, news and an AI brief — this takes a minute and refreshes automatically.");
+    let tries = 0;
+    const poll = async () => {
+      tries++;
+      await loadSignals(id);
+      try {
+        const d = await outreachFetch<{ enrichment?: Enrichment }>(`/mesa/searches/${id}/signals?limit=1`);
+        if (d.enrichment && !d.enrichment.running && d.enrichment.total > 0) {
+          setEnriching(false); setError("Enrichment done — companies updated."); await loadSignals(id); return;
+        }
+      } catch {}
+      if (tries >= 18) { setEnriching(false); return; }
+      setTimeout(poll, 10_000);
+    };
+    setTimeout(poll, 8_000);
+  };
 
   const saveSearch = async () => {
     if (!form.name.trim() || !form.keywords.trim()) { setError("Name and keywords are required"); return; }
@@ -143,13 +193,9 @@ export default function Mesa() {
     setRunning(true); setError("");
     const before = searches.find((s) => s.id === id)?.last_run_at || null;
     try {
-      // maxRetries: 1 = exactly one attempt, no retry. (maxRetries: 0 is a no-op —
-      // fetchWithRetry's loop is `attempt < maxRetries`, so 0 sends zero requests
-      // and throws "Request failed: Unknown error" without ever calling the API.)
       await outreachFetch(`/mesa/searches/${id}/run`, { method: "POST", maxRetries: 1 });
     } catch (e: any) { setError(e?.message || "Failed to start run"); setRunning(false); return; }
     setError("Scraping in the background — a deep run takes 1-3 minutes. Results refresh automatically.");
-    // Poll for completion via last_run_at changing (DB-backed, works across replicas).
     let tries = 0;
     const poll = async () => {
       tries++;
@@ -157,9 +203,12 @@ export default function Mesa() {
         const d = await outreachFetch<{ searches: Search[] }>("/mesa/searches");
         setSearches(d.searches);
         const now = d.searches.find((s) => s.id === id)?.last_run_at || null;
-        if (now && now !== before) { await loadJobs(id); setRunning(false); setError("Done — results updated."); return; }
+        if (now && now !== before) {
+          if (view === "jobs") await loadJobs(id); else await loadSignals(id);
+          setRunning(false); setError("Done — results updated."); return;
+        }
       } catch {}
-      if (tries >= 30) { setRunning(false); setError("Still scraping — it'll finish shortly; refresh to see new jobs."); return; }
+      if (tries >= 30) { setRunning(false); setError("Still scraping — it'll finish shortly; refresh to see new results."); return; }
       setTimeout(poll, 10_000);
     };
     setTimeout(poll, 10_000);
@@ -193,9 +242,9 @@ export default function Mesa() {
         <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="font-['Clash_Display'] text-3xl font-bold text-neutral-900">
-              Mesa <span className="text-violet-500">·</span> LinkedIn Job Tracker
+              Mesa <span className="text-violet-500">·</span> Job &amp; Signal Tracker
             </h1>
-            <p className="text-sm text-neutral-600 mt-1">Saved searches scrape LinkedIn daily for your roles and keywords. No login to LinkedIn needed.</p>
+            <p className="text-sm text-neutral-600 mt-1">Saved searches scrape jobs daily and score which companies are hiring your profiles. No LinkedIn login needed.</p>
           </div>
           <button onClick={() => openForm("new")} className={`${btn} bg-violet-500 text-white`}><FiPlus /> New search</button>
         </div>
@@ -247,62 +296,113 @@ export default function Mesa() {
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-neutral-900 bg-neutral-50 px-5 py-3">
                     <div>
                       <h2 className="font-['Clash_Display'] text-lg font-bold">{current.name}</h2>
-                      <p className="text-xs text-neutral-500">{jobsTotal} jobs tracked · last run {fmtDate(current.last_run_at)}</p>
+                      <p className="text-xs text-neutral-500">
+                        {view === "jobs" ? `${jobsTotal} jobs tracked` : `${sigInfo?.total_companies ?? signals.length} companies scored · ${sigInfo?.confluence_count ?? 0} with 2+ signals`} · last run {fmtDate(current.last_run_at)}
+                      </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="relative">
-                        <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" size={14} />
-                        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter title/company" className="w-44 rounded-xl border-2 border-neutral-300 py-1.5 pl-8 pr-2 text-sm focus:border-violet-500 focus:outline-none" />
+                      <div className="inline-flex overflow-hidden rounded-xl border-2 border-neutral-900">
+                        <button onClick={() => setView("jobs")} className={`px-3 py-1.5 text-sm font-semibold ${view === "jobs" ? "bg-violet-500 text-white" : "bg-white text-neutral-700"}`}>Jobs</button>
+                        <button onClick={() => setView("signals")} className={`border-l-2 border-neutral-900 px-3 py-1.5 text-sm font-semibold ${view === "signals" ? "bg-violet-500 text-white" : "bg-white text-neutral-700"}`}>Signals</button>
                       </div>
-                      <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="rounded-xl border-2 border-neutral-300 px-2 py-1.5 text-sm focus:outline-none">
-                        <option value="scraped">Newest scraped</option>
-                        <option value="posted">Date posted</option>
-                        <option value="company">Company</option>
-                        <option value="title">Title</option>
-                      </select>
+                      {view === "jobs" && (
+                        <>
+                          <div className="relative">
+                            <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" size={14} />
+                            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter title/company" className="w-44 rounded-xl border-2 border-neutral-300 py-1.5 pl-8 pr-2 text-sm focus:border-violet-500 focus:outline-none" />
+                          </div>
+                          <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="rounded-xl border-2 border-neutral-300 px-2 py-1.5 text-sm focus:outline-none">
+                            <option value="scraped">Newest scraped</option>
+                            <option value="posted">Date posted</option>
+                            <option value="company">Company</option>
+                            <option value="title">Title</option>
+                          </select>
+                          <button onClick={() => exportCsv(current)} className={`${btn} bg-white`}><FiDownload /> CSV</button>
+                        </>
+                      )}
+                      {view === "signals" && (
+                        <button onClick={() => enrichSignals(current.id)} disabled={enriching} className={`${btn} bg-white`}>{enriching ? <FiRefreshCw className="animate-spin" /> : <FiZap />} Enrich</button>
+                      )}
                       <button onClick={() => runNow(current.id)} disabled={running} className={`${btn} bg-violet-500 text-white`}>{running ? <FiRefreshCw className="animate-spin" /> : <FiPlay />} Run now</button>
-                      <button onClick={() => exportCsv(current)} className={`${btn} bg-white`}><FiDownload /> CSV</button>
                     </div>
                   </div>
 
-                  {jobsLoading ? (
-                    <div className="flex justify-center py-16"><div className="h-7 w-7 animate-spin rounded-full border-[3px] border-violet-500 border-t-transparent" /></div>
-                  ) : jobs.length === 0 ? (
-                    <div className="p-10 text-center text-neutral-500">No jobs yet. Hit “Run now” to scrape, or wait for the daily run.</div>
+                  {view === "jobs" ? (
+                    jobsLoading ? (
+                      <div className="flex justify-center py-16"><div className="h-7 w-7 animate-spin rounded-full border-[3px] border-violet-500 border-t-transparent" /></div>
+                    ) : jobs.length === 0 ? (
+                      <div className="p-10 text-center text-neutral-500">No jobs yet. Hit “Run now” to scrape, or wait for the daily run.</div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-sm">
+                          <thead><tr className="bg-neutral-50 text-left text-neutral-600">
+                            <th className="px-4 py-2 font-semibold border-b border-neutral-200">Role</th>
+                            <th className="px-4 py-2 font-semibold border-b border-neutral-200">Company</th>
+                            <th className="px-4 py-2 font-semibold border-b border-neutral-200">Location</th>
+                            <th className="px-4 py-2 font-semibold border-b border-neutral-200 whitespace-nowrap">Posted</th>
+                            <th className="px-4 py-2 font-semibold border-b border-neutral-200">Source</th>
+                            <th className="px-4 py-2 font-semibold border-b border-neutral-200"></th>
+                          </tr></thead>
+                          <tbody>
+                            {jobs.map((j, i) => (
+                              <tr key={j.id} className={i % 2 ? "bg-neutral-50/40" : "bg-white"}>
+                                <td className="px-4 py-2.5 border-b border-neutral-100 font-medium text-neutral-900 max-w-[280px]">{j.title}</td>
+                                <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-700">{j.company}</td>
+                                <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500">{j.location}</td>
+                                <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500 whitespace-nowrap">{j.posted_date || "—"}</td>
+                                <td className="px-4 py-2.5 border-b border-neutral-100"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${SOURCE_STYLE[j.source] || "bg-neutral-200 text-neutral-700"}`}>{srcLabel(j.source)}</span></td>
+                                <td className="px-4 py-2.5 border-b border-neutral-100 whitespace-nowrap">
+                                  <div className="flex items-center gap-3">
+                                    {j.url ? (
+                                      <a href={j.url} target="_blank" rel="noreferrer" title={j.author ? `Open ${j.author} on LinkedIn` : "Open on LinkedIn"} className="inline-flex items-center gap-1 text-violet-600 hover:underline"><FiExternalLink size={14} /> {j.source === "linkedin_posts" ? "LinkedIn" : "Open"}</a>
+                                    ) : <span className="text-neutral-300">—</span>}
+                                    {j.apply_link ? (
+                                      <a href={j.apply_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald-600 hover:underline" title={j.apply_link.replace(/^mailto:/, "")}>✉ Apply</a>
+                                    ) : null}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse text-sm">
-                        <thead><tr className="bg-neutral-50 text-left text-neutral-600">
-                          <th className="px-4 py-2 font-semibold border-b border-neutral-200">Role</th>
-                          <th className="px-4 py-2 font-semibold border-b border-neutral-200">Company</th>
-                          <th className="px-4 py-2 font-semibold border-b border-neutral-200">Location</th>
-                          <th className="px-4 py-2 font-semibold border-b border-neutral-200 whitespace-nowrap">Posted</th>
-                          <th className="px-4 py-2 font-semibold border-b border-neutral-200">Source</th>
-                          <th className="px-4 py-2 font-semibold border-b border-neutral-200"></th>
-                        </tr></thead>
-                        <tbody>
-                          {jobs.map((j, i) => (
-                            <tr key={j.id} className={i % 2 ? "bg-neutral-50/40" : "bg-white"}>
-                              <td className="px-4 py-2.5 border-b border-neutral-100 font-medium text-neutral-900 max-w-[280px]">{j.title}</td>
-                              <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-700">{j.company}</td>
-                              <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500">{j.location}</td>
-                              <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500 whitespace-nowrap">{j.posted_date || "—"}</td>
-                              <td className="px-4 py-2.5 border-b border-neutral-100"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${SOURCE_STYLE[j.source] || "bg-neutral-200 text-neutral-700"}`}>{srcLabel(j.source)}</span></td>
-                              <td className="px-4 py-2.5 border-b border-neutral-100 whitespace-nowrap">
-                                <div className="flex items-center gap-3">
-                                  {j.url ? (
-                                    <a href={j.url} target="_blank" rel="noreferrer" title={j.author ? `Open ${j.author} on LinkedIn` : "Open on LinkedIn"} className="inline-flex items-center gap-1 text-violet-600 hover:underline"><FiExternalLink size={14} /> {j.source === "linkedin_posts" ? "LinkedIn" : "Open"}</a>
-                                  ) : <span className="text-neutral-300">—</span>}
-                                  {j.apply_link ? (
-                                    <a href={j.apply_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald-600 hover:underline" title={j.apply_link.replace(/^mailto:/, "")}>✉ Apply</a>
-                                  ) : null}
+                    sigLoading ? (
+                      <div className="flex justify-center py-16"><div className="h-7 w-7 animate-spin rounded-full border-[3px] border-violet-500 border-t-transparent" /></div>
+                    ) : signals.length === 0 ? (
+                      <div className="p-10 text-center text-neutral-500">No signals yet. Run the search to scrape jobs, then this scores which companies are worth reaching out to. Hit “Enrich” for funding, news and an AI brief on the top companies.</div>
+                    ) : (
+                      <div className="space-y-3 p-4">
+                        <p className="px-1 text-[11px] text-neutral-500">Companies ranked by how many independent hiring signals they emit. 2+ signals (confluence) is a real signal; one alone is usually noise.</p>
+                        {signals.map((c) => (
+                          <div key={c.company} className="rounded-xl border-2 border-neutral-900 bg-white p-3.5 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+                            <div className="flex items-start gap-3">
+                              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-sm font-black ${scoreColor(c.score)}`}>{c.score}</div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="font-bold text-neutral-900">{c.company}</span>
+                                  {c.confluence && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">CONFLUENCE · {c.n_families}</span>}
+                                  {c.enriched && <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700">ENRICHED</span>}
                                 </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                  {c.signals.map((s, i) => <span key={i} className="rounded-md border border-neutral-300 bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-700">{s}</span>)}
+                                </div>
+                                <p className="mt-2 text-[13px] text-neutral-700">{c.read}</p>
+                                {c.brief && (
+                                  <div className="mt-2 rounded-lg border border-violet-200 bg-violet-50 p-2.5 text-[12.5px]">
+                                    <div className="font-semibold text-violet-800">AI brief · {c.brief.verdict}{typeof c.brief.confidence === "number" ? ` (${c.brief.confidence}%)` : ""}</div>
+                                    {c.brief.narrative && <p className="mt-1 text-neutral-700">{c.brief.narrative}</p>}
+                                    {c.brief.outreach_opener && <p className="mt-1 italic text-neutral-600">“{c.brief.outreach_opener}”</p>}
+                                  </div>
+                                )}
+                                {c.top_role && <p className="mt-1.5 text-[11px] text-neutral-400">Top role: {c.top_role} · {c.role_count} open{c.freshest_posted ? ` · freshest ${c.freshest_posted}` : ""}</p>}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
                   )}
                 </>
               )}
