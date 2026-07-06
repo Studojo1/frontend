@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap, FiSearch,
   FiFileText, FiGrid, FiLoader, FiExternalLink, FiChevronRight,
+  FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
+  FiMessageSquare, FiColumns,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Bob — placement intelligence workspace (shared-login, access-code gated).
-// Chat on the left/centre, stateful result tables on the right.
-// Backend: /api/v1/outreach/bob/* (ingress rewrites to job-outreach /api/v1/bob/*)
+// Bob — placement intelligence workspace.
+// Layout: collapsible sidebar | chat | draggable divider | table panel with
+// maximize modes and a row-detail drawer. All data via /api/v1/outreach/bob/*.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function meta() {
@@ -19,6 +21,7 @@ export function meta() {
 
 const API = "/api/v1/outreach/bob";
 const KEY_STORAGE = "bob_access_key";
+const LAYOUT_STORAGE = "bob_layout_v2";
 
 class BobError extends Error {
   status: number;
@@ -60,14 +63,43 @@ interface BobTable { id: number; name: string; columns: BobColumn[]; rows: BobRo
 
 const ROW_STATUSES = ["new", "contacted", "replied", "meeting", "dead"] as const;
 const STATUS_STYLE: Record<string, string> = {
-  new: "bg-neutral-100 text-neutral-700",
-  contacted: "bg-blue-100 text-blue-800",
-  replied: "bg-green-100 text-green-800",
-  meeting: "bg-violet-100 text-violet-800",
-  dead: "bg-neutral-200 text-neutral-500 line-through",
+  new: "bg-neutral-100 text-neutral-600 border-neutral-300",
+  contacted: "bg-blue-50 text-blue-700 border-blue-300",
+  replied: "bg-green-50 text-green-700 border-green-300",
+  meeting: "bg-violet-50 text-violet-700 border-violet-300",
+  dead: "bg-neutral-100 text-neutral-400 border-neutral-200 line-through",
 };
 
-// ── Root component ───────────────────────────────────────────────────────────
+// Column ordering: known keys first (in this order), unknown keys after.
+const COLUMN_PRIORITY = [
+  "company", "contact_name", "contact_title", "tier", "fit_score", "city",
+  "hiring_evidence", "why_now", "what_they_do", "size_band", "funding",
+  "website", "evidence_url", "linkedin_url",
+];
+const WIDE_KEYS = new Set(["hiring_evidence", "why_now", "what_they_do", "funding", "outreach_angle", "suggested_opening", "connection_point", "signal_rationale"]);
+
+function orderColumns(cols: BobColumn[]): BobColumn[] {
+  return [...cols].sort((a, b) => {
+    const ia = COLUMN_PRIORITY.indexOf(a.key);
+    const ib = COLUMN_PRIORITY.indexOf(b.key);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+}
+
+function prettify(s: string): string {
+  return s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function domainOf(v: string): string {
+  try {
+    const u = new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`);
+    return u.hostname.replace(/^www\./, "");
+  } catch {
+    return v;
+  }
+}
+
+// ── Root ─────────────────────────────────────────────────────────────────────
 
 export default function BobPage() {
   const [mounted, setMounted] = useState(false);
@@ -114,13 +146,13 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
       <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
         <div className="w-12 h-12 bg-violet-500 border-2 border-neutral-900 rounded-2xl flex items-center justify-center mb-5">
           <FiLock className="text-white text-xl" />
         </div>
         <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">Bob</h1>
-        <p className="font-['Satoshi'] text-neutral-600 mt-2 mb-6">
+        <p className="text-neutral-600 mt-2 mb-6">
           Placement intelligence for your team. Enter your workspace access code.
         </p>
         <input
@@ -129,13 +161,13 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
           onChange={(e) => setCode(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
           placeholder="Access code"
-          className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 font-['Satoshi'] focus:outline-none focus:ring-2 focus:ring-violet-500"
+          className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
-        {error && <p className="text-red-600 font-['Satoshi'] text-sm mt-2">{error}</p>}
+        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
         <button
           onClick={submit}
           disabled={busy}
-          className="mt-4 w-full bg-violet-500 text-white font-['Satoshi'] font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60"
+          className="mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60"
         >
           {busy ? "Checking..." : "Enter workspace"}
         </button>
@@ -146,6 +178,8 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
 
 // ── Workspace ────────────────────────────────────────────────────────────────
 
+type PanelMode = "split" | "chat" | "table";
+
 function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [activeChat, setActiveChat] = useState<number | null>(null);
@@ -154,8 +188,27 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [run, setRun] = useState<Run | null>(null);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+
+  // Layout state (persisted)
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mode, setMode] = useState<PanelMode>("split");
+  const [tablePct, setTablePct] = useState(46);
+  const dragging = useRef(false);
+  const layoutRef = useRef<HTMLDivElement>(null);
+
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LAYOUT_STORAGE) || "{}");
+      if (typeof saved.sidebarOpen === "boolean") setSidebarOpen(saved.sidebarOpen);
+      if (typeof saved.tablePct === "number") setTablePct(saved.tablePct);
+    } catch {}
+  }, []);
+  useEffect(() => {
+    localStorage.setItem(LAYOUT_STORAGE, JSON.stringify({ sidebarOpen, tablePct }));
+  }, [sidebarOpen, tablePct]);
 
   const handleError = useCallback((e: unknown) => {
     if (e instanceof BobError && (e.status === 401 || e.status === 503)) {
@@ -184,9 +237,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       const d = await bobFetch<any>(`/chats/${id}`);
       setMessages(d.messages);
       setTables(d.tables || []);
-      if (d.latest_run && d.latest_run.status === "running") {
-        setRun(d.latest_run);
-      }
+      if (d.latest_run && d.latest_run.status === "running") setRun(d.latest_run);
     } catch (e) {
       handleError(e);
     }
@@ -199,7 +250,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Poll the active run while it's running.
+  // Poll active run
   useEffect(() => {
     if (pollRef.current) clearInterval(pollRef.current);
     if (!run || run.status !== "running") return;
@@ -229,6 +280,23 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, run?.events?.length]);
 
+  // Divider drag
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      if (!dragging.current || !layoutRef.current) return;
+      const rect = layoutRef.current.getBoundingClientRect();
+      const pct = ((rect.right - e.clientX) / rect.width) * 100;
+      setTablePct(Math.min(72, Math.max(28, pct)));
+    };
+    const up = () => { dragging.current = false; document.body.style.cursor = ""; };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+  }, []);
+
   const newChat = async () => {
     try {
       const d = await bobFetch<{ id: number }>("/chats", { method: "POST" });
@@ -237,6 +305,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       setTables([]);
       setRun(null);
       setActiveChat(d.id);
+      setMode("split");
     } catch (e) {
       handleError(e);
     }
@@ -287,155 +356,236 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   };
 
   const running = run?.status === "running";
+  const hasTables = tables.length > 0;
+  const showChat = mode !== "table";
+  const showTable = hasTables && mode !== "chat";
 
   return (
-    <div className="h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi']">
-      {/* ── Left: chats ── */}
-      <aside className="w-64 shrink-0 border-r-2 border-neutral-900 bg-white flex flex-col">
-        <div className="p-4 border-b-2 border-neutral-900 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-violet-500 border-2 border-neutral-900 rounded-xl flex items-center justify-center">
-              <FiZap className="text-white text-sm" />
+    <div className="h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900">
+
+      {/* ── Sidebar ── */}
+      <aside
+        className={`shrink-0 border-r-2 border-neutral-900 bg-white flex flex-col overflow-hidden transition-[width] duration-200 ${
+          sidebarOpen ? "w-64" : "w-0 border-r-0"
+        }`}
+      >
+        <div className="w-64 flex flex-col h-full">
+          <div className="p-4 border-b-2 border-neutral-900 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-violet-500 border-2 border-neutral-900 rounded-xl flex items-center justify-center">
+                <FiZap className="text-white text-sm" />
+              </div>
+              <div>
+                <div className="font-['Clash_Display'] text-lg font-semibold leading-none">Bob</div>
+                <div className="text-[10px] text-neutral-400 mt-0.5">Team workspace</div>
+              </div>
             </div>
-            <span className="font-['Clash_Display'] text-xl font-semibold">Bob</span>
-          </div>
-          <button
-            onClick={newChat}
-            title="New chat"
-            className="w-8 h-8 bg-neutral-900 text-white rounded-xl flex items-center justify-center hover:bg-violet-500 transition-colors"
-          >
-            <FiPlus />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-2">
-          {chats.map((c) => (
-            <div
-              key={c.id}
-              onClick={() => openChat(c.id)}
-              className={`group flex items-center justify-between gap-1 px-3 py-2.5 mb-1 rounded-xl cursor-pointer text-sm ${
-                activeChat === c.id ? "bg-violet-100 border-2 border-neutral-900" : "hover:bg-neutral-100 border-2 border-transparent"
-              }`}
+            <button
+              onClick={newChat}
+              title="New chat"
+              className="w-8 h-8 bg-neutral-900 text-white rounded-xl flex items-center justify-center hover:bg-violet-500 transition-colors"
             >
-              <span className="truncate">{c.title}</span>
-              <button
-                onClick={(e) => { e.stopPropagation(); deleteChat(c.id); }}
-                className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-600 shrink-0"
+              <FiPlus />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2 pb-20">
+            {chats.map((c) => (
+              <div
+                key={c.id}
+                onClick={() => openChat(c.id)}
+                className={`group flex items-center justify-between gap-1 px-3 py-2.5 mb-1 rounded-xl cursor-pointer text-sm transition-colors ${
+                  activeChat === c.id ? "bg-violet-100 border-2 border-neutral-900" : "hover:bg-neutral-100 border-2 border-transparent"
+                }`}
               >
-                <FiTrash2 size={14} />
-              </button>
-            </div>
-          ))}
-          {chats.length === 0 && (
-            <p className="text-neutral-400 text-sm p-3">No chats yet. Ask Bob anything about companies, hiring, or your candidates.</p>
-          )}
-        </div>
-        <div className="p-3 border-t-2 border-neutral-900 text-[11px] text-neutral-500">
-          Shared team workspace. Everyone sees all chats.
+                <span className="truncate">{c.title}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteChat(c.id); }}
+                  className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-600 shrink-0"
+                >
+                  <FiTrash2 size={14} />
+                </button>
+              </div>
+            ))}
+            {chats.length === 0 && (
+              <p className="text-neutral-400 text-sm p-3">No chats yet.</p>
+            )}
+          </div>
         </div>
       </aside>
 
-      {/* ── Centre: conversation ── */}
-      <main className="flex-1 min-w-0 flex flex-col">
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6">
-          {messages.length === 0 && !running && (
-            <div className="max-w-xl mx-auto mt-16 text-center">
-              <h2 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">
-                What are we placing today?
-              </h2>
-              <p className="text-neutral-600 mt-3 mb-8">
-                Describe a candidate, a cohort, or the companies you want. Bob researches live evidence and builds your target table on the right.
-              </p>
-              <div className="grid gap-3 text-left">
-                {[
-                  "Find 10 Bangalore startups hiring MERN developers right now, with the right HR contact for each",
-                  "I have 40 technical support reps graduating in 3 weeks. Which companies can absorb them at mass?",
-                  "Which fintech startups raised funding in the last 6 months and are building sales teams?",
-                ].map((s) => (
+      {/* ── Main area ── */}
+      <div className="flex-1 min-w-0 flex flex-col">
+
+        {/* Top bar */}
+        <header className="h-12 shrink-0 border-b-2 border-neutral-900 bg-white flex items-center gap-2 px-3">
+          <button
+            onClick={() => setSidebarOpen((v) => !v)}
+            title={sidebarOpen ? "Hide chats" : "Show chats"}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+          >
+            <FiSidebar />
+          </button>
+          <span className="text-sm font-bold truncate">
+            {chats.find((c) => c.id === activeChat)?.title || "New conversation"}
+          </span>
+          {running && (
+            <span className="flex items-center gap-1.5 text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2.5 py-1">
+              <FiLoader className="animate-spin" size={11} /> researching
+            </span>
+          )}
+          <div className="ml-auto flex items-center gap-1">
+            {hasTables && (
+              <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden">
+                {([["chat", FiMessageSquare, "Chat only"], ["split", FiColumns, "Split view"], ["table", FiGrid, "Table only"]] as const).map(([m, Icon, label]) => (
                   <button
-                    key={s}
-                    onClick={() => setInput(s)}
-                    className="bg-white border-2 border-neutral-900 rounded-2xl px-4 py-3 text-sm text-left shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all"
+                    key={m}
+                    onClick={() => setMode(m as PanelMode)}
+                    title={label}
+                    className={`w-9 h-8 flex items-center justify-center text-sm transition-colors ${
+                      mode === m ? "bg-neutral-900 text-white" : "bg-white text-neutral-500 hover:bg-neutral-100"
+                    }`}
                   >
-                    <FiChevronRight className="inline mr-1 text-violet-500" />
-                    {s}
+                    <Icon size={14} />
                   </button>
                 ))}
               </div>
+            )}
+          </div>
+        </header>
+
+        {/* Panels */}
+        <div ref={layoutRef} className="flex-1 min-h-0 flex">
+
+          {/* Chat panel */}
+          {showChat && (
+            <section className="flex flex-col min-w-0 flex-1">
+              <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6">
+                {messages.length === 0 && !running && (
+                  <EmptyChat onPick={(s) => setInput(s)} />
+                )}
+                <div className="max-w-2xl mx-auto space-y-4">
+                  {messages.map((m) => (
+                    <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[88%] px-4 py-3 rounded-2xl border-2 border-neutral-900 whitespace-pre-wrap text-[14.5px] leading-relaxed ${
+                          m.role === "user"
+                            ? "bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+                            : "bg-white text-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+                        }`}
+                      >
+                        {m.content}
+                      </div>
+                    </div>
+                  ))}
+                  {running && run && <RunProgress run={run} />}
+                </div>
+              </div>
+
+              {/* Composer */}
+              <div className="border-t-2 border-neutral-900 bg-white p-3">
+                <div className="max-w-2xl mx-auto flex gap-2">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+                    }}
+                    rows={2}
+                    placeholder={running ? "Bob is working on it. Ask your next question when he finishes." : "Describe a candidate, cohort, or the companies you need..."}
+                    disabled={running}
+                    className="flex-1 border-2 border-neutral-900 rounded-2xl px-4 py-2.5 text-[14.5px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-neutral-100"
+                  />
+                  <button
+                    onClick={send}
+                    disabled={running || sending || !input.trim()}
+                    className="self-end bg-neutral-900 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-violet-500 transition-colors disabled:opacity-40"
+                  >
+                    {sending || running ? <FiLoader className="animate-spin" /> : <FiSend />}
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Divider */}
+          {showChat && showTable && (
+            <div
+              onPointerDown={() => { dragging.current = true; document.body.style.cursor = "col-resize"; }}
+              className="w-[6px] shrink-0 cursor-col-resize bg-neutral-900 hover:bg-violet-500 transition-colors relative group"
+              title="Drag to resize"
+            >
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-10 rounded-full bg-white/60 group-hover:bg-white" />
             </div>
           )}
 
-          <div className="max-w-3xl mx-auto space-y-4">
-            {messages.map((m) => (
-              <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[85%] px-4 py-3 rounded-2xl border-2 border-neutral-900 whitespace-pre-wrap text-[15px] leading-relaxed ${
-                    m.role === "user"
-                      ? "bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
-                      : "bg-white text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
-                  }`}
-                >
-                  {m.content}
-                </div>
-              </div>
-            ))}
-
-            {running && run && <RunProgress run={run} />}
-          </div>
-        </div>
-
-        {/* Composer */}
-        <div className="border-t-2 border-neutral-900 bg-white p-4">
-          <div className="max-w-3xl mx-auto flex gap-3">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+          {/* Table panel */}
+          {showTable && (
+            <TablesPanel
+              widthPct={mode === "table" ? 100 : tablePct}
+              fullWidth={mode === "table"}
+              tables={tables}
+              onExpand={() => setMode(mode === "table" ? "split" : "table")}
+              expanded={mode === "table"}
+              onRowStatus={async (rowId, status) => {
+                try {
+                  await bobFetch(`/rows/${rowId}`, { method: "PATCH", body: JSON.stringify({ status }) });
+                  setTables((ts) => ts.map((t) => ({
+                    ...t,
+                    rows: t.rows.map((r) => (r.id === rowId ? { ...r, status } : r)),
+                  })));
+                } catch (e) { handleError(e); }
               }}
-              rows={2}
-              placeholder={running ? "Bob is working. You can send the next message when he finishes." : "Describe a candidate, cohort, or the companies you need..."}
-              disabled={running}
-              className="flex-1 border-2 border-neutral-900 rounded-2xl px-4 py-3 text-[15px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-neutral-100"
             />
-            <button
-              onClick={send}
-              disabled={running || sending || !input.trim()}
-              className="self-end bg-neutral-900 text-white w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-neutral-900 hover:bg-violet-500 transition-colors disabled:opacity-40"
-            >
-              {sending || running ? <FiLoader className="animate-spin" /> : <FiSend />}
-            </button>
-          </div>
+          )}
         </div>
-      </main>
-
-      {/* ── Right: tables ── */}
-      <TablesPanel tables={tables} onRowStatus={async (rowId, status) => {
-        try {
-          await bobFetch(`/rows/${rowId}`, { method: "PATCH", body: JSON.stringify({ status }) });
-          setTables((ts) => ts.map((t) => ({
-            ...t,
-            rows: t.rows.map((r) => (r.id === rowId ? { ...r, status } : r)),
-          })));
-        } catch (e) { handleError(e); }
-      }} />
+      </div>
     </div>
   );
 }
 
-// ── Run progress (the "analyst at work" feed) ────────────────────────────────
+// ── Empty chat state ─────────────────────────────────────────────────────────
+
+function EmptyChat({ onPick }: { onPick: (s: string) => void }) {
+  return (
+    <div className="max-w-xl mx-auto mt-14 text-center mb-10">
+      <h2 className="font-['Clash_Display'] text-3xl font-semibold">What are we placing today?</h2>
+      <p className="text-neutral-600 mt-3 mb-8">
+        Describe a candidate, a cohort, or the companies you want. Bob researches live evidence and builds your target table.
+      </p>
+      <div className="grid gap-3 text-left">
+        {[
+          "Find 10 Bangalore startups hiring MERN developers right now, with the right HR contact for each",
+          "I have 40 technical support reps graduating in 3 weeks. Which companies can absorb them at mass?",
+          "Which fintech startups raised funding in the last 6 months and are building sales teams?",
+        ].map((s) => (
+          <button
+            key={s}
+            onClick={() => onPick(s)}
+            className="bg-white border-2 border-neutral-900 rounded-2xl px-4 py-3 text-sm text-left shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all"
+          >
+            <FiChevronRight className="inline mr-1 text-violet-500" />
+            {s}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Run progress ─────────────────────────────────────────────────────────────
 
 function RunProgress({ run }: { run: Run }) {
   const events = run.events || [];
   const recent = events.slice(-7);
   const c = run.counters || {};
   return (
-    <div className="bg-white border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] p-4">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="bg-white border-2 border-neutral-900 rounded-2xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] p-4">
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         <FiLoader className="animate-spin text-violet-500" />
         <span className="font-bold text-sm">Bob is researching</span>
-        <span className="ml-auto flex gap-2 text-[11px] text-neutral-500">
+        <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
           {c.searches ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{c.searches} searches</span> : null}
-          {c.rows_added ? <span className="bg-violet-100 rounded-full px-2 py-0.5">{c.rows_added} rows</span> : null}
+          {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} rows</span> : null}
           {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{run.credits_used} credits</span> : null}
         </span>
       </div>
@@ -453,7 +603,7 @@ function RunProgress({ run }: { run: Run }) {
         {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research...</p>}
       </div>
       <p className="text-[11px] text-neutral-400 mt-3">
-        Deep research can take a few minutes. Rows appear in the right panel as Bob finds them.
+        Deep research can take a few minutes. Rows appear in the table as Bob finds them.
       </p>
     </div>
   );
@@ -461,12 +611,18 @@ function RunProgress({ run }: { run: Run }) {
 
 // ── Tables panel ─────────────────────────────────────────────────────────────
 
-function TablesPanel({ tables, onRowStatus }: {
+function TablesPanel({ tables, widthPct, fullWidth, expanded, onExpand, onRowStatus }: {
   tables: BobTable[];
+  widthPct: number;
+  fullWidth: boolean;
+  expanded: boolean;
+  onExpand: () => void;
   onRowStatus: (rowId: number, status: string) => void;
 }) {
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [detailRow, setDetailRow] = useState<BobRow | null>(null);
   const active = tables.find((t) => t.id === activeId) || tables[tables.length - 1] || null;
+  const cols = active ? orderColumns(active.columns) : [];
 
   const exportXlsx = async (t: BobTable) => {
     const key = localStorage.getItem(KEY_STORAGE) || "";
@@ -481,111 +637,260 @@ function TablesPanel({ tables, onRowStatus }: {
     URL.revokeObjectURL(url);
   };
 
-  if (tables.length === 0) {
-    return (
-      <aside className="w-[38%] shrink-0 border-l-2 border-neutral-900 bg-white flex flex-col items-center justify-center p-8 text-center">
-        <div className="w-14 h-14 bg-neutral-100 border-2 border-neutral-900 rounded-2xl flex items-center justify-center mb-4">
-          <FiGrid className="text-2xl text-neutral-400" />
-        </div>
-        <h3 className="font-['Clash_Display'] text-xl font-semibold">Results land here</h3>
-        <p className="text-sm text-neutral-500 mt-2 max-w-xs">
-          When Bob finds companies and contacts, they stream into a live table you can work, track, and export.
-        </p>
-      </aside>
-    );
-  }
-
   return (
-    <aside className="w-[38%] shrink-0 border-l-2 border-neutral-900 bg-white flex flex-col min-w-0">
-      {/* Table tabs + actions */}
-      <div className="border-b-2 border-neutral-900 p-3 flex items-center gap-2 overflow-x-auto">
+    <section
+      className="shrink-0 bg-white flex flex-col min-w-0 relative border-l-0"
+      style={{ width: fullWidth ? "100%" : `${widthPct}%` }}
+    >
+      {/* Panel header */}
+      <div className="h-12 shrink-0 border-b-2 border-neutral-900 flex items-center gap-2 px-3 overflow-x-auto">
         {tables.map((t) => (
           <button
             key={t.id}
-            onClick={() => setActiveId(t.id)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border-2 ${
+            onClick={() => { setActiveId(t.id); setDetailRow(null); }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border-2 transition-colors ${
               active?.id === t.id
                 ? "bg-violet-500 text-white border-neutral-900"
-                : "bg-white text-neutral-700 border-neutral-300 hover:border-neutral-900"
+                : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-900"
             }`}
           >
-            {t.name} <span className="opacity-70">({t.rows.length})</span>
+            {prettify(t.name)} <span className="opacity-70">· {t.rows.length}</span>
           </button>
         ))}
-        {active && (
+        <div className="ml-auto flex items-center gap-1 shrink-0">
+          {active && (
+            <button
+              onClick={() => exportXlsx(active)}
+              title="Export to Excel"
+              className="flex items-center gap-1.5 bg-neutral-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-violet-500 transition-colors"
+            >
+              <FiDownload size={13} /> Export
+            </button>
+          )}
           <button
-            onClick={() => exportXlsx(active)}
-            title="Export to Excel"
-            className="ml-auto shrink-0 flex items-center gap-1.5 bg-neutral-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-violet-500 transition-colors"
+            onClick={onExpand}
+            title={expanded ? "Back to split view" : "Expand table"}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
           >
-            <FiDownload size={13} /> Export
+            {expanded ? <FiMinimize2 size={15} /> : <FiMaximize2 size={15} />}
           </button>
-        )}
+        </div>
       </div>
 
       {/* Grid */}
       {active && (
         <div className="flex-1 overflow-auto">
-          <table className="text-[12px] border-collapse min-w-full">
-            <thead className="sticky top-0 bg-neutral-900 text-white z-10">
-              <tr>
-                <th className="px-2 py-2 text-left font-bold whitespace-nowrap">#</th>
-                {active.columns.map((c) => (
-                  <th key={c.key} className="px-2 py-2 text-left font-bold whitespace-nowrap">{c.label}</th>
+          <table className="text-[12.5px] border-collapse w-full">
+            <thead className="sticky top-0 z-20">
+              <tr className="bg-[#faf7f2]">
+                <th className="sticky left-0 z-30 bg-[#faf7f2] px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Company</th>
+                {cols.filter((c) => c.key !== "company").map((c) => (
+                  <th key={c.key} className={`px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap ${WIDE_KEYS.has(c.key) ? "min-w-[240px]" : ""}`}>
+                    {prettify(c.label || c.key)}
+                  </th>
                 ))}
-                <th className="px-2 py-2 text-left font-bold whitespace-nowrap">Status</th>
-                <th className="px-2 py-2 text-left font-bold whitespace-nowrap">Contact</th>
+                <th className="px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Status</th>
               </tr>
             </thead>
             <tbody>
               {active.rows.map((r, idx) => (
-                <tr key={r.id} className="border-b border-neutral-200 align-top hover:bg-violet-50">
-                  <td className="px-2 py-2 text-neutral-400">{idx + 1}</td>
-                  {active.columns.map((c) => (
-                    <td key={c.key} className="px-2 py-2 max-w-[220px]">
-                      <CellValue value={r.cells[c.key]} />
+                <tr
+                  key={r.id}
+                  onClick={() => setDetailRow(r)}
+                  className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-violet-50 ${idx % 2 ? "bg-neutral-50/50" : "bg-white"}`}
+                >
+                  <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
+                    <span className="inline-flex items-center gap-2">
+                      <span className="w-5 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
+                      {String(r.cells.company ?? "")}
+                    </span>
+                  </td>
+                  {cols.filter((c) => c.key !== "company").map((c) => (
+                    <td key={c.key} className={`px-3 py-2.5 ${WIDE_KEYS.has(c.key) ? "min-w-[240px] max-w-[340px]" : "max-w-[200px]"}`}>
+                      <Cell colKey={c.key} value={r.cells[c.key]} />
                     </td>
                   ))}
-                  <td className="px-2 py-2">
+                  <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                     <select
                       value={r.status}
                       onChange={(e) => onRowStatus(r.id, e.target.value)}
-                      className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border border-neutral-300 ${STATUS_STYLE[r.status] || ""}`}
+                      className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[r.status] || STATUS_STYLE.new}`}
                     >
                       {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
-                  </td>
-                  <td className="px-2 py-2">
-                    <button
-                      disabled
-                      title="Contact enrichment is coming soon"
-                      className="text-[11px] font-bold px-2 py-1 rounded-lg bg-neutral-100 text-neutral-400 cursor-not-allowed whitespace-nowrap"
-                    >
-                      Enrich
-                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {active.rows.length === 0 && (
+            <p className="text-sm text-neutral-400 p-6 text-center">Rows will appear here as Bob finds them.</p>
+          )}
         </div>
       )}
-    </aside>
+
+      {/* Row detail drawer */}
+      {detailRow && active && (
+        <RowDrawer
+          row={detailRow}
+          columns={orderColumns(active.columns)}
+          onClose={() => setDetailRow(null)}
+          onStatus={(s) => { onRowStatus(detailRow.id, s); setDetailRow({ ...detailRow, status: s }); }}
+        />
+      )}
+    </section>
   );
 }
 
-function CellValue({ value }: { value: unknown }) {
-  if (value === null || value === undefined || value === "") {
-    return <span className="text-neutral-300">-</span>;
+// ── Smart cell rendering ─────────────────────────────────────────────────────
+
+function LinkChip({ href, label, icon }: { href: string; label: string; icon?: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="inline-flex items-center gap-1 max-w-full bg-neutral-50 border border-neutral-200 rounded-lg px-2 py-1 text-[11px] font-semibold text-neutral-700 hover:border-violet-400 hover:text-violet-700 transition-colors whitespace-nowrap"
+    >
+      {icon}
+      <span className="truncate max-w-[130px]">{label}</span>
+      <FiExternalLink size={10} className="shrink-0 opacity-60" />
+    </a>
+  );
+}
+
+function Cell({ colKey, value }: { colKey: string; value: unknown }) {
+  if (value === null || value === undefined || value === "" ) {
+    return <span className="text-neutral-300">–</span>;
   }
   const s = typeof value === "object" ? JSON.stringify(value) : String(value);
-  if (/^https?:\/\//i.test(s)) {
+
+  if (colKey === "tier") {
+    const t = s.toUpperCase().replace(/[^T0-9]/g, "");
+    const style = t === "T1" ? "bg-green-100 text-green-800 border-green-300"
+      : t === "T2" ? "bg-blue-50 text-blue-700 border-blue-200"
+      : "bg-neutral-100 text-neutral-500 border-neutral-200";
+    const hint = t === "T1" ? "Named in the hiring evidence" : t === "T2" ? "Right title, right city" : "Right title, city unconfirmed";
+    return <span title={hint} className={`inline-block text-[10px] font-black border rounded-md px-1.5 py-0.5 ${style}`}>{t || s.slice(0, 4)}</span>;
+  }
+
+  if (colKey === "fit_score") {
+    const n = parseFloat(s);
+    if (!isNaN(n)) {
+      const style = n >= 8 ? "bg-green-100 text-green-800" : n >= 6 ? "bg-amber-100 text-amber-800" : "bg-neutral-100 text-neutral-500";
+      return <span className={`inline-block text-[11px] font-black rounded-md px-1.5 py-0.5 ${style}`}>{n}</span>;
+    }
+  }
+
+  if (colKey === "website") {
+    const domain = domainOf(s);
     return (
-      <a href={s} target="_blank" rel="noreferrer" className="text-violet-600 hover:underline inline-flex items-center gap-1 break-all">
-        {s.replace(/^https?:\/\/(www\.)?/, "").slice(0, 40)}
-        <FiExternalLink size={11} className="shrink-0" />
-      </a>
+      <LinkChip
+        href={/^https?:\/\//i.test(s) ? s : `https://${domain}`}
+        label={domain}
+        icon={<img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`} alt="" className="w-3.5 h-3.5 rounded-sm" />}
+      />
     );
   }
-  return <span className="break-words">{s.length > 400 ? s.slice(0, 400) + "..." : s}</span>;
+
+  if (colKey === "linkedin_url" || (typeof s === "string" && /linkedin\.com\/in\//i.test(s) && /^https?:\/\//i.test(s))) {
+    return <LinkChip href={s} label="LinkedIn" icon={<FiLinkedin size={11} className="text-[#0a66c2]" />} />;
+  }
+
+  if (/^https?:\/\//i.test(s)) {
+    const label = colKey.includes("evidence") ? "View evidence" : domainOf(s);
+    return <LinkChip href={s} label={label} icon={<FiFileText size={11} />} />;
+  }
+
+  return (
+    <span
+      className="block overflow-hidden text-neutral-800 leading-snug"
+      style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
+      title={s.length > 80 ? s : undefined}
+    >
+      {s}
+    </span>
+  );
+}
+
+// ── Row detail drawer ────────────────────────────────────────────────────────
+
+function RowDrawer({ row, columns, onClose, onStatus }: {
+  row: BobRow;
+  columns: BobColumn[];
+  onClose: () => void;
+  onStatus: (s: string) => void;
+}) {
+  const [copied, setCopied] = useState<string | null>(null);
+  const company = String(row.cells.company ?? "Details");
+
+  const copy = (key: string, v: string) => {
+    navigator.clipboard?.writeText(v);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 1200);
+  };
+
+  return (
+    <>
+      <div className="absolute inset-0 bg-neutral-900/20 z-30" onClick={onClose} />
+      <div className="absolute top-0 right-0 bottom-0 w-full max-w-[420px] bg-white border-l-2 border-neutral-900 z-40 flex flex-col shadow-[-6px_0px_0px_0px_rgba(25,26,35,0.15)]">
+        <div className="p-4 border-b-2 border-neutral-900 flex items-start gap-3">
+          <div className="min-w-0">
+            <h3 className="font-['Clash_Display'] text-xl font-semibold truncate">{company}</h3>
+            <div className="flex items-center gap-2 mt-1.5">
+              <select
+                value={row.status}
+                onChange={(e) => onStatus(e.target.value)}
+                className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[row.status] || STATUS_STYLE.new}`}
+              >
+                {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <button
+                disabled
+                title="Contact enrichment is coming soon"
+                className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-400 cursor-not-allowed"
+              >
+                <FiLock size={9} className="inline mr-1" />Enrich contact
+              </button>
+            </div>
+          </div>
+          <button onClick={onClose} className="ml-auto w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900">
+            <FiX />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {columns.map((c) => {
+            const v = row.cells[c.key];
+            if (v === null || v === undefined || v === "") return null;
+            const s = typeof v === "object" ? JSON.stringify(v) : String(v);
+            const isUrl = /^https?:\/\//i.test(s);
+            return (
+              <div key={c.key} className="group">
+                <div className="text-[10px] font-black uppercase tracking-wide text-neutral-400 mb-0.5 flex items-center gap-2">
+                  {prettify(c.label || c.key)}
+                  {!isUrl && (
+                    <button
+                      onClick={() => copy(c.key, s)}
+                      className="opacity-0 group-hover:opacity-100 text-neutral-300 hover:text-violet-600"
+                      title="Copy"
+                    >
+                      {copied === c.key ? <FiCheck size={11} className="text-green-600" /> : <FiCopy size={11} />}
+                    </button>
+                  )}
+                </div>
+                {isUrl ? (
+                  <a href={s} target="_blank" rel="noreferrer" className="text-[13px] text-violet-600 hover:underline break-all inline-flex items-center gap-1">
+                    {s.length > 60 ? s.slice(0, 60) + "…" : s} <FiExternalLink size={11} className="shrink-0" />
+                  </a>
+                ) : (
+                  <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap">{s}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
 }
