@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap, FiSearch,
   FiFileText, FiGrid, FiLoader, FiExternalLink, FiChevronRight,
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
-  FiMessageSquare, FiColumns,
+  FiMessageSquare, FiColumns, FiUser, FiUsers, FiBriefcase, FiTarget,
+  FiLayers, FiGlobe,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bob — placement intelligence workspace.
-// Layout: collapsible sidebar | chat | draggable divider | table panel with
-// maximize modes and a row-detail drawer. All data via /api/v1/outreach/bob/*.
+// Chat left, results right. Results default to company CARDS (a dossier per
+// company); a dense table view is one toggle away. Rows stream in live.
+// Backend: /api/v1/outreach/bob/*
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function meta() {
@@ -21,7 +23,7 @@ export function meta() {
 
 const API = "/api/v1/outreach/bob";
 const KEY_STORAGE = "bob_access_key";
-const LAYOUT_STORAGE = "bob_layout_v2";
+const LAYOUT_STORAGE = "bob_layout_v3";
 
 class BobError extends Error {
   status: number;
@@ -70,11 +72,10 @@ const STATUS_STYLE: Record<string, string> = {
   dead: "bg-neutral-100 text-neutral-400 border-neutral-200 line-through",
 };
 
-// Column ordering: known keys first (in this order), unknown keys after.
 const COLUMN_PRIORITY = [
   "company", "contact_name", "contact_title", "tier", "fit_score", "city",
   "hiring_evidence", "why_now", "what_they_do", "size_band", "funding",
-  "website", "evidence_url", "linkedin_url",
+  "website", "evidence_url", "linkedin_url", "contact_linkedin_url",
 ];
 const WIDE_KEYS = new Set(["hiring_evidence", "why_now", "what_they_do", "funding", "outreach_angle", "suggested_opening", "connection_point", "signal_rationale"]);
 
@@ -97,6 +98,17 @@ function domainOf(v: string): string {
   } catch {
     return v;
   }
+}
+
+// Extract every URL from a cell — the agent occasionally packed several links
+// into one field; each must be its own working chip, never one mangled href.
+function extractUrls(s: string): string[] {
+  return (s.match(/https?:\/\/[^\s;,)"']+/g) || []).map((u) => u.replace(/[.,;]+$/, ""));
+}
+
+function str(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  return typeof v === "object" ? JSON.stringify(v) : String(v);
 }
 
 // ── Root ─────────────────────────────────────────────────────────────────────
@@ -179,6 +191,14 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
 // ── Workspace ────────────────────────────────────────────────────────────────
 
 type PanelMode = "split" | "chat" | "table";
+type ResultsView = "cards" | "table";
+
+const QUICK_ACTIONS = [
+  "Find the right hiring contacts for these companies",
+  "Add 5 more companies like these",
+  "Add funding and company-size info",
+  "Why did you pick these? Add a why_now for each",
+];
 
 function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
@@ -189,10 +209,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
 
-  // Layout state (persisted)
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<PanelMode>("split");
-  const [tablePct, setTablePct] = useState(46);
+  const [tablePct, setTablePct] = useState(48);
+  const [viewPref, setViewPref] = useState<ResultsView | null>(null);
   const dragging = useRef(false);
   const layoutRef = useRef<HTMLDivElement>(null);
 
@@ -204,11 +224,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       const saved = JSON.parse(localStorage.getItem(LAYOUT_STORAGE) || "{}");
       if (typeof saved.sidebarOpen === "boolean") setSidebarOpen(saved.sidebarOpen);
       if (typeof saved.tablePct === "number") setTablePct(saved.tablePct);
+      if (saved.viewPref === "cards" || saved.viewPref === "table") setViewPref(saved.viewPref);
     } catch {}
   }, []);
   useEffect(() => {
-    localStorage.setItem(LAYOUT_STORAGE, JSON.stringify({ sidebarOpen, tablePct }));
-  }, [sidebarOpen, tablePct]);
+    localStorage.setItem(LAYOUT_STORAGE, JSON.stringify({ sidebarOpen, tablePct, viewPref }));
+  }, [sidebarOpen, tablePct, viewPref]);
 
   const handleError = useCallback((e: unknown) => {
     if (e instanceof BobError && (e.status === 401 || e.status === 503)) {
@@ -250,7 +271,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Poll active run
   useEffect(() => {
     if (pollRef.current) clearInterval(pollRef.current);
     if (!run || run.status !== "running") return;
@@ -280,13 +300,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, run?.events?.length]);
 
-  // Divider drag
   useEffect(() => {
     const move = (e: PointerEvent) => {
       if (!dragging.current || !layoutRef.current) return;
       const rect = layoutRef.current.getBoundingClientRect();
       const pct = ((rect.right - e.clientX) / rect.width) * 100;
-      setTablePct(Math.min(72, Math.max(28, pct)));
+      setTablePct(Math.min(72, Math.max(30, pct)));
     };
     const up = () => { dragging.current = false; document.body.style.cursor = ""; };
     window.addEventListener("pointermove", move);
@@ -325,8 +344,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     }
   };
 
-  const send = async () => {
-    const content = input.trim();
+  const send = async (text?: string) => {
+    const content = (text ?? input).trim();
     if (!content || sending) return;
     let chatId = activeChat;
     setSending(true);
@@ -355,13 +374,30 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     }
   };
 
+  const updateRowStatus = async (rowId: number, status: string) => {
+    try {
+      await bobFetch(`/rows/${rowId}`, { method: "PATCH", body: JSON.stringify({ status }) });
+      setTables((ts) => ts.map((t) => ({
+        ...t,
+        rows: t.rows.map((r) => (r.id === rowId ? { ...r, status } : r)),
+      })));
+    } catch (e) { handleError(e); }
+  };
+
   const running = run?.status === "running";
   const hasTables = tables.length > 0;
   const showChat = mode !== "table";
   const showTable = hasTables && mode !== "chat";
+  const lastIsAssistant = messages.length > 0 && messages[messages.length - 1].role === "assistant";
 
   return (
     <div className="h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900">
+      <style>{`
+        @keyframes bobFlash { 0% { background-color: rgb(221 214 254); } 100% { background-color: transparent; } }
+        .bob-new { animation: bobFlash 2.5s ease-out; }
+        @keyframes bobPop { 0% { opacity: 0; transform: translateY(8px) scale(0.98); } 100% { opacity: 1; transform: none; } }
+        .bob-pop { animation: bobPop 0.35s ease-out; }
+      `}</style>
 
       {/* ── Sidebar ── */}
       <aside
@@ -388,7 +424,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               <FiPlus />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-2 pb-20">
+          <div className="flex-1 overflow-y-auto p-2 pb-24">
             {chats.map((c) => (
               <div
                 key={c.id}
@@ -406,17 +442,14 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 </button>
               </div>
             ))}
-            {chats.length === 0 && (
-              <p className="text-neutral-400 text-sm p-3">No chats yet.</p>
-            )}
+            {chats.length === 0 && <p className="text-neutral-400 text-sm p-3">No chats yet.</p>}
           </div>
         </div>
       </aside>
 
-      {/* ── Main area ── */}
+      {/* ── Main ── */}
       <div className="flex-1 min-w-0 flex flex-col">
 
-        {/* Top bar */}
         <header className="h-12 shrink-0 border-b-2 border-neutral-900 bg-white flex items-center gap-2 px-3">
           <button
             onClick={() => setSidebarOpen((v) => !v)}
@@ -436,7 +469,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           <div className="ml-auto flex items-center gap-1">
             {hasTables && (
               <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden">
-                {([["chat", FiMessageSquare, "Chat only"], ["split", FiColumns, "Split view"], ["table", FiGrid, "Table only"]] as const).map(([m, Icon, label]) => (
+                {([["chat", FiMessageSquare, "Chat only"], ["split", FiColumns, "Split view"], ["table", FiGrid, "Results only"]] as const).map(([m, Icon, label]) => (
                   <button
                     key={m}
                     onClick={() => setMode(m as PanelMode)}
@@ -453,35 +486,49 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </div>
         </header>
 
-        {/* Panels */}
         <div ref={layoutRef} className="flex-1 min-h-0 flex">
 
-          {/* Chat panel */}
+          {/* Chat */}
           {showChat && (
             <section className="flex flex-col min-w-0 flex-1">
               <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6">
-                {messages.length === 0 && !running && (
-                  <EmptyChat onPick={(s) => setInput(s)} />
-                )}
+                {messages.length === 0 && !running && <EmptyChat onPick={(s) => setInput(s)} />}
                 <div className="max-w-2xl mx-auto space-y-4">
                   {messages.map((m) => (
-                    <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div
-                        className={`max-w-[88%] px-4 py-3 rounded-2xl border-2 border-neutral-900 whitespace-pre-wrap text-[14.5px] leading-relaxed ${
-                          m.role === "user"
-                            ? "bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
-                            : "bg-white text-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
-                        }`}
-                      >
-                        {m.content}
+                    m.role === "user" ? (
+                      <div key={m.id} className="flex justify-end">
+                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-br-md border-2 border-neutral-900 bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap text-[14.5px] leading-relaxed">
+                          {m.content}
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div key={m.id} className="flex gap-2.5">
+                        <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
+                          <FiZap className="text-violet-400" size={13} />
+                        </div>
+                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap text-[14.5px] leading-relaxed">
+                          {m.content}
+                        </div>
+                      </div>
+                    )
                   ))}
                   {running && run && <RunProgress run={run} />}
+                  {!running && lastIsAssistant && hasTables && (
+                    <div className="flex flex-wrap gap-2 pl-9">
+                      {QUICK_ACTIONS.map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => send(q)}
+                          className="text-[12px] font-semibold bg-white border border-neutral-300 rounded-full px-3 py-1.5 text-neutral-600 hover:border-violet-500 hover:text-violet-700 transition-colors"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Composer */}
               <div className="border-t-2 border-neutral-900 bg-white p-3">
                 <div className="max-w-2xl mx-auto flex gap-2">
                   <textarea
@@ -496,7 +543,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     className="flex-1 border-2 border-neutral-900 rounded-2xl px-4 py-2.5 text-[14.5px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-neutral-100"
                   />
                   <button
-                    onClick={send}
+                    onClick={() => send()}
                     disabled={running || sending || !input.trim()}
                     className="self-end bg-neutral-900 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-violet-500 transition-colors disabled:opacity-40"
                   >
@@ -518,23 +565,17 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             </div>
           )}
 
-          {/* Table panel */}
+          {/* Results */}
           {showTable && (
-            <TablesPanel
+            <ResultsPanel
               widthPct={mode === "table" ? 100 : tablePct}
               fullWidth={mode === "table"}
               tables={tables}
-              onExpand={() => setMode(mode === "table" ? "split" : "table")}
               expanded={mode === "table"}
-              onRowStatus={async (rowId, status) => {
-                try {
-                  await bobFetch(`/rows/${rowId}`, { method: "PATCH", body: JSON.stringify({ status }) });
-                  setTables((ts) => ts.map((t) => ({
-                    ...t,
-                    rows: t.rows.map((r) => (r.id === rowId ? { ...r, status } : r)),
-                  })));
-                } catch (e) { handleError(e); }
-              }}
+              onExpand={() => setMode(mode === "table" ? "split" : "table")}
+              viewPref={viewPref}
+              onViewPref={setViewPref}
+              onRowStatus={updateRowStatus}
             />
           )}
         </div>
@@ -543,28 +584,56 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   );
 }
 
-// ── Empty chat state ─────────────────────────────────────────────────────────
+// ── Empty chat: mandate templates ────────────────────────────────────────────
+
+const TEMPLATES = [
+  {
+    icon: FiUser, title: "Place a candidate",
+    subtitle: "Best-fit companies for one person",
+    prompt: "I have a candidate to place. Profile: [role, years of experience, key skills]. Preferences: [city, company stage, expected CTC]. Find the best companies hiring for this profile right now, with evidence and the right hiring contact per company.",
+  },
+  {
+    icon: FiUsers, title: "Place a cohort",
+    subtitle: "Companies that absorb a batch",
+    prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Find companies that can absorb them at volume — bulk hiring, walk-in drives, fresher intakes — with TA contacts for each.",
+  },
+  {
+    icon: FiBriefcase, title: "Build a partner pipeline",
+    subtitle: "Companies worth an MoU",
+    prompt: "Find [number] companies that should become recurring hiring partners for our [domain] training programs. Look for sustained hiring velocity and fresher-friendliness. Target HR/TA leadership as contacts.",
+  },
+  {
+    icon: FiTarget, title: "Track a market",
+    subtitle: "Funding + hiring momentum",
+    prompt: "Which [sector] startups in [city/India] raised funding in the last 6 months and are actively hiring? Build a table with the round details, hiring evidence, and why-now for each.",
+  },
+];
 
 function EmptyChat({ onPick }: { onPick: (s: string) => void }) {
   return (
-    <div className="max-w-xl mx-auto mt-14 text-center mb-10">
-      <h2 className="font-['Clash_Display'] text-3xl font-semibold">What are we placing today?</h2>
-      <p className="text-neutral-600 mt-3 mb-8">
-        Describe a candidate, a cohort, or the companies you want. Bob researches live evidence and builds your target table.
-      </p>
-      <div className="grid gap-3 text-left">
-        {[
-          "Find 10 Bangalore startups hiring MERN developers right now, with the right HR contact for each",
-          "I have 40 technical support reps graduating in 3 weeks. Which companies can absorb them at mass?",
-          "Which fintech startups raised funding in the last 6 months and are building sales teams?",
-        ].map((s) => (
+    <div className="max-w-2xl mx-auto mt-10 mb-10 bob-pop">
+      <div className="text-center">
+        <div className="w-14 h-14 mx-auto bg-violet-500 border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] flex items-center justify-center mb-5">
+          <FiZap className="text-white text-2xl" />
+        </div>
+        <h2 className="font-['Clash_Display'] text-3xl font-semibold">What are we placing today?</h2>
+        <p className="text-neutral-600 mt-3 mb-8 max-w-md mx-auto">
+          Describe a candidate, a cohort, or a market. Bob researches live evidence and builds a working target list with the right people to contact.
+        </p>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-3">
+        {TEMPLATES.map((t) => (
           <button
-            key={s}
-            onClick={() => onPick(s)}
-            className="bg-white border-2 border-neutral-900 rounded-2xl px-4 py-3 text-sm text-left shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all"
+            key={t.title}
+            onClick={() => onPick(t.prompt)}
+            className="bg-white border-2 border-neutral-900 rounded-2xl p-4 text-left shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all group"
           >
-            <FiChevronRight className="inline mr-1 text-violet-500" />
-            {s}
+            <t.icon className="text-violet-500 mb-2" size={18} />
+            <div className="font-bold text-sm">{t.title}</div>
+            <div className="text-[12px] text-neutral-500 mt-0.5">{t.subtitle}</div>
+            <div className="text-[11px] text-violet-600 font-semibold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              Use template <FiChevronRight className="inline" size={11} />
+            </div>
           </button>
         ))}
       </div>
@@ -579,50 +648,71 @@ function RunProgress({ run }: { run: Run }) {
   const recent = events.slice(-7);
   const c = run.counters || {};
   return (
-    <div className="bg-white border-2 border-neutral-900 rounded-2xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] p-4">
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <FiLoader className="animate-spin text-violet-500" />
-        <span className="font-bold text-sm">Bob is researching</span>
-        <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
-          {c.searches ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{c.searches} searches</span> : null}
-          {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} rows</span> : null}
-          {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{run.credits_used} credits</span> : null}
-        </span>
+    <div className="flex gap-2.5">
+      <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
+        <FiLoader className="animate-spin text-violet-400" size={13} />
       </div>
-      <div className="space-y-1.5">
-        {recent.map((ev, i) => (
-          <div key={i} className="flex items-start gap-2 text-[13px] text-neutral-700">
-            <span className="mt-0.5 text-violet-500 shrink-0">
-              {ev.type === "search" || ev.type === "search_done" ? <FiSearch size={13} /> :
-               ev.type === "scrape" ? <FiFileText size={13} /> :
-               ev.type === "table" || ev.type === "rows" ? <FiGrid size={13} /> : <FiZap size={13} />}
-            </span>
-            <span className={i === recent.length - 1 ? "font-semibold" : ""}>{ev.label}</span>
-          </div>
-        ))}
-        {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research...</p>}
+      <div className="flex-1 bg-white border-2 border-neutral-900 rounded-2xl rounded-tl-md shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] p-4">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="font-bold text-sm">Researching…</span>
+          <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
+            {c.searches ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{c.searches} searches</span> : null}
+            {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} results</span> : null}
+            {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{run.credits_used} credits</span> : null}
+          </span>
+        </div>
+        <div className="space-y-1.5">
+          {recent.map((ev, i) => (
+            <div key={i} className={`flex items-start gap-2 text-[13px] ${i === recent.length - 1 ? "text-neutral-900 font-semibold" : "text-neutral-500"}`}>
+              <span className="mt-0.5 text-violet-500 shrink-0">
+                {ev.type === "search" || ev.type === "search_done" ? <FiSearch size={13} /> :
+                 ev.type === "scrape" ? <FiFileText size={13} /> :
+                 ev.type === "table" || ev.type === "rows" ? <FiGrid size={13} /> : <FiZap size={13} />}
+              </span>
+              <span>{ev.label}</span>
+            </div>
+          ))}
+          {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research…</p>}
+        </div>
+        <p className="text-[11px] text-neutral-400 mt-3">
+          Results appear on the right as Bob finds them. Deep research can take a few minutes.
+        </p>
       </div>
-      <p className="text-[11px] text-neutral-400 mt-3">
-        Deep research can take a few minutes. Rows appear in the table as Bob finds them.
-      </p>
     </div>
   );
 }
 
-// ── Tables panel ─────────────────────────────────────────────────────────────
+// ── Results panel (cards ⇄ table) ────────────────────────────────────────────
 
-function TablesPanel({ tables, widthPct, fullWidth, expanded, onExpand, onRowStatus }: {
+function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus }: {
   tables: BobTable[];
   widthPct: number;
   fullWidth: boolean;
   expanded: boolean;
   onExpand: () => void;
+  viewPref: ResultsView | null;
+  onViewPref: (v: ResultsView) => void;
   onRowStatus: (rowId: number, status: string) => void;
 }) {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [detailRow, setDetailRow] = useState<BobRow | null>(null);
+  const seenRows = useRef<Set<number>>(new Set());
+
   const active = tables.find((t) => t.id === activeId) || tables[tables.length - 1] || null;
-  const cols = active ? orderColumns(active.columns) : [];
+  const view: ResultsView = viewPref ?? ((active?.rows.length ?? 0) > 40 ? "table" : "cards");
+
+  // Track which rows are new (for the flash-in animation), then mark seen.
+  const newIds = useMemo(() => {
+    const ids = new Set<number>();
+    for (const t of tables) for (const r of t.rows) if (!seenRows.current.has(r.id)) ids.add(r.id);
+    return ids;
+  }, [tables]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      for (const t of tables) for (const r of t.rows) seenRows.current.add(r.id);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [tables]);
 
   const exportXlsx = async (t: BobTable) => {
     const key = localStorage.getItem(KEY_STORAGE) || "";
@@ -639,11 +729,11 @@ function TablesPanel({ tables, widthPct, fullWidth, expanded, onExpand, onRowSta
 
   return (
     <section
-      className="shrink-0 bg-white flex flex-col min-w-0 relative border-l-0"
+      className="shrink-0 bg-[#f4f0e8] flex flex-col min-w-0 relative"
       style={{ width: fullWidth ? "100%" : `${widthPct}%` }}
     >
-      {/* Panel header */}
-      <div className="h-12 shrink-0 border-b-2 border-neutral-900 flex items-center gap-2 px-3 overflow-x-auto">
+      {/* Header */}
+      <div className="h-12 shrink-0 border-b-2 border-neutral-900 bg-white flex items-center gap-2 px-3 overflow-x-auto">
         {tables.map((t) => (
           <button
             key={t.id}
@@ -658,6 +748,20 @@ function TablesPanel({ tables, widthPct, fullWidth, expanded, onExpand, onRowSta
           </button>
         ))}
         <div className="ml-auto flex items-center gap-1 shrink-0">
+          <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden mr-1">
+            {([["cards", FiLayers, "Card view"], ["table", FiGrid, "Table view"]] as const).map(([v, Icon, label]) => (
+              <button
+                key={v}
+                onClick={() => onViewPref(v as ResultsView)}
+                title={label}
+                className={`w-9 h-8 flex items-center justify-center transition-colors ${
+                  view === v ? "bg-neutral-900 text-white" : "bg-white text-neutral-500 hover:bg-neutral-100"
+                }`}
+              >
+                <Icon size={14} />
+              </button>
+            ))}
+          </div>
           {active && (
             <button
               onClick={() => exportXlsx(active)}
@@ -669,7 +773,7 @@ function TablesPanel({ tables, widthPct, fullWidth, expanded, onExpand, onRowSta
           )}
           <button
             onClick={onExpand}
-            title={expanded ? "Back to split view" : "Expand table"}
+            title={expanded ? "Back to split view" : "Expand results"}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
           >
             {expanded ? <FiMinimize2 size={15} /> : <FiMaximize2 size={15} />}
@@ -677,59 +781,36 @@ function TablesPanel({ tables, widthPct, fullWidth, expanded, onExpand, onRowSta
         </div>
       </div>
 
-      {/* Grid */}
-      {active && (
-        <div className="flex-1 overflow-auto">
-          <table className="text-[12.5px] border-collapse w-full">
-            <thead className="sticky top-0 z-20">
-              <tr className="bg-[#faf7f2]">
-                <th className="sticky left-0 z-30 bg-[#faf7f2] px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Company</th>
-                {cols.filter((c) => c.key !== "company").map((c) => (
-                  <th key={c.key} className={`px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap ${WIDE_KEYS.has(c.key) ? "min-w-[240px]" : ""}`}>
-                    {prettify(c.label || c.key)}
-                  </th>
-                ))}
-                <th className="px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {active.rows.map((r, idx) => (
-                <tr
-                  key={r.id}
-                  onClick={() => setDetailRow(r)}
-                  className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-violet-50 ${idx % 2 ? "bg-neutral-50/50" : "bg-white"}`}
-                >
-                  <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="w-5 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
-                      {String(r.cells.company ?? "")}
-                    </span>
-                  </td>
-                  {cols.filter((c) => c.key !== "company").map((c) => (
-                    <td key={c.key} className={`px-3 py-2.5 ${WIDE_KEYS.has(c.key) ? "min-w-[240px] max-w-[340px]" : "max-w-[200px]"}`}>
-                      <Cell colKey={c.key} value={r.cells[c.key]} />
-                    </td>
-                  ))}
-                  <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
-                    <select
-                      value={r.status}
-                      onChange={(e) => onRowStatus(r.id, e.target.value)}
-                      className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[r.status] || STATUS_STYLE.new}`}
-                    >
-                      {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Body */}
+      {active && view === "cards" && (
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
+            {active.rows.map((r, idx) => (
+              <CompanyCard
+                key={r.id}
+                row={r}
+                index={idx}
+                isNew={newIds.has(r.id)}
+                onOpen={() => setDetailRow(r)}
+                onStatus={(s) => onRowStatus(r.id, s)}
+              />
+            ))}
+          </div>
           {active.rows.length === 0 && (
-            <p className="text-sm text-neutral-400 p-6 text-center">Rows will appear here as Bob finds them.</p>
+            <p className="text-sm text-neutral-400 p-6 text-center">Results will appear here as Bob finds them.</p>
           )}
         </div>
       )}
 
-      {/* Row detail drawer */}
+      {active && view === "table" && (
+        <DenseTable
+          table={active}
+          newIds={newIds}
+          onRowClick={setDetailRow}
+          onRowStatus={onRowStatus}
+        />
+      )}
+
       {detailRow && active && (
         <RowDrawer
           row={detailRow}
@@ -742,7 +823,206 @@ function TablesPanel({ tables, widthPct, fullWidth, expanded, onExpand, onRowSta
   );
 }
 
-// ── Smart cell rendering ─────────────────────────────────────────────────────
+// ── Company card ─────────────────────────────────────────────────────────────
+
+function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
+  row: BobRow;
+  index: number;
+  isNew: boolean;
+  onOpen: () => void;
+  onStatus: (s: string) => void;
+}) {
+  const c = row.cells;
+  const company = str(c.company) || `Company ${index + 1}`;
+  const website = str(c.website);
+  const domain = website ? domainOf(website) : "";
+  const meta = [str(c.city), str(c.size_band) !== "unknown" ? str(c.size_band) : ""].filter(Boolean).join(" · ");
+  const what = str(c.what_they_do);
+  const whyNow = str(c.why_now);
+  const evidence = str(c.hiring_evidence);
+  const evidenceUrls = extractUrls(str(c.evidence_url));
+  const linkedinUrls = extractUrls(str(c.linkedin_url) + " " + str(c.contact_linkedin_url));
+  const contactName = str(c.contact_name);
+  const contactTitle = str(c.contact_title);
+  const tier = str(c.tier).toUpperCase().replace(/[^T0-9]/g, "");
+  const fit = parseFloat(str(c.fit_score));
+  const funding = str(c.funding);
+
+  return (
+    <div
+      onClick={onOpen}
+      className={`bg-white border-2 border-neutral-900 rounded-2xl p-4 cursor-pointer shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all flex flex-col gap-2.5 ${isNew ? "bob-new" : ""}`}
+    >
+      {/* Header */}
+      <div className="flex items-start gap-2.5">
+        {domain ? (
+          <img
+            src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+            alt=""
+            className="w-9 h-9 rounded-lg border border-neutral-200 bg-neutral-50 p-1"
+          />
+        ) : (
+          <div className="w-9 h-9 rounded-lg border border-neutral-200 bg-neutral-50 flex items-center justify-center text-neutral-400">
+            <FiGlobe size={15} />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">{company}</div>
+          <div className="text-[11.5px] text-neutral-500 truncate">{meta || what || "—"}</div>
+        </div>
+        {!isNaN(fit) && (
+          <div
+            title={`Fit score ${fit}/10`}
+            className={`shrink-0 w-9 h-9 rounded-xl border-2 border-neutral-900 flex items-center justify-center font-black text-sm ${
+              fit >= 8 ? "bg-green-300" : fit >= 6 ? "bg-amber-200" : "bg-neutral-100"
+            }`}
+          >
+            {fit}
+          </div>
+        )}
+      </div>
+
+      {/* Why now */}
+      {(whyNow || evidence) && (
+        <div className="border-l-[3px] border-violet-500 bg-violet-50/60 rounded-r-lg pl-2.5 pr-2 py-1.5">
+          <p
+            className="text-[12.5px] text-neutral-800 leading-snug overflow-hidden"
+            style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
+          >
+            {whyNow || evidence}
+          </p>
+        </div>
+      )}
+
+      {funding && (
+        <p className="text-[11.5px] text-neutral-500 truncate">💰 {funding}</p>
+      )}
+
+      {/* Links */}
+      <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
+        {evidenceUrls.slice(0, 2).map((u, i) => (
+          <LinkChip key={u} href={u} label={evidenceUrls.length > 1 ? `Evidence ${i + 1}` : "View evidence"} icon={<FiFileText size={11} />} />
+        ))}
+        {website && (
+          <LinkChip
+            href={/^https?:\/\//i.test(website) ? website : `https://${domain}`}
+            label={domain}
+            icon={<FiGlobe size={11} />}
+          />
+        )}
+      </div>
+
+      {/* Contact + status */}
+      <div className="mt-auto pt-2 border-t border-neutral-100 flex items-center gap-2">
+        {contactName ? (
+          <>
+            <div className="w-7 h-7 shrink-0 rounded-full bg-violet-100 border border-violet-300 flex items-center justify-center text-[10px] font-black text-violet-700">
+              {contactName.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[12.5px] font-bold truncate">{contactName}</div>
+              <div className="text-[10.5px] text-neutral-500 truncate">{contactTitle || "—"}</div>
+            </div>
+            {tier && <TierBadge tier={tier} />}
+            {linkedinUrls[0] && (
+              <a
+                href={linkedinUrls[0]}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title="Open LinkedIn profile"
+                className="w-7 h-7 shrink-0 rounded-lg border border-neutral-200 flex items-center justify-center text-[#0a66c2] hover:border-[#0a66c2] transition-colors"
+              >
+                <FiLinkedin size={13} />
+              </a>
+            )}
+          </>
+        ) : (
+          <span className="text-[11.5px] text-neutral-400 flex-1">No hiring contact found yet</span>
+        )}
+        <select
+          value={row.status}
+          onChange={(e) => onStatus(e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          className={`shrink-0 text-[10.5px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[row.status] || STATUS_STYLE.new}`}
+        >
+          {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+}
+
+function TierBadge({ tier }: { tier: string }) {
+  const style = tier === "T1" ? "bg-green-100 text-green-800 border-green-300"
+    : tier === "T2" ? "bg-blue-50 text-blue-700 border-blue-200"
+    : "bg-neutral-100 text-neutral-500 border-neutral-200";
+  const hint = tier === "T1" ? "Named in the hiring evidence" : tier === "T2" ? "Right title, right city" : "Right title, city unconfirmed";
+  return <span title={hint} className={`shrink-0 inline-block text-[10px] font-black border rounded-md px-1.5 py-0.5 ${style}`}>{tier}</span>;
+}
+
+// ── Dense table view ─────────────────────────────────────────────────────────
+
+function DenseTable({ table, newIds, onRowClick, onRowStatus }: {
+  table: BobTable;
+  newIds: Set<number>;
+  onRowClick: (r: BobRow) => void;
+  onRowStatus: (rowId: number, status: string) => void;
+}) {
+  const cols = orderColumns(table.columns);
+  return (
+    <div className="flex-1 overflow-auto bg-white">
+      <table className="text-[12.5px] border-collapse w-full">
+        <thead className="sticky top-0 z-20">
+          <tr className="bg-[#faf7f2]">
+            <th className="sticky left-0 z-30 bg-[#faf7f2] px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Company</th>
+            {cols.filter((c) => c.key !== "company").map((c) => (
+              <th key={c.key} className={`px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap ${WIDE_KEYS.has(c.key) ? "min-w-[240px]" : ""}`}>
+                {prettify(c.label || c.key)}
+              </th>
+            ))}
+            <th className="px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {table.rows.map((r, idx) => (
+            <tr
+              key={r.id}
+              onClick={() => onRowClick(r)}
+              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-violet-50 ${idx % 2 ? "bg-neutral-50/50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""}`}
+            >
+              <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
+                <span className="inline-flex items-center gap-2">
+                  <span className="w-5 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
+                  {str(r.cells.company)}
+                </span>
+              </td>
+              {cols.filter((c) => c.key !== "company").map((c) => (
+                <td key={c.key} className={`px-3 py-2.5 ${WIDE_KEYS.has(c.key) ? "min-w-[240px] max-w-[340px]" : "max-w-[200px]"}`}>
+                  <Cell colKey={c.key} value={r.cells[c.key]} />
+                </td>
+              ))}
+              <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                <select
+                  value={r.status}
+                  onChange={(e) => onRowStatus(r.id, e.target.value)}
+                  className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[r.status] || STATUS_STYLE.new}`}
+                >
+                  {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {table.rows.length === 0 && (
+        <p className="text-sm text-neutral-400 p-6 text-center">Rows will appear here as Bob finds them.</p>
+      )}
+    </div>
+  );
+}
+
+// ── Smart cells ──────────────────────────────────────────────────────────────
 
 function LinkChip({ href, label, icon }: { href: string; label: string; icon?: React.ReactNode }) {
   return (
@@ -761,18 +1041,12 @@ function LinkChip({ href, label, icon }: { href: string; label: string; icon?: R
 }
 
 function Cell({ colKey, value }: { colKey: string; value: unknown }) {
-  if (value === null || value === undefined || value === "" ) {
-    return <span className="text-neutral-300">–</span>;
-  }
-  const s = typeof value === "object" ? JSON.stringify(value) : String(value);
+  const s = str(value);
+  if (!s) return <span className="text-neutral-300">–</span>;
 
   if (colKey === "tier") {
     const t = s.toUpperCase().replace(/[^T0-9]/g, "");
-    const style = t === "T1" ? "bg-green-100 text-green-800 border-green-300"
-      : t === "T2" ? "bg-blue-50 text-blue-700 border-blue-200"
-      : "bg-neutral-100 text-neutral-500 border-neutral-200";
-    const hint = t === "T1" ? "Named in the hiring evidence" : t === "T2" ? "Right title, right city" : "Right title, city unconfirmed";
-    return <span title={hint} className={`inline-block text-[10px] font-black border rounded-md px-1.5 py-0.5 ${style}`}>{t || s.slice(0, 4)}</span>;
+    return <TierBadge tier={t || s.slice(0, 4)} />;
   }
 
   if (colKey === "fit_score") {
@@ -787,20 +1061,33 @@ function Cell({ colKey, value }: { colKey: string; value: unknown }) {
     const domain = domainOf(s);
     return (
       <LinkChip
-        href={/^https?:\/\//i.test(s) ? s : `https://${domain}`}
+        href={/^https?:\/\//i.test(s) ? extractUrls(s)[0] || `https://${domain}` : `https://${domain}`}
         label={domain}
         icon={<img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`} alt="" className="w-3.5 h-3.5 rounded-sm" />}
       />
     );
   }
 
-  if (colKey === "linkedin_url" || (typeof s === "string" && /linkedin\.com\/in\//i.test(s) && /^https?:\/\//i.test(s))) {
-    return <LinkChip href={s} label="LinkedIn" icon={<FiLinkedin size={11} className="text-[#0a66c2]" />} />;
-  }
-
-  if (/^https?:\/\//i.test(s)) {
-    const label = colKey.includes("evidence") ? "View evidence" : domainOf(s);
-    return <LinkChip href={s} label={label} icon={<FiFileText size={11} />} />;
+  const urls = extractUrls(s);
+  if (urls.length > 0) {
+    return (
+      <span className="flex flex-wrap gap-1">
+        {urls.slice(0, 3).map((u, i) => {
+          const isLi = /linkedin\.com/i.test(u);
+          const label = colKey.includes("evidence")
+            ? (urls.length > 1 ? `Link ${i + 1}` : "View evidence")
+            : isLi ? "LinkedIn" : domainOf(u);
+          return (
+            <LinkChip
+              key={u + i}
+              href={u}
+              label={label}
+              icon={isLi ? <FiLinkedin size={11} className="text-[#0a66c2]" /> : <FiFileText size={11} />}
+            />
+          );
+        })}
+      </span>
+    );
   }
 
   return (
@@ -814,7 +1101,11 @@ function Cell({ colKey, value }: { colKey: string; value: unknown }) {
   );
 }
 
-// ── Row detail drawer ────────────────────────────────────────────────────────
+// ── Row dossier drawer ───────────────────────────────────────────────────────
+
+const CONTACT_KEYS = ["contact_name", "contact_title", "tier", "linkedin_url", "contact_linkedin_url"];
+const EVIDENCE_KEYS = ["hiring_evidence", "evidence_url", "why_now", "signal_rationale"];
+const COMPANY_KEYS = ["website", "city", "size_band", "what_they_do", "funding", "fit_score"];
 
 function RowDrawer({ row, columns, onClose, onStatus }: {
   row: BobRow;
@@ -823,7 +1114,7 @@ function RowDrawer({ row, columns, onClose, onStatus }: {
   onStatus: (s: string) => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
-  const company = String(row.cells.company ?? "Details");
+  const company = str(row.cells.company) || "Details";
 
   const copy = (key: string, v: string) => {
     navigator.clipboard?.writeText(v);
@@ -831,10 +1122,17 @@ function RowDrawer({ row, columns, onClose, onStatus }: {
     setTimeout(() => setCopied(null), 1200);
   };
 
+  const sections: [string, BobColumn[]][] = [
+    ["Contact", columns.filter((c) => CONTACT_KEYS.includes(c.key))],
+    ["Evidence", columns.filter((c) => EVIDENCE_KEYS.includes(c.key))],
+    ["Company", columns.filter((c) => COMPANY_KEYS.includes(c.key))],
+    ["More", columns.filter((c) => c.key !== "company" && !CONTACT_KEYS.includes(c.key) && !EVIDENCE_KEYS.includes(c.key) && !COMPANY_KEYS.includes(c.key))],
+  ];
+
   return (
     <>
       <div className="absolute inset-0 bg-neutral-900/20 z-30" onClick={onClose} />
-      <div className="absolute top-0 right-0 bottom-0 w-full max-w-[420px] bg-white border-l-2 border-neutral-900 z-40 flex flex-col shadow-[-6px_0px_0px_0px_rgba(25,26,35,0.15)]">
+      <div className="absolute top-0 right-0 bottom-0 w-full max-w-[440px] bg-white border-l-2 border-neutral-900 z-40 flex flex-col bob-pop">
         <div className="p-4 border-b-2 border-neutral-900 flex items-start gap-3">
           <div className="min-w-0">
             <h3 className="font-['Clash_Display'] text-xl font-semibold truncate">{company}</h3>
@@ -859,33 +1157,49 @@ function RowDrawer({ row, columns, onClose, onStatus }: {
             <FiX />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {columns.map((c) => {
-            const v = row.cells[c.key];
-            if (v === null || v === undefined || v === "") return null;
-            const s = typeof v === "object" ? JSON.stringify(v) : String(v);
-            const isUrl = /^https?:\/\//i.test(s);
+        <div className="flex-1 overflow-y-auto p-4 space-y-5">
+          {sections.map(([title, cols]) => {
+            const visible = cols.filter((c) => str(row.cells[c.key]) !== "");
+            if (visible.length === 0) return null;
             return (
-              <div key={c.key} className="group">
-                <div className="text-[10px] font-black uppercase tracking-wide text-neutral-400 mb-0.5 flex items-center gap-2">
-                  {prettify(c.label || c.key)}
-                  {!isUrl && (
-                    <button
-                      onClick={() => copy(c.key, s)}
-                      className="opacity-0 group-hover:opacity-100 text-neutral-300 hover:text-violet-600"
-                      title="Copy"
-                    >
-                      {copied === c.key ? <FiCheck size={11} className="text-green-600" /> : <FiCopy size={11} />}
-                    </button>
-                  )}
+              <div key={title}>
+                <div className="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-2">{title}</div>
+                <div className="space-y-3 bg-neutral-50/70 border border-neutral-200 rounded-xl p-3">
+                  {visible.map((c) => {
+                    const s = str(row.cells[c.key]);
+                    const urls = extractUrls(s);
+                    return (
+                      <div key={c.key} className="group">
+                        <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 mb-0.5 flex items-center gap-2">
+                          {prettify(c.label || c.key)}
+                          {urls.length === 0 && (
+                            <button
+                              onClick={() => copy(c.key, s)}
+                              className="opacity-0 group-hover:opacity-100 text-neutral-300 hover:text-violet-600"
+                              title="Copy"
+                            >
+                              {copied === c.key ? <FiCheck size={11} className="text-green-600" /> : <FiCopy size={11} />}
+                            </button>
+                          )}
+                        </div>
+                        {urls.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {urls.map((u, i) => (
+                              <LinkChip
+                                key={u + i}
+                                href={u}
+                                label={/linkedin\.com/i.test(u) ? "LinkedIn" : domainOf(u)}
+                                icon={/linkedin\.com/i.test(u) ? <FiLinkedin size={11} className="text-[#0a66c2]" /> : <FiFileText size={11} />}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap">{s}</p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                {isUrl ? (
-                  <a href={s} target="_blank" rel="noreferrer" className="text-[13px] text-violet-600 hover:underline break-all inline-flex items-center gap-1">
-                    {s.length > 60 ? s.slice(0, 60) + "…" : s} <FiExternalLink size={11} className="shrink-0" />
-                  </a>
-                ) : (
-                  <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap">{s}</p>
-                )}
               </div>
             );
           })}
