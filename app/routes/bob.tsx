@@ -91,6 +91,9 @@ function prettify(s: string): string {
   return s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// Domains that are never a company's own website (LinkedIn, job boards).
+const NON_SITE_DOMAINS = /linkedin\.com|naukri\.com|indeed\.com|wellfound\.com|greenhouse\.io|lever\.co|ashbyhq\.com|glassdoor\./i;
+
 function domainOf(v: string): string {
   try {
     const u = new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`);
@@ -836,12 +839,19 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
   const company = str(c.company) || `Company ${index + 1}`;
   const website = str(c.website);
   const domain = website ? domainOf(website) : "";
+  // LinkedIn/job-board URLs in the website field are not a real company site —
+  // never use them for the favicon or a "website" chip.
+  const websiteIsReal = !!domain && !NON_SITE_DOMAINS.test(domain);
   const meta = [str(c.city), str(c.size_band) !== "unknown" ? str(c.size_band) : ""].filter(Boolean).join(" · ");
   const what = str(c.what_they_do);
   const whyNow = str(c.why_now);
   const evidence = str(c.hiring_evidence);
-  const evidenceUrls = extractUrls(str(c.evidence_url));
-  const linkedinUrls = extractUrls(str(c.linkedin_url) + " " + str(c.contact_linkedin_url));
+  const evidenceUrls = extractUrls(str(c.evidence_url)).filter((u) => !/linkedin\.com\/in\//i.test(u)).slice(0, 2);
+  const allLinkedin = extractUrls(str(c.contact_linkedin_url) + " " + str(c.linkedin_url));
+  const profileUrl =
+    allLinkedin.find((u) => /linkedin\.com\/in\//i.test(u)) ||
+    extractUrls(str(c.evidence_url)).find((u) => /linkedin\.com\/in\//i.test(u));
+  const companyPageUrl = allLinkedin.find((u) => /linkedin\.com\/(company|school)\//i.test(u));
   const contactName = str(c.contact_name);
   const contactTitle = str(c.contact_title);
   const tier = str(c.tier).toUpperCase().replace(/[^T0-9]/g, "");
@@ -855,15 +865,15 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
     >
       {/* Header */}
       <div className="flex items-start gap-2.5">
-        {domain ? (
+        {websiteIsReal ? (
           <img
             src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
             alt=""
             className="w-9 h-9 rounded-lg border border-neutral-200 bg-neutral-50 p-1"
           />
         ) : (
-          <div className="w-9 h-9 rounded-lg border border-neutral-200 bg-neutral-50 flex items-center justify-center text-neutral-400">
-            <FiGlobe size={15} />
+          <div className="w-9 h-9 rounded-lg border-2 border-neutral-900 bg-violet-100 flex items-center justify-center font-['Clash_Display'] text-[15px] font-semibold text-violet-700">
+            {company.replace(/[^a-zA-Z0-9]/g, "")[0]?.toUpperCase() || "?"}
           </div>
         )}
         <div className="min-w-0 flex-1">
@@ -900,15 +910,18 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
 
       {/* Links */}
       <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
-        {evidenceUrls.slice(0, 2).map((u, i) => (
+        {evidenceUrls.map((u, i) => (
           <LinkChip key={u} href={u} label={evidenceUrls.length > 1 ? `Evidence ${i + 1}` : "View evidence"} icon={<FiFileText size={11} />} />
         ))}
-        {website && (
+        {websiteIsReal && (
           <LinkChip
             href={/^https?:\/\//i.test(website) ? website : `https://${domain}`}
             label={domain}
             icon={<FiGlobe size={11} />}
           />
+        )}
+        {companyPageUrl && !evidenceUrls.includes(companyPageUrl) && (
+          <LinkChip href={companyPageUrl} label="LinkedIn page" icon={<FiLinkedin size={11} className="text-[#0a66c2]" />} />
         )}
       </div>
 
@@ -924,9 +937,9 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
               <div className="text-[10.5px] text-neutral-500 truncate">{contactTitle || "—"}</div>
             </div>
             {tier && <TierBadge tier={tier} />}
-            {linkedinUrls[0] && (
+            {profileUrl && (
               <a
-                href={linkedinUrls[0]}
+                href={profileUrl}
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
@@ -1059,9 +1072,20 @@ function Cell({ colKey, value }: { colKey: string; value: unknown }) {
 
   if (colKey === "website") {
     const domain = domainOf(s);
+    const href = /^https?:\/\//i.test(s) ? extractUrls(s)[0] || `https://${domain}` : `https://${domain}`;
+    if (NON_SITE_DOMAINS.test(domain)) {
+      const isLi = /linkedin\.com/i.test(domain);
+      return (
+        <LinkChip
+          href={href}
+          label={isLi ? "LinkedIn page" : domain}
+          icon={isLi ? <FiLinkedin size={11} className="text-[#0a66c2]" /> : <FiFileText size={11} />}
+        />
+      );
+    }
     return (
       <LinkChip
-        href={/^https?:\/\//i.test(s) ? extractUrls(s)[0] || `https://${domain}` : `https://${domain}`}
+        href={href}
         label={domain}
         icon={<img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`} alt="" className="w-3.5 h-3.5 rounded-sm" />}
       />
