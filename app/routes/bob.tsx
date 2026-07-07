@@ -103,10 +103,16 @@ function domainOf(v: string): string {
   }
 }
 
-// Extract every URL from a cell — the agent occasionally packed several links
-// into one field; each must be its own working chip, never one mangled href.
+// Known-dead link patterns from logged-out LinkedIn HTML: anonymized company
+// placeholder, signup redirect wrappers, shorteners. Never render as chips.
+const GARBAGE_URL = /linkedin\.com\/(company|school)\/unavailable|linkedin\.com\/signup|\/cold-join|linkedin\.com\/authwall|lnkd\.in\//i;
+
+// Extract every valid URL from a cell. The agent occasionally packed several
+// links into one field; each must be its own working chip, never one mangled href.
 function extractUrls(s: string): string[] {
-  return (s.match(/https?:\/\/[^\s;,)"']+/g) || []).map((u) => u.replace(/[.,;]+$/, ""));
+  return (s.match(/https?:\/\/[^\s;,)"']+/g) || [])
+    .map((u) => u.replace(/[.,;]+$/, ""))
+    .filter((u) => !GARBAGE_URL.test(u));
 }
 
 function str(v: unknown): string {
@@ -598,7 +604,7 @@ const TEMPLATES = [
   {
     icon: FiUsers, title: "Place a cohort",
     subtitle: "Companies that absorb a batch",
-    prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Find companies that can absorb them at volume — bulk hiring, walk-in drives, fresher intakes — with TA contacts for each.",
+    prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Find companies that can absorb them at volume (bulk hiring, walk-in drives, fresher intakes), with TA contacts for each.",
   },
   {
     icon: FiBriefcase, title: "Build a partner pipeline",
@@ -878,13 +884,13 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
         )}
         <div className="min-w-0 flex-1">
           <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">{company}</div>
-          <div className="text-[11.5px] text-neutral-500 truncate">{meta || what || "—"}</div>
+          <div className="text-[11.5px] text-neutral-500 truncate">{meta || what || ""}</div>
         </div>
         {!isNaN(fit) && (
           <div
-            title={`Fit score ${fit}/10`}
-            className={`shrink-0 w-9 h-9 rounded-xl border-2 border-neutral-900 flex items-center justify-center font-black text-sm ${
-              fit >= 8 ? "bg-green-300" : fit >= 6 ? "bg-amber-200" : "bg-neutral-100"
+            title={`Fit score ${fit}${fit > 10 ? "/100" : "/10"}`}
+            className={`shrink-0 min-w-9 h-9 px-1.5 rounded-xl border-2 border-neutral-900 flex items-center justify-center font-black text-sm ${
+              (fit > 10 ? fit >= 80 : fit >= 8) ? "bg-green-300" : (fit > 10 ? fit >= 60 : fit >= 6) ? "bg-amber-200" : "bg-neutral-100"
             }`}
           >
             {fit}
@@ -934,7 +940,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[12.5px] font-bold truncate">{contactName}</div>
-              <div className="text-[10.5px] text-neutral-500 truncate">{contactTitle || "—"}</div>
+              <div className="text-[10.5px] text-neutral-500 truncate">{contactTitle || ""}</div>
             </div>
             {tier && <TierBadge tier={tier} />}
             {profileUrl && (
@@ -1055,7 +1061,7 @@ function LinkChip({ href, label, icon }: { href: string; label: string; icon?: R
 
 function Cell({ colKey, value }: { colKey: string; value: unknown }) {
   const s = str(value);
-  if (!s) return <span className="text-neutral-300">–</span>;
+  if (!s) return <span className="text-neutral-300">-</span>;
 
   if (colKey === "tier") {
     const t = s.toUpperCase().replace(/[^T0-9]/g, "");
