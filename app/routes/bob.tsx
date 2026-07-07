@@ -540,7 +540,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   {messages.map((m) => (
                     m.role === "user" ? (
                       <div key={m.id} className="flex justify-end">
-                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-br-md border-2 border-neutral-900 bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap text-[14.5px] leading-relaxed">
+                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-br-md border-2 border-neutral-900 bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
                           {m.content}
                         </div>
                       </div>
@@ -549,7 +549,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                         <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
                           <FiZap className="text-violet-400" size={13} />
                         </div>
-                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap text-[14.5px] leading-relaxed">
+                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
                           {m.content}
                         </div>
                       </div>
@@ -1286,7 +1286,7 @@ function RowDrawer({ row, columns, onClose, onStatus }: {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap">{s}</p>
+                          <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{s}</p>
                         )}
                       </div>
                     );
