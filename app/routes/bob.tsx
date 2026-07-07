@@ -4,7 +4,7 @@ import {
   FiFileText, FiGrid, FiLoader, FiExternalLink, FiChevronRight,
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
   FiMessageSquare, FiColumns, FiUser, FiUsers, FiBriefcase, FiTarget,
-  FiLayers, FiGlobe,
+  FiLayers, FiGlobe, FiPaperclip, FiFile,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -217,6 +217,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [run, setRun] = useState<Run | null>(null);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<{ id: number; name: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<PanelMode>("split");
@@ -263,6 +266,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const openChat = useCallback(async (id: number) => {
     setActiveChat(id);
     setRun(null);
+    setPendingFiles([]);
     try {
       const d = await bobFetch<any>(`/chats/${id}`);
       setMessages(d.messages);
@@ -353,9 +357,43 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     }
   };
 
+  const uploadFile = async (f: globalThis.File) => {
+    setUploading(true);
+    try {
+      let chatId = activeChat;
+      if (!chatId) {
+        const d = await bobFetch<{ id: number }>("/chats", { method: "POST" });
+        chatId = d.id;
+        setActiveChat(chatId);
+        loadChats();
+      }
+      const key = localStorage.getItem(KEY_STORAGE) || "";
+      const fd = new FormData();
+      fd.append("file", f);
+      const res = await fetch(`${API}/chats/${chatId}/files`, {
+        method: "POST",
+        headers: { "X-Bob-Key": key },
+        body: fd,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new BobError(data?.detail || "Upload failed", res.status);
+      setPendingFiles((p) => [...p, { id: data.file_id, name: f.name }]);
+    } catch (e: any) {
+      alert(e?.message || "Could not read that file");
+      if (e instanceof BobError) handleError(e);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const send = async (text?: string) => {
-    const content = (text ?? input).trim();
-    if (!content || sending) return;
+    let content = (text ?? input).trim();
+    if ((!content && pendingFiles.length === 0) || sending) return;
+    if (pendingFiles.length > 0) {
+      const names = pendingFiles.map((f) => f.name).join(", ");
+      content = `[Attached: ${names}]\n${content || "Analyze the attached file(s) and proceed."}`;
+    }
     let chatId = activeChat;
     setSending(true);
     try {
@@ -366,6 +404,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       }
       setMessages((m) => [...m, { id: Date.now(), role: "user", content, created_at: "" }]);
       setInput("");
+      setPendingFiles([]);
       const d = await bobFetch<{ run_id: number }>(`/chats/${chatId}/messages`, {
         method: "POST",
         body: JSON.stringify({ content }),
@@ -539,7 +578,35 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               </div>
 
               <div className="border-t-2 border-neutral-900 bg-white p-3">
+                {pendingFiles.length > 0 && (
+                  <div className="max-w-2xl mx-auto flex flex-wrap gap-1.5 mb-2">
+                    {pendingFiles.map((f) => (
+                      <span key={f.id} className="inline-flex items-center gap-1.5 bg-violet-50 border border-violet-300 rounded-lg px-2.5 py-1 text-[11.5px] font-semibold text-violet-800">
+                        <FiFile size={12} /> {f.name}
+                        <span className="text-violet-400 font-normal">attached</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div className="max-w-2xl mx-auto flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.docx,.xlsx,.xlsm,.csv,.txt"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) uploadFile(f);
+                    }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={running || uploading}
+                    title="Attach a resume or cohort sheet (PDF, Word, Excel, CSV)"
+                    className="self-end w-11 h-11 shrink-0 rounded-2xl border-2 border-neutral-900 bg-white text-neutral-600 flex items-center justify-center hover:bg-violet-50 hover:text-violet-700 transition-colors disabled:opacity-40"
+                  >
+                    {uploading ? <FiLoader className="animate-spin" /> : <FiPaperclip />}
+                  </button>
                   <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -598,8 +665,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 const TEMPLATES = [
   {
     icon: FiUser, title: "Place a candidate",
-    subtitle: "Best-fit companies for one person",
-    prompt: "I have a candidate to place. Profile: [role, years of experience, key skills]. Preferences: [city, company stage, expected CTC]. Find the best companies hiring for this profile right now, with evidence and the right hiring contact per company.",
+    subtitle: "Attach a resume, get target companies",
+    prompt: "I've attached my candidate's resume (use the paperclip). Preferences: [city, company stage, expected CTC]. Find the best companies hiring for this profile right now, with evidence and the right hiring contact per company.",
   },
   {
     icon: FiUsers, title: "Place a cohort",
