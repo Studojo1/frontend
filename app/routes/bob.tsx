@@ -52,7 +52,7 @@ async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promi
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface ChatSummary { id: number; title: string; updated_at: string }
-interface Message { id: number; role: string; content: string; created_at: string }
+interface Message { id: number; role: string; content: string; created_at: string; meta?: { suggestions?: string[] } }
 interface RunEvent { ts: string; type: string; label: string; detail?: string; credits?: number }
 interface Run {
   id: number; status: string; events: RunEvent[];
@@ -201,13 +201,6 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
 
 type PanelMode = "split" | "chat" | "table";
 type ResultsView = "cards" | "table";
-
-const QUICK_ACTIONS = [
-  "Find the right hiring contacts for these companies",
-  "Add 5 more companies like these",
-  "Add funding and company-size info",
-  "Why did you pick these? Add a why_now for each",
-];
 
 function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
@@ -436,7 +429,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const hasTables = tables.length > 0;
   const showChat = mode !== "table";
   const showTable = hasTables && mode !== "chat";
-  const lastIsAssistant = messages.length > 0 && messages[messages.length - 1].role === "assistant";
+  const lastMsg = messages[messages.length - 1];
+  const suggestions: string[] =
+    !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
 
   return (
     <div className="h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900">
@@ -561,9 +556,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     )
                   ))}
                   {running && run && <RunProgress run={run} />}
-                  {!running && lastIsAssistant && hasTables && (
+                  {suggestions.length > 0 && (
                     <div className="flex flex-wrap gap-2 pl-9">
-                      {QUICK_ACTIONS.map((q) => (
+                      {suggestions.map((q) => (
                         <button
                           key={q}
                           onClick={() => send(q)}
