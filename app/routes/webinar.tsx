@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Header, Footer } from "~/components";
+import { checkEmail } from "~/lib/email-validate";
 
 export function meta() {
   return [
@@ -79,6 +80,8 @@ export default function Webinar() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A corrected email we can offer when the entered one looks like a typo.
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
 
@@ -88,11 +91,20 @@ export default function Webinar() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setEmailSuggestion(null);
 
     if (!form.fullName.trim() || !form.whatsapp.trim() || !form.email.trim() ||
         !form.college.trim() || !form.course.trim() || !form.yearOfStudy ||
         !form.lifeStage) {
       setError("Please fill in all required fields (marked with *).");
+      return;
+    }
+
+    // Catch typo'd domains (gmail.cok, gnail.com, ...) before we register them.
+    const emailCheck = checkEmail(form.email);
+    if (!emailCheck.ok) {
+      setError(emailCheck.error ?? "Please enter a valid email address.");
+      setEmailSuggestion(emailCheck.suggestion ?? null);
       return;
     }
 
@@ -106,6 +118,7 @@ export default function Webinar() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {
         setError(data.error || "Something went wrong. Please try again.");
+        setEmailSuggestion(data.suggestion ?? null);
         setSubmitting(false);
         return;
       }
@@ -224,7 +237,22 @@ export default function Webinar() {
             </div>
 
             {error && (
-              <p className="mt-6 text-sm text-red-600 font-semibold font-['Satoshi']">{error}</p>
+              <div className="mt-6">
+                <p className="text-sm text-red-600 font-semibold font-['Satoshi']">{error}</p>
+                {emailSuggestion && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm((f) => ({ ...f, email: emailSuggestion }));
+                      setError(null);
+                      setEmailSuggestion(null);
+                    }}
+                    className="mt-2 text-sm font-bold text-violet-700 underline underline-offset-2 font-['Satoshi']"
+                  >
+                    Use {emailSuggestion} instead
+                  </button>
+                )}
+              </div>
             )}
 
             <button
