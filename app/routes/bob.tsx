@@ -794,8 +794,16 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
     const a = document.createElement("a");
     a.href = url;
     a.download = `${t.name.replace(/[^a-z0-9 _-]/gi, "")}.xlsx`;
+    // Anchor must be in the DOM for the click to trigger a download in all
+    // browsers, and the object URL must NOT be revoked synchronously: doing so
+    // races the download and aborts it (the "Export does nothing" bug). Defer
+    // cleanup so the browser has started reading the blob first.
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1000);
   };
 
   return (
