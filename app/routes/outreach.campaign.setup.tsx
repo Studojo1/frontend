@@ -53,7 +53,7 @@ function getDefaultTimezone(): string {
 export default function CampaignSetupPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
-  const { candidateId, setCandidateId, emailAccountId, setEmailAccountId, setCampaignId, selectedTemplate, selectedStyles } = useOutreachStore();
+  const { candidateId, setCandidateId, emailAccountId, setEmailAccountId, setCampaignId } = useOutreachStore();
   const { updateOrder } = useOrder();
   const [campaignName, setCampaignName] = useState("My Outreach Campaign");
   const [userTimezone, setUserTimezone] = useState(() => getDefaultTimezone());
@@ -117,7 +117,11 @@ export default function CampaignSetupPage() {
         body: JSON.stringify({
           candidate_id: candidateId,
           email_account_id: emailAccountId,
-          selected_styles: selectedStyles.length > 0 ? selectedStyles : ["value_prop"],
+          // The style system is retired: the backend ignores the contents and uses one
+          // email shape, with voice set by the lead's inferred team-size band. But a
+          // NON-EMPTY list still selects AI generation; an empty one silently falls back
+          // to template mode and sends a blank email. Always send the sentinel.
+          selected_styles: ["ai"],
         }),
       });
       setTestEmails(data.emails);
@@ -145,7 +149,11 @@ export default function CampaignSetupPage() {
           candidate_id: candidateId,
           email_account_id: emailAccountId,
           overrides: overrideList,
-          selected_styles: selectedStyles.length > 0 ? selectedStyles : ["value_prop"],
+          // The style system is retired: the backend ignores the contents and uses one
+          // email shape, with voice set by the lead's inferred team-size band. But a
+          // NON-EMPTY list still selects AI generation; an empty one silently falls back
+          // to template mode and sends a blank email. Always send the sentinel.
+          selected_styles: ["ai"],
         }),
       });
 
@@ -187,8 +195,8 @@ export default function CampaignSetupPage() {
     sessionStorage.setItem("campaign_launch", JSON.stringify({
       campaignName,
       userTimezone,
-      selectedStyles: selectedStyles.length > 0 ? selectedStyles : [],
-      selectedTemplate: selectedStyles.length === 0 ? selectedTemplate : null,
+      selectedStyles: ["ai"],
+      selectedTemplate: null,
     }));
     navigate("/outreach/campaign/launching");
   };

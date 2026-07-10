@@ -9,21 +9,22 @@ import { outreachFetch } from "~/lib/outreach/api";
 function buildPreviewEmail(
   bestProject: string,
   outcome: string,
-  whyNow: string,
+  workPrinciple: string,
   dreamCompany: string,
   targetRole: string,
 ) {
   const projectSlot = bestProject.trim() || null;
   const outcomeSlot = outcome.trim() || null;
-  const whySlot = whyNow.trim() || null;
+  const principleSlot = workPrinciple.trim() || null;
   const role = targetRole || "this role";
   const company = dreamCompany || "your target company";
 
   return {
-    subject: `Quick note: ${role} at ${company}`,
+    // The real subject line the backend sends: lowercase, casual, no company name.
+    subject: "quick question [First Name]",
     projectSlot,
     outcomeSlot,
-    whySlot,
+    principleSlot,
     role,
     company,
   };
@@ -62,10 +63,10 @@ export default function DebriefPage() {
 
   const [bestProject, setBestProject] = useState("");
   const [outcome, setOutcome] = useState("");
-  const [whyNow, setWhyNow] = useState("");
+  const [workPrinciple, setWorkPrinciple] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const preview = buildPreviewEmail(bestProject, outcome, whyNow, dreamCompany, targetRole);
+  const preview = buildPreviewEmail(bestProject, outcome, workPrinciple, dreamCompany, targetRole);
 
   const handleSubmit = async () => {
     setSaving(true);
@@ -76,17 +77,17 @@ export default function DebriefPage() {
           body: JSON.stringify({
             best_project: bestProject.trim(),
             outcome: outcome.trim(),
-            why_now: whyNow.trim(),
+            work_principle: workPrinciple.trim(),
           }),
         });
       }
     } catch {
       // non-blocking — don't stop the flow if save fails
     }
-    navigate("/outreach/campaign/style-pick");
+    navigate("/outreach/campaign/setup");
   };
 
-  const handleSkip = () => navigate("/outreach/campaign/style-pick");
+  const handleSkip = () => navigate("/outreach/campaign/setup");
 
   if (authLoading) {
     return (
@@ -122,11 +123,11 @@ export default function DebriefPage() {
                   1
                 </span>
                 <label className="font-clash text-base font-bold text-studojo-ink">
-                  Your best project
+                  The closest thing you've made to {targetRole} work
                 </label>
               </div>
               <p className="font-satoshi text-xs text-studojo-muted mb-3">
-                What did you build, for whom, and what made it technically interesting?
+                What's one thing you made or ran that's closest to the work you want to do? Name the actual thing.
               </p>
               <textarea
                 rows={3}
@@ -144,17 +145,17 @@ export default function DebriefPage() {
                   2
                 </span>
                 <label className="font-clash text-base font-bold text-studojo-ink">
-                  The number that proves it
+                  How far did you take it?
                 </label>
               </div>
               <p className="font-satoshi text-xs text-studojo-muted mb-3">
-                A single metric makes the email 3x more credible. Even rough estimates work.
+                How many people it reached, or what you actually built or produced. A number if you have one, plain words if you don't.
               </p>
               <textarea
                 rows={2}
                 value={outcome}
                 onChange={(e) => setOutcome(e.target.value)}
-                placeholder="Reduced report generation time from 4 hours to 20 minutes…"
+                placeholder="Shipped it to 200 users, or: built the whole ingestion pipeline end to end…"
                 className="w-full resize-none rounded-xl border-2 border-studojo-ink/30 bg-studojo-surface-muted px-3 py-2.5 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted/50 focus:border-studojo-purple focus:outline-none transition-colors"
               />
             </div>
@@ -166,17 +167,17 @@ export default function DebriefPage() {
                   3
                 </span>
                 <label className="font-clash text-base font-bold text-studojo-ink">
-                  Why {targetRole} specifically?
+                  What did you do differently that made it work?
                 </label>
               </div>
               <p className="font-satoshi text-xs text-studojo-muted mb-3">
-                One sentence. Why this role, not just any role?
+                The one choice or trick, not the whole process.
               </p>
               <textarea
                 rows={2}
-                value={whyNow}
-                onChange={(e) => setWhyNow(e.target.value)}
-                placeholder="I want to move from building dashboards to owning the data strategy behind them…"
+                value={workPrinciple}
+                onChange={(e) => setWorkPrinciple(e.target.value)}
+                placeholder="I batched the reviews by clause type instead of by vendor, so one read covered thirty agreements…"
                 className="w-full resize-none rounded-xl border-2 border-studojo-ink/30 bg-studojo-surface-muted px-3 py-2.5 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted/50 focus:border-studojo-purple focus:outline-none transition-colors"
               />
             </div>
@@ -246,40 +247,36 @@ export default function DebriefPage() {
                 <div className="font-satoshi text-sm text-studojo-ink leading-relaxed space-y-3">
                   <p>Hi [First Name],</p>
 
-                  <p>
-                    I came across {preview.company} while researching companies doing interesting work in this space, and I wanted to reach out directly.
+                  <p className="text-studojo-muted italic">
+                    [we research this person and open with something true only of them]
                   </p>
 
                   <p>
                     <Slot
                       filled={preview.projectSlot}
-                      placeholder="[describe your best project, what you built and for whom]"
+                      placeholder="[the closest thing you've made to this work]"
                     />
                     {preview.projectSlot && preview.outcomeSlot ? " " : ""}
                     <Slot
                       filled={preview.outcomeSlot}
-                      placeholder="[the measurable result it drove]"
+                      placeholder="[how far you took it]"
                     />
-                  </p>
-
-                  <p>
-                    I'm specifically targeting {preview.role} roles because{" "}
+                    {preview.outcomeSlot && preview.principleSlot ? " " : ""}
                     <Slot
-                      filled={preview.whySlot}
-                      placeholder="[your reason, one sentence]"
+                      filled={preview.principleSlot}
+                      placeholder="[the one choice that made it work]"
                     />
-                    .
                   </p>
 
                   <p>
-                    Would you be open to a 15-minute call to explore if there's a fit? Happy to share more context on my work.
+                    Would you know if there's an opening, or who I should reach out to?
                   </p>
 
                   <p className="text-studojo-muted">Best,<br />[Your name]</p>
                 </div>
 
                 {/* Hint */}
-                {!preview.projectSlot && !preview.outcomeSlot && !preview.whySlot && (
+                {!preview.projectSlot && !preview.outcomeSlot && !preview.principleSlot && (
                   <div className="mt-4 bg-amber-50 rounded-xl border-2 border-amber-200 px-4 py-3">
                     <p className="font-satoshi text-xs text-amber-700">
                       Fill in the fields on the left and watch your email come to life.
@@ -287,7 +284,7 @@ export default function DebriefPage() {
                   </div>
                 )}
 
-                {preview.projectSlot && preview.outcomeSlot && preview.whySlot && (
+                {preview.projectSlot && preview.outcomeSlot && preview.principleSlot && (
                   <div className="mt-4 bg-studojo-green-bg rounded-xl border-2 border-studojo-ink/20 px-4 py-3">
                     <p className="font-satoshi text-xs text-studojo-green font-bold">
                       This email is ready to send.
