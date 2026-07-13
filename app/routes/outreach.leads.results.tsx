@@ -58,14 +58,10 @@ export default function ResultsPage() {
     return 0;
   };
 
-  // Filter out low-signal leads entirely — the LLM already flagged them as poor fits.
-  // Keep leads with no justification yet (don't penalise partial scoring runs).
-  const filtered = leads.filter((l) => {
-    const s = l.score?.justification?.signal_strength;
-    return s !== "low";
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
+  // Sort puts high/medium signal leads first; low-signal leads fall to the bottom.
+  // Don't hide low-signal leads — on India-focused searches Apollo data is sparse
+  // and the LLM marks most leads "low" even when they're legitimate targets.
+  const sorted = [...leads].sort((a, b) => {
     if (sortBy === "score") {
       const sigDiff = signalRank(b) - signalRank(a);
       if (sigDiff !== 0) return sigDiff;
