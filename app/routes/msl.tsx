@@ -23,6 +23,7 @@ const B2B_BY_DATE: Record<string, number> = {
   "2026-06-03": 2550,
   "2026-06-13": 9650,
   "2026-06-25": 3000,
+  "2026-07-13": 4000,
 };
 const DEFAULT_FX = 94; // 1 USD = ₹94
 
