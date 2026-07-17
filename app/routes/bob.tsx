@@ -23,6 +23,18 @@ export function meta() {
 
 const API = "/api/v1/outreach/bob";
 const KEY_STORAGE = "bob_access_key";
+const SESSION_STORAGE = "bob_session";
+
+// Send whichever auth the user has: an email session token and/or the legacy
+// workspace access code. The backend accepts either.
+function authHeaders(): Record<string, string> {
+  const h: Record<string, string> = {};
+  const key = localStorage.getItem(KEY_STORAGE);
+  const session = localStorage.getItem(SESSION_STORAGE);
+  if (key) h["X-Bob-Key"] = key;
+  if (session) h["X-Bob-Session"] = session;
+  return h;
+}
 const LAYOUT_STORAGE = "bob_layout_v3";
 
 class BobError extends Error {
@@ -34,12 +46,11 @@ class BobError extends Error {
 }
 
 async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promise<T> {
-  const key = localStorage.getItem(KEY_STORAGE) || "";
   const res = await fetch(`${API}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      "X-Bob-Key": key,
+      ...authHeaders(),
       ...(options.headers as Record<string, string>),
     },
   });
@@ -128,7 +139,7 @@ export default function BobPage() {
 
   useEffect(() => {
     setMounted(true);
-    if (localStorage.getItem(KEY_STORAGE)) setAuthed(true);
+    if (localStorage.getItem(SESSION_STORAGE) || localStorage.getItem(KEY_STORAGE)) setAuthed(true);
   }, []);
 
   if (!mounted) return <div className="min-h-screen bg-[#faf7f2]" />;
@@ -139,14 +150,34 @@ export default function BobPage() {
 // ── Access gate ──────────────────────────────────────────────────────────────
 
 function Gate({ onSuccess }: { onSuccess: () => void }) {
+  const [mode, setMode] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const submit = async () => {
+  const submitEmail = async () => {
+    if (!email.trim() || busy) return;
+    setBusy(true); setError("");
+    try {
+      const res = await fetch(`${API}/auth/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d?.detail || "Could not sign you in");
+      localStorage.setItem(SESSION_STORAGE, d.token);
+      localStorage.removeItem(KEY_STORAGE);
+      onSuccess();
+    } catch (e: any) {
+      setError(e.message || "Could not sign you in");
+    } finally { setBusy(false); }
+  };
+
+  const submitCode = async () => {
     if (!code.trim() || busy) return;
-    setBusy(true);
-    setError("");
+    setBusy(true); setError("");
     try {
       const res = await fetch(`${API}/auth/verify`, {
         method: "POST",
@@ -158,13 +189,17 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
         throw new Error(d?.detail || "Invalid access code");
       }
       localStorage.setItem(KEY_STORAGE, code.trim());
+      localStorage.removeItem(SESSION_STORAGE);
       onSuccess();
     } catch (e: any) {
       setError(e.message || "Could not verify the code");
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
   };
+
+  const inputCls =
+    "w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500";
+  const btnCls =
+    "mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60";
 
   return (
     <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
@@ -172,26 +207,51 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
         <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
         </div>
-        <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">Sensei <span className="text-neutral-400 text-xl font-normal">by Studojo</span></h1>
-        <p className="text-neutral-600 mt-2 mb-6">
-          Placement intelligence for your team. Enter your workspace access code.
-        </p>
-        <input
-          type="password"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Access code"
-          className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
-        />
-        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-        <button
-          onClick={submit}
-          disabled={busy}
-          className="mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60"
-        >
-          {busy ? "Checking..." : "Enter workspace"}
-        </button>
+        <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">
+          Sensei <span className="text-neutral-400 text-xl font-normal">by Studojo</span>
+        </h1>
+
+        {mode === "email" ? (
+          <>
+            <p className="text-neutral-600 mt-2 mb-6">
+              Sign in with your work email to reach your team's workspace.
+            </p>
+            <input
+              type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitEmail()}
+              placeholder="you@company.com" className={inputCls}
+            />
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+            <button onClick={submitEmail} disabled={busy} className={btnCls}>
+              {busy ? "Signing in..." : "Continue"}
+            </button>
+            <button
+              onClick={() => { setMode("code"); setError(""); }}
+              className="mt-3 w-full text-sm text-neutral-400 hover:text-neutral-700"
+            >
+              Have a workspace access code?
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-neutral-600 mt-2 mb-6">Enter your workspace access code.</p>
+            <input
+              type="password" value={code} onChange={(e) => setCode(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitCode()}
+              placeholder="Access code" className={inputCls}
+            />
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+            <button onClick={submitCode} disabled={busy} className={btnCls}>
+              {busy ? "Checking..." : "Enter workspace"}
+            </button>
+            <button
+              onClick={() => { setMode("email"); setError(""); }}
+              className="mt-3 w-full text-sm text-neutral-400 hover:text-neutral-700"
+            >
+              Sign in with email instead
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -215,6 +275,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean } | null>(null);
   const [notice, setNotice] = useState<string>("");
+  const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null } | null>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<PanelMode>("split");
@@ -241,6 +302,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const handleError = useCallback((e: unknown) => {
     if (e instanceof BobError && (e.status === 401 || e.status === 503)) {
       localStorage.removeItem(KEY_STORAGE);
+      localStorage.removeItem(SESSION_STORAGE);
       onAuthLost();
     } else {
       console.error(e);
@@ -266,6 +328,19 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     } catch { /* counter is non-critical */ }
   }, []);
   useEffect(() => { loadCredits(); }, [loadCredits]);
+
+  const loadMe = useCallback(async () => {
+    try {
+      setMe(await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null }>("/me"));
+    } catch { /* identity is non-critical for legacy access-code sessions */ }
+  }, []);
+  useEffect(() => { loadMe(); }, [loadMe]);
+
+  const signOut = useCallback(() => {
+    localStorage.removeItem(SESSION_STORAGE);
+    localStorage.removeItem(KEY_STORAGE);
+    onAuthLost();
+  }, [onAuthLost]);
 
   const openChat = useCallback(async (id: number) => {
     setActiveChat(id);
@@ -372,12 +447,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         setActiveChat(chatId);
         loadChats();
       }
-      const key = localStorage.getItem(KEY_STORAGE) || "";
       const fd = new FormData();
       fd.append("file", f);
       const res = await fetch(`${API}/chats/${chatId}/files`, {
         method: "POST",
-        headers: { "X-Bob-Key": key },
+        headers: authHeaders(),
         body: fd,
       });
       const data = await res.json().catch(() => ({}));
@@ -540,7 +614,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               </div>
               <div>
                 <div className="font-['Clash_Display'] text-lg font-semibold leading-none">Sensei</div>
-                <div className="text-[10px] text-neutral-400 mt-0.5">by Studojo</div>
+                <div className="text-[10px] text-neutral-400 mt-0.5 truncate max-w-[130px]">{me?.org?.name || "by Studojo"}</div>
               </div>
             </div>
             <button
@@ -571,13 +645,19 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             ))}
             {chats.length === 0 && <p className="text-neutral-400 text-sm p-3">No chats yet.</p>}
           </div>
-          <div className="p-3 border-t-2 border-neutral-900 shrink-0">
+          <div className="p-3 border-t-2 border-neutral-900 shrink-0 space-y-2">
             <a
               href="mailto:admin@studojo.com?subject=Sensei%20support%20request&body=Describe%20the%20issue%20or%20request%3A%0A%0A"
               className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl px-3 py-2.5 hover:bg-neutral-900 hover:text-white transition-colors"
             >
               <FiMessageSquare size={15} /> Get support
             </a>
+            {me?.email && (
+              <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-400 px-1">
+                <span className="truncate" title={me.email}>{me.email}</span>
+                <button onClick={signOut} className="shrink-0 font-semibold hover:text-neutral-900">Sign out</button>
+              </div>
+            )}
           </div>
         </div>
       </aside>
@@ -918,8 +998,7 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
   }, [tables]);
 
   const exportXlsx = async (t: BobTable) => {
-    const key = localStorage.getItem(KEY_STORAGE) || "";
-    const res = await fetch(`${API}/tables/${t.id}/export`, { headers: { "X-Bob-Key": key } });
+    const res = await fetch(`${API}/tables/${t.id}/export`, { headers: authHeaders() });
     if (!res.ok) return alert("Export failed");
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
