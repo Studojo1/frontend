@@ -276,6 +276,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean } | null>(null);
   const [notice, setNotice] = useState<string>("");
   const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null } | null>(null);
+  const [showTeam, setShowTeam] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<PanelMode>("split");
@@ -341,6 +342,13 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     localStorage.removeItem(KEY_STORAGE);
     onAuthLost();
   }, [onAuthLost]);
+
+  const shareChat = useCallback(async (chatId: number) => {
+    try {
+      await bobFetch(`/chats/${chatId}/share`, { method: "POST", body: JSON.stringify({ shared: true }) });
+      setNotice("Shared with your team — they can now see this chat.");
+    } catch (e) { handleError(e); }
+  }, [handleError]);
 
   const openChat = useCallback(async (id: number) => {
     setActiveChat(id);
@@ -593,6 +601,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   return (
     <div className="h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900">
+      {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
       <style>{`
         @keyframes bobFlash { 0% { background-color: rgb(221 214 254); } 100% { background-color: transparent; } }
         .bob-new { animation: bobFlash 2.5s ease-out; }
@@ -635,17 +644,35 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 }`}
               >
                 <span className="truncate">{c.title}</span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); deleteChat(c.id); }}
-                  className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-600 shrink-0"
-                >
-                  <FiTrash2 size={14} />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); shareChat(c.id); }}
+                    title="Share with your team"
+                    className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-violet-600"
+                  >
+                    <FiUsers size={13} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteChat(c.id); }}
+                    title="Delete"
+                    className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-600"
+                  >
+                    <FiTrash2 size={14} />
+                  </button>
+                </div>
               </div>
             ))}
             {chats.length === 0 && <p className="text-neutral-400 text-sm p-3">No chats yet.</p>}
           </div>
           <div className="p-3 border-t-2 border-neutral-900 shrink-0 space-y-2">
+            {me?.role === "admin" && (
+              <button
+                onClick={() => setShowTeam(true)}
+                className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl px-3 py-2.5 hover:bg-violet-500 hover:text-white transition-colors"
+              >
+                <FiUsers size={15} /> Manage team
+              </button>
+            )}
             <a
               href="mailto:admin@studojo.com?subject=Sensei%20support%20request&body=Describe%20the%20issue%20or%20request%3A%0A%0A"
               className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl px-3 py-2.5 hover:bg-neutral-900 hover:text-white transition-colors"
@@ -886,6 +913,78 @@ function CreditPill({ icon, label, value }: { icon: ReactNode; label: string; va
       {display}
       <span className="font-medium text-neutral-400">{label}</span>
     </span>
+  );
+}
+
+function TeamModal({ orgName, onClose }: { orgName: string; onClose: () => void }) {
+  const [members, setMembers] = useState<{ email: string; role: string; name: string; last_login_at: string | null }[]>([]);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"member" | "admin">("member");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    try { setMembers((await bobFetch<{ members: any[] }>("/org")).members || []); } catch { /* */ }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const invite = async () => {
+    if (!email.trim() || busy) return;
+    setBusy(true); setError("");
+    try {
+      await bobFetch("/org/members", { method: "POST", body: JSON.stringify({ email: email.trim(), role }) });
+      setEmail(""); await load();
+    } catch (e: any) { setError(e?.message || "Could not add member"); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6" onClick={onClose}>
+      <div
+        className="w-full max-w-lg bg-white border-2 border-neutral-900 rounded-[28px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-['Clash_Display'] text-xl font-semibold">Team · {orgName}</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+        </div>
+        <p className="text-sm text-neutral-500 mb-4">
+          Invite teammates by their work email. They sign in with that email, no password.
+        </p>
+        <div className="flex gap-2 mb-3">
+          <input
+            type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && invite()} placeholder="teammate@company.com"
+            className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <select value={role} onChange={(e) => setRole(e.target.value as "member" | "admin")}
+                  className="border-2 border-neutral-900 rounded-xl px-2 py-2 text-sm">
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button onClick={invite} disabled={busy}
+                  className="bg-violet-500 text-white font-bold px-4 rounded-xl border-2 border-neutral-900 text-sm disabled:opacity-60">
+            {busy ? "..." : "Invite"}
+          </button>
+        </div>
+        {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+        <div className="max-h-72 overflow-y-auto space-y-1.5">
+          {members.map((m) => (
+            <div key={m.email} className="flex items-center justify-between border-2 border-neutral-200 rounded-xl px-3 py-2">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold truncate">{m.email}</div>
+                <div className="text-[11px] text-neutral-400">{m.last_login_at ? "Active" : "Invited, not signed in yet"}</div>
+              </div>
+              <span className={`text-[11px] font-bold rounded-full px-2 py-0.5 border-2 shrink-0 ${
+                m.role === "admin" ? "border-violet-500 text-violet-600 bg-violet-50" : "border-neutral-300 text-neutral-500"}`}>
+                {m.role}
+              </span>
+            </div>
+          ))}
+          {members.length === 0 && <p className="text-sm text-neutral-400 text-center py-4">No members yet.</p>}
+        </div>
+      </div>
+    </div>
   );
 }
 
