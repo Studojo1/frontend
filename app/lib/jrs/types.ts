@@ -378,6 +378,32 @@ export function saveScriptStep(step: string | null): void {
   }
 }
 
+// Steps the user has already answered or skipped. Kept separate from the
+// resume data because a skipped field is blank, which is otherwise
+// indistinguishable from a field we never asked about.
+const SCRIPT_HANDLED_KEY = "jrs:script-handled:v1";
+
+export function loadScriptHandled(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(SCRIPT_HANDLED_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((s) => typeof s === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveScriptHandled(steps: readonly string[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (steps.length) localStorage.setItem(SCRIPT_HANDLED_KEY, JSON.stringify(steps));
+    else localStorage.removeItem(SCRIPT_HANDLED_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 /** Flatten a resume to plain text — used for ATS keyword analysis. */
 export function resumeToText(d: ResumeData): string {
   const parts: string[] = [

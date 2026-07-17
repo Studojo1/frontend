@@ -24,6 +24,8 @@ import {
   clearChat,
   loadScriptStep,
   saveScriptStep,
+  loadScriptHandled,
+  saveScriptHandled,
   starterResume,
   hasSavedResume,
   isStarterSample,
@@ -151,6 +153,7 @@ export default function JrsRoute() {
   // Scripted-coach state. When non-null, the user's next message is treated
   // as an answer to a known basic field — no LLM call needed.
   const [scriptStep, setScriptStep] = useState<ScriptedStep>(null);
+  const [scriptHandled, setScriptHandled] = useState<string[]>([]);
   // True once the user has opened the Chat tab; we drop the opener message
   // only at that point so we don't burn a slot if they never use chat.
   const [chatPrimed, setChatPrimed] = useState(false);
@@ -184,6 +187,7 @@ export default function JrsRoute() {
     setHasSaved(hasSavedResume() && !isStarterSample(loaded));
     setMessages(loadChat());
     setScriptStep((loadScriptStep() as ScriptedStep) || null);
+    setScriptHandled(loadScriptHandled());
     setMounted(true);
   }, []);
 
@@ -238,7 +242,8 @@ export default function JrsRoute() {
     if (tab !== "chat" || chatPrimed) return;
     setChatPrimed(true);
     if (messages.length > 0) return;
-    const step = nextScriptedStep(data);
+    const handled = loadScriptHandled();
+    const step = nextScriptedStep(data, handled);
     if (step) {
       setScriptStep(step);
       saveScriptStep(step);
@@ -268,7 +273,15 @@ export default function JrsRoute() {
         const patched = applyScripted(scriptStep, t, data);
         setData(patched);
         saveResume(patched);
-        const nextStep = nextScriptedStep(patched);
+        // Mark this step handled even when the answer was "skip", which blanks
+        // the field. Without this the step stays "missing" and gets asked again
+        // on every turn.
+        const handled = scriptHandled.includes(scriptStep)
+          ? scriptHandled
+          : [...scriptHandled, scriptStep];
+        setScriptHandled(handled);
+        saveScriptHandled(handled);
+        const nextStep = nextScriptedStep(patched, handled);
         if (nextStep) {
           setScriptStep(nextStep);
           saveScriptStep(nextStep);
@@ -316,7 +329,7 @@ export default function JrsRoute() {
         setSending(false);
       }
     },
-    [data, messages, sending, scriptStep, pushBot],
+    [data, messages, sending, scriptStep, scriptHandled, pushBot],
   );
 
   const resetChat = useCallback(() => {
@@ -324,6 +337,8 @@ export default function JrsRoute() {
     clearChat();
     setScriptStep(null);
     saveScriptStep(null);
+    setScriptHandled([]);
+    saveScriptHandled([]);
     setChatPrimed(false);
   }, []);
 
@@ -347,6 +362,8 @@ export default function JrsRoute() {
     const fresh = starterResume();
     setData(fresh);
     saveResume(fresh);
+    setScriptHandled([]);
+    saveScriptHandled([]);
   }, []);
 
   const autoFormat = useCallback(async () => {

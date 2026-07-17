@@ -53,8 +53,18 @@ function basicsAreStarter(data: ResumeData): boolean {
   );
 }
 
-/** Pick the next scripted step, or null if basics are all filled with non-sample content. */
-export function nextScriptedStep(data: ResumeData): ScriptedStep {
+/**
+ * Pick the next scripted step, or null if basics are done.
+ *
+ * `handled` lists steps the user has already answered or explicitly skipped. A
+ * skip blanks the field, which is indistinguishable from "never asked" by
+ * looking at the data alone, so progress must be tracked separately or the
+ * step repeats forever.
+ */
+export function nextScriptedStep(
+  data: ResumeData,
+  handled: readonly string[] = [],
+): ScriptedStep {
   if (!basicsAreStarter(data)) return null;
   // Replace each starter value with "" for the missing-check.
   const fields: Record<Exclude<ScriptedStep, null>, string> = {
@@ -69,7 +79,7 @@ export function nextScriptedStep(data: ResumeData): ScriptedStep {
         : data.basics.linkedin.trim(),
   };
   for (const step of STEP_ORDER) {
-    if (!fields[step]) return step;
+    if (!fields[step] && !handled.includes(step)) return step;
   }
   return null;
 }
