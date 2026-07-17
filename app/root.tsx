@@ -270,8 +270,7 @@ export default function App() {
   // just float over those UIs.
   const onSensei =
     location.pathname.startsWith("/bob") ||
-    (typeof window !== "undefined" &&
-      /^(app|admin)\.studojo\./.test(window.location.hostname.toLowerCase()));
+    (typeof window !== "undefined" && window.location.hostname.toLowerCase().startsWith("app.studojo."));
   const hideGlobalChat =
     location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || onSensei;
 

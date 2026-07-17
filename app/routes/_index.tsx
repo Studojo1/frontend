@@ -17,20 +17,17 @@ import {
 import { useLoaderData } from "react-router";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import BobPage from "./bob";
-import SenseiAdmin from "./sensei-admin";
 import type { Route } from "./+types/home";
 
-// Host-routed roots: app.studojo.* = the Sensei (Bob) workspace; admin.studojo.*
-// = the Sensei super-admin portal. Both are independent of the studojo.com site.
-function hostStarts(request: Request, prefix: string): boolean {
-  return (request.headers.get("host") || "").toLowerCase().startsWith(prefix);
+// app.studojo.* (test + prod) is the Sensei workspace — its root IS the app,
+// independent of the studojo.com marketing site. (The super-admin panel lives in
+// the separate admin-panel app at admin.studojo.com.)
+function isBobHost(request: Request): boolean {
+  return (request.headers.get("host") || "").toLowerCase().startsWith("app.studojo.");
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  // On the Sensei subdomains, render the app at root and skip the marketing
-  // site's session/onboarding (each has its own gate).
-  if (hostStarts(request, "admin.studojo.")) return { bobApp: false, adminApp: true };
-  if (hostStarts(request, "app.studojo.")) return { bobApp: true, adminApp: false };
+  if (isBobHost(request)) return { bobApp: true };
   const session = await getSessionFromRequest(request);
   if (session) {
     const onboardingStatus = await requireOnboardingComplete(session.user.id);
@@ -38,12 +35,11 @@ export async function loader({ request }: Route.LoaderArgs) {
       throw redirect("/onboarding");
     }
   }
-  return { bobApp: false, adminApp: false };
+  return { bobApp: false };
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  const d = data as { bobApp?: boolean; adminApp?: boolean } | undefined;
-  if (d?.adminApp) return [{ title: "Sensei Admin" }, { name: "robots", content: "noindex" }];
+  const d = data as { bobApp?: boolean } | undefined;
   if (d?.bobApp) {
     return [{ title: "Bob — Studojo" }, { name: "robots", content: "noindex" }];
   }
@@ -190,8 +186,7 @@ function InternshipPopup() {
 }
 
 export default function Home() {
-  const { bobApp, adminApp } = useLoaderData<typeof loader>();
-  if (adminApp) return <SenseiAdmin />; // admin.studojo.* -> super-admin portal
+  const { bobApp } = useLoaderData<typeof loader>();
   if (bobApp) return <BobPage />;       // app.studojo.* -> Bob workspace at root
   return (
     <>
