@@ -4,7 +4,7 @@ import {
   FiFileText, FiGrid, FiLoader, FiExternalLink, FiChevronRight,
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
   FiMessageSquare, FiColumns, FiUser, FiUsers, FiBriefcase, FiTarget,
-  FiLayers, FiGlobe, FiPaperclip, FiFile,
+  FiLayers, FiGlobe, FiPaperclip, FiFile, FiPhone, FiMail, FiUserPlus, FiSlash,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -425,6 +425,68 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     } catch (e) { handleError(e); }
   };
 
+  // ── Contact reveal (on-demand paid enrichment) ──
+  const refreshTables = useCallback(async () => {
+    if (!activeChat) return;
+    try {
+      const chat = await bobFetch<any>(`/chats/${activeChat}`);
+      setTables(chat.tables || []);
+    } catch (e) { handleError(e); }
+  }, [activeChat, handleError]);
+
+  // Optimistically flip a row's contact status so the button reacts instantly;
+  // the background poll then reconciles with the real found/not_found result.
+  const markEnriching = (rowIds: Set<number>) => {
+    setTables((ts) => ts.map((t) => ({
+      ...t,
+      rows: t.rows.map((r) => (rowIds.has(r.id)
+        ? { ...r, cells: { ...r.cells, _contact_status: "enriching", _contact_note: "" } }
+        : r)),
+    })));
+  };
+
+  const enrichRow = async (rowId: number) => {
+    markEnriching(new Set([rowId]));
+    try {
+      await bobFetch(`/rows/${rowId}/enrich`, { method: "POST" });
+    } catch (e) { handleError(e); refreshTables(); }
+  };
+
+  const enrichTable = async (tableId: number) => {
+    const t = tables.find((x) => x.id === tableId);
+    if (!t) return;
+    const todo = new Set(
+      t.rows
+        .filter((r) => !["found", "enriching"].includes(str(r.cells._contact_status)))
+        .map((r) => r.id),
+    );
+    if (todo.size === 0) return;
+    markEnriching(todo);
+    try {
+      await bobFetch(`/tables/${tableId}/enrich`, { method: "POST" });
+    } catch (e) { handleError(e); refreshTables(); }
+  };
+
+  const deleteRow = async (rowId: number) => {
+    try {
+      await bobFetch(`/rows/${rowId}`, { method: "DELETE" });
+      setTables((ts) => ts.map((t) => ({ ...t, rows: t.rows.filter((r) => r.id !== rowId) })));
+    } catch (e) { handleError(e); }
+  };
+
+  // While any row is enriching, poll the table until every reveal settles.
+  const anyEnriching = useMemo(
+    () => tables.some((t) => t.rows.some((r) => str(r.cells._contact_status) === "enriching")),
+    [tables],
+  );
+  const enrichPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    if (enrichPollRef.current) { clearInterval(enrichPollRef.current); enrichPollRef.current = null; }
+    if (!anyEnriching) return;
+    enrichPollRef.current = setInterval(() => { refreshTables(); }, 3000);
+    return () => { if (enrichPollRef.current) clearInterval(enrichPollRef.current); };
+  }, [anyEnriching, refreshTables]);
+
   const running = run?.status === "running";
   const hasTables = tables.length > 0;
   const showChat = mode !== "table";
@@ -647,6 +709,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               viewPref={viewPref}
               onViewPref={setViewPref}
               onRowStatus={updateRowStatus}
+              onEnrichRow={enrichRow}
+              onEnrichTable={enrichTable}
+              onDeleteRow={deleteRow}
             />
           )}
         </div>
@@ -755,7 +820,7 @@ function RunProgress({ run }: { run: Run }) {
 
 // ── Results panel (cards ⇄ table) ────────────────────────────────────────────
 
-function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus }: {
+function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow }: {
   tables: BobTable[];
   widthPct: number;
   fullWidth: boolean;
@@ -764,6 +829,9 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
   viewPref: ResultsView | null;
   onViewPref: (v: ResultsView) => void;
   onRowStatus: (rowId: number, status: string) => void;
+  onEnrichRow: (rowId: number) => void;
+  onEnrichTable: (tableId: number) => void;
+  onDeleteRow: (rowId: number) => void;
 }) {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [detailRow, setDetailRow] = useState<BobRow | null>(null);
@@ -841,6 +909,28 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
               </button>
             ))}
           </div>
+          {active && (() => {
+            const rows = active.rows;
+            const enriching = rows.some((r) => contactStatus(r.cells) === "enriching");
+            const pending = rows.filter((r) => !["found", "enriching"].includes(contactStatus(r.cells))).length;
+            if (rows.length === 0) return null;
+            return (
+              <button
+                onClick={() => onEnrichTable(active.id)}
+                disabled={enriching || pending === 0}
+                title={pending === 0 ? "Every row is enriched" : "Find phone + email for all remaining rows (paid)"}
+                className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border-2 transition-colors ${
+                  enriching || pending === 0
+                    ? "bg-neutral-100 text-neutral-400 border-neutral-200 cursor-not-allowed"
+                    : "bg-violet-500 text-white border-neutral-900 hover:bg-violet-600"
+                }`}
+              >
+                {enriching
+                  ? <><FiLoader size={13} className="animate-spin" /> Enriching…</>
+                  : <><FiUsers size={13} /> Enrich all{pending > 0 ? ` (${pending})` : ""}</>}
+              </button>
+            );
+          })()}
           {active && (
             <button
               onClick={() => exportXlsx(active)}
@@ -872,6 +962,8 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
                 isNew={newIds.has(r.id)}
                 onOpen={() => setDetailRow(r)}
                 onStatus={(s) => onRowStatus(r.id, s)}
+                onEnrich={() => onEnrichRow(r.id)}
+                onDelete={() => onDeleteRow(r.id)}
               />
             ))}
           </div>
@@ -887,29 +979,104 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
           newIds={newIds}
           onRowClick={setDetailRow}
           onRowStatus={onRowStatus}
+          onEnrich={onEnrichRow}
+          onDelete={onDeleteRow}
         />
       )}
 
       {detailRow && active && (
         <RowDrawer
-          row={detailRow}
+          row={active.rows.find((r) => r.id === detailRow.id) || detailRow}
           columns={orderColumns(active.columns)}
           onClose={() => setDetailRow(null)}
           onStatus={(s) => { onRowStatus(detailRow.id, s); setDetailRow({ ...detailRow, status: s }); }}
+          onEnrich={() => onEnrichRow(detailRow.id)}
+          onDelete={() => { onDeleteRow(detailRow.id); setDetailRow(null); }}
         />
       )}
     </section>
   );
 }
 
+// ── Contact reveal controls ──────────────────────────────────────────────────
+
+// Contacts are revealed on demand. A row's status lives in _contact_status;
+// legacy rows (pre-reveal) infer "found" from a populated phone/email.
+function contactStatus(cells: Record<string, unknown>): string {
+  const s = str(cells._contact_status);
+  if (s) return s;
+  return str(cells.contact_phone) || str(cells.contact_email) ? "found" : "pending";
+}
+
+function EnrichButton({ cells, onEnrich, size = "sm" }: {
+  cells: Record<string, unknown>;
+  onEnrich: () => void;
+  size?: "sm" | "xs";
+}) {
+  const status = contactStatus(cells);
+  const pad = size === "xs" ? "text-[10px] px-1.5 py-0.5 gap-0.5" : "text-[11px] px-2 py-1 gap-1";
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+  if (status === "enriching")
+    return (
+      <span className={`inline-flex items-center font-bold rounded-lg bg-violet-50 text-violet-600 border border-violet-200 ${pad}`}>
+        <FiLoader size={10} className="animate-spin" /> Enriching
+      </span>
+    );
+  if (status === "found")
+    return (
+      <button onClick={(e) => { stop(e); onEnrich(); }} title="Contact found — click to re-run"
+        className={`inline-flex items-center font-bold rounded-lg bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 ${pad}`}>
+        <FiCheck size={10} /> Contact
+      </button>
+    );
+  if (status === "not_found")
+    return (
+      <button onClick={(e) => { stop(e); onEnrich(); }} title={str(cells._contact_note) || "No reachable contact found — click to retry"}
+        className={`inline-flex items-center font-bold rounded-lg bg-neutral-100 text-neutral-500 border border-neutral-300 hover:border-neutral-400 ${pad}`}>
+        <FiSlash size={10} /> No contact
+      </button>
+    );
+  if (status === "error")
+    return (
+      <button onClick={(e) => { stop(e); onEnrich(); }} title={str(cells._contact_note) || "Enrichment failed — retry"}
+        className={`inline-flex items-center font-bold rounded-lg bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100 ${pad}`}>
+        Retry
+      </button>
+    );
+  return (
+    <button onClick={(e) => { stop(e); onEnrich(); }} title="Find phone + email for this company (paid)"
+      className={`inline-flex items-center font-bold rounded-lg bg-violet-500 text-white border-2 border-neutral-900 hover:bg-violet-600 ${pad}`}>
+      <FiUserPlus size={10} /> Enrich
+    </button>
+  );
+}
+
+function DeleteRowButton({ onDelete, size = 14 }: { onDelete: () => void; size?: number }) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        if (confirm("Remove this row? The company is excluded from future runs in this chat."))
+          onDelete();
+      }}
+      title="Remove row"
+      className="w-6 h-6 shrink-0 rounded-lg flex items-center justify-center text-neutral-300 hover:bg-red-50 hover:text-red-600"
+    >
+      <FiX size={size} />
+    </button>
+  );
+}
+
 // ── Company card ─────────────────────────────────────────────────────────────
 
-function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
+function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }: {
   row: BobRow;
   index: number;
   isNew: boolean;
   onOpen: () => void;
   onStatus: (s: string) => void;
+  onEnrich: () => void;
+  onDelete: () => void;
 }) {
   const c = row.cells;
   const company = str(c.company) || `Company ${index + 1}`;
@@ -930,6 +1097,8 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
   const companyPageUrl = allLinkedin.find((u) => /linkedin\.com\/(company|school)\//i.test(u));
   const contactName = str(c.contact_name);
   const contactTitle = str(c.contact_title);
+  const contactPhone = str(c.contact_phone);
+  const contactEmail = str(c.contact_email);
   const tier = str(c.tier).toUpperCase().replace(/[^T0-9]/g, "");
   const fit = parseFloat(str(c.fit_score));
   const funding = str(c.funding);
@@ -1002,41 +1171,60 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus }: {
       </div>
 
       {/* Contact + status */}
-      <div className="mt-auto pt-2 border-t border-neutral-100 flex items-center gap-2">
-        {contactName ? (
-          <>
-            <div className="w-7 h-7 shrink-0 rounded-full bg-violet-100 border border-violet-300 flex items-center justify-center text-[10px] font-black text-violet-700">
-              {contactName.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[12.5px] font-bold truncate">{contactName}</div>
-              <div className="text-[10.5px] text-neutral-500 truncate">{contactTitle || ""}</div>
-            </div>
-            {tier && <TierBadge tier={tier} />}
-            {profileUrl && (
-              <a
-                href={profileUrl}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                title="Open LinkedIn profile"
-                className="w-7 h-7 shrink-0 rounded-lg border border-neutral-200 flex items-center justify-center text-[#0a66c2] hover:border-[#0a66c2] transition-colors"
-              >
-                <FiLinkedin size={13} />
+      <div className="mt-auto pt-2 border-t border-neutral-100 flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          {contactName ? (
+            <>
+              <div className="w-7 h-7 shrink-0 rounded-full bg-violet-100 border border-violet-300 flex items-center justify-center text-[10px] font-black text-violet-700">
+                {contactName.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[12.5px] font-bold truncate">{contactName}</div>
+                <div className="text-[10.5px] text-neutral-500 truncate">{contactTitle || ""}</div>
+              </div>
+              {tier && <TierBadge tier={tier} />}
+              {profileUrl && (
+                <a
+                  href={profileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Open LinkedIn profile"
+                  className="w-7 h-7 shrink-0 rounded-lg border border-neutral-200 flex items-center justify-center text-[#0a66c2] hover:border-[#0a66c2] transition-colors"
+                >
+                  <FiLinkedin size={13} />
+                </a>
+              )}
+            </>
+          ) : (
+            <EnrichButton cells={c} onEnrich={onEnrich} />
+          )}
+          <select
+            value={row.status}
+            onChange={(e) => onStatus(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            className={`shrink-0 text-[10.5px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[row.status] || STATUS_STYLE.new}`}
+          >
+            {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <DeleteRowButton onDelete={onDelete} />
+        </div>
+        {(contactPhone || contactEmail) && (
+          <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
+            {contactPhone && (
+              <a href={`tel:${contactPhone}`} title="Call"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 hover:border-neutral-900">
+                <FiPhone size={11} className="text-green-600" /> {contactPhone}
               </a>
             )}
-          </>
-        ) : (
-          <span className="text-[11.5px] text-neutral-400 flex-1">No hiring contact found yet</span>
+            {contactEmail && (
+              <a href={`mailto:${contactEmail}`} title="Email"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 hover:border-neutral-900">
+                <FiMail size={11} className="text-violet-600" /> {contactEmail}
+              </a>
+            )}
+          </div>
         )}
-        <select
-          value={row.status}
-          onChange={(e) => onStatus(e.target.value)}
-          onClick={(e) => e.stopPropagation()}
-          className={`shrink-0 text-[10.5px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[row.status] || STATUS_STYLE.new}`}
-        >
-          {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
       </div>
     </div>
   );
@@ -1052,12 +1240,18 @@ function TierBadge({ tier }: { tier: string }) {
 
 // ── Dense table view ─────────────────────────────────────────────────────────
 
-function DenseTable({ table, newIds, onRowClick, onRowStatus }: {
+function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete }: {
   table: BobTable;
   newIds: Set<number>;
   onRowClick: (r: BobRow) => void;
   onRowStatus: (rowId: number, status: string) => void;
+  onEnrich: (rowId: number) => void;
+  onDelete: (rowId: number) => void;
 }) {
+  // The reveal drives its own Contact column; hide the raw contact_* cells so
+  // they don't duplicate it (they render inside the drawer instead).
+  const HIDE = new Set(["company", "contact_name", "contact_title", "contact_phone",
+    "contact_email", "contact_linkedin_url", "tier"]);
   const cols = orderColumns(table.columns);
   return (
     <div className="flex-1 overflow-auto bg-white">
@@ -1065,12 +1259,14 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus }: {
         <thead className="sticky top-0 z-20">
           <tr className="bg-[#faf7f2]">
             <th className="sticky left-0 z-30 bg-[#faf7f2] px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Company</th>
-            {cols.filter((c) => c.key !== "company").map((c) => (
+            <th className="px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Contact</th>
+            {cols.filter((c) => !HIDE.has(c.key)).map((c) => (
               <th key={c.key} className={`px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap ${WIDE_KEYS.has(c.key) ? "min-w-[240px]" : ""}`}>
                 {prettify(c.label || c.key)}
               </th>
             ))}
             <th className="px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Status</th>
+            <th className="px-2 py-2.5 border-b-2 border-neutral-900" />
           </tr>
         </thead>
         <tbody>
@@ -1086,7 +1282,28 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus }: {
                   {str(r.cells.company)}
                 </span>
               </td>
-              {cols.filter((c) => c.key !== "company").map((c) => (
+              <td className="px-3 py-2.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                {str(r.cells.contact_name) ? (
+                  <div className="min-w-0">
+                    <div className="text-[12px] font-bold truncate max-w-[180px]">{str(r.cells.contact_name)}</div>
+                    <div className="flex items-center gap-2 text-[10.5px] text-neutral-500">
+                      {str(r.cells.contact_phone) && (
+                        <a href={`tel:${str(r.cells.contact_phone)}`} className="inline-flex items-center gap-0.5 hover:text-neutral-900">
+                          <FiPhone size={9} className="text-green-600" /> {str(r.cells.contact_phone)}
+                        </a>
+                      )}
+                      {str(r.cells.contact_email) && (
+                        <a href={`mailto:${str(r.cells.contact_email)}`} className="inline-flex items-center gap-0.5 hover:text-neutral-900 truncate max-w-[150px]">
+                          <FiMail size={9} className="text-violet-600" /> {str(r.cells.contact_email)}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <EnrichButton cells={r.cells} onEnrich={() => onEnrich(r.id)} size="xs" />
+                )}
+              </td>
+              {cols.filter((c) => !HIDE.has(c.key)).map((c) => (
                 <td key={c.key} className={`px-3 py-2.5 ${WIDE_KEYS.has(c.key) ? "min-w-[240px] max-w-[340px]" : "max-w-[200px]"}`}>
                   <Cell colKey={c.key} value={r.cells[c.key]} />
                 </td>
@@ -1099,6 +1316,9 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus }: {
                 >
                   {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
+              </td>
+              <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
+                <DeleteRowButton onDelete={() => onDelete(r.id)} />
               </td>
             </tr>
           ))}
@@ -1203,15 +1423,17 @@ function Cell({ colKey, value }: { colKey: string; value: unknown }) {
 
 // ── Row dossier drawer ───────────────────────────────────────────────────────
 
-const CONTACT_KEYS = ["contact_name", "contact_title", "tier", "linkedin_url", "contact_linkedin_url"];
+const CONTACT_KEYS = ["contact_name", "contact_title", "contact_phone", "contact_email", "tier", "linkedin_url", "contact_linkedin_url"];
 const EVIDENCE_KEYS = ["hiring_evidence", "evidence_url", "why_now", "signal_rationale"];
 const COMPANY_KEYS = ["website", "city", "size_band", "what_they_do", "funding", "fit_score"];
 
-function RowDrawer({ row, columns, onClose, onStatus }: {
+function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
   row: BobRow;
   columns: BobColumn[];
   onClose: () => void;
   onStatus: (s: string) => void;
+  onEnrich: () => void;
+  onDelete: () => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
   const company = str(row.cells.company) || "Details";
@@ -1244,14 +1466,18 @@ function RowDrawer({ row, columns, onClose, onStatus }: {
               >
                 {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
+              <EnrichButton cells={row.cells} onEnrich={onEnrich} />
               <button
-                disabled
-                title="Contact enrichment is coming soon"
-                className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                onClick={onDelete}
+                title="Remove this company from the table"
+                className="text-[11px] font-bold px-2 py-1 rounded-lg text-neutral-400 hover:bg-red-50 hover:text-red-600"
               >
-                <FiLock size={9} className="inline mr-1" />Enrich contact
+                <FiTrash2 size={11} className="inline" />
               </button>
             </div>
+            {contactStatus(row.cells) === "not_found" && str(row.cells._contact_note) && (
+              <p className="text-[11px] text-neutral-500 mt-1.5">{str(row.cells._contact_note)}</p>
+            )}
           </div>
           <button onClick={onClose} className="ml-auto w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900">
             <FiX />
