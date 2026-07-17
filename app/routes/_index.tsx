@@ -14,10 +14,21 @@ import {
   StepsSection,
   TrustStrip,
 } from "~/components";
+import { useLoaderData } from "react-router";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
+import BobPage from "./bob";
 import type { Route } from "./+types/home";
 
+// app.studojo.pro (test) and app.studojo.com (prod) are Bob's own workspace
+// subdomain: the root IS the Bob workspace, independent of the studojo.com site.
+function isBobHost(request: Request): boolean {
+  return (request.headers.get("host") || "").toLowerCase().startsWith("app.studojo.");
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
+  // On the Bob subdomain, render Bob at root and skip the marketing site's
+  // session/onboarding entirely — Bob authenticates through its own gate.
+  if (isBobHost(request)) return { bobApp: true };
   const session = await getSessionFromRequest(request);
   if (session) {
     const onboardingStatus = await requireOnboardingComplete(session.user.id);
@@ -25,10 +36,13 @@ export async function loader({ request }: Route.LoaderArgs) {
       throw redirect("/onboarding");
     }
   }
-  return null;
+  return { bobApp: false };
 }
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ data }: Route.MetaArgs) {
+  if ((data as { bobApp?: boolean } | undefined)?.bobApp) {
+    return [{ title: "Bob — Studojo" }, { name: "robots", content: "noindex" }];
+  }
   const BASE_URL = "https://studojo.com";
   return [
     { title: "Studojo | Land Your Next Internship or Job" },
@@ -172,6 +186,8 @@ function InternshipPopup() {
 }
 
 export default function Home() {
+  const { bobApp } = useLoaderData<typeof loader>();
+  if (bobApp) return <BobPage />;      // app.studojo.* -> Bob workspace at root
   return (
     <>
       <AnnouncementBar />
