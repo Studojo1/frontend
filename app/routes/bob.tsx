@@ -16,7 +16,7 @@ import {
 
 export function meta() {
   return [
-    { title: "Bob | Studojo Intelligence" },
+    { title: "Sensei by Studojo" },
     { name: "robots", content: "noindex, nofollow" },
   ];
 }
@@ -169,10 +169,10 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
   return (
     <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
       <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
-        <div className="w-12 h-12 bg-violet-500 border-2 border-neutral-900 rounded-2xl flex items-center justify-center mb-5">
-          <FiLock className="text-white text-xl" />
+        <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
+          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
         </div>
-        <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">Bob</h1>
+        <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">Sensei <span className="text-neutral-400 text-xl font-normal">by Studojo</span></h1>
         <p className="text-neutral-600 mt-2 mb-6">
           Placement intelligence for your team. Enter your workspace access code.
         </p>
@@ -418,7 +418,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       loadChats();
     } catch (e: any) {
       if (e instanceof BobError && e.status === 409) {
-        alert("Bob is still working on this chat. Wait for the current run to finish.");
+        alert("Sensei is still working on this chat. Wait for the current run to finish.");
       } else if (e instanceof BobError && e.status === 402) {
         setNotice(e.message || "Out of AI credits. Top up to keep running Bob.");
         setMessages((m) => m.filter((x) => x.created_at !== "" || x.content !== content));
@@ -535,12 +535,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         <div className="w-64 flex flex-col h-full">
           <div className="p-4 border-b-2 border-neutral-900 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-violet-500 border-2 border-neutral-900 rounded-xl flex items-center justify-center">
-                <FiZap className="text-white text-sm" />
+              <div className="w-8 h-8 border-2 border-neutral-900 rounded-xl overflow-hidden shrink-0">
+                <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
               </div>
               <div>
-                <div className="font-['Clash_Display'] text-lg font-semibold leading-none">Bob</div>
-                <div className="text-[10px] text-neutral-400 mt-0.5">Team workspace</div>
+                <div className="font-['Clash_Display'] text-lg font-semibold leading-none">Sensei</div>
+                <div className="text-[10px] text-neutral-400 mt-0.5">by Studojo</div>
               </div>
             </div>
             <button
@@ -570,6 +570,14 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               </div>
             ))}
             {chats.length === 0 && <p className="text-neutral-400 text-sm p-3">No chats yet.</p>}
+          </div>
+          <div className="p-3 border-t-2 border-neutral-900 shrink-0">
+            <a
+              href="mailto:admin@studojo.com?subject=Sensei%20support%20request&body=Describe%20the%20issue%20or%20request%3A%0A%0A"
+              className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl px-3 py-2.5 hover:bg-neutral-900 hover:text-white transition-colors"
+            >
+              <FiMessageSquare size={15} /> Get support
+            </a>
           </div>
         </div>
       </aside>
@@ -645,8 +653,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       </div>
                     ) : (
                       <div key={m.id} className="flex gap-2.5">
-                        <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
-                          <FiZap className="text-violet-400" size={13} />
+                        <div className="w-7 h-7 mt-1 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
+                          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                         </div>
                         <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
                           {m.content}
@@ -708,7 +716,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
                     }}
                     rows={2}
-                    placeholder={running ? "Bob is working on it. Ask your next question when he finishes." : "Describe a candidate, cohort, or the companies you need..."}
+                    placeholder={running ? "Sensei is working on it. Ask your next question when it finishes." : "Describe a candidate, cohort, or the companies you need..."}
                     disabled={running}
                     className="flex-1 border-2 border-neutral-900 rounded-2xl px-4 py-2.5 text-[14.5px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-neutral-100"
                   />
@@ -762,22 +770,22 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 const TEMPLATES = [
   {
     icon: FiUser, title: "Place a candidate",
-    subtitle: "Attach a resume, get target companies",
+    subtitle: "One resume, the companies hiring them now",
     prompt: "I've attached my candidate's resume (use the paperclip). Preferences: [city, company stage, expected CTC]. Find the best companies hiring for this profile right now, with evidence and the right hiring contact per company.",
   },
   {
     icon: FiUsers, title: "Place a cohort",
-    subtitle: "Companies that absorb a batch",
+    subtitle: "Companies that hire a whole batch",
     prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Find companies that can absorb them at volume (bulk hiring, walk-in drives, fresher intakes), with TA contacts for each.",
   },
   {
     icon: FiBriefcase, title: "Build a partner pipeline",
-    subtitle: "Companies worth an MoU",
+    subtitle: "Recurring hiring partners worth an MoU",
     prompt: "Find [number] companies that should become recurring hiring partners for our [domain] training programs. Look for sustained hiring velocity and fresher-friendliness. Target HR/TA leadership as contacts.",
   },
   {
     icon: FiTarget, title: "Track a market",
-    subtitle: "Funding + hiring momentum",
+    subtitle: "Who just raised money and is hiring",
     prompt: "Which [sector] startups in [city/India] raised funding in the last 6 months and are actively hiring? Build a table with the round details, hiring evidence, and why-now for each.",
   },
 ];
@@ -805,12 +813,12 @@ function EmptyChat({ onPick }: { onPick: (s: string) => void }) {
   return (
     <div className="max-w-2xl mx-auto mt-10 mb-10 bob-pop">
       <div className="text-center">
-        <div className="w-14 h-14 mx-auto bg-violet-500 border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] flex items-center justify-center mb-5">
-          <FiZap className="text-white text-2xl" />
+        <div className="w-14 h-14 mx-auto border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] overflow-hidden mb-5">
+          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
         </div>
-        <h2 className="font-['Clash_Display'] text-3xl font-semibold">What are we placing today?</h2>
+        <h2 className="font-['Clash_Display'] text-3xl font-semibold">Who are we getting hired today?</h2>
         <p className="text-neutral-600 mt-3 mb-8 max-w-md mx-auto">
-          Describe a candidate, a cohort, or a market. Bob researches live evidence and builds a working target list with the right people to contact.
+          Point Sensei at a candidate, a cohort, or a market. It reads live hiring evidence and builds a working list of companies, each with the right person to reach.
         </p>
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
@@ -867,7 +875,7 @@ function RunProgress({ run }: { run: Run }) {
           {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research…</p>}
         </div>
         <p className="text-[11px] text-neutral-400 mt-3">
-          Results appear on the right as Bob finds them. Deep research can take a few minutes.
+          Results appear on the right as Sensei finds them. Deep research can take a few minutes.
         </p>
       </div>
     </div>
@@ -1024,7 +1032,7 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
             ))}
           </div>
           {active.rows.length === 0 && (
-            <p className="text-sm text-neutral-400 p-6 text-center">Results will appear here as Bob finds them.</p>
+            <p className="text-sm text-neutral-400 p-6 text-center">Results will appear here as Sensei finds them.</p>
           )}
         </div>
       )}
@@ -1381,7 +1389,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
         </tbody>
       </table>
       {table.rows.length === 0 && (
-        <p className="text-sm text-neutral-400 p-6 text-center">Rows will appear here as Bob finds them.</p>
+        <p className="text-sm text-neutral-400 p-6 text-center">Rows will appear here as Sensei finds them.</p>
       )}
     </div>
   );

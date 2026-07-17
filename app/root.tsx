@@ -265,9 +265,14 @@ export default function App() {
   }, []);
 
   const location = useLocation();
-  // The resume maker has its own coach chat — the global support widget would
-  // float over the editor input and confuse the user.
-  const hideGlobalChat = location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc");
+  // The resume maker has its own coach chat, and Sensei (app.studojo.* / /bob)
+  // has its own "Get support" in the sidebar — the global floating widget would
+  // just float over those UIs.
+  const onSensei =
+    location.pathname.startsWith("/bob") ||
+    (typeof window !== "undefined" && window.location.hostname.toLowerCase().startsWith("app.studojo."));
+  const hideGlobalChat =
+    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || onSensei;
 
   return (
     <>
