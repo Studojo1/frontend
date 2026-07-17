@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap, FiSearch,
   FiFileText, FiGrid, FiLoader, FiExternalLink, FiChevronRight,
@@ -213,6 +213,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [pendingFiles, setPendingFiles] = useState<{ id: number; name: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean } | null>(null);
+  const [notice, setNotice] = useState<string>("");
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<PanelMode>("split");
@@ -256,6 +258,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     }
   }, [handleError]);
 
+  // Credit balances for the header counter. Best-effort: a failure just hides
+  // the counter rather than disrupting the workspace.
+  const loadCredits = useCallback(async () => {
+    try {
+      setCredits(await bobFetch<{ enrichment: number; ai: number; enabled: boolean }>("/credits"));
+    } catch { /* counter is non-critical */ }
+  }, []);
+  useEffect(() => { loadCredits(); }, [loadCredits]);
+
   const openChat = useCallback(async (id: number) => {
     setActiveChat(id);
     setRun(null);
@@ -293,6 +304,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             setTables(chat.tables || []);
           }
           loadChats();
+          loadCredits();          // a finished run charges AI credits — refresh
         }
       } catch (e) {
         handleError(e);
@@ -407,6 +419,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     } catch (e: any) {
       if (e instanceof BobError && e.status === 409) {
         alert("Bob is still working on this chat. Wait for the current run to finish.");
+      } else if (e instanceof BobError && e.status === 402) {
+        setNotice(e.message || "Out of AI credits. Top up to keep running Bob.");
+        setMessages((m) => m.filter((x) => x.created_at !== "" || x.content !== content));
       } else {
         handleError(e);
       }
@@ -445,11 +460,18 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     })));
   };
 
+  const onEnrichError = (e: unknown) => {
+    if (e instanceof BobError && e.status === 402) {
+      setNotice(e.message || "Out of enrichment credits. Top up to reveal contacts.");
+    } else { handleError(e); }
+    refreshTables();
+  };
+
   const enrichRow = async (rowId: number) => {
     markEnriching(new Set([rowId]));
     try {
       await bobFetch(`/rows/${rowId}/enrich`, { method: "POST" });
-    } catch (e) { handleError(e); refreshTables(); }
+    } catch (e) { onEnrichError(e); }
   };
 
   const enrichTable = async (tableId: number) => {
@@ -464,7 +486,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     markEnriching(todo);
     try {
       await bobFetch(`/tables/${tableId}/enrich`, { method: "POST" });
-    } catch (e) { handleError(e); refreshTables(); }
+    } catch (e) { onEnrichError(e); }
   };
 
   const deleteRow = async (rowId: number) => {
@@ -482,10 +504,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const enrichPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     if (enrichPollRef.current) { clearInterval(enrichPollRef.current); enrichPollRef.current = null; }
-    if (!anyEnriching) return;
-    enrichPollRef.current = setInterval(() => { refreshTables(); }, 3000);
+    if (!anyEnriching) { loadCredits(); return; }   // reveals settled -> refresh balance
+    enrichPollRef.current = setInterval(() => { refreshTables(); loadCredits(); }, 3000);
     return () => { if (enrichPollRef.current) clearInterval(enrichPollRef.current); };
-  }, [anyEnriching, refreshTables]);
+  }, [anyEnriching, refreshTables, loadCredits]);
 
   const running = run?.status === "running";
   const hasTables = tables.length > 0;
@@ -571,7 +593,13 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               <FiLoader className="animate-spin" size={11} /> researching
             </span>
           )}
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-2">
+            {credits?.enabled && (
+              <div className="flex items-center gap-1.5">
+                <CreditPill icon={<FiPhone size={11} />} label="reveals" value={credits.enrichment} />
+                <CreditPill icon={<FiZap size={11} />} label="AI" value={credits.ai} />
+              </div>
+            )}
             {hasTables && (
               <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden">
                 {([["chat", FiMessageSquare, "Chat only"], ["split", FiColumns, "Split view"], ["table", FiGrid, "Results only"]] as const).map(([m, Icon, label]) => (
@@ -590,6 +618,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             )}
           </div>
         </header>
+
+        {notice && (
+          <div className="shrink-0 bg-red-50 border-b-2 border-red-500 text-red-700 text-xs font-bold px-4 py-2 flex items-center justify-between gap-3">
+            <span>{notice}</span>
+            <button onClick={() => setNotice("")} className="text-red-400 hover:text-red-700 shrink-0" title="Dismiss">
+              <FiX size={14} />
+            </button>
+          </div>
+        )}
 
         <div ref={layoutRef} className="flex-1 min-h-0 flex">
 
@@ -744,6 +781,25 @@ const TEMPLATES = [
     prompt: "Which [sector] startups in [city/India] raised funding in the last 6 months and are actively hiring? Build a table with the round details, hiring evidence, and why-now for each.",
   },
 ];
+
+function CreditPill({ icon, label, value }: { icon: ReactNode; label: string; value: number }) {
+  const low = value <= 0;
+  // Effectively-unlimited balances (internal accounts) show as ∞ rather than a
+  // giant number.
+  const display = value >= 100_000_000 ? "∞" : value.toLocaleString();
+  return (
+    <span
+      title={`${display} ${label} credits`}
+      className={`flex items-center gap-1 text-[11px] font-bold rounded-full border-2 px-2.5 py-1 ${
+        low ? "bg-red-50 border-red-500 text-red-600" : "bg-white border-neutral-900 text-neutral-900"
+      }`}
+    >
+      {icon}
+      {display}
+      <span className="font-medium text-neutral-400">{label}</span>
+    </span>
+  );
+}
 
 function EmptyChat({ onPick }: { onPick: (s: string) => void }) {
   return (
