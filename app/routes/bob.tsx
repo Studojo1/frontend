@@ -5,6 +5,7 @@ import {
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
   FiMessageSquare, FiColumns, FiUser, FiUsers, FiBriefcase, FiTarget,
   FiLayers, FiGlobe, FiPaperclip, FiFile, FiPhone, FiMail, FiUserPlus, FiSlash,
+  FiMoon, FiSun,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -277,6 +278,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [notice, setNotice] = useState<string>("");
   const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null } | null>(null);
   const [showTeam, setShowTeam] = useState(false);
+  const [dark, setDark] = useState(false);
+  useEffect(() => { setDark(localStorage.getItem("bob_dark") === "1"); }, []);
+  const toggleDark = useCallback(() => {
+    setDark((d) => { localStorage.setItem("bob_dark", d ? "0" : "1"); return !d; });
+  }, []);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<PanelMode>("split");
@@ -600,13 +606,30 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
 
   return (
-    <div className="h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900">
+    <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
       {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
       <style>{`
         @keyframes bobFlash { 0% { background-color: rgb(221 214 254); } 100% { background-color: transparent; } }
         .bob-new { animation: bobFlash 2.5s ease-out; }
         @keyframes bobPop { 0% { opacity: 0; transform: translateY(8px) scale(0.98); } 100% { opacity: 1; transform: none; } }
         .bob-pop { animation: bobPop 0.35s ease-out; }
+        .bob-thinscroll::-webkit-scrollbar { height: 5px; width: 5px; }
+        .bob-thinscroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 9px; }
+        .bob-thinscroll::-webkit-scrollbar-track { background: transparent; }
+        /* Dark mode: override the app's hard-coded surface colours. */
+        .bob-dark { background:#131316 !important; color:#e7e7ea; }
+        .bob-dark .bg-white { background:#1c1c20 !important; }
+        .bob-dark .bg-\\[\\#faf7f2\\] { background:#131316 !important; }
+        .bob-dark .bg-\\[\\#f4f0e8\\] { background:#161619 !important; }
+        .bob-dark .text-neutral-900 { color:#e7e7ea !important; }
+        .bob-dark .text-neutral-600, .bob-dark .text-neutral-500, .bob-dark .text-neutral-400, .bob-dark .text-neutral-300 { color:#9a9aa2 !important; }
+        .bob-dark .border-neutral-900 { border-color:#3a3a42 !important; }
+        .bob-dark .border-neutral-100, .bob-dark .border-neutral-200 { border-color:#2c2c33 !important; }
+        .bob-dark .bg-neutral-50, .bob-dark .bg-neutral-100 { background:#242429 !important; }
+        .bob-dark .hover\\:bg-neutral-100:hover, .bob-dark .hover\\:bg-neutral-50:hover { background:#26262c !important; }
+        .bob-dark .bg-neutral-900 { background:#e7e7ea !important; color:#131316 !important; }
+        .bob-dark input, .bob-dark textarea { background:#1c1c20 !important; color:#e7e7ea !important; }
+        .bob-dark input::placeholder, .bob-dark textarea::placeholder { color:#6b6b73 !important; }
       `}</style>
 
       {/* ── Sidebar ── */}
@@ -616,25 +639,33 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         }`}
       >
         <div className="w-64 flex flex-col h-full">
-          <div className="p-4 border-b-2 border-neutral-900 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 border-2 border-neutral-900 rounded-xl overflow-hidden shrink-0">
+          <div className="h-12 shrink-0 px-3 border-b-2 border-neutral-900 flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 border-2 border-neutral-900 rounded-lg overflow-hidden shrink-0">
                 <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
               </div>
-              <div>
-                <div className="font-['Clash_Display'] text-lg font-semibold leading-none">Sensei</div>
-                <div className="text-[10px] text-neutral-400 mt-0.5 truncate max-w-[130px]">{me?.org?.name || "by Studojo"}</div>
+              <div className="min-w-0 leading-tight">
+                <div className="font-['Clash_Display'] text-base font-semibold leading-none">Sensei</div>
+                <div className="text-[9px] text-neutral-400 truncate max-w-[110px]">{me?.org?.name || "by Studojo"}</div>
               </div>
             </div>
             <button
-              onClick={newChat}
-              title="New chat"
-              className="w-8 h-8 bg-neutral-900 text-white rounded-xl flex items-center justify-center hover:bg-violet-500 transition-colors"
+              onClick={toggleDark}
+              title={dark ? "Switch to light mode" : "Switch to dark mode"}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 shrink-0"
             >
-              <FiPlus />
+              {dark ? <FiSun size={16} /> : <FiMoon size={16} />}
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-2 pb-24">
+          <div className="p-2 shrink-0">
+            <button
+              onClick={newChat}
+              className="w-full flex items-center justify-center gap-2 text-sm font-semibold bg-neutral-900 text-white rounded-xl px-3 py-2.5 hover:bg-violet-700 transition-colors"
+            >
+              <FiPlus size={15} /> New chat
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-2 pb-4">
             {chats.map((c) => (
               <div
                 key={c.id}
@@ -830,7 +861,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   <button
                     onClick={() => send()}
                     disabled={running || sending || !input.trim()}
-                    className="self-end bg-neutral-900 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-violet-500 transition-colors disabled:opacity-40"
+                    className="self-end bg-violet-700 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-violet-800 transition-colors disabled:opacity-40"
                   >
                     {sending || running ? <FiLoader className="animate-spin" /> : <FiSend />}
                   </button>
@@ -913,6 +944,31 @@ function CreditPill({ icon, label, value }: { icon: ReactNode; label: string; va
       {display}
       <span className="font-medium text-neutral-400">{label}</span>
     </span>
+  );
+}
+
+// Company logo from the domain's favicon (Google's free public service, no key,
+// no cost). Falls back to a letter tile when there's no real domain or the icon
+// fails to load. Never triggers a paid lookup.
+function CompanyLogo({ company, website, size = 36 }: { company: string; website: string; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  const domain = website ? domainOf(website) : "";
+  const real = !!domain && !NON_SITE_DOMAINS.test(domain);
+  const box = { width: size, height: size };
+  if (real && !failed) {
+    return (
+      <img
+        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+        alt="" onError={() => setFailed(true)} style={box}
+        className="rounded-md border border-neutral-200 bg-white object-contain shrink-0"
+      />
+    );
+  }
+  return (
+    <div style={{ ...box, fontSize: Math.round(size * 0.42) }}
+      className="rounded-md border-2 border-neutral-900 bg-violet-100 flex items-center justify-center font-['Clash_Display'] font-semibold text-violet-700 shrink-0">
+      {company.replace(/[^a-zA-Z0-9]/g, "")[0]?.toUpperCase() || "?"}
+    </div>
   );
 }
 
@@ -1122,21 +1178,24 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
       style={{ width: fullWidth ? "100%" : `${widthPct}%` }}
     >
       {/* Header */}
-      <div className="h-12 shrink-0 border-b-2 border-neutral-900 bg-white flex items-center gap-2 px-3 overflow-x-auto">
+      <div className="h-12 shrink-0 border-b-2 border-neutral-900 bg-white flex items-center gap-2 px-3">
+        <div className="flex items-center gap-2 min-w-0 flex-1 overflow-x-auto bob-thinscroll">
         {tables.map((t) => (
           <button
             key={t.id}
             onClick={() => { setActiveId(t.id); setDetailRow(null); }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border-2 transition-colors ${
+            className={`flex items-center gap-1 max-w-[210px] shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-colors ${
               active?.id === t.id
                 ? "bg-violet-500 text-white border-neutral-900"
                 : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-900"
             }`}
           >
-            {prettify(t.name)} <span className="opacity-70">· {t.rows.length}</span>
+            <span className="truncate">{prettify(t.name)}</span>
+            <span className="opacity-70 shrink-0">· {t.rows.length}</span>
           </button>
         ))}
-        <div className="ml-auto flex items-center gap-1 shrink-0">
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
           <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden mr-1">
             {([["cards", FiLayers, "Card view"], ["table", FiGrid, "Table view"]] as const).map(([v, Icon, label]) => (
               <button
@@ -1352,17 +1411,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
     >
       {/* Header */}
       <div className="flex items-start gap-2.5">
-        {websiteIsReal ? (
-          <img
-            src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-            alt=""
-            className="w-9 h-9 rounded-lg border border-neutral-200 bg-neutral-50 p-1"
-          />
-        ) : (
-          <div className="w-9 h-9 rounded-lg border-2 border-neutral-900 bg-violet-100 flex items-center justify-center font-['Clash_Display'] text-[15px] font-semibold text-violet-700">
-            {company.replace(/[^a-zA-Z0-9]/g, "")[0]?.toUpperCase() || "?"}
-          </div>
-        )}
+        <CompanyLogo company={company} website={website} size={36} />
         <div className="min-w-0 flex-1">
           <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">{company}</div>
           <div className="text-[11.5px] text-neutral-500 truncate">{meta || what || ""}</div>
@@ -1516,11 +1565,12 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
             <tr
               key={r.id}
               onClick={() => onRowClick(r)}
-              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-violet-50 ${idx % 2 ? "bg-neutral-50/50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""}`}
+              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""}`}
             >
               <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
                 <span className="inline-flex items-center gap-2">
-                  <span className="w-5 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
+                  <span className="w-4 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
+                  <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} size={20} />
                   {str(r.cells.company)}
                 </span>
               </td>
