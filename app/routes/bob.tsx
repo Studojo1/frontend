@@ -278,6 +278,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [notice, setNotice] = useState<string>("");
   const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null } | null>(null);
   const [showTeam, setShowTeam] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
   const [dark, setDark] = useState(false);
   useEffect(() => { setDark(localStorage.getItem("bob_dark") === "1"); }, []);
   const toggleDark = useCallback(() => {
@@ -608,6 +609,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   return (
     <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
       {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
+      {showSupport && <SupportModal email={me?.email || ""} orgName={me?.org?.name || ""} onClose={() => setShowSupport(false)} />}
       <style>{`
         @keyframes bobFlash { 0% { background-color: rgb(221 214 254); } 100% { background-color: transparent; } }
         .bob-new { animation: bobFlash 2.5s ease-out; }
@@ -704,12 +706,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 <FiUsers size={15} /> Manage team
               </button>
             )}
-            <a
-              href="mailto:admin@studojo.com?subject=Sensei%20support%20request&body=Describe%20the%20issue%20or%20request%3A%0A%0A"
+            <button
+              onClick={() => setShowSupport(true)}
               className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl px-3 py-2.5 hover:bg-neutral-900 hover:text-white transition-colors"
             >
               <FiMessageSquare size={15} /> Get support
-            </a>
+            </button>
             {me?.email && (
               <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-400 px-1">
                 <span className="truncate" title={me.email}>{me.email}</span>
@@ -1039,6 +1041,96 @@ function TeamModal({ orgName, onClose }: { orgName: string; onClose: () => void 
           ))}
           {members.length === 0 && <p className="text-sm text-neutral-400 text-center py-4">No members yet.</p>}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SupportModal({ email, orgName, onClose }: { email: string; orgName: string; onClose: () => void }) {
+  const REASONS = [
+    { id: "broken", label: "Something is broken" },
+    { id: "billing", label: "Credits or billing" },
+    { id: "question", label: "A question / how does this work" },
+    { id: "other", label: "Something else" },
+  ];
+  const [reason, setReason] = useState("broken");
+  const [description, setDescription] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [doneId, setDoneId] = useState<number | null>(null);
+
+  const submit = async () => {
+    if (description.trim().length < 5 || busy) return;
+    setBusy(true); setError("");
+    try {
+      const res = await fetch("/api/sensei-ticket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email, org: orgName, reason, description: description.trim(),
+          context: { page_url: typeof window !== "undefined" ? window.location.href : null },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) { setError(json?.error || `Couldn't submit (HTTP ${res.status})`); return; }
+      setDoneId(json.id);
+    } catch { setError("Couldn't reach the server. Try again."); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6" onClick={onClose}>
+      <div
+        className="w-full max-w-lg bg-white border-2 border-neutral-900 rounded-[28px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-['Clash_Display'] text-xl font-semibold">Get support</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+        </div>
+        {doneId ? (
+          <div className="py-6 text-center">
+            <div className="text-3xl mb-2">✓</div>
+            <p className="font-semibold">Ticket #{doneId} raised.</p>
+            <p className="text-sm text-neutral-500 mt-1">
+              Our team will get back to you at {email || "your email"}. You can close this.
+            </p>
+            <button onClick={onClose}
+                    className="mt-5 bg-neutral-900 text-white font-bold px-5 py-2 rounded-xl border-2 border-neutral-900 text-sm hover:bg-violet-700">
+              Done
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-neutral-500 mb-4">
+              Tell us what's going on. It goes straight to the Studojo team.
+            </p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {REASONS.map((r) => (
+                <button key={r.id} onClick={() => setReason(r.id)}
+                        className={`text-xs font-semibold rounded-full px-3 py-1.5 border-2 transition-colors ${
+                          reason === r.id ? "border-violet-500 bg-violet-500 text-white" : "border-neutral-300 text-neutral-500 hover:border-neutral-900"}`}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={description} onChange={(e) => setDescription(e.target.value)}
+              rows={5} placeholder="Describe the issue or request..."
+              className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+            />
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={onClose} className="px-4 py-2 rounded-xl border-2 border-neutral-300 text-sm font-semibold text-neutral-500 hover:border-neutral-900 hover:text-neutral-900">
+                Cancel
+              </button>
+              <button onClick={submit} disabled={busy || description.trim().length < 5}
+                      className="bg-violet-700 text-white font-bold px-5 py-2 rounded-xl border-2 border-neutral-900 text-sm hover:bg-violet-800 disabled:opacity-60">
+                {busy ? "Sending..." : "Raise ticket"}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
