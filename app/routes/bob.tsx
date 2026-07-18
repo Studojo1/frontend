@@ -160,18 +160,19 @@ export default function BobPage() {
 function Gate({ onSuccess }: { onSuccess: () => void }) {
   const [mode, setMode] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   const submitEmail = async () => {
-    if (!email.trim() || busy) return;
+    if (!email.trim() || !password || busy) return;
     setBusy(true); setError("");
     try {
       const res = await fetch(`${API}/auth/email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d?.detail || "Could not sign you in");
@@ -222,12 +223,17 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
         {mode === "email" ? (
           <>
             <p className="text-neutral-600 mt-2 mb-6">
-              Sign in with your work email to reach your team's workspace.
+              Sign in with your work email and password to reach your team's workspace.
             </p>
             <input
               type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submitEmail()}
               placeholder="you@company.com" className={inputCls}
+            />
+            <input
+              type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitEmail()}
+              placeholder="Password" className={`${inputCls} mt-3`}
             />
             {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
             <button onClick={submitEmail} disabled={busy} className={btnCls}>

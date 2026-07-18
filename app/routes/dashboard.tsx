@@ -68,6 +68,10 @@ interface Chat { id: number; title: string; owner_email: string | null; shared_o
 interface Activity { created_at: string | null; kind: string; delta: number; reason: string; email: string | null }
 interface Credits { enrichment_balance: number; ai_balance: number; enrichment_used: number; ai_used: number; low: boolean }
 interface DashData { org: { id: number; name: string } | null; credits: Credits | null; members: Member[]; chats: Chat[]; activity: Activity[] }
+interface ChatMsg { id: number; role: string; content: string }
+interface ChatRow { id: number; cells: Record<string, any>; status?: string }
+interface ChatTable { id: number; name: string; rows: ChatRow[] }
+interface ChatDetail { messages: ChatMsg[]; tables: ChatTable[] }
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
@@ -85,16 +89,17 @@ export default function DashboardPage() {
 
 function DashGate({ onSuccess }: { onSuccess: () => void }) {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
-    if (!email.trim() || busy) return;
+    if (!email.trim() || !password || busy) return;
     setBusy(true); setError("");
     try {
       const res = await fetch(`${API}/auth/email`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d?.detail || "Could not sign you in");
@@ -114,12 +119,18 @@ function DashGate({ onSuccess }: { onSuccess: () => void }) {
         <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">
           Team dashboard <span className="text-neutral-400 text-xl font-normal">Sensei</span>
         </h1>
-        <p className="text-neutral-600 mt-2 mb-6">Sign in with your manager email to see your team's activity.</p>
+        <p className="text-neutral-600 mt-2 mb-6">Sign in with your manager email and password to see your team's activity.</p>
         <input
           type="email" value={email} onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
           placeholder="you@company.com"
           className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
+        />
+        <input
+          type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="Password"
+          className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 mt-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
         {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
         <button
@@ -140,6 +151,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const [invite, setInvite] = useState("");
   const [inviteRole, setInviteRole] = useState<"member" | "admin">("member");
   const [inviteBusy, setInviteBusy] = useState(false);
+  const [viewChat, setViewChat] = useState<{ id: number; title: string } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -203,6 +215,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
 
   return (
     <div className="min-h-screen bg-[#faf7f2] font-['Satoshi'] text-neutral-900">
+      {viewChat && <ChatViewer chatId={viewChat.id} title={viewChat.title} onClose={() => setViewChat(null)} />}
       {/* Header */}
       <header className="sticky top-0 z-20 border-b-2 border-neutral-900 bg-white">
         <div className="mx-auto max-w-6xl px-4 md:px-8 h-16 flex items-center justify-between">
@@ -319,10 +332,14 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
           <div className="min-w-[640px]">
             {(data?.chats || []).map((ch) => (
               <div key={ch.id} className="grid grid-cols-[1.8fr_1fr_1.3fr_0.7fr] gap-3 items-center px-5 py-3 border-b border-neutral-100 text-sm">
-                <div className="min-w-0 flex items-center gap-2">
-                  <span className="font-semibold truncate">{ch.title}</span>
+                <button
+                  onClick={() => setViewChat({ id: ch.id, title: ch.title })}
+                  className="min-w-0 flex items-center gap-2 text-left group"
+                  title="Open this chat"
+                >
+                  <span className="font-semibold truncate group-hover:text-violet-700 group-hover:underline">{ch.title}</span>
                   {ch.shared_org && <span className="shrink-0 text-[10px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">shared</span>}
-                </div>
+                </button>
                 <div className="text-neutral-400 text-xs truncate" title={ch.owner_email || ""}>
                   {ch.owner_email || "-"}
                 </div>
@@ -363,6 +380,81 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
             </div>
           ))}
           {(data?.activity.length ?? 0) === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No credit activity yet.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Read-only chat viewer for managers — the full conversation + the results the
+// team built (companies, contacts). Managers can review any chat in their org.
+function ChatViewer({ chatId, title, onClose }: { chatId: number; title: string; onClose: () => void }) {
+  const [data, setData] = useState<ChatDetail | null>(null);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    api<ChatDetail>(`/chats/${chatId}`).then(setData).catch((e) => setErr(e.message || "Could not load chat"));
+  }, [chatId]);
+
+  const str = (v: any) => (v == null ? "" : String(v));
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 md:p-8" onClick={onClose}>
+      <div className="w-full max-w-3xl max-h-[88vh] flex flex-col bg-white border-2 border-neutral-900 rounded-[24px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="shrink-0 flex items-center justify-between gap-3 px-5 py-3 border-b-2 border-neutral-900">
+          <div className="min-w-0">
+            <div className="font-['Clash_Display'] text-lg font-semibold truncate">{title}</div>
+            <div className="text-xs text-neutral-400">Read-only · manager view</div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <a href={senseiUrl()} className="flex items-center gap-1 text-xs font-bold text-violet-700 hover:underline">
+              Open in Sensei <FiExternalLink size={13} />
+            </a>
+            <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900 text-xl leading-none px-1">×</button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {err && <p className="text-red-600 text-sm">{err}</p>}
+          {!data && !err && <p className="text-neutral-400 text-sm">Loading…</p>}
+
+          {/* Conversation */}
+          {data?.messages?.map((m) => (
+            <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl border-2 border-neutral-900 text-sm whitespace-pre-wrap break-words ${
+                m.role === "user" ? "bg-violet-500 text-white rounded-br-md" : "bg-white rounded-tl-md"}`}>
+                {m.content}
+              </div>
+            </div>
+          ))}
+
+          {/* Results the team built */}
+          {data?.tables?.filter((t) => t.rows?.length).map((t) => (
+            <div key={t.id} className="border-2 border-neutral-900 rounded-2xl overflow-hidden">
+              <div className="px-4 py-2 bg-[#faf7f2] border-b-2 border-neutral-900 text-sm font-bold flex items-center justify-between">
+                <span className="truncate">{t.name}</span>
+                <span className="text-neutral-400 text-xs shrink-0">{t.rows.length} rows</span>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                {t.rows.slice(0, 50).map((r) => (
+                  <div key={r.id} className="flex items-center justify-between gap-3 px-4 py-2 border-b border-neutral-100 text-sm">
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{str(r.cells.company) || "—"}</div>
+                      <div className="text-xs text-neutral-400 truncate">{str(r.cells.role_title) || str(r.cells.contact_name)}</div>
+                    </div>
+                    <div className="text-xs text-neutral-500 truncate max-w-[45%] text-right">
+                      {str(r.cells.contact_email) || str(r.cells.contact_phone) || str(r.cells.location_city)}
+                    </div>
+                  </div>
+                ))}
+                {t.rows.length > 50 && <div className="px-4 py-2 text-xs text-neutral-400">+ {t.rows.length - 50} more — open in Sensei to see all.</div>}
+              </div>
+            </div>
+          ))}
+
+          {data && data.messages?.length === 0 && (data.tables?.length ?? 0) === 0 && (
+            <p className="text-neutral-400 text-sm text-center py-6">This chat is empty.</p>
+          )}
         </div>
       </div>
     </div>
