@@ -43,11 +43,15 @@ async function api<T = any>(path: string, options: RequestInit = {}): Promise<T>
   return data as T;
 }
 
-// dashboard.studojo.* -> app.studojo.* (same env).
+// dashboard.studojo.* -> app.studojo.* (same env). Carries the session token
+// across the subdomain (localStorage is per-origin) so Sensei opens as the SAME
+// account the manager is signed into here, not whatever was cached on app.*.
 function senseiUrl(): string {
   if (typeof window === "undefined") return "https://app.studojo.com";
   const host = window.location.host.replace(/^dashboard\./, "app.");
-  return `${window.location.protocol}//${host}`;
+  const base = `${window.location.protocol}//${host}`;
+  const s = typeof localStorage !== "undefined" ? localStorage.getItem(SESSION_STORAGE) : null;
+  return s ? `${base}/?s=${encodeURIComponent(s)}` : base;
 }
 
 function fmtDate(s: string | null): string {
@@ -80,6 +84,18 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setMounted(true);
+    // Session handoff from Sensei (?s=token) — adopt it (overriding any stale
+    // session on this subdomain), then clean the URL.
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const s = params.get("s");
+      if (s) {
+        localStorage.setItem(SESSION_STORAGE, s);
+        localStorage.removeItem(KEY_STORAGE);
+        params.delete("s");
+        window.history.replaceState({}, "", window.location.pathname + (params.toString() ? `?${params}` : ""));
+      }
+    } catch { /* ignore */ }
     if (localStorage.getItem(SESSION_STORAGE) || localStorage.getItem(KEY_STORAGE)) setAuthed(true);
   }, []);
 
