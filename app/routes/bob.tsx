@@ -957,7 +957,7 @@ const TEMPLATES = [
   {
     icon: FiUsers, title: "Place a cohort",
     subtitle: "Companies that hire a whole batch",
-    prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Find companies that can absorb them at volume (bulk hiring, walk-in drives, fresher intakes), with TA contacts for each.",
+    prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Target CTC band: [e.g. 4-8 LPA]. Company profile: [e.g. product startups, mid-size IT services, any that bulk-hire freshers]. Location: [cities]. Find companies that can absorb them at volume (bulk hiring, walk-in drives, fresher intakes), with a TA/HR contact for each.",
   },
   {
     icon: FiBriefcase, title: "Build a partner pipeline",
@@ -1243,39 +1243,138 @@ function EmptyChat({ onPick }: { onPick: (s: string) => void }) {
 
 // ── Run progress ─────────────────────────────────────────────────────────────
 
+// The pipeline stages, in order, with a friendly name and a rough share of the
+// total time (used to draw the progress bar). Sensei's raw logs say things like
+// "harvest(ring 0): done" — users shouldn't have to read that.
+const RUN_STAGES = [
+  { key: "plan", label: "Planning the search", weight: 0.05 },
+  { key: "search", label: "Searching boards & LinkedIn", weight: 0.30 },
+  { key: "extract", label: "Reading & pulling out companies", weight: 0.22 },
+  { key: "score", label: "Scoring how well each fits", weight: 0.13 },
+  { key: "enrich", label: "Checking live hiring signals", weight: 0.12 },
+  { key: "contact", label: "Finding the right person to reach", weight: 0.10 },
+  { key: "assemble", label: "Building your table", weight: 0.08 },
+];
+const FRIENDLY_SOURCE: Record<string, string> = {
+  getro: "startup job boards", careerjet: "Careerjet", ats: "company career pages",
+  reddit: "Reddit", ctx_li_posts: "LinkedIn posts", ctx_x: "X (Twitter)",
+  hirist: "Hirist", iimjobs: "IIMJobs", naukri: "Naukri", yc: "Y Combinator", remote_boards: "remote boards",
+};
+
+// Turn one raw event into a human sentence. Never leak internal ids / ring jargon.
+function humanizeEvent(ev: RunEvent): string {
+  const raw = ev.label || "";
+  const low = raw.toLowerCase();
+  for (const s of RUN_STAGES) {
+    if (s.key !== "search" && low.startsWith(s.key)) return s.label;
+  }
+  if (/harvest/.test(low)) return "Searching boards & LinkedIn";
+  // Search events look like "[getro] sre engineer @ Pune" or
+  // "[ctx_li_posts] site:linkedin.com/posts \"sre engineer\" Pune hiring".
+  const m = raw.match(/^\[([a-z_]+)\]\s*(.*)$/i);
+  if (m) {
+    const src = FRIENDLY_SOURCE[m[1].toLowerCase()] || m[1];
+    let q = m[2]
+      .replace(/site:\S+/gi, "")
+      .replace(/["']/g, "")
+      .replace(/\bhiring\b/gi, "")
+      .replace(/@/g, "in ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (q.length > 60) q = q.slice(0, 60) + "…";
+    return q ? `Searching ${src}: ${q}` : `Searching ${src}`;
+  }
+  return raw;
+}
+
+// Which stage is currently active, from the furthest-along stage keyword seen.
+function currentStageIndex(events: RunEvent[]): number {
+  let idx = 0;
+  for (const ev of events) {
+    const low = (ev.label || "").toLowerCase();
+    for (let i = 0; i < RUN_STAGES.length; i++) {
+      const k = RUN_STAGES[i].key;
+      const hit = k === "search" ? /harvest|^\[/.test(low) : low.startsWith(k);
+      if (hit && i > idx) idx = i;
+    }
+  }
+  return idx;
+}
+
 function RunProgress({ run }: { run: Run }) {
   const events = run.events || [];
-  const recent = events.slice(-7);
+  const recent = events.slice(-5);
   const c = run.counters || {};
+  const stageIdx = currentStageIndex(events);
+
+  // Elapsed + rough ETA. Typical full run ~3 min; the bar advances by stage
+  // weight but never sits still (a slow stage like "assemble" still creeps).
+  const [now, setNow] = useState(() => 0);
+  const startRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (startRef.current == null) startRef.current = Date.now();
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const elapsedS = startRef.current ? Math.floor((Date.now() - startRef.current) / 1000) : 0;
+
+  const stageProgress = RUN_STAGES.slice(0, stageIdx).reduce((s, x) => s + x.weight, 0)
+    + RUN_STAGES[stageIdx].weight * 0.5;
+  const TYPICAL_S = 200;
+  const timeProgress = Math.min(0.92, elapsedS / TYPICAL_S);
+  const pct = Math.min(0.96, Math.max(stageProgress, timeProgress)) * 100;
+  const etaS = Math.max(0, TYPICAL_S - elapsedS);
+  const mm = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
   return (
-    <div className="flex gap-2.5">
+    <div className="flex gap-2.5" data-tick={now}>
       <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
         <FiLoader className="animate-spin text-violet-400" size={13} />
       </div>
       <div className="flex-1 bg-white border-2 border-neutral-900 rounded-2xl rounded-tl-md shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] p-4">
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <span className="font-bold text-sm">Researching…</span>
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <span className="font-bold text-sm">{RUN_STAGES[stageIdx].label}…</span>
           <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
-            {c.searches ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{c.searches} searches</span> : null}
-            {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} results</span> : null}
-            {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{run.credits_used} credits</span> : null}
+            {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} found</span> : null}
+            {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="context.dev search credits (not phone reveals)">{run.credits_used} search credits</span> : null}
           </span>
         </div>
+
+        {/* Progress bar + ETA */}
+        <div className="mb-3">
+          <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
+            <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1">
+            <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
+            <span>{mm(elapsedS)} elapsed · about {mm(etaS)} left</span>
+          </div>
+        </div>
+
+        {/* Stage stepper */}
+        <div className="flex items-center gap-1 mb-3">
+          {RUN_STAGES.map((s, i) => (
+            <div key={s.key} title={s.label}
+              className={`h-1.5 flex-1 rounded-full ${i < stageIdx ? "bg-violet-500" : i === stageIdx ? "bg-violet-400 animate-pulse" : "bg-neutral-200"}`} />
+          ))}
+        </div>
+
+        {/* Recent friendly activity */}
         <div className="space-y-1.5">
           {recent.map((ev, i) => (
-            <div key={i} className={`flex items-start gap-2 text-[13px] ${i === recent.length - 1 ? "text-neutral-900 font-semibold" : "text-neutral-500"}`}>
+            <div key={i} className={`flex items-start gap-2 text-[13px] ${i === recent.length - 1 ? "text-neutral-900 font-semibold" : "text-neutral-400"}`}>
               <span className="mt-0.5 text-violet-500 shrink-0">
                 {ev.type === "search" || ev.type === "search_done" ? <FiSearch size={13} /> :
                  ev.type === "scrape" ? <FiFileText size={13} /> :
                  ev.type === "table" || ev.type === "rows" ? <FiGrid size={13} /> : <FiZap size={13} />}
               </span>
-              <span>{ev.label}</span>
+              <span>{humanizeEvent(ev)}</span>
             </div>
           ))}
           {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research…</p>}
         </div>
         <p className="text-[11px] text-neutral-400 mt-3">
-          Results appear on the right as Sensei finds them. Deep research can take a few minutes.
+          Companies appear on the right as Sensei finds them. A full run usually takes 2–4 minutes.
         </p>
       </div>
     </div>
@@ -1349,11 +1448,12 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
           <button
             key={t.id}
             onClick={() => { setActiveId(t.id); setDetailRow(null); }}
-            className={`flex items-center gap-1 max-w-[210px] shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold border-2 transition-colors ${
+            className={`flex items-center gap-1 max-w-[150px] shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold border-2 transition-colors ${
               active?.id === t.id
                 ? "bg-violet-500 text-white border-neutral-900"
                 : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-900"
             }`}
+            title={prettify(t.name)}
           >
             <span className="truncate">{prettify(t.name)}</span>
             <span className="opacity-70 shrink-0">· {t.rows.length}</span>
