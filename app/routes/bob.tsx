@@ -930,6 +930,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               widthPct={mode === "table" ? 100 : tablePct}
               fullWidth={mode === "table"}
               tables={tables}
+              run={running ? run : null}
               expanded={mode === "table"}
               onExpand={() => setMode(mode === "table" ? "split" : "table")}
               viewPref={viewPref}
@@ -1381,10 +1382,83 @@ function RunProgress({ run }: { run: Run }) {
   );
 }
 
+// Live animated pipeline graph — shows on the right panel while a run works and
+// no rows have landed yet, so the user sees exactly what Sensei is doing.
+function RunGraph({ run }: { run: Run }) {
+  const events = run.events || [];
+  const idx = currentStageIndex(events);
+  const c = run.counters || {};
+  const stageIcon = (key: string) =>
+    key === "search" ? <FiSearch size={15} /> :
+    key === "extract" ? <FiFileText size={15} /> :
+    key === "score" ? <FiTarget size={15} /> :
+    key === "enrich" ? <FiZap size={15} /> :
+    key === "contact" ? <FiUser size={15} /> :
+    key === "assemble" ? <FiGrid size={15} /> : <FiLayers size={15} />;
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center">
+      <style>{`
+        @keyframes bobFlowDot { 0% { top: 2px; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { top: 26px; opacity: 0; } }
+        .bob-flowdot { animation: bobFlowDot 1.1s linear infinite; }
+        @keyframes bobRing { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(1.9); opacity: 0; } }
+        .bob-ring { animation: bobRing 1.4s ease-out infinite; }
+      `}</style>
+      <div className="w-full max-w-[340px]">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 mx-auto border-2 border-neutral-900 rounded-2xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] mb-3">
+            <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+          </div>
+          <h3 className="font-['Clash_Display'] text-xl font-semibold">Sensei is on it</h3>
+          <p className="text-sm text-neutral-500 mt-1">Building your company list, live.</p>
+        </div>
+
+        <div className="relative">
+          {RUN_STAGES.map((s, i) => {
+            const state = i < idx ? "done" : i === idx ? "active" : "todo";
+            const last = i === RUN_STAGES.length - 1;
+            return (
+              <div key={s.key} className="flex items-start gap-3 relative pb-3 last:pb-0">
+                {/* connector */}
+                {!last && (
+                  <span className={`absolute left-[15px] top-8 h-[26px] w-0.5 ${i < idx ? "bg-violet-500" : "bg-neutral-200"}`}>
+                    {state === "active" && <span className="bob-flowdot absolute -left-[3px] w-2 h-2 rounded-full bg-violet-500" />}
+                  </span>
+                )}
+                {/* node */}
+                <div className="relative shrink-0">
+                  {state === "active" && <span className="bob-ring absolute inset-0 rounded-xl border-2 border-violet-500" />}
+                  <div className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center ${
+                    state === "done" ? "bg-violet-500 border-neutral-900 text-white"
+                    : state === "active" ? "bg-white border-violet-500 text-violet-600"
+                    : "bg-neutral-100 border-neutral-200 text-neutral-300"}`}>
+                    {state === "done" ? <FiCheck size={15} /> : stageIcon(s.key)}
+                  </div>
+                </div>
+                {/* label */}
+                <div className="pt-1.5 min-w-0">
+                  <div className={`text-sm font-semibold ${state === "todo" ? "text-neutral-300" : ""}`}>{s.label}</div>
+                  {state === "active" && <div className="text-[11px] text-violet-500 font-semibold">working…</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-wrap gap-2 justify-center mt-6">
+          {c.rows_added ? <span className="text-[11px] font-bold bg-violet-100 text-violet-700 rounded-full px-2.5 py-1">{c.rows_added} companies found</span> : null}
+          {run.credits_used ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-2.5 py-1" title="context.dev search credits">{run.credits_used} search credits</span> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Results panel (cards ⇄ table) ────────────────────────────────────────────
 
-function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow }: {
+function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow }: {
   tables: BobTable[];
+  run: Run | null;
   widthPct: number;
   fullWidth: boolean;
   expanded: boolean;
@@ -1517,7 +1591,10 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
       </div>
 
       {/* Body */}
-      {active && view === "cards" && (
+      {/* Live pipeline graph while a run is working and no rows have landed yet. */}
+      {run && (!active || active.rows.length === 0) && <RunGraph run={run} />}
+
+      {active && view === "cards" && !(run && active.rows.length === 0) && (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
             {active.rows.map((r, idx) => (
@@ -1533,13 +1610,13 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
               />
             ))}
           </div>
-          {active.rows.length === 0 && (
+          {active.rows.length === 0 && !run && (
             <p className="text-sm text-neutral-400 p-6 text-center">Results will appear here as Sensei finds them.</p>
           )}
         </div>
       )}
 
-      {active && view === "table" && (
+      {active && view === "table" && !(run && active.rows.length === 0) && (
         <DenseTable
           table={active}
           newIds={newIds}
