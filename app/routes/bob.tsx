@@ -1042,19 +1042,33 @@ function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number 
   );
 }
 
-// Company logo from the domain's favicon (Google's free public service, no key,
-// no cost). Falls back to a letter tile when there's no real domain or the icon
-// fails to load. Never triggers a paid lookup.
-function CompanyLogo({ company, website, size = 36 }: { company: string; website: string; size?: number }) {
+// Context.dev Logo Link — a real company logo for a domain, drawn from a free
+// CDN (a separate 10k/mo quota that does NOT touch our search credits) that
+// returns a generated monogram fallback when a domain has no logo. The
+// publicClientId is frontend-safe (locked to our allowlisted domains) and set
+// as a build-time env var; when it is absent we degrade to Google's free
+// favicon service, and when there is no domain at all to a letter tile.
+const LOGO_CLIENT_ID =
+  (import.meta.env as Record<string, string | undefined>).VITE_CONTEXT_LOGO_CLIENT_ID || "";
+
+// Company logo. Prefers the backend-resolved domain (row.cells._domain), else
+// derives one from the website field. Never triggers a paid lookup.
+function CompanyLogo({ company, website, domain: domainProp, size = 36 }:
+    { company: string; website: string; domain?: string; size?: number }) {
   const [failed, setFailed] = useState(false);
-  const domain = website ? domainOf(website) : "";
-  const real = !!domain && !NON_SITE_DOMAINS.test(domain);
+  const derived = website ? domainOf(website) : "";
+  const domain =
+    domainProp && !NON_SITE_DOMAINS.test(domainProp) ? domainProp
+    : derived && !NON_SITE_DOMAINS.test(derived) ? derived
+    : "";
   const box = { width: size, height: size };
-  if (real && !failed) {
+  if (domain && !failed) {
+    const src = LOGO_CLIENT_ID
+      ? `https://logos.context.dev/?publicClientId=${LOGO_CLIENT_ID}&domain=${encodeURIComponent(domain)}&theme=light`
+      : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
     return (
       <img
-        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-        alt="" onError={() => setFailed(true)} style={box}
+        src={src} alt="" onError={() => setFailed(true)} style={box}
         className="rounded-md border border-neutral-200 bg-white object-contain shrink-0"
       />
     );
@@ -1781,7 +1795,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
     >
       {/* Header */}
       <div className="flex items-start gap-2.5">
-        <CompanyLogo company={company} website={website} size={36} />
+        <CompanyLogo company={company} website={website} domain={str(c._domain)} size={36} />
         <div className="min-w-0 flex-1">
           <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">{company}</div>
           <div className="text-[11.5px] text-neutral-500 truncate">{meta || what || ""}</div>
@@ -1940,7 +1954,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
               <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
                 <span className="inline-flex items-center gap-2">
                   <span className="w-4 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
-                  <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} size={20} />
+                  <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} domain={str(r.cells._domain)} size={20} />
                   {str(r.cells.company)}
                 </span>
               </td>
