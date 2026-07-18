@@ -292,6 +292,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null } | null>(null);
   const [showTeam, setShowTeam] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [dark, setDark] = useState(false);
   useEffect(() => { setDark(localStorage.getItem("bob_dark") === "1"); }, []);
   const toggleDark = useCallback(() => {
@@ -482,6 +483,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     }
   };
 
+  const stopRun = async () => {
+    if (!run || stopping) return;
+    setStopping(true);
+    try { await bobFetch(`/runs/${run.id}/stop`, { method: "POST" }); } catch { /* best-effort */ }
+  };
+
   const uploadFile = async (f: globalThis.File) => {
     setUploading(true);
     try {
@@ -629,6 +636,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   }, [anyEnriching, refreshTables, loadCredits]);
 
   const running = run?.status === "running";
+  useEffect(() => { if (!running) setStopping(false); }, [running]);
   const hasTables = tables.length > 0;
   const showChat = mode !== "table";
   const showTable = hasTables && mode !== "chat";
@@ -901,13 +909,24 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     disabled={running}
                     className="flex-1 border-2 border-neutral-900 rounded-2xl px-4 py-2.5 text-[14.5px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-neutral-100"
                   />
-                  <button
-                    onClick={() => send()}
-                    disabled={running || sending || !input.trim()}
-                    className="self-end bg-violet-700 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-violet-800 transition-colors disabled:opacity-40"
-                  >
-                    {sending || running ? <FiLoader className="animate-spin" /> : <FiSend />}
-                  </button>
+                  {running ? (
+                    <button
+                      onClick={stopRun}
+                      disabled={stopping}
+                      title="Stop this run (keeps what's already found)"
+                      className="self-end bg-red-600 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-60 border-2 border-neutral-900"
+                    >
+                      {stopping ? <FiLoader className="animate-spin" size={16} /> : <span className="w-3.5 h-3.5 bg-white rounded-[3px]" />}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => send()}
+                      disabled={sending || !input.trim()}
+                      className="self-end bg-violet-700 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-violet-800 transition-colors disabled:opacity-40"
+                    >
+                      {sending ? <FiLoader className="animate-spin" /> : <FiSend />}
+                    </button>
+                  )}
                 </div>
               </div>
             </section>
@@ -1382,70 +1401,79 @@ function RunProgress({ run }: { run: Run }) {
   );
 }
 
-// Live animated pipeline graph — shows on the right panel while a run works and
-// no rows have landed yet, so the user sees exactly what Sensei is doing.
+// Live animated pipeline graph — a neural-network visual on the right panel while
+// a run works and no rows have landed yet, so the user sees Sensei "thinking".
+const NN_LAYERS = [3, 5, 5, 4, 2];
+const NN_W = 320, NN_H = 200, NN_PADX = 26, NN_PADY = 22;
+function nnNodes(): { x: number; y: number; layer: number }[][] {
+  return NN_LAYERS.map((count, li) => {
+    const x = NN_PADX + ((NN_W - 2 * NN_PADX) * li) / (NN_LAYERS.length - 1);
+    return Array.from({ length: count }, (_, j) => {
+      const y = count === 1 ? NN_H / 2 : NN_PADY + ((NN_H - 2 * NN_PADY) * j) / (count - 1);
+      return { x, y, layer: li };
+    });
+  });
+}
+
 function RunGraph({ run }: { run: Run }) {
   const events = run.events || [];
   const idx = currentStageIndex(events);
   const c = run.counters || {};
-  const stageIcon = (key: string) =>
-    key === "search" ? <FiSearch size={15} /> :
-    key === "extract" ? <FiFileText size={15} /> :
-    key === "score" ? <FiTarget size={15} /> :
-    key === "enrich" ? <FiZap size={15} /> :
-    key === "contact" ? <FiUser size={15} /> :
-    key === "assemble" ? <FiGrid size={15} /> : <FiLayers size={15} />;
+  // Progress across the network layers, from the current pipeline stage.
+  const frac = (idx + 1) / RUN_STAGES.length;
+  const wavefront = frac * (NN_LAYERS.length - 1);
+  const layers = nnNodes();
 
   return (
     <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center">
       <style>{`
-        @keyframes bobFlowDot { 0% { top: 2px; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { top: 26px; opacity: 0; } }
-        .bob-flowdot { animation: bobFlowDot 1.1s linear infinite; }
-        @keyframes bobRing { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(1.9); opacity: 0; } }
-        .bob-ring { animation: bobRing 1.4s ease-out infinite; }
+        @keyframes bobDash { to { stroke-dashoffset: -14; } }
+        .bob-edge-live { stroke-dasharray: 3 6; animation: bobDash .5s linear infinite; }
+        @keyframes bobNodeGlow { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+        .bob-node-live { animation: bobNodeGlow 1.1s ease-in-out infinite; }
       `}</style>
-      <div className="w-full max-w-[340px]">
-        <div className="text-center mb-6">
+      <div className="w-full max-w-[360px]">
+        <div className="text-center mb-4">
           <div className="w-12 h-12 mx-auto border-2 border-neutral-900 rounded-2xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] mb-3">
             <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
           </div>
-          <h3 className="font-['Clash_Display'] text-xl font-semibold">Sensei is on it</h3>
-          <p className="text-sm text-neutral-500 mt-1">Building your company list, live.</p>
+          <h3 className="font-['Clash_Display'] text-xl font-semibold">Sensei is thinking</h3>
+          <p className="text-sm text-neutral-500 mt-1">{RUN_STAGES[idx].label}…</p>
         </div>
 
-        <div className="relative">
-          {RUN_STAGES.map((s, i) => {
-            const state = i < idx ? "done" : i === idx ? "active" : "todo";
-            const last = i === RUN_STAGES.length - 1;
-            return (
-              <div key={s.key} className="flex items-start gap-3 relative pb-3 last:pb-0">
-                {/* connector */}
-                {!last && (
-                  <span className={`absolute left-[15px] top-8 h-[26px] w-0.5 ${i < idx ? "bg-violet-500" : "bg-neutral-200"}`}>
-                    {state === "active" && <span className="bob-flowdot absolute -left-[3px] w-2 h-2 rounded-full bg-violet-500" />}
-                  </span>
-                )}
-                {/* node */}
-                <div className="relative shrink-0">
-                  {state === "active" && <span className="bob-ring absolute inset-0 rounded-xl border-2 border-violet-500" />}
-                  <div className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center ${
-                    state === "done" ? "bg-violet-500 border-neutral-900 text-white"
-                    : state === "active" ? "bg-white border-violet-500 text-violet-600"
-                    : "bg-neutral-100 border-neutral-200 text-neutral-300"}`}>
-                    {state === "done" ? <FiCheck size={15} /> : stageIcon(s.key)}
-                  </div>
-                </div>
-                {/* label */}
-                <div className="pt-1.5 min-w-0">
-                  <div className={`text-sm font-semibold ${state === "todo" ? "text-neutral-300" : ""}`}>{s.label}</div>
-                  {state === "active" && <div className="text-[11px] text-violet-500 font-semibold">working…</div>}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {/* Neural network */}
+        <svg viewBox={`0 0 ${NN_W} ${NN_H}`} className="w-full h-auto">
+          {/* edges */}
+          {layers.slice(0, -1).map((la, li) =>
+            la.flatMap((a) =>
+              layers[li + 1].map((b, bj) => {
+                const live = li < wavefront;
+                return (
+                  <line key={`${li}-${a.y}-${bj}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                    stroke={live ? "#7c5cff" : "#e4e0d8"} strokeWidth={live ? 1.1 : 0.7}
+                    className={li === Math.floor(wavefront) ? "bob-edge-live" : ""}
+                    opacity={live ? 0.7 : 0.5} />
+                );
+              })
+            )
+          )}
+          {/* nodes */}
+          {layers.map((la, li) =>
+            la.map((n, nj) => {
+              const done = li < wavefront - 0.5;
+              const active = Math.abs(li - wavefront) <= 0.6;
+              return (
+                <circle key={`${li}-${nj}`} cx={n.x} cy={n.y} r={active ? 6 : 5}
+                  fill={done || active ? "#7c5cff" : "#ffffff"}
+                  stroke={done || active ? "#191a23" : "#cfc9bd"} strokeWidth={1.5}
+                  className={active ? "bob-node-live" : ""} />
+              );
+            })
+          )}
+        </svg>
 
-        <div className="flex flex-wrap gap-2 justify-center mt-6">
+        <div className="flex flex-wrap gap-2 justify-center mt-4">
+          <span className="text-[11px] font-bold bg-neutral-100 rounded-full px-2.5 py-1">Step {idx + 1} of {RUN_STAGES.length}</span>
           {c.rows_added ? <span className="text-[11px] font-bold bg-violet-100 text-violet-700 rounded-full px-2.5 py-1">{c.rows_added} companies found</span> : null}
           {run.credits_used ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-2.5 py-1" title="context.dev search credits">{run.credits_used} search credits</span> : null}
         </div>
