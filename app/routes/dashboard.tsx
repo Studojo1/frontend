@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   FiUsers, FiPhone, FiZap, FiExternalLink, FiUserPlus, FiActivity,
-  FiMessageSquare, FiAlertTriangle,
+  FiMessageSquare, FiAlertTriangle, FiHome, FiMail,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -67,7 +67,8 @@ interface Member { email: string; name: string; role: string; last_login_at: str
 interface Chat { id: number; title: string; owner_email: string | null; shared_org: boolean; updated_at: string | null; assigned_to: string | null }
 interface Activity { created_at: string | null; kind: string; delta: number; reason: string; email: string | null }
 interface Credits { enrichment_balance: number; ai_balance: number; enrichment_used: number; ai_used: number; low: boolean }
-interface DashData { org: { id: number; name: string } | null; credits: Credits | null; members: Member[]; chats: Chat[]; activity: Activity[] }
+interface EnrichLog { created_at: string | null; email: string | null; chat_title: string | null; company: string | null; contact_name: string | null; contact_title: string | null; contact_phone: string | null; contact_email: string | null }
+interface DashData { org: { id: number; name: string } | null; credits: Credits | null; members: Member[]; chats: Chat[]; activity: Activity[]; enrichment_log: EnrichLog[] }
 interface ChatMsg { id: number; role: string; content: string }
 interface ChatRow { id: number; cells: Record<string, any>; status?: string }
 interface ChatTable { id: number; name: string; rows: ChatRow[] }
@@ -190,7 +191,9 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
     } catch (e: any) { setErr(e.message || "Could not assign chat"); load(); }
   };
 
+  const [tab, setTab] = useState<"overview" | "team" | "credits" | "chats" | "activity">("overview");
   const card = "bg-white border-2 border-neutral-900 rounded-2xl shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
+  const str = (v: any) => (v == null || v === "" ? "" : String(v));
 
   // Non-admin members don't get the manager dashboard — send them to Sensei.
   if (me && me.role !== "admin") {
@@ -212,176 +215,239 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   }
 
   const c = data?.credits;
+  const members = data?.members || [];
+  const log = data?.enrichment_log || [];
+  const NAV = [
+    { id: "overview", label: "Overview", icon: FiHome },
+    { id: "team", label: "Team", icon: FiUsers },
+    { id: "credits", label: "Credit usage", icon: FiPhone },
+    { id: "chats", label: "Chats", icon: FiMessageSquare },
+    { id: "activity", label: "Activity log", icon: FiActivity },
+  ] as const;
+
+  const StatCard = ({ icon, label, value, sub, warn }: { icon: any; label: string; value: any; sub?: string; warn?: boolean }) => (
+    <div className={`${card} p-5 ${warn ? "!border-amber-500" : ""}`}>
+      <div className="flex items-center gap-1.5 text-neutral-400 text-xs font-bold uppercase mb-1">{icon} {label}</div>
+      <div className={`text-3xl font-black ${warn ? "text-amber-600" : ""}`}>{value}</div>
+      {sub && <div className="text-xs text-neutral-400 mt-1">{sub}</div>}
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#faf7f2] font-['Satoshi'] text-neutral-900">
+    <div className="min-h-screen bg-[#faf7f2] font-['Satoshi'] text-neutral-900 flex">
       {viewChat && <ChatViewer chatId={viewChat.id} title={viewChat.title} onClose={() => setViewChat(null)} />}
-      {/* Header */}
-      <header className="sticky top-0 z-20 border-b-2 border-neutral-900 bg-white">
-        <div className="mx-auto max-w-6xl px-4 md:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 border-2 border-neutral-900 rounded-xl overflow-hidden shrink-0">
-              <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
-            </div>
-            <div className="min-w-0">
-              <div className="font-['Clash_Display'] text-lg font-semibold leading-none">Team dashboard</div>
-              <div className="text-xs text-neutral-400 truncate">{me?.org?.name || "your workspace"}</div>
-            </div>
+
+      {/* ── Left nav ── */}
+      <aside className="w-60 shrink-0 border-r-2 border-neutral-900 bg-white flex flex-col fixed inset-y-0 left-0 z-20">
+        <div className="h-16 px-4 flex items-center gap-2.5 border-b-2 border-neutral-900">
+          <div className="w-9 h-9 border-2 border-neutral-900 rounded-xl overflow-hidden shrink-0">
+            <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
           </div>
-          <div className="flex items-center gap-2">
-            <a href={senseiUrl()} className="flex items-center gap-1.5 bg-violet-600 text-white font-bold text-sm px-4 py-2 rounded-xl border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] hover:shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-shadow">
-              Open Sensei <FiExternalLink size={15} />
-            </a>
-            <button onClick={signOut} className="text-sm font-semibold text-neutral-400 hover:text-neutral-900 px-2">Sign out</button>
+          <div className="min-w-0">
+            <div className="font-['Clash_Display'] text-base font-semibold leading-none">Team dashboard</div>
+            <div className="text-xs text-neutral-400 truncate">{me?.org?.name || "your workspace"}</div>
           </div>
         </div>
-      </header>
-
-      <div className="mx-auto max-w-6xl px-4 md:px-8 py-8">
-        {err && <div className="mb-4 bg-red-50 border-2 border-red-500 text-red-700 rounded-xl px-4 py-2 text-sm">{err}</div>}
-
-        {/* Credit pool + top stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className={`${card} p-5 ${c?.low ? "!border-amber-500" : ""}`}>
-            <div className="flex items-center gap-1.5 text-neutral-400 text-xs font-bold uppercase mb-1"><FiPhone size={12} /> Reveals left</div>
-            <div className={`text-3xl font-black ${c?.low ? "text-amber-600" : ""}`}>{c ? c.enrichment_balance.toLocaleString() : "-"}</div>
-            <div className="text-xs text-neutral-400 mt-1">{c ? `${c.enrichment_used.toLocaleString()} used all-time` : ""}</div>
-          </div>
-          <div className={`${card} p-5`}>
-            <div className="flex items-center gap-1.5 text-neutral-400 text-xs font-bold uppercase mb-1"><FiZap size={12} /> AI credits</div>
-            <div className="text-3xl font-black">{c ? (c.ai_balance >= 100_000_000 ? "∞" : c.ai_balance.toLocaleString()) : "-"}</div>
-            <div className="text-xs text-neutral-400 mt-1">shared across the team</div>
-          </div>
-          <div className={`${card} p-5`}>
-            <div className="flex items-center gap-1.5 text-neutral-400 text-xs font-bold uppercase mb-1"><FiUsers size={12} /> Team</div>
-            <div className="text-3xl font-black">{data?.members.length ?? "-"}</div>
-            <div className="text-xs text-neutral-400 mt-1">members</div>
-          </div>
-          <div className={`${card} p-5`}>
-            <div className="flex items-center gap-1.5 text-neutral-400 text-xs font-bold uppercase mb-1"><FiMessageSquare size={12} /> Chats</div>
-            <div className="text-3xl font-black">{data?.chats.length ?? "-"}</div>
-            <div className="text-xs text-neutral-400 mt-1">in this workspace</div>
-          </div>
-        </div>
-
-        {c?.low && (
-          <div className="mb-6 flex items-center gap-2 bg-amber-50 border-2 border-amber-500 rounded-xl px-4 py-3 text-sm text-amber-800">
-            <FiAlertTriangle size={16} className="shrink-0" />
-            Your team is running low on reveal credits ({c.enrichment_balance} left). Reach out to Studojo to top up before it runs out.
-          </div>
-        )}
-
-        {/* How credits work */}
-        <p className="text-xs text-neutral-400 mb-6">
-          Credits are one shared pool. Every member sees the same balance; a reveal by anyone lowers it for everyone.
-        </p>
-
-        {/* Team + invite */}
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-['Clash_Display'] text-xl font-bold">Team</h2>
-        </div>
-        <div className={`${card} p-5 mb-4`}>
-          <div className="flex items-center gap-2">
-            <FiUserPlus size={16} className="text-neutral-400 shrink-0" />
-            <input
-              type="email" value={invite} onChange={(e) => setInvite(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && doInvite()} placeholder="teammate@company.com"
-              className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-            />
-            <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as any)}
-                    className="border-2 border-neutral-900 rounded-xl px-2 py-2 text-sm">
-              <option value="member">Member</option>
-              <option value="admin">Manager</option>
-            </select>
-            <button onClick={doInvite} disabled={inviteBusy}
-                    className="bg-violet-600 text-white font-bold px-4 py-2 rounded-xl border-2 border-neutral-900 text-sm disabled:opacity-60">
-              {inviteBusy ? "..." : "Invite"}
+        <nav className="flex-1 p-2 space-y-1">
+          {NAV.map((n) => (
+            <button key={n.id} onClick={() => setTab(n.id)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                tab === n.id ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}>
+              <n.icon size={16} /> {n.label}
             </button>
-          </div>
-        </div>
-        <div className={`${card} overflow-x-auto mb-8`}>
-          <div className="min-w-[680px]">
-            <div className="grid grid-cols-[2.2fr_0.9fr_0.8fr_0.9fr_1fr] gap-2 px-5 py-3 border-b-2 border-neutral-900 text-xs font-bold uppercase text-neutral-400">
-              <div>Member</div><div>Role</div><div>Chats</div><div>Reveals</div><div>Last active</div>
-            </div>
-            {(data?.members || []).map((m) => (
-              <div key={m.email} className="grid grid-cols-[2.2fr_0.9fr_0.8fr_0.9fr_1fr] gap-2 px-5 py-3 border-b border-neutral-100 text-sm items-center">
-                <div className="min-w-0">
-                  <div className="font-semibold truncate">{m.email}</div>
-                  <div className="text-[11px] text-neutral-400">{m.last_login_at ? "Active" : "Invited, not signed in yet"}</div>
-                </div>
-                <div>
-                  <span className={`text-[11px] font-bold rounded-full px-2 py-0.5 border-2 ${
-                    m.role === "admin" ? "border-violet-500 text-violet-600 bg-violet-50" : "border-neutral-300 text-neutral-500"}`}>
-                    {m.role === "admin" ? "manager" : "member"}
-                  </span>
-                </div>
-                <div>{m.chats}</div>
-                <div>{m.phones_revealed}</div>
-                <div className="text-neutral-500">{fmtDate(m.last_activity)}</div>
-              </div>
-            ))}
-            {(data?.members.length ?? 0) === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No members yet.</div>}
-          </div>
-        </div>
-
-        {/* Recent chats — assign each to a team member */}
-        <h2 className="font-['Clash_Display'] text-xl font-bold mb-1">Recent chats</h2>
-        <p className="text-xs text-neutral-400 mb-3">Assign a chat to someone and it shows up in their Sensei sidebar.</p>
-        <div className={`${card} overflow-x-auto mb-8`}>
-          <div className="min-w-[640px]">
-            {(data?.chats || []).map((ch) => (
-              <div key={ch.id} className="grid grid-cols-[1.8fr_1fr_1.3fr_0.7fr] gap-3 items-center px-5 py-3 border-b border-neutral-100 text-sm">
-                <button
-                  onClick={() => setViewChat({ id: ch.id, title: ch.title })}
-                  className="min-w-0 flex items-center gap-2 text-left group"
-                  title="Open this chat"
-                >
-                  <span className="font-semibold truncate group-hover:text-violet-700 group-hover:underline">{ch.title}</span>
-                  {ch.shared_org && <span className="shrink-0 text-[10px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">shared</span>}
-                </button>
-                <div className="text-neutral-400 text-xs truncate" title={ch.owner_email || ""}>
-                  {ch.owner_email || "-"}
-                </div>
-                <div>
-                  <select
-                    value={ch.assigned_to || ""}
-                    onChange={(e) => assignChat(ch.id, e.target.value)}
-                    className={`w-full border-2 rounded-lg px-2 py-1.5 text-xs ${ch.assigned_to ? "border-violet-500 text-violet-700 bg-violet-50" : "border-neutral-300 text-neutral-500"}`}
-                  >
-                    <option value="">Unassigned</option>
-                    {(data?.members || []).map((m) => (
-                      <option key={m.email} value={m.email}>{m.email}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="text-neutral-400 text-xs text-right">{fmtDate(ch.updated_at)}</div>
-              </div>
-            ))}
-            {(data?.chats.length ?? 0) === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No chats yet.</div>}
-          </div>
-        </div>
-
-        {/* Activity / spend log */}
-        <h2 className="font-['Clash_Display'] text-xl font-bold mb-3 flex items-center gap-2"><FiActivity size={18} /> Credit activity</h2>
-        <div className={`${card} overflow-hidden`}>
-          {(data?.activity || []).map((a, i) => (
-            <div key={i} className="flex items-center justify-between gap-3 px-5 py-2.5 border-b border-neutral-100 text-sm">
-              <div className="min-w-0 flex items-center gap-2">
-                <span className={`shrink-0 text-[10px] font-bold rounded px-1.5 py-0.5 ${a.kind === "enrichment" ? "bg-violet-100 text-violet-700" : "bg-neutral-100 text-neutral-500"}`}>
-                  {a.kind === "enrichment" ? "reveal" : "AI"}
-                </span>
-                <span className="truncate text-neutral-600">{a.email || "team"}</span>
-              </div>
-              <div className="shrink-0 flex items-center gap-3 text-xs">
-                <span className="font-bold text-neutral-700">{a.delta}</span>
-                <span className="text-neutral-400">{fmtTime(a.created_at)}</span>
-              </div>
-            </div>
           ))}
-          {(data?.activity.length ?? 0) === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No credit activity yet.</div>}
+        </nav>
+        <div className="p-3 border-t-2 border-neutral-900 space-y-2">
+          <a href={senseiUrl()} className="w-full flex items-center justify-center gap-1.5 bg-violet-600 text-white font-bold text-sm px-3 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+            Open Sensei <FiExternalLink size={14} />
+          </a>
+          <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-400 px-1">
+            <span className="truncate" title={me?.email || ""}>{me?.email}</span>
+            <button onClick={signOut} className="shrink-0 font-semibold hover:text-neutral-900">Sign out</button>
+          </div>
         </div>
-      </div>
+      </aside>
+
+      {/* ── Main ── */}
+      <main className="flex-1 ml-60 overflow-y-auto">
+        <div className="max-w-5xl mx-auto px-6 py-8">
+          {err && <div className="mb-4 bg-red-50 border-2 border-red-500 text-red-700 rounded-xl px-4 py-2 text-sm">{err}</div>}
+          <h1 className="font-['Clash_Display'] text-2xl font-bold mb-6 capitalize">{NAV.find((n) => n.id === tab)?.label}</h1>
+
+          {/* OVERVIEW */}
+          {tab === "overview" && (
+            <>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <StatCard icon={<FiPhone size={12} />} label="Reveals left" warn={c?.low} value={c ? c.enrichment_balance.toLocaleString() : "-"} sub={c ? `${c.enrichment_used.toLocaleString()} used all-time` : ""} />
+                <StatCard icon={<FiZap size={12} />} label="AI credits" value={c ? (c.ai_balance >= 100_000_000 ? "∞" : c.ai_balance.toLocaleString()) : "-"} sub="shared across the team" />
+                <StatCard icon={<FiUsers size={12} />} label="Team" value={members.length} sub="members" />
+                <StatCard icon={<FiMessageSquare size={12} />} label="Chats" value={data?.chats.length ?? "-"} sub="in this workspace" />
+              </div>
+              {c?.low && (
+                <div className="mb-6 flex items-center gap-2 bg-amber-50 border-2 border-amber-500 rounded-xl px-4 py-3 text-sm text-amber-800">
+                  <FiAlertTriangle size={16} className="shrink-0" />
+                  Your team is running low on reveal credits ({c.enrichment_balance} left). Reach out to Studojo to top up.
+                </div>
+              )}
+              <p className="text-xs text-neutral-400 mb-6">Credits are one shared pool. Every member sees the same balance; a reveal by anyone lowers it for everyone.</p>
+              {/* Most active */}
+              <h2 className="font-['Clash_Display'] text-lg font-bold mb-3">Who's doing the most</h2>
+              <div className={`${card} overflow-hidden`}>
+                {[...members].sort((a, b) => (b.phones_revealed - a.phones_revealed) || (b.chats - a.chats)).map((m) => (
+                  <div key={m.email} className="flex items-center justify-between gap-3 px-5 py-3 border-b border-neutral-100 text-sm">
+                    <span className="font-semibold truncate">{m.email}</span>
+                    <div className="shrink-0 flex items-center gap-4 text-xs text-neutral-500">
+                      <span><b className="text-neutral-900">{m.phones_revealed}</b> reveals</span>
+                      <span><b className="text-neutral-900">{m.chats}</b> chats</span>
+                      <span className="w-16 text-right">{fmtDate(m.last_activity)}</span>
+                    </div>
+                  </div>
+                ))}
+                {members.length === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No members yet.</div>}
+              </div>
+            </>
+          )}
+
+          {/* TEAM */}
+          {tab === "team" && (
+            <>
+              <div className={`${card} p-5 mb-4`}>
+                <div className="flex items-center gap-2">
+                  <FiUserPlus size={16} className="text-neutral-400 shrink-0" />
+                  <input type="email" value={invite} onChange={(e) => setInvite(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && doInvite()} placeholder="teammate@company.com"
+                    className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                  <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as any)}
+                    className="border-2 border-neutral-900 rounded-xl px-2 py-2 text-sm">
+                    <option value="member">Member</option><option value="admin">Manager</option>
+                  </select>
+                  <button onClick={doInvite} disabled={inviteBusy}
+                    className="bg-violet-600 text-white font-bold px-4 py-2 rounded-xl border-2 border-neutral-900 text-sm disabled:opacity-60">
+                    {inviteBusy ? "..." : "Invite"}
+                  </button>
+                </div>
+                <p className="text-xs text-neutral-400 mt-2">Members sign in with their work email. Anyone at your company's domain can auto-join.</p>
+              </div>
+              <div className={`${card} overflow-x-auto`}>
+                <div className="min-w-[680px]">
+                  <div className="grid grid-cols-[2.2fr_0.9fr_0.8fr_0.9fr_1fr] gap-2 px-5 py-3 border-b-2 border-neutral-900 text-xs font-bold uppercase text-neutral-400">
+                    <div>Member</div><div>Role</div><div>Chats</div><div>Reveals</div><div>Last active</div>
+                  </div>
+                  {members.map((m) => (
+                    <div key={m.email} className="grid grid-cols-[2.2fr_0.9fr_0.8fr_0.9fr_1fr] gap-2 px-5 py-3 border-b border-neutral-100 text-sm items-center">
+                      <div className="min-w-0">
+                        <div className="font-semibold truncate">{m.email}</div>
+                        <div className="text-[11px] text-neutral-400">{m.last_login_at ? "Active" : "Invited, not signed in yet"}</div>
+                      </div>
+                      <div><span className={`text-[11px] font-bold rounded-full px-2 py-0.5 border-2 ${m.role === "admin" ? "border-violet-500 text-violet-600 bg-violet-50" : "border-neutral-300 text-neutral-500"}`}>{m.role === "admin" ? "manager" : "member"}</span></div>
+                      <div>{m.chats}</div><div>{m.phones_revealed}</div>
+                      <div className="text-neutral-500">{fmtDate(m.last_activity)}</div>
+                    </div>
+                  ))}
+                  {members.length === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No members yet.</div>}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* CREDIT USAGE — per-member spend + full enrichment log */}
+          {tab === "credits" && (
+            <>
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <StatCard icon={<FiPhone size={12} />} label="Reveals left" warn={c?.low} value={c ? c.enrichment_balance.toLocaleString() : "-"} />
+                <StatCard icon={<FiActivity size={12} />} label="Reveals used" value={c ? c.enrichment_used.toLocaleString() : "-"} sub="all-time" />
+                <StatCard icon={<FiZap size={12} />} label="AI credits" value={c ? (c.ai_balance >= 100_000_000 ? "∞" : c.ai_balance.toLocaleString()) : "-"} />
+              </div>
+
+              <h2 className="font-['Clash_Display'] text-lg font-bold mb-3">Reveals by member</h2>
+              <div className={`${card} overflow-hidden mb-8`}>
+                {[...members].sort((a, b) => b.phones_revealed - a.phones_revealed).map((m) => (
+                  <div key={m.email} className="flex items-center gap-3 px-5 py-2.5 border-b border-neutral-100 text-sm">
+                    <span className="font-semibold truncate flex-1">{m.email}</span>
+                    <div className="w-40 h-2 rounded-full bg-neutral-100 overflow-hidden shrink-0">
+                      <div className="h-full bg-violet-500" style={{ width: `${Math.min(100, (m.phones_revealed / Math.max(1, Math.max(...members.map((x) => x.phones_revealed)))) * 100)}%` }} />
+                    </div>
+                    <span className="w-16 text-right font-bold shrink-0">{m.phones_revealed}</span>
+                  </div>
+                ))}
+                {members.length === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No members yet.</div>}
+              </div>
+
+              <h2 className="font-['Clash_Display'] text-lg font-bold mb-1">Enrichment log</h2>
+              <p className="text-xs text-neutral-400 mb-3">Every paid contact reveal: who did it, the company, and the contact that was unlocked.</p>
+              <div className={`${card} overflow-x-auto`}>
+                <div className="min-w-[900px]">
+                  <div className="grid grid-cols-[1fr_1.3fr_1.2fr_1.5fr_1.1fr_1.6fr] gap-2 px-5 py-3 border-b-2 border-neutral-900 text-xs font-bold uppercase text-neutral-400">
+                    <div>When</div><div>Who</div><div>Company</div><div>Contact</div><div>Phone</div><div>Email</div>
+                  </div>
+                  {log.map((r, i) => (
+                    <div key={i} className="grid grid-cols-[1fr_1.3fr_1.2fr_1.5fr_1.1fr_1.6fr] gap-2 px-5 py-3 border-b border-neutral-100 text-sm items-center">
+                      <div className="text-neutral-400 text-xs">{fmtTime(r.created_at)}</div>
+                      <div className="truncate text-neutral-600" title={str(r.email)}>{str(r.email) || "-"}</div>
+                      <div className="font-semibold truncate" title={str(r.company)}>{str(r.company) || "-"}</div>
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{str(r.contact_name) || "-"}</div>
+                        {r.contact_title && <div className="text-[11px] text-neutral-400 truncate">{str(r.contact_title)}</div>}
+                      </div>
+                      <div className="truncate text-neutral-700">{str(r.contact_phone) ? <a href={`tel:${str(r.contact_phone)}`} className="hover:text-violet-700 flex items-center gap-1"><FiPhone size={11} />{str(r.contact_phone)}</a> : <span className="text-neutral-300">—</span>}</div>
+                      <div className="truncate text-neutral-700">{str(r.contact_email) ? <a href={`mailto:${str(r.contact_email)}`} className="hover:text-violet-700 flex items-center gap-1 truncate"><FiMail size={11} className="shrink-0" /><span className="truncate">{str(r.contact_email)}</span></a> : <span className="text-neutral-300">—</span>}</div>
+                    </div>
+                  ))}
+                  {log.length === 0 && <div className="px-5 py-10 text-center text-neutral-400 text-sm">No reveals yet. When your team enriches a contact, every one shows up here with who did it.</div>}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* CHATS */}
+          {tab === "chats" && (
+            <>
+              <p className="text-xs text-neutral-400 mb-3">Open a chat to review it, or assign it to someone so it shows up in their Sensei sidebar.</p>
+              <div className={`${card} overflow-x-auto`}>
+                <div className="min-w-[640px]">
+                  {(data?.chats || []).map((ch) => (
+                    <div key={ch.id} className="grid grid-cols-[1.8fr_1fr_1.3fr_0.7fr] gap-3 items-center px-5 py-3 border-b border-neutral-100 text-sm">
+                      <button onClick={() => setViewChat({ id: ch.id, title: ch.title })} className="min-w-0 flex items-center gap-2 text-left group" title="Open this chat">
+                        <span className="font-semibold truncate group-hover:text-violet-700 group-hover:underline">{ch.title}</span>
+                        {ch.shared_org && <span className="shrink-0 text-[10px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">shared</span>}
+                      </button>
+                      <div className="text-neutral-400 text-xs truncate" title={ch.owner_email || ""}>{ch.owner_email || "-"}</div>
+                      <div>
+                        <select value={ch.assigned_to || ""} onChange={(e) => assignChat(ch.id, e.target.value)}
+                          className={`w-full border-2 rounded-lg px-2 py-1.5 text-xs ${ch.assigned_to ? "border-violet-500 text-violet-700 bg-violet-50" : "border-neutral-300 text-neutral-500"}`}>
+                          <option value="">Unassigned</option>
+                          {members.map((m) => (<option key={m.email} value={m.email}>{m.email}</option>))}
+                        </select>
+                      </div>
+                      <div className="text-neutral-400 text-xs text-right">{fmtDate(ch.updated_at)}</div>
+                    </div>
+                  ))}
+                  {(data?.chats.length ?? 0) === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No chats yet.</div>}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ACTIVITY */}
+          {tab === "activity" && (
+            <div className={`${card} overflow-hidden`}>
+              {(data?.activity || []).map((a, i) => (
+                <div key={i} className="flex items-center justify-between gap-3 px-5 py-2.5 border-b border-neutral-100 text-sm">
+                  <div className="min-w-0 flex items-center gap-2">
+                    <span className={`shrink-0 text-[10px] font-bold rounded px-1.5 py-0.5 ${a.kind === "enrichment" ? "bg-violet-100 text-violet-700" : "bg-neutral-100 text-neutral-500"}`}>{a.kind === "enrichment" ? "reveal" : "AI"}</span>
+                    <span className="truncate text-neutral-600">{a.email || "team"}</span>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-3 text-xs">
+                    <span className="font-bold text-neutral-700">{a.delta}</span>
+                    <span className="text-neutral-400">{fmtTime(a.created_at)}</span>
+                  </div>
+                </div>
+              ))}
+              {(data?.activity.length ?? 0) === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No credit activity yet.</div>}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
