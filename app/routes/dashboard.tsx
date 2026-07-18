@@ -64,7 +64,7 @@ function fmtTime(s: string | null): string {
 // ── Types ────────────────────────────────────────────────────────────────────
 interface Me { email: string | null; role: string; org: { id: number; name: string } | null }
 interface Member { email: string; name: string; role: string; last_login_at: string | null; chats: number; phones_revealed: number; last_activity: string | null }
-interface Chat { id: number; title: string; owner_email: string | null; shared_org: boolean; updated_at: string | null }
+interface Chat { id: number; title: string; owner_email: string | null; shared_org: boolean; updated_at: string | null; assigned_to: string | null }
 interface Activity { created_at: string | null; kind: string; delta: number; reason: string; email: string | null }
 interface Credits { enrichment_balance: number; ai_balance: number; enrichment_used: number; ai_used: number; low: boolean }
 interface DashData { org: { id: number; name: string } | null; credits: Credits | null; members: Member[]; chats: Chat[]; activity: Activity[] }
@@ -168,6 +168,14 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
       setInvite(""); await load();
     } catch (e: any) { setErr(e.message || "Could not add member"); }
     finally { setInviteBusy(false); }
+  };
+
+  const assignChat = async (chatId: number, email: string) => {
+    // Optimistic: reflect the choice immediately, then persist.
+    setData((d) => d && { ...d, chats: d.chats.map((c) => c.id === chatId ? { ...c, assigned_to: email || null } : c) });
+    try {
+      await api(`/chats/${chatId}/assign`, { method: "POST", body: JSON.stringify({ email: email || null }) });
+    } catch (e: any) { setErr(e.message || "Could not assign chat"); load(); }
   };
 
   const card = "bg-white border-2 border-neutral-900 rounded-2xl shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
@@ -304,22 +312,37 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
           </div>
         </div>
 
-        {/* Recent chats */}
-        <h2 className="font-['Clash_Display'] text-xl font-bold mb-3">Recent chats</h2>
-        <div className={`${card} overflow-hidden mb-8`}>
-          {(data?.chats || []).map((ch) => (
-            <div key={ch.id} className="flex items-center justify-between gap-3 px-5 py-3 border-b border-neutral-100 text-sm">
-              <div className="min-w-0 flex items-center gap-2">
-                <span className="font-semibold truncate">{ch.title}</span>
-                {ch.shared_org && <span className="shrink-0 text-[10px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">shared</span>}
+        {/* Recent chats — assign each to a team member */}
+        <h2 className="font-['Clash_Display'] text-xl font-bold mb-1">Recent chats</h2>
+        <p className="text-xs text-neutral-400 mb-3">Assign a chat to someone and it shows up in their Sensei sidebar.</p>
+        <div className={`${card} overflow-x-auto mb-8`}>
+          <div className="min-w-[640px]">
+            {(data?.chats || []).map((ch) => (
+              <div key={ch.id} className="grid grid-cols-[1.8fr_1fr_1.3fr_0.7fr] gap-3 items-center px-5 py-3 border-b border-neutral-100 text-sm">
+                <div className="min-w-0 flex items-center gap-2">
+                  <span className="font-semibold truncate">{ch.title}</span>
+                  {ch.shared_org && <span className="shrink-0 text-[10px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">shared</span>}
+                </div>
+                <div className="text-neutral-400 text-xs truncate" title={ch.owner_email || ""}>
+                  {ch.owner_email || "-"}
+                </div>
+                <div>
+                  <select
+                    value={ch.assigned_to || ""}
+                    onChange={(e) => assignChat(ch.id, e.target.value)}
+                    className={`w-full border-2 rounded-lg px-2 py-1.5 text-xs ${ch.assigned_to ? "border-violet-500 text-violet-700 bg-violet-50" : "border-neutral-300 text-neutral-500"}`}
+                  >
+                    <option value="">Unassigned</option>
+                    {(data?.members || []).map((m) => (
+                      <option key={m.email} value={m.email}>{m.email}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="text-neutral-400 text-xs text-right">{fmtDate(ch.updated_at)}</div>
               </div>
-              <div className="shrink-0 flex items-center gap-3 text-neutral-400 text-xs">
-                <span className="truncate max-w-[180px]">{ch.owner_email || "-"}</span>
-                <span>{fmtDate(ch.updated_at)}</span>
-              </div>
-            </div>
-          ))}
-          {(data?.chats.length ?? 0) === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No chats yet.</div>}
+            ))}
+            {(data?.chats.length ?? 0) === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No chats yet.</div>}
+          </div>
         </div>
 
         {/* Activity / spend log */}
