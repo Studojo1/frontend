@@ -38,11 +38,15 @@ function authHeaders(): Record<string, string> {
 }
 const LAYOUT_STORAGE = "bob_layout_v3";
 
-// app.studojo.* -> dashboard.studojo.* (same env). The manager portal.
+// app.studojo.* -> dashboard.studojo.* (same env). The manager portal. Carries
+// the session token across the subdomain (localStorage is per-origin) so the
+// manager stays signed in as the SAME account on the dashboard.
 function dashboardUrl(): string {
   if (typeof window === "undefined") return "https://dashboard.studojo.com";
   const host = window.location.host.replace(/^app\./, "dashboard.");
-  return `${window.location.protocol}//${host}`;
+  const base = `${window.location.protocol}//${host}`;
+  const s = localStorage.getItem(SESSION_STORAGE);
+  return s ? `${base}/?s=${encodeURIComponent(s)}` : base;
 }
 
 class BobError extends Error {
@@ -147,6 +151,19 @@ export default function BobPage() {
 
   useEffect(() => {
     setMounted(true);
+    // Session handoff from the dashboard (?s=token). localStorage is per-origin,
+    // so a manager crossing dashboard.studojo.* -> app.studojo.* carries their
+    // token in the URL. Adopt it (overriding any stale session), then clean the URL.
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const s = params.get("s");
+      if (s) {
+        localStorage.setItem(SESSION_STORAGE, s);
+        localStorage.removeItem(KEY_STORAGE);
+        params.delete("s");
+        window.history.replaceState({}, "", window.location.pathname + (params.toString() ? `?${params}` : ""));
+      }
+    } catch { /* ignore */ }
     if (localStorage.getItem(SESSION_STORAGE) || localStorage.getItem(KEY_STORAGE)) setAuthed(true);
   }, []);
 
