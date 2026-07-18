@@ -5,6 +5,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
   useLocation,
 } from "react-router";
 import { Toaster } from "sonner";
@@ -259,15 +260,25 @@ function suppressThirdPartyWarnings() {
   };
 }
 
+export async function loader({ request }: Route.LoaderArgs) {
+  // Resolve the host on the SERVER so the global chat widget is never even
+  // rendered on Sensei subdomains (no SSR flash, no hydration mismatch).
+  const host = (request.headers.get("host") || "").toLowerCase();
+  return { isSenseiHost: /^(app|admin|dashboard)\.studojo\./.test(host) };
+}
+
 export default function App() {
   useEffect(() => {
     suppressThirdPartyWarnings();
   }, []);
 
+  const { isSenseiHost } = useLoaderData<typeof loader>();
   const location = useLocation();
-  // The resume maker has its own coach chat — the global support widget would
-  // float over the editor input and confuse the user.
-  const hideGlobalChat = location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc");
+  // The resume maker has its own coach chat, and Sensei has its own "Get
+  // support" — the global floating widget would just float over those UIs.
+  const onSensei = isSenseiHost || location.pathname.startsWith("/bob");
+  const hideGlobalChat =
+    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || onSensei;
 
   return (
     <>

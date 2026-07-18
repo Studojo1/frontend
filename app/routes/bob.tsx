@@ -5,6 +5,7 @@ import {
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
   FiMessageSquare, FiColumns, FiUser, FiUsers, FiBriefcase, FiTarget,
   FiLayers, FiGlobe, FiPaperclip, FiFile, FiPhone, FiMail, FiUserPlus, FiSlash,
+  FiMoon, FiSun,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -16,14 +17,33 @@ import {
 
 export function meta() {
   return [
-    { title: "Bob | Studojo Intelligence" },
+    { title: "Sensei by Studojo" },
     { name: "robots", content: "noindex, nofollow" },
   ];
 }
 
 const API = "/api/v1/outreach/bob";
 const KEY_STORAGE = "bob_access_key";
+const SESSION_STORAGE = "bob_session";
+
+// Send whichever auth the user has: an email session token and/or the legacy
+// workspace access code. The backend accepts either.
+function authHeaders(): Record<string, string> {
+  const h: Record<string, string> = {};
+  const key = localStorage.getItem(KEY_STORAGE);
+  const session = localStorage.getItem(SESSION_STORAGE);
+  if (key) h["X-Bob-Key"] = key;
+  if (session) h["X-Bob-Session"] = session;
+  return h;
+}
 const LAYOUT_STORAGE = "bob_layout_v3";
+
+// app.studojo.* -> dashboard.studojo.* (same env). The manager portal.
+function dashboardUrl(): string {
+  if (typeof window === "undefined") return "https://dashboard.studojo.com";
+  const host = window.location.host.replace(/^app\./, "dashboard.");
+  return `${window.location.protocol}//${host}`;
+}
 
 class BobError extends Error {
   status: number;
@@ -34,12 +54,11 @@ class BobError extends Error {
 }
 
 async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promise<T> {
-  const key = localStorage.getItem(KEY_STORAGE) || "";
   const res = await fetch(`${API}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      "X-Bob-Key": key,
+      ...authHeaders(),
       ...(options.headers as Record<string, string>),
     },
   });
@@ -128,7 +147,7 @@ export default function BobPage() {
 
   useEffect(() => {
     setMounted(true);
-    if (localStorage.getItem(KEY_STORAGE)) setAuthed(true);
+    if (localStorage.getItem(SESSION_STORAGE) || localStorage.getItem(KEY_STORAGE)) setAuthed(true);
   }, []);
 
   if (!mounted) return <div className="min-h-screen bg-[#faf7f2]" />;
@@ -139,14 +158,35 @@ export default function BobPage() {
 // ── Access gate ──────────────────────────────────────────────────────────────
 
 function Gate({ onSuccess }: { onSuccess: () => void }) {
+  const [mode, setMode] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const submit = async () => {
+  const submitEmail = async () => {
+    if (!email.trim() || !password || busy) return;
+    setBusy(true); setError("");
+    try {
+      const res = await fetch(`${API}/auth/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d?.detail || "Could not sign you in");
+      localStorage.setItem(SESSION_STORAGE, d.token);
+      localStorage.removeItem(KEY_STORAGE);
+      onSuccess();
+    } catch (e: any) {
+      setError(e.message || "Could not sign you in");
+    } finally { setBusy(false); }
+  };
+
+  const submitCode = async () => {
     if (!code.trim() || busy) return;
-    setBusy(true);
-    setError("");
+    setBusy(true); setError("");
     try {
       const res = await fetch(`${API}/auth/verify`, {
         method: "POST",
@@ -158,40 +198,74 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
         throw new Error(d?.detail || "Invalid access code");
       }
       localStorage.setItem(KEY_STORAGE, code.trim());
+      localStorage.removeItem(SESSION_STORAGE);
       onSuccess();
     } catch (e: any) {
       setError(e.message || "Could not verify the code");
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
   };
+
+  const inputCls =
+    "w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500";
+  const btnCls =
+    "mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60";
 
   return (
     <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
       <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
-        <div className="w-12 h-12 bg-violet-500 border-2 border-neutral-900 rounded-2xl flex items-center justify-center mb-5">
-          <FiLock className="text-white text-xl" />
+        <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
+          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
         </div>
-        <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">Bob</h1>
-        <p className="text-neutral-600 mt-2 mb-6">
-          Placement intelligence for your team. Enter your workspace access code.
-        </p>
-        <input
-          type="password"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Access code"
-          className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
-        />
-        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-        <button
-          onClick={submit}
-          disabled={busy}
-          className="mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60"
-        >
-          {busy ? "Checking..." : "Enter workspace"}
-        </button>
+        <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">
+          Sensei <span className="text-neutral-400 text-xl font-normal">by Studojo</span>
+        </h1>
+
+        {mode === "email" ? (
+          <>
+            <p className="text-neutral-600 mt-2 mb-6">
+              Sign in with your work email and password to reach your team's workspace.
+            </p>
+            <input
+              type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitEmail()}
+              placeholder="you@company.com" className={inputCls}
+            />
+            <input
+              type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitEmail()}
+              placeholder="Password" className={`${inputCls} mt-3`}
+            />
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+            <button onClick={submitEmail} disabled={busy} className={btnCls}>
+              {busy ? "Signing in..." : "Continue"}
+            </button>
+            <button
+              onClick={() => { setMode("code"); setError(""); }}
+              className="mt-3 w-full text-sm text-neutral-400 hover:text-neutral-700"
+            >
+              Have a workspace access code?
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-neutral-600 mt-2 mb-6">Enter your workspace access code.</p>
+            <input
+              type="password" value={code} onChange={(e) => setCode(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitCode()}
+              placeholder="Access code" className={inputCls}
+            />
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+            <button onClick={submitCode} disabled={busy} className={btnCls}>
+              {busy ? "Checking..." : "Enter workspace"}
+            </button>
+            <button
+              onClick={() => { setMode("email"); setError(""); }}
+              className="mt-3 w-full text-sm text-neutral-400 hover:text-neutral-700"
+            >
+              Sign in with email instead
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -215,6 +289,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean } | null>(null);
   const [notice, setNotice] = useState<string>("");
+  const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null } | null>(null);
+  const [showTeam, setShowTeam] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const [dark, setDark] = useState(false);
+  useEffect(() => { setDark(localStorage.getItem("bob_dark") === "1"); }, []);
+  const toggleDark = useCallback(() => {
+    setDark((d) => { localStorage.setItem("bob_dark", d ? "0" : "1"); return !d; });
+  }, []);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<PanelMode>("split");
@@ -241,6 +324,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const handleError = useCallback((e: unknown) => {
     if (e instanceof BobError && (e.status === 401 || e.status === 503)) {
       localStorage.removeItem(KEY_STORAGE);
+      localStorage.removeItem(SESSION_STORAGE);
       onAuthLost();
     } else {
       console.error(e);
@@ -267,7 +351,46 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   }, []);
   useEffect(() => { loadCredits(); }, [loadCredits]);
 
+  const loadMe = useCallback(async () => {
+    try {
+      setMe(await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null }>("/me"));
+    } catch { /* identity is non-critical for legacy access-code sessions */ }
+  }, []);
+  useEffect(() => { loadMe(); }, [loadMe]);
+
+  const signOut = useCallback(() => {
+    localStorage.removeItem(SESSION_STORAGE);
+    localStorage.removeItem(KEY_STORAGE);
+    onAuthLost();
+  }, [onAuthLost]);
+
+  const shareChat = useCallback(async (chatId: number) => {
+    try {
+      await bobFetch(`/chats/${chatId}/share`, { method: "POST", body: JSON.stringify({ shared: true }) });
+      setNotice("Shared with your team — they can now see this chat.");
+    } catch (e) { handleError(e); }
+  }, [handleError]);
+
+  // Track whether the current chat is a throwaway (no messages, no tables) so we
+  // can drop it the moment the user navigates away. An empty "New chat" is never
+  // worth persisting — this keeps the sidebar clean of blank entries.
+  const emptyRef = useRef<{ id: number | null; empty: boolean }>({ id: null, empty: true });
+  useEffect(() => {
+    emptyRef.current = { id: activeChat, empty: messages.length === 0 && tables.length === 0 };
+  }, [activeChat, messages, tables]);
+
+  const dropCurrentIfEmpty = useCallback(async () => {
+    const { id, empty } = emptyRef.current;
+    if (id == null || !empty) return;
+    try {
+      await bobFetch(`/chats/${id}`, { method: "DELETE" });
+      setChats((cs) => cs.filter((c) => c.id !== id));
+    } catch { /* best-effort cleanup */ }
+  }, []);
+
   const openChat = useCallback(async (id: number) => {
+    if (id === emptyRef.current.id) return;   // already open
+    await dropCurrentIfEmpty();
     setActiveChat(id);
     setRun(null);
     setPendingFiles([]);
@@ -279,7 +402,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     } catch (e) {
       handleError(e);
     }
-  }, [handleError]);
+  }, [handleError, dropCurrentIfEmpty]);
 
   useEffect(() => {
     loadChats().then((list) => {
@@ -335,17 +458,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   }, []);
 
   const newChat = async () => {
-    try {
-      const d = await bobFetch<{ id: number }>("/chats", { method: "POST" });
-      await loadChats();
-      setMessages([]);
-      setTables([]);
-      setRun(null);
-      setActiveChat(d.id);
-      setMode("split");
-    } catch (e) {
-      handleError(e);
-    }
+    // Don't create a server chat yet — an empty one is throwaway. Reset to the
+    // empty state; the first message (or file) creates the chat lazily.
+    await dropCurrentIfEmpty();
+    setMessages([]);
+    setTables([]);
+    setRun(null);
+    setPendingFiles([]);
+    setActiveChat(null);
+    setMode("split");
   };
 
   const deleteChat = async (id: number) => {
@@ -362,6 +483,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     }
   };
 
+  const stopRun = async () => {
+    if (!run || stopping) return;
+    setStopping(true);
+    try { await bobFetch(`/runs/${run.id}/stop`, { method: "POST" }); } catch { /* best-effort */ }
+  };
+
   const uploadFile = async (f: globalThis.File) => {
     setUploading(true);
     try {
@@ -372,12 +499,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         setActiveChat(chatId);
         loadChats();
       }
-      const key = localStorage.getItem(KEY_STORAGE) || "";
       const fd = new FormData();
       fd.append("file", f);
       const res = await fetch(`${API}/chats/${chatId}/files`, {
         method: "POST",
-        headers: { "X-Bob-Key": key },
+        headers: authHeaders(),
         body: fd,
       });
       const data = await res.json().catch(() => ({}));
@@ -418,7 +544,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       loadChats();
     } catch (e: any) {
       if (e instanceof BobError && e.status === 409) {
-        alert("Bob is still working on this chat. Wait for the current run to finish.");
+        alert("Sensei is still working on this chat. Wait for the current run to finish.");
       } else if (e instanceof BobError && e.status === 402) {
         setNotice(e.message || "Out of AI credits. Top up to keep running Bob.");
         setMessages((m) => m.filter((x) => x.created_at !== "" || x.content !== content));
@@ -510,6 +636,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   }, [anyEnriching, refreshTables, loadCredits]);
 
   const running = run?.status === "running";
+  useEffect(() => { if (!running) setStopping(false); }, [running]);
   const hasTables = tables.length > 0;
   const showChat = mode !== "table";
   const showTable = hasTables && mode !== "chat";
@@ -518,12 +645,42 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
 
   return (
-    <div className="h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900">
+    <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
+      {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
+      {showSupport && <SupportModal email={me?.email || ""} orgName={me?.org?.name || ""} onClose={() => setShowSupport(false)} />}
       <style>{`
         @keyframes bobFlash { 0% { background-color: rgb(221 214 254); } 100% { background-color: transparent; } }
         .bob-new { animation: bobFlash 2.5s ease-out; }
         @keyframes bobPop { 0% { opacity: 0; transform: translateY(8px) scale(0.98); } 100% { opacity: 1; transform: none; } }
         .bob-pop { animation: bobPop 0.35s ease-out; }
+        .bob-thinscroll::-webkit-scrollbar { height: 5px; width: 5px; }
+        .bob-thinscroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 9px; }
+        .bob-thinscroll::-webkit-scrollbar-track { background: transparent; }
+        /* Dark mode: override the app's hard-coded surface colours. */
+        .bob-dark { background:#131316 !important; color:#e7e7ea; }
+        .bob-dark .bg-white { background:#1c1c20 !important; }
+        .bob-dark .bg-\\[\\#faf7f2\\] { background:#131316 !important; }
+        .bob-dark .bg-\\[\\#f4f0e8\\] { background:#161619 !important; }
+        .bob-dark .text-neutral-900 { color:#e7e7ea !important; }
+        .bob-dark .text-neutral-600, .bob-dark .text-neutral-500, .bob-dark .text-neutral-400, .bob-dark .text-neutral-300 { color:#9a9aa2 !important; }
+        .bob-dark .border-neutral-900 { border-color:#3a3a42 !important; }
+        .bob-dark .border-neutral-100, .bob-dark .border-neutral-200 { border-color:#2c2c33 !important; }
+        .bob-dark .bg-neutral-50, .bob-dark .bg-neutral-100 { background:#242429 !important; }
+        .bob-dark .hover\\:bg-neutral-100:hover, .bob-dark .hover\\:bg-neutral-50:hover { background:#26262c !important; }
+        .bob-dark .bg-neutral-900 { background:#e7e7ea !important; color:#131316 !important; }
+        .bob-dark input, .bob-dark textarea, .bob-dark select { background:#1c1c20 !important; color:#e7e7ea !important; }
+        .bob-dark input::placeholder, .bob-dark textarea::placeholder { color:#6b6b73 !important; }
+        /* Violet accents: mute them so they read on a dark surface. */
+        .bob-dark .bg-violet-50 { background:#211c33 !important; }
+        .bob-dark .bg-violet-100 { background:#2b2447 !important; }
+        .bob-dark .text-violet-600, .bob-dark .text-violet-700, .bob-dark .text-violet-800 { color:#b3a1ff !important; }
+        .bob-dark .border-violet-200, .bob-dark .border-violet-300 { border-color:#3d3363 !important; }
+        /* Tailwind hover:* colour utilities aren't !important, so our neutral
+           overrides would otherwise win on hover. Restore the intended accents. */
+        .bob-dark .hover\\:text-red-600:hover { color:#f87171 !important; }
+        .bob-dark .hover\\:text-violet-600:hover, .bob-dark .hover\\:text-violet-700:hover { color:#b3a1ff !important; }
+        .bob-dark .hover\\:border-violet-500:hover { border-color:#7c5cff !important; }
+        .bob-dark .hover\\:border-neutral-900:hover { border-color:#5a5a66 !important; }
       `}</style>
 
       {/* ── Sidebar ── */}
@@ -533,25 +690,33 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         }`}
       >
         <div className="w-64 flex flex-col h-full">
-          <div className="p-4 border-b-2 border-neutral-900 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-violet-500 border-2 border-neutral-900 rounded-xl flex items-center justify-center">
-                <FiZap className="text-white text-sm" />
+          <div className="h-12 shrink-0 px-3 border-b-2 border-neutral-900 flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 border-2 border-neutral-900 rounded-lg overflow-hidden shrink-0">
+                <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
               </div>
-              <div>
-                <div className="font-['Clash_Display'] text-lg font-semibold leading-none">Bob</div>
-                <div className="text-[10px] text-neutral-400 mt-0.5">Team workspace</div>
+              <div className="min-w-0 leading-tight">
+                <div className="font-['Clash_Display'] text-base font-semibold leading-none">Sensei</div>
+                <div className="text-[9px] text-neutral-400 truncate max-w-[110px]">{me?.org?.name || "by Studojo"}</div>
               </div>
             </div>
             <button
-              onClick={newChat}
-              title="New chat"
-              className="w-8 h-8 bg-neutral-900 text-white rounded-xl flex items-center justify-center hover:bg-violet-500 transition-colors"
+              onClick={toggleDark}
+              title={dark ? "Switch to light mode" : "Switch to dark mode"}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 shrink-0"
             >
-              <FiPlus />
+              {dark ? <FiSun size={16} /> : <FiMoon size={16} />}
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-2 pb-24">
+          <div className="p-2 shrink-0">
+            <button
+              onClick={newChat}
+              className="w-full flex items-center justify-center gap-2 text-sm font-semibold bg-neutral-900 text-white rounded-xl px-3 py-2.5 hover:bg-violet-700 transition-colors"
+            >
+              <FiPlus size={15} /> New chat
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-2 pb-4">
             {chats.map((c) => (
               <div
                 key={c.id}
@@ -561,15 +726,47 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 }`}
               >
                 <span className="truncate">{c.title}</span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); deleteChat(c.id); }}
-                  className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-600 shrink-0"
-                >
-                  <FiTrash2 size={14} />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); shareChat(c.id); }}
+                    title="Share with your team"
+                    className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-violet-600"
+                  >
+                    <FiUsers size={13} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteChat(c.id); }}
+                    title="Delete"
+                    className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-600"
+                  >
+                    <FiTrash2 size={14} />
+                  </button>
+                </div>
               </div>
             ))}
             {chats.length === 0 && <p className="text-neutral-400 text-sm p-3">No chats yet.</p>}
+          </div>
+          <div className="p-3 border-t-2 border-neutral-900 shrink-0 space-y-2">
+            {me?.role === "admin" && (
+              <a
+                href={dashboardUrl()}
+                className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl px-3 py-2.5 hover:bg-violet-500 hover:text-white transition-colors"
+              >
+                <FiUsers size={15} /> Team dashboard
+              </a>
+            )}
+            <button
+              onClick={() => setShowSupport(true)}
+              className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl px-3 py-2.5 hover:bg-neutral-900 hover:text-white transition-colors"
+            >
+              <FiMessageSquare size={15} /> Get support
+            </button>
+            {me?.email && (
+              <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-400 px-1">
+                <span className="truncate" title={me.email}>{me.email}</span>
+                <button onClick={signOut} className="shrink-0 font-semibold hover:text-neutral-900">Sign out</button>
+              </div>
+            )}
           </div>
         </div>
       </aside>
@@ -596,8 +793,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           <div className="ml-auto flex items-center gap-2">
             {credits?.enabled && (
               <div className="flex items-center gap-1.5">
-                <CreditPill icon={<FiPhone size={11} />} label="reveals" value={credits.enrichment} />
-                <CreditPill icon={<FiZap size={11} />} label="AI" value={credits.ai} />
+                <CreditPill kind="enrichment" value={credits.enrichment} />
+                <CreditPill kind="ai" value={credits.ai} />
               </div>
             )}
             {hasTables && (
@@ -645,8 +842,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       </div>
                     ) : (
                       <div key={m.id} className="flex gap-2.5">
-                        <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
-                          <FiZap className="text-violet-400" size={13} />
+                        <div className="w-7 h-7 mt-1 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
+                          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                         </div>
                         <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
                           {m.content}
@@ -708,17 +905,28 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
                     }}
                     rows={2}
-                    placeholder={running ? "Bob is working on it. Ask your next question when he finishes." : "Describe a candidate, cohort, or the companies you need..."}
+                    placeholder={running ? "Sensei is working on it. Ask your next question when it finishes." : "Describe a candidate, cohort, or the companies you need..."}
                     disabled={running}
                     className="flex-1 border-2 border-neutral-900 rounded-2xl px-4 py-2.5 text-[14.5px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-neutral-100"
                   />
-                  <button
-                    onClick={() => send()}
-                    disabled={running || sending || !input.trim()}
-                    className="self-end bg-neutral-900 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-violet-500 transition-colors disabled:opacity-40"
-                  >
-                    {sending || running ? <FiLoader className="animate-spin" /> : <FiSend />}
-                  </button>
+                  {running ? (
+                    <button
+                      onClick={stopRun}
+                      disabled={stopping}
+                      title="Stop this run (keeps what's already found)"
+                      className="self-end bg-red-600 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-60 border-2 border-neutral-900"
+                    >
+                      {stopping ? <FiLoader className="animate-spin" size={16} /> : <span className="w-3.5 h-3.5 bg-white rounded-[3px]" />}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => send()}
+                      disabled={sending || !input.trim()}
+                      className="self-end bg-violet-700 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-violet-800 transition-colors disabled:opacity-40"
+                    >
+                      {sending ? <FiLoader className="animate-spin" /> : <FiSend />}
+                    </button>
+                  )}
                 </div>
               </div>
             </section>
@@ -741,6 +949,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               widthPct={mode === "table" ? 100 : tablePct}
               fullWidth={mode === "table"}
               tables={tables}
+              run={running ? run : null}
               expanded={mode === "table"}
               onExpand={() => setMode(mode === "table" ? "split" : "table")}
               viewPref={viewPref}
@@ -762,42 +971,275 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 const TEMPLATES = [
   {
     icon: FiUser, title: "Place a candidate",
-    subtitle: "Attach a resume, get target companies",
+    subtitle: "One resume, the companies hiring them now",
     prompt: "I've attached my candidate's resume (use the paperclip). Preferences: [city, company stage, expected CTC]. Find the best companies hiring for this profile right now, with evidence and the right hiring contact per company.",
   },
   {
     icon: FiUsers, title: "Place a cohort",
-    subtitle: "Companies that absorb a batch",
-    prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Find companies that can absorb them at volume (bulk hiring, walk-in drives, fresher intakes), with TA contacts for each.",
+    subtitle: "Companies that hire a whole batch",
+    prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Target CTC band: [e.g. 4-8 LPA]. Company profile: [e.g. product startups, mid-size IT services, any that bulk-hire freshers]. Location: [cities]. Find companies that can absorb them at volume (bulk hiring, walk-in drives, fresher intakes), with a TA/HR contact for each.",
   },
   {
     icon: FiBriefcase, title: "Build a partner pipeline",
-    subtitle: "Companies worth an MoU",
+    subtitle: "Recurring hiring partners worth an MoU",
     prompt: "Find [number] companies that should become recurring hiring partners for our [domain] training programs. Look for sustained hiring velocity and fresher-friendliness. Target HR/TA leadership as contacts.",
   },
   {
     icon: FiTarget, title: "Track a market",
-    subtitle: "Funding + hiring momentum",
+    subtitle: "Who just raised money and is hiring",
     prompt: "Which [sector] startups in [city/India] raised funding in the last 6 months and are actively hiring? Build a table with the round details, hiring evidence, and why-now for each.",
   },
 ];
 
-function CreditPill({ icon, label, value }: { icon: ReactNode; label: string; value: number }) {
+function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number }) {
+  const [open, setOpen] = useState(false);
   const low = value <= 0;
-  // Effectively-unlimited balances (internal accounts) show as ∞ rather than a
-  // giant number.
-  const display = value >= 100_000_000 ? "∞" : value.toLocaleString();
+  // Effectively-unlimited balances (internal accounts) show as ∞.
+  const unlimited = value >= 100_000_000;
+  const display = unlimited ? "∞" : value.toLocaleString();
+  const icon = kind === "enrichment" ? <FiPhone size={11} /> : <FiZap size={11} />;
+  const label = kind === "enrichment" ? "reveals" : "AI";
   return (
-    <span
-      title={`${display} ${label} credits`}
-      className={`flex items-center gap-1 text-[11px] font-bold rounded-full border-2 px-2.5 py-1 ${
-        low ? "bg-red-50 border-red-500 text-red-600" : "bg-white border-neutral-900 text-neutral-900"
-      }`}
-    >
-      {icon}
-      {display}
-      <span className="font-medium text-neutral-400">{label}</span>
-    </span>
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`flex items-center gap-1 text-[11px] font-bold rounded-full border-2 px-2.5 py-1 transition-colors ${
+          low ? "bg-red-50 border-red-500 text-red-600" : "bg-white border-neutral-900 text-neutral-900 hover:bg-neutral-100"
+        }`}
+      >
+        {icon}
+        {display}
+        <span className="font-medium text-neutral-400">{label}</span>
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 mt-2 w-64 z-50 bg-white border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] p-4 text-left">
+            {kind === "enrichment" ? (
+              <>
+                <div className="text-2xl font-black leading-none">{display}</div>
+                <div className="text-sm font-semibold text-neutral-500 mb-2">phone reveals left</div>
+                <p className="text-[12.5px] text-neutral-500 leading-snug">
+                  1 credit finds a verified phone + email for one contact. You're only charged when we actually find a real number.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-black leading-none">{unlimited ? "Unlimited" : display}</div>
+                <div className="text-sm font-semibold text-neutral-500 mb-2">{unlimited ? "AI on this workspace" : "AI credits left"}</div>
+                <p className="text-[12.5px] text-neutral-500 leading-snug">
+                  AI credits power each run: finding companies, reading live hiring signals, and drafting the right person to reach.
+                </p>
+              </>
+            )}
+            {low && kind === "enrichment" && (
+              <p className="text-[12px] text-red-600 font-semibold mt-2">Out of reveals. Contact Studojo to top up.</p>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Context.dev Logo Link — a real company logo for a domain, drawn from a free
+// CDN (a separate 10k/mo quota that does NOT touch our search credits) that
+// returns a generated monogram fallback when a domain has no logo. The
+// publicClientId is frontend-safe (locked to our allowlisted domains) and set
+// as a build-time env var; when it is absent we degrade to Google's free
+// favicon service, and when there is no domain at all to a letter tile.
+const LOGO_CLIENT_ID =
+  (import.meta.env as Record<string, string | undefined>).VITE_CONTEXT_LOGO_CLIENT_ID || "";
+
+// Company logo. Prefers the backend-resolved domain (row.cells._domain), else
+// derives one from the website field. Never triggers a paid lookup.
+function CompanyLogo({ company, website, domain: domainProp, size = 36 }:
+    { company: string; website: string; domain?: string; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  const derived = website ? domainOf(website) : "";
+  const domain =
+    domainProp && !NON_SITE_DOMAINS.test(domainProp) ? domainProp
+    : derived && !NON_SITE_DOMAINS.test(derived) ? derived
+    : "";
+  const box = { width: size, height: size };
+  if (domain && !failed) {
+    const src = LOGO_CLIENT_ID
+      ? `https://logos.context.dev/?publicClientId=${LOGO_CLIENT_ID}&domain=${encodeURIComponent(domain)}&theme=light`
+      : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+    return (
+      <img
+        src={src} alt="" onError={() => setFailed(true)} style={box}
+        className="rounded-md border border-neutral-200 bg-white object-contain shrink-0"
+      />
+    );
+  }
+  return (
+    <div style={{ ...box, fontSize: Math.round(size * 0.42) }}
+      className="rounded-md border-2 border-neutral-900 bg-violet-100 flex items-center justify-center font-['Clash_Display'] font-semibold text-violet-700 shrink-0">
+      {company.replace(/[^a-zA-Z0-9]/g, "")[0]?.toUpperCase() || "?"}
+    </div>
+  );
+}
+
+function TeamModal({ orgName, onClose }: { orgName: string; onClose: () => void }) {
+  const [members, setMembers] = useState<{ email: string; role: string; name: string; last_login_at: string | null }[]>([]);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"member" | "admin">("member");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    try { setMembers((await bobFetch<{ members: any[] }>("/org")).members || []); } catch { /* */ }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const invite = async () => {
+    if (!email.trim() || busy) return;
+    setBusy(true); setError("");
+    try {
+      await bobFetch("/org/members", { method: "POST", body: JSON.stringify({ email: email.trim(), role }) });
+      setEmail(""); await load();
+    } catch (e: any) { setError(e?.message || "Could not add member"); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6" onClick={onClose}>
+      <div
+        className="w-full max-w-lg bg-white border-2 border-neutral-900 rounded-[28px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-['Clash_Display'] text-xl font-semibold">Team · {orgName}</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+        </div>
+        <p className="text-sm text-neutral-500 mb-4">
+          Invite teammates by their work email. They sign in with that email, no password.
+        </p>
+        <div className="flex gap-2 mb-3">
+          <input
+            type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && invite()} placeholder="teammate@company.com"
+            className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <select value={role} onChange={(e) => setRole(e.target.value as "member" | "admin")}
+                  className="border-2 border-neutral-900 rounded-xl px-2 py-2 text-sm">
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button onClick={invite} disabled={busy}
+                  className="bg-violet-500 text-white font-bold px-4 rounded-xl border-2 border-neutral-900 text-sm disabled:opacity-60">
+            {busy ? "..." : "Invite"}
+          </button>
+        </div>
+        {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
+        <div className="max-h-72 overflow-y-auto space-y-1.5">
+          {members.map((m) => (
+            <div key={m.email} className="flex items-center justify-between border-2 border-neutral-200 rounded-xl px-3 py-2">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold truncate">{m.email}</div>
+                <div className="text-[11px] text-neutral-400">{m.last_login_at ? "Active" : "Invited, not signed in yet"}</div>
+              </div>
+              <span className={`text-[11px] font-bold rounded-full px-2 py-0.5 border-2 shrink-0 ${
+                m.role === "admin" ? "border-violet-500 text-violet-600 bg-violet-50" : "border-neutral-300 text-neutral-500"}`}>
+                {m.role}
+              </span>
+            </div>
+          ))}
+          {members.length === 0 && <p className="text-sm text-neutral-400 text-center py-4">No members yet.</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SupportModal({ email, orgName, onClose }: { email: string; orgName: string; onClose: () => void }) {
+  const REASONS = [
+    { id: "broken", label: "Something is broken" },
+    { id: "billing", label: "Credits or billing" },
+    { id: "question", label: "A question / how does this work" },
+    { id: "other", label: "Something else" },
+  ];
+  const [reason, setReason] = useState("broken");
+  const [description, setDescription] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [doneId, setDoneId] = useState<number | null>(null);
+
+  const submit = async () => {
+    if (description.trim().length < 5 || busy) return;
+    setBusy(true); setError("");
+    try {
+      const res = await fetch("/api/sensei-ticket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email, org: orgName, reason, description: description.trim(),
+          context: { page_url: typeof window !== "undefined" ? window.location.href : null },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) { setError(json?.error || `Couldn't submit (HTTP ${res.status})`); return; }
+      setDoneId(json.id);
+    } catch { setError("Couldn't reach the server. Try again."); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6" onClick={onClose}>
+      <div
+        className="w-full max-w-lg bg-white border-2 border-neutral-900 rounded-[28px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-['Clash_Display'] text-xl font-semibold">Get support</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+        </div>
+        {doneId ? (
+          <div className="py-6 text-center">
+            <div className="text-3xl mb-2">✓</div>
+            <p className="font-semibold">Ticket #{doneId} raised.</p>
+            <p className="text-sm text-neutral-500 mt-1">
+              Our team will get back to you at {email || "your email"}. You can close this.
+            </p>
+            <button onClick={onClose}
+                    className="mt-5 bg-neutral-900 text-white font-bold px-5 py-2 rounded-xl border-2 border-neutral-900 text-sm hover:bg-violet-700">
+              Done
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-neutral-500 mb-4">
+              Tell us what's going on. It goes straight to the Studojo team.
+            </p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {REASONS.map((r) => (
+                <button key={r.id} onClick={() => setReason(r.id)}
+                        className={`text-xs font-semibold rounded-full px-3 py-1.5 border-2 transition-colors ${
+                          reason === r.id ? "border-violet-500 bg-violet-500 text-white" : "border-neutral-300 text-neutral-500 hover:border-neutral-900"}`}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={description} onChange={(e) => setDescription(e.target.value)}
+              rows={5} placeholder="Describe the issue or request..."
+              className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+            />
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={onClose} className="px-4 py-2 rounded-xl border-2 border-neutral-300 text-sm font-semibold text-neutral-500 hover:border-neutral-900 hover:text-neutral-900">
+                Cancel
+              </button>
+              <button onClick={submit} disabled={busy || description.trim().length < 5}
+                      className="bg-violet-700 text-white font-bold px-5 py-2 rounded-xl border-2 border-neutral-900 text-sm hover:bg-violet-800 disabled:opacity-60">
+                {busy ? "Sending..." : "Raise ticket"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -805,12 +1247,12 @@ function EmptyChat({ onPick }: { onPick: (s: string) => void }) {
   return (
     <div className="max-w-2xl mx-auto mt-10 mb-10 bob-pop">
       <div className="text-center">
-        <div className="w-14 h-14 mx-auto bg-violet-500 border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] flex items-center justify-center mb-5">
-          <FiZap className="text-white text-2xl" />
+        <div className="w-14 h-14 mx-auto border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] overflow-hidden mb-5">
+          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
         </div>
-        <h2 className="font-['Clash_Display'] text-3xl font-semibold">What are we placing today?</h2>
+        <h2 className="font-['Clash_Display'] text-3xl font-semibold">Who are we getting hired today?</h2>
         <p className="text-neutral-600 mt-3 mb-8 max-w-md mx-auto">
-          Describe a candidate, a cohort, or a market. Bob researches live evidence and builds a working target list with the right people to contact.
+          Point Sensei at a candidate, a cohort, or a market. It reads live hiring evidence and builds a working list of companies, each with the right person to reach.
         </p>
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
@@ -835,40 +1277,220 @@ function EmptyChat({ onPick }: { onPick: (s: string) => void }) {
 
 // ── Run progress ─────────────────────────────────────────────────────────────
 
+// The pipeline stages, in order, with a friendly name and a rough share of the
+// total time (used to draw the progress bar). Sensei's raw logs say things like
+// "harvest(ring 0): done" — users shouldn't have to read that.
+const RUN_STAGES = [
+  { key: "plan", label: "Planning the search", weight: 0.05 },
+  { key: "search", label: "Searching boards & LinkedIn", weight: 0.30 },
+  { key: "extract", label: "Reading & pulling out companies", weight: 0.22 },
+  { key: "score", label: "Scoring how well each fits", weight: 0.13 },
+  { key: "enrich", label: "Checking live hiring signals", weight: 0.12 },
+  { key: "contact", label: "Finding the right person to reach", weight: 0.10 },
+  { key: "assemble", label: "Building your table", weight: 0.08 },
+];
+const FRIENDLY_SOURCE: Record<string, string> = {
+  getro: "startup job boards", careerjet: "Careerjet", ats: "company career pages",
+  reddit: "Reddit", ctx_li_posts: "LinkedIn posts", ctx_x: "X (Twitter)",
+  hirist: "Hirist", iimjobs: "IIMJobs", naukri: "Naukri", yc: "Y Combinator", remote_boards: "remote boards",
+};
+
+// Turn one raw event into a human sentence. Never leak internal ids / ring jargon.
+function humanizeEvent(ev: RunEvent): string {
+  const raw = ev.label || "";
+  const low = raw.toLowerCase();
+  for (const s of RUN_STAGES) {
+    if (s.key !== "search" && low.startsWith(s.key)) return s.label;
+  }
+  if (/harvest/.test(low)) return "Searching boards & LinkedIn";
+  // Search events look like "[getro] sre engineer @ Pune" or
+  // "[ctx_li_posts] site:linkedin.com/posts \"sre engineer\" Pune hiring".
+  const m = raw.match(/^\[([a-z_]+)\]\s*(.*)$/i);
+  if (m) {
+    const src = FRIENDLY_SOURCE[m[1].toLowerCase()] || m[1];
+    let q = m[2]
+      .replace(/site:\S+/gi, "")
+      .replace(/["']/g, "")
+      .replace(/\bhiring\b/gi, "")
+      .replace(/@/g, "in ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (q.length > 60) q = q.slice(0, 60) + "…";
+    return q ? `Searching ${src}: ${q}` : `Searching ${src}`;
+  }
+  return raw;
+}
+
+// Which stage is currently active, from the furthest-along stage keyword seen.
+function currentStageIndex(events: RunEvent[]): number {
+  let idx = 0;
+  for (const ev of events) {
+    const low = (ev.label || "").toLowerCase();
+    for (let i = 0; i < RUN_STAGES.length; i++) {
+      const k = RUN_STAGES[i].key;
+      const hit = k === "search" ? /harvest|^\[/.test(low) : low.startsWith(k);
+      if (hit && i > idx) idx = i;
+    }
+  }
+  return idx;
+}
+
 function RunProgress({ run }: { run: Run }) {
   const events = run.events || [];
-  const recent = events.slice(-7);
+  const recent = events.slice(-5);
   const c = run.counters || {};
+  const stageIdx = currentStageIndex(events);
+
+  // Elapsed + rough ETA. Typical full run ~3 min; the bar advances by stage
+  // weight but never sits still (a slow stage like "assemble" still creeps).
+  const [now, setNow] = useState(() => 0);
+  const startRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (startRef.current == null) startRef.current = Date.now();
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const elapsedS = startRef.current ? Math.floor((Date.now() - startRef.current) / 1000) : 0;
+
+  const stageProgress = RUN_STAGES.slice(0, stageIdx).reduce((s, x) => s + x.weight, 0)
+    + RUN_STAGES[stageIdx].weight * 0.5;
+  const TYPICAL_S = 200;
+  const timeProgress = Math.min(0.92, elapsedS / TYPICAL_S);
+  const pct = Math.min(0.96, Math.max(stageProgress, timeProgress)) * 100;
+  const etaS = Math.max(0, TYPICAL_S - elapsedS);
+  const mm = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
   return (
-    <div className="flex gap-2.5">
+    <div className="flex gap-2.5" data-tick={now}>
       <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
         <FiLoader className="animate-spin text-violet-400" size={13} />
       </div>
       <div className="flex-1 bg-white border-2 border-neutral-900 rounded-2xl rounded-tl-md shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] p-4">
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <span className="font-bold text-sm">Researching…</span>
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <span className="font-bold text-sm">{RUN_STAGES[stageIdx].label}…</span>
           <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
-            {c.searches ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{c.searches} searches</span> : null}
-            {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} results</span> : null}
-            {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5">{run.credits_used} credits</span> : null}
+            {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} found</span> : null}
+            {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="context.dev search credits (not phone reveals)">{run.credits_used} search credits</span> : null}
           </span>
         </div>
+
+        {/* Progress bar + ETA */}
+        <div className="mb-3">
+          <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
+            <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1">
+            <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
+            <span>{mm(elapsedS)} elapsed · about {mm(etaS)} left</span>
+          </div>
+        </div>
+
+        {/* Stage stepper */}
+        <div className="flex items-center gap-1 mb-3">
+          {RUN_STAGES.map((s, i) => (
+            <div key={s.key} title={s.label}
+              className={`h-1.5 flex-1 rounded-full ${i < stageIdx ? "bg-violet-500" : i === stageIdx ? "bg-violet-400 animate-pulse" : "bg-neutral-200"}`} />
+          ))}
+        </div>
+
+        {/* Recent friendly activity */}
         <div className="space-y-1.5">
           {recent.map((ev, i) => (
-            <div key={i} className={`flex items-start gap-2 text-[13px] ${i === recent.length - 1 ? "text-neutral-900 font-semibold" : "text-neutral-500"}`}>
+            <div key={i} className={`flex items-start gap-2 text-[13px] ${i === recent.length - 1 ? "text-neutral-900 font-semibold" : "text-neutral-400"}`}>
               <span className="mt-0.5 text-violet-500 shrink-0">
                 {ev.type === "search" || ev.type === "search_done" ? <FiSearch size={13} /> :
                  ev.type === "scrape" ? <FiFileText size={13} /> :
                  ev.type === "table" || ev.type === "rows" ? <FiGrid size={13} /> : <FiZap size={13} />}
               </span>
-              <span>{ev.label}</span>
+              <span>{humanizeEvent(ev)}</span>
             </div>
           ))}
           {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research…</p>}
         </div>
         <p className="text-[11px] text-neutral-400 mt-3">
-          Results appear on the right as Bob finds them. Deep research can take a few minutes.
+          Companies appear on the right as Sensei finds them. A full run usually takes 2–4 minutes.
         </p>
+      </div>
+    </div>
+  );
+}
+
+// Live animated pipeline graph — a neural-network visual on the right panel while
+// a run works and no rows have landed yet, so the user sees Sensei "thinking".
+const NN_LAYERS = [3, 5, 5, 4, 2];
+const NN_W = 320, NN_H = 200, NN_PADX = 26, NN_PADY = 22;
+function nnNodes(): { x: number; y: number; layer: number }[][] {
+  return NN_LAYERS.map((count, li) => {
+    const x = NN_PADX + ((NN_W - 2 * NN_PADX) * li) / (NN_LAYERS.length - 1);
+    return Array.from({ length: count }, (_, j) => {
+      const y = count === 1 ? NN_H / 2 : NN_PADY + ((NN_H - 2 * NN_PADY) * j) / (count - 1);
+      return { x, y, layer: li };
+    });
+  });
+}
+
+function RunGraph({ run }: { run: Run }) {
+  const events = run.events || [];
+  const idx = currentStageIndex(events);
+  const c = run.counters || {};
+  // Progress across the network layers, from the current pipeline stage.
+  const frac = (idx + 1) / RUN_STAGES.length;
+  const wavefront = frac * (NN_LAYERS.length - 1);
+  const layers = nnNodes();
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center">
+      <style>{`
+        @keyframes bobDash { to { stroke-dashoffset: -14; } }
+        .bob-edge-live { stroke-dasharray: 3 6; animation: bobDash .5s linear infinite; }
+        @keyframes bobNodeGlow { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+        .bob-node-live { animation: bobNodeGlow 1.1s ease-in-out infinite; }
+      `}</style>
+      <div className="w-full max-w-[360px]">
+        <div className="text-center mb-4">
+          <div className="w-12 h-12 mx-auto border-2 border-neutral-900 rounded-2xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] mb-3">
+            <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+          </div>
+          <h3 className="font-['Clash_Display'] text-xl font-semibold">Sensei is thinking</h3>
+          <p className="text-sm text-neutral-500 mt-1">{RUN_STAGES[idx].label}…</p>
+        </div>
+
+        {/* Neural network */}
+        <svg viewBox={`0 0 ${NN_W} ${NN_H}`} className="w-full h-auto">
+          {/* edges */}
+          {layers.slice(0, -1).map((la, li) =>
+            la.flatMap((a) =>
+              layers[li + 1].map((b, bj) => {
+                const live = li < wavefront;
+                return (
+                  <line key={`${li}-${a.y}-${bj}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                    stroke={live ? "#7c5cff" : "#e4e0d8"} strokeWidth={live ? 1.1 : 0.7}
+                    className={li === Math.floor(wavefront) ? "bob-edge-live" : ""}
+                    opacity={live ? 0.7 : 0.5} />
+                );
+              })
+            )
+          )}
+          {/* nodes */}
+          {layers.map((la, li) =>
+            la.map((n, nj) => {
+              const done = li < wavefront - 0.5;
+              const active = Math.abs(li - wavefront) <= 0.6;
+              return (
+                <circle key={`${li}-${nj}`} cx={n.x} cy={n.y} r={active ? 6 : 5}
+                  fill={done || active ? "#7c5cff" : "#ffffff"}
+                  stroke={done || active ? "#191a23" : "#cfc9bd"} strokeWidth={1.5}
+                  className={active ? "bob-node-live" : ""} />
+              );
+            })
+          )}
+        </svg>
+
+        <div className="flex flex-wrap gap-2 justify-center mt-4">
+          <span className="text-[11px] font-bold bg-neutral-100 rounded-full px-2.5 py-1">Step {idx + 1} of {RUN_STAGES.length}</span>
+          {c.rows_added ? <span className="text-[11px] font-bold bg-violet-100 text-violet-700 rounded-full px-2.5 py-1">{c.rows_added} companies found</span> : null}
+          {run.credits_used ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-2.5 py-1" title="context.dev search credits">{run.credits_used} search credits</span> : null}
+        </div>
       </div>
     </div>
   );
@@ -876,8 +1498,9 @@ function RunProgress({ run }: { run: Run }) {
 
 // ── Results panel (cards ⇄ table) ────────────────────────────────────────────
 
-function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow }: {
+function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow }: {
   tables: BobTable[];
+  run: Run | null;
   widthPct: number;
   fullWidth: boolean;
   expanded: boolean;
@@ -910,8 +1533,7 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
   }, [tables]);
 
   const exportXlsx = async (t: BobTable) => {
-    const key = localStorage.getItem(KEY_STORAGE) || "";
-    const res = await fetch(`${API}/tables/${t.id}/export`, { headers: { "X-Bob-Key": key } });
+    const res = await fetch(`${API}/tables/${t.id}/export`, { headers: authHeaders() });
     if (!res.ok) return alert("Export failed");
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
@@ -936,21 +1558,25 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
       style={{ width: fullWidth ? "100%" : `${widthPct}%` }}
     >
       {/* Header */}
-      <div className="h-12 shrink-0 border-b-2 border-neutral-900 bg-white flex items-center gap-2 px-3 overflow-x-auto">
+      <div className="h-12 shrink-0 border-b-2 border-neutral-900 bg-white flex items-center gap-2 px-3">
+        <div className="flex items-center gap-2 min-w-0 flex-1 overflow-x-auto bob-thinscroll">
         {tables.map((t) => (
           <button
             key={t.id}
             onClick={() => { setActiveId(t.id); setDetailRow(null); }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border-2 transition-colors ${
+            className={`flex items-center gap-1 max-w-[150px] shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold border-2 transition-colors ${
               active?.id === t.id
                 ? "bg-violet-500 text-white border-neutral-900"
                 : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-900"
             }`}
+            title={prettify(t.name)}
           >
-            {prettify(t.name)} <span className="opacity-70">· {t.rows.length}</span>
+            <span className="truncate">{prettify(t.name)}</span>
+            <span className="opacity-70 shrink-0">· {t.rows.length}</span>
           </button>
         ))}
-        <div className="ml-auto flex items-center gap-1 shrink-0">
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
           <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden mr-1">
             {([["cards", FiLayers, "Card view"], ["table", FiGrid, "Table view"]] as const).map(([v, Icon, label]) => (
               <button
@@ -1007,7 +1633,10 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
       </div>
 
       {/* Body */}
-      {active && view === "cards" && (
+      {/* Live pipeline graph while a run is working and no rows have landed yet. */}
+      {run && (!active || active.rows.length === 0) && <RunGraph run={run} />}
+
+      {active && view === "cards" && !(run && active.rows.length === 0) && (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
             {active.rows.map((r, idx) => (
@@ -1023,13 +1652,13 @@ function ResultsPanel({ tables, widthPct, fullWidth, expanded, onExpand, viewPre
               />
             ))}
           </div>
-          {active.rows.length === 0 && (
-            <p className="text-sm text-neutral-400 p-6 text-center">Results will appear here as Bob finds them.</p>
+          {active.rows.length === 0 && !run && (
+            <p className="text-sm text-neutral-400 p-6 text-center">Results will appear here as Sensei finds them.</p>
           )}
         </div>
       )}
 
-      {active && view === "table" && (
+      {active && view === "table" && !(run && active.rows.length === 0) && (
         <DenseTable
           table={active}
           newIds={newIds}
@@ -1166,17 +1795,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
     >
       {/* Header */}
       <div className="flex items-start gap-2.5">
-        {websiteIsReal ? (
-          <img
-            src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-            alt=""
-            className="w-9 h-9 rounded-lg border border-neutral-200 bg-neutral-50 p-1"
-          />
-        ) : (
-          <div className="w-9 h-9 rounded-lg border-2 border-neutral-900 bg-violet-100 flex items-center justify-center font-['Clash_Display'] text-[15px] font-semibold text-violet-700">
-            {company.replace(/[^a-zA-Z0-9]/g, "")[0]?.toUpperCase() || "?"}
-          </div>
-        )}
+        <CompanyLogo company={company} website={website} domain={str(c._domain)} size={36} />
         <div className="min-w-0 flex-1">
           <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">{company}</div>
           <div className="text-[11.5px] text-neutral-500 truncate">{meta || what || ""}</div>
@@ -1330,11 +1949,12 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
             <tr
               key={r.id}
               onClick={() => onRowClick(r)}
-              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-violet-50 ${idx % 2 ? "bg-neutral-50/50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""}`}
+              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""}`}
             >
               <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
                 <span className="inline-flex items-center gap-2">
-                  <span className="w-5 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
+                  <span className="w-4 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
+                  <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} domain={str(r.cells._domain)} size={20} />
                   {str(r.cells.company)}
                 </span>
               </td>
@@ -1381,7 +2001,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
         </tbody>
       </table>
       {table.rows.length === 0 && (
-        <p className="text-sm text-neutral-400 p-6 text-center">Rows will appear here as Bob finds them.</p>
+        <p className="text-sm text-neutral-400 p-6 text-center">Rows will appear here as Sensei finds them.</p>
       )}
     </div>
   );
