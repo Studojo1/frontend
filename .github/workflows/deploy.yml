@@ -47,6 +47,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.APP_NAME }}:latest
           build-args: |
             VITE_PUBLIC_POSTHOG_KEY=${{ secrets.POSTHOG_KEY }}
+            VITE_CONTEXT_LOGO_CLIENT_ID=${{ vars.VITE_CONTEXT_LOGO_CLIENT_ID }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache,mode=max
 
