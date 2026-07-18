@@ -264,7 +264,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Resolve the host on the SERVER so the global chat widget is never even
   // rendered on Sensei subdomains (no SSR flash, no hydration mismatch).
   const host = (request.headers.get("host") || "").toLowerCase();
-  return { isSenseiHost: /^(app|admin)\.studojo\./.test(host) };
+  return { isSenseiHost: /^(app|admin|dashboard)\.studojo\./.test(host) };
 }
 
 export default function App() {

@@ -38,6 +38,13 @@ function authHeaders(): Record<string, string> {
 }
 const LAYOUT_STORAGE = "bob_layout_v3";
 
+// app.studojo.* -> dashboard.studojo.* (same env). The manager portal.
+function dashboardUrl(): string {
+  if (typeof window === "undefined") return "https://dashboard.studojo.com";
+  const host = window.location.host.replace(/^app\./, "dashboard.");
+  return `${window.location.protocol}//${host}`;
+}
+
 class BobError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -357,7 +364,26 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     } catch (e) { handleError(e); }
   }, [handleError]);
 
+  // Track whether the current chat is a throwaway (no messages, no tables) so we
+  // can drop it the moment the user navigates away. An empty "New chat" is never
+  // worth persisting — this keeps the sidebar clean of blank entries.
+  const emptyRef = useRef<{ id: number | null; empty: boolean }>({ id: null, empty: true });
+  useEffect(() => {
+    emptyRef.current = { id: activeChat, empty: messages.length === 0 && tables.length === 0 };
+  }, [activeChat, messages, tables]);
+
+  const dropCurrentIfEmpty = useCallback(async () => {
+    const { id, empty } = emptyRef.current;
+    if (id == null || !empty) return;
+    try {
+      await bobFetch(`/chats/${id}`, { method: "DELETE" });
+      setChats((cs) => cs.filter((c) => c.id !== id));
+    } catch { /* best-effort cleanup */ }
+  }, []);
+
   const openChat = useCallback(async (id: number) => {
+    if (id === emptyRef.current.id) return;   // already open
+    await dropCurrentIfEmpty();
     setActiveChat(id);
     setRun(null);
     setPendingFiles([]);
@@ -369,7 +395,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     } catch (e) {
       handleError(e);
     }
-  }, [handleError]);
+  }, [handleError, dropCurrentIfEmpty]);
 
   useEffect(() => {
     loadChats().then((list) => {
@@ -425,17 +451,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   }, []);
 
   const newChat = async () => {
-    try {
-      const d = await bobFetch<{ id: number }>("/chats", { method: "POST" });
-      await loadChats();
-      setMessages([]);
-      setTables([]);
-      setRun(null);
-      setActiveChat(d.id);
-      setMode("split");
-    } catch (e) {
-      handleError(e);
-    }
+    // Don't create a server chat yet — an empty one is throwaway. Reset to the
+    // empty state; the first message (or file) creates the chat lazily.
+    await dropCurrentIfEmpty();
+    setMessages([]);
+    setTables([]);
+    setRun(null);
+    setPendingFiles([]);
+    setActiveChat(null);
+    setMode("split");
   };
 
   const deleteChat = async (id: number) => {
@@ -630,8 +654,19 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         .bob-dark .bg-neutral-50, .bob-dark .bg-neutral-100 { background:#242429 !important; }
         .bob-dark .hover\\:bg-neutral-100:hover, .bob-dark .hover\\:bg-neutral-50:hover { background:#26262c !important; }
         .bob-dark .bg-neutral-900 { background:#e7e7ea !important; color:#131316 !important; }
-        .bob-dark input, .bob-dark textarea { background:#1c1c20 !important; color:#e7e7ea !important; }
+        .bob-dark input, .bob-dark textarea, .bob-dark select { background:#1c1c20 !important; color:#e7e7ea !important; }
         .bob-dark input::placeholder, .bob-dark textarea::placeholder { color:#6b6b73 !important; }
+        /* Violet accents: mute them so they read on a dark surface. */
+        .bob-dark .bg-violet-50 { background:#211c33 !important; }
+        .bob-dark .bg-violet-100 { background:#2b2447 !important; }
+        .bob-dark .text-violet-600, .bob-dark .text-violet-700, .bob-dark .text-violet-800 { color:#b3a1ff !important; }
+        .bob-dark .border-violet-200, .bob-dark .border-violet-300 { border-color:#3d3363 !important; }
+        /* Tailwind hover:* colour utilities aren't !important, so our neutral
+           overrides would otherwise win on hover. Restore the intended accents. */
+        .bob-dark .hover\\:text-red-600:hover { color:#f87171 !important; }
+        .bob-dark .hover\\:text-violet-600:hover, .bob-dark .hover\\:text-violet-700:hover { color:#b3a1ff !important; }
+        .bob-dark .hover\\:border-violet-500:hover { border-color:#7c5cff !important; }
+        .bob-dark .hover\\:border-neutral-900:hover { border-color:#5a5a66 !important; }
       `}</style>
 
       {/* ── Sidebar ── */}
@@ -699,12 +734,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </div>
           <div className="p-3 border-t-2 border-neutral-900 shrink-0 space-y-2">
             {me?.role === "admin" && (
-              <button
-                onClick={() => setShowTeam(true)}
+              <a
+                href={dashboardUrl()}
                 className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl px-3 py-2.5 hover:bg-violet-500 hover:text-white transition-colors"
               >
-                <FiUsers size={15} /> Manage team
-              </button>
+                <FiUsers size={15} /> Team dashboard
+              </a>
             )}
             <button
               onClick={() => setShowSupport(true)}
@@ -744,8 +779,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           <div className="ml-auto flex items-center gap-2">
             {credits?.enabled && (
               <div className="flex items-center gap-1.5">
-                <CreditPill icon={<FiPhone size={11} />} label="reveals" value={credits.enrichment} />
-                <CreditPill icon={<FiZap size={11} />} label="AI" value={credits.ai} />
+                <CreditPill kind="enrichment" value={credits.enrichment} />
+                <CreditPill kind="ai" value={credits.ai} />
               </div>
             )}
             {hasTables && (
@@ -930,22 +965,54 @@ const TEMPLATES = [
   },
 ];
 
-function CreditPill({ icon, label, value }: { icon: ReactNode; label: string; value: number }) {
+function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number }) {
+  const [open, setOpen] = useState(false);
   const low = value <= 0;
-  // Effectively-unlimited balances (internal accounts) show as ∞ rather than a
-  // giant number.
-  const display = value >= 100_000_000 ? "∞" : value.toLocaleString();
+  // Effectively-unlimited balances (internal accounts) show as ∞.
+  const unlimited = value >= 100_000_000;
+  const display = unlimited ? "∞" : value.toLocaleString();
+  const icon = kind === "enrichment" ? <FiPhone size={11} /> : <FiZap size={11} />;
+  const label = kind === "enrichment" ? "reveals" : "AI";
   return (
-    <span
-      title={`${display} ${label} credits`}
-      className={`flex items-center gap-1 text-[11px] font-bold rounded-full border-2 px-2.5 py-1 ${
-        low ? "bg-red-50 border-red-500 text-red-600" : "bg-white border-neutral-900 text-neutral-900"
-      }`}
-    >
-      {icon}
-      {display}
-      <span className="font-medium text-neutral-400">{label}</span>
-    </span>
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={`flex items-center gap-1 text-[11px] font-bold rounded-full border-2 px-2.5 py-1 transition-colors ${
+          low ? "bg-red-50 border-red-500 text-red-600" : "bg-white border-neutral-900 text-neutral-900 hover:bg-neutral-100"
+        }`}
+      >
+        {icon}
+        {display}
+        <span className="font-medium text-neutral-400">{label}</span>
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 mt-2 w-64 z-50 bg-white border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] p-4 text-left">
+            {kind === "enrichment" ? (
+              <>
+                <div className="text-2xl font-black leading-none">{display}</div>
+                <div className="text-sm font-semibold text-neutral-500 mb-2">phone reveals left</div>
+                <p className="text-[12.5px] text-neutral-500 leading-snug">
+                  1 credit finds a verified phone + email for one contact. You're only charged when we actually find a real number.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-black leading-none">{unlimited ? "Unlimited" : display}</div>
+                <div className="text-sm font-semibold text-neutral-500 mb-2">{unlimited ? "AI on this workspace" : "AI credits left"}</div>
+                <p className="text-[12.5px] text-neutral-500 leading-snug">
+                  AI credits power each run: finding companies, reading live hiring signals, and drafting the right person to reach.
+                </p>
+              </>
+            )}
+            {low && kind === "enrichment" && (
+              <p className="text-[12px] text-red-600 font-semibold mt-2">Out of reveals. Contact Studojo to top up.</p>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
