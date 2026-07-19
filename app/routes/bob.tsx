@@ -376,6 +376,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   useEffect(() => { loadMe(); }, [loadMe]);
 
   const signOut = useCallback(() => {
+    // Invalidate the session server-side too (best-effort), then clear locally.
+    bobFetch("/auth/logout", { method: "POST" }).catch(() => {});
     localStorage.removeItem(SESSION_STORAGE);
     localStorage.removeItem(KEY_STORAGE);
     onAuthLost();

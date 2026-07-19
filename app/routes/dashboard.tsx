@@ -168,6 +168,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const [invite, setInvite] = useState("");
   const [inviteRole, setInviteRole] = useState<"member" | "admin">("member");
   const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState("");
   const [viewChat, setViewChat] = useState<{ id: number; title: string } | null>(null);
 
   const load = useCallback(async () => {
@@ -184,6 +185,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   useEffect(() => { load(); }, [load]);
 
   const signOut = () => {
+    api("/auth/logout", { method: "POST" }).catch(() => {});
     localStorage.removeItem(SESSION_STORAGE);
     localStorage.removeItem(KEY_STORAGE);
     onSignOut();
@@ -191,10 +193,16 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
 
   const doInvite = async () => {
     if (!invite.trim() || inviteBusy) return;
-    setInviteBusy(true); setErr("");
+    setInviteBusy(true); setErr(""); setInviteMsg("");
+    const who = invite.trim();
     try {
-      await api("/org/members", { method: "POST", body: JSON.stringify({ email: invite.trim(), role: inviteRole }) });
-      setInvite(""); await load();
+      const r = await api<{ emailed: boolean; password: string | null }>(
+        "/org/members", { method: "POST", body: JSON.stringify({ email: who, role: inviteRole }) });
+      setInvite("");
+      setInviteMsg(r.emailed
+        ? `Invite sent to ${who}. Their login was emailed to them.`
+        : `Added ${who}. Email failed, share this password with them: ${r.password}`);
+      await load();
     } catch (e: any) { setErr(e.message || "Could not add member"); }
     finally { setInviteBusy(false); }
   };
@@ -342,7 +350,8 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
                     {inviteBusy ? "..." : "Invite"}
                   </button>
                 </div>
-                <p className="text-xs text-neutral-400 mt-2">Members sign in with their work email. Anyone at your company's domain can auto-join.</p>
+                <p className="text-xs text-neutral-400 mt-2">Adding someone creates their account and emails them a password to sign in with.</p>
+                {inviteMsg && <p className="text-xs font-semibold text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 mt-2">{inviteMsg}</p>}
               </div>
               <div className={`${card} overflow-x-auto`}>
                 <div className="min-w-[680px]">
