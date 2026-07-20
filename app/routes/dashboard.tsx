@@ -72,7 +72,7 @@ interface Chat { id: number; title: string; owner_email: string | null; shared_o
 interface Activity { created_at: string | null; kind: string; delta: number; reason: string; email: string | null }
 interface Credits { enrichment_balance: number; ai_balance: number; enrichment_used: number; ai_used: number; low: boolean }
 interface EnrichLog { created_at: string | null; email: string | null; chat_title: string | null; company: string | null; contact_name: string | null; contact_title: string | null; contact_phone: string | null; contact_email: string | null }
-interface DashData { org: { id: number; name: string } | null; credits: Credits | null; members: Member[]; chats: Chat[]; activity: Activity[]; enrichment_log: EnrichLog[] }
+interface DashData { org: { id: number; name: string; max_members?: number | null } | null; credits: Credits | null; members: Member[]; chats: Chat[]; activity: Activity[]; enrichment_log: EnrichLog[] }
 interface ChatMsg { id: number; role: string; content: string }
 interface ChatRow { id: number; cells: Record<string, any>; status?: string }
 interface ChatTable { id: number; name: string; rows: ChatRow[] }
@@ -285,6 +285,8 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const c = data?.credits;
   const members = data?.members || [];
   const log = data?.enrichment_log || [];
+  const seatCap = data?.org?.max_members ?? null;
+  const seatsFull = seatCap !== null && members.length >= seatCap;
   const NAV = [
     { id: "overview", label: "Overview", icon: FiHome },
     { id: "team", label: "Team", icon: FiUsers },
@@ -355,7 +357,9 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <StatCard icon={<FiPhone size={12} />} label="Reveals left" warn={c?.low} value={c ? c.enrichment_balance.toLocaleString() : "-"} sub={c ? `${c.enrichment_used.toLocaleString()} used all-time` : ""} />
                 <StatCard icon={<FiZap size={12} />} label="AI credits" value={c ? (c.ai_balance >= 100_000_000 ? "∞" : c.ai_balance.toLocaleString()) : "-"} sub="shared across the team" />
-                <StatCard icon={<FiUsers size={12} />} label="Team" value={members.length} sub="members" />
+                <StatCard icon={<FiUsers size={12} />} label="Team"
+                  value={data?.org?.max_members ? `${members.length} / ${data.org.max_members}` : members.length}
+                  sub={data?.org?.max_members ? "seats used" : "members"} />
                 <StatCard icon={<FiMessageSquare size={12} />} label="Chats" value={data?.chats.length ?? "-"} sub="in this workspace" />
               </div>
               {c?.low && (
@@ -396,12 +400,21 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
                     className="border-2 border-neutral-900 rounded-xl px-2 py-2 text-sm">
                     <option value="member">Member</option><option value="admin">Manager</option>
                   </select>
-                  <button onClick={doInvite} disabled={inviteBusy}
+                  <button onClick={doInvite} disabled={inviteBusy || seatsFull}
+                    title={seatsFull ? "All seats are in use" : ""}
                     className="bg-violet-600 text-white font-bold px-4 py-2 rounded-xl border-2 border-neutral-900 text-sm disabled:opacity-60">
                     {inviteBusy ? "..." : "Invite"}
                   </button>
                 </div>
-                <p className="text-xs text-neutral-400 mt-2">Adding someone creates their account and emails them a password to sign in with.</p>
+                <p className="text-xs text-neutral-400 mt-2">
+                  Adding someone creates their account and emails them a password to sign in with.
+                  {seatCap !== null && ` You've used ${members.length} of your ${seatCap} seats.`}
+                </p>
+                {seatsFull && (
+                  <p className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 mt-2">
+                    All {seatCap} seats are in use. Contact Studojo to add more.
+                  </p>
+                )}
                 {inviteMsg && <p className="text-xs font-semibold text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2 mt-2">{inviteMsg}</p>}
               </div>
               <div className={`${card} overflow-x-auto`}>
