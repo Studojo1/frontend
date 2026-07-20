@@ -148,9 +148,20 @@ function str(v: unknown): string {
 export default function BobPage() {
   const [mounted, setMounted] = useState(false);
   const [authed, setAuthed] = useState(false);
+  const [resetToken, setResetToken] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    // Password-reset link (?reset=token) — show the set-new-password screen.
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const rt = p.get("reset");
+      if (rt) {
+        setResetToken(rt);
+        p.delete("reset");
+        window.history.replaceState({}, "", window.location.pathname + (p.toString() ? `?${p}` : ""));
+      }
+    } catch { /* ignore */ }
     // Session handoff from the dashboard (?s=token). localStorage is per-origin,
     // so a manager crossing dashboard.studojo.* -> app.studojo.* carries their
     // token in the URL. Adopt it (overriding any stale session), then clean the URL.
@@ -168,6 +179,7 @@ export default function BobPage() {
   }, []);
 
   if (!mounted) return <div className="min-h-screen bg-[#faf7f2]" />;
+  if (resetToken) return <ResetPasswordScreen token={resetToken} onDone={() => setResetToken(null)} />;
   if (!authed) return <Gate onSuccess={() => setAuthed(true)} />;
   return <Workspace onAuthLost={() => setAuthed(false)} />;
 }
@@ -175,12 +187,27 @@ export default function BobPage() {
 // ── Access gate ──────────────────────────────────────────────────────────────
 
 function Gate({ onSuccess }: { onSuccess: () => void }) {
-  const [mode, setMode] = useState<"email" | "code">("email");
+  const [mode, setMode] = useState<"email" | "code" | "forgot">("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [forgotSent, setForgotSent] = useState("");
+
+  const submitForgot = async () => {
+    if (!email.trim() || busy) return;
+    setBusy(true); setError(""); setForgotSent("");
+    try {
+      const res = await fetch(`${API}/auth/forgot-password`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), origin: window.location.origin }),
+      });
+      const d = await res.json().catch(() => ({}));
+      setForgotSent(d?.message || "If that email has an account, a reset link is on its way.");
+    } catch { setError("Could not send the reset link. Try again."); }
+    finally { setBusy(false); }
+  };
 
   const submitEmail = async () => {
     if (!email.trim() || !password || busy) return;
@@ -257,10 +284,42 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
               {busy ? "Signing in..." : "Continue"}
             </button>
             <button
+              onClick={() => { setMode("forgot"); setError(""); setForgotSent(""); }}
+              className="mt-3 w-full text-sm font-semibold text-violet-600 hover:text-violet-800"
+            >
+              Forgot your password?
+            </button>
+            <button
               onClick={() => { setMode("code"); setError(""); }}
-              className="mt-3 w-full text-sm text-neutral-400 hover:text-neutral-700"
+              className="mt-2 w-full text-sm text-neutral-400 hover:text-neutral-700"
             >
               Have a workspace access code?
+            </button>
+          </>
+        ) : mode === "forgot" ? (
+          <>
+            <p className="text-neutral-600 mt-2 mb-6">
+              Enter your email and we'll send you a link to set a new password.
+            </p>
+            <input
+              type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submitForgot()}
+              placeholder="you@company.com" className={inputCls}
+            />
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+            {forgotSent && (
+              <p className="text-sm text-violet-700 bg-violet-50 border-2 border-violet-200 rounded-xl px-3 py-2 mt-3">
+                {forgotSent}
+              </p>
+            )}
+            <button onClick={submitForgot} disabled={busy} className={btnCls}>
+              {busy ? "Sending..." : "Send reset link"}
+            </button>
+            <button
+              onClick={() => { setMode("email"); setError(""); setForgotSent(""); }}
+              className="mt-3 w-full text-sm text-neutral-400 hover:text-neutral-700"
+            >
+              Back to sign in
             </button>
           </>
         ) : (
@@ -288,6 +347,119 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
+// ── Password reset (from the emailed link) ───────────────────────────────────
+
+function ResetPasswordScreen({ token, onDone }: { token: string; onDone: () => void }) {
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+
+  const submit = async () => {
+    if (busy) return;
+    if (pw.length < 8) { setError("Password must be at least 8 characters"); return; }
+    if (pw !== pw2) { setError("Those passwords don't match"); return; }
+    setBusy(true); setError("");
+    try {
+      const res = await fetch(`${API}/auth/reset-password`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, new_password: pw }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d?.detail || "Could not reset your password");
+      setDone(true);
+    } catch (e: any) { setError(e.message || "Could not reset your password"); }
+    finally { setBusy(false); }
+  };
+
+  const inputCls = "w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500";
+  return (
+    <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
+      <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
+        <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
+          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+        </div>
+        {done ? (
+          <>
+            <h1 className="font-['Clash_Display'] text-2xl font-semibold">Password updated</h1>
+            <p className="text-neutral-600 mt-2 mb-6">You can sign in with your new password now.</p>
+            <button onClick={onDone}
+              className="w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+              Sign in
+            </button>
+          </>
+        ) : (
+          <>
+            <h1 className="font-['Clash_Display'] text-2xl font-semibold">Set a new password</h1>
+            <p className="text-neutral-600 mt-2 mb-6">Choose a password with at least 8 characters.</p>
+            <input type="password" value={pw} onChange={(e) => setPw(e.target.value)}
+              placeholder="New password" className={inputCls} />
+            <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+              placeholder="Confirm new password" className={`${inputCls} mt-3`} />
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+            <button onClick={submit} disabled={busy}
+              className="mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] disabled:opacity-60">
+              {busy ? "Saving..." : "Save password"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Change password for a signed-in user. On success every session is invalidated,
+// so we sign the user out and let them back in with the new password.
+function ChangePasswordModal({ onClose, onChanged }: { onClose: () => void; onChanged: () => void }) {
+  const [cur, setCur] = useState("");
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async () => {
+    if (busy) return;
+    if (pw.length < 8) { setError("New password must be at least 8 characters"); return; }
+    if (pw !== pw2) { setError("Those passwords don't match"); return; }
+    setBusy(true); setError("");
+    try {
+      await bobFetch("/auth/change-password", {
+        method: "POST", body: JSON.stringify({ current_password: cur, new_password: pw }),
+      });
+      onChanged();
+    } catch (e: any) { setError(e?.message || "Could not change your password"); }
+    finally { setBusy(false); }
+  };
+
+  const inputCls = "w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500";
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6" onClick={onClose}>
+      <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[28px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6"
+        onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-['Clash_Display'] text-xl font-semibold">Change password</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+        </div>
+        <p className="text-sm text-neutral-500 mb-4">You'll be signed out everywhere and can sign back in with the new password.</p>
+        <input type="password" value={cur} onChange={(e) => setCur(e.target.value)} placeholder="Current password" className={inputCls} />
+        <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password (min 8 characters)" className={`${inputCls} mt-2`} />
+        <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="Confirm new password" className={`${inputCls} mt-2`} />
+        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl border-2 border-neutral-300 text-sm font-semibold text-neutral-500 hover:border-neutral-900 hover:text-neutral-900">Cancel</button>
+          <button onClick={submit} disabled={busy}
+            className="bg-violet-700 text-white font-bold px-5 py-2 rounded-xl border-2 border-neutral-900 text-sm hover:bg-violet-800 disabled:opacity-60">
+            {busy ? "Saving..." : "Change password"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Workspace ────────────────────────────────────────────────────────────────
 
 type PanelMode = "split" | "chat" | "table";
@@ -309,6 +481,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null } | null>(null);
   const [showTeam, setShowTeam] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
+  const [showChangePw, setShowChangePw] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [dark, setDark] = useState(false);
   useEffect(() => { setDark(localStorage.getItem("bob_dark") === "1"); }, []);
@@ -667,6 +840,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
       {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
       {showSupport && <SupportModal email={me?.email || ""} orgName={me?.org?.name || ""} onClose={() => setShowSupport(false)} />}
+      {showChangePw && (
+        <ChangePasswordModal
+          onClose={() => setShowChangePw(false)}
+          onChanged={() => { setShowChangePw(false); alert("Password changed. Please sign in again."); signOut(); }}
+        />
+      )}
       <style>{`
         @keyframes bobFlash { 0% { background-color: rgb(221 214 254); } 100% { background-color: transparent; } }
         .bob-new { animation: bobFlash 2.5s ease-out; }
@@ -781,10 +960,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               <FiMessageSquare size={15} /> Get support
             </button>
             {me?.email && (
-              <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-400 px-1">
-                <span className="truncate" title={me.email}>{me.email}</span>
-                <button onClick={signOut} className="shrink-0 font-semibold hover:text-neutral-900">Sign out</button>
-              </div>
+              <>
+                <div className="text-[11px] text-neutral-400 px-1 truncate" title={me.email}>{me.email}</div>
+                <div className="flex items-center justify-between gap-2 text-[11px] px-1">
+                  <button onClick={() => setShowChangePw(true)} className="font-semibold text-neutral-400 hover:text-violet-700">
+                    Change password
+                  </button>
+                  <button onClick={signOut} className="shrink-0 font-semibold text-neutral-400 hover:text-neutral-900">Sign out</button>
+                </div>
+              </>
             )}
           </div>
         </div>
