@@ -81,9 +81,20 @@ interface ChatDetail { messages: ChatMsg[]; tables: ChatTable[] }
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const [authed, setAuthed] = useState(false);
+  const [resetToken, setResetToken] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    // Password-reset link (?reset=token).
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const rt = p.get("reset");
+      if (rt) {
+        setResetToken(rt);
+        p.delete("reset");
+        window.history.replaceState({}, "", window.location.pathname + (p.toString() ? `?${p}` : ""));
+      }
+    } catch { /* ignore */ }
     // Session handoff from Sensei (?s=token) — adopt it (overriding any stale
     // session on this subdomain), then clean the URL.
     try {
@@ -100,6 +111,7 @@ export default function DashboardPage() {
   }, []);
 
   if (!mounted) return <div className="min-h-screen bg-[#faf7f2]" />;
+  if (resetToken) return <ResetPasswordScreen token={resetToken} onDone={() => setResetToken(null)} />;
   if (!authed) return <DashGate onSuccess={() => setAuthed(true)} />;
   return <Dashboard onSignOut={() => setAuthed(false)} />;
 }
@@ -109,6 +121,22 @@ function DashGate({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [forgot, setForgot] = useState(false);
+  const [forgotSent, setForgotSent] = useState("");
+
+  const submitForgot = async () => {
+    if (!email.trim() || busy) return;
+    setBusy(true); setError(""); setForgotSent("");
+    try {
+      const res = await fetch(`${API}/auth/forgot-password`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), origin: window.location.origin }),
+      });
+      const d = await res.json().catch(() => ({}));
+      setForgotSent(d?.message || "If that email has an account, a reset link is on its way.");
+    } catch { setError("Could not send the reset link. Try again."); }
+    finally { setBusy(false); }
+  };
 
   const submit = async () => {
     if (!email.trim() || !password || busy) return;
@@ -136,25 +164,40 @@ function DashGate({ onSuccess }: { onSuccess: () => void }) {
         <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">
           Team dashboard <span className="text-neutral-400 text-xl font-normal">Sensei</span>
         </h1>
-        <p className="text-neutral-600 mt-2 mb-6">Sign in with your manager email and password to see your team's activity.</p>
+        <p className="text-neutral-600 mt-2 mb-6">
+          {forgot
+            ? "Enter your email and we'll send you a link to set a new password."
+            : "Sign in with your manager email and password to see your team's activity."}
+        </p>
         <input
           type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
+          onKeyDown={(e) => e.key === "Enter" && (forgot ? submitForgot() : submit())}
           placeholder="you@company.com"
           className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
-        <input
-          type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Password"
-          className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 mt-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
-        />
+        {!forgot && (
+          <input
+            type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+            placeholder="Password"
+            className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 mt-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+        )}
         {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+        {forgotSent && (
+          <p className="text-sm text-violet-700 bg-violet-50 border-2 border-violet-200 rounded-xl px-3 py-2 mt-3">{forgotSent}</p>
+        )}
         <button
-          onClick={submit} disabled={busy}
+          onClick={forgot ? submitForgot : submit} disabled={busy}
           className="mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60"
         >
-          {busy ? "Signing in..." : "Continue"}
+          {busy ? (forgot ? "Sending..." : "Signing in...") : (forgot ? "Send reset link" : "Continue")}
+        </button>
+        <button
+          onClick={() => { setForgot(!forgot); setError(""); setForgotSent(""); }}
+          className={`mt-3 w-full text-sm font-semibold ${forgot ? "text-neutral-400 hover:text-neutral-700" : "text-violet-600 hover:text-violet-800"}`}
+        >
+          {forgot ? "Back to sign in" : "Forgot your password?"}
         </button>
       </div>
     </div>
@@ -169,6 +212,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const [inviteRole, setInviteRole] = useState<"member" | "admin">("member");
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteMsg, setInviteMsg] = useState("");
+  const [showChangePw, setShowChangePw] = useState(false);
   const [viewChat, setViewChat] = useState<{ id: number; title: string } | null>(null);
 
   const load = useCallback(async () => {
@@ -260,6 +304,12 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   return (
     <div className="min-h-screen bg-[#faf7f2] font-['Satoshi'] text-neutral-900 flex">
       {viewChat && <ChatViewer chatId={viewChat.id} title={viewChat.title} onClose={() => setViewChat(null)} />}
+      {showChangePw && (
+        <ChangePasswordModal
+          onClose={() => setShowChangePw(false)}
+          onChanged={() => { setShowChangePw(false); alert("Password changed. Please sign in again."); signOut(); }}
+        />
+      )}
 
       {/* ── Left nav ── */}
       <aside className="w-60 shrink-0 border-r-2 border-neutral-900 bg-white flex flex-col fixed inset-y-0 left-0 z-20">
@@ -285,8 +335,9 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
           <a href={senseiUrl()} className="w-full flex items-center justify-center gap-1.5 bg-violet-600 text-white font-bold text-sm px-3 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
             Open Sensei <FiExternalLink size={14} />
           </a>
+          <div className="text-[11px] text-neutral-400 px-1 truncate" title={me?.email || ""}>{me?.email}</div>
           <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-400 px-1">
-            <span className="truncate" title={me?.email || ""}>{me?.email}</span>
+            <button onClick={() => setShowChangePw(true)} className="font-semibold hover:text-violet-700">Change password</button>
             <button onClick={signOut} className="shrink-0 font-semibold hover:text-neutral-900">Sign out</button>
           </div>
         </div>
@@ -546,6 +597,102 @@ function ChatViewer({ chatId, title, onClose }: { chatId: number; title: string;
           {data && data.messages?.length === 0 && (data.tables?.length ?? 0) === 0 && (
             <p className="text-neutral-400 text-sm text-center py-6">This chat is empty.</p>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Password reset (from the emailed link) ───────────────────────────────────
+function ResetPasswordScreen({ token, onDone }: { token: string; onDone: () => void }) {
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+
+  const submit = async () => {
+    if (busy) return;
+    if (pw.length < 8) { setError("Password must be at least 8 characters"); return; }
+    if (pw !== pw2) { setError("Those passwords don't match"); return; }
+    setBusy(true); setError("");
+    try {
+      const res = await fetch(`${API}/auth/reset-password`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, new_password: pw }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d?.detail || "Could not reset your password");
+      setDone(true);
+    } catch (e: any) { setError(e.message || "Could not reset your password"); }
+    finally { setBusy(false); }
+  };
+
+  const inputCls = "w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500";
+  return (
+    <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
+      <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
+        <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
+          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+        </div>
+        {done ? (
+          <>
+            <h1 className="font-['Clash_Display'] text-2xl font-semibold">Password updated</h1>
+            <p className="text-neutral-600 mt-2 mb-6">You can sign in with your new password now.</p>
+            <button onClick={onDone} className="w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">Sign in</button>
+          </>
+        ) : (
+          <>
+            <h1 className="font-['Clash_Display'] text-2xl font-semibold">Set a new password</h1>
+            <p className="text-neutral-600 mt-2 mb-6">Choose a password with at least 8 characters.</p>
+            <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password" className={inputCls} />
+            <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="Confirm new password" className={`${inputCls} mt-3`} />
+            {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+            <button onClick={submit} disabled={busy} className="mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] disabled:opacity-60">
+              {busy ? "Saving..." : "Save password"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Change password for a signed-in manager; invalidates all sessions on success.
+function ChangePasswordModal({ onClose, onChanged }: { onClose: () => void; onChanged: () => void }) {
+  const [cur, setCur] = useState("");
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async () => {
+    if (busy) return;
+    if (pw.length < 8) { setError("New password must be at least 8 characters"); return; }
+    if (pw !== pw2) { setError("Those passwords don't match"); return; }
+    setBusy(true); setError("");
+    try {
+      await api("/auth/change-password", { method: "POST", body: JSON.stringify({ current_password: cur, new_password: pw }) });
+      onChanged();
+    } catch (e: any) { setError(e?.message || "Could not change your password"); }
+    finally { setBusy(false); }
+  };
+
+  const inputCls = "w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500";
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6" onClick={onClose}>
+      <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[28px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6" onClick={(e) => e.stopPropagation()}>
+        <h2 className="font-['Clash_Display'] text-xl font-semibold mb-1">Change password</h2>
+        <p className="text-sm text-neutral-500 mb-4">You'll be signed out everywhere and can sign back in with the new password.</p>
+        <input type="password" value={cur} onChange={(e) => setCur(e.target.value)} placeholder="Current password" className={inputCls} />
+        <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password (min 8 characters)" className={`${inputCls} mt-2`} />
+        <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="Confirm new password" className={`${inputCls} mt-2`} />
+        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onClose} className="px-4 py-2 rounded-xl border-2 border-neutral-300 text-sm font-semibold text-neutral-500 hover:border-neutral-900 hover:text-neutral-900">Cancel</button>
+          <button onClick={submit} disabled={busy} className="bg-violet-700 text-white font-bold px-5 py-2 rounded-xl border-2 border-neutral-900 text-sm hover:bg-violet-800 disabled:opacity-60">
+            {busy ? "Saving..." : "Change password"}
+          </button>
         </div>
       </div>
     </div>
