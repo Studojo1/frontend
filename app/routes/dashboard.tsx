@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FiUsers, FiPhone, FiZap, FiExternalLink, FiUserPlus, FiActivity,
   FiMessageSquare, FiAlertTriangle, FiHome, FiMail,
@@ -123,14 +123,21 @@ function DashGate({ onSuccess }: { onSuccess: () => void }) {
   const [busy, setBusy] = useState(false);
   const [forgot, setForgot] = useState(false);
   const [forgotSent, setForgotSent] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  // Submit what is actually in the field: browser autofill can write to the DOM
+  // without firing onChange, which made typed passwords fail while pasted ones worked.
+  const emailRef = useRef<HTMLInputElement>(null);
+  const pwRef = useRef<HTMLInputElement>(null);
+  const liveEmail = () => (emailRef.current?.value ?? email).trim();
+  const livePw = () => (pwRef.current?.value ?? password).trim();
 
   const submitForgot = async () => {
-    if (!email.trim() || busy) return;
+    if (!liveEmail() || busy) return;
     setBusy(true); setError(""); setForgotSent("");
     try {
       const res = await fetch(`${API}/auth/forgot-password`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), origin: window.location.origin }),
+        body: JSON.stringify({ email: liveEmail(), origin: window.location.origin }),
       });
       const d = await res.json().catch(() => ({}));
       setForgotSent(d?.message || "If that email has an account, a reset link is on its way.");
@@ -139,12 +146,12 @@ function DashGate({ onSuccess }: { onSuccess: () => void }) {
   };
 
   const submit = async () => {
-    if (!email.trim() || !password || busy) return;
+    if (!liveEmail() || !livePw() || busy) return;
     setBusy(true); setError("");
     try {
       const res = await fetch(`${API}/auth/email`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ email: liveEmail(), password: livePw() }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d?.detail || "Could not sign you in");
@@ -169,31 +176,44 @@ function DashGate({ onSuccess }: { onSuccess: () => void }) {
             ? "Enter your email and we'll send you a link to set a new password."
             : "Sign in with your manager email and password to see your team's activity."}
         </p>
+        <form onSubmit={(e) => { e.preventDefault(); forgot ? submitForgot() : submit(); }}>
         <input
+          ref={emailRef} name="username" autoComplete="username"
+          autoCapitalize="none" autoCorrect="off" spellCheck={false}
           type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && (forgot ? submitForgot() : submit())}
           placeholder="you@company.com"
           className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
         {!forgot && (
-          <input
-            type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Password"
-            className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 mt-3 focus:outline-none focus:ring-2 focus:ring-violet-500"
-          />
+          <div className="relative mt-3">
+            <input
+              ref={pwRef} name="password" autoComplete="current-password"
+              type={showPw ? "text" : "password"} value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full border-2 border-neutral-900 rounded-2xl px-4 py-3 pr-16 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            />
+            <button
+              type="button" onClick={() => setShowPw((s) => !s)} tabIndex={-1}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-neutral-500 hover:text-neutral-900"
+            >
+              {showPw ? "Hide" : "Show"}
+            </button>
+          </div>
         )}
         {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
         {forgotSent && (
           <p className="text-sm text-violet-700 bg-violet-50 border-2 border-violet-200 rounded-xl px-3 py-2 mt-3">{forgotSent}</p>
         )}
         <button
-          onClick={forgot ? submitForgot : submit} disabled={busy}
+          type="submit" disabled={busy}
           className="mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60"
         >
           {busy ? (forgot ? "Sending..." : "Signing in...") : (forgot ? "Send reset link" : "Continue")}
         </button>
+        </form>
         <button
+          type="button"
           onClick={() => { setForgot(!forgot); setError(""); setForgotSent(""); }}
           className={`mt-3 w-full text-sm font-semibold ${forgot ? "text-neutral-400 hover:text-neutral-700" : "text-violet-600 hover:text-violet-800"}`}
         >
@@ -658,8 +678,8 @@ function ResetPasswordScreen({ token, onDone }: { token: string; onDone: () => v
           <>
             <h1 className="font-['Clash_Display'] text-2xl font-semibold">Set a new password</h1>
             <p className="text-neutral-600 mt-2 mb-6">Choose a password with at least 8 characters.</p>
-            <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password" className={inputCls} />
-            <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="Confirm new password" className={`${inputCls} mt-3`} />
+            <input type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password" className={inputCls} />
+            <input type="password" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="Confirm new password" className={`${inputCls} mt-3`} />
             {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
             <button onClick={submit} disabled={busy} className="mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] disabled:opacity-60">
               {busy ? "Saving..." : "Save password"}
@@ -697,9 +717,9 @@ function ChangePasswordModal({ onClose, onChanged }: { onClose: () => void; onCh
       <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[28px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-['Clash_Display'] text-xl font-semibold mb-1">Change password</h2>
         <p className="text-sm text-neutral-500 mb-4">You'll be signed out everywhere and can sign back in with the new password.</p>
-        <input type="password" value={cur} onChange={(e) => setCur(e.target.value)} placeholder="Current password" className={inputCls} />
-        <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password (min 8 characters)" className={`${inputCls} mt-2`} />
-        <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="Confirm new password" className={`${inputCls} mt-2`} />
+        <input type="password" autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} placeholder="Current password" className={inputCls} />
+        <input type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password (min 8 characters)" className={`${inputCls} mt-2`} />
+        <input type="password" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()} placeholder="Confirm new password" className={`${inputCls} mt-2`} />
         {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
         <div className="flex justify-end gap-2 mt-4">
           <button onClick={onClose} className="px-4 py-2 rounded-xl border-2 border-neutral-300 text-sm font-semibold text-neutral-500 hover:border-neutral-900 hover:text-neutral-900">Cancel</button>
