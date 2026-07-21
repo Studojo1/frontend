@@ -882,6 +882,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         .bob-dark .bg-\\[\\#faf7f2\\] { background:#131316 !important; }
         .bob-dark .bg-\\[\\#f4f0e8\\] { background:#161619 !important; }
         .bob-dark .text-neutral-900 { color:#e7e7ea !important; }
+        /* 700/800 are body/content text (table cells, chips) — keep them BRIGHT so
+           they don't camouflage on the dark surface (they were previously unmapped). */
+        .bob-dark .text-neutral-800, .bob-dark .text-neutral-700 { color:#d4d4d8 !important; }
         .bob-dark .text-neutral-600, .bob-dark .text-neutral-500, .bob-dark .text-neutral-400, .bob-dark .text-neutral-300 { color:#9a9aa2 !important; }
         .bob-dark .border-neutral-900 { border-color:#3a3a42 !important; }
         .bob-dark .border-neutral-100, .bob-dark .border-neutral-200 { border-color:#2c2c33 !important; }
@@ -1595,7 +1598,7 @@ function RunProgress({ run }: { run: Run }) {
           <span className="font-bold text-sm">{RUN_STAGES[stageIdx].label}…</span>
           <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
             {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} found</span> : null}
-            {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="context.dev search credits (not phone reveals)">{run.credits_used} search credits</span> : null}
+            {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="web research credits (not phone reveals)">{run.credits_used} search credits</span> : null}
           </span>
         </div>
 
@@ -1714,7 +1717,7 @@ function RunGraph({ run }: { run: Run }) {
         <div className="flex flex-wrap gap-2 justify-center mt-4">
           <span className="text-[11px] font-bold bg-neutral-100 rounded-full px-2.5 py-1">Step {idx + 1} of {RUN_STAGES.length}</span>
           {c.rows_added ? <span className="text-[11px] font-bold bg-violet-100 text-violet-700 rounded-full px-2.5 py-1">{c.rows_added} companies found</span> : null}
-          {run.credits_used ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-2.5 py-1" title="context.dev search credits">{run.credits_used} search credits</span> : null}
+          {run.credits_used ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-2.5 py-1" title="web research credits">{run.credits_used} search credits</span> : null}
         </div>
       </div>
     </div>
