@@ -187,7 +187,7 @@ export async function quotaStatus(
 
 /** Charge n against the monthly quota. Call only on a billable success. */
 export async function chargeUsage(keyId: string, n = 1): Promise<void> {
-  if (n <= 0) return;
+  if (!keyId || n <= 0) return;
   await ensureTables();
   await db.execute(sql`
     INSERT INTO api_counters (key_id, bucket, count) VALUES (${keyId}, ${monthBucket()}, ${n})

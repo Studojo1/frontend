@@ -303,7 +303,7 @@ export default function ApiDocs() {
                   <tr>
                     <td className="p-3 font-semibold whitespace-nowrap align-top">POST /api/enrich</td>
                     <td className="p-3 text-studojo-muted">
-                      Typically <span className="font-semibold text-studojo-ink">2 to 6 seconds</span>,
+                      Usually <span className="font-semibold text-studojo-ink">5 to 15 seconds</span>,
                       with a hard <span className="font-semibold text-studojo-ink">20 second</span> timeout.
                       The verified email and mobile are returned in the same response.
                     </td>
@@ -371,7 +371,7 @@ curl https://studojo.com/api/jobs/job_a1b2c3 \\
                   <Pill method="POST" />
                   <span className="font-mono text-sm">/api/enrich</span>
                 </div>
-                <p className="text-studojo-muted mb-2 text-sm">Enrich a single LinkedIn profile. Synchronous, the full contact is in the response body, typically in 2 to 6 seconds.</p>
+                <p className="text-studojo-muted mb-2 text-sm">Enrich a single LinkedIn profile. Synchronous, the full contact is in the response body, usually in 5 to 15 seconds.</p>
                 <Code>{`{
   "linkedin_url": "https://www.linkedin.com/in/janedoe",
   "fields": ["email", "phone"]     // optional, defaults to both

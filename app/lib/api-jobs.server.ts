@@ -60,14 +60,14 @@ export async function createJob(
     INSERT INTO api_jobs (id, email, key_id, status, total, meta)
     VALUES (${id}, ${caller.email}, ${caller.id}, 'processing', ${clean.length},
             ${JSON.stringify({ lf, map, fields, charged: false })}::jsonb)`);
-  return { id, status: "processing", count: clean.length };
+  return { job_id: id, status: "processing", count: clean.length };
 }
 
 /** Fetch a job scoped to its owner and advance it if the batch has finished. */
 export async function getJob(email: string, id: string): Promise<any | null> {
   await ensureTable();
   const r = await db.execute(sql`
-    SELECT id, status, total, processed, results, meta
+    SELECT id, key_id, status, total, processed, results, meta
     FROM api_jobs WHERE id = ${id} AND lower(email) = ${email.toLowerCase()}`);
   const row = rowsOf(r)[0];
   if (!row) return null;
