@@ -1028,3 +1028,20 @@ export const outreachContactsRelations = relations(outreachContacts, ({ one }) =
 export const outreachCampaignsRelations = relations(outreachCampaigns, ({ one }) => ({
   user: one(user, { fields: [outreachCampaigns.userId], references: [user.id] }),
 }));
+
+// ── Contact Enrichment API keys (studojo.com/apidocs) ──────────────────────
+// Only the sha256 hash of a key is stored. Creation is gated to allowlisted
+// emails in the app layer (API_BUILDER_ALLOWLIST). See app/lib/api-keys.server.ts.
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id"),
+  email: text("email").notNull(),
+  name: text("name").notNull().default("API key"),
+  keyPrefix: text("key_prefix").notNull(),
+  keyHash: text("key_hash").notNull().unique(),
+  lastFour: text("last_four").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastUsedAt: timestamp("last_used_at"),
+  revokedAt: timestamp("revoked_at"),
+  requestCount: integer("request_count").default(0).notNull(),
+});
