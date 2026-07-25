@@ -249,10 +249,10 @@ export default function ApiDocs() {
           <section id="quickstart">
             <h2 className="font-clash text-2xl font-bold mb-3">Quickstart</h2>
             <p className="text-studojo-muted mb-3">
-              The base URL is <span className="font-mono text-studojo-ink">https://studojo.com/api/v1</span>.
+              The base URL is <span className="font-mono text-studojo-ink">https://studojo.com/api</span>.
               Authenticate every request with a bearer token, your API key.
             </p>
-            <Code>{`curl https://studojo.com/api/v1/enrich \\
+            <Code>{`curl https://studojo.com/api/enrich \\
   -H "Authorization: Bearer sk_live_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -296,7 +296,7 @@ export default function ApiDocs() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Pill method="POST" />
-                  <span className="font-mono text-sm">/api/v1/enrich</span>
+                  <span className="font-mono text-sm">/api/enrich</span>
                 </div>
                 <p className="text-studojo-muted mb-2 text-sm">Enrich a single LinkedIn profile. Returns as soon as resolution completes.</p>
                 <Code>{`{
@@ -319,7 +319,7 @@ export default function ApiDocs() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Pill method="POST" />
-                  <span className="font-mono text-sm">/api/v1/enrich/bulk</span>
+                  <span className="font-mono text-sm">/api/enrich/bulk</span>
                 </div>
                 <p className="text-studojo-muted mb-2 text-sm">Submit up to 500 profiles. Returns a job you poll.</p>
                 <Code>{`{ "profiles": ["https://www.linkedin.com/in/a", "https://www.linkedin.com/in/b"] }
@@ -329,7 +329,7 @@ export default function ApiDocs() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Pill method="GET" />
-                  <span className="font-mono text-sm">/api/v1/jobs/{"{job_id}"}</span>
+                  <span className="font-mono text-sm">/api/jobs/{"{job_id}"}</span>
                 </div>
                 <p className="text-studojo-muted mb-2 text-sm">Poll a bulk job. Results stream in as each profile resolves.</p>
                 <Code>{`{ "status": "completed", "results": [ /* one enrich object per profile */ ] }`}</Code>
@@ -338,7 +338,7 @@ export default function ApiDocs() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Pill method="POST" />
-                  <span className="font-mono text-sm">/api/v1/verify/email</span>
+                  <span className="font-mono text-sm">/api/verify/email</span>
                 </div>
                 <p className="text-studojo-muted mb-2 text-sm">Validate an email (syntax + MX + SMTP). Free, no reveal.</p>
                 <Code>{`{ "email": "jane@acme.com" }

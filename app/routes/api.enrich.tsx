@@ -1,11 +1,11 @@
-// POST /api/v1/enrich — Contact Enrichment API entrypoint.
+// POST /api/enrich — Contact Enrichment API entrypoint.
 //
 // This layer authenticates the caller's API key and will proxy to the
 // enrichment engine (the multi-provider phone waterfall). The provider cascade
 // is not wired to this edge yet, so a valid key currently gets a 503 telling it
 // the engine is being connected. That lets customers verify their key works
 // (401 vs 503) before the engine goes live.
-import type { Route } from "./+types/api.v1.enrich";
+import type { Route } from "./+types/api.enrich";
 import { verifyKey } from "~/lib/api-keys.server";
 
 function json(body: unknown, status = 200) {
