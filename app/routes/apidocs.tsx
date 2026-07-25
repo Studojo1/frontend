@@ -17,7 +17,7 @@ export function meta(_: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "Turn a LinkedIn profile into a verified work email, personal email and mobile number. One endpoint, a multi-provider waterfall, billed only on a verified result.",
+        "Turn a LinkedIn profile into a verified work email, personal email and mobile number. One call, verified results, billed only when we return a contact.",
     },
   ];
 }
@@ -229,8 +229,8 @@ export default function ApiDocs() {
         </h1>
         <p className="mt-4 text-lg text-studojo-muted max-w-2xl">
           Send a LinkedIn profile, get back a verified work email, personal email and mobile
-          number. One endpoint runs a multi-provider waterfall behind the scenes and only bills
-          you when a verified contact comes back.
+          number. One call, results in seconds, and you are billed only when a verified contact
+          comes back.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <a href="#quickstart" className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-white">
@@ -263,29 +263,102 @@ export default function ApiDocs() {
 
           {/* How it works */}
           <section>
-            <h2 className="font-clash text-2xl font-bold mb-3">How enrichment works</h2>
+            <h2 className="font-clash text-2xl font-bold mb-3">How it works</h2>
             <p className="text-studojo-muted mb-4">
-              You send an identity, we resolve the contact through a provider waterfall. The
-              cheapest, highest-confidence source is tried first and we fall through only when a
-              field is still missing. The phone number is verified for line type, so you get a real
-              mobile, not a switchboard. You are billed only on a verified result, never on a miss.
+              You send a LinkedIn profile, the Studojo engine returns the contact. Every email is
+              verified (MX + SMTP) and every mobile is checked for line type, so you get a real
+              cell number and not a switchboard. If a field cannot be verified we leave it out
+              rather than guess, and you are billed only when we return a verified contact, never
+              on a miss.
             </p>
             <div className={`${CARD} p-5`}>
               <ol className="space-y-3">
                 <li className="flex gap-3">
                   <span className="font-bold text-studojo-purple">1</span>
-                  <span><span className="font-semibold">Resolve identity + emails.</span> Work and personal email are matched from the profile and verified (MX + SMTP).</span>
+                  <span><span className="font-semibold">Match.</span> We identify the person from the profile and pull their work and personal email.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-bold text-studojo-purple">2</span>
-                  <span><span className="font-semibold">Find the mobile.</span> If the first provider has no valid mobile, we fall through additional providers until one returns a verified number.</span>
+                  <span><span className="font-semibold">Mobile.</span> We locate a direct mobile number and verify its line type.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-bold text-studojo-purple">3</span>
-                  <span><span className="font-semibold">Verify + assemble.</span> Every field is validated and returned with a confidence score and the fields that were actually found.</span>
+                  <span><span className="font-semibold">Return.</span> Every field comes back with a confidence score and the exact list of what was found.</span>
                 </li>
               </ol>
             </div>
+          </section>
+
+          {/* Response time */}
+          <section id="response-time">
+            <h2 className="font-clash text-2xl font-bold mb-3">Response time</h2>
+            <p className="text-studojo-muted mb-4">
+              A single call is synchronous, the full contact is in the response body. Large lists
+              run through the bulk endpoint, which is asynchronous so a slow lookup never blocks
+              the rest.
+            </p>
+            <div className={`${CARD} overflow-hidden`}>
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-neutral-200">
+                  <tr>
+                    <td className="p-3 font-semibold whitespace-nowrap align-top">POST /api/enrich</td>
+                    <td className="p-3 text-studojo-muted">
+                      Typically <span className="font-semibold text-studojo-ink">2 to 6 seconds</span>,
+                      with a hard <span className="font-semibold text-studojo-ink">20 second</span> timeout.
+                      The verified email and mobile are returned in the same response.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-semibold whitespace-nowrap align-top">POST /api/enrich/bulk</td>
+                    <td className="p-3 text-studojo-muted">
+                      Returns a <span className="font-mono">job_id</span> in
+                      {" "}<span className="font-semibold text-studojo-ink">under 1 second</span>. A
+                      job of 500 profiles finishes within a few minutes, and each profile is
+                      readable the moment it resolves.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* How bulk works */}
+          <section id="bulk">
+            <h2 className="font-clash text-2xl font-bold mb-3">How the bulk API works</h2>
+            <p className="text-studojo-muted mb-4">
+              Use bulk for anything over a handful of profiles. You never hold a connection open
+              waiting, you submit and poll.
+            </p>
+            <div className={`${CARD} p-5 mb-4`}>
+              <ol className="space-y-3">
+                <li className="flex gap-3">
+                  <span className="font-bold text-studojo-purple">1</span>
+                  <span><span className="font-semibold">Submit</span> up to 500 LinkedIn URLs to <span className="font-mono text-sm">/api/enrich/bulk</span>. You get a <span className="font-mono text-sm">job_id</span> back immediately.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-studojo-purple">2</span>
+                  <span><span className="font-semibold">Poll</span> <span className="font-mono text-sm">/api/jobs/{"{job_id}"}</span> every few seconds. Each profile appears in <span className="font-mono text-sm">results</span> the moment it is done, so you can process the list as it fills in.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-studojo-purple">3</span>
+                  <span><span className="font-semibold">Finish</span> when <span className="font-mono text-sm">status</span> is <span className="font-mono text-sm">completed</span>. You are billed only for the profiles that returned a verified contact.</span>
+                </li>
+              </ol>
+            </div>
+            <Code>{`# 1. submit
+curl https://studojo.com/api/enrich/bulk \\
+  -H "Authorization: Bearer sk_live_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "profiles": ["https://www.linkedin.com/in/a",
+                     "https://www.linkedin.com/in/b"] }'
+# → { "job_id": "job_a1b2c3", "status": "processing", "count": 2 }
+
+# 2. poll until completed
+curl https://studojo.com/api/jobs/job_a1b2c3 \\
+  -H "Authorization: Bearer sk_live_your_key_here"
+# → { "status": "completed",
+#     "processed": 2, "total": 2,
+#     "results": [ /* one enrich object per profile */ ] }`}</Code>
           </section>
 
           {/* Endpoints */}
@@ -298,7 +371,7 @@ export default function ApiDocs() {
                   <Pill method="POST" />
                   <span className="font-mono text-sm">/api/enrich</span>
                 </div>
-                <p className="text-studojo-muted mb-2 text-sm">Enrich a single LinkedIn profile. Returns as soon as resolution completes.</p>
+                <p className="text-studojo-muted mb-2 text-sm">Enrich a single LinkedIn profile. Synchronous, the full contact is in the response body, typically in 2 to 6 seconds.</p>
                 <Code>{`{
   "linkedin_url": "https://www.linkedin.com/in/janedoe",
   "fields": ["email", "phone"]     // optional, defaults to both
