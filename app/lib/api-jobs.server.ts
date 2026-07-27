@@ -72,7 +72,28 @@ export async function createJob(
     INSERT INTO api_jobs (id, email, key_id, status, total, meta)
     VALUES (${id}, ${caller.email}, ${caller.id}, 'processing', ${clean.length},
             ${JSON.stringify({ lf, map, fields, charged: false })}::jsonb)`);
+  kickAutoComplete(caller.email, id); // self-resolve without client polling
   return { job_id: id, status: "processing", count: clean.length };
+}
+
+/** In-process best-effort completer: advance a job to done without any client
+ *  poll, so "a job nobody polls never finishes" (CP4) can't happen. Runs in the
+ *  long-lived frontend process; getJob is idempotent so double-runs are safe.
+ *  (Not durable across a pod restart — getJob still advances on demand as a
+ *  fallback, and the worker-backed version is the eventual upgrade.) */
+export function kickAutoComplete(email: string, id: string): void {
+  let tries = 0;
+  const tick = async () => {
+    tries += 1;
+    try {
+      const j = await getJob(email, id);
+      if (j && j.status === "completed") return;
+    } catch {
+      /* transient — keep trying */
+    }
+    if (tries < 120) setTimeout(tick, 5000); // up to ~10 minutes
+  };
+  setTimeout(tick, 4000);
 }
 
 /** Fetch a job scoped to its owner and advance it if the batch has finished. */
