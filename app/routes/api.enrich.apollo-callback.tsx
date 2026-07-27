@@ -26,15 +26,15 @@ export async function action({ request }: Route.ActionArgs) {
   } catch {
     return json({ ok: true }); // acknowledge malformed callbacks so Apollo stops retrying
   }
-  const phone = parseCallback(body);
+  const phone = parseCallback(body); // { number, type } | null
 
   const r: any = await db.execute(sql`
     UPDATE apollo_reveals
-    SET phone = ${phone}, status = ${phone ? "done" : "empty"}, updated_at = now()
+    SET phone = ${phone?.number ?? null}, status = ${phone ? "done" : "empty"}, updated_at = now()
     WHERE rid = ${rid}
     RETURNING linkedin_url`);
   const url = (r.rows ?? r ?? [])[0]?.linkedin_url;
-  if (phone && url) await patchCachePhone(String(url), phone);
+  if (phone && url) await patchCachePhone(String(url), phone.number, phone.type);
 
   return json({ ok: true });
 }

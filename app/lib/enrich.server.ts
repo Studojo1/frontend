@@ -11,18 +11,30 @@ import db from "~/lib/db";
 import * as leadsforge from "~/lib/leadsforge.server";
 import * as salesql from "~/lib/salesql.server";
 import * as apollo from "~/lib/apollo.server";
+import { classifyPhone } from "~/lib/phone-verify.server";
 
 const CACHE_TTL_DAYS = 30;
 const APOLLO_POLL_MS = 7000;
+
+// One line in the phone verification trace: what each source returned and why it
+// was accepted or rejected. This is what makes the cascade decisions visible.
+export type PhoneStep = {
+  step: "salesql" | "leadsforge" | "apollo";
+  number?: string;
+  line_type: string;
+  verdict: "accepted" | "rejected" | "none";
+  reason: string;
+};
 
 export type EnrichResult = {
   status: "ok" | "not_found";
   person: { name: string | null; title: string | null; linkedin_url: string };
   emails: { work: string | null; personal: string | null };
-  phone: { number: string; type: string; verified: boolean } | null;
+  phone: { number: string; type: string; line_type: string; source: string; verified: boolean } | null;
   confidence: number;
   found: string[];
   credits_used: number;
+  phone_trace?: PhoneStep[];
   cached?: boolean;
 };
 
@@ -38,15 +50,6 @@ export function isLinkedInUrl(url: string): boolean {
 export function normalizeUrl(url: string): string {
   const m = (url || "").match(/linkedin\.com\/in\/([^/?#\s]+)/i);
   return m ? `linkedin.com/in/${m[1].toLowerCase()}` : (url || "").trim().toLowerCase();
-}
-
-/** A phone is only "usable" as a mobile if present, E.164-shaped, plausible. */
-export function usablePhone(raw?: string): { number: string; type: string } | null {
-  const p = (raw || "").replace(/[^\d+]/g, "");
-  if (!/^\+\d{8,15}$/.test(p)) return null;
-  let type = "mobile";
-  if (p.startsWith("+91")) type = /^\+91[6-9]\d{9}$/.test(p) ? "mobile" : "landline";
-  return type === "landline" ? null : { number: p, type };
 }
 
 // ── cache ────────────────────────────────────────────────────────────────────
@@ -97,16 +100,16 @@ async function putCache(urlKey: string, res: EnrichResult): Promise<void> {
 
 /** Add a late-arriving Apollo phone to a cached result (called from the webhook).
  *  `urlKey` is the exact cache key stored on the reveal row, not a raw URL. */
-export async function patchCachePhone(urlKey: string, rawPhone: string): Promise<void> {
-  const phone = usablePhone(rawPhone);
-  if (!phone) return;
+export async function patchCachePhone(urlKey: string, rawPhone: string, label?: string): Promise<void> {
+  const v = classifyPhone(rawPhone, label);
+  if (!v.ok) return; // only patch a usable personal mobile
   await ensureTables();
   const r = await db.execute(sql`SELECT result FROM api_enrich_cache WHERE linkedin_url = ${urlKey}`);
   const row = rowsOf(r)[0];
   if (!row) return;
   const res = row.result as EnrichResult;
   if (res.phone) return; // already has one
-  res.phone = { ...phone, verified: true };
+  res.phone = { number: v.number, type: v.lineType, line_type: v.lineType, source: "apollo", verified: true };
   if (!res.found.includes("mobile")) res.found.push("mobile");
   res.status = "ok";
   res.confidence = Math.max(res.confidence, res.found.length >= 2 ? 0.92 : 0.7);
@@ -130,33 +133,61 @@ async function pollApolloReveal(rid: string, budgetMs: number): Promise<string |
 type Parts = {
   workEmail?: string | null;
   personalEmail?: string | null;
-  phone?: string | null;
   name?: string | null;
   title?: string | null;
+  phone?: string | null; // verified mobile (set by the cascade) OR raw (bulk)
+  phoneLineType?: string; // set only when already verified by the cascade
+  phoneSource?: string;
 };
 
-/** Build a normalized result from collected contact parts + requested fields. */
-export function buildResult(linkedin_url: string, parts: Parts, fields: string[] = ["email", "phone"]): EnrichResult {
+/** Build a normalized result. The cascade pre-verifies the phone; the bulk path
+ *  passes a raw LeadsForge number, which is verified here (mobiles only). */
+export function buildResult(
+  linkedin_url: string,
+  parts: Parts,
+  fields: string[] = ["email", "phone"],
+  trace?: PhoneStep[],
+): EnrichResult {
   const wantEmail = fields.includes("email");
   const wantPhone = fields.includes("phone");
   const work = wantEmail ? parts.workEmail ?? null : null;
   const personal = wantEmail ? parts.personalEmail ?? null : null;
-  const phone = wantPhone ? usablePhone(parts.phone ?? undefined) : null;
+
+  let phone: EnrichResult["phone"] = null;
+  if (wantPhone && parts.phone) {
+    if (parts.phoneLineType) {
+      // already verified by the cascade — trust it
+      phone = {
+        number: parts.phone,
+        type: parts.phoneLineType,
+        line_type: parts.phoneLineType,
+        source: parts.phoneSource || "provider",
+        verified: true,
+      };
+    } else {
+      const v = classifyPhone(parts.phone); // raw (bulk) — verify now
+      if (v.ok) {
+        phone = { number: v.number, type: v.lineType, line_type: v.lineType, source: parts.phoneSource || "leadsforge", verified: true };
+      }
+    }
+  }
 
   const found: string[] = [];
   if (work) found.push("work_email");
   if (personal) found.push("personal_email");
   if (phone) found.push("mobile");
   const confidence = found.length >= 2 ? 0.92 : found.length === 1 ? 0.7 : 0;
-  return {
+  const result: EnrichResult = {
     status: found.length ? "ok" : "not_found",
     person: { name: parts.name ?? null, title: parts.title ?? null, linkedin_url },
     emails: { work, personal },
-    phone: phone ? { ...phone, verified: true } : null,
+    phone,
     confidence,
     found,
     credits_used: found.length ? 1 : 0,
   };
+  if (wantPhone && trace) result.phone_trace = trace;
+  return result;
 }
 
 // ── the cascade ──────────────────────────────────────────────────────────────
@@ -209,12 +240,32 @@ export async function enrichProfile(
   const wantEmail = fields.includes("email");
   const wantPhone = fields.includes("phone");
   const parts: Parts = { name: [target.firstName, target.lastName].filter(Boolean).join(" ") || null };
+  const trace: PhoneStep[] = [];
   let url = target.linkedin_url && isLinkedInUrl(target.linkedin_url) ? target.linkedin_url : "";
 
   const haveEmail = () => !!parts.workEmail;
   const havePhone = () => !!parts.phone;
   const captureUrl = (u?: string) => {
     if (!url && u && isLinkedInUrl(u)) url = u;
+  };
+
+  // The verifier gate: try this step's candidate numbers, accept the first that
+  // classifies as a usable personal mobile, and record what happened either way.
+  const tryPhone = (step: PhoneStep["step"], cands: { number?: string; label?: string }[]): void => {
+    if (!wantPhone || parts.phone) return;
+    const verdicts = cands.filter((c) => c.number).map((c) => classifyPhone(c.number, c.label));
+    const hit = verdicts.find((v) => v.ok);
+    if (hit) {
+      parts.phone = hit.number;
+      parts.phoneLineType = hit.lineType;
+      parts.phoneSource = step;
+      trace.push({ step, number: hit.number, line_type: hit.lineType, verdict: "accepted", reason: hit.reason });
+    } else if (verdicts.length) {
+      const v = verdicts[0];
+      trace.push({ step, number: v.number || undefined, line_type: v.lineType, verdict: "rejected", reason: v.reason });
+    } else {
+      trace.push({ step, line_type: "none", verdict: "none", reason: "no number returned" });
+    }
   };
 
   // 1 ── SalesQL: base record (by URL, else by name+company; may return the URL)
@@ -226,7 +277,7 @@ export async function enrichProfile(
       if (s.name) parts.name = s.name;
       if (s.title) parts.title = s.title;
       captureUrl(s.linkedinUrl);
-      if (wantPhone && usablePhone(s.phone)) parts.phone = usablePhone(s.phone)!.number;
+      tryPhone("salesql", (s.phones || []).map((p) => ({ number: p.number, label: p.type })));
     }
   }
 
@@ -242,11 +293,11 @@ export async function enrichProfile(
     );
     const hit = lf[cacheKey] || {};
     if (lfNeedEmail && hit.email) parts.workEmail = hit.email;
-    if (lfNeedPhone && usablePhone(hit.phone)) parts.phone = usablePhone(hit.phone)!.number;
+    tryPhone("leadsforge", [{ number: hit.phone, label: "" }]);
   }
 
   // 3 ── Apollo: last resort. Match (by URL or name) backfills email + resolves
-  //      the URL; gated paid reveal chases a phone both prior legs missed.
+  //      the URL; gated paid reveal chases a mobile both prior legs missed.
   const apNeedEmail = wantEmail && !haveEmail();
   const apNeedPhone = wantPhone && !havePhone();
   if (apollo.isConfigured() && (apNeedEmail || apNeedPhone)) {
@@ -254,21 +305,24 @@ export async function enrichProfile(
     if (m) {
       captureUrl(m.linkedinUrl);
       if (apNeedEmail && m.email) parts.workEmail = m.email;
-      if (apNeedPhone && usablePhone(m.phone)) parts.phone = usablePhone(m.phone)!.number;
-      if (wantPhone && !havePhone() && apollo.revealEnabled() && m.apolloId) {
+      const cands: { number?: string; label?: string }[] = (m.phones || []).map((p) => ({ number: p.number, label: p.type }));
+      // Any already-unlocked mobile in the match? If not, fire the paid reveal.
+      const matchHasMobile = cands.some((c) => classifyPhone(c.number, c.label).ok);
+      if (wantPhone && !havePhone() && !matchHasMobile && apollo.revealEnabled() && m.apolloId) {
         const rid = randomUUID();
         await ensureTables();
         await db.execute(sql`
           INSERT INTO apollo_reveals (rid, linkedin_url, apollo_id) VALUES (${rid}, ${cacheKey}, ${m.apolloId})`);
         if (await apollo.requestPhoneReveal(m.apolloId, rid)) {
           const ph = await pollApolloReveal(rid, APOLLO_POLL_MS);
-          if (ph && usablePhone(ph)) parts.phone = usablePhone(ph)!.number;
+          if (ph) cands.push({ number: ph, label: "mobile" }); // reveal returns a direct dial
         }
       }
+      tryPhone("apollo", cands);
     }
   }
 
-  const result = buildResult(url, parts, fields);
+  const result = buildResult(url, parts, fields, trace);
   await putCache(cacheKey, result); // caches ok and not_found (negative cache)
   return result;
 }

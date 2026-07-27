@@ -29,7 +29,19 @@ function realEmail(email?: string): string | undefined {
   return email;
 }
 
-export type ApolloMatch = { apolloId: string; email?: string; phone?: string; linkedinUrl?: string };
+export type ApolloPhone = { number: string; type?: string };
+export type ApolloMatch = {
+  apolloId: string;
+  email?: string;
+  phones?: ApolloPhone[]; // with Apollo's type_cd (mobile / work / ...)
+  linkedinUrl?: string;
+};
+
+function mapPhones(list: any[]): ApolloPhone[] {
+  return (list ?? [])
+    .map((p) => ({ number: String(p.sanitized_number || p.raw_number || ""), type: p.type_cd || p.type }))
+    .filter((p) => p.number);
+}
 
 async function doMatch(body: Record<string, unknown>): Promise<ApolloMatch | null> {
   if (!isConfigured()) return null;
@@ -43,12 +55,10 @@ async function doMatch(body: Record<string, unknown>): Promise<ApolloMatch | nul
     const person = ((await r.json()) as any)?.person ?? {};
     const id = person.id ? String(person.id) : "";
     if (!id) return null;
-    const phones: any[] = person.phone_numbers ?? [];
-    const phone = phones[0]?.sanitized_number || phones[0]?.raw_number;
     return {
       apolloId: id,
       email: realEmail(person.email),
-      phone: phone ? String(phone) : undefined,
+      phones: mapPhones(person.phone_numbers),
       linkedinUrl: person.linkedin_url ? String(person.linkedin_url) : undefined,
     };
   } catch {
@@ -96,13 +106,13 @@ export async function requestPhoneReveal(apolloId: string, rid: string): Promise
   }
 }
 
-/** Parse Apollo's async phone webhook body into a phone string (or null). */
-export function parseCallback(body: any): string | null {
+/** Parse Apollo's async phone webhook into {number, type} (or null). */
+export function parseCallback(body: any): ApolloPhone | null {
   const p = (body?.people ?? [])[0] ?? {};
-  const phones = p.phone_numbers ?? [];
-  const best = phones[0] || {};
-  const phone = (best.sanitized_number || best.raw_number || "").trim();
-  return phone && p.status === "success" ? phone : null;
+  if (p.status !== "success") return null;
+  const best = (p.phone_numbers ?? [])[0] || {};
+  const number = (best.sanitized_number || best.raw_number || "").trim();
+  return number ? { number, type: best.type_cd || best.type } : null;
 }
 
 export function webhookSecretOk(secret: string): boolean {
