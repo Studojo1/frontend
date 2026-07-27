@@ -194,3 +194,72 @@ export async function chargeUsage(keyId: string, n = 1): Promise<void> {
     ON CONFLICT (key_id, bucket)
     DO UPDATE SET count = api_counters.count + ${n}, updated_at = now()`);
 }
+
+// ── usage dashboard ────────────────────────────────────────────────────────
+// Requests-this-month = sum of the per-minute rate buckets in the current month.
+// Credits-this-month = the month bucket (charged only on a billable result).
+export type KeyUsage = ApiKeyRow & {
+  creditsMonth: number;
+  requestsMonth: number;
+  remaining: number;
+  active: boolean;
+};
+
+export async function usageDashboard(email: string): Promise<{
+  keys: KeyUsage[];
+  months: { month: string; credits: number }[];
+  summary: { activeKeys: number; creditsMonth: number; requestsMonth: number; quotaTotal: number };
+}> {
+  await ensureTables();
+  const keys = await listKeys(email);
+  const ids = keys.map((k) => k.id);
+  const ym = new Date().toISOString().slice(0, 10).slice(0, 7); // YYYY-MM
+  const monthBkt = "month:" + ym;
+  const rateLike = "rate:" + ym + "%";
+
+  const perCredit: Record<string, number> = {};
+  const perReq: Record<string, number> = {};
+  let months: { month: string; credits: number }[] = [];
+
+  if (ids.length) {
+    for (const r of rowsOf(
+      await db.execute(sql`
+        SELECT key_id::text AS kid, count FROM api_counters
+        WHERE bucket = ${monthBkt} AND key_id::text = ANY(${ids})`),
+    )) perCredit[String(r.kid)] = Number(r.count);
+
+    for (const r of rowsOf(
+      await db.execute(sql`
+        SELECT key_id::text AS kid, COALESCE(SUM(count), 0) AS c FROM api_counters
+        WHERE bucket LIKE ${rateLike} AND key_id::text = ANY(${ids}) GROUP BY key_id`),
+    )) perReq[String(r.kid)] = Number(r.c);
+
+    months = rowsOf(
+      await db.execute(sql`
+        SELECT bucket, SUM(count) AS c FROM api_counters
+        WHERE bucket LIKE 'month:%' AND key_id::text = ANY(${ids})
+        GROUP BY bucket ORDER BY bucket DESC LIMIT 6`),
+    )
+      .map((r) => ({ month: String(r.bucket).replace("month:", ""), credits: Number(r.c) }))
+      .reverse();
+  }
+
+  const out: KeyUsage[] = keys.map((k) => ({
+    ...k,
+    creditsMonth: perCredit[k.id] || 0,
+    requestsMonth: perReq[k.id] || 0,
+    remaining: Math.max(0, k.monthly_quota - (perCredit[k.id] || 0)),
+    active: !k.revoked_at,
+  }));
+
+  return {
+    keys: out,
+    months,
+    summary: {
+      activeKeys: out.filter((k) => k.active).length,
+      creditsMonth: out.reduce((s, k) => s + k.creditsMonth, 0),
+      requestsMonth: out.reduce((s, k) => s + k.requestsMonth, 0),
+      quotaTotal: out.filter((k) => k.active).reduce((s, k) => s + k.monthly_quota, 0),
+    },
+  };
+}
