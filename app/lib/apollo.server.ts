@@ -1,0 +1,88 @@
+// Apollo client — the last-resort phone leg. Two calls:
+//   1. match(linkedinUrl): cheap identity + any already-unlocked email/phone.
+//   2. requestPhoneReveal(): PAID (8 credits), webhook-async — Apollo POSTs the
+//      number to our callback a few seconds later.
+// Apollo is OFF unless APOLLO_ENABLED=true, because a reveal spends whether or
+// not a number comes back. When on, it only ever runs on profiles both SalesQL
+// and LeadsForge missed a phone for (the residual of the residual).
+const BASE = "https://api.apollo.io/api/v1";
+
+function key(): string {
+  return process.env.APOLLO_API_KEY || "";
+}
+// The WHOLE Apollo leg is opt-in: even a match can cost a credit, so nothing
+// fires unless APOLLO_ENABLED=true. With the flag off, Apollo is fully cold.
+export function isConfigured(): boolean {
+  return !!key() && process.env.APOLLO_ENABLED === "true";
+}
+/** Paid reveal additionally needs a public webhook base for the async number. */
+export function revealEnabled(): boolean {
+  return isConfigured() && !!process.env.APOLLO_WEBHOOK_BASE_URL;
+}
+
+function headers() {
+  return { "X-Api-Key": key(), "Content-Type": "application/json", "Cache-Control": "no-cache" };
+}
+
+function realEmail(email?: string): string | undefined {
+  if (!email || email.includes("email_not_unlocked")) return undefined;
+  return email;
+}
+
+export type ApolloMatch = { apolloId: string; email?: string; phone?: string };
+
+/** Match a person by LinkedIn URL. Returns id + any already-unlocked contact. */
+export async function match(linkedinUrl: string): Promise<ApolloMatch | null> {
+  if (!isConfigured()) return null;
+  try {
+    const r = await fetch(`${BASE}/people/match`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ linkedin_url: linkedinUrl }),
+    });
+    if (!r.ok) return null;
+    const person = ((await r.json()) as any)?.person ?? {};
+    const id = person.id ? String(person.id) : "";
+    if (!id) return null;
+    const phones: any[] = person.phone_numbers ?? [];
+    const phone = phones[0]?.sanitized_number || phones[0]?.raw_number;
+    return { apolloId: id, email: realEmail(person.email), phone: phone ? String(phone) : undefined };
+  } catch {
+    return null;
+  }
+}
+
+function webhookUrl(rid: string): string {
+  const base = (process.env.APOLLO_WEBHOOK_BASE_URL || "").replace(/\/$/, "");
+  const sec = process.env.APOLLO_WEBHOOK_SECRET || "";
+  return `${base}/api/enrich/apollo-callback?secret=${encodeURIComponent(sec)}&rid=${encodeURIComponent(rid)}`;
+}
+
+/** Fire a PAID phone reveal. The number lands later on the webhook. */
+export async function requestPhoneReveal(apolloId: string, rid: string): Promise<boolean> {
+  if (!revealEnabled() || !apolloId) return false;
+  try {
+    const r = await fetch(`${BASE}/people/match`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ id: apolloId, reveal_phone_number: true, webhook_url: webhookUrl(rid) }),
+    });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Parse Apollo's async phone webhook body into a phone string (or null). */
+export function parseCallback(body: any): string | null {
+  const p = (body?.people ?? [])[0] ?? {};
+  const phones = p.phone_numbers ?? [];
+  const best = phones[0] || {};
+  const phone = (best.sanitized_number || best.raw_number || "").trim();
+  return phone && p.status === "success" ? phone : null;
+}
+
+export function webhookSecretOk(secret: string): boolean {
+  const want = process.env.APOLLO_WEBHOOK_SECRET || "";
+  return !!want && secret === want;
+}

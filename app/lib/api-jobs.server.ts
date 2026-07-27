@@ -37,7 +37,7 @@ export async function createJob(
   caller: Caller,
   urls: string[],
   fields: string[],
-): Promise<{ id: string; status: string; count: number }> {
+): Promise<{ job_id: string; status: string; count: number }> {
   await ensureTable();
   const clean = urls.filter((u) => isLinkedInUrl(u));
   const people = clean.map((u) => ({ externalID: normalizeUrl(u), linkedinURL: u }));
@@ -92,7 +92,10 @@ export async function getJob(email: string, id: string): Promise<any | null> {
   }
   const map: Record<string, string> = meta.map || {};
   const fields: string[] = meta.fields || ["email", "phone"];
-  const results = Object.entries(map).map(([extId, url]) => buildResult(url, hits[extId] || {}, fields));
+  const results = Object.entries(map).map(([extId, url]) => {
+    const h = hits[extId] || {};
+    return buildResult(url, { workEmail: h.email, phone: h.phone }, fields);
+  });
   const billable = results.reduce((s, r2) => s + (r2.credits_used || 0), 0);
 
   if (!meta.charged && billable > 0) await chargeUsage(row.key_id, billable);
