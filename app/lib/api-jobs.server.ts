@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
 import db from "~/lib/db";
 import * as leadsforge from "~/lib/leadsforge.server";
-import { buildResult, normalizeUrl, isLinkedInUrl } from "~/lib/enrich.server";
+import { buildResult, parseTarget, cacheKeyFor } from "~/lib/enrich.server";
 import { chargeUsage, type Caller } from "~/lib/api-keys.server";
 
 export const BULK_MAX = 500;
@@ -35,14 +35,26 @@ function rowsOf(r: any): any[] {
 
 export async function createJob(
   caller: Caller,
-  urls: string[],
+  entries: any[],
   fields: string[],
 ): Promise<{ job_id: string; status: string; count: number }> {
   await ensureTable();
-  const clean = urls.filter((u) => isLinkedInUrl(u));
-  const people = clean.map((u) => ({ externalID: normalizeUrl(u), linkedinURL: u }));
-  const map: Record<string, string> = {};
-  clean.forEach((u) => (map[normalizeUrl(u)] = u));
+  const targets = entries.map((e) => parseTarget(e)).filter(Boolean) as any[];
+  const people = targets.map((t) => ({
+    externalID: cacheKeyFor(t),
+    linkedinURL: t.linkedin_url,
+    firstName: t.firstName,
+    lastName: t.lastName,
+    company: t.company,
+  }));
+  const map: Record<string, { url: string; name: string }> = {};
+  targets.forEach((t) => {
+    map[cacheKeyFor(t)] = {
+      url: t.linkedin_url || "",
+      name: [t.firstName, t.lastName].filter(Boolean).join(" "),
+    };
+  });
+  const clean = targets;
 
   const reqId = randomUUID();
   const lf: Record<string, string> = {};
@@ -90,11 +102,11 @@ export async function getJob(email: string, id: string): Promise<any | null> {
   for (const [channel, jid] of jobIds) {
     leadsforge.collect(hits, channel as leadsforge.Channel, await leadsforge.jobResults(jid));
   }
-  const map: Record<string, string> = meta.map || {};
+  const map: Record<string, { url: string; name: string }> = meta.map || {};
   const fields: string[] = meta.fields || ["email", "phone"];
-  const results = Object.entries(map).map(([extId, url]) => {
+  const results = Object.entries(map).map(([extId, m]) => {
     const h = hits[extId] || {};
-    return buildResult(url, { workEmail: h.email, phone: h.phone }, fields);
+    return buildResult(m.url, { workEmail: h.email, phone: h.phone, name: m.name || null }, fields);
   });
   const billable = results.reduce((s, r2) => s + (r2.credits_used || 0), 0);
 

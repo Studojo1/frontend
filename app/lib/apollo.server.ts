@@ -29,16 +29,15 @@ function realEmail(email?: string): string | undefined {
   return email;
 }
 
-export type ApolloMatch = { apolloId: string; email?: string; phone?: string };
+export type ApolloMatch = { apolloId: string; email?: string; phone?: string; linkedinUrl?: string };
 
-/** Match a person by LinkedIn URL. Returns id + any already-unlocked contact. */
-export async function match(linkedinUrl: string): Promise<ApolloMatch | null> {
+async function doMatch(body: Record<string, unknown>): Promise<ApolloMatch | null> {
   if (!isConfigured()) return null;
   try {
     const r = await fetch(`${BASE}/people/match`, {
       method: "POST",
       headers: headers(),
-      body: JSON.stringify({ linkedin_url: linkedinUrl }),
+      body: JSON.stringify(body),
     });
     if (!r.ok) return null;
     const person = ((await r.json()) as any)?.person ?? {};
@@ -46,10 +45,34 @@ export async function match(linkedinUrl: string): Promise<ApolloMatch | null> {
     if (!id) return null;
     const phones: any[] = person.phone_numbers ?? [];
     const phone = phones[0]?.sanitized_number || phones[0]?.raw_number;
-    return { apolloId: id, email: realEmail(person.email), phone: phone ? String(phone) : undefined };
+    return {
+      apolloId: id,
+      email: realEmail(person.email),
+      phone: phone ? String(phone) : undefined,
+      linkedinUrl: person.linkedin_url ? String(person.linkedin_url) : undefined,
+    };
   } catch {
     return null;
   }
+}
+
+/** Match a person by LinkedIn URL. */
+export function match(linkedinUrl: string): Promise<ApolloMatch | null> {
+  return doMatch({ linkedin_url: linkedinUrl });
+}
+
+/** Match a person by name + company (returns their LinkedIn URL when found). */
+export function matchByName(t: {
+  firstName?: string;
+  lastName?: string;
+  company?: string;
+  domain?: string;
+}): Promise<ApolloMatch | null> {
+  if (!t.firstName || !t.lastName || !(t.company || t.domain)) return Promise.resolve(null);
+  const body: Record<string, unknown> = { first_name: t.firstName, last_name: t.lastName };
+  if (t.company) body.organization_name = t.company;
+  if (t.domain) body.domain = t.domain;
+  return doMatch(body);
 }
 
 function webhookUrl(rid: string): string {

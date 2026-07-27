@@ -95,11 +95,11 @@ async function putCache(urlKey: string, res: EnrichResult): Promise<void> {
     DO UPDATE SET status = EXCLUDED.status, result = EXCLUDED.result, created_at = now()`);
 }
 
-/** Add a late-arriving Apollo phone to a cached result (called from the webhook). */
-export async function patchCachePhone(linkedin_url: string, rawPhone: string): Promise<void> {
+/** Add a late-arriving Apollo phone to a cached result (called from the webhook).
+ *  `urlKey` is the exact cache key stored on the reveal row, not a raw URL. */
+export async function patchCachePhone(urlKey: string, rawPhone: string): Promise<void> {
   const phone = usablePhone(rawPhone);
   if (!phone) return;
-  const urlKey = normalizeUrl(linkedin_url);
   await ensureTables();
   const r = await db.execute(sql`SELECT result FROM api_enrich_cache WHERE linkedin_url = ${urlKey}`);
   const row = rowsOf(r)[0];
@@ -160,61 +160,106 @@ export function buildResult(linkedin_url: string, parts: Parts, fields: string[]
 }
 
 // ── the cascade ──────────────────────────────────────────────────────────────
+export type Target = {
+  linkedin_url?: string;
+  firstName?: string;
+  lastName?: string;
+  company?: string;
+  domain?: string;
+};
+
+/** Parse a request body (or a bulk entry) into a Target, or null if unusable.
+ *  Accepts a LinkedIn URL, or first/last name (or a full `name`) + company/domain. */
+export function parseTarget(body: any): Target | null {
+  if (typeof body === "string") body = { linkedin_url: body };
+  const url = String(body?.linkedin_url || "").trim();
+  if (url && isLinkedInUrl(url)) return { linkedin_url: url };
+  let firstName = String(body?.first_name || "").trim();
+  let lastName = String(body?.last_name || "").trim();
+  const name = String(body?.name || body?.full_name || "").trim();
+  if ((!firstName || !lastName) && name) {
+    const parts = name.split(/\s+/);
+    firstName = firstName || parts[0] || "";
+    lastName = lastName || parts.slice(1).join(" ");
+  }
+  const company = String(body?.company || body?.organization || "").trim();
+  const domain = String(body?.domain || "").trim();
+  if (firstName && lastName && (company || domain)) {
+    return { firstName, lastName, company: company || undefined, domain: domain || undefined };
+  }
+  return null;
+}
+
+/** Stable cache/idempotency key: the LinkedIn URL if we have one, else name+org. */
+export function cacheKeyFor(t: Target): string {
+  if (t.linkedin_url && isLinkedInUrl(t.linkedin_url)) return normalizeUrl(t.linkedin_url);
+  const who = [t.firstName, t.lastName].filter(Boolean).join(" ").trim().toLowerCase();
+  const org = (t.domain || t.company || "").trim().toLowerCase();
+  return `name:${who}|${org}`;
+}
+
 export async function enrichProfile(
-  linkedin_url: string,
+  target: Target,
   fields: string[] = ["email", "phone"],
 ): Promise<EnrichResult> {
-  const urlKey = normalizeUrl(linkedin_url);
-  const cached = await getCached(urlKey);
+  const cacheKey = cacheKeyFor(target);
+  const cached = await getCached(cacheKey);
   if (cached) return cached;
 
   const wantEmail = fields.includes("email");
   const wantPhone = fields.includes("phone");
-  const parts: Parts = {};
+  const parts: Parts = { name: [target.firstName, target.lastName].filter(Boolean).join(" ") || null };
+  let url = target.linkedin_url && isLinkedInUrl(target.linkedin_url) ? target.linkedin_url : "";
 
   const haveEmail = () => !!parts.workEmail;
   const havePhone = () => !!parts.phone;
+  const captureUrl = (u?: string) => {
+    if (!url && u && isLinkedInUrl(u)) url = u;
+  };
 
-  // 1 ── SalesQL: base record
+  // 1 ── SalesQL: base record (by URL, else by name+company; may return the URL)
   if (salesql.isConfigured()) {
-    const s = await salesql.enrichByUrl(linkedin_url);
+    const s = url ? await salesql.enrichByUrl(url) : await salesql.enrichByName(target);
     if (s) {
       if (s.workEmail) parts.workEmail = s.workEmail;
       if (s.personalEmail) parts.personalEmail = s.personalEmail;
       if (s.name) parts.name = s.name;
       if (s.title) parts.title = s.title;
+      captureUrl(s.linkedinUrl);
       if (wantPhone && usablePhone(s.phone)) parts.phone = usablePhone(s.phone)!.number;
     }
   }
 
-  // 2 ── LeadsForge: fill the phone (and email if still missing), free on a miss
+  // 2 ── LeadsForge: native name+company (or URL). Fills phone + missing email.
   const lfNeedEmail = wantEmail && !haveEmail();
   const lfNeedPhone = wantPhone && !havePhone();
   if (leadsforge.isConfigured() && (lfNeedEmail || lfNeedPhone)) {
     const lf = await leadsforge.enrich(
-      [{ externalID: urlKey, linkedinURL: linkedin_url }],
+      [{ externalID: cacheKey, linkedinURL: url || undefined,
+         firstName: target.firstName, lastName: target.lastName, company: target.company }],
       { email: lfNeedEmail, phone: lfNeedPhone },
       randomUUID(),
     );
-    const hit = lf[urlKey] || {};
+    const hit = lf[cacheKey] || {};
     if (lfNeedEmail && hit.email) parts.workEmail = hit.email;
     if (lfNeedPhone && usablePhone(hit.phone)) parts.phone = usablePhone(hit.phone)!.number;
   }
 
-  // 3 ── Apollo: last resort. Free match backfills email; paid reveal (opt-in)
-  //      chases a phone both prior legs missed.
+  // 3 ── Apollo: last resort. Match (by URL or name) backfills email + resolves
+  //      the URL; gated paid reveal chases a phone both prior legs missed.
   const apNeedEmail = wantEmail && !haveEmail();
   const apNeedPhone = wantPhone && !havePhone();
   if (apollo.isConfigured() && (apNeedEmail || apNeedPhone)) {
-    const m = await apollo.match(linkedin_url);
+    const m = url ? await apollo.match(url) : await apollo.matchByName(target);
     if (m) {
+      captureUrl(m.linkedinUrl);
       if (apNeedEmail && m.email) parts.workEmail = m.email;
       if (apNeedPhone && usablePhone(m.phone)) parts.phone = usablePhone(m.phone)!.number;
       if (wantPhone && !havePhone() && apollo.revealEnabled() && m.apolloId) {
         const rid = randomUUID();
         await ensureTables();
         await db.execute(sql`
-          INSERT INTO apollo_reveals (rid, linkedin_url, apollo_id) VALUES (${rid}, ${linkedin_url}, ${m.apolloId})`);
+          INSERT INTO apollo_reveals (rid, linkedin_url, apollo_id) VALUES (${rid}, ${cacheKey}, ${m.apolloId})`);
         if (await apollo.requestPhoneReveal(m.apolloId, rid)) {
           const ph = await pollApolloReveal(rid, APOLLO_POLL_MS);
           if (ph && usablePhone(ph)) parts.phone = usablePhone(ph)!.number;
@@ -223,7 +268,7 @@ export async function enrichProfile(
     }
   }
 
-  const result = buildResult(linkedin_url, parts, fields);
-  await putCache(urlKey, result); // caches ok and not_found (negative cache)
+  const result = buildResult(url, parts, fields);
+  await putCache(cacheKey, result); // caches ok and not_found (negative cache)
   return result;
 }

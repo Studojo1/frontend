@@ -27,7 +27,7 @@ export type LfPerson = {
   firstName?: string;
   lastName?: string;
   company?: string;
-  linkedinURL: string;
+  linkedinURL?: string;
 };
 
 export async function balance(): Promise<number | null> {

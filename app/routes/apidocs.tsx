@@ -371,7 +371,7 @@ curl https://studojo.com/api/jobs/job_a1b2c3 \\
                   <Pill method="POST" />
                   <span className="font-mono text-sm">/api/enrich</span>
                 </div>
-                <p className="text-studojo-muted mb-2 text-sm">Enrich a single LinkedIn profile. Synchronous, the full contact is in the response body, usually in 5 to 15 seconds.</p>
+                <p className="text-studojo-muted mb-2 text-sm">Enrich a single person. Pass a <span className="font-mono">linkedin_url</span>, or <span className="font-mono">first_name</span> + <span className="font-mono">last_name</span> + <span className="font-mono">company</span> (or <span className="font-mono">domain</span>). Synchronous, the full contact is in the response body, usually in 5 to 15 seconds.</p>
                 <Code>{`{
   "linkedin_url": "https://www.linkedin.com/in/janedoe",
   "fields": ["email", "phone"]     // optional, defaults to both

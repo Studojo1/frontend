@@ -4,7 +4,7 @@
 import type { Route } from "./+types/api.enrich";
 import { guard, json } from "~/lib/api-guard.server";
 import { chargeUsage } from "~/lib/api-keys.server";
-import { enrichProfile, enginesConfigured, isLinkedInUrl } from "~/lib/enrich.server";
+import { enrichProfile, enginesConfigured, parseTarget } from "~/lib/enrich.server";
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405);
@@ -19,10 +19,14 @@ export async function action({ request }: Route.ActionArgs) {
     return json({ error: "bad_request", message: "Body must be JSON." }, 422, g.headers);
   }
 
-  const url = String(body.linkedin_url || "").trim();
-  if (!isLinkedInUrl(url)) {
+  const target = parseTarget(body);
+  if (!target) {
     return json(
-      { error: "bad_request", message: "linkedin_url must be a LinkedIn profile URL." },
+      {
+        error: "bad_request",
+        message:
+          "Provide linkedin_url, or first_name + last_name + (company or domain).",
+      },
       422,
       g.headers,
     );
@@ -46,7 +50,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   try {
-    const result = await enrichProfile(url, fields);
+    const result = await enrichProfile(target, fields);
     // Charge only a fresh billable hit; cached reads and misses are free.
     if (!result.cached && result.credits_used > 0) {
       await chargeUsage(g.caller.id, result.credits_used);

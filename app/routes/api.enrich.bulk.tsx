@@ -17,7 +17,8 @@ export async function action({ request }: Route.ActionArgs) {
     return json({ error: "bad_request", message: "Body must be JSON." }, 422, g.headers);
   }
 
-  const profiles: string[] = Array.isArray(body.profiles) ? body.profiles.map(String) : [];
+  // Entries may be LinkedIn-URL strings or objects ({linkedin_url} or name+company).
+  const profiles: any[] = Array.isArray(body.profiles) ? body.profiles : [];
   if (profiles.length === 0) {
     return json({ error: "bad_request", message: "profiles must be a non-empty array." }, 422, g.headers);
   }
