@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Form, Link, useActionData, useLoaderData } from "react-router";
 import type { Route } from "./+types/apidocs";
 import { auth } from "~/lib/auth";
@@ -17,7 +17,7 @@ export function meta(_: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "Turn a LinkedIn profile into a verified work email, personal email and mobile number. One call, verified results, billed only when we return a contact.",
+        "Turn a LinkedIn profile (or a name + company) into a verified work email, personal email and mobile number. One call, verified results, billed only when we return a contact.",
     },
   ];
 }
@@ -54,24 +54,37 @@ export async function action({ request }: Route.ActionArgs) {
   return {};
 }
 
-// ── Small presentational helpers ─────────────────────────────────────────────
-const CARD =
-  "border-2 border-neutral-900 rounded-2xl bg-white shadow-[5px_5px_0_0_#171717]";
+// ── shared bits ───────────────────────────────────────────────────────────────
+const CARD = "border-2 border-neutral-900 rounded-2xl bg-white shadow-[5px_5px_0_0_#171717]";
+type Lang = "curl" | "python" | "node";
+const LANGS: { id: Lang; label: string }[] = [
+  { id: "curl", label: "cURL" },
+  { id: "python", label: "Python" },
+  { id: "node", label: "Node" },
+];
 
-function Code({ children }: { children: string }) {
+function CopyBtn({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="relative group">
-      <button
-        onClick={() => {
-          navigator.clipboard?.writeText(children);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1200);
-        }}
-        className="absolute top-3 right-3 text-xs font-semibold px-2 py-1 rounded-md border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-400 transition"
-      >
-        {copied ? "Copied" : "Copy"}
-      </button>
+    <button
+      onClick={() => {
+        navigator.clipboard?.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+      }}
+      className="text-xs font-semibold px-2 py-1 rounded-md border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-400 transition"
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
+function Code({ children }: { children: string }) {
+  return (
+    <div className="relative">
+      <div className="absolute top-2.5 right-2.5">
+        <CopyBtn text={children} />
+      </div>
       <pre className="overflow-x-auto rounded-xl border-2 border-neutral-900 bg-[#171717] text-neutral-100 text-[13px] leading-relaxed p-4">
         <code>{children}</code>
       </pre>
@@ -79,17 +92,120 @@ function Code({ children }: { children: string }) {
   );
 }
 
-function Pill({ method }: { method: string }) {
-  const color =
-    method === "POST" ? "bg-studojo-green text-neutral-900" : "bg-studojo-purple text-white";
+/** Code block with cURL / Python / Node tabs, driven by a shared language state. */
+function CodeSample({
+  samples,
+  lang,
+  setLang,
+}: {
+  samples: Partial<Record<Lang, string>>;
+  lang: Lang;
+  setLang: (l: Lang) => void;
+}) {
+  const active = samples[lang] ?? samples.curl ?? Object.values(samples)[0] ?? "";
+  const available = LANGS.filter((l) => samples[l.id]);
   return (
-    <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-md ${color}`}>
-      {method}
-    </span>
+    <div className="rounded-xl border-2 border-neutral-900 overflow-hidden bg-[#171717]">
+      <div className="flex items-center justify-between bg-[#0f0f0f] border-b border-neutral-800 px-2">
+        <div className="flex">
+          {available.map((l) => (
+            <button
+              key={l.id}
+              onClick={() => setLang(l.id)}
+              className={`px-3 py-2 text-xs font-semibold transition ${
+                lang === l.id
+                  ? "text-white border-b-2 border-studojo-purple"
+                  : "text-neutral-400 hover:text-neutral-200"
+              }`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+        <CopyBtn text={active} />
+      </div>
+      <pre className="overflow-x-auto text-neutral-100 text-[13px] leading-relaxed p-4">
+        <code>{active}</code>
+      </pre>
+    </div>
   );
 }
 
-// ── The access / key-management panel ────────────────────────────────────────
+function Method({ m }: { m: string }) {
+  const c = m === "POST" ? "bg-studojo-green text-neutral-900" : "bg-studojo-purple text-white";
+  return <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-md ${c}`}>{m}</span>;
+}
+
+function Endpoint({ m, path }: { m: string; path: string }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <Method m={m} />
+      <span className="font-mono text-sm text-studojo-ink">{path}</span>
+    </div>
+  );
+}
+
+type Param = [name: string, type: string, req: "required" | "optional", desc: string];
+function Params({ rows }: { rows: Param[] }) {
+  return (
+    <div className={`${CARD} overflow-hidden`}>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[520px]">
+          <thead>
+            <tr className="bg-studojo-surface-muted text-left">
+              <th className="p-2.5 font-semibold">Field</th>
+              <th className="p-2.5 font-semibold">Type</th>
+              <th className="p-2.5 font-semibold"> </th>
+              <th className="p-2.5 font-semibold">Description</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-200">
+            {rows.map(([n, t, r, d]) => (
+              <tr key={n} className="align-top">
+                <td className="p-2.5 font-mono text-[13px] whitespace-nowrap">{n}</td>
+                <td className="p-2.5 font-mono text-xs text-studojo-muted whitespace-nowrap">{t}</td>
+                <td className="p-2.5">
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wide ${
+                      r === "required" ? "text-red-600" : "text-studojo-muted"
+                    }`}
+                  >
+                    {r}
+                  </span>
+                </td>
+                <td className="p-2.5 text-studojo-muted">{d}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+  return (
+    <section id={id} className="scroll-mt-24">
+      <h2 className="font-clash text-2xl font-bold mb-4 tracking-tight">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+const NAV = [
+  ["introduction", "Introduction"],
+  ["authentication", "Authentication"],
+  ["keys", "Your API keys"],
+  ["quickstart", "Quickstart"],
+  ["enrich", "Enrich a person"],
+  ["bulk", "Bulk enrichment"],
+  ["verify", "Verify an email"],
+  ["response", "Response object"],
+  ["errors", "Errors"],
+  ["limits", "Rate limits & credits"],
+];
+
+// ── access / key-management panel ──────────────────────────────────────────────
 function AccessPanel() {
   const { user, allowed, keys } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>() as
@@ -101,7 +217,7 @@ function AccessPanel() {
       <div className={`${CARD} p-6`}>
         <h3 className="text-lg font-bold mb-1">Get an API key</h3>
         <p className="text-studojo-muted mb-4">
-          Sign in to your Studojo account to manage keys. API access is granted per email.
+          Sign in to your Studojo account to create and manage keys. Access is granted per email.
         </p>
         <Link
           to="/auth?mode=signin"
@@ -119,8 +235,7 @@ function AccessPanel() {
         <h3 className="text-lg font-bold mb-1">Access pending</h3>
         <p className="text-studojo-muted">
           You are signed in as <span className="font-semibold">{user.email}</span>, but this
-          account is not enabled for API access yet. API keys are issued to approved accounts
-          only. Email{" "}
+          account is not enabled for API access yet. Email{" "}
           <a className="text-studojo-purple font-semibold" href="mailto:admin@studojo.com">
             admin@studojo.com
           </a>{" "}
@@ -139,9 +254,7 @@ function AccessPanel() {
         </span>
       </div>
 
-      {actionData?.error && (
-        <p className="mb-4 text-sm text-red-600 font-semibold">{actionData?.error}</p>
-      )}
+      {actionData?.error && <p className="mb-4 text-sm text-red-600 font-semibold">{actionData?.error}</p>}
 
       {actionData?.createdKey && (
         <div className="mb-5 rounded-xl border-2 border-studojo-purple bg-studojo-purple-bg p-4">
@@ -214,170 +327,183 @@ function AccessPanel() {
   );
 }
 
+// ── page ────────────────────────────────────────────────────────────────────
 export default function ApiDocs() {
+  const [lang, setLang] = useState<Lang>("curl");
+  const s = (samples: Partial<Record<Lang, string>>) => (
+    <CodeSample samples={samples} lang={lang} setLang={setLang} />
+  );
+
   return (
     <div className="min-h-screen bg-white text-studojo-ink font-satoshi">
       <Header />
 
       {/* Hero */}
-      <section className="max-w-5xl mx-auto px-5 pt-14 pb-8">
+      <section className="max-w-6xl mx-auto px-5 pt-14 pb-8">
         <span className="inline-block text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full bg-studojo-purple-bg text-studojo-purple border-2 border-studojo-purple mb-5">
-          Developer API
+          Developer API · v1
         </span>
         <h1 className="font-clash text-4xl sm:text-5xl font-bold tracking-tight leading-[1.05]">
           Contact Enrichment API
         </h1>
         <p className="mt-4 text-lg text-studojo-muted max-w-2xl">
-          Send a LinkedIn profile, get back a verified work email, personal email and mobile
-          number. One call, results in seconds, and you are billed only when a verified contact
-          comes back.
+          Send a LinkedIn profile, or a name and company, and get back a verified work email,
+          personal email and mobile number. One call, results in seconds, billed only when a
+          verified contact comes back.
         </p>
+        <div className="mt-5 inline-flex items-center gap-2 text-sm font-mono bg-studojo-surface-muted border border-neutral-300 rounded-lg px-3 py-1.5">
+          <span className="text-studojo-muted">Base URL</span>
+          <span className="text-studojo-ink">https://studojo.com/api</span>
+        </div>
         <div className="mt-6 flex flex-wrap gap-3">
           <a href="#quickstart" className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-white">
             Quickstart
           </a>
-          <a href="#access" className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-studojo-purple text-white">
-            Get a key
+          <a href="#keys" className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-studojo-purple text-white">
+            Get your API key
           </a>
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-5 pb-24 grid lg:grid-cols-[1fr_360px] gap-10">
-        {/* Docs column */}
-        <div className="space-y-12 order-2 lg:order-1">
-          {/* Base + auth */}
-          <section id="quickstart">
-            <h2 className="font-clash text-2xl font-bold mb-3">Quickstart</h2>
+      <div className="max-w-6xl mx-auto px-5 pb-24 grid lg:grid-cols-[200px_1fr] gap-10">
+        {/* Sticky nav */}
+        <aside className="hidden lg:block">
+          <nav className="sticky top-24 text-sm space-y-1">
+            {NAV.map(([id, label]) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                className="block px-3 py-1.5 rounded-lg text-studojo-muted hover:text-studojo-ink hover:bg-studojo-surface-muted transition"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Content */}
+        <div className="space-y-14 min-w-0">
+          <Section id="introduction" title="Introduction">
             <p className="text-studojo-muted mb-3">
-              The base URL is <span className="font-mono text-studojo-ink">https://studojo.com/api</span>.
-              Authenticate every request with a bearer token, your API key.
+              The Contact Enrichment API resolves a person to their verified contact details. You
+              send an identity, we return the work email, personal email and direct mobile we can
+              confirm. Every email is checked (MX + SMTP) and every mobile is checked for line type,
+              so you get a real cell number and not a switchboard. If a field cannot be verified we
+              leave it out rather than guess.
             </p>
-            <Code>{`curl https://studojo.com/api/enrich \\
+            <p className="text-studojo-muted">
+              You are billed only when we return a verified contact, never on a miss. The same
+              identity requested twice inside a month is served from cache and not charged again.
+            </p>
+          </Section>
+
+          <Section id="authentication" title="Authentication">
+            <p className="text-studojo-muted mb-4">
+              Every request is authenticated with your API key as a bearer token. Keep it
+              server-side, never in browser or mobile code.
+            </p>
+            <Code>{`Authorization: Bearer sk_live_your_key_here`}</Code>
+          </Section>
+
+          <Section id="keys" title="Your API keys">
+            <AccessPanel />
+          </Section>
+
+          <Section id="quickstart" title="Quickstart">
+            <p className="text-studojo-muted mb-4">
+              Enrich your first person. Replace the key with your own, then run:
+            </p>
+            {s({
+              curl: `curl https://studojo.com/api/enrich \\
+  -H "Authorization: Bearer sk_live_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "linkedin_url": "https://www.linkedin.com/in/janedoe" }'`,
+              python: `import requests
+
+res = requests.post(
+    "https://studojo.com/api/enrich",
+    headers={"Authorization": "Bearer sk_live_your_key_here"},
+    json={"linkedin_url": "https://www.linkedin.com/in/janedoe"},
+)
+print(res.json())`,
+              node: `const res = await fetch("https://studojo.com/api/enrich", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer sk_live_your_key_here",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ linkedin_url: "https://www.linkedin.com/in/janedoe" }),
+});
+console.log(await res.json());`,
+            })}
+          </Section>
+
+          <Section id="enrich" title="Enrich a person">
+            <Endpoint m="POST" path="/api/enrich" />
+            <p className="text-studojo-muted my-3">
+              Enrich one person. Identify them by a LinkedIn URL, or by name + company. The full
+              contact returns in the response body, usually in 5 to 15 seconds.
+            </p>
+            <Params
+              rows={[
+                ["linkedin_url", "string", "optional", "LinkedIn profile URL. Highest match rate; use this when you have it."],
+                ["first_name", "string", "optional", "Required if no linkedin_url."],
+                ["last_name", "string", "optional", "Required if no linkedin_url."],
+                ["company", "string", "optional", "Company name. Provide with first/last name."],
+                ["domain", "string", "optional", "Company domain, e.g. acme.com. Can be used instead of company."],
+                ["fields", "string[]", "optional", 'Any of ["email","phone"]. Defaults to both.'],
+              ]}
+            />
+            <p className="text-sm font-semibold mt-5 mb-2">Request — by LinkedIn URL</p>
+            {s({
+              curl: `curl https://studojo.com/api/enrich \\
   -H "Authorization: Bearer sk_live_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
     "linkedin_url": "https://www.linkedin.com/in/janedoe",
     "fields": ["email", "phone"]
-  }'`}</Code>
-          </section>
-
-          {/* How it works */}
-          <section>
-            <h2 className="font-clash text-2xl font-bold mb-3">How it works</h2>
-            <p className="text-studojo-muted mb-4">
-              You send a LinkedIn profile, the Studojo engine returns the contact. Every email is
-              verified (MX + SMTP) and every mobile is checked for line type, so you get a real
-              cell number and not a switchboard. If a field cannot be verified we leave it out
-              rather than guess, and you are billed only when we return a verified contact, never
-              on a miss.
-            </p>
-            <div className={`${CARD} p-5`}>
-              <ol className="space-y-3">
-                <li className="flex gap-3">
-                  <span className="font-bold text-studojo-purple">1</span>
-                  <span><span className="font-semibold">Match.</span> We identify the person from the profile and pull their work and personal email.</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-studojo-purple">2</span>
-                  <span><span className="font-semibold">Mobile.</span> We locate a direct mobile number and verify its line type.</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-studojo-purple">3</span>
-                  <span><span className="font-semibold">Return.</span> Every field comes back with a confidence score and the exact list of what was found.</span>
-                </li>
-              </ol>
-            </div>
-          </section>
-
-          {/* Response time */}
-          <section id="response-time">
-            <h2 className="font-clash text-2xl font-bold mb-3">Response time</h2>
-            <p className="text-studojo-muted mb-4">
-              A single call is synchronous, the full contact is in the response body. Large lists
-              run through the bulk endpoint, which is asynchronous so a slow lookup never blocks
-              the rest.
-            </p>
-            <div className={`${CARD} overflow-hidden`}>
-              <table className="w-full text-sm">
-                <tbody className="divide-y divide-neutral-200">
-                  <tr>
-                    <td className="p-3 font-semibold whitespace-nowrap align-top">POST /api/enrich</td>
-                    <td className="p-3 text-studojo-muted">
-                      Usually <span className="font-semibold text-studojo-ink">5 to 15 seconds</span>,
-                      with a hard <span className="font-semibold text-studojo-ink">20 second</span> timeout.
-                      The verified email and mobile are returned in the same response.
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="p-3 font-semibold whitespace-nowrap align-top">POST /api/enrich/bulk</td>
-                    <td className="p-3 text-studojo-muted">
-                      Returns a <span className="font-mono">job_id</span> in
-                      {" "}<span className="font-semibold text-studojo-ink">under 1 second</span>. A
-                      job of 500 profiles finishes within a few minutes, and each profile is
-                      readable the moment it resolves.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* How bulk works */}
-          <section id="bulk">
-            <h2 className="font-clash text-2xl font-bold mb-3">How the bulk API works</h2>
-            <p className="text-studojo-muted mb-4">
-              Use bulk for anything over a handful of profiles. You never hold a connection open
-              waiting, you submit and poll.
-            </p>
-            <div className={`${CARD} p-5 mb-4`}>
-              <ol className="space-y-3">
-                <li className="flex gap-3">
-                  <span className="font-bold text-studojo-purple">1</span>
-                  <span><span className="font-semibold">Submit</span> up to 500 LinkedIn URLs to <span className="font-mono text-sm">/api/enrich/bulk</span>. You get a <span className="font-mono text-sm">job_id</span> back immediately.</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-studojo-purple">2</span>
-                  <span><span className="font-semibold">Poll</span> <span className="font-mono text-sm">/api/jobs/{"{job_id}"}</span> every few seconds. Each profile appears in <span className="font-mono text-sm">results</span> the moment it is done, so you can process the list as it fills in.</span>
-                </li>
-                <li className="flex gap-3">
-                  <span className="font-bold text-studojo-purple">3</span>
-                  <span><span className="font-semibold">Finish</span> when <span className="font-mono text-sm">status</span> is <span className="font-mono text-sm">completed</span>. You are billed only for the profiles that returned a verified contact.</span>
-                </li>
-              </ol>
-            </div>
-            <Code>{`# 1. submit
-curl https://studojo.com/api/enrich/bulk \\
+  }'`,
+              python: `res = requests.post(
+    "https://studojo.com/api/enrich",
+    headers={"Authorization": "Bearer sk_live_your_key_here"},
+    json={
+        "linkedin_url": "https://www.linkedin.com/in/janedoe",
+        "fields": ["email", "phone"],
+    },
+)`,
+              node: `await fetch("https://studojo.com/api/enrich", {
+  method: "POST",
+  headers: { Authorization: "Bearer sk_live_your_key_here", "Content-Type": "application/json" },
+  body: JSON.stringify({
+    linkedin_url: "https://www.linkedin.com/in/janedoe",
+    fields: ["email", "phone"],
+  }),
+});`,
+            })}
+            <p className="text-sm font-semibold mt-5 mb-2">Request — by name + company</p>
+            {s({
+              curl: `curl https://studojo.com/api/enrich \\
   -H "Authorization: Bearer sk_live_your_key_here" \\
   -H "Content-Type: application/json" \\
-  -d '{ "profiles": ["https://www.linkedin.com/in/a",
-                     "https://www.linkedin.com/in/b"] }'
-# → { "job_id": "job_a1b2c3", "status": "processing", "count": 2 }
-
-# 2. poll until completed
-curl https://studojo.com/api/jobs/job_a1b2c3 \\
-  -H "Authorization: Bearer sk_live_your_key_here"
-# → { "status": "completed",
-#     "processed": 2, "total": 2,
-#     "results": [ /* one enrich object per profile */ ] }`}</Code>
-          </section>
-
-          {/* Endpoints */}
-          <section id="endpoints">
-            <h2 className="font-clash text-2xl font-bold mb-4">Endpoints</h2>
-
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Pill method="POST" />
-                  <span className="font-mono text-sm">/api/enrich</span>
-                </div>
-                <p className="text-studojo-muted mb-2 text-sm">Enrich a single person. Pass a <span className="font-mono">linkedin_url</span>, or <span className="font-mono">first_name</span> + <span className="font-mono">last_name</span> + <span className="font-mono">company</span> (or <span className="font-mono">domain</span>). Synchronous, the full contact is in the response body, usually in 5 to 15 seconds.</p>
-                <Code>{`{
-  "linkedin_url": "https://www.linkedin.com/in/janedoe",
-  "fields": ["email", "phone"]     // optional, defaults to both
-}`}</Code>
-                <p className="text-sm font-semibold mt-3 mb-1">200 OK</p>
-                <Code>{`{
+  -d '{
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "company": "Acme",
+    "fields": ["phone"]
+  }'`,
+              python: `res = requests.post(
+    "https://studojo.com/api/enrich",
+    headers={"Authorization": "Bearer sk_live_your_key_here"},
+    json={"first_name": "Jane", "last_name": "Doe", "company": "Acme", "fields": ["phone"]},
+)`,
+              node: `await fetch("https://studojo.com/api/enrich", {
+  method: "POST",
+  headers: { Authorization: "Bearer sk_live_your_key_here", "Content-Type": "application/json" },
+  body: JSON.stringify({ first_name: "Jane", last_name: "Doe", company: "Acme", fields: ["phone"] }),
+});`,
+            })}
+            <p className="text-sm font-semibold mt-5 mb-2">Response · 200</p>
+            <Code>{`{
   "status": "ok",
   "person":  { "name": "Jane Doe", "title": "Head of Growth",
                "linkedin_url": "https://www.linkedin.com/in/janedoe" },
@@ -387,74 +513,200 @@ curl https://studojo.com/api/jobs/job_a1b2c3 \\
   "found": ["work_email", "personal_email", "mobile"],
   "credits_used": 1
 }`}</Code>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Pill method="POST" />
-                  <span className="font-mono text-sm">/api/enrich/bulk</span>
-                </div>
-                <p className="text-studojo-muted mb-2 text-sm">Submit up to 500 profiles. Returns a job you poll.</p>
-                <Code>{`{ "profiles": ["https://www.linkedin.com/in/a", "https://www.linkedin.com/in/b"] }
-// → { "job_id": "job_a1b2c3", "status": "processing", "count": 2 }`}</Code>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Pill method="GET" />
-                  <span className="font-mono text-sm">/api/jobs/{"{job_id}"}</span>
-                </div>
-                <p className="text-studojo-muted mb-2 text-sm">Poll a bulk job. Results stream in as each profile resolves.</p>
-                <Code>{`{ "status": "completed", "results": [ /* one enrich object per profile */ ] }`}</Code>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Pill method="POST" />
-                  <span className="font-mono text-sm">/api/verify/email</span>
-                </div>
-                <p className="text-studojo-muted mb-2 text-sm">Validate an email (syntax + MX + SMTP). Free, no reveal.</p>
-                <Code>{`{ "email": "jane@acme.com" }
-// → { "email": "jane@acme.com", "valid": true, "catch_all": false }`}</Code>
-              </div>
-            </div>
-          </section>
-
-          {/* Errors */}
-          <section>
-            <h2 className="font-clash text-2xl font-bold mb-3">Errors &amp; status</h2>
-            <div className={`${CARD} overflow-hidden`}>
-              <table className="w-full text-sm">
-                <tbody className="divide-y divide-neutral-200">
-                  {[
-                    ["200 · status \"ok\"", "Contact resolved."],
-                    ["200 · status \"not_found\"", "No verified contact for this profile. Not billed."],
-                    ["401 invalid_api_key", "Missing, malformed, or revoked key."],
-                    ["402 out_of_credits", "Enrichment credits exhausted."],
-                    ["422 bad_request", "Not a valid LinkedIn profile URL."],
-                    ["429 rate_limited", "Too many requests. Back off and retry."],
-                  ].map(([code, desc]) => (
-                    <tr key={code}>
-                      <td className="p-3 font-mono text-xs whitespace-nowrap align-top">{code}</td>
-                      <td className="p-3 text-studojo-muted">{desc}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="text-studojo-muted text-sm mt-4">
-              Rate limit: 60 requests/minute per key on single enrich, bulk up to 500 profiles per
-              job. Every request is idempotent by LinkedIn URL, so retries never double-bill.
+            <p className="text-studojo-muted text-sm mt-3">
+              A profile we cannot resolve returns <span className="font-mono">status: "not_found"</span> with
+              empty fields and <span className="font-mono">credits_used: 0</span> — you are not charged.
             </p>
-          </section>
-        </div>
+          </Section>
 
-        {/* Sticky access panel */}
-        <aside id="access" className="order-1 lg:order-2">
-          <div className="lg:sticky lg:top-24">
-            <AccessPanel />
-          </div>
-        </aside>
+          <Section id="bulk" title="Bulk enrichment">
+            <p className="text-studojo-muted mb-4">
+              For more than a handful of people, submit a batch and poll for results. You never hold
+              a connection open waiting — the job resolves on its own and each person appears the
+              moment they are done.
+            </p>
+            <div className={`${CARD} p-5 mb-5`}>
+              <ol className="space-y-3 text-sm">
+                <li className="flex gap-3">
+                  <span className="font-bold text-studojo-purple">1</span>
+                  <span>
+                    <span className="font-semibold">Submit</span> up to 500 people to{" "}
+                    <span className="font-mono">/api/enrich/bulk</span>. Get a{" "}
+                    <span className="font-mono">job_id</span> back immediately.
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-studojo-purple">2</span>
+                  <span>
+                    <span className="font-semibold">Poll</span>{" "}
+                    <span className="font-mono">/api/jobs/{"{job_id}"}</span> every few seconds. Read{" "}
+                    <span className="font-mono">results</span> as it fills in.
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-bold text-studojo-purple">3</span>
+                  <span>
+                    <span className="font-semibold">Done</span> when{" "}
+                    <span className="font-mono">status</span> is{" "}
+                    <span className="font-mono">completed</span>. Billed only for people who returned
+                    a verified contact.
+                  </span>
+                </li>
+              </ol>
+            </div>
+            <p className="text-sm font-semibold mb-2">1. Submit</p>
+            {s({
+              curl: `curl https://studojo.com/api/enrich/bulk \\
+  -H "Authorization: Bearer sk_live_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "profiles": [
+      "https://www.linkedin.com/in/a",
+      { "first_name": "Jane", "last_name": "Doe", "company": "Acme" }
+    ],
+    "fields": ["email", "phone"]
+  }'
+# -> { "job_id": "job_a1b2c3", "status": "processing", "count": 2 }`,
+              python: `res = requests.post(
+    "https://studojo.com/api/enrich/bulk",
+    headers={"Authorization": "Bearer sk_live_your_key_here"},
+    json={
+        "profiles": [
+            "https://www.linkedin.com/in/a",
+            {"first_name": "Jane", "last_name": "Doe", "company": "Acme"},
+        ],
+        "fields": ["email", "phone"],
+    },
+)
+job_id = res.json()["job_id"]`,
+              node: `const res = await fetch("https://studojo.com/api/enrich/bulk", {
+  method: "POST",
+  headers: { Authorization: "Bearer sk_live_your_key_here", "Content-Type": "application/json" },
+  body: JSON.stringify({
+    profiles: ["https://www.linkedin.com/in/a", { first_name: "Jane", last_name: "Doe", company: "Acme" }],
+    fields: ["email", "phone"],
+  }),
+});
+const { job_id } = await res.json();`,
+            })}
+            <p className="text-sm font-semibold mt-5 mb-2">2. Poll</p>
+            {s({
+              curl: `curl https://studojo.com/api/jobs/job_a1b2c3 \\
+  -H "Authorization: Bearer sk_live_your_key_here"
+# -> { "status": "completed", "processed": 2, "total": 2,
+#      "results": [ /* one enrich object per person */ ] }`,
+              python: `import time
+while True:
+    job = requests.get(
+        f"https://studojo.com/api/jobs/{job_id}",
+        headers={"Authorization": "Bearer sk_live_your_key_here"},
+    ).json()
+    if job["status"] == "completed":
+        break
+    time.sleep(5)
+print(job["results"])`,
+              node: `let job;
+do {
+  await new Promise((r) => setTimeout(r, 5000));
+  job = await (await fetch(\`https://studojo.com/api/jobs/\${job_id}\`, {
+    headers: { Authorization: "Bearer sk_live_your_key_here" },
+  })).json();
+} while (job.status !== "completed");
+console.log(job.results);`,
+            })}
+          </Section>
+
+          <Section id="verify" title="Verify an email">
+            <Endpoint m="POST" path="/api/verify/email" />
+            <p className="text-studojo-muted my-3">
+              Validate an email address (syntax + MX). Free — no reveal, no credit.
+            </p>
+            {s({
+              curl: `curl https://studojo.com/api/verify/email \\
+  -H "Authorization: Bearer sk_live_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "email": "jane@acme.com" }'
+# -> { "email": "jane@acme.com", "valid": true, "mx": true, "catch_all": null }`,
+              python: `requests.post(
+    "https://studojo.com/api/verify/email",
+    headers={"Authorization": "Bearer sk_live_your_key_here"},
+    json={"email": "jane@acme.com"},
+).json()`,
+              node: `await (await fetch("https://studojo.com/api/verify/email", {
+  method: "POST",
+  headers: { Authorization: "Bearer sk_live_your_key_here", "Content-Type": "application/json" },
+  body: JSON.stringify({ email: "jane@acme.com" }),
+})).json();`,
+            })}
+          </Section>
+
+          <Section id="response" title="Response object">
+            <p className="text-studojo-muted mb-4">Every enrich result has this shape:</p>
+            <Params
+              rows={[
+                ["status", "string", "required", '"ok" when a contact was resolved, "not_found" otherwise.'],
+                ["person.name", "string | null", "optional", "Full name."],
+                ["person.title", "string | null", "optional", "Current job title."],
+                ["person.linkedin_url", "string", "optional", "Resolved LinkedIn URL (even if you searched by name)."],
+                ["emails.work", "string | null", "optional", "Verified work email."],
+                ["emails.personal", "string | null", "optional", "Personal / direct email."],
+                ["phone.number", "string", "optional", "Verified mobile in E.164 (null if none found)."],
+                ["phone.type", "string", "optional", '"mobile" or "unknown".'],
+                ["phone.verified", "boolean", "optional", "Whether the number passed line-type checks."],
+                ["confidence", "number", "required", "0 to 1 across the resolved fields."],
+                ["found", "string[]", "required", 'Which fields were found: "work_email", "personal_email", "mobile".'],
+                ["credits_used", "number", "required", "Credits charged for this result. 0 on a miss or cache hit."],
+              ]}
+            />
+          </Section>
+
+          <Section id="errors" title="Errors">
+            <div className={`${CARD} overflow-hidden`}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[420px]">
+                  <tbody className="divide-y divide-neutral-200">
+                    {[
+                      ['200 · "ok"', "Contact resolved."],
+                      ['200 · "not_found"', "No verified contact. Not billed."],
+                      ["401 invalid_api_key", "Missing, malformed, or revoked key."],
+                      ["402 out_of_credits", "Monthly quota exhausted."],
+                      ["422 bad_request", "No valid identity in the body (need a URL, or name + company)."],
+                      ["429 rate_limited", "Over 60 requests/minute. Back off and retry."],
+                    ].map(([c, d]) => (
+                      <tr key={c} className="align-top">
+                        <td className="p-3 font-mono text-xs whitespace-nowrap">{c}</td>
+                        <td className="p-3 text-studojo-muted">{d}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </Section>
+
+          <Section id="limits" title="Rate limits & credits">
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                ["Rate limit", "60 requests per minute per key on single enrich. Bulk accepts up to 500 people per job."],
+                ["Billed on results only", "A credit is spent only when a verified contact is returned. Misses are free."],
+                ["Idempotent", "The same identity within a month is served from cache and never re-billed. Retries are safe."],
+                ["Headers", "Every response carries X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset."],
+              ].map(([t, d]) => (
+                <div key={t} className={`${CARD} p-5`}>
+                  <div className="font-bold mb-1">{t}</div>
+                  <div className="text-sm text-studojo-muted">{d}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-studojo-muted text-sm mt-5">
+              Need a higher limit or a volume plan? Email{" "}
+              <a className="text-studojo-purple font-semibold" href="mailto:admin@studojo.com">
+                admin@studojo.com
+              </a>
+              .
+            </p>
+          </Section>
+        </div>
       </div>
 
       <Footer />
