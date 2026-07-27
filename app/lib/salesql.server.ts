@@ -16,7 +16,7 @@ export function isConfigured(): boolean {
 export type SalesQlResult = {
   workEmail?: string;
   personalEmail?: string;
-  phone?: string;
+  phones?: { number: string; type?: string }[]; // all phones, with their Work/Personal label
   name?: string;
   title?: string;
   linkedinUrl?: string;
@@ -63,8 +63,10 @@ function parsePerson(j: any): SalesQlResult | null {
   const personal = pickEmail(emails, ["direct", "personal"]);
   if (work) out.workEmail = work;
   if (personal) out.personalEmail = personal;
-  const phone = pickPhone(phones);
-  if (phone) out.phone = phone;
+  const ph = phones
+    .filter((p) => p?.phone)
+    .map((p) => ({ number: String(p.phone), type: p.type ? String(p.type) : undefined }));
+  if (ph.length) out.phones = ph;
   if (p.full_name) out.name = p.full_name;
   else if (p.first_name || p.last_name) out.name = [p.first_name, p.last_name].filter(Boolean).join(" ");
   if (p.title || p.headline) out.title = p.title || p.headline;
@@ -84,15 +86,3 @@ function pickEmail(emails: any[], types: string[]): string | undefined {
   return typed ? String(typed.email) : undefined;
 }
 
-function pickPhone(phones: any[]): string | undefined {
-  // Prefer a number that looks like a real mobile, then a "personal" line.
-  const score = (p: any) => {
-    const num = (p?.phone || "").replace(/[^\d+]/g, "");
-    const t = (p?.type || "").toLowerCase();
-    if (/^\+91[6-9]\d{9}$/.test(num)) return 0; // India mobile
-    if (t === "personal" || t === "mobile") return 1;
-    return 2;
-  };
-  const cand = phones.filter((p) => p?.phone).sort((a, b) => score(a) - score(b))[0];
-  return cand ? String(cand.phone) : undefined;
-}
