@@ -77,10 +77,14 @@ async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promi
 interface ChatSummary { id: number; title: string; updated_at: string }
 interface Message { id: number; role: string; content: string; created_at: string; meta?: { suggestions?: string[] } }
 interface RunEvent { ts: string; type: string; label: string; detail?: string; credits?: number }
+// Live-progress overlay: opportunities already found this run (before assemble writes
+// the authoritative bob_rows). Rendered as provisional rows; never persisted client-side.
+interface OppRow { id: number; company_norm: string; status: string; reject_reason?: string; fit_score?: number | null; cells: Record<string, unknown> }
 interface Run {
   id: number; status: string; events: RunEvent[];
   counters: Record<string, number>; credits_used: number; answer: string;
   tables?: BobTable[];
+  opportunities?: { table_id: number | null; rows: OppRow[] };
 }
 interface BobColumn { key: string; label: string }
 interface BobRow { id: number; cells: Record<string, unknown>; status: string }
@@ -853,7 +857,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   useEffect(() => { if (!running) setStopping(false); }, [running]);
   const hasTables = tables.length > 0;
   const showChat = mode !== "table";
-  const showTable = hasTables && mode !== "chat";
+  // Mount the results panel as soon as a run STARTS (not only once a table object
+  // exists), so the live-progress banner + provisional rows can show immediately.
+  const showTable = (hasTables || running) && mode !== "chat";
   const lastMsg = messages[messages.length - 1];
   const suggestions: string[] =
     !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
@@ -871,6 +877,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       <style>{`
         @keyframes bobFlash { 0% { background-color: rgb(221 214 254); } 100% { background-color: transparent; } }
         .bob-new { animation: bobFlash 2.5s ease-out; }
+        /* Provisional (in-review) rows from the live overlay: dimmed + a subtle stripe,
+           so they read as "still being checked", never as a finished/enrichable lead. */
+        .bob-prov { opacity: .62; }
+        .bob-prov:hover { opacity: .82; }
         @keyframes bobPop { 0% { opacity: 0; transform: translateY(8px) scale(0.98); } 100% { opacity: 1; transform: none; } }
         .bob-pop { animation: bobPop 0.35s ease-out; }
         .bob-thinscroll::-webkit-scrollbar { height: 5px; width: 5px; }
@@ -1643,6 +1653,56 @@ function RunProgress({ run }: { run: Run }) {
   );
 }
 
+// Compact live-progress banner shown ABOVE the results table while a run works, so a
+// slow run always reads as "actively narrowing the funnel", never as frozen. Reuses the
+// stage helpers + the pipeline's own funnel counters (sourced/extracted/scored/removed/kept).
+function RunBanner({ run, provisional }: { run: Run; provisional: number }) {
+  const c = run.counters || {};
+  const stageIdx = currentStageIndex(run.events || []);
+  const kept = Number(c.kept ?? c.rows_added ?? 0);
+  const chips: { label: string; tone?: string }[] = [];
+  if (c.sourced) chips.push({ label: `${c.sourced} posts read` });
+  if (c.extracted) chips.push({ label: `${c.extracted} companies` });
+  if (c.scored) chips.push({ label: `${c.scored} scored` });
+  if (c.removed) chips.push({ label: `${c.removed} filtered out`, tone: "muted" });
+  if (kept) chips.push({ label: `${kept} kept`, tone: "keep" });
+  return (
+    <div className="shrink-0 border-b-2 border-neutral-900 bg-violet-50">
+      <div className="px-4 py-2 flex items-center gap-2 flex-wrap">
+        <FiLoader className="animate-spin text-violet-500 shrink-0" size={13} />
+        <span className="font-bold text-[12.5px]">{RUN_STAGES[stageIdx].label}…</span>
+        <span className="hidden sm:inline text-[11px] text-neutral-500">
+          scoring and removing weak matches{provisional ? ` · ${provisional} still in review` : ""}
+        </span>
+        <span className="ml-auto flex items-center gap-1.5 text-[11px]">
+          {chips.map((ch, i) => (
+            <span key={i} className={`rounded-full px-2 py-0.5 font-semibold ${
+              ch.tone === "keep" ? "bg-violet-600 text-white"
+                : ch.tone === "muted" ? "bg-white text-neutral-400 border border-neutral-200"
+                : "bg-white text-neutral-600 border border-neutral-300"}`}>{ch.label}</span>
+          ))}
+        </span>
+      </div>
+      <div className="h-1 w-full bg-violet-100 overflow-hidden">
+        <div className="h-full bg-violet-500/70 animate-pulse"
+          style={{ width: `${Math.min(96, (stageIdx + 1) / RUN_STAGES.length * 100)}%` }} />
+      </div>
+    </div>
+  );
+}
+
+// A small stage badge for provisional rows — replaces the CRM status <select> and the
+// Enrich button (which must never fire on a not-yet-shipped opportunity).
+function ProvChip({ status }: { status: string }) {
+  const label = status === "contacted" ? "Shortlisting…"
+    : status === "scored" ? "Scored" : "In review…";
+  return (
+    <span className="inline-flex items-center gap-1 text-[10.5px] font-bold rounded-lg px-1.5 py-0.5 bg-neutral-100 text-neutral-500 border border-neutral-200 whitespace-nowrap">
+      <FiLoader size={9} className="animate-spin opacity-60" /> {label}
+    </span>
+  );
+}
+
 // Live animated pipeline graph — a neural-network visual on the right panel while
 // a run works and no rows have landed yet, so the user sees Sensei "thinking".
 const NN_LAYERS = [3, 5, 5, 4, 2];
@@ -1745,20 +1805,48 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
   const seenRows = useRef<Set<number>>(new Set());
 
   const active = tables.find((t) => t.id === activeId) || tables[tables.length - 1] || null;
-  const view: ResultsView = viewPref ?? ((active?.rows.length ?? 0) > 40 ? "table" : "cards");
+
+  // Live overlay -> provisional rows for the active table. Excludes rejected (they drop)
+  // and already-shipped (deduped by _company_norm so the real row's hand-off is seamless).
+  // Negative synthetic ids never collide with bob_rows.id and are stable across polls, so
+  // flash-in + row identity keep working. Ordered by opp id (harvest order) so fit changes
+  // during scoring never reshuffle rows.
+  const provisional = useMemo<BobRow[]>(() => {
+    const opp = run?.opportunities;
+    if (!run || run.status !== "running" || !active || !opp || opp.table_id !== active.id) return [];
+    const shipped = new Set(
+      active.rows.map((r) => String((r.cells as Record<string, unknown>)._company_norm || "")).filter(Boolean),
+    );
+    return [...opp.rows]
+      .filter((o) => o.status !== "rejected" && o.status !== "written" && !(o.company_norm && shipped.has(o.company_norm)))
+      .sort((a, b) => a.id - b.id)
+      .map((o) => ({ id: -o.id, status: "new", cells: { ...o.cells, _provisional: true, _opp_status: o.status } }));
+  }, [run, active]);
+
+  const displayRows = useMemo(() => [...(active?.rows ?? []), ...provisional], [active, provisional]);
+  const activeDisplay: BobTable | null = active ? { ...active, rows: displayRows } : null;
+  const view: ResultsView = viewPref ?? (displayRows.length > 40 ? "table" : "cards");
+
+  // Provisional rows (negative id) must never trigger a PATCH/enrich/delete on a
+  // non-existent bob_row — guard every row action at the boundary.
+  const rowStatusG = (id: number, s: string) => { if (id >= 0) onRowStatus(id, s); };
+  const enrichRowG = (id: number) => { if (id >= 0) onEnrichRow(id); };
+  const deleteRowG = (id: number) => { if (id >= 0) onDeleteRow(id); };
 
   // Track which rows are new (for the flash-in animation), then mark seen.
   const newIds = useMemo(() => {
     const ids = new Set<number>();
     for (const t of tables) for (const r of t.rows) if (!seenRows.current.has(r.id)) ids.add(r.id);
+    for (const r of provisional) if (!seenRows.current.has(r.id)) ids.add(r.id);
     return ids;
-  }, [tables]);
+  }, [tables, provisional]);
   useEffect(() => {
     const timer = setTimeout(() => {
       for (const t of tables) for (const r of t.rows) seenRows.current.add(r.id);
+      for (const r of provisional) seenRows.current.add(r.id);
     }, 100);
     return () => clearTimeout(timer);
-  }, [tables]);
+  }, [tables, provisional]);
 
   const exportXlsx = async (t: BobTable) => {
     const res = await fetch(`${API}/tables/${t.id}/export`, { headers: authHeaders() });
@@ -1800,7 +1888,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
             title={prettify(t.name)}
           >
             <span className="truncate">{prettify(t.name)}</span>
-            <span className="opacity-70 shrink-0">· {t.rows.length}</span>
+            <span className="opacity-70 shrink-0">· {t.id === active?.id ? displayRows.length : t.rows.length}</span>
           </button>
         ))}
         </div>
@@ -1860,51 +1948,54 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
         </div>
       </div>
 
-      {/* Body */}
-      {/* Live pipeline graph while a run is working and no rows have landed yet. */}
-      {run && (!active || active.rows.length === 0) && <RunGraph run={run} />}
+      {/* Live-progress banner over the table: rows fill in below as the funnel narrows. */}
+      {run && <RunBanner run={run} provisional={provisional.length} />}
 
-      {active && view === "cards" && !(run && active.rows.length === 0) && (
+      {/* Body */}
+      {/* Thinking diagram ONLY before the first row (real or provisional) has landed. */}
+      {run && displayRows.length === 0 && <RunGraph run={run} />}
+
+      {activeDisplay && view === "cards" && !(run && displayRows.length === 0) && (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
-            {active.rows.map((r, idx) => (
+            {activeDisplay.rows.map((r, idx) => (
               <CompanyCard
                 key={r.id}
                 row={r}
                 index={idx}
                 isNew={newIds.has(r.id)}
                 onOpen={() => setDetailRow(r)}
-                onStatus={(s) => onRowStatus(r.id, s)}
-                onEnrich={() => onEnrichRow(r.id)}
-                onDelete={() => onDeleteRow(r.id)}
+                onStatus={(s) => rowStatusG(r.id, s)}
+                onEnrich={() => enrichRowG(r.id)}
+                onDelete={() => deleteRowG(r.id)}
               />
             ))}
           </div>
-          {active.rows.length === 0 && !run && (
+          {displayRows.length === 0 && !run && (
             <p className="text-sm text-neutral-400 p-6 text-center">Results will appear here as Sensei finds them.</p>
           )}
         </div>
       )}
 
-      {active && view === "table" && !(run && active.rows.length === 0) && (
+      {activeDisplay && view === "table" && !(run && displayRows.length === 0) && (
         <DenseTable
-          table={active}
+          table={activeDisplay}
           newIds={newIds}
           onRowClick={setDetailRow}
-          onRowStatus={onRowStatus}
-          onEnrich={onEnrichRow}
-          onDelete={onDeleteRow}
+          onRowStatus={rowStatusG}
+          onEnrich={enrichRowG}
+          onDelete={deleteRowG}
         />
       )}
 
-      {detailRow && active && (
+      {detailRow && activeDisplay && (
         <RowDrawer
-          row={active.rows.find((r) => r.id === detailRow.id) || detailRow}
-          columns={orderColumns(active.columns)}
+          row={activeDisplay.rows.find((r) => r.id === detailRow.id) || detailRow}
+          columns={orderColumns(activeDisplay.columns)}
           onClose={() => setDetailRow(null)}
-          onStatus={(s) => { onRowStatus(detailRow.id, s); setDetailRow({ ...detailRow, status: s }); }}
-          onEnrich={() => onEnrichRow(detailRow.id)}
-          onDelete={() => { onDeleteRow(detailRow.id); setDetailRow(null); }}
+          onStatus={(s) => { rowStatusG(detailRow.id, s); setDetailRow({ ...detailRow, status: s }); }}
+          onEnrich={() => enrichRowG(detailRow.id)}
+          onDelete={() => { deleteRowG(detailRow.id); setDetailRow(null); }}
         />
       )}
     </section>
@@ -1992,6 +2083,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   onDelete: () => void;
 }) {
   const c = row.cells;
+  const prov = c._provisional === true;
   const company = str(c.company) || `Company ${index + 1}`;
   const website = str(c.website);
   const domain = website ? domainOf(website) : "";
@@ -2019,7 +2111,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   return (
     <div
       onClick={onOpen}
-      className={`bg-white border-2 border-neutral-900 rounded-2xl p-4 cursor-pointer shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all flex flex-col gap-2.5 ${isNew ? "bob-new" : ""}`}
+      className={`bg-white border-2 border-neutral-900 rounded-2xl p-4 cursor-pointer shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all flex flex-col gap-2.5 ${isNew ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
     >
       {/* Header */}
       <div className="flex items-start gap-2.5">
@@ -2075,6 +2167,9 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
 
       {/* Contact + status */}
       <div className="mt-auto pt-2 border-t border-neutral-100 flex flex-col gap-2">
+        {prov ? (
+          <div className="flex items-center"><ProvChip status={str(c._opp_status)} /></div>
+        ) : (
         <div className="flex items-center gap-2">
           {contactName ? (
             <>
@@ -2112,7 +2207,8 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
           </select>
           <DeleteRowButton onDelete={onDelete} />
         </div>
-        {(contactPhone || contactEmail) && (
+        )}
+        {!prov && (contactPhone || contactEmail) && (
           <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
             {contactPhone && (
               <a href={`tel:${contactPhone}`} title="Call"
@@ -2173,11 +2269,13 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
           </tr>
         </thead>
         <tbody>
-          {table.rows.map((r, idx) => (
+          {table.rows.map((r, idx) => {
+            const prov = r.cells._provisional === true;
+            return (
             <tr
               key={r.id}
               onClick={() => onRowClick(r)}
-              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""}`}
+              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
             >
               <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
                 <span className="inline-flex items-center gap-2">
@@ -2187,7 +2285,9 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
                 </span>
               </td>
               <td className="px-3 py-2.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                {str(r.cells.contact_name) ? (
+                {prov ? (
+                  <span className="text-neutral-300">—</span>
+                ) : str(r.cells.contact_name) ? (
                   <div className="min-w-0">
                     <div className="text-[12px] font-bold truncate max-w-[180px]">{str(r.cells.contact_name)}</div>
                     <div className="flex items-center gap-2 text-[10.5px] text-neutral-500">
@@ -2213,19 +2313,24 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
                 </td>
               ))}
               <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
-                <select
-                  value={r.status}
-                  onChange={(e) => onRowStatus(r.id, e.target.value)}
-                  className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[r.status] || STATUS_STYLE.new}`}
-                >
-                  {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
+                {prov ? (
+                  <ProvChip status={str(r.cells._opp_status)} />
+                ) : (
+                  <select
+                    value={r.status}
+                    onChange={(e) => onRowStatus(r.id, e.target.value)}
+                    className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[r.status] || STATUS_STYLE.new}`}
+                  >
+                    {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                )}
               </td>
               <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
-                <DeleteRowButton onDelete={() => onDelete(r.id)} />
+                {!prov && <DeleteRowButton onDelete={() => onDelete(r.id)} />}
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
       {table.rows.length === 0 && (
