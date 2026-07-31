@@ -342,7 +342,7 @@ export default function ApiDocs() {
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-5 pt-14 pb-8">
         <span className="inline-block text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full bg-studojo-purple-bg text-studojo-purple border-2 border-studojo-purple mb-5">
-          Developer API  -  v1
+          Developer API
         </span>
         <h1 className="font-clash text-4xl sm:text-5xl font-bold tracking-tight leading-[1.05]">
           Contact Enrichment API
