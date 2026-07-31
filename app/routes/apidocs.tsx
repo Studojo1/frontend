@@ -430,7 +430,7 @@ export default function ApiDocs() {
           </Section>
 
           <Section id="keys" title="Your API keys">
-            <div className="mb-3 text-sm"><Link to="/apidashboard" className="font-bold text-studojo-purple hover:underline">View usage dashboard -></Link></div>
+            <div className="mb-3 text-sm"><Link to="/apidashboard" className="font-bold text-studojo-purple hover:underline">View usage dashboard &rarr;</Link></div>
             <AccessPanel />
           </Section>
 
@@ -556,7 +556,7 @@ console.log(await res.json());`,
               <ol className="space-y-2.5 text-sm">
                 <li className="flex gap-3">
                   <span className="font-bold text-studojo-purple">1</span>
-                  <span><span className="font-semibold">Present &amp; valid.</span> No number, or not a valid phone number -> rejected.</span>
+                  <span><span className="font-semibold">Present &amp; valid.</span> No number, or not a valid phone number &rarr; rejected.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-bold text-studojo-purple">2</span>
