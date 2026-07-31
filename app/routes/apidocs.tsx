@@ -194,13 +194,13 @@ function Section({ id, title, children }: { id: string; title: string; children:
 
 const NAV = [
   ["introduction", "Introduction"],
+  ["endpoints", "Endpoints"],
   ["authentication", "Authentication"],
   ["keys", "Your API keys"],
   ["quickstart", "Quickstart"],
   ["enrich", "Enrich a person"],
   ["phone-verification", "Phone verification"],
   ["bulk", "Bulk enrichment"],
-  ["verify", "Verify an email"],
   ["response", "Response object"],
   ["errors", "Errors"],
   ["limits", "Rate limits & credits"],
@@ -396,6 +396,29 @@ export default function ApiDocs() {
               You are billed only when we return a verified contact, never on a miss. The same
               identity requested twice inside a month is served from cache and not charged again.
             </p>
+          </Section>
+
+          <Section id="endpoints" title="Endpoints">
+            <p className="text-studojo-muted mb-4">Three endpoints, all enrichment. Send an identity, get verified contact details back.</p>
+            <div className={`${CARD} overflow-hidden`}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[520px]">
+                  <tbody className="divide-y divide-neutral-200">
+                    {[
+                      ["POST", "/api/enrich", "Enrich one person by LinkedIn URL, or name + company."],
+                      ["POST", "/api/enrich/bulk", "Submit up to 500 people as a single batch job."],
+                      ["GET", "/api/jobs/{job_id}", "Poll a bulk job and read results as they complete."],
+                    ].map(([m, p, d]) => (
+                      <tr key={p} className="align-top">
+                        <td className="p-3"><Method m={m} /></td>
+                        <td className="p-3 font-mono text-[13px] whitespace-nowrap">{p}</td>
+                        <td className="p-3 text-studojo-muted">{d}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </Section>
 
           <Section id="authentication" title="Authentication">
@@ -648,30 +671,6 @@ do {
   })).json();
 } while (job.status !== "completed");
 console.log(job.results);`,
-            })}
-          </Section>
-
-          <Section id="verify" title="Verify an email">
-            <Endpoint m="POST" path="/api/verify/email" />
-            <p className="text-studojo-muted my-3">
-              Validate an email address (syntax + MX). Free â no reveal, no credit.
-            </p>
-            {s({
-              curl: `curl https://studojo.com/api/verify/email \\
-  -H "Authorization: Bearer sk_live_your_key_here" \\
-  -H "Content-Type: application/json" \\
-  -d '{ "email": "jane@acme.com" }'
-# -> { "email": "jane@acme.com", "valid": true, "mx": true, "catch_all": null }`,
-              python: `requests.post(
-    "https://studojo.com/api/verify/email",
-    headers={"Authorization": "Bearer sk_live_your_key_here"},
-    json={"email": "jane@acme.com"},
-).json()`,
-              node: `await (await fetch("https://studojo.com/api/verify/email", {
-  method: "POST",
-  headers: { Authorization: "Bearer sk_live_your_key_here", "Content-Type": "application/json" },
-  body: JSON.stringify({ email: "jane@acme.com" }),
-})).json();`,
             })}
           </Section>
 
