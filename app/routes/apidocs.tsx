@@ -510,15 +510,10 @@ console.log(await res.json());`,
   "person":  { "name": "Jane Doe", "title": "Head of Growth",
                "linkedin_url": "https://www.linkedin.com/in/janedoe" },
   "emails":  { "work": "jane@acme.com", "personal": "jane.doe@gmail.com" },
-  "phone":   { "number": "+9198XXXXXX21", "line_type": "mobile",
-               "source": "leadsforge", "verified": true },
+  "phone":   { "number": "+9198XXXXXX21", "line_type": "mobile", "verified": true },
   "confidence": 0.92,
   "found": ["work_email", "personal_email", "mobile"],
-  "credits_used": 1,
-  "phone_trace": [
-    { "step": "salesql",    "line_type": "landline", "verdict": "rejected", "reason": "office / landline" },
-    { "step": "leadsforge", "line_type": "mobile",   "verdict": "accepted", "reason": "mobile" }
-  ]
+  "credits_used": 1
 }`}</Code>
             <p className="text-studojo-muted text-sm mt-3">
               A profile we cannot resolve returns <span className="font-mono">status: "not_found"</span> with
@@ -529,11 +524,9 @@ console.log(await res.json());`,
           <Section id="phone-verification" title="Phone verification">
             <p className="text-studojo-muted mb-4">
               The API only ever returns a <strong>personal mobile</strong>. Office landlines,
-              switchboards, toll-free and VOIP lines are rejected, and the request falls through to
-              the next source until a mobile is found. Sources are tried in order:{" "}
-              <span className="font-mono text-sm">salesql → leadsforge → apollo</span>. Every phone
-              a source returns is passed through the verifier below, and the full decision log is
-              returned to you as <span className="font-mono text-sm">phone_trace</span>.
+              switchboards, toll-free and VOIP lines are rejected. Every candidate number is put
+              through the verifier below, and you only ever receive a number once it passes as a
+              genuine personal mobile.
             </p>
             <div className={`${CARD} p-5 mb-4`}>
               <div className="font-bold mb-3">The verifier, step by step</div>
@@ -548,22 +541,17 @@ console.log(await res.json());`,
                 </li>
                 <li className="flex gap-3">
                   <span className="font-bold text-studojo-purple">3</span>
-                  <span><span className="font-semibold">Work label.</span> If the source tags the number "Work" or "Office", it is rejected even when it is mobile-shaped, so you only get personal numbers.</span>
+                  <span><span className="font-semibold">Work label.</span> If a number is tagged "Work" or "Office", it is rejected even when it is mobile-shaped, so you only get personal numbers.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-bold text-studojo-purple">4</span>
-                  <span><span className="font-semibold">Fall through.</span> On a reject, the next source is tried. If none returns a personal mobile, <span className="font-mono">phone</span> is <span className="font-mono">null</span> (the emails are still returned).</span>
+                  <span><span className="font-semibold">No verified mobile.</span> If we cannot confirm a personal mobile, <span className="font-mono">phone</span> is <span className="font-mono">null</span> (the emails are still returned).</span>
                 </li>
               </ol>
             </div>
-            <p className="text-sm font-semibold mb-2">Example trace: SalesQL gave an office landline, LeadsForge had the mobile</p>
-            <Code>{`"phone": { "number": "+9198XXXXXX21", "line_type": "mobile", "source": "leadsforge" },
-"phone_trace": [
-  { "step": "salesql",    "number": "+91 44 2499 8199", "line_type": "landline",
-    "verdict": "rejected", "reason": "office / landline" },
-  { "step": "leadsforge", "number": "+9198XXXXXX21",     "line_type": "mobile",
-    "verdict": "accepted", "reason": "mobile" }
-]`}</Code>
+            <p className="text-sm font-semibold mb-2">Example: an office landline is rejected, the personal mobile is kept</p>
+            <Code>{`rejected   +91 44 2499 8199    office / landline
+accepted   +9198XXXXXX21       personal mobile   →  returned as "phone"`}</Code>
           </Section>
 
           <Section id="bulk" title="Bulk enrichment">
@@ -699,9 +687,7 @@ console.log(job.results);`,
                 ["emails.personal", "string | null", "optional", "Personal / direct email."],
                 ["phone.number", "string", "optional", "Verified personal mobile in E.164 (null if none found)."],
                 ["phone.line_type", "string", "optional", '"mobile" (office/landline numbers are never returned here).'],
-                ["phone.source", "string", "optional", "Which provider supplied the mobile: salesql, leadsforge or apollo."],
-                ["phone.verified", "boolean", "optional", "True once a number passes the phone verifier."],
-                ["phone_trace", "array", "optional", "Per-step verifier log: what each source returned and why it was accepted or rejected."],
+                ["phone.verified", "boolean", "optional", "True once a number passes phone verification."],
                 ["confidence", "number", "required", "0 to 1 across the resolved fields."],
                 ["found", "string[]", "required", 'Which fields were found: "work_email", "personal_email", "mobile".'],
                 ["credits_used", "number", "required", "Credits charged for this result. 0 on a miss or cache hit."],
