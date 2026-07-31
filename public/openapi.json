@@ -1,0 +1,168 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Studojo Contact Enrichment API",
+    "version": "1.0.0",
+    "description": "Resolve a person to their verified contact details. Send a LinkedIn URL (or a name + company) and get back a verified work email, personal email and personal mobile. You are billed only when a verified contact is returned, never on a miss. The same identity requested twice within a month is served from cache and not charged again.",
+    "contact": { "name": "Studojo", "email": "admin@studojo.com" }
+  },
+  "servers": [{ "url": "/api", "description": "Same origin (studojo.com/api in production)" }],
+  "security": [{ "bearerAuth": [] }],
+  "tags": [
+    { "name": "Enrichment", "description": "Resolve people to verified contact details." },
+    { "name": "Bulk", "description": "Enrich many people as a single background job." }
+  ],
+  "paths": {
+    "/enrich": {
+      "post": {
+        "tags": ["Enrichment"],
+        "summary": "Enrich a person",
+        "description": "Enrich one person. Identify them by a LinkedIn URL, or by name + company. The full contact is returned in the response body, usually in 5 to 15 seconds.",
+        "operationId": "enrichPerson",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EnrichRequest" },
+              "examples": {
+                "by_linkedin": { "summary": "By LinkedIn URL", "value": { "linkedin_url": "https://www.linkedin.com/in/janedoe" } },
+                "by_name": { "summary": "By name + company", "value": { "first_name": "Jane", "last_name": "Doe", "company": "Acme" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "A resolved contact (status \"ok\"), or \"not_found\" with empty fields and credits_used 0.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EnrichResult" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/OutOfCredits" },
+          "422": { "$ref": "#/components/responses/BadRequest" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/enrich/bulk": {
+      "post": {
+        "tags": ["Bulk"],
+        "summary": "Submit a bulk enrichment job",
+        "description": "Enrich up to 500 people in one batch. Returns a job_id immediately; poll GET /jobs/{job_id} for results as each person resolves.",
+        "operationId": "enrichBulk",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BulkRequest" },
+              "example": { "people": [{ "linkedin_url": "https://www.linkedin.com/in/janedoe" }, { "first_name": "John", "last_name": "Smith", "company": "Globex" }] }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Job accepted.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JobCreated" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/jobs/{job_id}": {
+      "get": {
+        "tags": ["Bulk"],
+        "summary": "Get a bulk job",
+        "description": "Poll a bulk job. Results fill in as each person resolves; status becomes \"completed\" when the batch is done.",
+        "operationId": "getJob",
+        "parameters": [{ "name": "job_id", "in": "path", "required": true, "schema": { "type": "string" }, "example": "job_a1b2c3" }],
+        "responses": {
+          "200": { "description": "Job status and any results so far.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Job" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "description": "No job with that id for this key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "description": "Your API key as a bearer token: Authorization: Bearer sk_live_..." }
+    },
+    "schemas": {
+      "EnrichRequest": {
+        "type": "object",
+        "description": "Identify the person by a LinkedIn URL (highest match rate) or by name + company.",
+        "properties": {
+          "linkedin_url": { "type": "string", "description": "LinkedIn profile URL." },
+          "first_name": { "type": "string" },
+          "last_name": { "type": "string" },
+          "company": { "type": "string", "description": "Company name (use with first + last name)." },
+          "domain": { "type": "string", "description": "Company domain, an alternative to company name." },
+          "fields": { "type": "array", "items": { "type": "string", "enum": ["email", "phone"] }, "description": "Limit what is resolved. Defaults to both." }
+        }
+      },
+      "BulkRequest": {
+        "type": "object",
+        "required": ["people"],
+        "properties": { "people": { "type": "array", "maxItems": 500, "items": { "$ref": "#/components/schemas/EnrichRequest" } } }
+      },
+      "EnrichResult": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["ok", "not_found"] },
+          "person": { "$ref": "#/components/schemas/Person" },
+          "emails": { "$ref": "#/components/schemas/Emails" },
+          "phone": { "oneOf": [{ "$ref": "#/components/schemas/Phone" }, { "type": "null" }] },
+          "confidence": { "type": "number", "description": "0 to 1 across the resolved fields." },
+          "found": { "type": "array", "items": { "type": "string" }, "description": "Which fields were found: work_email, personal_email, mobile." },
+          "credits_used": { "type": "integer", "description": "Credits charged. 0 on a miss or cache hit." }
+        }
+      },
+      "Person": {
+        "type": "object",
+        "properties": {
+          "name": { "type": ["string", "null"] },
+          "title": { "type": ["string", "null"] },
+          "linkedin_url": { "type": "string", "description": "Resolved even when you searched by name." }
+        }
+      },
+      "Emails": {
+        "type": "object",
+        "properties": {
+          "work": { "type": ["string", "null"], "description": "Verified work email." },
+          "personal": { "type": ["string", "null"], "description": "Personal / direct email." }
+        }
+      },
+      "Phone": {
+        "type": "object",
+        "description": "Only a verified personal mobile is ever returned; office / landline / toll-free / VOIP numbers are rejected.",
+        "properties": {
+          "number": { "type": "string", "description": "Personal mobile in E.164." },
+          "line_type": { "type": "string", "enum": ["mobile"] },
+          "verified": { "type": "boolean" }
+        }
+      },
+      "JobCreated": {
+        "type": "object",
+        "properties": {
+          "job_id": { "type": "string", "example": "job_a1b2c3" },
+          "status": { "type": "string", "enum": ["processing"] },
+          "count": { "type": "integer" }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "job_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["processing", "completed"] },
+          "processed": { "type": "integer" },
+          "total": { "type": "integer" },
+          "results": { "type": "array", "items": { "$ref": "#/components/schemas/EnrichResult" } }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": { "error": { "type": "string" } }
+      }
+    },
+    "responses": {
+      "Unauthorized": { "description": "Missing, malformed, or revoked key.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "invalid_api_key" } } } },
+      "OutOfCredits": { "description": "Monthly quota exhausted.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "out_of_credits" } } } },
+      "BadRequest": { "description": "No valid identity in the body (need a URL, or name + company).", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "bad_request" } } } },
+      "RateLimited": { "description": "Over 60 requests/minute. Back off and retry. See the X-RateLimit-* and Retry-After headers.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "error": "rate_limited" } } } }
+    }
+  }
+}
