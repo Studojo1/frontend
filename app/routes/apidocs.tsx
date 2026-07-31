@@ -13,7 +13,7 @@ import {
 
 export function meta(_: Route.MetaArgs) {
   return [
-    { title: "Contact Enrichment API â Studojo" },
+    { title: "Contact Enrichment API - Studojo" },
     {
       name: "description",
       content:
@@ -54,7 +54,7 @@ export async function action({ request }: Route.ActionArgs) {
   return {};
 }
 
-// ââ shared bits âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+//  shared bits 
 const CARD = "border-2 border-neutral-900 rounded-2xl bg-white shadow-[5px_5px_0_0_#171717]";
 type Lang = "curl" | "python" | "node";
 const LANGS: { id: Lang; label: string }[] = [
@@ -206,7 +206,7 @@ const NAV = [
   ["limits", "Rate limits & credits"],
 ];
 
-// ââ access / key-management panel ââââââââââââââââââââââââââââââââââââââââââââââ
+//  access / key-management panel 
 function AccessPanel() {
   const { user, allowed, keys } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>() as
@@ -280,12 +280,12 @@ function AccessPanel() {
                   <div className="font-semibold truncate">
                     {k.name}{" "}
                     <span className="font-mono text-studojo-muted text-sm">
-                      {k.key_prefix}â¦{k.last_four}
+                      {k.key_prefix}...{k.last_four}
                     </span>
                   </div>
                   <div className="text-xs text-studojo-muted">
-                    {revoked ? "Revoked" : "Active"} Â· {k.request_count} requests
-                    {k.last_used_at ? " Â· last used " + new Date(k.last_used_at).toLocaleDateString() : ""}
+                    {revoked ? "Revoked" : "Active"}  -  {k.request_count} requests
+                    {k.last_used_at ? "  -  last used " + new Date(k.last_used_at).toLocaleDateString() : ""}
                   </div>
                 </div>
                 {!revoked && (
@@ -328,7 +328,7 @@ function AccessPanel() {
   );
 }
 
-// ââ page ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+//  page 
 export default function ApiDocs() {
   const [lang, setLang] = useState<Lang>("curl");
   const s = (samples: Partial<Record<Lang, string>>) => (
@@ -342,7 +342,7 @@ export default function ApiDocs() {
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-5 pt-14 pb-8">
         <span className="inline-block text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full bg-studojo-purple-bg text-studojo-purple border-2 border-studojo-purple mb-5">
-          Developer API Â· v1
+          Developer API  -  v1
         </span>
         <h1 className="font-clash text-4xl sm:text-5xl font-bold tracking-tight leading-[1.05]">
           Contact Enrichment API
@@ -430,7 +430,7 @@ export default function ApiDocs() {
           </Section>
 
           <Section id="keys" title="Your API keys">
-            <div className="mb-3 text-sm"><Link to="/apidashboard" className="font-bold text-studojo-purple hover:underline">View usage dashboard →</Link></div>
+            <div className="mb-3 text-sm"><Link to="/apidashboard" className="font-bold text-studojo-purple hover:underline">View usage dashboard -></Link></div>
             <AccessPanel />
           </Section>
 
@@ -479,7 +479,7 @@ console.log(await res.json());`,
                 ["fields", "string[]", "optional", 'Any of ["email","phone"]. Defaults to both.'],
               ]}
             />
-            <p className="text-sm font-semibold mt-5 mb-2">Request â by LinkedIn URL</p>
+            <p className="text-sm font-semibold mt-5 mb-2">Request - by LinkedIn URL</p>
             {s({
               curl: `curl https://studojo.com/api/enrich \\
   -H "Authorization: Bearer sk_live_your_key_here" \\
@@ -505,7 +505,7 @@ console.log(await res.json());`,
   }),
 });`,
             })}
-            <p className="text-sm font-semibold mt-5 mb-2">Request â by name + company</p>
+            <p className="text-sm font-semibold mt-5 mb-2">Request - by name + company</p>
             {s({
               curl: `curl https://studojo.com/api/enrich \\
   -H "Authorization: Bearer sk_live_your_key_here" \\
@@ -527,7 +527,7 @@ console.log(await res.json());`,
   body: JSON.stringify({ first_name: "Jane", last_name: "Doe", company: "Acme", fields: ["phone"] }),
 });`,
             })}
-            <p className="text-sm font-semibold mt-5 mb-2">Response Â· 200</p>
+            <p className="text-sm font-semibold mt-5 mb-2">Response  -  200</p>
             <Code>{`{
   "status": "ok",
   "person":  { "name": "Jane Doe", "title": "Head of Growth",
@@ -556,7 +556,7 @@ console.log(await res.json());`,
               <ol className="space-y-2.5 text-sm">
                 <li className="flex gap-3">
                   <span className="font-bold text-studojo-purple">1</span>
-                  <span><span className="font-semibold">Present &amp; valid.</span> No number, or not a valid phone number → rejected.</span>
+                  <span><span className="font-semibold">Present &amp; valid.</span> No number, or not a valid phone number -> rejected.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-bold text-studojo-purple">2</span>
@@ -574,13 +574,13 @@ console.log(await res.json());`,
             </div>
             <p className="text-sm font-semibold mb-2">Example: an office landline is rejected, the personal mobile is kept</p>
             <Code>{`rejected   +91 44 2499 8199    office / landline
-accepted   +9198XXXXXX21       personal mobile   →  returned as "phone"`}</Code>
+accepted   +9198XXXXXX21       personal mobile   ->  returned as "phone"`}</Code>
           </Section>
 
           <Section id="bulk" title="Bulk enrichment">
             <p className="text-studojo-muted mb-4">
               For more than a handful of people, submit a batch and poll for results. You never hold
-              a connection open waiting â the job resolves on its own and each person appears the
+              a connection open waiting - the job resolves on its own and each person appears the
               moment they are done.
             </p>
             <div className={`${CARD} p-5 mb-5`}>
@@ -700,8 +700,8 @@ console.log(job.results);`,
                 <table className="w-full text-sm min-w-[420px]">
                   <tbody className="divide-y divide-neutral-200">
                     {[
-                      ['200 Â· "ok"', "Contact resolved."],
-                      ['200 Â· "not_found"', "No verified contact. Not billed."],
+                      ['200  -  "ok"', "Contact resolved."],
+                      ['200  -  "not_found"', "No verified contact. Not billed."],
                       ["401 invalid_api_key", "Missing, malformed, or revoked key."],
                       ["402 out_of_credits", "Monthly quota exhausted."],
                       ["422 bad_request", "No valid identity in the body (need a URL, or name + company)."],
