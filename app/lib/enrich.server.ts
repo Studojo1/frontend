@@ -30,11 +30,10 @@ export type EnrichResult = {
   status: "ok" | "not_found";
   person: { name: string | null; title: string | null; linkedin_url: string };
   emails: { work: string | null; personal: string | null };
-  phone: { number: string; type: string; line_type: string; source: string; verified: boolean } | null;
+  phone: { number: string; type: string; line_type: string; verified: boolean } | null;
   confidence: number;
   found: string[];
   credits_used: number;
-  phone_trace?: PhoneStep[];
   cached?: boolean;
 };
 
@@ -109,7 +108,7 @@ export async function patchCachePhone(urlKey: string, rawPhone: string, label?: 
   if (!row) return;
   const res = row.result as EnrichResult;
   if (res.phone) return; // already has one
-  res.phone = { number: v.number, type: v.lineType, line_type: v.lineType, source: "apollo", verified: true };
+  res.phone = { number: v.number, type: v.lineType, line_type: v.lineType, verified: true };
   if (!res.found.includes("mobile")) res.found.push("mobile");
   res.status = "ok";
   res.confidence = Math.max(res.confidence, res.found.length >= 2 ? 0.92 : 0.7);
@@ -146,7 +145,7 @@ export function buildResult(
   linkedin_url: string,
   parts: Parts,
   fields: string[] = ["email", "phone"],
-  trace?: PhoneStep[],
+  _trace?: PhoneStep[],
 ): EnrichResult {
   const wantEmail = fields.includes("email");
   const wantPhone = fields.includes("phone");
@@ -161,13 +160,12 @@ export function buildResult(
         number: parts.phone,
         type: parts.phoneLineType,
         line_type: parts.phoneLineType,
-        source: parts.phoneSource || "provider",
         verified: true,
       };
     } else {
       const v = classifyPhone(parts.phone); // raw (bulk) — verify now
       if (v.ok) {
-        phone = { number: v.number, type: v.lineType, line_type: v.lineType, source: parts.phoneSource || "leadsforge", verified: true };
+        phone = { number: v.number, type: v.lineType, line_type: v.lineType, verified: true };
       }
     }
   }
@@ -186,7 +184,6 @@ export function buildResult(
     found,
     credits_used: found.length ? 1 : 0,
   };
-  if (wantPhone && trace) result.phone_trace = trace;
   return result;
 }
 
