@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap, FiSearch,
+  FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap,
   FiFileText, FiGrid, FiLoader, FiExternalLink, FiChevronRight,
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
   FiMessageSquare, FiColumns, FiUser, FiUsers, FiBriefcase, FiTarget,
@@ -1527,37 +1527,20 @@ const RUN_STAGES = [
   { key: "contact", label: "Finding the right person to reach", weight: 0.10 },
   { key: "assemble", label: "Building your table", weight: 0.08 },
 ];
-const FRIENDLY_SOURCE: Record<string, string> = {
-  getro: "startup job boards", careerjet: "Careerjet", ats: "company career pages",
-  reddit: "Reddit", ctx_li_posts: "LinkedIn posts", ctx_x: "X (Twitter)",
-  hirist: "Hirist", iimjobs: "IIMJobs", naukri: "Naukri", yc: "Y Combinator", remote_boards: "remote boards",
-};
-
-// Turn one raw event into a human sentence. Never leak internal ids / ring jargon.
-function humanizeEvent(ev: RunEvent): string {
-  const raw = ev.label || "";
-  const low = raw.toLowerCase();
-  for (const s of RUN_STAGES) {
-    if (s.key !== "search" && low.startsWith(s.key)) return s.label;
-  }
-  if (/harvest/.test(low)) return "Searching boards & LinkedIn";
-  // Search events look like "[getro] sre engineer @ Pune" or
-  // "[ctx_li_posts] site:linkedin.com/posts \"sre engineer\" Pune hiring".
-  const m = raw.match(/^\[([a-z_]+)\]\s*(.*)$/i);
-  if (m) {
-    const src = FRIENDLY_SOURCE[m[1].toLowerCase()] || m[1];
-    let q = m[2]
-      .replace(/site:\S+/gi, "")
-      .replace(/["']/g, "")
-      .replace(/\bhiring\b/gi, "")
-      .replace(/@/g, "in ")
-      .replace(/\s+/g, " ")
-      .trim();
-    if (q.length > 60) q = q.slice(0, 60) + "…";
-    return q ? `Searching ${src}: ${q}` : `Searching ${src}`;
-  }
-  return raw;
-}
+// Shared keyframes for the "run in progress" animations: a sonar sweep over a field
+// of opportunities, a shimmering progress bar, and bouncing dots. The point is motion
+// that reads as "work is happening" without ever exposing the pipeline's internal steps.
+const LOADING_ANIM_CSS = `
+  @keyframes bobSonar { 0% { transform: translate(-50%,-50%) scale(.3); opacity:.5 } 70% { opacity:.12 } 100% { transform: translate(-50%,-50%) scale(1.6); opacity:0 } }
+  .bob-sonar { position:absolute; top:50%; left:50%; width:4rem; height:4rem; border-radius:9999px; border:2px solid #7c3aed; animation: bobSonar 2.6s ease-out infinite; }
+  @keyframes bobTwinkle { 0%,100% { opacity:.16; transform:scale(.7) } 50% { opacity:1; transform:scale(1) } }
+  .bob-twinkle { animation: bobTwinkle 2.2s ease-in-out infinite; }
+  @keyframes bobShimmer { 0% { transform:translateX(-120%) } 100% { transform:translateX(320%) } }
+  .bob-shimmer { position:absolute; top:0; bottom:0; width:40%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent); animation: bobShimmer 1.5s ease-in-out infinite; }
+  @keyframes bobBounce { 0%,100% { opacity:.25; transform:translateY(0) } 50% { opacity:1; transform:translateY(-2px) } }
+  .bob-bdot { display:inline-block; width:4px; height:4px; border-radius:9999px; background:#7c3aed; animation: bobBounce 1s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { .bob-sonar,.bob-twinkle,.bob-shimmer,.bob-bdot { animation:none !important; } }
+`;
 
 // Which stage is currently active, from the furthest-along stage keyword seen.
 function currentStageIndex(events: RunEvent[]): number {
@@ -1575,12 +1558,11 @@ function currentStageIndex(events: RunEvent[]): number {
 
 function RunProgress({ run }: { run: Run }) {
   const events = run.events || [];
-  const recent = events.slice(-5);
   const c = run.counters || {};
   const stageIdx = currentStageIndex(events);
 
-  // Elapsed + rough ETA. Typical full run ~3 min; the bar advances by stage
-  // weight but never sits still (a slow stage like "assemble" still creeps).
+  // A 1s ticker so the bar creeps and the ETA counts down even when a slow stage
+  // (like a long search) sits still — the user sees motion, never a stalled screen.
   const [now, setNow] = useState(() => 0);
   const startRef = useRef<number | null>(null);
   useEffect(() => {
@@ -1600,53 +1582,37 @@ function RunProgress({ run }: { run: Run }) {
 
   return (
     <div className="flex gap-2.5" data-tick={now}>
+      <style>{LOADING_ANIM_CSS}</style>
       <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
         <FiLoader className="animate-spin text-violet-400" size={13} />
       </div>
       <div className="flex-1 bg-white border-2 border-neutral-900 rounded-2xl rounded-tl-md shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] p-4">
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className="font-bold text-sm">{RUN_STAGES[stageIdx].label}…</span>
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="font-bold text-sm">{RUN_STAGES[stageIdx].label}</span>
+          <span className="inline-flex items-end gap-1 pb-0.5">
+            <span className="bob-bdot" />
+            <span className="bob-bdot" style={{ animationDelay: ".2s" }} />
+            <span className="bob-bdot" style={{ animationDelay: ".4s" }} />
+          </span>
           <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
-            {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} found</span> : null}
+            {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5 font-semibold">{c.rows_added} found</span> : null}
             {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="web research credits (not phone reveals)">{run.credits_used} search credits</span> : null}
           </span>
         </div>
 
-        {/* Progress bar + ETA */}
-        <div className="mb-3">
-          <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
-            <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
-          </div>
-          <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1">
-            <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
-            <span>{mm(elapsedS)} elapsed · about {mm(etaS)} left</span>
+        {/* Shimmering progress bar: real progress width, always-moving highlight */}
+        <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
+          <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out relative overflow-hidden" style={{ width: `${pct}%` }}>
+            <span className="bob-shimmer" />
           </div>
         </div>
-
-        {/* Stage stepper */}
-        <div className="flex items-center gap-1 mb-3">
-          {RUN_STAGES.map((s, i) => (
-            <div key={s.key} title={s.label}
-              className={`h-1.5 flex-1 rounded-full ${i < stageIdx ? "bg-violet-500" : i === stageIdx ? "bg-violet-400 animate-pulse" : "bg-neutral-200"}`} />
-          ))}
+        <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1">
+          <span>{mm(elapsedS)} elapsed</span>
+          <span>about {mm(etaS)} left</span>
         </div>
 
-        {/* Recent friendly activity */}
-        <div className="space-y-1.5">
-          {recent.map((ev, i) => (
-            <div key={i} className={`flex items-start gap-2 text-[13px] ${i === recent.length - 1 ? "text-neutral-900 font-semibold" : "text-neutral-400"}`}>
-              <span className="mt-0.5 text-violet-500 shrink-0">
-                {ev.type === "search" || ev.type === "search_done" ? <FiSearch size={13} /> :
-                 ev.type === "scrape" ? <FiFileText size={13} /> :
-                 ev.type === "table" || ev.type === "rows" ? <FiGrid size={13} /> : <FiZap size={13} />}
-              </span>
-              <span>{humanizeEvent(ev)}</span>
-            </div>
-          ))}
-          {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research…</p>}
-        </div>
         <p className="text-[11px] text-neutral-400 mt-3">
-          Companies appear on the right as Sensei finds them. A full run usually takes 2–4 minutes.
+          Companies appear on the right as Sensei finds them. A full run usually takes 2 to 4 minutes.
         </p>
       </div>
     </div>
@@ -1703,81 +1669,53 @@ function ProvChip({ status }: { status: string }) {
   );
 }
 
-// Live animated pipeline graph — a neural-network visual on the right panel while
-// a run works and no rows have landed yet, so the user sees Sensei "thinking".
-const NN_LAYERS = [3, 5, 5, 4, 2];
-const NN_W = 320, NN_H = 200, NN_PADX = 26, NN_PADY = 22;
-function nnNodes(): { x: number; y: number; layer: number }[][] {
-  return NN_LAYERS.map((count, li) => {
-    const x = NN_PADX + ((NN_W - 2 * NN_PADX) * li) / (NN_LAYERS.length - 1);
-    return Array.from({ length: count }, (_, j) => {
-      const y = count === 1 ? NN_H / 2 : NN_PADY + ((NN_H - 2 * NN_PADY) * j) / (count - 1);
-      return { x, y, layer: li };
-    });
-  });
-}
+// A twinkling field of "opportunities" scattered behind the sonar medallion. Fixed
+// positions (no per-render randomness), a few in violet so the eye catches movement.
+const SCAN_DOTS = [
+  { top: "12%", left: "18%", s: "6px", c: "bg-neutral-300", delay: "0s" },
+  { top: "22%", left: "78%", s: "6px", c: "bg-violet-400", delay: ".5s" },
+  { top: "70%", left: "12%", s: "4px", c: "bg-neutral-300", delay: ".9s" },
+  { top: "80%", left: "82%", s: "6px", c: "bg-violet-400", delay: ".3s" },
+  { top: "8%", left: "52%", s: "4px", c: "bg-neutral-300", delay: "1.2s" },
+  { top: "88%", left: "44%", s: "4px", c: "bg-neutral-300", delay: ".7s" },
+  { top: "46%", left: "6%", s: "6px", c: "bg-violet-300", delay: "1.5s" },
+  { top: "44%", left: "92%", s: "4px", c: "bg-neutral-300", delay: ".2s" },
+];
 
+// Right-panel hero shown while a run works and no rows have landed yet. A sonar sweep
+// over a field of opportunities — motion signals "Sensei is working" without ever
+// exposing the pipeline's internal steps. The stage label reads as a plain phase.
 function RunGraph({ run }: { run: Run }) {
   const events = run.events || [];
   const idx = currentStageIndex(events);
   const c = run.counters || {};
-  // Progress across the network layers, from the current pipeline stage.
-  const frac = (idx + 1) / RUN_STAGES.length;
-  const wavefront = frac * (NN_LAYERS.length - 1);
-  const layers = nnNodes();
 
   return (
     <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center">
-      <style>{`
-        @keyframes bobDash { to { stroke-dashoffset: -14; } }
-        .bob-edge-live { stroke-dasharray: 3 6; animation: bobDash .5s linear infinite; }
-        @keyframes bobNodeGlow { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
-        .bob-node-live { animation: bobNodeGlow 1.1s ease-in-out infinite; }
-      `}</style>
-      <div className="w-full max-w-[360px]">
-        <div className="text-center mb-4">
-          <div className="w-12 h-12 mx-auto border-2 border-neutral-900 rounded-2xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] mb-3">
+      <style>{LOADING_ANIM_CSS}</style>
+      <div className="w-full max-w-[360px] flex flex-col items-center">
+        {/* Sonar medallion over a twinkling field of opportunities */}
+        <div className="relative w-36 h-36 flex items-center justify-center mb-6">
+          <div className="absolute inset-0">
+            {SCAN_DOTS.map((d, i) => (
+              <span key={i} className={`bob-twinkle absolute rounded-full ${d.c}`}
+                style={{ top: d.top, left: d.left, width: d.s, height: d.s, animationDelay: d.delay }} />
+            ))}
+          </div>
+          <span className="bob-sonar" />
+          <span className="bob-sonar" style={{ animationDelay: ".9s" }} />
+          <span className="bob-sonar" style={{ animationDelay: "1.8s" }} />
+          <div className="relative z-10 w-14 h-14 border-2 border-neutral-900 rounded-2xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] bg-white flex items-center justify-center">
             <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
           </div>
-          <h3 className="font-['Clash_Display'] text-xl font-semibold">Sensei is thinking</h3>
-          <p className="text-sm text-neutral-500 mt-1">{RUN_STAGES[idx].label}…</p>
         </div>
 
-        {/* Neural network */}
-        <svg viewBox={`0 0 ${NN_W} ${NN_H}`} className="w-full h-auto">
-          {/* edges */}
-          {layers.slice(0, -1).map((la, li) =>
-            la.flatMap((a) =>
-              layers[li + 1].map((b, bj) => {
-                const live = li < wavefront;
-                return (
-                  <line key={`${li}-${a.y}-${bj}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-                    stroke={live ? "#7c5cff" : "#e4e0d8"} strokeWidth={live ? 1.1 : 0.7}
-                    className={li === Math.floor(wavefront) ? "bob-edge-live" : ""}
-                    opacity={live ? 0.7 : 0.5} />
-                );
-              })
-            )
-          )}
-          {/* nodes */}
-          {layers.map((la, li) =>
-            la.map((n, nj) => {
-              const done = li < wavefront - 0.5;
-              const active = Math.abs(li - wavefront) <= 0.6;
-              return (
-                <circle key={`${li}-${nj}`} cx={n.x} cy={n.y} r={active ? 6 : 5}
-                  fill={done || active ? "#7c5cff" : "#ffffff"}
-                  stroke={done || active ? "#191a23" : "#cfc9bd"} strokeWidth={1.5}
-                  className={active ? "bob-node-live" : ""} />
-              );
-            })
-          )}
-        </svg>
+        <h3 className="font-['Clash_Display'] text-xl font-semibold text-center">Sensei is on it</h3>
+        <p className="text-sm text-neutral-500 mt-1 text-center min-h-[20px]">{RUN_STAGES[idx].label}</p>
 
         <div className="flex flex-wrap gap-2 justify-center mt-4">
-          <span className="text-[11px] font-bold bg-neutral-100 rounded-full px-2.5 py-1">Step {idx + 1} of {RUN_STAGES.length}</span>
-          {c.rows_added ? <span className="text-[11px] font-bold bg-violet-100 text-violet-700 rounded-full px-2.5 py-1">{c.rows_added} companies found</span> : null}
-          {run.credits_used ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-2.5 py-1" title="web research credits">{run.credits_used} search credits</span> : null}
+          {c.rows_added ? <span className="text-[11px] font-bold bg-violet-100 text-violet-700 rounded-full px-3 py-1">{c.rows_added} companies found so far</span> : null}
+          {run.credits_used ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-3 py-1" title="web research credits">{run.credits_used} search credits</span> : null}
         </div>
       </div>
     </div>
