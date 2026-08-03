@@ -764,7 +764,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       if (e instanceof BobError && e.status === 409) {
         alert("Sensei is still working on this chat. Wait for the current run to finish.");
       } else if (e instanceof BobError && e.status === 402) {
-        setNotice(e.message || "Out of AI credits. Top up to keep running Bob.");
+        setNotice(e.message || "Out of AI credits. Buy enrichments to refill — each one includes a full search.");
         setMessages((m) => m.filter((x) => x.created_at !== "" || x.content !== content));
       } else {
         handleError(e);
@@ -1258,7 +1258,7 @@ function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number 
                 <div className="text-2xl font-black leading-none">{display}</div>
                 <div className="text-sm font-semibold text-neutral-500 mb-2">phone reveals left</div>
                 <p className="text-[12.5px] text-neutral-500 leading-snug">
-                  1 credit finds a verified phone + email for one contact. You're only charged when we actually find a real number.
+                  1 credit reveals a verified phone + email for one contact, and you're only charged when we find a real number. Each also includes a full AI search allowance.
                 </p>
               </>
             ) : (
@@ -1266,7 +1266,7 @@ function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number 
                 <div className="text-2xl font-black leading-none">{unlimited ? "Unlimited" : display}</div>
                 <div className="text-sm font-semibold text-neutral-500 mb-2">{unlimited ? "AI on this workspace" : "AI credits left"}</div>
                 <p className="text-[12.5px] text-neutral-500 leading-snug">
-                  AI credits power each run: finding companies, reading live hiring signals, and drafting the right person to reach.
+                  AI credits power each search, and the cost scales with depth: a quick job scan is lean, while a deep run (funding and company research) costs more. Every enrichment you buy includes enough AI credits for at least one full search (10+ companies).
                 </p>
               </>
             )}
@@ -1527,6 +1527,9 @@ const RUN_STAGES = [
   { key: "contact", label: "Finding the right person to reach", weight: 0.10 },
   { key: "assemble", label: "Building your table", weight: 0.08 },
 ];
+// A finished run is tagged with a depth (the pipeline sets counters.depth): a lean
+// job-scan costs few AI credits, a deep funding/company-research run costs more.
+const RUN_DEPTH: Record<number, string> = { 1: "Quick scan", 2: "Standard search", 3: "Deep research" };
 // Shared keyframes for the "run in progress" animations: a sonar sweep over a field
 // of opportunities, a shimmering progress bar, and bouncing dots. The point is motion
 // that reads as "work is happening" without ever exposing the pipeline's internal steps.
@@ -1596,7 +1599,7 @@ function RunProgress({ run }: { run: Run }) {
           </span>
           <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
             {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5 font-semibold">{c.rows_added} found</span> : null}
-            {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="web research credits (not phone reveals)">{run.credits_used} search credits</span> : null}
+            {c.ai_credits ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="AI credits this search — scales with research depth">{c.ai_credits} AI credits{c.depth ? ` · ${RUN_DEPTH[c.depth]}` : ""}</span> : null}
           </span>
         </div>
 
@@ -1715,7 +1718,7 @@ function RunGraph({ run }: { run: Run }) {
 
         <div className="flex flex-wrap gap-2 justify-center mt-4">
           {c.rows_added ? <span className="text-[11px] font-bold bg-violet-100 text-violet-700 rounded-full px-3 py-1">{c.rows_added} companies found so far</span> : null}
-          {run.credits_used ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-3 py-1" title="web research credits">{run.credits_used} search credits</span> : null}
+          {c.ai_credits ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-3 py-1" title="AI credits this search — scales with research depth">{c.ai_credits} AI credits{c.depth ? ` · ${RUN_DEPTH[c.depth]}` : ""}</span> : null}
         </div>
       </div>
     </div>
