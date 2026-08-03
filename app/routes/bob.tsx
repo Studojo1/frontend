@@ -1756,7 +1756,7 @@ function RunGraph({ run }: { run: Run }) {
         @keyframes bobNodeGlow { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
         .bob-node-live { animation: bobNodeGlow 1.1s ease-in-out infinite; }
       `}</style>
-      <div className="w-full max-w-[360px]">
+      <div className="w-full max-w-[360px] bg-white border-2 border-neutral-900 rounded-2xl shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-6">
         <div className="text-center mb-4">
           <div className="w-12 h-12 mx-auto border-2 border-neutral-900 rounded-2xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] mb-3">
             <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
@@ -1765,7 +1765,8 @@ function RunGraph({ run }: { run: Run }) {
           <p className="text-sm text-neutral-500 mt-1">{RUN_STAGES[idx].label}…</p>
         </div>
 
-        {/* Neural network */}
+        {/* Neural network, framed like a little screen */}
+        <div className="border-2 border-neutral-900 rounded-xl bg-[#faf7f2] p-3">
         <svg viewBox={`0 0 ${NN_W} ${NN_H}`} className="w-full h-auto">
           {/* edges */}
           {layers.slice(0, -1).map((la, li) =>
@@ -1795,6 +1796,7 @@ function RunGraph({ run }: { run: Run }) {
             })
           )}
         </svg>
+        </div>
 
         <div className="flex flex-wrap gap-2 justify-center mt-4">
           <span className="text-[11px] font-bold bg-neutral-100 rounded-full px-2.5 py-1">Step {idx + 1} of {RUN_STAGES.length}</span>
