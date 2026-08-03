@@ -77,10 +77,14 @@ async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promi
 interface ChatSummary { id: number; title: string; updated_at: string }
 interface Message { id: number; role: string; content: string; created_at: string; meta?: { suggestions?: string[] } }
 interface RunEvent { ts: string; type: string; label: string; detail?: string; credits?: number }
+// Live-progress overlay: opportunities already found this run (before assemble writes
+// the authoritative bob_rows). Rendered as provisional rows; never persisted client-side.
+interface OppRow { id: number; company_norm: string; status: string; reject_reason?: string; fit_score?: number | null; cells: Record<string, unknown> }
 interface Run {
   id: number; status: string; events: RunEvent[];
   counters: Record<string, number>; credits_used: number; answer: string;
   tables?: BobTable[];
+  opportunities?: { table_id: number | null; rows: OppRow[] };
 }
 interface BobColumn { key: string; label: string }
 interface BobRow { id: number; cells: Record<string, unknown>; status: string }
@@ -760,7 +764,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       if (e instanceof BobError && e.status === 409) {
         alert("Sensei is still working on this chat. Wait for the current run to finish.");
       } else if (e instanceof BobError && e.status === 402) {
-        setNotice(e.message || "Out of AI credits. Top up to keep running Bob.");
+        setNotice(e.message || "Out of AI credits. Buy enrichments to refill — each one includes a full search.");
         setMessages((m) => m.filter((x) => x.created_at !== "" || x.content !== content));
       } else {
         handleError(e);
@@ -853,7 +857,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   useEffect(() => { if (!running) setStopping(false); }, [running]);
   const hasTables = tables.length > 0;
   const showChat = mode !== "table";
-  const showTable = hasTables && mode !== "chat";
+  // Mount the results panel as soon as a run STARTS (not only once a table object
+  // exists), so the live-progress banner + provisional rows can show immediately.
+  const showTable = (hasTables || running) && mode !== "chat";
   const lastMsg = messages[messages.length - 1];
   const suggestions: string[] =
     !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
@@ -871,6 +877,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       <style>{`
         @keyframes bobFlash { 0% { background-color: rgb(221 214 254); } 100% { background-color: transparent; } }
         .bob-new { animation: bobFlash 2.5s ease-out; }
+        /* Provisional (in-review) rows from the live overlay: dimmed + a subtle stripe,
+           so they read as "still being checked", never as a finished/enrichable lead. */
+        .bob-prov { opacity: .62; }
+        .bob-prov:hover { opacity: .82; }
         @keyframes bobPop { 0% { opacity: 0; transform: translateY(8px) scale(0.98); } 100% { opacity: 1; transform: none; } }
         .bob-pop { animation: bobPop 0.35s ease-out; }
         .bob-thinscroll::-webkit-scrollbar { height: 5px; width: 5px; }
@@ -882,6 +892,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         .bob-dark .bg-\\[\\#faf7f2\\] { background:#131316 !important; }
         .bob-dark .bg-\\[\\#f4f0e8\\] { background:#161619 !important; }
         .bob-dark .text-neutral-900 { color:#e7e7ea !important; }
+        /* 700/800 are body/content text (table cells, chips) — keep them BRIGHT so
+           they don't camouflage on the dark surface (they were previously unmapped). */
+        .bob-dark .text-neutral-800, .bob-dark .text-neutral-700 { color:#d4d4d8 !important; }
         .bob-dark .text-neutral-600, .bob-dark .text-neutral-500, .bob-dark .text-neutral-400, .bob-dark .text-neutral-300 { color:#9a9aa2 !important; }
         .bob-dark .border-neutral-900 { border-color:#3a3a42 !important; }
         .bob-dark .border-neutral-100, .bob-dark .border-neutral-200 { border-color:#2c2c33 !important; }
@@ -1245,7 +1258,7 @@ function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number 
                 <div className="text-2xl font-black leading-none">{display}</div>
                 <div className="text-sm font-semibold text-neutral-500 mb-2">phone reveals left</div>
                 <p className="text-[12.5px] text-neutral-500 leading-snug">
-                  1 credit finds a verified phone + email for one contact. You're only charged when we actually find a real number.
+                  1 credit reveals a verified phone + email for one contact, and you're only charged when we find a real number. Each also includes a full AI search allowance.
                 </p>
               </>
             ) : (
@@ -1253,7 +1266,7 @@ function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number 
                 <div className="text-2xl font-black leading-none">{unlimited ? "Unlimited" : display}</div>
                 <div className="text-sm font-semibold text-neutral-500 mb-2">{unlimited ? "AI on this workspace" : "AI credits left"}</div>
                 <p className="text-[12.5px] text-neutral-500 leading-snug">
-                  AI credits power each run: finding companies, reading live hiring signals, and drafting the right person to reach.
+                  AI credits power each search, and the cost scales with depth: a quick job scan is lean, while a deep run (funding and company research) costs more. Every enrichment you buy includes enough AI credits for at least one full search (10+ companies).
                 </p>
               </>
             )}
@@ -1514,6 +1527,20 @@ const RUN_STAGES = [
   { key: "contact", label: "Finding the right person to reach", weight: 0.10 },
   { key: "assemble", label: "Building your table", weight: 0.08 },
 ];
+// A finished run is tagged with a depth (the pipeline sets counters.depth): a lean
+// job-scan costs few AI credits, a deep funding/company-research run costs more.
+const RUN_DEPTH: Record<number, string> = { 1: "Quick scan", 2: "Standard search", 3: "Deep research" };
+// One-line hint per stage for the live banner (the bold label names the stage; this
+// adds context that MATCHES the stage, instead of a hardcoded "scoring" line).
+const RUN_STAGE_HINT: Record<string, string> = {
+  plan: "understanding your brief",
+  search: "reading job boards and posts",
+  extract: "pulling out the real companies",
+  score: "scoring and removing weak matches",
+  enrich: "checking live hiring signals",
+  contact: "finding the right person to reach",
+  assemble: "finalizing your table",
+};
 const FRIENDLY_SOURCE: Record<string, string> = {
   getro: "startup job boards", careerjet: "Careerjet", ats: "company career pages",
   reddit: "Reddit", ctx_li_posts: "LinkedIn posts", ctx_x: "X (Twitter)",
@@ -1579,11 +1606,19 @@ function RunProgress({ run }: { run: Run }) {
 
   const stageProgress = RUN_STAGES.slice(0, stageIdx).reduce((s, x) => s + x.weight, 0)
     + RUN_STAGES[stageIdx].weight * 0.5;
-  const TYPICAL_S = 200;
+  // Real runs take ~10 min (measured median 9:49, p75 14:22) and vary widely, so a
+  // fixed countdown is always wrong. Estimate the total from how far the run has
+  // actually progressed (by stage weight): a slow run projects longer. Floor it at the
+  // measured typical so a fresh run never over-promises. Shown coarsely in minutes.
+  const TYPICAL_S = 600;
+  const prog = Math.max(0.03, Math.min(0.97, stageProgress));
+  const remainingS = Math.max(0, Math.max(TYPICAL_S, elapsedS / prog) - elapsedS);
   const timeProgress = Math.min(0.92, elapsedS / TYPICAL_S);
   const pct = Math.min(0.96, Math.max(stageProgress, timeProgress)) * 100;
-  const etaS = Math.max(0, TYPICAL_S - elapsedS);
   const mm = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const etaText = stageIdx >= RUN_STAGES.length - 1 || remainingS < 45
+    ? "wrapping up…"
+    : `about ${Math.max(1, Math.round(remainingS / 60))} min left`;
 
   return (
     <div className="flex gap-2.5" data-tick={now}>
@@ -1595,7 +1630,7 @@ function RunProgress({ run }: { run: Run }) {
           <span className="font-bold text-sm">{RUN_STAGES[stageIdx].label}…</span>
           <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
             {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} found</span> : null}
-            {run.credits_used ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="context.dev search credits (not phone reveals)">{run.credits_used} search credits</span> : null}
+            {c.ai_credits ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="AI credits this search, scales with research depth">{c.ai_credits} AI credits{c.depth ? ` · ${RUN_DEPTH[c.depth]}` : ""}</span> : null}
           </span>
         </div>
 
@@ -1606,7 +1641,7 @@ function RunProgress({ run }: { run: Run }) {
           </div>
           <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1">
             <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
-            <span>{mm(elapsedS)} elapsed · about {mm(etaS)} left</span>
+            <span>{mm(elapsedS)} elapsed · {etaText}</span>
           </div>
         </div>
 
@@ -1633,10 +1668,60 @@ function RunProgress({ run }: { run: Run }) {
           {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research…</p>}
         </div>
         <p className="text-[11px] text-neutral-400 mt-3">
-          Companies appear on the right as Sensei finds them. A full run usually takes 2–4 minutes.
+          Companies appear on the right as Sensei finds them. A full run usually takes around 10 minutes.
         </p>
       </div>
     </div>
+  );
+}
+
+// Compact live-progress banner shown ABOVE the results table while a run works, so a
+// slow run always reads as "actively narrowing the funnel", never as frozen. Reuses the
+// stage helpers + the pipeline's own funnel counters (sourced/extracted/scored/removed/kept).
+function RunBanner({ run, provisional }: { run: Run; provisional: number }) {
+  const c = run.counters || {};
+  const stageIdx = currentStageIndex(run.events || []);
+  const kept = Number(c.kept ?? c.rows_added ?? 0);
+  const chips: { label: string; tone?: string }[] = [];
+  if (c.sourced) chips.push({ label: `${c.sourced} posts read` });
+  if (c.extracted) chips.push({ label: `${c.extracted} companies` });
+  if (c.scored) chips.push({ label: `${c.scored} scored` });
+  if (c.removed) chips.push({ label: `${c.removed} filtered out`, tone: "muted" });
+  if (kept) chips.push({ label: `${kept} kept`, tone: "keep" });
+  return (
+    <div className="shrink-0 border-b-2 border-neutral-900 bg-violet-50">
+      <div className="px-4 py-2 flex items-center gap-2 flex-wrap">
+        <FiLoader className="animate-spin text-violet-500 shrink-0" size={13} />
+        <span className="font-bold text-[12.5px]">{RUN_STAGES[stageIdx].label}…</span>
+        <span className="hidden sm:inline text-[11px] text-neutral-500">
+          {RUN_STAGE_HINT[RUN_STAGES[stageIdx].key] || ""}{provisional ? ` · ${provisional} still in review` : ""}
+        </span>
+        <span className="ml-auto flex items-center gap-1.5 text-[11px]">
+          {chips.map((ch, i) => (
+            <span key={i} className={`rounded-full px-2 py-0.5 font-semibold ${
+              ch.tone === "keep" ? "bg-violet-600 text-white"
+                : ch.tone === "muted" ? "bg-white text-neutral-400 border border-neutral-200"
+                : "bg-white text-neutral-600 border border-neutral-300"}`}>{ch.label}</span>
+          ))}
+        </span>
+      </div>
+      <div className="h-1 w-full bg-violet-100 overflow-hidden">
+        <div className="h-full bg-violet-500/70 animate-pulse"
+          style={{ width: `${Math.min(96, (stageIdx + 1) / RUN_STAGES.length * 100)}%` }} />
+      </div>
+    </div>
+  );
+}
+
+// A small stage badge for provisional rows — replaces the CRM status <select> and the
+// Enrich button (which must never fire on a not-yet-shipped opportunity).
+function ProvChip({ status }: { status: string }) {
+  const label = status === "contacted" ? "Shortlisting…"
+    : status === "scored" ? "Scored" : "In review…";
+  return (
+    <span className="inline-flex items-center gap-1 text-[10.5px] font-bold rounded-lg px-1.5 py-0.5 bg-neutral-100 text-neutral-500 border border-neutral-200 whitespace-nowrap">
+      <FiLoader size={9} className="animate-spin opacity-60" /> {label}
+    </span>
   );
 }
 
@@ -1671,7 +1756,7 @@ function RunGraph({ run }: { run: Run }) {
         @keyframes bobNodeGlow { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
         .bob-node-live { animation: bobNodeGlow 1.1s ease-in-out infinite; }
       `}</style>
-      <div className="w-full max-w-[360px]">
+      <div className="w-full max-w-[360px] bg-white border-2 border-neutral-900 rounded-2xl shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-6">
         <div className="text-center mb-4">
           <div className="w-12 h-12 mx-auto border-2 border-neutral-900 rounded-2xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] mb-3">
             <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
@@ -1680,7 +1765,8 @@ function RunGraph({ run }: { run: Run }) {
           <p className="text-sm text-neutral-500 mt-1">{RUN_STAGES[idx].label}…</p>
         </div>
 
-        {/* Neural network */}
+        {/* Neural network, framed like a little screen */}
+        <div className="border-2 border-neutral-900 rounded-xl bg-[#faf7f2] p-3">
         <svg viewBox={`0 0 ${NN_W} ${NN_H}`} className="w-full h-auto">
           {/* edges */}
           {layers.slice(0, -1).map((la, li) =>
@@ -1710,11 +1796,12 @@ function RunGraph({ run }: { run: Run }) {
             })
           )}
         </svg>
+        </div>
 
         <div className="flex flex-wrap gap-2 justify-center mt-4">
           <span className="text-[11px] font-bold bg-neutral-100 rounded-full px-2.5 py-1">Step {idx + 1} of {RUN_STAGES.length}</span>
           {c.rows_added ? <span className="text-[11px] font-bold bg-violet-100 text-violet-700 rounded-full px-2.5 py-1">{c.rows_added} companies found</span> : null}
-          {run.credits_used ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-2.5 py-1" title="context.dev search credits">{run.credits_used} search credits</span> : null}
+          {c.ai_credits ? <span className="text-[11px] font-bold bg-white border-2 border-neutral-900 rounded-full px-2.5 py-1" title="AI credits this search, scales with research depth">{c.ai_credits} AI credits{c.depth ? ` · ${RUN_DEPTH[c.depth]}` : ""}</span> : null}
         </div>
       </div>
     </div>
@@ -1742,20 +1829,48 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
   const seenRows = useRef<Set<number>>(new Set());
 
   const active = tables.find((t) => t.id === activeId) || tables[tables.length - 1] || null;
-  const view: ResultsView = viewPref ?? ((active?.rows.length ?? 0) > 40 ? "table" : "cards");
+
+  // Live overlay -> provisional rows for the active table. Excludes rejected (they drop)
+  // and already-shipped (deduped by _company_norm so the real row's hand-off is seamless).
+  // Negative synthetic ids never collide with bob_rows.id and are stable across polls, so
+  // flash-in + row identity keep working. Ordered by opp id (harvest order) so fit changes
+  // during scoring never reshuffle rows.
+  const provisional = useMemo<BobRow[]>(() => {
+    const opp = run?.opportunities;
+    if (!run || run.status !== "running" || !active || !opp || opp.table_id !== active.id) return [];
+    const shipped = new Set(
+      active.rows.map((r) => String((r.cells as Record<string, unknown>)._company_norm || "")).filter(Boolean),
+    );
+    return [...opp.rows]
+      .filter((o) => o.status !== "rejected" && o.status !== "written" && !(o.company_norm && shipped.has(o.company_norm)))
+      .sort((a, b) => a.id - b.id)
+      .map((o) => ({ id: -o.id, status: "new", cells: { ...o.cells, _provisional: true, _opp_status: o.status } }));
+  }, [run, active]);
+
+  const displayRows = useMemo(() => [...(active?.rows ?? []), ...provisional], [active, provisional]);
+  const activeDisplay: BobTable | null = active ? { ...active, rows: displayRows } : null;
+  const view: ResultsView = viewPref ?? (displayRows.length > 40 ? "table" : "cards");
+
+  // Provisional rows (negative id) must never trigger a PATCH/enrich/delete on a
+  // non-existent bob_row — guard every row action at the boundary.
+  const rowStatusG = (id: number, s: string) => { if (id >= 0) onRowStatus(id, s); };
+  const enrichRowG = (id: number) => { if (id >= 0) onEnrichRow(id); };
+  const deleteRowG = (id: number) => { if (id >= 0) onDeleteRow(id); };
 
   // Track which rows are new (for the flash-in animation), then mark seen.
   const newIds = useMemo(() => {
     const ids = new Set<number>();
     for (const t of tables) for (const r of t.rows) if (!seenRows.current.has(r.id)) ids.add(r.id);
+    for (const r of provisional) if (!seenRows.current.has(r.id)) ids.add(r.id);
     return ids;
-  }, [tables]);
+  }, [tables, provisional]);
   useEffect(() => {
     const timer = setTimeout(() => {
       for (const t of tables) for (const r of t.rows) seenRows.current.add(r.id);
+      for (const r of provisional) seenRows.current.add(r.id);
     }, 100);
     return () => clearTimeout(timer);
-  }, [tables]);
+  }, [tables, provisional]);
 
   const exportXlsx = async (t: BobTable) => {
     const res = await fetch(`${API}/tables/${t.id}/export`, { headers: authHeaders() });
@@ -1797,7 +1912,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
             title={prettify(t.name)}
           >
             <span className="truncate">{prettify(t.name)}</span>
-            <span className="opacity-70 shrink-0">· {t.rows.length}</span>
+            <span className="opacity-70 shrink-0">· {t.id === active?.id ? displayRows.length : t.rows.length}</span>
           </button>
         ))}
         </div>
@@ -1857,51 +1972,54 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
         </div>
       </div>
 
-      {/* Body */}
-      {/* Live pipeline graph while a run is working and no rows have landed yet. */}
-      {run && (!active || active.rows.length === 0) && <RunGraph run={run} />}
+      {/* Live-progress banner over the table: rows fill in below as the funnel narrows. */}
+      {run && <RunBanner run={run} provisional={provisional.length} />}
 
-      {active && view === "cards" && !(run && active.rows.length === 0) && (
+      {/* Body */}
+      {/* Thinking diagram ONLY before the first row (real or provisional) has landed. */}
+      {run && displayRows.length === 0 && <RunGraph run={run} />}
+
+      {activeDisplay && view === "cards" && !(run && displayRows.length === 0) && (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
-            {active.rows.map((r, idx) => (
+            {activeDisplay.rows.map((r, idx) => (
               <CompanyCard
                 key={r.id}
                 row={r}
                 index={idx}
                 isNew={newIds.has(r.id)}
                 onOpen={() => setDetailRow(r)}
-                onStatus={(s) => onRowStatus(r.id, s)}
-                onEnrich={() => onEnrichRow(r.id)}
-                onDelete={() => onDeleteRow(r.id)}
+                onStatus={(s) => rowStatusG(r.id, s)}
+                onEnrich={() => enrichRowG(r.id)}
+                onDelete={() => deleteRowG(r.id)}
               />
             ))}
           </div>
-          {active.rows.length === 0 && !run && (
+          {displayRows.length === 0 && !run && (
             <p className="text-sm text-neutral-400 p-6 text-center">Results will appear here as Sensei finds them.</p>
           )}
         </div>
       )}
 
-      {active && view === "table" && !(run && active.rows.length === 0) && (
+      {activeDisplay && view === "table" && !(run && displayRows.length === 0) && (
         <DenseTable
-          table={active}
+          table={activeDisplay}
           newIds={newIds}
           onRowClick={setDetailRow}
-          onRowStatus={onRowStatus}
-          onEnrich={onEnrichRow}
-          onDelete={onDeleteRow}
+          onRowStatus={rowStatusG}
+          onEnrich={enrichRowG}
+          onDelete={deleteRowG}
         />
       )}
 
-      {detailRow && active && (
+      {detailRow && activeDisplay && (
         <RowDrawer
-          row={active.rows.find((r) => r.id === detailRow.id) || detailRow}
-          columns={orderColumns(active.columns)}
+          row={activeDisplay.rows.find((r) => r.id === detailRow.id) || detailRow}
+          columns={orderColumns(activeDisplay.columns)}
           onClose={() => setDetailRow(null)}
-          onStatus={(s) => { onRowStatus(detailRow.id, s); setDetailRow({ ...detailRow, status: s }); }}
-          onEnrich={() => onEnrichRow(detailRow.id)}
-          onDelete={() => { onDeleteRow(detailRow.id); setDetailRow(null); }}
+          onStatus={(s) => { rowStatusG(detailRow.id, s); setDetailRow({ ...detailRow, status: s }); }}
+          onEnrich={() => enrichRowG(detailRow.id)}
+          onDelete={() => { deleteRowG(detailRow.id); setDetailRow(null); }}
         />
       )}
     </section>
@@ -1989,6 +2107,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   onDelete: () => void;
 }) {
   const c = row.cells;
+  const prov = c._provisional === true;
   const company = str(c.company) || `Company ${index + 1}`;
   const website = str(c.website);
   const domain = website ? domainOf(website) : "";
@@ -2016,7 +2135,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   return (
     <div
       onClick={onOpen}
-      className={`bg-white border-2 border-neutral-900 rounded-2xl p-4 cursor-pointer shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all flex flex-col gap-2.5 ${isNew ? "bob-new" : ""}`}
+      className={`bg-white border-2 border-neutral-900 rounded-2xl p-4 cursor-pointer shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all flex flex-col gap-2.5 ${isNew ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
     >
       {/* Header */}
       <div className="flex items-start gap-2.5">
@@ -2072,6 +2191,9 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
 
       {/* Contact + status */}
       <div className="mt-auto pt-2 border-t border-neutral-100 flex flex-col gap-2">
+        {prov ? (
+          <div className="flex items-center"><ProvChip status={str(c._opp_status)} /></div>
+        ) : (
         <div className="flex items-center gap-2">
           {contactName ? (
             <>
@@ -2109,7 +2231,8 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
           </select>
           <DeleteRowButton onDelete={onDelete} />
         </div>
-        {(contactPhone || contactEmail) && (
+        )}
+        {!prov && (contactPhone || contactEmail) && (
           <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
             {contactPhone && (
               <a href={`tel:${contactPhone}`} title="Call"
@@ -2170,11 +2293,13 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
           </tr>
         </thead>
         <tbody>
-          {table.rows.map((r, idx) => (
+          {table.rows.map((r, idx) => {
+            const prov = r.cells._provisional === true;
+            return (
             <tr
               key={r.id}
               onClick={() => onRowClick(r)}
-              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""}`}
+              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
             >
               <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
                 <span className="inline-flex items-center gap-2">
@@ -2184,7 +2309,9 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
                 </span>
               </td>
               <td className="px-3 py-2.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                {str(r.cells.contact_name) ? (
+                {prov ? (
+                  <span className="text-neutral-300">—</span>
+                ) : str(r.cells.contact_name) ? (
                   <div className="min-w-0">
                     <div className="text-[12px] font-bold truncate max-w-[180px]">{str(r.cells.contact_name)}</div>
                     <div className="flex items-center gap-2 text-[10.5px] text-neutral-500">
@@ -2210,19 +2337,24 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
                 </td>
               ))}
               <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
-                <select
-                  value={r.status}
-                  onChange={(e) => onRowStatus(r.id, e.target.value)}
-                  className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[r.status] || STATUS_STYLE.new}`}
-                >
-                  {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
+                {prov ? (
+                  <ProvChip status={str(r.cells._opp_status)} />
+                ) : (
+                  <select
+                    value={r.status}
+                    onChange={(e) => onRowStatus(r.id, e.target.value)}
+                    className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[r.status] || STATUS_STYLE.new}`}
+                  >
+                    {ROW_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                )}
               </td>
               <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
-                <DeleteRowButton onDelete={() => onDelete(r.id)} />
+                {!prov && <DeleteRowButton onDelete={() => onDelete(r.id)} />}
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
       {table.rows.length === 0 && (
