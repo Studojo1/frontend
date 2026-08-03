@@ -1606,13 +1606,19 @@ function RunProgress({ run }: { run: Run }) {
 
   const stageProgress = RUN_STAGES.slice(0, stageIdx).reduce((s, x) => s + x.weight, 0)
     + RUN_STAGES[stageIdx].weight * 0.5;
-  const TYPICAL_S = 200;
+  // Real runs take ~10 min (measured median 9:49, p75 14:22) and vary widely, so a
+  // fixed countdown is always wrong. Estimate the total from how far the run has
+  // actually progressed (by stage weight): a slow run projects longer. Floor it at the
+  // measured typical so a fresh run never over-promises. Shown coarsely in minutes.
+  const TYPICAL_S = 600;
+  const prog = Math.max(0.03, Math.min(0.97, stageProgress));
+  const remainingS = Math.max(0, Math.max(TYPICAL_S, elapsedS / prog) - elapsedS);
   const timeProgress = Math.min(0.92, elapsedS / TYPICAL_S);
   const pct = Math.min(0.96, Math.max(stageProgress, timeProgress)) * 100;
-  const etaS = Math.max(0, TYPICAL_S - elapsedS);
   const mm = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-  // Past the estimate a run is genuinely wrapping up; never show "about 0:00 left".
-  const etaText = elapsedS < TYPICAL_S - 10 ? `about ${mm(etaS)} left` : "wrapping up…";
+  const etaText = stageIdx >= RUN_STAGES.length - 1 || remainingS < 45
+    ? "wrapping up…"
+    : `about ${Math.max(1, Math.round(remainingS / 60))} min left`;
 
   return (
     <div className="flex gap-2.5" data-tick={now}>
@@ -1662,7 +1668,7 @@ function RunProgress({ run }: { run: Run }) {
           {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research…</p>}
         </div>
         <p className="text-[11px] text-neutral-400 mt-3">
-          Companies appear on the right as Sensei finds them. A full run usually takes 2 to 4 minutes.
+          Companies appear on the right as Sensei finds them. A full run usually takes around 10 minutes.
         </p>
       </div>
     </div>
