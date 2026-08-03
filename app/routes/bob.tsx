@@ -1530,6 +1530,17 @@ const RUN_STAGES = [
 // A finished run is tagged with a depth (the pipeline sets counters.depth): a lean
 // job-scan costs few AI credits, a deep funding/company-research run costs more.
 const RUN_DEPTH: Record<number, string> = { 1: "Quick scan", 2: "Standard search", 3: "Deep research" };
+// One-line hint per stage for the live banner (the bold label names the stage; this
+// adds context that MATCHES the stage, instead of a hardcoded "scoring" line).
+const RUN_STAGE_HINT: Record<string, string> = {
+  plan: "understanding your brief",
+  search: "reading job boards and posts",
+  extract: "pulling out the real companies",
+  score: "scoring and removing weak matches",
+  enrich: "checking live hiring signals",
+  contact: "finding the right person to reach",
+  assemble: "finalizing your table",
+};
 const FRIENDLY_SOURCE: Record<string, string> = {
   getro: "startup job boards", careerjet: "Careerjet", ats: "company career pages",
   reddit: "Reddit", ctx_li_posts: "LinkedIn posts", ctx_x: "X (Twitter)",
@@ -1600,6 +1611,8 @@ function RunProgress({ run }: { run: Run }) {
   const pct = Math.min(0.96, Math.max(stageProgress, timeProgress)) * 100;
   const etaS = Math.max(0, TYPICAL_S - elapsedS);
   const mm = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  // Past the estimate a run is genuinely wrapping up; never show "about 0:00 left".
+  const etaText = elapsedS < TYPICAL_S - 10 ? `about ${mm(etaS)} left` : "wrapping up…";
 
   return (
     <div className="flex gap-2.5" data-tick={now}>
@@ -1622,7 +1635,7 @@ function RunProgress({ run }: { run: Run }) {
           </div>
           <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1">
             <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
-            <span>{mm(elapsedS)} elapsed · about {mm(etaS)} left</span>
+            <span>{mm(elapsedS)} elapsed · {etaText}</span>
           </div>
         </div>
 
@@ -1675,7 +1688,7 @@ function RunBanner({ run, provisional }: { run: Run; provisional: number }) {
         <FiLoader className="animate-spin text-violet-500 shrink-0" size={13} />
         <span className="font-bold text-[12.5px]">{RUN_STAGES[stageIdx].label}…</span>
         <span className="hidden sm:inline text-[11px] text-neutral-500">
-          scoring and removing weak matches{provisional ? ` · ${provisional} still in review` : ""}
+          {RUN_STAGE_HINT[RUN_STAGES[stageIdx].key] || ""}{provisional ? ` · ${provisional} still in review` : ""}
         </span>
         <span className="ml-auto flex items-center gap-1.5 text-[11px]">
           {chips.map((ch, i) => (
