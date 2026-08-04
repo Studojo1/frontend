@@ -15,7 +15,14 @@ import { sql } from "drizzle-orm";
 import db from "~/lib/db";
 
 const KEY_PREFIX = "sk_live_";
-const DEFAULT_ALLOW = ["mvijiabraham@gmail.com", "jeremy.zac@gmail.com"];
+// API-key builder allowlist: founders + explicitly-enabled external customers.
+// The API_BUILDER_ALLOWLIST env (comma-separated) overrides this when set; this
+// list is the live default (that env is currently unset in prod + staging).
+const DEFAULT_ALLOW = [
+  "mvijiabraham@gmail.com",
+  "jeremy.zac@gmail.com",
+  "nitin.sanatan@boardinfinity.com", // Board Infinity — enabled 2026-08-04
+];
 
 export const RATE_PER_MIN = 60;
 
