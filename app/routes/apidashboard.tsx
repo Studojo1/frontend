@@ -3,7 +3,14 @@ import { Form, Link, useActionData, useLoaderData } from "react-router";
 import type { Route } from "./+types/apidashboard";
 import { auth } from "~/lib/auth";
 import { Header, Footer } from "~/components";
-import { isApiBuilder, createKey, revokeKey, usageDashboard } from "~/lib/api-keys.server";
+import {
+  isApiBuilder,
+  createKey,
+  revokeKey,
+  usageDashboard,
+  recentActivity,
+  type ActivityRow,
+} from "~/lib/api-keys.server";
 
 export function meta(_: Route.MetaArgs) {
   return [{ title: "API Dashboard — Studojo" }];
@@ -15,7 +22,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const user = u ? { id: u.id, email: u.email, role: u.role ?? null } : null;
   const allowed = isApiBuilder(user?.email, user?.role);
   const data = allowed && user ? await usageDashboard(user.email) : null;
-  return { user, allowed, data };
+  const activity: ActivityRow[] = allowed && user ? await recentActivity(user.email, 100) : [];
+  return { user, allowed, data, activity };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -74,8 +82,68 @@ function Chart({ months }: { months: { month: string; credits: number }[] }) {
   );
 }
 
+function StatusBadge({ status, http, cached }: { status: string; http: number; cached: boolean }) {
+  const ok = status === "ok";
+  const miss = status === "not_found";
+  const bad = (http || 0) >= 400;
+  const cls = ok
+    ? "bg-studojo-green-bg text-studojo-green"
+    : bad
+      ? "bg-red-50 text-red-600"
+      : "bg-neutral-100 text-neutral-500";
+  const label = ok ? (cached ? "hit · cached" : "hit") : miss ? "no match" : status || String(http || "");
+  return <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-md whitespace-nowrap ${cls}`}>{label}</span>;
+}
+
+function RequestLog({ activity }: { activity: ActivityRow[] }) {
+  return (
+    <>
+      <h2 className="font-clash text-xl font-bold mt-10 mb-1">Request log</h2>
+      <p className="text-studojo-muted text-sm mb-3">Every API call across your keys, newest first.</p>
+      {activity.length === 0 ? (
+        <div className={`${CARD} p-6`}>
+          <p className="text-studojo-muted text-sm">No API calls yet. Make a request with one of your keys and it will show up here.</p>
+        </div>
+      ) : (
+        <div className={`${CARD} overflow-hidden`}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[760px]">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wide text-studojo-muted border-b-2 border-neutral-900">
+                  <th className="p-3 font-semibold">When</th>
+                  <th className="p-3 font-semibold">Endpoint</th>
+                  <th className="p-3 font-semibold">Target</th>
+                  <th className="p-3 font-semibold">Result</th>
+                  <th className="p-3 font-semibold">Credits</th>
+                  <th className="p-3 font-semibold">Latency</th>
+                  <th className="p-3 font-semibold">Key</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-200">
+                {activity.map((a, i) => (
+                  <tr key={i} className="align-top hover:bg-neutral-50">
+                    <td className="p-3 whitespace-nowrap text-studojo-muted">{new Date(a.created_at).toLocaleString()}</td>
+                    <td className="p-3 font-mono text-[12px] whitespace-nowrap">{a.endpoint}</td>
+                    <td className="p-3 max-w-[280px] truncate" title={a.target || ""}>{a.target || "—"}</td>
+                    <td className="p-3"><StatusBadge status={a.status} http={a.http_status} cached={a.cached} /></td>
+                    <td className="p-3 tabular-nums font-semibold">{a.credits || 0}</td>
+                    <td className="p-3 tabular-nums text-studojo-muted whitespace-nowrap">{a.ms != null ? `${a.ms} ms` : "—"}</td>
+                    <td className="p-3 font-mono text-[11px] text-studojo-muted whitespace-nowrap">
+                      {a.key_prefix ? `${a.key_prefix}…${a.last_four}` : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function ApiDashboard() {
-  const { user, allowed, data } = useLoaderData<typeof loader>();
+  const { user, allowed, data, activity } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>() as
     | { error?: string; createdKey?: string; revoked?: boolean }
     | undefined;
@@ -240,6 +308,8 @@ export default function ApiDashboard() {
         </button>
       </Form>
       {actionData?.error && <p className="text-sm text-red-600 font-semibold mt-2">{actionData.error}</p>}
+
+      <RequestLog activity={activity} />
     </>,
   );
 }
