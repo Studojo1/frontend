@@ -68,6 +68,24 @@ async function ensureTables(): Promise<void> {
       "updated_at" timestamp NOT NULL DEFAULT now(),
       PRIMARY KEY ("key_id", "bucket")
     )`);
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS "api_request_log" (
+      "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+      "key_id" uuid,
+      "email" text,
+      "endpoint" text NOT NULL,
+      "target" text,
+      "status" text NOT NULL DEFAULT '',
+      "http_status" integer NOT NULL DEFAULT 0,
+      "credits" integer NOT NULL DEFAULT 0,
+      "cached" boolean NOT NULL DEFAULT false,
+      "ms" integer,
+      "ip" text,
+      "created_at" timestamp NOT NULL DEFAULT now()
+    )`);
+  await db.execute(
+    sql`CREATE INDEX IF NOT EXISTS "api_request_log_email_idx" ON "api_request_log" (lower(email), created_at DESC)`,
+  );
   ensured = true;
 }
 
@@ -275,4 +293,60 @@ export async function usageDashboard(email: string): Promise<{
       quotaTotal: out.filter((k) => k.active).reduce((s, k) => s + k.monthly_quota, 0),
     },
   };
+}
+
+export type ActivityRow = {
+  created_at: string;
+  endpoint: string;
+  target: string | null;
+  status: string;
+  http_status: number;
+  credits: number;
+  cached: boolean;
+  ms: number | null;
+  key_name: string | null;
+  key_prefix: string | null;
+  last_four: string | null;
+};
+
+/** Append one API-call entry to the request log. Best-effort: never throws, so a
+ *  logging failure can never break an actual API request. */
+export async function logRequest(entry: {
+  keyId: string | null;
+  email: string | null;
+  endpoint: string;
+  target?: string | null;
+  status: string;
+  httpStatus: number;
+  credits?: number;
+  cached?: boolean;
+  ms?: number | null;
+  ip?: string | null;
+}): Promise<void> {
+  try {
+    await ensureTables();
+    const target = entry.target ? String(entry.target).slice(0, 200) : null;
+    await db.execute(sql`
+      INSERT INTO api_request_log
+        (key_id, email, endpoint, target, status, http_status, credits, cached, ms, ip)
+      VALUES (${entry.keyId}, ${entry.email}, ${entry.endpoint}, ${target},
+              ${entry.status}, ${entry.httpStatus}, ${entry.credits ?? 0}, ${entry.cached ?? false},
+              ${entry.ms ?? null}, ${entry.ip ?? null})`);
+  } catch {
+    /* logging must never break an API request */
+  }
+}
+
+/** The user's most recent API calls (across all their keys), newest first. */
+export async function recentActivity(email: string, limit = 60): Promise<ActivityRow[]> {
+  await ensureTables();
+  const r = await db.execute(sql`
+    SELECT l.created_at, l.endpoint, l.target, l.status, l.http_status, l.credits, l.cached, l.ms,
+           k.name AS key_name, k.key_prefix, k.last_four
+    FROM api_request_log l
+    LEFT JOIN api_keys k ON k.id = l.key_id
+    WHERE lower(l.email) = ${email.toLowerCase()}
+    ORDER BY l.created_at DESC
+    LIMIT ${limit}`);
+  return rowsOf(r) as ActivityRow[];
 }
