@@ -1,15 +1,10 @@
 import { useState, type ReactNode } from "react";
-import { Form, Link, useActionData, useLoaderData } from "react-router";
+import { Link } from "react-router";
 import type { Route } from "./+types/apidocs";
-import { auth } from "~/lib/auth";
 import { Header, Footer } from "~/components";
-import {
-  isApiBuilder,
-  listKeys,
-  createKey,
-  revokeKey,
-  type ApiKeyRow,
-} from "~/lib/api-keys.server";
+
+// This page is a FROZEN, public documentation page — no auth, no loader/action, no
+// per-user data. All dynamic key creation + management lives on /apidashboard.
 
 export function meta(_: Route.MetaArgs) {
   return [
@@ -22,37 +17,6 @@ export function meta(_: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const session = await auth.api.getSession({ headers: request.headers });
-  const u = session?.user as
-    | { id: string; email: string; name?: string; role?: string | null }
-    | undefined;
-  const user = u ? { id: u.id, email: u.email, name: u.name ?? "", role: u.role ?? null } : null;
-  const allowed = isApiBuilder(user?.email, user?.role);
-  const keys: ApiKeyRow[] = allowed && user ? await listKeys(user.email) : [];
-  return { user, allowed, keys };
-}
-
-export async function action({ request }: Route.ActionArgs) {
-  const session = await auth.api.getSession({ headers: request.headers });
-  const u = session?.user as { id: string; email: string; role?: string | null } | undefined;
-  if (!u) return { error: "Please sign in first." };
-  if (!isApiBuilder(u.email, u.role)) {
-    return { error: "Your account is not enabled for API access yet." };
-  }
-  const form = await request.formData();
-  const intent = form.get("intent");
-  if (intent === "create") {
-    const name = String(form.get("name") || "API key").slice(0, 60);
-    const { plaintext, lastFour } = await createKey(u.email, u.id, name);
-    return { createdKey: plaintext, lastFour };
-  }
-  if (intent === "revoke") {
-    await revokeKey(u.email, String(form.get("id")));
-    return { revoked: true };
-  }
-  return {};
-}
 
 //  shared bits 
 const CARD = "border-2 border-neutral-900 rounded-2xl bg-white shadow-[5px_5px_0_0_#171717]";
@@ -196,7 +160,7 @@ const NAV = [
   ["introduction", "Introduction"],
   ["endpoints", "Endpoints"],
   ["authentication", "Authentication"],
-  ["keys", "Your API keys"],
+  ["keys", "Getting a key"],
   ["quickstart", "Quickstart"],
   ["enrich", "Enrich a person"],
   ["phone-verification", "Phone verification"],
@@ -206,127 +170,7 @@ const NAV = [
   ["limits", "Rate limits & credits"],
 ];
 
-//  access / key-management panel 
-function AccessPanel() {
-  const { user, allowed, keys } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>() as
-    | { error?: string; createdKey?: string; lastFour?: string; revoked?: boolean }
-    | undefined;
-
-  if (!user) {
-    return (
-      <div className={`${CARD} p-6`}>
-        <h3 className="text-lg font-bold mb-1">Get an API key</h3>
-        <p className="text-studojo-muted mb-4">
-          Sign in to your Studojo account to create and manage keys. Access is granted per email.
-        </p>
-        <Link
-          to="/auth?mode=signin"
-          className="inline-block bg-studojo-purple text-white font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition"
-        >
-          Sign in
-        </Link>
-      </div>
-    );
-  }
-
-  if (!allowed) {
-    return (
-      <div className={`${CARD} p-6`}>
-        <h3 className="text-lg font-bold mb-1">Access pending</h3>
-        <p className="text-studojo-muted">
-          You are signed in as <span className="font-semibold">{user.email}</span>, but this
-          account is not enabled for API access yet. Email{" "}
-          <a className="text-studojo-purple font-semibold" href="mailto:admin@studojo.com">
-            admin@studojo.com
-          </a>{" "}
-          to request access.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`${CARD} p-6`}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold">Your API keys</h3>
-        <span className="text-xs font-semibold px-2 py-1 rounded-md bg-studojo-green-bg text-studojo-green">
-          Access enabled
-        </span>
-      </div>
-
-      {actionData?.error && <p className="mb-4 text-sm text-red-600 font-semibold">{actionData?.error}</p>}
-
-      {actionData?.createdKey && (
-        <div className="mb-5 rounded-xl border-2 border-studojo-purple bg-studojo-purple-bg p-4">
-          <p className="text-sm font-bold text-neutral-900 mb-2">
-            Copy your key now. You will not be able to see it again.
-          </p>
-          <Code>{actionData?.createdKey || ""}</Code>
-        </div>
-      )}
-
-      {keys.length === 0 && !actionData?.createdKey && (
-        <p className="text-studojo-muted mb-4">No keys yet. Create your first one below.</p>
-      )}
-
-      {keys.length > 0 && (
-        <div className="mb-5 divide-y divide-neutral-200">
-          {keys.map((k) => {
-            const revoked = !!k.revoked_at;
-            return (
-              <div key={k.id} className="flex items-center justify-between py-3 gap-3">
-                <div className="min-w-0">
-                  <div className="font-semibold truncate">
-                    {k.name}{" "}
-                    <span className="font-mono text-studojo-muted text-sm">
-                      {k.key_prefix}...{k.last_four}
-                    </span>
-                  </div>
-                  <div className="text-xs text-studojo-muted">
-                    {revoked ? "Revoked" : "Active"}  -  {k.request_count} requests
-                    {k.last_used_at ? "  -  last used " + new Date(k.last_used_at).toLocaleDateString() : ""}
-                  </div>
-                </div>
-                {!revoked && (
-                  <Form method="post">
-                    <input type="hidden" name="intent" value="revoke" />
-                    <input type="hidden" name="id" value={k.id} />
-                    <button
-                      className="text-sm font-semibold text-red-600 hover:text-red-700 border border-red-300 rounded-lg px-3 py-1.5"
-                      type="submit"
-                    >
-                      Revoke
-                    </button>
-                  </Form>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <Form method="post" className="flex flex-col sm:flex-row gap-2">
-        <input type="hidden" name="intent" value="create" />
-        <input
-          name="name"
-          placeholder="Key name (e.g. Production)"
-          maxLength={60}
-          className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2.5"
-        />
-        <button
-          type="submit"
-          className="bg-studojo-purple text-white font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition"
-        >
-          Create key
-        </button>
-      </Form>
-      <p className="text-xs text-studojo-muted mt-3">
-        Keep keys server-side. Anyone with a key can spend your enrichment credits.
-      </p>
-    </div>
-  );
-}
+// (key creation + management removed — it lives on /apidashboard, not here)
 
 //  page 
 export default function ApiDocs() {
@@ -360,7 +204,7 @@ export default function ApiDocs() {
           <a href="#quickstart" className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-white">
             Quickstart
           </a>
-          <a href="#keys" className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-studojo-purple text-white">
+          <a href="/apidashboard" className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-studojo-purple text-white">
             Get your API key
           </a>
           <a href="/openapi.json" className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-studojo-green text-neutral-900">
@@ -432,9 +276,20 @@ export default function ApiDocs() {
             <Code>{`Authorization: Bearer sk_live_your_key_here`}</Code>
           </Section>
 
-          <Section id="keys" title="Your API keys">
-            <div className="mb-3 text-sm"><Link to="/apidashboard" className="font-bold text-studojo-purple hover:underline">View usage dashboard &rarr;</Link></div>
-            <AccessPanel />
+          <Section id="keys" title="Getting a key">
+            <p className="text-studojo-muted mb-4">
+              Create, view, revoke, and monitor your API keys in your{" "}
+              <Link to="/apidashboard" className="font-bold text-studojo-purple hover:underline">API dashboard</Link>.
+              Each key is shown once at creation, so store it somewhere safe. Keep every key
+              server-side, never in browser or mobile code, since anyone with a key can spend your
+              enrichment credits.
+            </p>
+            <Link
+              to="/apidashboard"
+              className="inline-block bg-studojo-purple text-white font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition"
+            >
+              Open the API dashboard
+            </Link>
           </Section>
 
           <Section id="quickstart" title="Quickstart">
