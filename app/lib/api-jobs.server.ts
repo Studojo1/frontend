@@ -1,14 +1,18 @@
-// Bulk enrichment jobs. A job maps to LeadsForge's native batch jobs (one per
-// channel for the whole list). We return a job_id immediately and advance the
-// job lazily whenever it is polled, so no background worker is required.
+// Bulk enrichment jobs. Each entry now runs the FULL provider cascade
+// (SalesQL -> LeadsForge -> Apollo, identical to /api/enrich) in a bounded
+// concurrency pool inside the long-lived frontend process. A job_id is returned
+// immediately; results are assembled in the background, and getJob re-kicks a
+// stalled job. enrichProfile is cache-backed + idempotent, so a pod restart
+// mid-job just re-runs cheaply (already-done entries come straight from cache).
 import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
 import db from "~/lib/db";
-import * as leadsforge from "~/lib/leadsforge.server";
-import { buildResult, parseTarget, cacheKeyFor } from "~/lib/enrich.server";
+import { enrichProfile, parseTarget, buildResult, type Target } from "~/lib/enrich.server";
 import { chargeUsage, type Caller } from "~/lib/api-keys.server";
 
 export const BULK_MAX = 500;
+const POOL = 6; // concurrent per-entry cascades
+const STALE_MS = 90_000; // a processing job idle this long is treated as dead -> re-kick
 
 let ensured = false;
 async function ensureTable(): Promise<void> {
@@ -33,104 +37,78 @@ function rowsOf(r: any): any[] {
   return (r?.rows ?? r ?? []) as any[];
 }
 
+// Bounded concurrency map that preserves input order in the output.
+async function pool<T, R>(items: T[], n: number, fn: (t: T, i: number) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let idx = 0;
+  const worker = async () => {
+    while (idx < items.length) {
+      const i = idx++;
+      out[i] = await fn(items[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, worker));
+  return out;
+}
+
 export async function createJob(
   caller: Caller,
   entries: any[],
   fields: string[],
 ): Promise<{ job_id: string; status: string; count: number }> {
   await ensureTable();
-  const targets = entries.map((e) => parseTarget(e)).filter(Boolean) as any[];
-  const people = targets.map((t) => ({
-    externalID: cacheKeyFor(t),
-    linkedinURL: t.linkedin_url,
-    firstName: t.firstName,
-    lastName: t.lastName,
-    company: t.company,
-  }));
-  const map: Record<string, { url: string; name: string }> = {};
-  targets.forEach((t) => {
-    map[cacheKeyFor(t)] = {
-      url: t.linkedin_url || "",
-      name: [t.firstName, t.lastName].filter(Boolean).join(" "),
-    };
-  });
-  const clean = targets;
-
-  const reqId = randomUUID();
-  const lf: Record<string, string> = {};
-  if (fields.includes("email")) {
-    const id = await leadsforge.submitJob("emails", people, reqId);
-    if (id) lf.emails = id;
-  }
-  if (fields.includes("phone")) {
-    const id = await leadsforge.submitJob("phones", people, reqId);
-    if (id) lf.phones = id;
-  }
-
+  const targets = entries.map((e) => parseTarget(e)).filter(Boolean) as Target[];
   const id = "job_" + randomUUID().replace(/-/g, "").slice(0, 12);
   await db.execute(sql`
     INSERT INTO api_jobs (id, email, key_id, status, total, meta)
-    VALUES (${id}, ${caller.email}, ${caller.id}, 'processing', ${clean.length},
-            ${JSON.stringify({ lf, map, fields, charged: false })}::jsonb)`);
-  kickAutoComplete(caller.email, id); // self-resolve without client polling
-  return { job_id: id, status: "processing", count: clean.length };
+    VALUES (${id}, ${caller.email}, ${caller.id}, 'processing', ${targets.length},
+            ${JSON.stringify({ targets, fields, charged: false })}::jsonb)`);
+  kick(caller.email, id); // process in the background, don't block the response
+  return { job_id: id, status: "processing", count: targets.length };
 }
 
-/** In-process best-effort completer: advance a job to done without any client
- *  poll, so "a job nobody polls never finishes" (CP4) can't happen. Runs in the
- *  long-lived frontend process; getJob is idempotent so double-runs are safe.
- *  (Not durable across a pod restart — getJob still advances on demand as a
- *  fallback, and the worker-backed version is the eventual upgrade.) */
-export function kickAutoComplete(email: string, id: string): void {
-  let tries = 0;
-  const tick = async () => {
-    tries += 1;
-    try {
-      const j = await getJob(email, id);
-      if (j && j.status === "completed") return;
-    } catch {
-      /* transient — keep trying */
-    }
-    if (tries < 120) setTimeout(tick, 5000); // up to ~10 minutes
-  };
-  setTimeout(tick, 4000);
+// Fire background processing without blocking; swallow errors (per-entry catches
+// already handle real failures, getJob re-kicks anything that stalls).
+function kick(email: string, id: string): void {
+  setTimeout(() => {
+    runJob(email, id).catch(() => {});
+  }, 0);
 }
 
-/** Fetch a job scoped to its owner and advance it if the batch has finished. */
-export async function getJob(email: string, id: string): Promise<any | null> {
+/** Run the full SalesQL -> LeadsForge -> Apollo cascade for every entry, then
+ *  complete the job. Idempotent: enrichProfile is cache-backed, so re-running is
+ *  cheap and only fresh (uncached) hits are billed. */
+async function runJob(email: string, id: string): Promise<void> {
   await ensureTable();
-  const r = await db.execute(sql`
-    SELECT id, key_id, status, total, processed, results, meta
-    FROM api_jobs WHERE id = ${id} AND lower(email) = ${email.toLowerCase()}`);
-  const row = rowsOf(r)[0];
-  if (!row) return null;
-
-  if (row.status === "completed") {
-    return { job_id: row.id, status: "completed", total: row.total, processed: row.processed, results: row.results };
-  }
-
-  // Still processing: check whether every LeadsForge job is done, then assemble.
+  const row = rowsOf(
+    await db.execute(sql`
+      SELECT key_id, status, meta FROM api_jobs
+      WHERE id = ${id} AND lower(email) = ${email.toLowerCase()}`),
+  )[0];
+  if (!row || row.status === "completed") return;
   const meta = row.meta || {};
-  const lf: Record<string, string> = meta.lf || {};
-  const jobIds = Object.entries(lf) as [string, string][];
-  const allDone = jobIds.length > 0 && (await Promise.all(jobIds.map(([, jid]) => leadsforge.jobDone(jid)))).every(Boolean);
-
-  if (!allDone) {
-    return { job_id: row.id, status: "processing", total: row.total, processed: 0, results: [] };
-  }
-
-  const hits: Record<string, { email?: string; phone?: string }> = {};
-  for (const [channel, jid] of jobIds) {
-    leadsforge.collect(hits, channel as leadsforge.Channel, await leadsforge.jobResults(jid));
-  }
-  const map: Record<string, { url: string; name: string }> = meta.map || {};
+  const targets: Target[] = meta.targets || [];
   const fields: string[] = meta.fields || ["email", "phone"];
-  const results = Object.entries(map).map(([extId, m]) => {
-    const h = hits[extId] || {};
-    return buildResult(m.url, { workEmail: h.email, phone: h.phone, name: m.name || null }, fields);
-  });
-  const billable = results.reduce((s, r2) => s + (r2.credits_used || 0), 0);
 
+  let done = 0;
+  const results = await pool(targets, POOL, async (t) => {
+    let r: any;
+    try {
+      r = await enrichProfile(t, fields);
+    } catch {
+      const name = [t.firstName, t.lastName].filter(Boolean).join(" ") || null;
+      r = buildResult(t.linkedin_url ? String(t.linkedin_url) : "", { name }, fields);
+    }
+    done += 1;
+    await db.execute(sql`UPDATE api_jobs SET processed = ${done}, updated_at = now() WHERE id = ${id}`);
+    return r;
+  });
+
+  // Bill only fresh (uncached) hits, exactly like the single endpoint.
+  const billable = results.reduce(
+    (s, r) => s + (!r.cached && (r.credits_used || 0) > 0 ? r.credits_used : 0),
+    0,
+  );
   if (!meta.charged && billable > 0) await chargeUsage(row.key_id, billable);
   meta.charged = true;
 
@@ -140,6 +118,27 @@ export async function getJob(email: string, id: string): Promise<any | null> {
         results = ${JSON.stringify(results)}::jsonb, meta = ${JSON.stringify(meta)}::jsonb,
         updated_at = now()
     WHERE id = ${id}`);
+}
 
-  return { job_id: row.id, status: "completed", total: row.total, processed: results.length, results };
+/** Fetch a job scoped to its owner; re-kick a stalled one so it always finishes. */
+export async function getJob(email: string, id: string): Promise<any | null> {
+  await ensureTable();
+  const row = rowsOf(
+    await db.execute(sql`
+      SELECT id, status, total, processed, results, updated_at FROM api_jobs
+      WHERE id = ${id} AND lower(email) = ${email.toLowerCase()}`),
+  )[0];
+  if (!row) return null;
+  if (row.status === "completed") {
+    return {
+      job_id: row.id,
+      status: "completed",
+      total: row.total,
+      processed: row.processed,
+      results: row.results,
+    };
+  }
+  const stale = row.updated_at && Date.now() - new Date(row.updated_at).getTime() > STALE_MS;
+  if (stale) kick(email, id);
+  return { job_id: row.id, status: "processing", total: row.total, processed: row.processed || 0, results: [] };
 }
