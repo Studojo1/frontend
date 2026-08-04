@@ -230,22 +230,27 @@ export async function usageDashboard(email: string): Promise<{
   let months: { month: string; credits: number }[] = [];
 
   if (ids.length) {
+    // Build an explicit parameterised IN (...) list. Interpolating a JS array as
+    // `= ANY(${ids})` is malformed by the sql template (Postgres saw a non-array),
+    // which threw "op ANY/ALL requires array on right side" and crashed the whole
+    // dashboard for any user who had keys.
+    const idList = ids.map((i) => sql`${i}`).reduce((a, b) => sql`${a}, ${b}`);
     for (const r of rowsOf(
       await db.execute(sql`
         SELECT key_id::text AS kid, count FROM api_counters
-        WHERE bucket = ${monthBkt} AND key_id::text = ANY(${ids})`),
+        WHERE bucket = ${monthBkt} AND key_id::text IN (${idList})`),
     )) perCredit[String(r.kid)] = Number(r.count);
 
     for (const r of rowsOf(
       await db.execute(sql`
         SELECT key_id::text AS kid, COALESCE(SUM(count), 0) AS c FROM api_counters
-        WHERE bucket LIKE ${rateLike} AND key_id::text = ANY(${ids}) GROUP BY key_id`),
+        WHERE bucket LIKE ${rateLike} AND key_id::text IN (${idList}) GROUP BY key_id`),
     )) perReq[String(r.kid)] = Number(r.c);
 
     months = rowsOf(
       await db.execute(sql`
         SELECT bucket, SUM(count) AS c FROM api_counters
-        WHERE bucket LIKE 'month:%' AND key_id::text = ANY(${ids})
+        WHERE bucket LIKE 'month:%' AND key_id::text IN (${idList})
         GROUP BY bucket ORDER BY bucket DESC LIMIT 6`),
     )
       .map((r) => ({ month: String(r.bucket).replace("month:", ""), credits: Number(r.c) }))
