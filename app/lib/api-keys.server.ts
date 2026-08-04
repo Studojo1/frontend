@@ -22,6 +22,7 @@ const DEFAULT_ALLOW = [
   "mvijiabraham@gmail.com",
   "jeremy.zac@gmail.com",
   "nitin.sanatan@boardinfinity.com", // Board Infinity — enabled 2026-08-04
+  "admin@studojo.com", // Studojo admin API space — enabled 2026-08-04
 ];
 
 export const RATE_PER_MIN = 60;
