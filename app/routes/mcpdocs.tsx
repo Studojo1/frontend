@@ -122,6 +122,7 @@ const NAV: [string, string][] = [
   ["auth", "Authentication"],
   ["tools", "Tools"],
   ["search-flow", "Running a search"],
+  ["clarify", "Clarifying questions"],
   ["enrich-flow", "Enriching contacts"],
   ["isolation", "Isolation & credits"],
   ["raw", "Raw JSON-RPC"],
@@ -153,6 +154,21 @@ sensei_results({ "run_id": 8412 })
 # -> { "count": 22, "companies": [ { "company": "...", "role": "...",
 #      "location": "Bengaluru", "fit_score": 88, "why_now": "...",
 #      "apply_url": "...", "contact": { "name": "...", "email": "...", "phone": "..." } } ] }`;
+
+const CLARIFY_FLOW = `# a poll can come back BLOCKED on a question instead of running
+sensei_status({ "run_id": 8412 })
+# -> { "status": "waiting_user", "needs_answer": true,
+#      "question": "What pay band are we targeting?",
+#      "options": ["Under 6 LPA", "6-12 LPA", "12 LPA+"],
+#      "chat_id": 320 }
+
+# answer it (ask your user if you can't infer it) -> you get a NEW run_id
+sensei_reply({ "chat_id": 320, "answer": "6-12 LPA" })
+# -> { "run_id": 8419, "status": "running" }
+
+# poll the NEW run from here
+sensei_status({ "run_id": 8419 })   # -> running ... -> done
+sensei_results({ "run_id": 8419 })`;
 
 const ENRICH_FLOW = `# one profile -> verified email + mobile (billed only on a hit)
 enrich_contact({ "linkedin_url": "https://www.linkedin.com/in/janedoe" })
@@ -264,7 +280,7 @@ export default function McpDocs() {
           <Section id="introduction" title="Introduction">
             <p className="text-studojo-muted mb-3">
               The Sensei MCP server is a hosted Model Context Protocol endpoint. Point any MCP client
-              at it and your agent gains seven tools: three to run and read a Sensei hiring search,
+              at it and your agent gains eight tools: four to run, steer and read a Sensei hiring search,
               three to enrich contacts, and one to check your balances. It speaks JSON-RPC 2.0 over
               Streamable HTTP, so it works with Claude, Cursor, and the official MCP SDKs without any
               local install.
@@ -312,7 +328,13 @@ export default function McpDocs() {
               </Tool>
               <Tool name="sensei_status" args="{ run_id }">
                 Progress for a run: <span className="font-mono">running | waiting_user | done | error</span>{" "}
-                plus live counters. Poll every 20-30 seconds.
+                plus live counters. Poll every 20-30 seconds. On{" "}
+                <span className="font-mono">waiting_user</span> it also returns the question, its
+                options and the chat_id to answer into.
+              </Tool>
+              <Tool name="sensei_reply" args="{ answer, chat_id | run_id }">
+                Answer Sensei's clarifying question, or send a follow-up to refine a search ("make it
+                Pune instead"). Returns a new run_id to poll.
               </Tool>
               <Tool name="sensei_results" args="{ run_id }">
                 The companies and roles found: company, role, location, pay, fit score, why-now
@@ -338,6 +360,21 @@ export default function McpDocs() {
               The three discovery tools chain together. Start, poll, read:
             </p>
             <Code>{SEARCH_FLOW}</Code>
+          </Section>
+
+          <Section id="clarify" title="When Sensei asks a question">
+            <p className="text-studojo-muted mb-4">
+              If a brief is missing something load-bearing (pay band, company type, location), Sensei
+              pauses and asks one short question instead of guessing. The run stops at{" "}
+              <span className="font-mono text-studojo-ink">waiting_user</span> and will not continue
+              until it gets an answer, so your agent should check for it on every poll.
+            </p>
+            <Code>{CLARIFY_FLOW}</Code>
+            <p className="text-studojo-muted text-sm mt-3">
+              The same tool sends follow-ups on a finished search, so you can refine without starting
+              over: <span className="font-mono text-studojo-ink">sensei_reply</span> with "only funded
+              startups" or "make it Pune instead" re-runs against the existing thread.
+            </p>
           </Section>
 
           <Section id="enrich-flow" title="Enriching contacts">

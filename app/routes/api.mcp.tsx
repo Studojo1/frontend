@@ -8,7 +8,7 @@ import { guard, json } from "~/lib/api-guard.server";
 import { chargeUsage, logRequest, quotaStatus, rateLimit, type Caller } from "~/lib/api-keys.server";
 import { enrichProfile, parseTarget, enginesConfigured } from "~/lib/enrich.server";
 import { createJob, getJob, BULK_MAX } from "~/lib/api-jobs.server";
-import { bobConfigured, createChat, sendMessage, getRun, getCredits } from "~/lib/mcp/bob-client";
+import { bobConfigured, createChat, sendMessage, getRun, getChat, getCredits } from "~/lib/mcp/bob-client";
 import { resolveOrg } from "~/lib/mcp/keyorg.server";
 
 const PROTOCOL_VERSION = "2025-06-18";
@@ -24,7 +24,7 @@ const TOOLS = [
   {
     name: "sensei_search",
     description:
-      "Start a Sensei hiring search from a plain-English brief (role/function, location, company type, pay, seniority). Returns a run_id immediately; the search runs for a few minutes. Poll sensei_status, then read sensei_results. Example: 'business analyst roles at funded startups in Bangalore, 0-2 years'.",
+      "Start a Sensei hiring search from a plain-English brief (role/function, location, company type, pay, seniority). Returns a run_id immediately; the search runs for a few minutes. Poll sensei_status, then read sensei_results. If the brief is missing something load-bearing (pay band, company type, location), Sensei may pause and ask ONE clarifying question — sensei_status then returns status 'waiting_user' with the question; answer it with sensei_reply. Example: 'business analyst roles at funded startups in Bangalore, 0-2 years'.",
     inputSchema: {
       type: "object",
       properties: { query: { type: "string", description: "The full hiring brief in plain English." } },
@@ -34,11 +34,25 @@ const TOOLS = [
   {
     name: "sensei_status",
     description:
-      "Check a Sensei search's progress by run_id. Returns status (running | waiting_user | done | error) and a short progress summary. Poll every ~20-30s until status is 'done'.",
+      "Check a Sensei search's progress by run_id. Returns status (running | waiting_user | done | error) and a short progress summary. Poll every ~20-30s. IMPORTANT: if status is 'waiting_user', Sensei is BLOCKED on a clarifying question — the response carries `question`, `options` and `chat_id`; answer it with sensei_reply (ask the user first if you cannot infer it) or the search will never finish. When status is 'done', call sensei_results.",
     inputSchema: {
       type: "object",
       properties: { run_id: { type: "integer", description: "The run_id from sensei_search." } },
       required: ["run_id"],
+    },
+  },
+  {
+    name: "sensei_reply",
+    description:
+      "Answer Sensei's clarifying question (when sensei_status returned 'waiting_user'), or send a follow-up instruction to refine an existing search ('make it Pune instead', 'only funded startups'). Returns a NEW run_id — poll that one with sensei_status. Pass the chat_id (or the run_id) from the search you are answering.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        answer: { type: "string", description: "The answer or follow-up instruction, in plain English." },
+        chat_id: { type: "integer", description: "The chat_id from sensei_search / sensei_status." },
+        run_id: { type: "integer", description: "Alternative to chat_id: the run you are answering." },
+      },
+      required: ["answer"],
     },
   },
   {
@@ -135,6 +149,21 @@ function mapRows(tables: any[]): any[] {
   return out;
 }
 
+/** Tap-answer choices for a 'waiting_user' question. bob-svc stores them on the LAST
+ *  assistant message's meta.suggestions, not on the run, so read them from the chat.
+ *  Best-effort: the question text alone is enough to answer. */
+async function questionOptions(orgId: number, chatId: any): Promise<string[]> {
+  if (!Number.isFinite(Number(chatId))) return [];
+  const c = await getChat(orgId, Number(chatId));
+  if (!c.ok) return [];
+  const msgs = (c.data?.messages || []) as any[];
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    const s = msgs[i]?.meta?.suggestions;
+    if (msgs[i]?.role === "assistant" && Array.isArray(s) && s.length) return s.map(String);
+  }
+  return [];
+}
+
 async function dispatch(name: string, args: any, caller: Caller): Promise<Content> {
   args = args || {};
   switch (name) {
@@ -168,7 +197,54 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       const r = await getRun(org.orgId, runId);
       if (!r.ok) return r.status === 404 ? err("No such run for this key.") : err(r.error);
       const d = r.data || {};
-      return ok({ run_id: runId, status: d.status, summary: d.answer || "", counters: d.counters || {}, done: d.status === "done" });
+      const base: any = {
+        run_id: runId,
+        status: d.status,
+        summary: d.answer || "",
+        counters: d.counters || {},
+        done: d.status === "done",
+      };
+      // BLOCKED on a clarifying question: hand the agent everything it needs to answer
+      // (the question text, the tap-answer options, and the chat to reply into).
+      if (d.status === "waiting_user") {
+        base.needs_answer = true;
+        base.question = d.answer || "Could you clarify your request?";
+        base.chat_id = d.chat_id ?? null;
+        base.options = await questionOptions(org.orgId, d.chat_id);
+        base.next =
+          "Sensei is waiting on this answer and will not continue until it gets one. Reply with sensei_reply({ chat_id, answer }) — that starts a NEW run_id to poll.";
+      }
+      return ok(base);
+    }
+    case "sensei_reply": {
+      if (!bobConfigured()) return err("Sensei is not configured on this environment.");
+      const answer = String(args.answer || "").trim();
+      if (!answer) return err("Provide an 'answer' — what to tell Sensei.");
+      const org = await resolveOrg(caller);
+      if (!org.ok) return err(`Workspace error: ${org.error}`);
+      let chatId = Number(args.chat_id);
+      if (!Number.isFinite(chatId)) {
+        const rid = Number(args.run_id);
+        if (!Number.isFinite(rid)) return err("Provide a 'chat_id' (or the 'run_id' you are answering).");
+        const rr = await getRun(org.orgId, rid);
+        if (!rr.ok) return rr.status === 404 ? err("No such run for this key.") : err(rr.error);
+        chatId = Number(rr.data?.chat_id);
+        if (!Number.isFinite(chatId)) return err("Could not resolve the chat for that run_id; pass chat_id.");
+      }
+      const run = await sendMessage(org.orgId, chatId, answer);
+      if (!run.ok) {
+        if (run.status === 404) return err("No such search for this key.");
+        if (run.status === 402)
+          return err("Out of Sensei search credits for this key. Contact admin@studojo.com to top up.");
+        if (run.status === 409) return err("That search is still working — poll sensei_status before replying again.");
+        return err(`Could not send the reply: ${run.error}`);
+      }
+      return ok({
+        run_id: run.data.run_id,
+        chat_id: chatId,
+        status: "running",
+        next: "Poll sensei_status with this NEW run_id; when it is 'done', call sensei_results.",
+      });
     }
     case "sensei_results": {
       if (!bobConfigured()) return err("Sensei is not configured on this environment.");
@@ -180,6 +256,21 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       if (!r.ok) return r.status === 404 ? err("No such run for this key.") : err(r.error);
       const d = r.data || {};
       const companies = mapRows(d.tables || []);
+      // Don't let an empty table read as "nothing found" when Sensei is actually blocked
+      // on a clarifying question — say so and hand over what's needed to unblock it.
+      if (d.status === "waiting_user" && !companies.length) {
+        return ok({
+          run_id: runId,
+          status: "waiting_user",
+          needs_answer: true,
+          question: d.answer || "Could you clarify your request?",
+          chat_id: d.chat_id ?? null,
+          options: await questionOptions(org.orgId, d.chat_id),
+          count: 0,
+          companies: [],
+          next: "Answer with sensei_reply({ chat_id, answer }) — the search has not run yet.",
+        });
+      }
       return ok({ run_id: runId, status: d.status, count: companies.length, summary: d.answer || "", companies });
     }
     case "enrich_contact": {
