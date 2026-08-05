@@ -172,6 +172,20 @@ jobs:
             --type=strategic \
             -p '{"spec":{"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0}}}}'
 
+      - name: Configure Sensei MCP gateway env
+        run: |
+          # Server-side runtime env for the hosted Sensei MCP (app/routes/api.mcp.tsx).
+          # BOB_INTERNAL_URL is cluster DNS (non-secret); BOB_ENV scopes the per-key org
+          # mapping to this environment; BOB_MCP_SECRET is the shared gateway secret
+          # (== bob-svc BOB_GATEWAY_SECRET). Idempotent: no-op once already set.
+          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            BOB_INTERNAL_URL="http://bob-svc:8000" \
+            BOB_ENV="staging"
+          if [ -n "${{ secrets.BOB_MCP_SECRET }}" ]; then
+            kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+              BOB_MCP_SECRET="${{ secrets.BOB_MCP_SECRET }}"
+          fi
+
       - name: Deploy to Kubernetes (staging)
         run: |
           kubectl set image deployment/${{ env.APP_NAME }} \
