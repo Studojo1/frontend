@@ -80,6 +80,19 @@ export function getCredits(orgId: number): Promise<BobResp<any>> {
   return call("/credits", { orgId });
 }
 
+/** Reveal ONE result row's hiring-side contact. Spends the workspace's enrichment
+ *  credits, exactly like the Enrich button in the app. Runs in the background: the
+ *  row's contact status moves enriching -> found | not_found. */
+export function enrichRow(orgId: number, rowId: number): Promise<BobResp<any>> {
+  return call(`/rows/${rowId}/enrich`, { method: "POST", orgId });
+}
+
+/** Reveal every not-yet-resolved row in a result table (batched). Rows already found
+ *  or in flight are skipped, so a repeat call never double-charges. */
+export function enrichTable(orgId: number, tableId: number): Promise<BobResp<any>> {
+  return call(`/tables/${tableId}/enrich`, { method: "POST", orgId });
+}
+
 /** Resolve a Sensei (app.studojo.com) session to its user + org + role. Used by the
  *  manager dashboard so a workspace admin can mint an MCP key for their OWN workspace
  *  without needing a separate studojo.com platform account. Authenticated by the

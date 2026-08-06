@@ -8,7 +8,9 @@ import { guard, json } from "~/lib/api-guard.server";
 import { chargeUsage, logRequest, quotaStatus, rateLimit, type Caller } from "~/lib/api-keys.server";
 import { enrichProfile, parseTarget, enginesConfigured } from "~/lib/enrich.server";
 import { createJob, getJob, BULK_MAX } from "~/lib/api-jobs.server";
-import { bobConfigured, createChat, sendMessage, getRun, getChat, getCredits } from "~/lib/mcp/bob-client";
+import {
+  bobConfigured, createChat, sendMessage, getRun, getChat, getCredits, enrichRow, enrichTable,
+} from "~/lib/mcp/bob-client";
 import { resolveOrg } from "~/lib/mcp/keyorg.server";
 
 const PROTOCOL_VERSION = "2025-06-18";
@@ -58,11 +60,23 @@ const TOOLS = [
   {
     name: "sensei_results",
     description:
-      "Get the companies and roles a Sensei search found (company, role, location, pay, fit score, why-now signal, apply link, and any contact already discovered). Call once sensei_status is 'done'; also returns partial rows while still running.",
+      "Get the companies and roles a Sensei search found (company, role, location, pay, fit score, why-now signal, apply link). Call once sensei_status is 'done'; also returns partial rows while still running. Contacts come back BLANK by default: they are revealed on demand with sensei_reveal_contacts, and this response tells you how many are pending plus the table_id to reveal them with.",
     inputSchema: {
       type: "object",
       properties: { run_id: { type: "integer", description: "The run_id from sensei_search." } },
       required: ["run_id"],
+    },
+  },
+  {
+    name: "sensei_reveal_contacts",
+    description:
+      "Reveal the hiring-side contact (name, title, email, direct phone) for Sensei search results. Results come back WITHOUT contacts by default — each row's contact.status is 'pending' until revealed. Pass table_id to reveal every unresolved row in one go (recommended, batched, already-revealed rows are skipped so it never double-charges), or row_id for a single company. Spends the workspace's reveal credits, exactly like the Enrich button in the app. Runs in the background: call sensei_results again in ~30-60s and the contacts will have filled in.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        table_id: { type: "integer", description: "Reveal every unresolved row in this result table." },
+        row_id: { type: "integer", description: "Or reveal just this one row." },
+      },
     },
   },
   {
@@ -125,6 +139,7 @@ function mapRows(tables: any[]): any[] {
       const c = r.cells || {};
       out.push({
         row_id: r.id,
+        table_id: t.id,
         company: c.company || "",
         role: c.role || "",
         location: c.city || "",
@@ -271,7 +286,43 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
           next: "Answer with sensei_reply({ chat_id, answer }) — the search has not run yet.",
         });
       }
-      return ok({ run_id: runId, status: d.status, count: companies.length, summary: d.answer || "", companies });
+      // Contacts are revealed on demand (and charged), so a fresh result set has them
+      // blank. Say so explicitly — otherwise an agent reports "no contact found" when
+      // the truth is "not revealed yet", and never calls the tool that would fill them.
+      const pending = companies.filter((c) => !c.contact.email && !c.contact.phone).length;
+      const tables = (d.tables || []).map((t: any) => ({ table_id: t.id, name: t.name, rows: (t.rows || []).length }));
+      const out: any = { run_id: runId, status: d.status, count: companies.length, summary: d.answer || "", tables, companies };
+      if (pending > 0) {
+        out.contacts_pending = pending;
+        out.next = `${pending} of ${companies.length} rows have no contact yet. Contacts are revealed on demand: call sensei_reveal_contacts({ table_id }) with a table_id above, wait ~30-60s, then read sensei_results again.`;
+      }
+      return ok(out);
+    }
+    case "sensei_reveal_contacts": {
+      if (!bobConfigured()) return err("Sensei is not configured on this environment.");
+      const org = await resolveOrg(caller);
+      if (!org.ok) return err(`Workspace error: ${org.error}`);
+      const tableId = Number(args.table_id);
+      const rowId = Number(args.row_id);
+      if (!Number.isFinite(tableId) && !Number.isFinite(rowId))
+        return err("Provide a 'table_id' (reveal the whole table) or a 'row_id' (one company). Both come from sensei_results.");
+      const r = Number.isFinite(tableId)
+        ? await enrichTable(org.orgId, tableId)
+        : await enrichRow(org.orgId, rowId);
+      if (!r.ok) {
+        if (r.status === 404) return err("No such table or row for this key.");
+        if (r.status === 402)
+          return err("Out of reveal credits for this workspace. Contact admin@studojo.com to top up.");
+        return err(`Could not start the reveal: ${r.error}`);
+      }
+      const d = r.data || {};
+      if (d.status === "idle")
+        return ok({ status: "idle", revealing: 0, note: "Every row already has a contact, or a reveal is already running." });
+      return ok({
+        status: "revealing",
+        revealing: d.count ?? (Array.isArray(d.rows) ? d.rows.length : 1),
+        next: "Runs in the background. Call sensei_results again in about 30-60 seconds to read the contacts.",
+      });
     }
     case "enrich_contact": {
       if (!enginesConfigured())
