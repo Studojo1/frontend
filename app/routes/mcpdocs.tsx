@@ -293,7 +293,7 @@ export default function McpDocs() {
           <Section id="introduction" title="Introduction">
             <p className="text-studojo-muted mb-3">
               The Sensei MCP server is a hosted Model Context Protocol endpoint. Point any MCP client
-              at it and your agent gains nine tools: five to run, steer and read a Sensei hiring search,
+              at it and your agent gains ten tools: six to run, steer and read a Sensei hiring search,
               three to enrich people you already know, and one to check your balances. It speaks JSON-RPC 2.0 over
               Streamable HTTP, so it works with Claude, Cursor, and the official MCP SDKs without any
               local install.
@@ -349,6 +349,9 @@ export default function McpDocs() {
                 Answer Sensei's clarifying question, or send a follow-up to refine a search ("make it
                 Pune instead"). Returns a new run_id to poll.
               </Tool>
+              <Tool name="sensei_stop" args="{ run_id }">
+                Stop a run you no longer want. Whatever it already found stays readable.
+              </Tool>
               <Tool name="sensei_results" args="{ run_id }">
                 The companies and roles found: company, role, location, pay, fit score, why-now
                 signal, apply link. Contacts are blank here; the response tells you how many are
@@ -368,7 +371,8 @@ export default function McpDocs() {
                 Status and results for a bulk enrichment job.
               </Tool>
               <Tool name="sensei_credits" args="{ }">
-                Remaining Sensei search credits and your Contact Enrichment monthly quota.
+                What is left: your workspace's search and reveal credits (the same numbers the app
+                and dashboard show), plus this key's monthly enrichment quota.
               </Tool>
             </div>
           </Section>
@@ -434,14 +438,16 @@ export default function McpDocs() {
 
           <Section id="isolation" title="Isolation & credits">
             <p className="text-studojo-muted mb-3">
-              Each API key gets its own private Sensei workspace. Searches, runs and results created
-              with one key are never visible to another, so the server is safe to hand to a customer or
-              a teammate.
+              A key is bound to the Sensei workspace its owner already belongs to, so an agent sees
+              exactly what that team sees in the browser: the same searches, the same companies, the
+              same shared credits. Nothing is duplicated and no separate balance appears. Keys from
+              other workspaces can never read or touch yours.
             </p>
             <p className="text-studojo-muted">
-              Two meters apply. Sensei searches draw on your key's search credits (a run that finds and
-              scores companies also spends the compute behind it). Contact enrichment draws on your
-              monthly enrichment quota, and is billed only on a returned contact. Call{" "}
+              Two meters apply. Searches and contact reveals draw on your workspace's shared pool, the
+              same one the app and the manager dashboard show, so a reveal by your agent and a reveal by
+              a teammate come out of the same balance. The standalone enrichment tools draw on this
+              key's monthly quota instead, and bill only on a returned contact. Call{" "}
               <span className="font-mono text-studojo-ink">sensei_credits</span> any time to see both.
               To top up, contact <span className="font-mono text-studojo-ink">admin@studojo.com</span>.
             </p>

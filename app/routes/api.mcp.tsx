@@ -1,8 +1,10 @@
 // POST /api/mcp — the hosted Sensei MCP server (JSON-RPC 2.0 over Streamable HTTP).
 // Auth: Authorization: Bearer sk_live_… (the same keys as /api/enrich). Each key is
-// isolated to its own bob-svc workspace (see lib/mcp/keyorg.server.ts). Tools:
-// sensei_search / sensei_status / sensei_results (discovery, async) and
-// enrich_contact / enrich_bulk / enrichment_status / sensei_credits.
+// bound to the Sensei workspace its owner already belongs to (see lib/mcp/keyorg.server.ts),
+// so an agent sees the same searches, tables and shared credits as the browser. Tools:
+// sensei_search / sensei_status / sensei_reply / sensei_stop / sensei_results /
+// sensei_reveal_contacts (discovery) and enrich_contact / enrich_bulk /
+// enrichment_status / sensei_credits.
 import type { Route } from "./+types/api.mcp";
 import { guard, json } from "~/lib/api-guard.server";
 import { chargeUsage, logRequest, quotaStatus, rateLimit, type Caller } from "~/lib/api-keys.server";
@@ -10,6 +12,7 @@ import { enrichProfile, parseTarget, enginesConfigured } from "~/lib/enrich.serv
 import { createJob, getJob, BULK_MAX } from "~/lib/api-jobs.server";
 import {
   bobConfigured, createChat, sendMessage, getRun, getChat, getCredits, enrichRow, enrichTable,
+  stopRun,
 } from "~/lib/mcp/bob-client";
 import { resolveOrg } from "~/lib/mcp/keyorg.server";
 
@@ -55,6 +58,16 @@ const TOOLS = [
         run_id: { type: "integer", description: "Alternative to chat_id: the run you are answering." },
       },
       required: ["answer"],
+    },
+  },
+  {
+    name: "sensei_stop",
+    description:
+      "Stop a search that is still running, when the brief was wrong or you no longer need it. Whatever it already found stays readable with sensei_results. Stopping frees the workspace from a run that would otherwise keep spending.",
+    inputSchema: {
+      type: "object",
+      properties: { run_id: { type: "integer", description: "The run to stop." } },
+      required: ["run_id"],
     },
   },
   {
@@ -127,7 +140,7 @@ const TOOLS = [
   {
     name: "sensei_credits",
     description:
-      "Show remaining balances for this API key: Sensei search credits and the Contact Enrichment monthly quota.",
+      "Show what is left: this workspace's Sensei search credits and reveal credits (the same shared pool the app and dashboard show), plus this key's monthly Contact Enrichment quota.",
     inputSchema: { type: "object", properties: {} },
   },
 ];
@@ -259,6 +272,20 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
         chat_id: chatId,
         status: "running",
         next: "Poll sensei_status with this NEW run_id; when it is 'done', call sensei_results.",
+      });
+    }
+    case "sensei_stop": {
+      if (!bobConfigured()) return err("Sensei is not configured on this environment.");
+      const runId = Number(args.run_id);
+      if (!Number.isFinite(runId)) return err("Provide a numeric 'run_id'.");
+      const org = await resolveOrg(caller);
+      if (!org.ok) return err(`Workspace error: ${org.error}`);
+      const r = await stopRun(org.orgId, runId);
+      if (!r.ok) return r.status === 404 ? err("No such run for this key.") : err(`Could not stop it: ${r.error}`);
+      return ok({
+        run_id: runId,
+        status: "stopped",
+        next: "Anything it already found is still readable with sensei_results.",
       });
     }
     case "sensei_results": {

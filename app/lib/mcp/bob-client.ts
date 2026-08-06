@@ -44,7 +44,22 @@ async function call<T>(
   return { ok: true, data: data as T };
 }
 
-/** Idempotently provision + seed this key's isolated org; returns its bob-svc org id. */
+/** The Sensei workspace this API key's OWNER already belongs to. This is what binds an
+ *  agent to the same workspace the person uses in the browser (same searches, same shared
+ *  credits). 404 => the email has no Sensei account. */
+export function resolveUser(
+  email: string,
+): Promise<BobResp<{ org_id: number; name: string; role: string }>> {
+  return call("/gateway/resolve-user", { method: "POST", body: { email } });
+}
+
+/** Stop a run that is still going. */
+export function stopRun(orgId: number, runId: number): Promise<BobResp<any>> {
+  return call(`/runs/${runId}/stop`, { method: "POST", orgId });
+}
+
+/** Legacy: provision an ISOLATED org for a key with no Sensei account. No longer the
+ *  default path — keys now bind to their owner's real workspace via resolveUser. */
 export function provisionOrg(
   keyRef: string,
   enrichmentCredits = 50,
