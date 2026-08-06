@@ -44,7 +44,22 @@ async function call<T>(
   return { ok: true, data: data as T };
 }
 
-/** Idempotently provision + seed this key's isolated org; returns its bob-svc org id. */
+/** The Sensei workspace this API key's OWNER already belongs to. This is what binds an
+ *  agent to the same workspace the person uses in the browser (same searches, same shared
+ *  credits). 404 => the email has no Sensei account. */
+export function resolveUser(
+  email: string,
+): Promise<BobResp<{ org_id: number; name: string; role: string }>> {
+  return call("/gateway/resolve-user", { method: "POST", body: { email } });
+}
+
+/** Stop a run that is still going. */
+export function stopRun(orgId: number, runId: number): Promise<BobResp<any>> {
+  return call(`/runs/${runId}/stop`, { method: "POST", orgId });
+}
+
+/** Legacy: provision an ISOLATED org for a key with no Sensei account. No longer the
+ *  default path — keys now bind to their owner's real workspace via resolveUser. */
 export function provisionOrg(
   keyRef: string,
   enrichmentCredits = 50,
@@ -78,4 +93,41 @@ export function getChat(orgId: number, chatId: number): Promise<BobResp<any>> {
 
 export function getCredits(orgId: number): Promise<BobResp<any>> {
   return call("/credits", { orgId });
+}
+
+/** Reveal ONE result row's hiring-side contact. Spends the workspace's enrichment
+ *  credits, exactly like the Enrich button in the app. Runs in the background: the
+ *  row's contact status moves enriching -> found | not_found. */
+export function enrichRow(orgId: number, rowId: number): Promise<BobResp<any>> {
+  return call(`/rows/${rowId}/enrich`, { method: "POST", orgId });
+}
+
+/** Reveal every not-yet-resolved row in a result table (batched). Rows already found
+ *  or in flight are skipped, so a repeat call never double-charges. */
+export function enrichTable(orgId: number, tableId: number): Promise<BobResp<any>> {
+  return call(`/tables/${tableId}/enrich`, { method: "POST", orgId });
+}
+
+/** Resolve a Sensei (app.studojo.com) session to its user + org + role. Used by the
+ *  manager dashboard so a workspace admin can mint an MCP key for their OWN workspace
+ *  without needing a separate studojo.com platform account. Authenticated by the
+ *  caller's session token, NOT the gateway secret — bob-svc verifies it. */
+export async function whoAmI(
+  session: string,
+): Promise<BobResp<{ email: string | null; role: string; org: { id: number; name: string } | null }>> {
+  if (!session) return { ok: false, status: 401, error: "no_session" };
+  let r: Response;
+  try {
+    r = await fetch(BASE + "/me", { headers: { "X-Bob-Session": session } });
+  } catch {
+    return { ok: false, status: 502, error: "sensei_unreachable" };
+  }
+  let data: any = null;
+  try {
+    data = await r.json();
+  } catch {
+    data = null;
+  }
+  if (!r.ok) return { ok: false, status: r.status, error: String(data?.detail || `http_${r.status}`) };
+  return { ok: true, data };
 }

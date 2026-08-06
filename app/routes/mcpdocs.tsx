@@ -123,7 +123,8 @@ const NAV: [string, string][] = [
   ["tools", "Tools"],
   ["search-flow", "Running a search"],
   ["clarify", "Clarifying questions"],
-  ["enrich-flow", "Enriching contacts"],
+  ["contacts", "Getting contacts"],
+  ["enrich-flow", "Enriching anyone"],
   ["isolation", "Isolation & credits"],
   ["raw", "Raw JSON-RPC"],
   ["errors", "Errors"],
@@ -140,20 +141,32 @@ const CONNECT_JSON = `{
   }
 }`;
 
-const SEARCH_FLOW = `# 1) start a search -> get a run_id back immediately
+const SEARCH_FLOW = `# 1) start a search -> a run_id comes back immediately
 sensei_search({ "query": "business analyst roles at funded startups in Bangalore, 0-2 years" })
 # -> { "run_id": 8412, "chat_id": 320, "status": "running" }
 
-# 2) poll every 20-30s until done (a run takes a few minutes)
+# 2) poll every 20-30s (a run takes a few minutes)
 sensei_status({ "run_id": 8412 })
 # -> { "status": "running", "counters": { "found": 34, "kept": 12 } }
 # -> ... eventually -> { "status": "done", "done": true }
 
-# 3) read the companies, roles, and any contacts found
+# 3) read the companies. NOTE: contacts are blank at this point
 sensei_results({ "run_id": 8412 })
-# -> { "count": 22, "companies": [ { "company": "...", "role": "...",
-#      "location": "Bengaluru", "fit_score": 88, "why_now": "...",
-#      "apply_url": "...", "contact": { "name": "...", "email": "...", "phone": "..." } } ] }`;
+# -> { "count": 22, "tables": [ { "table_id": 55, "name": "Companies", "rows": 22 } ],
+#      "contacts_pending": 22,
+#      "next": "22 of 22 rows have no contact yet. Call sensei_reveal_contacts...",
+#      "companies": [ { "company": "...", "role": "...", "location": "Bengaluru",
+#                       "fit_score": 88, "why_now": "...", "apply_url": "...",
+#                       "table_id": 55, "row_id": 903,
+#                       "contact": { "name": "", "email": "", "status": "pending" } } ] }
+
+# 4) reveal the contacts (spends reveal credits), then read again
+sensei_reveal_contacts({ "table_id": 55 })
+# -> { "status": "revealing", "revealing": 22 }
+#    ...wait ~30-60s...
+sensei_results({ "run_id": 8412 })
+# -> contacts now filled in: { "name": "Priya R", "title": "Talent Lead",
+#                              "email": "priya@...", "phone": "+91...", "status": "found" }`;
 
 const CLARIFY_FLOW = `# a poll can come back BLOCKED on a question instead of running
 sensei_status({ "run_id": 8412 })
@@ -245,10 +258,10 @@ export default function McpDocs() {
             Connect a client
           </a>
           <a
-            href="/apidashboard"
+            href="https://dashboard.studojo.com"
             className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-studojo-purple text-white"
           >
-            Get your API key
+            Get your key
           </a>
           <a
             href="/apidocs"
@@ -280,8 +293,8 @@ export default function McpDocs() {
           <Section id="introduction" title="Introduction">
             <p className="text-studojo-muted mb-3">
               The Sensei MCP server is a hosted Model Context Protocol endpoint. Point any MCP client
-              at it and your agent gains eight tools: four to run, steer and read a Sensei hiring search,
-              three to enrich contacts, and one to check your balances. It speaks JSON-RPC 2.0 over
+              at it and your agent gains ten tools: six to run, steer and read a Sensei hiring search,
+              three to enrich people you already know, and one to check your balances. It speaks JSON-RPC 2.0 over
               Streamable HTTP, so it works with Claude, Cursor, and the official MCP SDKs without any
               local install.
             </p>
@@ -294,12 +307,12 @@ export default function McpDocs() {
 
           <Section id="connect" title="Connect a client">
             <p className="text-studojo-muted mb-4">
-              Add the server to your client's MCP config. Use the API key you created on{" "}
-              <a href="/apidashboard" className="text-studojo-purple font-semibold underline">
-                /apidashboard
-              </a>{" "}
-              as a bearer token. Most clients (Claude Desktop, Cursor, custom agents) accept this
-              shape:
+              First get a key. If you run a Sensei workspace, open the manager dashboard at{" "}
+              <span className="font-mono text-studojo-ink">dashboard.studojo.com</span>, go to{" "}
+              <strong>AI agent</strong>, and press Generate key. That key is tied to your workspace, so
+              your agent sees the same searches, companies and credits your team already works with.
+              Then add the server to your client's MCP config. Most clients (Claude, Cursor, custom
+              agents) accept this shape:
             </p>
             {s({ json: CONNECT_JSON })}
             <p className="text-studojo-muted text-sm mt-3">
@@ -311,12 +324,12 @@ export default function McpDocs() {
           <Section id="auth" title="Authentication">
             <p className="text-studojo-muted mb-3">
               Every request carries <span className="font-mono text-studojo-ink">Authorization: Bearer sk_live_…</span>.
-              The key both authenticates you and isolates your workspace, so no other key can see your
-              searches or results. Create, rotate and revoke keys on{" "}
-              <a href="/apidashboard" className="text-studojo-purple font-semibold underline">
-                /apidashboard
-              </a>
-              . A missing or invalid key returns <span className="font-mono text-studojo-ink">401</span>.
+              The key both authenticates you and scopes every call to your workspace, so no other key
+              can see your searches or results. Generate and revoke keys from the{" "}
+              <strong>AI agent</strong> tab of the manager dashboard, where only a workspace admin can
+              create them. A missing or invalid key returns{" "}
+              <span className="font-mono text-studojo-ink">401</span>; a revoked key stops working
+              immediately.
             </p>
           </Section>
 
@@ -336,9 +349,17 @@ export default function McpDocs() {
                 Answer Sensei's clarifying question, or send a follow-up to refine a search ("make it
                 Pune instead"). Returns a new run_id to poll.
               </Tool>
+              <Tool name="sensei_stop" args="{ run_id }">
+                Stop a run you no longer want. Whatever it already found stays readable.
+              </Tool>
               <Tool name="sensei_results" args="{ run_id }">
                 The companies and roles found: company, role, location, pay, fit score, why-now
-                signal, apply link, and any contact already discovered.
+                signal, apply link. Contacts are blank here; the response tells you how many are
+                pending and the table_id to reveal them with.
+              </Tool>
+              <Tool name="sensei_reveal_contacts" args="{ table_id | row_id }">
+                Reveal the hiring-side contact for search results. Pass a table_id to do a whole
+                table at once. Spends the workspace's reveal credits.
               </Tool>
               <Tool name="enrich_contact" args="{ linkedin_url | first_name,last_name,company }">
                 One person to a verified work email, personal email and mobile. Billed only on a hit.
@@ -350,7 +371,8 @@ export default function McpDocs() {
                 Status and results for a bulk enrichment job.
               </Tool>
               <Tool name="sensei_credits" args="{ }">
-                Remaining Sensei search credits and your Contact Enrichment monthly quota.
+                What is left: your workspace's search and reveal credits (the same numbers the app
+                and dashboard show), plus this key's monthly enrichment quota.
               </Tool>
             </div>
           </Section>
@@ -377,7 +399,35 @@ export default function McpDocs() {
             </p>
           </Section>
 
-          <Section id="enrich-flow" title="Enriching contacts">
+          <Section id="contacts" title="Getting contacts">
+            <p className="text-studojo-muted mb-4">
+              There are two different ways to get a phone number out of Sensei, and they are not
+              interchangeable. Which one you want depends on whether Sensei found the person, or you did.
+            </p>
+            <div className={`${CARD} p-5 mb-4`}>
+              <p className="font-bold mb-1">Companies Sensei found &rarr; <span className="font-mono text-sm">sensei_reveal_contacts</span></p>
+              <p className="text-studojo-muted text-sm" style={{margin:0}}>
+                Search results arrive without contacts. Revealing one works out the right hiring-side
+                person for that specific role, using the apply channel, the job poster and the insider
+                who wrote the post before it pays for a lookup. It draws on your workspace's reveal
+                credits, the same pool the Enrich button in the app uses, so a reveal through your agent
+                and a reveal in the browser are the same thing and show up in the same place. It runs in
+                the background: read the results again after about a minute.
+              </p>
+            </div>
+            <div className={`${CARD} p-5`}>
+              <p className="font-bold mb-1">Someone you already know &rarr; <span className="font-mono text-sm">enrich_contact</span></p>
+              <p className="text-studojo-muted text-sm" style={{margin:0}}>
+                Give it a LinkedIn profile, or a name and company, and it returns a verified work email,
+                personal email and mobile. This is the Contact Enrichment engine, independent of any
+                search, and it answers immediately. It draws on your key's monthly enrichment quota
+                rather than your workspace reveal credits, and you are charged only when a contact
+                actually comes back.
+              </p>
+            </div>
+          </Section>
+
+          <Section id="enrich-flow" title="Enriching anyone">
             <p className="text-studojo-muted mb-4">
               The enrichment tools work standalone (they don't need a search) and are billed only when
               a verified contact comes back. The same identity requested twice in a month is served
@@ -388,14 +438,16 @@ export default function McpDocs() {
 
           <Section id="isolation" title="Isolation & credits">
             <p className="text-studojo-muted mb-3">
-              Each API key gets its own private Sensei workspace. Searches, runs and results created
-              with one key are never visible to another, so the server is safe to hand to a customer or
-              a teammate.
+              A key is bound to the Sensei workspace its owner already belongs to, so an agent sees
+              exactly what that team sees in the browser: the same searches, the same companies, the
+              same shared credits. Nothing is duplicated and no separate balance appears. Keys from
+              other workspaces can never read or touch yours.
             </p>
             <p className="text-studojo-muted">
-              Two meters apply. Sensei searches draw on your key's search credits (a run that finds and
-              scores companies also spends the compute behind it). Contact enrichment draws on your
-              monthly enrichment quota, and is billed only on a returned contact. Call{" "}
+              Two meters apply. Searches and contact reveals draw on your workspace's shared pool, the
+              same one the app and the manager dashboard show, so a reveal by your agent and a reveal by
+              a teammate come out of the same balance. The standalone enrichment tools draw on this
+              key's monthly quota instead, and bill only on a returned contact. Call{" "}
               <span className="font-mono text-studojo-ink">sensei_credits</span> any time to see both.
               To top up, contact <span className="font-mono text-studojo-ink">admin@studojo.com</span>.
             </p>
