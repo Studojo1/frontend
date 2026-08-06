@@ -79,3 +79,27 @@ export function getChat(orgId: number, chatId: number): Promise<BobResp<any>> {
 export function getCredits(orgId: number): Promise<BobResp<any>> {
   return call("/credits", { orgId });
 }
+
+/** Resolve a Sensei (app.studojo.com) session to its user + org + role. Used by the
+ *  manager dashboard so a workspace admin can mint an MCP key for their OWN workspace
+ *  without needing a separate studojo.com platform account. Authenticated by the
+ *  caller's session token, NOT the gateway secret — bob-svc verifies it. */
+export async function whoAmI(
+  session: string,
+): Promise<BobResp<{ email: string | null; role: string; org: { id: number; name: string } | null }>> {
+  if (!session) return { ok: false, status: 401, error: "no_session" };
+  let r: Response;
+  try {
+    r = await fetch(BASE + "/me", { headers: { "X-Bob-Session": session } });
+  } catch {
+    return { ok: false, status: 502, error: "sensei_unreachable" };
+  }
+  let data: any = null;
+  try {
+    data = await r.json();
+  } catch {
+    data = null;
+  }
+  if (!r.ok) return { ok: false, status: r.status, error: String(data?.detail || `http_${r.status}`) };
+  return { ok: true, data };
+}

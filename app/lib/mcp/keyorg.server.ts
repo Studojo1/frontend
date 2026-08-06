@@ -32,6 +32,37 @@ function rowsOf(r: any): any[] {
   return (r?.rows ?? r ?? []) as any[];
 }
 
+/** Point a key at an EXISTING Sensei workspace (used when a workspace admin mints a key
+ *  from the manager dashboard). Pre-mapping here is what stops resolveOrg from creating a
+ *  fresh empty workspace on the key's first call, so the agent sees the same searches,
+ *  contacts and credit pool the team already uses in the browser. */
+export async function mapKeyToOrg(keyId: string, email: string, orgId: number): Promise<void> {
+  await ensureTable();
+  await db.execute(sql`
+    INSERT INTO mcp_key_org (key_id, env, email, bob_org_id)
+    VALUES (${keyId}, ${ENV}, ${email}, ${orgId})
+    ON CONFLICT (key_id, env) DO UPDATE SET bob_org_id = EXCLUDED.bob_org_id`);
+}
+
+/** Drop a key's workspace mapping (on revoke), so a stale row can never resolve. */
+export async function unmapKey(keyId: string): Promise<void> {
+  await ensureTable();
+  await db.execute(sql`DELETE FROM mcp_key_org WHERE key_id = ${keyId} AND env = ${ENV}`);
+}
+
+/** The bob workspace ids this email's keys are mapped to, keyed by key id (this env). */
+export async function mappedOrgs(email: string): Promise<Record<string, number>> {
+  await ensureTable();
+  const rows = rowsOf(
+    await db.execute(
+      sql`SELECT key_id, bob_org_id FROM mcp_key_org WHERE lower(email) = ${email.toLowerCase()} AND env = ${ENV}`,
+    ),
+  );
+  const out: Record<string, number> = {};
+  for (const r of rows) out[String(r.key_id)] = Number(r.bob_org_id);
+  return out;
+}
+
 export type OrgResult = { ok: true; orgId: number } | { ok: false; error: string };
 
 /** The isolated bob-svc org for this key (in this environment), provisioning it on first

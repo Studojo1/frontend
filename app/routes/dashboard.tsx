@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FiUsers, FiPhone, FiZap, FiExternalLink, FiUserPlus, FiActivity,
-  FiMessageSquare, FiAlertTriangle, FiHome, FiMail,
+  FiMessageSquare, FiAlertTriangle, FiHome, FiMail, FiCpu, FiCopy, FiTrash2,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -279,7 +279,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
     } catch (e: any) { setErr(e.message || "Could not assign chat"); load(); }
   };
 
-  const [tab, setTab] = useState<"overview" | "team" | "credits" | "chats" | "activity">("overview");
+  const [tab, setTab] = useState<"overview" | "team" | "credits" | "chats" | "activity" | "agent">("overview");
   const card = "bg-white border-2 border-neutral-900 rounded-2xl shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
   const str = (v: any) => (v == null || v === "" ? "" : String(v));
 
@@ -313,6 +313,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
     { id: "credits", label: "Credit usage", icon: FiPhone },
     { id: "chats", label: "Chats", icon: FiMessageSquare },
     { id: "activity", label: "Activity log", icon: FiActivity },
+    { id: "agent", label: "AI agent", icon: FiCpu },
   ] as const;
 
   const StatCard = ({ icon, label, value, sub, warn }: { icon: any; label: string; value: any; sub?: string; warn?: boolean }) => (
@@ -555,9 +556,148 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
               {(data?.activity.length ?? 0) === 0 && <div className="px-5 py-8 text-center text-neutral-400 text-sm">No credit activity yet.</div>}
             </div>
           )}
+
+          {/* AI AGENT (MCP) */}
+          {tab === "agent" && <AgentPanel card={card} orgName={data?.org?.name || "your workspace"} />}
         </div>
       </main>
     </div>
+  );
+}
+
+// ── AI agent (MCP) ───────────────────────────────────────────────────────────
+// Lets the workspace ADMIN mint a key that connects Claude/Cursor/any MCP client
+// straight to THIS workspace. The key is issued by /api/sensei/mcp-key, which
+// verifies the caller's Sensei session and maps the key to this org, so the agent
+// shares the team's searches, contacts and credit pool.
+function AgentPanel({ card, orgName }: { card: string; orgName: string }) {
+  const [keys, setKeys] = useState<any[] | null>(null);
+  const [fresh, setFresh] = useState<string>("");      // plaintext, shown once
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState("");
+
+  const mcpUrl = () => {
+    const host = typeof window === "undefined" ? "studojo.com" : window.location.host.replace(/^dashboard\./, "");
+    return `https://${host}/api/mcp`;
+  };
+
+  const call = async (method: "GET" | "POST", body?: any) => {
+    const res = await fetch("/api/sensei/mcp-key", {
+      method,
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d?.message || d?.error || `Request failed (${res.status})`);
+    return d;
+  };
+
+  const load = useCallback(() => {
+    call("GET").then((d) => { setKeys(d.keys || []); setErr(""); })
+      .catch((e) => { setKeys([]); setErr(e.message); });
+  }, []);
+  useEffect(load, [load]);
+
+  const generate = async () => {
+    setBusy(true); setErr("");
+    try {
+      const d = await call("POST", { action: "create" });
+      setFresh(d.key?.plaintext || "");
+      setKeys(d.keys || []);
+    } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
+  };
+
+  const revoke = async (id: string) => {
+    if (!confirm("Revoke this key? Any agent using it stops working immediately.")) return;
+    setBusy(true); setErr("");
+    try { const d = await call("POST", { action: "revoke", id }); setKeys(d.keys || []); setFresh(""); }
+    catch (e: any) { setErr(e.message); } finally { setBusy(false); }
+  };
+
+  const copy = (text: string, what: string) => {
+    navigator.clipboard?.writeText(text);
+    setCopied(what); setTimeout(() => setCopied(""), 1400);
+  };
+
+  const config = `{
+  "mcpServers": {
+    "sensei": {
+      "url": "${mcpUrl()}",
+      "headers": { "Authorization": "Bearer ${fresh || "YOUR_KEY_HERE"}" }
+    }
+  }
+}`;
+
+  const CopyBtn = ({ text, what }: { text: string; what: string }) => (
+    <button onClick={() => copy(text, what)}
+      className="shrink-0 flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg border-2 border-neutral-900 bg-white hover:bg-neutral-50">
+      <FiCopy size={12} /> {copied === what ? "Copied" : "Copy"}
+    </button>
+  );
+
+  return (
+    <>
+      <p className="text-sm text-neutral-600 mb-5 max-w-2xl">
+        Connect Claude, Cursor or your own agent directly to {orgName}. It can run searches, read the
+        results and reveal contacts, using the same shared credits as the team.
+      </p>
+
+      {err && (
+        <div className="mb-5 bg-amber-50 border-2 border-amber-500 rounded-xl px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
+          <FiAlertTriangle size={16} className="shrink-0 mt-0.5" /> <span>{err}</span>
+        </div>
+      )}
+
+      {fresh && (
+        <div className="mb-5 bg-violet-50 border-2 border-violet-500 rounded-2xl p-4">
+          <div className="text-xs font-bold uppercase tracking-wide text-violet-700 mb-2">Your new key — copy it now</div>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 min-w-0 truncate bg-white border-2 border-neutral-900 rounded-lg px-3 py-2 text-[13px]">{fresh}</code>
+            <CopyBtn text={fresh} what="key" />
+          </div>
+          <p className="text-xs text-violet-700 mt-2">This is the only time it is shown. If you lose it, revoke it and make a new one.</p>
+        </div>
+      )}
+
+      <div className={`${card} p-5 mb-6`}>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h2 className="font-['Clash_Display'] text-lg font-bold">Your keys</h2>
+          <button onClick={generate} disabled={busy}
+            className="bg-violet-500 text-white text-sm font-bold px-4 py-2 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] disabled:opacity-60">
+            {busy ? "Working…" : "Generate key"}
+          </button>
+        </div>
+        {keys === null && <p className="text-neutral-400 text-sm">Loading…</p>}
+        {keys?.length === 0 && <p className="text-neutral-400 text-sm">No agent keys yet. Generate one to get started.</p>}
+        {keys?.map((k) => (
+          <div key={k.id} className="flex items-center justify-between gap-3 py-2.5 border-b border-neutral-100 last:border-0 text-sm">
+            <div className="min-w-0">
+              <div className="font-mono text-[13px] truncate">sk_live_…{k.last_four}</div>
+              <div className="text-xs text-neutral-400">
+                {k.request_count} calls{k.last_used_at ? ` · last used ${fmtDate(k.last_used_at)}` : " · never used"}
+              </div>
+            </div>
+            <button onClick={() => revoke(k.id)} title="Revoke"
+              className="shrink-0 flex items-center gap-1 text-xs font-bold text-red-600 px-2.5 py-1.5 rounded-lg border-2 border-red-300 hover:bg-red-50">
+              <FiTrash2 size={12} /> Revoke
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="font-['Clash_Display'] text-lg font-bold mb-3">Connect your client</h2>
+      <div className={`${card} p-5`}>
+        <p className="text-sm text-neutral-600 mb-3">Paste this into your MCP client config, with the key from above.</p>
+        <div className="flex items-start gap-2">
+          <pre className="flex-1 min-w-0 overflow-x-auto bg-[#15141b] text-neutral-100 rounded-xl border-2 border-neutral-900 p-4 text-[12.5px] leading-relaxed">{config}</pre>
+          <CopyBtn text={config} what="config" />
+        </div>
+        <p className="text-xs text-neutral-400 mt-3">
+          Full tool reference at <a className="font-semibold text-violet-700 hover:underline" href={`https://${typeof window === "undefined" ? "studojo.com" : window.location.host.replace(/^dashboard\./, "")}/mcpdocs`} target="_blank" rel="noreferrer">/mcpdocs</a>.
+        </p>
+      </div>
+    </>
   );
 }
 
