@@ -8,7 +8,7 @@
 // one environment from resolving to a non-existent org on the other.
 import { sql } from "drizzle-orm";
 import db from "~/lib/db";
-import { provisionOrg } from "~/lib/mcp/bob-client";
+import { resolveUser } from "~/lib/mcp/bob-client";
 import type { Caller } from "~/lib/api-keys.server";
 
 const ENV = process.env.BOB_ENV || "prod";
@@ -32,11 +32,46 @@ function rowsOf(r: any): any[] {
   return (r?.rows ?? r ?? []) as any[];
 }
 
+/** Point a key at an EXISTING Sensei workspace (used when a workspace admin mints a key
+ *  from the manager dashboard). Pre-mapping here is what stops resolveOrg from creating a
+ *  fresh empty workspace on the key's first call, so the agent sees the same searches,
+ *  contacts and credit pool the team already uses in the browser. */
+export async function mapKeyToOrg(keyId: string, email: string, orgId: number): Promise<void> {
+  await ensureTable();
+  await db.execute(sql`
+    INSERT INTO mcp_key_org (key_id, env, email, bob_org_id)
+    VALUES (${keyId}, ${ENV}, ${email}, ${orgId})
+    ON CONFLICT (key_id, env) DO UPDATE SET bob_org_id = EXCLUDED.bob_org_id`);
+}
+
+/** Drop a key's workspace mapping (on revoke), so a stale row can never resolve. */
+export async function unmapKey(keyId: string): Promise<void> {
+  await ensureTable();
+  await db.execute(sql`DELETE FROM mcp_key_org WHERE key_id = ${keyId} AND env = ${ENV}`);
+}
+
+/** The bob workspace ids this email's keys are mapped to, keyed by key id (this env). */
+export async function mappedOrgs(email: string): Promise<Record<string, number>> {
+  await ensureTable();
+  const rows = rowsOf(
+    await db.execute(
+      sql`SELECT key_id, bob_org_id FROM mcp_key_org WHERE lower(email) = ${email.toLowerCase()} AND env = ${ENV}`,
+    ),
+  );
+  const out: Record<string, number> = {};
+  for (const r of rows) out[String(r.key_id)] = Number(r.bob_org_id);
+  return out;
+}
+
 export type OrgResult = { ok: true; orgId: number } | { ok: false; error: string };
 
-/** The isolated bob-svc org for this key (in this environment), provisioning it on first
- *  use. Race-safe: bob-svc provisioning is idempotent (dedupes on a synthetic per-key
- *  domain) and the INSERT ... ON CONFLICT + re-read converge concurrent first-callers. */
+/** The Sensei workspace this key acts on. Resolution order:
+ *   1. an explicit mapping (set when the key was generated from the manager dashboard);
+ *   2. otherwise the workspace the key's OWNER EMAIL already belongs to, which is then
+ *      remembered — so a key issued anywhere still lands in the right place.
+ *  It deliberately NO LONGER creates a workspace. Inventing one gave the agent an empty
+ *  world with its own credit pool that never matched the app; a key with no Sensei
+ *  account is an error the caller can act on instead. */
 export async function resolveOrg(caller: Caller): Promise<OrgResult> {
   await ensureTable();
   const hit = rowsOf(
@@ -46,10 +81,18 @@ export async function resolveOrg(caller: Caller): Promise<OrgResult> {
   )[0];
   if (hit?.bob_org_id) return { ok: true, orgId: Number(hit.bob_org_id) };
 
-  const p = await provisionOrg(caller.id);
-  if (!p.ok) return { ok: false, error: p.error };
-  const orgId = Number(p.data.org_id);
-
+  const r = await resolveUser(caller.email);
+  if (!r.ok) {
+    if (r.status === 404) {
+      return {
+        ok: false,
+        error:
+          "this key is not linked to a Sensei workspace. Generate a key from the AI agent tab of dashboard.studojo.com, or ask Studojo to link this one.",
+      };
+    }
+    return { ok: false, error: r.error };
+  }
+  const orgId = Number(r.data.org_id);
   await db.execute(sql`
     INSERT INTO mcp_key_org (key_id, env, email, bob_org_id)
     VALUES (${caller.id}, ${ENV}, ${caller.email}, ${orgId})
