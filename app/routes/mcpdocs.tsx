@@ -12,7 +12,7 @@ export function meta(_: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "Connect any MCP client to Sensei. Run hiring searches (companies + roles + contacts) and enrich LinkedIn profiles into verified emails and mobiles, straight from Claude, Cursor or your own agent.",
+        "Connect any MCP client to Sensei. Run hiring searches, read scored companies and roles, and reveal the right contact at each, straight from Claude, Cursor or your own agent.",
     },
   ];
 }
@@ -124,7 +124,6 @@ const NAV: [string, string][] = [
   ["search-flow", "Running a search"],
   ["clarify", "Clarifying questions"],
   ["contacts", "Getting contacts"],
-  ["enrich-flow", "Enriching anyone"],
   ["isolation", "Isolation & credits"],
   ["raw", "Raw JSON-RPC"],
   ["errors", "Errors"],
@@ -183,18 +182,6 @@ sensei_reply({ "chat_id": 320, "answer": "6-12 LPA" })
 sensei_status({ "run_id": 8419 })   # -> running ... -> done
 sensei_results({ "run_id": 8419 })`;
 
-const ENRICH_FLOW = `# one profile -> verified email + mobile (billed only on a hit)
-enrich_contact({ "linkedin_url": "https://www.linkedin.com/in/janedoe" })
-enrich_contact({ "first_name": "Jane", "last_name": "Doe", "company": "Acme" })
-
-# a batch -> a job_id you poll
-enrich_bulk({ "items": [ { "linkedin_url": "..." }, { "first_name": "...", "last_name": "...", "domain": "acme.com" } ] })
-# -> { "job_id": "job_9f2c...", "count": 2 }
-enrichment_status({ "job_id": "job_9f2c..." })
-
-# check what's left on this key
-sensei_credits({})`;
-
 const RAW_CURL = `# The MCP endpoint speaks JSON-RPC 2.0 over Streamable HTTP. List the tools:
 curl -s https://studojo.com/api/mcp \\
   -H "Authorization: Bearer sk_live_your_key_here" \\
@@ -242,9 +229,9 @@ export default function McpDocs() {
           Sensei MCP
         </h1>
         <p className="mt-4 text-lg text-studojo-muted max-w-2xl">
-          Give Claude, Cursor or your own agent direct access to Sensei. Run a hiring search from a
-          plain-English brief and get back scored companies, roles and contacts, and turn any
-          LinkedIn profile into a verified email and mobile, all over one connection.
+          Give Claude, Cursor or your own agent direct access to Sensei. Describe who you are placing,
+          and it finds the companies hiring for that profile right now, scores them, and reveals the
+          person worth reaching at each.
         </p>
         <div className="mt-5 inline-flex items-center gap-2 text-sm font-mono bg-studojo-surface-muted border border-neutral-300 rounded-lg px-3 py-1.5">
           <span className="text-studojo-muted">Endpoint</span>
@@ -262,12 +249,6 @@ export default function McpDocs() {
             className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-studojo-purple text-white"
           >
             Get your key
-          </a>
-          <a
-            href="/apidocs"
-            className="font-bold px-5 py-2.5 rounded-xl border-2 border-neutral-900 shadow-[3px_3px_0_0_#171717] hover:translate-y-0.5 transition bg-studojo-green text-neutral-900"
-          >
-            Enrichment REST API
           </a>
         </div>
       </section>
@@ -293,8 +274,8 @@ export default function McpDocs() {
           <Section id="introduction" title="Introduction">
             <p className="text-studojo-muted mb-3">
               The Sensei MCP server is a hosted Model Context Protocol endpoint. Point any MCP client
-              at it and your agent gains ten tools: six to run, steer and read a Sensei hiring search,
-              three to enrich people you already know, and one to check your balances. It speaks JSON-RPC 2.0 over
+              at it and your agent gains seven tools: six to run, steer and read a Sensei hiring search and
+              reveal its contacts, and one to check what credit is left. It speaks JSON-RPC 2.0 over
               Streamable HTTP, so it works with Claude, Cursor, and the official MCP SDKs without any
               local install.
             </p>
@@ -361,18 +342,9 @@ export default function McpDocs() {
                 Reveal the hiring-side contact for search results. Pass a table_id to do a whole
                 table at once. Spends the workspace's reveal credits.
               </Tool>
-              <Tool name="enrich_contact" args="{ linkedin_url | first_name,last_name,company }">
-                One person to a verified work email, personal email and mobile. Billed only on a hit.
-              </Tool>
-              <Tool name="enrich_bulk" args="{ items[], fields? }">
-                Up to 500 contacts in one batch. Returns a <span className="font-mono">job_id</span>.
-              </Tool>
-              <Tool name="enrichment_status" args="{ job_id }">
-                Status and results for a bulk enrichment job.
-              </Tool>
               <Tool name="sensei_credits" args="{ }">
-                What is left: your workspace's search and reveal credits (the same numbers the app
-                and dashboard show), plus this key's monthly enrichment quota.
+                What is left: your workspace's search and reveal credits, the same numbers the app
+                and the manager dashboard show.
               </Tool>
             </div>
           </Section>
@@ -401,8 +373,8 @@ export default function McpDocs() {
 
           <Section id="contacts" title="Getting contacts">
             <p className="text-studojo-muted mb-4">
-              There are two different ways to get a phone number out of Sensei, and they are not
-              interchangeable. Which one you want depends on whether Sensei found the person, or you did.
+              Search results arrive without contacts. Revealing them is a separate, deliberate step,
+              so you only pay for the companies you actually want to reach.
             </p>
             <div className={`${CARD} p-5 mb-4`}>
               <p className="font-bold mb-1">Companies Sensei found &rarr; <span className="font-mono text-sm">sensei_reveal_contacts</span></p>
@@ -415,25 +387,6 @@ export default function McpDocs() {
                 the background: read the results again after about a minute.
               </p>
             </div>
-            <div className={`${CARD} p-5`}>
-              <p className="font-bold mb-1">Someone you already know &rarr; <span className="font-mono text-sm">enrich_contact</span></p>
-              <p className="text-studojo-muted text-sm" style={{margin:0}}>
-                Give it a LinkedIn profile, or a name and company, and it returns a verified work email,
-                personal email and mobile. This is the Contact Enrichment engine, independent of any
-                search, and it answers immediately. It draws on your key's monthly enrichment quota
-                rather than your workspace reveal credits, and you are charged only when a contact
-                actually comes back.
-              </p>
-            </div>
-          </Section>
-
-          <Section id="enrich-flow" title="Enriching anyone">
-            <p className="text-studojo-muted mb-4">
-              The enrichment tools work standalone (they don't need a search) and are billed only when
-              a verified contact comes back. The same identity requested twice in a month is served
-              from cache and not charged again.
-            </p>
-            <Code>{ENRICH_FLOW}</Code>
           </Section>
 
           <Section id="isolation" title="Isolation & credits">
@@ -444,12 +397,12 @@ export default function McpDocs() {
               other workspaces can never read or touch yours.
             </p>
             <p className="text-studojo-muted">
-              Two meters apply. Searches and contact reveals draw on your workspace's shared pool, the
-              same one the app and the manager dashboard show, so a reveal by your agent and a reveal by
-              a teammate come out of the same balance. The standalone enrichment tools draw on this
-              key's monthly quota instead, and bill only on a returned contact. Call{" "}
-              <span className="font-mono text-studojo-ink">sensei_credits</span> any time to see both.
-              To top up, contact <span className="font-mono text-studojo-ink">admin@studojo.com</span>.
+              Searches and contact reveals both draw on your workspace's shared pool, the same one
+              the app and the manager dashboard show, so a reveal by your agent and a reveal by a
+              teammate come out of the same balance. Call{" "}
+              <span className="font-mono text-studojo-ink">sensei_credits</span> any time to see what is
+              left. To top up, contact{" "}
+              <span className="font-mono text-studojo-ink">admin@studojo.com</span>.
             </p>
           </Section>
 
@@ -475,8 +428,7 @@ export default function McpDocs() {
                     {[
                       ["HTTP 401", "Missing or invalid API key."],
                       ["isError on a tool result", "The tool ran but couldn't complete — the text explains why (bad input, out of credits, no such run)."],
-                      ["Out of search credits", "sensei_search is out of this key's Sensei credits; top up via admin@studojo.com."],
-                      ["Out of enrichment credits", "The monthly enrichment quota is spent; it resets at the start of the month."],
+                      ["Out of credits", "The workspace is out of search or reveal credits; top up via admin@studojo.com."],
                       ["JSON-RPC -32601", "Unknown method (only initialize, tools/list, tools/call, ping are served)."],
                     ].map(([w, m]) => (
                       <tr key={w} className="align-top">
