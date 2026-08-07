@@ -15,6 +15,7 @@ import {
   stopRun,
 } from "~/lib/mcp/bob-client";
 import { resolveOrg } from "~/lib/mcp/keyorg.server";
+import { CODE, fail, scrub, safeProgress, codeForStatus, type Code } from "~/lib/mcp/errors.server";
 
 const PROTOCOL_VERSION = "2025-06-18";
 const SERVER_INFO = { name: "studojo-sensei", version: "1.0.0" };
@@ -24,6 +25,22 @@ const ok = (obj: unknown): Content => ({
   content: [{ type: "text", text: typeof obj === "string" ? obj : JSON.stringify(obj, null, 2) }],
 });
 const err = (message: string): Content => ({ content: [{ type: "text", text: message }], isError: true });
+
+/** A coded failure: the customer gets a generic message + a ref; the true reason is
+ *  recorded internally against that ref (and alerts ops when our side is unhealthy). */
+async function failed(
+  code: Code,
+  ctx: { tool: string; caller: Caller; detail?: string; hint?: string },
+): Promise<Content> {
+  const f = await fail(code, {
+    detail: ctx.detail,
+    hint: ctx.hint,
+    tool: ctx.tool,
+    keyId: ctx.caller.id,
+    email: ctx.caller.email,
+  });
+  return { content: [{ type: "text", text: JSON.stringify({ error: f }, null, 2) }], isError: true };
+}
 
 const TOOLS = [
   {
@@ -145,18 +162,6 @@ const TOOLS = [
   },
 ];
 
-/** A human-readable progress line from the run's own event log. The raw counters sit at
- *  zero for the first minutes of a run, which tells a polling agent nothing; the events say
- *  what the pipeline is actually doing ("harvest: done in 122s", "Added 5 rows"). */
-function progressOf(events: any[]): string {
-  const list = Array.isArray(events) ? events : [];
-  for (let i = list.length - 1; i >= 0; i--) {
-    const label = String(list[i]?.label || "").trim();
-    if (label) return label;
-  }
-  return "";
-}
-
 /** Counters minus bob-svc's internal bookkeeping (leading underscore). */
 function publicCounters(c: any): Record<string, any> {
   const out: Record<string, any> = {};
@@ -215,18 +220,16 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
   args = args || {};
   switch (name) {
     case "sensei_search": {
-      if (!bobConfigured()) return err("Sensei is not configured on this environment.");
+      if (!bobConfigured()) return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "gateway secret unset" });
       const query = String(args.query || "").trim();
-      if (!query) return err("Provide a 'query' — the hiring brief in plain English.");
+      if (!query) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide a 'query' — the hiring brief in plain English." });
       const org = await resolveOrg(caller);
-      if (!org.ok) return err(`Could not open your Sensei workspace: ${org.error}`);
+      if (!org.ok) return failed(org.error.includes("not linked") ? CODE.WORKSPACE_NOT_LINKED : CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: org.error });
       const chat = await createChat(org.orgId);
-      if (!chat.ok) return err(`Could not start a search: ${chat.error}`);
+      if (!chat.ok) return failed(codeForStatus(chat.status), { tool: name, caller, detail: `createChat: ${chat.error}` });
       const run = await sendMessage(org.orgId, chat.data.id, query);
       if (!run.ok) {
-        if (run.status === 402)
-          return err("Out of Sensei search credits for this key. Contact admin@studojo.com to top up.");
-        return err(`Could not start a search: ${run.error}`);
+        return failed(codeForStatus(run.status), { tool: name, caller, detail: `sendMessage: ${run.error}` });
       }
       return ok({
         run_id: run.data.run_id,
@@ -236,19 +239,19 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       });
     }
     case "sensei_status": {
-      if (!bobConfigured()) return err("Sensei is not configured on this environment.");
+      if (!bobConfigured()) return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "gateway secret unset" });
       const runId = Number(args.run_id);
-      if (!Number.isFinite(runId)) return err("Provide a numeric 'run_id'.");
+      if (!Number.isFinite(runId)) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide a numeric 'run_id'." });
       const org = await resolveOrg(caller);
-      if (!org.ok) return err(`Workspace error: ${org.error}`);
+      if (!org.ok) return failed(org.error.includes("not linked") ? CODE.WORKSPACE_NOT_LINKED : CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: org.error });
       const r = await getRun(org.orgId, runId);
-      if (!r.ok) return r.status === 404 ? err("No such run for this key.") : err(r.error);
+      if (!r.ok) return failed(codeForStatus(r.status), { tool: name, caller, detail: `getRun: ${r.error}`, hint: "No such run for this key." });
       const d = r.data || {};
       const base: any = {
         run_id: runId,
         status: d.status,
-        summary: d.answer || "",
-        progress: progressOf(d.events),
+        summary: scrub(d.answer),
+        progress: safeProgress(d.events),
         counters: publicCounters(d.counters),
         done: d.status === "done",
       };
@@ -256,7 +259,7 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       // (the question text, the tap-answer options, and the chat to reply into).
       if (d.status === "waiting_user") {
         base.needs_answer = true;
-        base.question = d.answer || "Could you clarify your request?";
+        base.question = scrub(d.answer) || "Could you clarify your request?";
         base.chat_id = d.chat_id ?? null;
         base.options = await questionOptions(org.orgId, d.chat_id);
         base.next =
@@ -265,27 +268,23 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       return ok(base);
     }
     case "sensei_reply": {
-      if (!bobConfigured()) return err("Sensei is not configured on this environment.");
+      if (!bobConfigured()) return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "gateway secret unset" });
       const answer = String(args.answer || "").trim();
-      if (!answer) return err("Provide an 'answer' — what to tell Sensei.");
+      if (!answer) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide an 'answer' — what to tell Sensei." });
       const org = await resolveOrg(caller);
-      if (!org.ok) return err(`Workspace error: ${org.error}`);
+      if (!org.ok) return failed(org.error.includes("not linked") ? CODE.WORKSPACE_NOT_LINKED : CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: org.error });
       let chatId = Number(args.chat_id);
       if (!Number.isFinite(chatId)) {
         const rid = Number(args.run_id);
-        if (!Number.isFinite(rid)) return err("Provide a 'chat_id' (or the 'run_id' you are answering).");
+        if (!Number.isFinite(rid)) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide a 'chat_id' (or the 'run_id' you are answering)." });
         const rr = await getRun(org.orgId, rid);
-        if (!rr.ok) return rr.status === 404 ? err("No such run for this key.") : err(rr.error);
+        if (!rr.ok) return failed(codeForStatus(rr.status), { tool: name, caller, detail: `getRun: ${rr.error}`, hint: "No such run for this key." });
         chatId = Number(rr.data?.chat_id);
-        if (!Number.isFinite(chatId)) return err("Could not resolve the chat for that run_id; pass chat_id.");
+        if (!Number.isFinite(chatId)) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Could not resolve the chat for that run_id; pass chat_id." });
       }
       const run = await sendMessage(org.orgId, chatId, answer);
       if (!run.ok) {
-        if (run.status === 404) return err("No such search for this key.");
-        if (run.status === 402)
-          return err("Out of Sensei search credits for this key. Contact admin@studojo.com to top up.");
-        if (run.status === 409) return err("That search is still working — poll sensei_status before replying again.");
-        return err(`Could not send the reply: ${run.error}`);
+        return failed(codeForStatus(run.status), { tool: name, caller, detail: `sendMessage: ${run.error}`, hint: "No such search for this key." });
       }
       return ok({
         run_id: run.data.run_id,
@@ -295,13 +294,13 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       });
     }
     case "sensei_stop": {
-      if (!bobConfigured()) return err("Sensei is not configured on this environment.");
+      if (!bobConfigured()) return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "gateway secret unset" });
       const runId = Number(args.run_id);
-      if (!Number.isFinite(runId)) return err("Provide a numeric 'run_id'.");
+      if (!Number.isFinite(runId)) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide a numeric 'run_id'." });
       const org = await resolveOrg(caller);
-      if (!org.ok) return err(`Workspace error: ${org.error}`);
+      if (!org.ok) return failed(org.error.includes("not linked") ? CODE.WORKSPACE_NOT_LINKED : CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: org.error });
       const r = await stopRun(org.orgId, runId);
-      if (!r.ok) return r.status === 404 ? err("No such run for this key.") : err(`Could not stop it: ${r.error}`);
+      if (!r.ok) return failed(codeForStatus(r.status), { tool: name, caller, detail: `stopRun: ${r.error}`, hint: "No such run for this key." });
       // Report the run's REAL state rather than assuming it stopped: a run can reach a
       // terminal state on its own (it finished, or it paused on a clarifying question)
       // between the agent deciding to stop and the request landing.
@@ -312,7 +311,7 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
           run_id: runId,
           status: "waiting_user",
           needs_answer: true,
-          question: after.ok ? after.data?.answer || "" : "",
+          question: after.ok ? scrub(after.data?.answer) : "",
           chat_id: after.ok ? after.data?.chat_id ?? null : null,
           next: "It had already paused to ask you something rather than still running. Answer with sensei_reply, or just leave it.",
         });
@@ -327,13 +326,13 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       });
     }
     case "sensei_results": {
-      if (!bobConfigured()) return err("Sensei is not configured on this environment.");
+      if (!bobConfigured()) return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "gateway secret unset" });
       const runId = Number(args.run_id);
-      if (!Number.isFinite(runId)) return err("Provide a numeric 'run_id'.");
+      if (!Number.isFinite(runId)) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide a numeric 'run_id'." });
       const org = await resolveOrg(caller);
-      if (!org.ok) return err(`Workspace error: ${org.error}`);
+      if (!org.ok) return failed(org.error.includes("not linked") ? CODE.WORKSPACE_NOT_LINKED : CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: org.error });
       const r = await getRun(org.orgId, runId);
-      if (!r.ok) return r.status === 404 ? err("No such run for this key.") : err(r.error);
+      if (!r.ok) return failed(codeForStatus(r.status), { tool: name, caller, detail: `getRun: ${r.error}`, hint: "No such run for this key." });
       const d = r.data || {};
       const companies = mapRows(d.tables || []);
       // Don't let an empty table read as "nothing found" when Sensei is actually blocked
@@ -343,7 +342,7 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
           run_id: runId,
           status: "waiting_user",
           needs_answer: true,
-          question: d.answer || "Could you clarify your request?",
+          question: scrub(d.answer) || "Could you clarify your request?",
           chat_id: d.chat_id ?? null,
           options: await questionOptions(org.orgId, d.chat_id),
           count: 0,
@@ -356,7 +355,7 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       // the truth is "not revealed yet", and never calls the tool that would fill them.
       const pending = companies.filter((c) => !c.contact.email && !c.contact.phone).length;
       const tables = (d.tables || []).map((t: any) => ({ table_id: t.id, name: t.name, rows: (t.rows || []).length }));
-      const out: any = { run_id: runId, status: d.status, count: companies.length, summary: d.answer || "", tables, companies };
+      const out: any = { run_id: runId, status: d.status, count: companies.length, summary: scrub(d.answer), tables, companies };
       if (pending > 0) {
         out.contacts_pending = pending;
         out.next = `${pending} of ${companies.length} rows have no contact yet. Contacts are revealed on demand: call sensei_reveal_contacts({ table_id }) with a table_id above, wait ~30-60s, then read sensei_results again.`;
@@ -364,21 +363,18 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       return ok(out);
     }
     case "sensei_reveal_contacts": {
-      if (!bobConfigured()) return err("Sensei is not configured on this environment.");
+      if (!bobConfigured()) return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "gateway secret unset" });
       const org = await resolveOrg(caller);
-      if (!org.ok) return err(`Workspace error: ${org.error}`);
+      if (!org.ok) return failed(org.error.includes("not linked") ? CODE.WORKSPACE_NOT_LINKED : CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: org.error });
       const tableId = Number(args.table_id);
       const rowId = Number(args.row_id);
       if (!Number.isFinite(tableId) && !Number.isFinite(rowId))
-        return err("Provide a 'table_id' (reveal the whole table) or a 'row_id' (one company). Both come from sensei_results.");
+        return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide a 'table_id' (reveal the whole table) or a 'row_id' (one company). Both come from sensei_results." });
       const r = Number.isFinite(tableId)
         ? await enrichTable(org.orgId, tableId)
         : await enrichRow(org.orgId, rowId);
       if (!r.ok) {
-        if (r.status === 404) return err("No such table or row for this key.");
-        if (r.status === 402)
-          return err("Out of reveal credits for this workspace. Contact admin@studojo.com to top up.");
-        return err(`Could not start the reveal: ${r.error}`);
+        return failed(codeForStatus(r.status), { tool: name, caller, detail: `enrich: ${r.error}`, hint: "No such table or row for this key." });
       }
       const d = r.data || {};
       if (d.status === "idle")
@@ -391,11 +387,11 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
     }
     case "enrich_contact": {
       if (!enginesConfigured())
-        return err("The enrichment engine is not connected for this account. Contact admin@studojo.com.");
+        return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "enrichment providers not configured" });
       const target = parseTarget(args);
-      if (!target) return err("Provide linkedin_url, or first_name + last_name + (company or domain).");
+      if (!target) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide linkedin_url, or first_name + last_name + (company or domain)." });
       const q = await quotaStatus(caller.id, caller.monthlyQuota);
-      if (!q.ok) return err(`Out of enrichment credits (${q.used}/${q.quota} this month).`);
+      if (!q.ok) return failed(CODE.OUT_OF_CREDITS, { tool: name, caller, detail: `monthly quota ${q.used}/${q.quota}` });
       const fields = Array.isArray(args.fields)
         ? args.fields.filter((f: any) => f === "email" || f === "phone")
         : ["email", "phone"];
@@ -406,12 +402,12 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
     }
     case "enrich_bulk": {
       if (!enginesConfigured())
-        return err("The enrichment engine is not connected for this account. Contact admin@studojo.com.");
+        return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "enrichment providers not configured" });
       const items = Array.isArray(args.items) ? args.items : [];
-      if (!items.length) return err("Provide 'items' — an array of contacts to enrich.");
-      if (items.length > BULK_MAX) return err(`Too many items (max ${BULK_MAX}).`);
+      if (!items.length) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide 'items' — an array of contacts to enrich." });
+      if (items.length > BULK_MAX) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: `Too many items (max ${BULK_MAX}).` });
       const q = await quotaStatus(caller.id, caller.monthlyQuota);
-      if (!q.ok) return err(`Out of enrichment credits (${q.used}/${q.quota} this month).`);
+      if (!q.ok) return failed(CODE.OUT_OF_CREDITS, { tool: name, caller, detail: `monthly quota ${q.used}/${q.quota}` });
       const fields = Array.isArray(args.fields)
         ? args.fields.filter((f: any) => f === "email" || f === "phone")
         : ["email", "phone"];
@@ -420,9 +416,9 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
     }
     case "enrichment_status": {
       const jobId = String(args.job_id || "").trim();
-      if (!jobId) return err("Provide a 'job_id'.");
+      if (!jobId) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide a 'job_id'." });
       const jr = await getJob(caller.email, jobId);
-      if (!jr) return err("No such job for this key.");
+      if (!jr) return failed(CODE.NOT_FOUND, { tool: name, caller, hint: "No such job for this key." });
       return ok(jr);
     }
     case "sensei_credits": {
@@ -444,7 +440,7 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       return ok(out);
     }
     default:
-      return err(`Unknown tool: ${name}`);
+      return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: `Unknown tool: ${name}` });
   }
 }
 
@@ -468,12 +464,12 @@ async function handle(m: any, caller: Caller, ctx: { t0: number; ip: string | nu
     const name = m?.params?.name;
     const args = m?.params?.arguments || {};
     const rl = await rateLimit(caller.id);
-    if (!rl.ok) return reply(err(`Rate limited, retry in ${rl.resetSec}s.`));
+    if (!rl.ok) return reply(await failed(CODE.RATE_LIMITED, { tool: String(name || "-"), caller, detail: `retry in ${rl.resetSec}s` }));
     let result: Content;
     try {
       result = await dispatch(name, args, caller);
-    } catch {
-      result = err("Internal error running the tool. Try again.");
+    } catch (e) {
+      result = await failed(CODE.INTERNAL_ERROR, { tool: String(name || "-"), caller, detail: String((e as any)?.message || e).slice(0, 500) });
     }
     await logRequest({
       keyId: caller.id,
