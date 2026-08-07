@@ -145,6 +145,25 @@ const TOOLS = [
   },
 ];
 
+/** A human-readable progress line from the run's own event log. The raw counters sit at
+ *  zero for the first minutes of a run, which tells a polling agent nothing; the events say
+ *  what the pipeline is actually doing ("harvest: done in 122s", "Added 5 rows"). */
+function progressOf(events: any[]): string {
+  const list = Array.isArray(events) ? events : [];
+  for (let i = list.length - 1; i >= 0; i--) {
+    const label = String(list[i]?.label || "").trim();
+    if (label) return label;
+  }
+  return "";
+}
+
+/** Counters minus bob-svc's internal bookkeeping (leading underscore). */
+function publicCounters(c: any): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(c || {})) if (!k.startsWith("_")) out[k] = v;
+  return out;
+}
+
 function mapRows(tables: any[]): any[] {
   const out: any[] = [];
   for (const t of tables || []) {
@@ -229,7 +248,8 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
         run_id: runId,
         status: d.status,
         summary: d.answer || "",
-        counters: d.counters || {},
+        progress: progressOf(d.events),
+        counters: publicCounters(d.counters),
         done: d.status === "done",
       };
       // BLOCKED on a clarifying question: hand the agent everything it needs to answer
@@ -282,10 +302,28 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       if (!org.ok) return err(`Workspace error: ${org.error}`);
       const r = await stopRun(org.orgId, runId);
       if (!r.ok) return r.status === 404 ? err("No such run for this key.") : err(`Could not stop it: ${r.error}`);
+      // Report the run's REAL state rather than assuming it stopped: a run can reach a
+      // terminal state on its own (it finished, or it paused on a clarifying question)
+      // between the agent deciding to stop and the request landing.
+      const after = await getRun(org.orgId, runId);
+      const st = after.ok ? after.data?.status : null;
+      if (st === "waiting_user")
+        return ok({
+          run_id: runId,
+          status: "waiting_user",
+          needs_answer: true,
+          question: after.ok ? after.data?.answer || "" : "",
+          chat_id: after.ok ? after.data?.chat_id ?? null : null,
+          next: "It had already paused to ask you something rather than still running. Answer with sensei_reply, or just leave it.",
+        });
+      if (st === "done")
+        return ok({ run_id: runId, status: "done", next: "It had already finished. Read it with sensei_results." });
+      // bob-svc FLAGS the run and the pipeline winds down at its next safe checkpoint,
+      // so a status of 'running' here means "accepted, winding down", not "stop failed".
       return ok({
         run_id: runId,
-        status: "stopped",
-        next: "Anything it already found is still readable with sensei_results.",
+        status: st === "running" || !st ? "stopping" : st,
+        next: "It winds down at the next safe checkpoint. Anything it already found stays readable with sensei_results.",
       });
     }
     case "sensei_results": {
