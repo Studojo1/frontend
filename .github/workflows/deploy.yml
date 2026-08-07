@@ -47,6 +47,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.APP_NAME }}:latest
           build-args: |
             VITE_PUBLIC_POSTHOG_KEY=${{ secrets.POSTHOG_KEY }}
+            VITE_CONTEXT_LOGO_CLIENT_ID=${{ vars.VITE_CONTEXT_LOGO_CLIENT_ID }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.APP_NAME }}:buildcache,mode=max
 
@@ -111,10 +112,9 @@ jobs:
         run: |
           # Server-side runtime env for the hosted Sensei MCP (app/routes/api.mcp.tsx).
           # BOB_INTERNAL_URL is in-cluster DNS (non-secret, bypasses the ingress);
-          # BOB_ENV scopes each API key's provisioned bob-svc workspace to THIS
-          # environment (the platform DB is shared, the bob DBs are not);
+          # BOB_ENV scopes each API key's workspace mapping to THIS environment;
           # BOB_MCP_SECRET is the shared gateway secret (== bob-svc BOB_GATEWAY_SECRET).
-          # Unset secret = the MCP's discovery tools stay disabled (fail-closed).
+          # Unset secret = the MCP's Sensei tools stay disabled (fail-closed).
           kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
             BOB_INTERNAL_URL="http://bob-svc:8000" \
             BOB_ENV="prod"
