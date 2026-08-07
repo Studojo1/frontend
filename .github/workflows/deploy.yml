@@ -108,6 +108,21 @@ jobs:
           kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
             INTERNAL_API_SECRET="${{ secrets.INTERNAL_API_SECRET }}"
 
+      - name: Configure Sensei MCP gateway env
+        run: |
+          # Server-side runtime env for the hosted Sensei MCP (app/routes/api.mcp.tsx).
+          # BOB_INTERNAL_URL is in-cluster DNS (non-secret, bypasses the ingress);
+          # BOB_ENV scopes each API key's workspace mapping to THIS environment;
+          # BOB_MCP_SECRET is the shared gateway secret (== bob-svc BOB_GATEWAY_SECRET).
+          # Unset secret = the MCP's Sensei tools stay disabled (fail-closed).
+          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            BOB_INTERNAL_URL="http://bob-svc:8000" \
+            BOB_ENV="prod"
+          if [ -n "${{ secrets.BOB_MCP_SECRET }}" ]; then
+            kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+              BOB_MCP_SECRET="${{ secrets.BOB_MCP_SECRET }}"
+          fi
+
       - name: Apply schema migrations
         env:
           JOB_NAME: frontend-migrate-${{ github.run_id }}
