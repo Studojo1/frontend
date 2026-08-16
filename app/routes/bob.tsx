@@ -889,6 +889,34 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         .bob-thinscroll::-webkit-scrollbar { height: 5px; width: 5px; }
         .bob-thinscroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 9px; }
         .bob-thinscroll::-webkit-scrollbar-track { background: transparent; }
+        /* The conversation surface. A flat cream panel read as an unfinished void
+           next to the hard borders and offset shadows everywhere else in this UI,
+           so the chat sits on a faint dot grid: the drafting-paper texture that
+           belongs with a neo-brutalist system, and something for the bubbles to
+           sit ON rather than float in. Pure CSS, no asset. */
+        .bob-canvas {
+          position: relative;
+          background-image: radial-gradient(rgba(25,26,35,.085) 1px, transparent 1px);
+          background-size: 22px 22px;
+          background-position: -1px -1px;
+        }
+        .bob-dark .bob-canvas {
+          background-image: radial-gradient(rgba(255,255,255,.075) 1px, transparent 1px);
+        }
+        /* A soft violet wash bleeding from the top, so the surface has a light
+           source instead of reading as one uniform slab. Sits under content. */
+        .bob-canvas::before {
+          content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+          background:
+            radial-gradient(120% 52% at 50% -10%, rgba(124,92,255,.10), transparent 62%),
+            radial-gradient(80% 40% at 100% 0%, rgba(124,92,255,.05), transparent 60%);
+        }
+        .bob-dark .bob-canvas::before {
+          background:
+            radial-gradient(120% 52% at 50% -10%, rgba(124,92,255,.17), transparent 62%),
+            radial-gradient(80% 40% at 100% 0%, rgba(124,92,255,.09), transparent 60%);
+        }
+        .bob-canvas > * { position: relative; z-index: 1; }
         /* Dark mode: override the app's hard-coded surface colours. */
         .bob-dark { background:#131316 !important; color:#e7e7ea; }
         .bob-dark .bg-white { background:#1c1c20 !important; }
@@ -1070,7 +1098,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
           {/* Chat */}
           {showChat && (
-            <section className={`flex flex-col min-w-0 flex-1 ${atRest ? "justify-center" : ""}`}>
+            <section className={`bob-canvas flex flex-col min-w-0 flex-1 ${atRest ? "justify-center" : ""}`}>
               {/* At rest the transcript area does not stretch, so this and the
                   composer below centre together as one block. Mid-conversation it
                   reverts to a normal scrolling transcript with a docked composer. */}
