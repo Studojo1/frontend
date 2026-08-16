@@ -859,7 +859,13 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const showChat = mode !== "table";
   // Mount the results panel as soon as a run STARTS (not only once a table object
   // exists), so the live-progress banner + provisional rows can show immediately.
-  const showTable = (hasTables || running) && mode !== "chat";
+  // A run is only SEARCHING once it has actually opened a table. Keying the
+  // research UI off `running` alone made every run flash the split view, the
+  // neural-net panel and "about 10 min left" for a few seconds — including runs
+  // that were only going to come back with one clarifying question. create_table
+  // is the first thing a real search does, so it is the honest signal.
+  const searching = running && hasTables;
+  const showTable = (hasTables || searching) && mode !== "chat";
   const lastMsg = messages[messages.length - 1];
   const suggestions: string[] =
     !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
@@ -1056,7 +1062,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </span>
           {running && (
             <span className="flex items-center gap-1.5 text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2.5 py-1">
-              <FiLoader className="animate-spin" size={11} /> researching
+              {/* "researching" is only true once a table exists. A run that is
+                  about to come back with a question was claiming to research. */}
+              <FiLoader className="animate-spin" size={11} /> {searching ? "researching" : "thinking"}
             </span>
           )}
           <div className="ml-auto flex items-center gap-2">
@@ -1102,9 +1110,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               {/* At rest the transcript area does not stretch, so this and the
                   composer below centre together as one block. Mid-conversation it
                   reverts to a normal scrolling transcript with a docked composer. */}
-              <div ref={scrollRef} className={atRest ? "px-5 shrink-0" : "flex-1 overflow-y-auto px-5 py-6"}>
+              <div ref={scrollRef} className={atRest ? "px-5 shrink-0" : "flex-1 overflow-y-auto px-5 py-6 flex flex-col"}>
                 {atRest && <EmptyChat />}
-                <div className="max-w-2xl mx-auto space-y-4">
+                {/* mt-auto anchors a short transcript to the BOTTOM, so the first
+                    exchange sits just above the composer instead of stranded at
+                    the top of an empty pane. Long transcripts scroll normally. */}
+                <div className="max-w-2xl w-full mx-auto space-y-4 mt-auto">
                   {messages.map((m) => (
                     m.role === "user" ? (
                       <div key={m.id} className="flex justify-end">
@@ -1123,7 +1134,22 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       </div>
                     )
                   ))}
-                  {running && run && <RunProgress run={run} />}
+                  {/* Before a table exists we do not yet know whether this run
+                      is a search or a one-line question, so show a quiet thinking
+                      line rather than a progress bar promising "10 min left". */}
+                  {running && !hasTables && (
+                    <div className="flex gap-2.5">
+                      <div className="w-7 h-7 mt-1 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
+                        <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:150ms]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:300ms]" />
+                      </div>
+                    </div>
+                  )}
+                  {searching && run && <RunProgress run={run} />}
                   {suggestions.length > 0 && (
                     <div className="flex flex-wrap gap-2 pl-9">
                       {suggestions.map((q) => (
