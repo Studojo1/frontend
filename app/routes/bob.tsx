@@ -1068,7 +1068,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           {/* Chat */}
           {showChat && (
             <section className="flex flex-col min-w-0 flex-1">
-              <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6">
+              <div ref={scrollRef} className={`flex-1 overflow-y-auto px-5 py-6 ${
+                messages.length === 0 && !running ? "flex flex-col justify-center" : ""}`}>
                 {messages.length === 0 && !running && <EmptyChat />}
                 <div className="max-w-2xl mx-auto space-y-4">
                   {messages.map((m) => (
@@ -1464,20 +1465,19 @@ function SupportModal({ email, orgName, onClose }: { email: string; orgName: str
 // opening is simply to ask.
 function EmptyChat() {
   return (
-    <div className="max-w-2xl mx-auto pt-6 pb-2 bob-pop">
+    <div className="max-w-2xl w-full mx-auto bob-pop">
       <div className="flex gap-2.5">
         <div className="w-7 h-7 mt-1 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
         </div>
-        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-[14.5px] leading-relaxed">
-          Hey, who are we getting hired today?
-        </div>
-      </div>
-      <div className="flex gap-2.5 mt-3">
-        <div className="w-7 h-7 shrink-0" />
-        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-[14.5px] leading-relaxed">
-          Tell me about a candidate, a batch of students, or the kind of companies you want to
-          work with. Attach a resume if you have one. I will ask if I am missing anything.
+        <div className="space-y-2.5 min-w-0">
+          <div className="w-fit px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-[14.5px] leading-relaxed">
+            Hey, who are we getting hired today?
+          </div>
+          <div className="max-w-[26rem] px-4 py-3 rounded-2xl border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-[14.5px] leading-relaxed text-neutral-600">
+            Tell me about a candidate, a batch of students, or the kind of companies you want to
+            work with. Attach a resume if you have one, and I will ask if I am missing anything.
+          </div>
         </div>
       </div>
     </div>
