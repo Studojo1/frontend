@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap, FiSearch,
-  FiFileText, FiGrid, FiLoader, FiExternalLink, FiChevronRight,
+  FiFileText, FiGrid, FiLoader, FiExternalLink,
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
-  FiMessageSquare, FiColumns, FiUser, FiUsers, FiBriefcase, FiTarget,
+  FiMessageSquare, FiColumns, FiUsers,
   FiLayers, FiGlobe, FiPaperclip, FiFile, FiPhone, FiMail, FiUserPlus, FiSlash,
   FiMoon, FiSun,
 } from "react-icons/fi";
@@ -1069,7 +1069,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           {showChat && (
             <section className="flex flex-col min-w-0 flex-1">
               <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6">
-                {messages.length === 0 && !running && <EmptyChat onPick={(s) => setInput(s)} />}
+                {messages.length === 0 && !running && <EmptyChat />}
                 <div className="max-w-2xl mx-auto space-y-4">
                   {messages.map((m) => (
                     m.role === "user" ? (
@@ -1203,31 +1203,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     </div>
   );
 }
-
-// ── Empty chat: mandate templates ────────────────────────────────────────────
-
-const TEMPLATES = [
-  {
-    icon: FiUser, title: "Place a candidate",
-    subtitle: "One resume, the companies hiring them now",
-    prompt: "I've attached my candidate's resume (use the paperclip). Preferences: [city, company stage, expected CTC]. Find the best companies hiring for this profile right now, with evidence and the right hiring contact per company.",
-  },
-  {
-    icon: FiUsers, title: "Place a cohort",
-    subtitle: "Companies that hire a whole batch",
-    prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Target CTC band: [e.g. 4-8 LPA]. Company profile: [e.g. product startups, mid-size IT services, any that bulk-hire freshers]. Location: [cities]. Find companies that can absorb them at volume (bulk hiring, walk-in drives, fresher intakes), with a TA/HR contact for each.",
-  },
-  {
-    icon: FiBriefcase, title: "Build a partner pipeline",
-    subtitle: "Recurring hiring partners worth an MoU",
-    prompt: "Find [number] companies that should become recurring hiring partners for our [domain] training programs. Look for sustained hiring velocity and fresher-friendliness. Target HR/TA leadership as contacts.",
-  },
-  {
-    icon: FiTarget, title: "Track a market",
-    subtitle: "Who just raised money and is hiring",
-    prompt: "Which [sector] startups in [city/India] raised funding in the last 6 months and are actively hiring? Build a table with the round details, hiring evidence, and why-now for each.",
-  },
-];
 
 function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number }) {
   const [open, setOpen] = useState(false);
@@ -1481,33 +1456,29 @@ function SupportModal({ email, orgName, onClose }: { email: string; orgName: str
   );
 }
 
-function EmptyChat({ onPick }: { onPick: (s: string) => void }) {
+// The first thing a new chat shows is Sensei speaking, not a menu. The four
+// template cards were doing the intake layer's job from the front end: they made
+// the user pick a shape before they had said anything, and each one pasted a
+// bracketed form ("[city, company stage, expected CTC]") that people then sent
+// half-filled. Sensei now reads the shape from whatever they type, so the right
+// opening is simply to ask.
+function EmptyChat() {
   return (
-    <div className="max-w-2xl mx-auto mt-10 mb-10 bob-pop">
-      <div className="text-center">
-        <div className="w-14 h-14 mx-auto border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] overflow-hidden mb-5">
+    <div className="max-w-2xl mx-auto pt-6 pb-2 bob-pop">
+      <div className="flex gap-2.5">
+        <div className="w-7 h-7 mt-1 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
         </div>
-        <h2 className="font-['Clash_Display'] text-3xl font-semibold">Who are we getting hired today?</h2>
-        <p className="text-neutral-600 mt-3 mb-8 max-w-md mx-auto">
-          Point Sensei at a candidate, a cohort, or a market. It reads live hiring evidence and builds a working list of companies, each with the right person to reach.
-        </p>
+        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-[14.5px] leading-relaxed">
+          Hey, who are we getting hired today?
+        </div>
       </div>
-      <div className="grid sm:grid-cols-2 gap-3">
-        {TEMPLATES.map((t) => (
-          <button
-            key={t.title}
-            onClick={() => onPick(t.prompt)}
-            className="bg-white border-2 border-neutral-900 rounded-2xl p-4 text-left shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all group"
-          >
-            <t.icon className="text-violet-500 mb-2" size={18} />
-            <div className="font-bold text-sm">{t.title}</div>
-            <div className="text-[12px] text-neutral-500 mt-0.5">{t.subtitle}</div>
-            <div className="text-[11px] text-violet-600 font-semibold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              Use template <FiChevronRight className="inline" size={11} />
-            </div>
-          </button>
-        ))}
+      <div className="flex gap-2.5 mt-3">
+        <div className="w-7 h-7 shrink-0" />
+        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-[14.5px] leading-relaxed">
+          Tell me about a candidate, a batch of students, or the kind of companies you want to
+          work with. Attach a resume if you have one. I will ask if I am missing anything.
+        </div>
       </div>
     </div>
   );
