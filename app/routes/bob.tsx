@@ -863,6 +863,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const lastMsg = messages[messages.length - 1];
   const suggestions: string[] =
     !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
+  // A brand-new chat with nothing said yet. The greeting and the composer centre
+  // together as one block instead of sitting at opposite ends of the pane.
+  const atRest = messages.length === 0 && !running;
 
   return (
     <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
@@ -1067,10 +1070,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
           {/* Chat */}
           {showChat && (
-            <section className="flex flex-col min-w-0 flex-1">
-              <div ref={scrollRef} className={`flex-1 overflow-y-auto px-5 py-6 ${
-                messages.length === 0 && !running ? "flex flex-col justify-center" : ""}`}>
-                {messages.length === 0 && !running && <EmptyChat />}
+            <section className={`flex flex-col min-w-0 flex-1 ${atRest ? "justify-center" : ""}`}>
+              {/* At rest the transcript area does not stretch, so this and the
+                  composer below centre together as one block. Mid-conversation it
+                  reverts to a normal scrolling transcript with a docked composer. */}
+              <div ref={scrollRef} className={atRest ? "px-5 shrink-0" : "flex-1 overflow-y-auto px-5 py-6"}>
+                {atRest && <EmptyChat />}
                 <div className="max-w-2xl mx-auto space-y-4">
                   {messages.map((m) => (
                     m.role === "user" ? (
@@ -1107,7 +1112,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 </div>
               </div>
 
-              <div className="border-t-2 border-neutral-900 bg-white p-3">
+              <div className={atRest ? "px-3 pb-3" : "border-t-2 border-neutral-900 bg-white p-3"}>
                 {pendingFiles.length > 0 && (
                   <div className="max-w-2xl mx-auto flex flex-wrap gap-1.5 mb-2">
                     {pendingFiles.map((f) => (
@@ -1463,23 +1468,21 @@ function SupportModal({ email, orgName, onClose }: { email: string; orgName: str
 // bracketed form ("[city, company stage, expected CTC]") that people then sent
 // half-filled. Sensei now reads the shape from whatever they type, so the right
 // opening is simply to ask.
+// A new chat opens the way ChatGPT, Claude and Perplexity all open one: a single
+// centred line with the composer directly beneath it, both sitting in the middle
+// of the pane. What made earlier attempts feel wrong was not the wording, it was
+// that the input stayed pinned to the bottom of the window while the greeting sat
+// at the top, so the two never read as one moment. The composer moves up to meet
+// this (see the `atRest` branches in the chat section).
 function EmptyChat() {
   return (
-    <div className="max-w-2xl w-full mx-auto bob-pop">
-      <div className="flex gap-2.5">
-        <div className="w-7 h-7 mt-1 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
-          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
-        </div>
-        <div className="space-y-2.5 min-w-0">
-          <div className="w-fit px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-[14.5px] leading-relaxed">
-            Hey, who are we getting hired today?
-          </div>
-          <div className="max-w-[26rem] px-4 py-3 rounded-2xl border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-[14.5px] leading-relaxed text-neutral-600">
-            Tell me about a candidate, a batch of students, or the kind of companies you want to
-            work with. Attach a resume if you have one, and I will ask if I am missing anything.
-          </div>
-        </div>
+    <div className="max-w-2xl mx-auto text-center pb-7 bob-pop">
+      <div className="w-12 h-12 mx-auto mb-5 rounded-2xl overflow-hidden border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
+        <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
       </div>
+      <h2 className="font-['Clash_Display'] text-[30px] sm:text-[34px] leading-[1.15] font-semibold tracking-tight">
+        Who are we getting hired today?
+      </h2>
     </div>
   );
 }
