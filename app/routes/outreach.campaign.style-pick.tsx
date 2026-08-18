@@ -57,9 +57,20 @@ export default function StylePickPage() {
   const [previewLoading, setPreviewLoading] = useState<Record<string, boolean>>({});
   const [previewWarnings, setPreviewWarnings] = useState<Record<string, string>>({});
 
-  const fetchPreview = async (styleId: StyleId) => {
-    if (previews[styleId] !== undefined || !candidateId) return;
+  // `force` bypasses the cache so a failed preview can be retried. Without it a
+  // single slow generation left `previews[styleId] === null` forever: null is
+  // !== undefined, so the early return below swallowed every later attempt and
+  // the user saw "Preview unavailable" until a full page reload.
+  const fetchPreview = async (styleId: StyleId, force = false) => {
+    if (!candidateId) return;
+    if (!force && previews[styleId] !== undefined) return;
+    if (previewLoading[styleId]) return;
     setPreviewLoading((prev) => ({ ...prev, [styleId]: true }));
+    setPreviewWarnings((prev) => {
+      const next = { ...prev };
+      delete next[styleId];
+      return next;
+    });
     try {
       const data = await outreachFetch<PreviewEmail>("/campaign/preview-email", {
         method: "POST",
@@ -186,11 +197,27 @@ export default function StylePickPage() {
             ) : previews[activePreview] === null && previewWarnings[activePreview] ? (
               <div className="rounded-xl border-2 border-yellow-400 bg-yellow-50 p-4 text-sm font-satoshi text-yellow-800">
                 {previewWarnings[activePreview]}
+                <button
+                  type="button"
+                  onClick={() => fetchPreview(activePreview, true)}
+                  className="mt-3 block w-full rounded-lg border-2 border-studojo-ink bg-white px-4 py-2 text-sm font-bold text-studojo-ink font-satoshi hover:bg-studojo-purple hover:text-white transition-colors"
+                >
+                  Try again
+                </button>
               </div>
             ) : previews[activePreview] === null ? (
-              <p className="text-sm text-studojo-muted font-satoshi text-center py-8">
-                Preview unavailable. This style will still be used when sending.
-              </p>
+              <div className="text-center py-8">
+                <p className="text-sm text-studojo-muted font-satoshi">
+                  Preview could not be generated just now.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fetchPreview(activePreview, true)}
+                  className="mt-3 rounded-lg border-2 border-studojo-ink bg-white px-4 py-2 text-sm font-bold text-studojo-ink font-satoshi hover:bg-studojo-purple hover:text-white transition-colors"
+                >
+                  Try again
+                </button>
+              </div>
             ) : (
               <p className="text-sm text-studojo-muted font-satoshi text-center py-8">
                 Click a style card to preview a sample email.
