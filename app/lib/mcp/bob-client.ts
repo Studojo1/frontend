@@ -112,6 +112,20 @@ export function enrichTable(orgId: number, tableId: number): Promise<BobResp<any
  *  manager dashboard so a workspace admin can mint an MCP key for their OWN workspace
  *  without needing a separate studojo.com platform account. Authenticated by the
  *  caller's session token, NOT the gateway secret — bob-svc verifies it. */
+/** Bulk contact enrichment for a sourcing workspace. bob-svc enforces the
+ *  capability, so a key whose org lacks it gets a 403 rather than a silent no-op. */
+export function sourcingEnrich(
+  orgId: number,
+  text: string,
+  opts: { want_email?: boolean; want_phone?: boolean } = {},
+): Promise<BobResp<any>> {
+  return call("/sourcing/enrich", {
+    method: "POST",
+    orgId,
+    body: { text, want_email: opts.want_email !== false, want_phone: opts.want_phone !== false },
+  });
+}
+
 export async function whoAmI(
   session: string,
 ): Promise<BobResp<{ email: string | null; role: string; org: { id: number; name: string } | null }>> {
