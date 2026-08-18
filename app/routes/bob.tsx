@@ -1104,7 +1104,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           {showChat && (
             <section className="flex flex-col min-w-0 flex-1">
               <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6">
-                {messages.length === 0 && !running && <EmptyChat onPick={(s) => setInput(s)} />}
+                {messages.length === 0 && !running && <EmptyChat onPick={(s) => setInput(s)} sourcing={!!me?.capabilities?.candidate_sourcing} />}
                 <div className="max-w-2xl mx-auto space-y-4">
                   {messages.map((m) => (
                     m.role === "user" ? (
@@ -1240,6 +1240,33 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 }
 
 // ── Empty chat: mandate templates ────────────────────────────────────────────
+
+// A sourcing workspace hires PEOPLE; it does not place students into companies.
+// The placement templates below are actively wrong for them ("Place a candidate"
+// reads as the opposite of what they do), so they get their own set and their own
+// heading. Chosen by capability at render time, never mixed.
+const SOURCING_TEMPLATES = [
+  {
+    icon: FiSearch, title: "Find candidates",
+    subtitle: "People to hire, ranked by who might move",
+    prompt: "Find me [role, e.g. React developers] in [city] with [3-6] years of experience. Show me who looks most likely to move.",
+  },
+  {
+    icon: FiUserPlus, title: "Enrich a list",
+    subtitle: "LinkedIn links or a spreadsheet, contacts back",
+    prompt: "I'm attaching a list of people (use the paperclip), or here are their LinkedIn links. Get me their work email and phone number.",
+  },
+  {
+    icon: FiTarget, title: "Target one company",
+    subtitle: "Who works there, and who is worth approaching",
+    prompt: "Find [role] people at [company name]. I want to know who is there and how to reach them.",
+  },
+  {
+    icon: FiUsers, title: "Build a shortlist",
+    subtitle: "A batch for one open role",
+    prompt: "I'm hiring a [role] in [city]. Build me a shortlist of [number] people, with what their current employer looks like right now.",
+  },
+];
 
 const TEMPLATES = [
   {
@@ -1641,20 +1668,25 @@ function SupportModal({ email, orgName, onClose }: { email: string; orgName: str
   );
 }
 
-function EmptyChat({ onPick }: { onPick: (s: string) => void }) {
+function EmptyChat({ onPick, sourcing }: { onPick: (s: string) => void; sourcing?: boolean }) {
+  const cards = sourcing ? SOURCING_TEMPLATES : TEMPLATES;
   return (
     <div className="max-w-2xl mx-auto mt-10 mb-10 bob-pop">
       <div className="text-center">
         <div className="w-14 h-14 mx-auto border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] overflow-hidden mb-5">
           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
         </div>
-        <h2 className="font-['Clash_Display'] text-3xl font-semibold">Who are we getting hired today?</h2>
+        <h2 className="font-['Clash_Display'] text-3xl font-semibold">
+          {sourcing ? "Who are we hiring today?" : "Who are we getting hired today?"}
+        </h2>
         <p className="text-neutral-600 mt-3 mb-8 max-w-md mx-auto">
-          Point Sensei at a candidate, a cohort, or a market. It reads live hiring evidence and builds a working list of companies, each with the right person to reach.
+          {sourcing
+            ? "Tell Sensei the kind of person you need. It finds them, and shows you what is happening at the company they work for right now, so you know who might actually take your call."
+            : "Point Sensei at a candidate, a cohort, or a market. It reads live hiring evidence and builds a working list of companies, each with the right person to reach."}
         </p>
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
-        {TEMPLATES.map((t) => (
+        {cards.map((t) => (
           <button
             key={t.title}
             onClick={() => onPick(t.prompt)}
