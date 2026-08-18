@@ -584,8 +584,16 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   const shareChat = useCallback(async (chatId: number) => {
     try {
+      // Make it visible to the whole workspace so a teammate who opens the link also
+      // finds it in their own sidebar (it is their workspace too), then copy a deep
+      // link to this chat. Opening it (after login if needed) lands them on this chat.
       await bobFetch(`/chats/${chatId}/share`, { method: "POST", body: JSON.stringify({ shared: true }) });
-      setNotice("Shared with your team — they can now see this chat.");
+      const link = `${window.location.origin}/?chat=${chatId}`;
+      let copied = false;
+      try { await navigator.clipboard.writeText(link); copied = true; } catch { /* clipboard blocked (non-secure ctx / denied) */ }
+      setNotice(copied
+        ? "Share link copied — send it to a teammate and it opens this chat in their workspace."
+        : `Share link: ${link}`);
     } catch (e) { handleError(e); }
   }, [handleError]);
 
@@ -610,6 +618,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     if (id === emptyRef.current.id) return;   // already open
     await dropCurrentIfEmpty();
     setActiveChat(id);
+    // Keep the URL pointing at the open chat so it is always shareable + refresh-safe
+    // (this is the link the Share button copies: app.studojo.com/?chat=<id>).
+    try { window.history.replaceState({}, "", `/?chat=${id}`); } catch { /* ignore */ }
     setRun(null);
     setPendingFiles([]);
     try {
@@ -623,8 +634,17 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   }, [handleError, dropCurrentIfEmpty]);
 
   useEffect(() => {
+    // Deep link: app.studojo.com/?chat=<id> opens that specific chat (a shared link).
+    // The recipient is a member of the same workspace, so get_chat authorizes it; the
+    // login gate is in-page, so this param survives an unauthenticated -> login -> here.
+    let wanted: number | null = null;
+    try {
+      const v = new URLSearchParams(window.location.search).get("chat");
+      wanted = v && /^\d+$/.test(v) ? parseInt(v, 10) : null;
+    } catch { /* ignore */ }
     loadChats().then((list) => {
-      if (list.length > 0) openChat(list[0].id);
+      if (wanted != null) openChat(wanted);
+      else if (list.length > 0) openChat(list[0].id);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -684,6 +704,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     setRun(null);
     setPendingFiles([]);
     setActiveChat(null);
+    try { window.history.replaceState({}, "", "/"); } catch { /* ignore */ }
     setMode("split");
   };
 
@@ -694,7 +715,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       const list = await loadChats();
       if (activeChat === id) {
         if (list.length > 0) openChat(list[0].id);
-        else { setActiveChat(null); setMessages([]); setTables([]); setRun(null); }
+        else {
+          setActiveChat(null); setMessages([]); setTables([]); setRun(null);
+          try { window.history.replaceState({}, "", "/"); } catch { /* ignore */ }
+        }
       }
     } catch (e) {
       handleError(e);
