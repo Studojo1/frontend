@@ -4,7 +4,8 @@
 // so an agent sees the same searches, tables and shared credits as the browser. Tools:
 // sensei_search / sensei_status / sensei_reply / sensei_stop / sensei_results /
 // sensei_reveal_contacts (discovery) and enrich_contact / enrich_bulk /
-// enrichment_status / sensei_credits.
+// enrichment_status / sensei_credits, plus sourcing_enrich_contacts for workspaces
+// set up for candidate sourcing.
 import type { Route } from "./+types/api.mcp";
 import { guard, json } from "~/lib/api-guard.server";
 import { chargeUsage, logRequest, quotaStatus, rateLimit, type Caller } from "~/lib/api-keys.server";
@@ -12,7 +13,7 @@ import { enrichProfile, parseTarget, enginesConfigured } from "~/lib/enrich.serv
 import { createJob, getJob, BULK_MAX } from "~/lib/api-jobs.server";
 import {
   bobConfigured, createChat, sendMessage, getRun, getChat, getCredits, enrichRow, enrichTable,
-  stopRun,
+  stopRun, sourcingEnrich,
 } from "~/lib/mcp/bob-client";
 import { resolveOrg } from "~/lib/mcp/keyorg.server";
 import { CODE, fail, scrub, safeProgress, codeForStatus, type Code } from "~/lib/mcp/errors.server";
@@ -152,6 +153,28 @@ const TOOLS = [
       type: "object",
       properties: { job_id: { type: "string", description: "The job_id from enrich_bulk." } },
       required: ["job_id"],
+    },
+  },
+  {
+    name: "sourcing_enrich_contacts",
+    description:
+      "Bulk contact enrichment. Give it LinkedIn profile links or rows copied from a spreadsheet " +
+      "(name, company, one per line) and it returns work email and phone for each. Only available to " +
+      "workspaces set up for candidate sourcing; other workspaces get a clear refusal. A credit is " +
+      "charged only for a contact actually found, never for a miss.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        people: {
+          type: "string",
+          description:
+            "LinkedIn profile links (one per line), or rows copied from a sheet with a header line, " +
+            "e.g. 'Name | Company' then one person per line.",
+        },
+        want_email: { type: "boolean", description: "Default true." },
+        want_phone: { type: "boolean", description: "Default true." },
+      },
+      required: ["people"],
     },
   },
   {
@@ -421,6 +444,36 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       if (!jr) return failed(CODE.NOT_FOUND, { tool: name, caller, hint: "No such job for this key." });
       return ok(jr);
     }
+    case "sourcing_enrich_contacts": {
+      const people = String(args?.people || "").trim();
+      if (!people) return failed("BAD_INPUT", { tool: name, caller: caller.id, detail: "people is required" });
+      const org = await resolveOrg(caller);
+      if (!org.ok) return failed(org.code, { tool: name, caller: caller.id, detail: org.detail });
+      const r = await sourcingEnrich(org.orgId, people, {
+        want_email: args?.want_email !== false,
+        want_phone: args?.want_phone !== false,
+      });
+      if (!r.ok) {
+        // 403 here means the workspace simply is not a sourcing workspace. Say
+        // that plainly rather than leaking a backend status.
+        if (r.status === 403)
+          return failed("NOT_ENABLED", {
+            tool: name, caller: caller.id,
+            detail: "this workspace is not set up for contact enrichment",
+          });
+        return failed(codeForStatus(r.status), { tool: name, caller: caller.id, detail: r.error });
+      }
+      const d: any = r.data || {};
+      return {
+        rows: (d.rows || []).map((x: any) => ({
+          name: x.name, company: x.company, title: x.title,
+          linkedin_url: x.linkedin_url, email: x.email, phone: x.phone, status: x.status,
+        })),
+        summary: d.summary,
+        billing: d.billing,
+      };
+    }
+
     case "sensei_credits": {
       const q = await quotaStatus(caller.id, caller.monthlyQuota);
       const out: any = {
