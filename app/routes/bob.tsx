@@ -504,8 +504,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean } | null>(null);
   const [notice, setNotice] = useState<string>("");
-  const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null } | null>(null);
+  const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean } } | null>(null);
   const [showTeam, setShowTeam] = useState(false);
+  // Only rendered for a workspace whose product is finding people.
+  const [showEnrich, setShowEnrich] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
   const [showChangePw, setShowChangePw] = useState(false);
   const [stopping, setStopping] = useState(false);
@@ -569,7 +571,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   const loadMe = useCallback(async () => {
     try {
-      setMe(await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null }>("/me"));
+      setMe(await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean } }>("/me"));
     } catch { /* identity is non-critical for legacy access-code sessions */ }
   }, []);
   useEffect(() => { loadMe(); }, [loadMe]);
@@ -891,6 +893,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   return (
     <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
       {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
+      {showEnrich && <EnrichModal onClose={() => { setShowEnrich(false); loadCredits(); }} />}
       {showSupport && <SupportModal email={me?.email || ""} orgName={me?.org?.name || ""} onClose={() => setShowSupport(false)} />}
       {showChangePw && (
         <ChangePasswordModal
@@ -1011,6 +1014,14 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               >
                 <FiUsers size={15} /> Team dashboard
               </a>
+            )}
+            {me?.capabilities?.candidate_sourcing && (
+              <button
+                onClick={() => setShowEnrich(true)}
+                className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl py-2 bg-violet-600 text-white hover:bg-violet-700 transition-colors"
+              >
+                <FiUserPlus size={15} /> Enrich contacts
+              </button>
             )}
             <button
               onClick={() => setShowSupport(true)}
@@ -1410,6 +1421,131 @@ function TeamModal({ orgName, onClose }: { orgName: string; onClose: () => void 
           ))}
           {members.length === 0 && <p className="text-sm text-neutral-400 text-center py-4">No members yet.</p>}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Enrich contacts ─────────────────────────────────────────────────────────
+// A dedicated surface for a sourcing workspace: paste LinkedIn links or upload a
+// sheet, get contacts back. Rendered only when /me reports the capability, so no
+// other workspace ever sees it. The file path streams the enriched spreadsheet
+// straight back, so what they upload is what they download, plus contacts.
+function EnrichModal({ onClose }: { onClose: () => void }) {
+  const [tab, setTab] = useState<"paste" | "file">("paste");
+  const [text, setText] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [result, setResult] = useState<{ rows: any[]; billing: string } | null>(null);
+
+  const runPaste = async () => {
+    setBusy(true); setErr(""); setResult(null);
+    try {
+      const d = await bobFetch<{ rows: any[]; billing: string }>("/sourcing/enrich", {
+        method: "POST", body: JSON.stringify({ text }),
+      });
+      setResult(d);
+    } catch (e: any) { setErr(String(e?.message || e)); }
+    finally { setBusy(false); }
+  };
+
+  const runFile = async () => {
+    if (!file) return;
+    setBusy(true); setErr(""); setResult(null);
+    try {
+      const fd = new FormData(); fd.append("file", file);
+      const res = await fetch(`${API}/sourcing/enrich-file/download`, {
+        method: "POST", headers: authHeaders(), body: fd,
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || `Failed (${res.status})`);
+      const line = res.headers.get("X-Enrich-Summary") || "";
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = (file.name || "list").replace(/\.[^.]+$/, "") + "-enriched.xlsx";
+      a.click(); URL.revokeObjectURL(a.href);
+      setResult({ rows: [], billing: line || "Downloaded." });
+    } catch (e: any) { setErr(String(e?.message || e)); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6" onClick={onClose}>
+      <div className="w-full max-w-2xl bg-white border-2 border-neutral-900 rounded-[28px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6 max-h-[86vh] overflow-y-auto"
+           onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-['Clash_Display'] text-xl font-semibold">Enrich contacts</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+        </div>
+        <p className="text-[13px] text-neutral-500 mb-4">
+          Paste LinkedIn profile links, or upload a sheet. You are charged only for contacts we actually find.
+        </p>
+
+        <div className="flex gap-2 mb-4">
+          {(["paste", "file"] as const).map((t) => (
+            <button key={t} onClick={() => { setTab(t); setResult(null); setErr(""); }}
+              className={`text-[13px] font-semibold px-3 py-1.5 rounded-lg border-2 transition-colors ${
+                tab === t ? "border-neutral-900 bg-violet-100" : "border-neutral-300 text-neutral-500"}`}>
+              {t === "paste" ? "Paste LinkedIn links" : "Upload a sheet"}
+            </button>
+          ))}
+        </div>
+
+        {tab === "paste" ? (
+          <>
+            <textarea value={text} onChange={(e) => setText(e.target.value)} rows={7}
+              placeholder={"https://www.linkedin.com/in/one\nhttps://www.linkedin.com/in/two\n\nOr rows from a sheet:\nName | Company\nJay Parekh | Bajaj Broking"}
+              className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2.5 text-[13.5px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500" />
+            <button onClick={runPaste} disabled={busy || !text.trim()}
+              className="mt-3 bg-violet-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl border-2 border-neutral-900 disabled:opacity-40">
+              {busy ? "Enriching..." : "Enrich"}
+            </button>
+          </>
+        ) : (
+          <>
+            <input type="file" accept=".xlsx,.xlsm,.csv"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="block w-full text-[13.5px] file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-2
+                         file:border-neutral-900 file:bg-white file:font-semibold file:text-[13px]" />
+            <p className="text-[12px] text-neutral-500 mt-2">
+              Needs a name and company column, or a LinkedIn column. Your columns come back in your order with
+              email, phone and status added.
+            </p>
+            <button onClick={runFile} disabled={busy || !file}
+              className="mt-3 bg-violet-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl border-2 border-neutral-900 disabled:opacity-40">
+              {busy ? "Enriching..." : "Enrich and download"}
+            </button>
+          </>
+        )}
+
+        {err && <div className="mt-3 text-[13px] text-red-600">{err}</div>}
+
+        {result && (
+          <div className="mt-5">
+            <div className="text-[13px] font-semibold mb-2">{result.billing}</div>
+            {result.rows.length > 0 && (
+              <div className="border-2 border-neutral-900 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
+                <table className="w-full text-[12.5px]">
+                  <thead className="bg-neutral-100 sticky top-0">
+                    <tr><th className="text-left px-3 py-2">Name</th><th className="text-left px-3 py-2">Email</th>
+                        <th className="text-left px-3 py-2">Phone</th><th className="text-left px-3 py-2">Status</th></tr>
+                  </thead>
+                  <tbody>
+                    {result.rows.map((r, i) => (
+                      <tr key={i} className="border-t border-neutral-200">
+                        <td className="px-3 py-1.5">{r.name || "-"}</td>
+                        <td className="px-3 py-1.5">{r.email || "-"}</td>
+                        <td className="px-3 py-1.5">{r.phone || "-"}</td>
+                        <td className={`px-3 py-1.5 ${r.status === "found" ? "text-green-700" : "text-neutral-400"}`}>{r.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
