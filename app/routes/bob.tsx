@@ -1052,6 +1052,16 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 <FiUsers size={15} /> Team dashboard
               </a>
             )}
+            {/* Only for a workspace whose product is finding people. Everyone else
+                never sees this and its routes refuse them anyway. */}
+            {me?.capabilities?.candidate_sourcing && (
+              <button
+                onClick={() => setShowEnrich(true)}
+                className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl py-2 bg-violet-600 text-white hover:bg-violet-700 transition-colors"
+              >
+                <FiUserPlus size={15} /> Enrich contacts
+              </button>
+            )}
             <button
               onClick={() => setShowSupport(true)}
               className="w-full flex items-center justify-center gap-2 text-sm font-semibold border-2 border-neutral-900 rounded-xl px-3 py-2.5 hover:bg-neutral-900 hover:text-white transition-colors"
