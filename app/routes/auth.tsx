@@ -117,6 +117,28 @@ export default function Auth() {
     if (!isPending && session) navigate(redirectUrl, { replace: true });
   }, [isPending, session, navigate, redirectUrl]);
 
+  // Surface a failed OAuth round-trip. better-auth redirects a failed callback
+  // to /api/auth/error?error=<code>, which forwards to "/?error=<code>"; nothing
+  // rendered it, so a hard server error looked identical to a normal page load
+  // and the user could not tell why they were still logged out.
+  useEffect(() => {
+    const code = searchParams.get("error");
+    if (!code) return;
+    const messages: Record<string, string> = {
+      state_mismatch:
+        "Your sign-in took too long or your browser blocked a cookie. Please try again.",
+      invalid_code: "Sign-in with that provider failed. Please try again.",
+      internal_server_error:
+        "Something went wrong on our end while signing you in. Please try again, and contact support if it keeps happening.",
+      access_denied: "You cancelled the sign-in. Please try again when ready.",
+    };
+    setError(messages[code] ?? "Sign-in failed. Please try again.");
+    // Clear the param so a refresh does not re-show a stale error.
+    const next = new URLSearchParams(searchParams);
+    next.delete("error");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   useEffect(() => {
     // Only attempt passkey autoFill once per mount, and only in signin mode
     if (mode !== "signin" || passkeyAttemptedRef.current) return;
@@ -191,11 +213,11 @@ export default function Auth() {
           name: email.split("@")[0] || "User",
           callbackURL: redirectUrl,
         },
-        {
-          onSuccess: async () => {
-            navigate(redirectUrl);
-          }
-        },
+        // No onSuccess navigate here. better-auth fires that callback for a
+        // completed request, not for a usable session, so a server-side failure
+        // (e.g. the 500 the account.issuer schema mismatch produced) still
+        // redirected the user onward and they landed logged out with no error.
+        // The `session` effect above navigates once a session actually exists.
       );
       if (err) {
         const code = (err as { code?: string }).code;
@@ -236,7 +258,8 @@ export default function Auth() {
           callbackURL: redirectUrl,
           rememberMe: remember,
         },
-        { onSuccess: () => navigate(redirectUrl) },
+        // See the sign-up path above: navigation is driven by the confirmed
+        // session, never by the request having completed.
       );
       if (err) {
         setError(err.message ?? "Sign in failed");
