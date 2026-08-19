@@ -1458,6 +1458,8 @@ function TeamModal({ orgName, onClose }: { orgName: string; onClose: () => void 
 // sheet, get contacts back. Rendered only when /me reports the capability, so no
 // other workspace ever sees it. The file path streams the enriched spreadsheet
 // straight back, so what they upload is what they download, plus contacts.
+type EnrichTier = { key: string; label: string; blurb: string; sources: string[]; balance: number };
+
 function EnrichModal({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"paste" | "file">("paste");
   const [text, setText] = useState("");
@@ -1465,12 +1467,25 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [result, setResult] = useState<{ rows: any[]; billing: string } | null>(null);
+  // Each tier bills its OWN balance, so the choice has to be visible and
+  // deliberate rather than buried in a default.
+  const [tiers, setTiers] = useState<EnrichTier[]>([]);
+  const [tier, setTier] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const d = await bobFetch<{ tiers: EnrichTier[] | null; default_tier: string | null }>("/credits");
+        if (d?.tiers?.length) { setTiers(d.tiers); setTier(d.default_tier || d.tiers[1]?.key || d.tiers[0].key); }
+      } catch { /* no tiers: the panel just runs on the backend default */ }
+    })();
+  }, []);
 
   const runPaste = async () => {
     setBusy(true); setErr(""); setResult(null);
     try {
       const d = await bobFetch<{ rows: any[]; billing: string }>("/sourcing/enrich", {
-        method: "POST", body: JSON.stringify({ text }),
+        method: "POST", body: JSON.stringify(tier ? { text, tier } : { text }),
       });
       setResult(d);
     } catch (e: any) { setErr(String(e?.message || e)); }
@@ -1482,6 +1497,7 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
     setBusy(true); setErr(""); setResult(null);
     try {
       const fd = new FormData(); fd.append("file", file);
+      if (tier) fd.append("tier", tier);
       const res = await fetch(`${API}/sourcing/enrich-file/download`, {
         method: "POST", headers: authHeaders(), body: fd,
       });
@@ -1508,6 +1524,36 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
         <p className="text-[13px] text-neutral-500 mb-4">
           Paste LinkedIn profile links, or upload a sheet. You are charged only for contacts we actually find.
         </p>
+
+        {tiers.length > 0 && (
+          <div className="mb-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400 mb-2">
+              Enrichment tier
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {tiers.map((t) => {
+                const active = tier === t.key;
+                const empty = t.balance <= 0;
+                return (
+                  <button key={t.key} onClick={() => setTier(t.key)} disabled={empty}
+                    title={`${t.blurb} Sources: ${t.sources.join(" + ")}`}
+                    className={`text-left px-3 py-2.5 rounded-xl border-2 transition-colors ${
+                      active ? "border-neutral-900 bg-violet-100"
+                             : "border-neutral-300 hover:border-neutral-400"} ${
+                      empty ? "opacity-40 cursor-not-allowed" : ""}`}>
+                    <div className="text-[12.5px] font-semibold leading-tight">{t.label}</div>
+                    <div className="text-[11px] text-neutral-500 mt-1 tabular-nums">
+                      {empty ? "no credits left" : `${t.balance} credit${t.balance === 1 ? "" : "s"} left`}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11.5px] text-neutral-400 mt-2">
+              Each tier has its own balance. Run the same list through more than one to compare hit rates.
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-2 mb-4">
           {(["paste", "file"] as const).map((t) => (
