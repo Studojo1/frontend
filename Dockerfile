@@ -37,9 +37,17 @@ FROM node:20-bookworm-slim
 WORKDIR /src
 ENV PORT=3000
 
-# Copy package files and install production dependencies
-COPY package.json ./
-RUN npm install --production --legacy-peer-deps && \
+# Copy package files and install production dependencies.
+# The lockfile MUST be copied and honoured here: this is the image that actually
+# serves production. A bare `npm install` against package.json alone re-resolves
+# every semver range at build time, so a rebuild silently upgrades dependencies
+# with no commit to explain it. That is exactly how better-auth drifted from the
+# locked 1.4.18 to 1.7.x and broke every new signup with
+# `The field "issuer" does not exist in the "account" Drizzle schema`.
+# `npm ci` installs the locked tree and fails loudly on any package.json/lockfile
+# mismatch instead of drifting.
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --legacy-peer-deps && \
     npm cache clean --force
 
 # Install global tools needed for migrations and scripts (smaller footprint)
