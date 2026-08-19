@@ -2333,8 +2333,8 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
       <div className="flex items-start gap-2.5">
         <CompanyLogo company={company} website={website} domain={str(c._domain)} size={36} />
         <div className="min-w-0 flex-1">
-          <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">{company}</div>
-          <div className="text-[11.5px] text-neutral-500 truncate">{meta || what || ""}</div>
+          <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">{str(c.name) || company}</div>
+          <div className="text-[11.5px] text-neutral-500 truncate">{str(c.name) ? [str(c.role), company, str(c.city)].filter(Boolean).join(" · ") : (meta || what || "")}</div>
         </div>
         {!isNaN(fit) && (
           <div
@@ -2497,7 +2497,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
                 <span className="inline-flex items-center gap-2">
                   <span className="w-4 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
                   <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} domain={str(r.cells._domain)} size={20} />
-                  {str(r.cells.company)}
+                  {str(r.cells.name) || str(r.cells.company)}
                 </span>
               </td>
               <td className="px-3 py-2.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
@@ -2661,7 +2661,7 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
   onDelete: () => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
-  const company = str(row.cells.company) || "Details";
+  const company = str(row.cells.name) || str(row.cells.company) || "Details";
 
   const copy = (key: string, v: string) => {
     navigator.clipboard?.writeText(v);
