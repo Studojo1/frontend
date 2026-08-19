@@ -82,6 +82,35 @@ jobs:
         with:
           version: "latest"
 
+      # The AKS API server can be firewalled with authorized IP ranges. These
+      # runners are GitHub-hosted with ephemeral IPs, so there is no fixed
+      # address to allowlist ahead of time: grant this run's egress IP, then
+      # revoke it in a final always() step. No-ops when the cluster has no IP
+      # restriction configured, so it is safe either way.
+      - name: Allow this runner through the AKS API server firewall
+        id: aks_allow
+        run: |
+          set -euo pipefail
+          CURRENT=$(az aks show -g rg-studojo -n studojo-aks \
+            --query "apiServerAccessProfile.authorizedIpRanges" -o tsv | paste -sd, -)
+          if [ -z "$CURRENT" ]; then
+            echo "No authorized IP ranges configured; nothing to do."
+            echo "modified=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          RUNNER_IP=$(curl -fsS --retry 3 https://api.ipify.org)
+          echo "Runner egress IP: $RUNNER_IP"
+          echo "original=$CURRENT" >> "$GITHUB_OUTPUT"
+          if printf '%s' "$CURRENT" | tr ',' '\n' | grep -qx "$RUNNER_IP/32"; then
+            echo "Already allowed."
+            echo "modified=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          az aks update -g rg-studojo -n studojo-aks \
+            --api-server-authorized-ip-ranges "$CURRENT,$RUNNER_IP/32" \
+            --only-show-errors -o none
+          echo "modified=true" >> "$GITHUB_OUTPUT"
+
       - name: Get AKS credentials
         run: |
           az aks get-credentials \
@@ -133,6 +162,16 @@ jobs:
           kubectl logs "job/$JOB_NAME" -n ${{ env.NAMESPACE }} --tail=500 || true
           echo "::endgroup::"
           exit 1
+      # Always restore the original allowlist, even if earlier steps failed, so
+      # a failed deploy can never leave the API server open to a stale runner IP.
+      - name: Revoke this runner from the AKS API server firewall
+        if: always() && steps.aks_allow.outputs.modified == 'true'
+        run: |
+          set -euo pipefail
+          az aks update -g rg-studojo -n studojo-aks \
+            --api-server-authorized-ip-ranges "${{ steps.aks_allow.outputs.original }}" \
+            --only-show-errors -o none
+          echo "Restored original authorized IP ranges."
 
   deploy:
     needs: migrate
@@ -152,6 +191,35 @@ jobs:
         uses: azure/setup-kubectl@v3
         with:
           version: "latest"
+
+      # The AKS API server can be firewalled with authorized IP ranges. These
+      # runners are GitHub-hosted with ephemeral IPs, so there is no fixed
+      # address to allowlist ahead of time: grant this run's egress IP, then
+      # revoke it in a final always() step. No-ops when the cluster has no IP
+      # restriction configured, so it is safe either way.
+      - name: Allow this runner through the AKS API server firewall
+        id: aks_allow
+        run: |
+          set -euo pipefail
+          CURRENT=$(az aks show -g rg-studojo -n studojo-aks \
+            --query "apiServerAccessProfile.authorizedIpRanges" -o tsv | paste -sd, -)
+          if [ -z "$CURRENT" ]; then
+            echo "No authorized IP ranges configured; nothing to do."
+            echo "modified=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          RUNNER_IP=$(curl -fsS --retry 3 https://api.ipify.org)
+          echo "Runner egress IP: $RUNNER_IP"
+          echo "original=$CURRENT" >> "$GITHUB_OUTPUT"
+          if printf '%s' "$CURRENT" | tr ',' '\n' | grep -qx "$RUNNER_IP/32"; then
+            echo "Already allowed."
+            echo "modified=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          az aks update -g rg-studojo -n studojo-aks \
+            --api-server-authorized-ip-ranges "$CURRENT,$RUNNER_IP/32" \
+            --only-show-errors -o none
+          echo "modified=true" >> "$GITHUB_OUTPUT"
 
       - name: Get AKS credentials
         run: |
@@ -192,3 +260,13 @@ jobs:
             fi
             exit 1
           }
+      # Always restore the original allowlist, even if earlier steps failed, so
+      # a failed deploy can never leave the API server open to a stale runner IP.
+      - name: Revoke this runner from the AKS API server firewall
+        if: always() && steps.aks_allow.outputs.modified == 'true'
+        run: |
+          set -euo pipefail
+          az aks update -g rg-studojo -n studojo-aks \
+            --api-server-authorized-ip-ranges "${{ steps.aks_allow.outputs.original }}" \
+            --only-show-errors -o none
+          echo "Restored original authorized IP ranges."
