@@ -160,7 +160,9 @@ const TOOLS = [
       "Bulk contact enrichment. Give it LinkedIn profile links or rows copied from a spreadsheet " +
       "(name, company, one per line) and it returns work email and phone for each. Only available to " +
       "workspaces set up for candidate sourcing; other workspaces get a clear refusal. A credit is " +
-      "charged only for a contact actually found, never for a miss.",
+      "charged only for a contact actually found, never for a miss. Three tiers are available, each " +
+      "with its own separate credit balance: tier3 (Studojo DB only, cheapest), tier2 (the enrichment " +
+      "pipeline, the default) and tier1 (full enrichment including Apollo, most expensive).",
     inputSchema: {
       type: "object",
       properties: {
@@ -172,6 +174,13 @@ const TOOLS = [
         },
         want_email: { type: "boolean", description: "Default true." },
         want_phone: { type: "boolean", description: "Default true." },
+        tier: {
+          type: "string",
+          enum: ["tier1", "tier2", "tier3"],
+          description:
+            "Which waterfall to spend from. Omit for the default (tier2). Each tier bills its own " +
+            "separate balance, so pick deliberately.",
+        },
       },
       required: ["people"],
     },
@@ -445,32 +454,44 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
     }
     case "sourcing_enrich_contacts": {
       const people = String(args?.people || "").trim();
-      if (!people) return failed("BAD_INPUT", { tool: name, caller: caller.id, detail: "people is required" });
+      if (!people)
+        return failed(CODE.INVALID_INPUT, {
+          tool: name, caller,
+          hint: "Provide 'people' — LinkedIn profile links, or rows with a name and company.",
+        });
       const org = await resolveOrg(caller);
-      if (!org.ok) return failed(org.code, { tool: name, caller: caller.id, detail: org.detail });
+      if (!org.ok)
+        return failed(
+          org.error.includes("not linked") ? CODE.WORKSPACE_NOT_LINKED : CODE.SERVICE_UNAVAILABLE,
+          { tool: name, caller, detail: org.error },
+        );
       const r = await sourcingEnrich(org.orgId, people, {
         want_email: args?.want_email !== false,
         want_phone: args?.want_phone !== false,
+        tier: args?.tier ? String(args.tier) : undefined,
       });
       if (!r.ok) {
         // 403 here means the workspace simply is not a sourcing workspace. Say
         // that plainly rather than leaking a backend status.
         if (r.status === 403)
-          return failed("NOT_ENABLED", {
-            tool: name, caller: caller.id,
+          return failed(CODE.NOT_FOUND, {
+            tool: name, caller,
             detail: "this workspace is not set up for contact enrichment",
           });
-        return failed(codeForStatus(r.status), { tool: name, caller: caller.id, detail: r.error });
+        return failed(codeForStatus(r.status), { tool: name, caller, detail: r.error });
       }
       const d: any = r.data || {};
-      return {
+      // Must go through ok(): every other tool returns MCP Content, and a raw
+      // object here reaches the client as a malformed tool result.
+      return ok({
         rows: (d.rows || []).map((x: any) => ({
           name: x.name, company: x.company, title: x.title,
-          linkedin_url: x.linkedin_url, email: x.email, phone: x.phone, status: x.status,
+          linkedin_url: x.linkedin_url, email: x.email, phone: x.phone,
+          status: x.status, tier: x.tier,
         })),
         summary: d.summary,
         billing: d.billing,
-      };
+      });
     }
 
     case "sensei_credits": {

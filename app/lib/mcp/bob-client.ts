@@ -117,12 +117,19 @@ export function enrichTable(orgId: number, tableId: number): Promise<BobResp<any
 export function sourcingEnrich(
   orgId: number,
   text: string,
-  opts: { want_email?: boolean; want_phone?: boolean } = {},
+  opts: { want_email?: boolean; want_phone?: boolean; tier?: string } = {},
 ): Promise<BobResp<any>> {
   return call("/sourcing/enrich", {
     method: "POST",
     orgId,
-    body: { text, want_email: opts.want_email !== false, want_phone: opts.want_phone !== false },
+    body: {
+      text,
+      want_email: opts.want_email !== false,
+      want_phone: opts.want_phone !== false,
+      // Omitted means bob-svc picks the default tier. Never guess one here: a
+      // wrong guess spends the wrong pool.
+      ...(opts.tier ? { tier: opts.tier } : {}),
+    },
   });
 }
 
