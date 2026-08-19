@@ -502,7 +502,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [pendingFiles, setPendingFiles] = useState<{ id: number; name: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean } | null>(null);
+  const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean; tiers?: EnrichTier[] | null } | null>(null);
   const [notice, setNotice] = useState<string>("");
   const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean } } | null>(null);
   const [showTeam, setShowTeam] = useState(false);
@@ -564,7 +564,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   // the counter rather than disrupting the workspace.
   const loadCredits = useCallback(async () => {
     try {
-      setCredits(await bobFetch<{ enrichment: number; ai: number; enabled: boolean }>("/credits"));
+      setCredits(await bobFetch<{ enrichment: number; ai: number; enabled: boolean; tiers?: EnrichTier[] | null }>("/credits"));
     } catch { /* counter is non-critical */ }
   }, []);
   useEffect(() => { loadCredits(); }, [loadCredits]);
@@ -1066,7 +1066,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           <div className="ml-auto flex items-center gap-2">
             {credits?.enabled && (
               <div className="flex items-center gap-1.5">
-                <CreditPill kind="enrichment" value={credits.enrichment} />
+                {credits.tiers?.length
+                  // A tiered workspace bills three SEPARATE pools, so one merged
+                  // number would hide the thing the tiers exist to show.
+                  ? credits.tiers.map((t) => <TierPill key={t.key} tier={t} />)
+                  : <CreditPill kind="enrichment" value={credits.enrichment} />}
                 <CreditPill kind="ai" value={credits.ai} />
               </div>
             )}
@@ -1290,6 +1294,47 @@ const TEMPLATES = [
     prompt: "Which [sector] startups in [city/India] raised funding in the last 6 months and are actively hiring? Build a table with the round details, hiring evidence, and why-now for each.",
   },
 ];
+
+// Short names for the header; the full label lives in the popover. Three pills
+// have to fit beside the AI counter without wrapping.
+const TIER_SHORT: Record<string, string> = { tier1: "Full", tier2: "Pipeline", tier3: "DB" };
+
+function TierPill({ tier }: { tier: EnrichTier }) {
+  const [open, setOpen] = useState(false);
+  const low = tier.balance <= 0;
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        title={`${tier.label}: ${tier.sources.join(" + ")}`}
+        className={`flex items-center gap-1 text-[11px] font-bold rounded-full border-2 px-2.5 py-1 transition-colors ${
+          low ? "bg-red-50 border-red-500 text-red-600" : "bg-white border-neutral-900 text-neutral-900 hover:bg-neutral-100"
+        }`}
+      >
+        <FiPhone size={11} />
+        <span className="tabular-nums">{tier.balance}</span>
+        <span className="font-medium text-neutral-400">{TIER_SHORT[tier.key] || tier.label}</span>
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 mt-2 w-72 z-50 bg-white border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] p-4 text-left">
+            <div className="text-2xl font-black leading-none tabular-nums">{tier.balance}</div>
+            <div className="text-sm font-semibold text-neutral-500 mb-2">{tier.label} credits left</div>
+            <p className="text-[12.5px] text-neutral-500 leading-snug">{tier.blurb}</p>
+            <div className="text-[11px] text-neutral-400 mt-2">
+              Sources: {tier.sources.join(" + ")}
+            </div>
+            <p className="text-[12px] text-neutral-500 mt-2 leading-snug">
+              This tier has its own balance. Run the same list through more than one to compare hit rates. You are only charged for a contact we actually find.
+            </p>
+            {low && <p className="text-[12px] text-red-600 font-semibold mt-2">Out of credits in this tier.</p>}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number }) {
   const [open, setOpen] = useState(false);
