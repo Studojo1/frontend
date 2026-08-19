@@ -1306,7 +1306,7 @@ function TierPill({ tier }: { tier: EnrichTier }) {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        title={`${tier.label}: ${tier.sources.join(" + ")}`}
+        title={`${tier.label}: ${tier.detail}`}
         className={`flex items-center gap-1 text-[11px] font-bold rounded-full border-2 px-2.5 py-1 transition-colors ${
           low ? "bg-red-50 border-red-500 text-red-600" : "bg-white border-neutral-900 text-neutral-900 hover:bg-neutral-100"
         }`}
@@ -1321,10 +1321,7 @@ function TierPill({ tier }: { tier: EnrichTier }) {
           <div className="absolute right-0 mt-2 w-72 z-50 bg-white border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] p-4 text-left">
             <div className="text-2xl font-black leading-none tabular-nums">{tier.balance}</div>
             <div className="text-sm font-semibold text-neutral-500 mb-2">{tier.label} credits left</div>
-            <p className="text-[12.5px] text-neutral-500 leading-snug">{tier.blurb}</p>
-            <div className="text-[11px] text-neutral-400 mt-2">
-              Sources: {tier.sources.join(" + ")}
-            </div>
+            <p className="text-[12.5px] text-neutral-500 leading-snug">{tier.detail}</p>
             <p className="text-[12px] text-neutral-500 mt-2 leading-snug">
               This tier has its own balance. Run the same list through more than one to compare hit rates. You are only charged for a contact we actually find.
             </p>
@@ -1503,7 +1500,10 @@ function TeamModal({ orgName, onClose }: { orgName: string; onClose: () => void 
 // sheet, get contacts back. Rendered only when /me reports the capability, so no
 // other workspace ever sees it. The file path streams the enriched spreadsheet
 // straight back, so what they upload is what they download, plus contacts.
-type EnrichTier = { key: string; label: string; blurb: string; sources: string[]; balance: number };
+// Deliberately no provider/vendor field. Which data sources sit behind a tier is
+// our commercial detail, not the customer's, and a type that cannot carry them is
+// a stronger guarantee than remembering not to render them.
+type EnrichTier = { key: string; label: string; detail: string; balance: number };
 
 function EnrichModal({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"paste" | "file">("paste");
@@ -1581,7 +1581,7 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
                 const empty = t.balance <= 0;
                 return (
                   <button key={t.key} onClick={() => setTier(t.key)} disabled={empty}
-                    title={`${t.blurb} Sources: ${t.sources.join(" + ")}`}
+                    title={t.detail}
                     className={`text-left px-3 py-2.5 rounded-xl border-2 transition-colors ${
                       active ? "border-neutral-900 bg-violet-100"
                              : "border-neutral-300 hover:border-neutral-400"} ${
