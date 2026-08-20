@@ -1515,13 +1515,19 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
   // Each tier bills its OWN balance, so the choice has to be visible and
   // deliberate rather than buried in a default.
   const [tiers, setTiers] = useState<EnrichTier[]>([]);
-  const [tier, setTier] = useState("");
+  // A CHOICE, not a single value: he can run one tier or several. Several run
+  // cheapest-first, each seeing only who the cheaper ones missed.
+  const [picked, setPicked] = useState<string[]>([]);
+  const COST_ORDER = ["tier3", "tier2", "tier1"];
+  const chosen = COST_ORDER.filter((k) => picked.includes(k));
+  const toggle = (k: string) =>
+    setPicked((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
 
   useEffect(() => {
     (async () => {
       try {
         const d = await bobFetch<{ tiers: EnrichTier[] | null; default_tier: string | null }>("/credits");
-        if (d?.tiers?.length) { setTiers(d.tiers); setTier(d.default_tier || d.tiers[1]?.key || d.tiers[0].key); }
+        if (d?.tiers?.length) { setTiers(d.tiers); setPicked(d.default_tier ? [d.default_tier] : []); }
       } catch { /* no tiers: the panel just runs on the backend default */ }
     })();
   }, []);
@@ -1530,7 +1536,8 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
     setBusy(true); setErr(""); setResult(null);
     try {
       const d = await bobFetch<{ rows: any[]; billing: string }>("/sourcing/enrich", {
-        method: "POST", body: JSON.stringify(tier ? { text, tier } : { text }),
+        method: "POST",
+        body: JSON.stringify(chosen.length ? { text, tiers: chosen } : { text }),
       });
       setResult(d);
     } catch (e: any) { setErr(String(e?.message || e)); }
@@ -1542,7 +1549,7 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
     setBusy(true); setErr(""); setResult(null);
     try {
       const fd = new FormData(); fd.append("file", file);
-      if (tier) fd.append("tier", tier);
+      chosen.forEach((t) => fd.append("tiers", t));
       const res = await fetch(`${API}/sourcing/enrich-file/download`, {
         method: "POST", headers: authHeaders(), body: fd,
       });
@@ -1577,10 +1584,10 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
             </div>
             <div className="grid grid-cols-3 gap-2">
               {tiers.map((t) => {
-                const active = tier === t.key;
+                const active = picked.includes(t.key);
                 const empty = t.balance <= 0;
                 return (
-                  <button key={t.key} onClick={() => setTier(t.key)} disabled={empty}
+                  <button key={t.key} onClick={() => toggle(t.key)} disabled={empty}
                     title={t.detail}
                     className={`text-left px-3 py-2.5 rounded-xl border-2 transition-colors ${
                       active ? "border-neutral-900 bg-violet-100"
@@ -1595,7 +1602,9 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
               })}
             </div>
             <p className="text-[11.5px] text-neutral-400 mt-2">
-              Each tier has its own balance. Run the same list through more than one to compare hit rates.
+              {chosen.length > 1
+                ? "Runs cheapest first. Each tier only looks up whoever the previous one could not find, so you are never charged twice for the same person."
+                : "Each tier has its own balance. Pick more than one to run them in sequence."}
             </p>
           </div>
         )}
@@ -1615,7 +1624,7 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
             <textarea value={text} onChange={(e) => setText(e.target.value)} rows={7}
               placeholder={"https://www.linkedin.com/in/one\nhttps://www.linkedin.com/in/two\n\nOr rows from a sheet:\nName | Company\nJay Parekh | Bajaj Broking"}
               className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2.5 text-[13.5px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500" />
-            <button onClick={runPaste} disabled={busy || !text.trim()}
+            <button onClick={runPaste} disabled={busy || !text.trim() || (tiers.length > 0 && !chosen.length)}
               className="mt-3 bg-violet-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl border-2 border-neutral-900 disabled:opacity-40">
               {busy ? "Enriching..." : "Enrich"}
             </button>
