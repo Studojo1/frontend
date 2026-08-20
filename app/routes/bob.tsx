@@ -837,14 +837,23 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     refreshTables();
   };
 
-  const enrichRow = async (rowId: number) => {
+  // A tiered workspace has separate pools, so "enrich this" is not a default to
+  // assume — it is a question. These buttons used to post with no tier and the
+  // backend fell through to whatever the default was, which could drain a pool
+  // the user never chose. Nothing is spent until they pick.
+  const [pendingEnrich, setPendingEnrich] = useState<
+    { kind: "row"; id: number } | { kind: "table"; id: number; count: number } | null
+  >(null);
+
+  const enrichRow = async (rowId: number, tier?: string) => {
+    if (credits?.tiers?.length && !tier) { setPendingEnrich({ kind: "row", id: rowId }); return; }
     markEnriching(new Set([rowId]));
     try {
-      await bobFetch(`/rows/${rowId}/enrich`, { method: "POST" });
+      await bobFetch(`/rows/${rowId}/enrich${tier ? `?tier=${tier}` : ""}`, { method: "POST" });
     } catch (e) { onEnrichError(e); }
   };
 
-  const enrichTable = async (tableId: number) => {
+  const enrichTable = async (tableId: number, tier?: string) => {
     const t = tables.find((x) => x.id === tableId);
     if (!t) return;
     const todo = new Set(
@@ -853,9 +862,13 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         .map((r) => r.id),
     );
     if (todo.size === 0) return;
+    if (credits?.tiers?.length && !tier) {
+      setPendingEnrich({ kind: "table", id: tableId, count: todo.size });
+      return;
+    }
     markEnriching(todo);
     try {
-      await bobFetch(`/tables/${tableId}/enrich`, { method: "POST" });
+      await bobFetch(`/tables/${tableId}/enrich${tier ? `?tier=${tier}` : ""}`, { method: "POST" });
     } catch (e) { onEnrichError(e); }
   };
 
@@ -894,6 +907,45 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
       {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
       {showEnrich && <EnrichModal onClose={() => { setShowEnrich(false); loadCredits(); }} />}
+      {pendingEnrich && credits?.tiers?.length && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6"
+             onClick={() => setPendingEnrich(null)}>
+          <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[24px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6"
+               onClick={(e) => e.stopPropagation()}>
+            <h2 className="font-['Clash_Display'] text-lg font-semibold mb-1">
+              Which enrichment should we use?
+            </h2>
+            <p className="text-[13px] text-neutral-500 mb-4">
+              {pendingEnrich.kind === "table"
+                ? `${pendingEnrich.count} contact${pendingEnrich.count === 1 ? "" : "s"} to reveal.`
+                : "One contact to reveal."}{" "}
+              You are only charged when we find a personal mobile.
+            </p>
+            <div className="flex flex-col gap-2">
+              {credits.tiers.map((t) => (
+                <button key={t.key} disabled={t.balance <= 0}
+                  onClick={() => {
+                    const p = pendingEnrich;
+                    setPendingEnrich(null);
+                    if (p.kind === "row") enrichRow(p.id, t.key);
+                    else enrichTable(p.id, t.key);
+                  }}
+                  className={`text-left px-4 py-3 rounded-xl border-2 transition-colors ${
+                    t.balance <= 0
+                      ? "border-neutral-300 opacity-40 cursor-not-allowed"
+                      : "border-neutral-900 hover:bg-violet-100"}`}>
+                  <div className="text-[13.5px] font-semibold">{t.label}</div>
+                  <div className="text-[11.5px] text-neutral-500 mt-0.5">
+                    {t.balance <= 0 ? "no credits left" : `${t.balance} credits left`} · {t.detail}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setPendingEnrich(null)}
+              className="mt-4 text-[13px] text-neutral-500 hover:text-neutral-900">Cancel</button>
+          </div>
+        </div>
+      )}
       {showSupport && <SupportModal email={me?.email || ""} orgName={me?.org?.name || ""} onClose={() => setShowSupport(false)} />}
       {showChangePw && (
         <ChangePasswordModal
