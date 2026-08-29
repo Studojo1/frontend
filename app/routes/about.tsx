@@ -26,13 +26,18 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+// Content must not depend on an animation firing. These variants used to start
+// at opacity 0 and wait for whileInView, so a normal scroll showed blank slabs
+// and any full-page capture (social preview, screenshot) got an empty page. They
+// now start VISIBLE and animate from a small offset: the page reads with no JS,
+// and the motion is a bonus rather than a gate.
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 1, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
@@ -125,7 +130,7 @@ export default function About() {
         <section className="relative w-full overflow-hidden border-b border-neutral-900 bg-violet-500 py-12 md:py-16">
           <motion.div
             className="w-full"
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 1, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
@@ -330,7 +335,7 @@ export default function About() {
           <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-4 text-center md:px-8">
             <motion.div
               className="w-full"
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 1, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, ease: "easeOut" }}
@@ -351,7 +356,7 @@ export default function About() {
         <section className="bg-violet-500 py-16 md:py-24">
           <Section width="narrow" className="text-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}

@@ -214,13 +214,18 @@ const QUOTES = [
   },
 ];
 
+// Content must not depend on an animation firing. These variants used to start
+// at opacity 0 and wait for whileInView, so a normal scroll showed blank slabs
+// and any full-page capture (social preview, screenshot) got an empty page. They
+// now start VISIBLE and animate from a small offset: the page reads with no JS,
+// and the motion is a bonus rather than a gate.
 const containerVariants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 1, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
@@ -267,7 +272,7 @@ export default function CcIndex() {
             {/* Hero title */}
             <motion.h1
               className="absolute inset-x-0 top-[14%] z-10 px-4 text-center font-['Clash_Display'] text-4xl font-semibold leading-none text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] sm:text-5xl md:top-[16%] md:text-6xl lg:text-7xl"
-              initial={{ opacity: 0, y: -16 }}
+              initial={{ opacity: 1, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
             >
@@ -277,7 +282,7 @@ export default function CcIndex() {
             {/* How it works pill */}
             <motion.div
               className="absolute left-4 top-4 md:left-8 md:top-6"
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 1, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
@@ -300,7 +305,7 @@ export default function CcIndex() {
             {/* CTA */}
             <motion.div
               className="absolute bottom-[30%] right-0 flex flex-col items-end pr-4 md:pr-12"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 1, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
