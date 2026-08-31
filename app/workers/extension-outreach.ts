@@ -13,12 +13,11 @@
  * rendered costs nothing. So:
  *
  *   contact present  -> insert straight into outreach_contacts, no fetch
- *   contact absent   -> scrapePeopleAtCompany to find someone hiring
+ *   contact absent   -> job-outreach-svc sources the lead at Send time
  */
 import { eq, and } from "drizzle-orm";
 import db from "~/lib/db";
 import { outreachContacts } from "../../auth-schema";
-import { scrapePeopleAtCompany } from "./linkedin-scraper";
 import { outreachQueue } from "~/lib/queues.server";
 
 export interface ExtensionOutreachJob {
@@ -132,39 +131,18 @@ export async function runExtensionOutreach(
     }
   }
 
-  // ---- Path B: no contact on the page — go and find one -------------------
-  if (!job.company) return { status: "no_contact_found" };
-
-  const people = await scrapePeopleAtCompany(
-    userId,
-    job.company,
-    "recruiter OR hiring OR talent OR people",
-    5,
-  );
-  if (!people.length) return { status: "no_contact_found", discovered: 0 };
-
-  let firstId: string | undefined;
-  let queued = 0;
-  for (const p of people.slice(0, 3)) {
-    const url = normaliseLinkedInUrl(p.profileUrl);
-    if (!url) continue;
-    const res = await upsertContact(userId, {
-      linkedinUrl: url,
-      name: p.name,
-      title: p.headline,
-      company: p.company || job.company,
-    });
-    if (!res || !res.created) continue;
-    firstId = firstId ?? res.id;
-    queued++;
-    await outreachQueue.add(
-      "outreach",
-      { contactId: res.id },
-      { attempts: 2, backoff: { type: "exponential", delay: 120_000 },
-        delay: Math.random() * 4 * 60 * 60 * 1000 },
-    );
-  }
-
-  if (!queued) return { status: "duplicate", discovered: people.length };
-  return { status: "queued_discovered", contactId: firstId, discovered: queued, savedLookup: false };
+  // ---- No contact on the page --------------------------------------------
+  //
+  // This used to call scrapePeopleAtCompany, which drives LinkedIn's private
+  // Voyager API through a proxy using the student's own session cookie. It was
+  // the ONLY caller of that function outside the LinkedIn-automation subsystem
+  // — the real outreach tool never used it, sourcing leads server-side through
+  // /campaign/create instead.
+  //
+  // Running a second, riskier lead-discovery system for this one path is not
+  // worth the account-restriction exposure, so it is gone. A job page with no
+  // visible contact now goes through exactly the same route as every other
+  // campaign: the student's draft is created from the company and role, and
+  // job-outreach-svc finds the lead when they press Send.
+  return { status: "no_contact_found" };
 }

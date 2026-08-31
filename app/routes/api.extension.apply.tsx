@@ -3,8 +3,9 @@
 // The single write endpoint behind "Apply through Studojo" in the extension.
 //
 // Must return in under a second: the panel is waiting on it. So this route only
-// records the application and enqueues work — the campaign creation, contact
-// discovery and sending all happen on the queue.
+// records the application and writes a draft. NOTHING IS SENT HERE — the
+// campaign is created when the student presses Send in the CRM, which is what
+// makes "review before it goes out" true rather than aspirational.
 //
 // The efficiency argument lives here. When the extension supplies a `contact`
 // (it was on a person's profile, a post, or a job page with a "Meet the hiring
@@ -13,7 +14,7 @@
 // otherwise pay for — one fewer Chromium launch, one fewer proxied page load,
 // and one fewer automated LinkedIn view against the account's rate limit.
 import { outreachFetch } from "~/lib/outreach/api";
-import { outreachQueue } from "~/lib/queues.server";
+import { upsertDraft } from "~/lib/extension-draft.server";
 import {
   resolveExtensionToken,
   extJson,
@@ -66,9 +67,9 @@ interface ApplyBody {
 }
 
 /** Log the application to the student's CRM. Never blocks the response. */
-async function writeCrmRow(userId: string, body: ApplyBody, board: string) {
+async function writeCrmRow(userId: string, body: ApplyBody, board: string): Promise<string | null> {
   try {
-    await fetch(`${CAREER_AGENT_URL}/jobs/${encodeURIComponent(userId)}`, {
+    const res = await fetch(`${CAREER_AGENT_URL}/jobs/${encodeURIComponent(userId)}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -113,9 +114,15 @@ async function writeCrmRow(userId: string, body: ApplyBody, board: string) {
       }),
       signal: AbortSignal.timeout(4000),
     });
+    // The agent returns the created row (main.py POST /jobs/{student_id}).
+    // We used to discard it, which left the CRM page with no way to link an
+    // application to its draft.
+    const created = (await res.json()) as { id?: string };
+    return created?.id ?? null;
   } catch (e) {
     // A CRM write failure must not lose the outreach. Log and continue.
     console.error("[extension.apply] CRM write failed:", e);
+    return null;
   }
 }
 
@@ -180,46 +187,54 @@ export async function action({ request }: Route.ActionArgs) {
     } catch {
       /* fall back to the in-app page */
     }
-    // Still record the application — the student did apply.
-    await writeCrmRow(auth.userId, body, board);
+    // Still record the application AND prepare the draft — the student did
+    // apply, and Gmail is only needed at Send, not to write the email.
+    const applicationId = await writeCrmRow(auth.userId, body, board);
+    const draft = await upsertDraft(auth.userId, {
+      applicationId,
+      company,
+      role,
+      jobUrl: body.job?.jobUrl || body.pageUrl || null,
+      contactName: body.contact?.name ?? null,
+      contactTitle: body.contact?.title ?? null,
+      contactEmail: body.contact?.email ?? null,
+    });
     return extJson(request, {
       ok: true,
       needsGmail: true,
       connectUrl,
-      message: "Saved. Connect Gmail to send outreach for this role.",
+      applicationId,
+      draftId: draft?.id ?? null,
+      message: "Saved. Review your email — connect Gmail when you're ready to send.",
     });
   }
 
-  await writeCrmRow(auth.userId, body, board);
+  const applicationId = await writeCrmRow(auth.userId, body, board);
 
-  // Hand off. Everything slow happens on the queue. The job id comes back to
-  // the extension so a note added on the success screen can be attached to
-  // THIS application rather than guessed at.
-  const queued = await outreachQueue.add(
-    "extension-outreach",
-    {
-      source: "browser_extension",
-      userId: auth.userId,
-      emailAccountId: gmail.email_account_id,
-      board,
-      pageUrl: body.pageUrl,
-      job: { role, company, location: body.job?.location, description: body.job?.description, jobId: body.job?.jobId },
-      // Present → skip the profile fetch. Absent → worker runs scrapePeopleAtCompany.
-      contact: hasContact ? body.contact : null,
-      note: body.note?.trim()?.slice(0, 500) || null,
-    },
-    { attempts: 3, backoff: { type: "exponential", delay: 60_000 } },
-  );
+  // NOTHING IS QUEUED HERE ANY MORE.
+  //
+  // This used to enqueue an outreach job immediately, which meant the email
+  // was composed and sent without the student ever seeing it. The draft is now
+  // written to Postgres and the campaign is created only when they press Send
+  // in the CRM — see app/routes/api.crm.drafts.tsx.
+  const draft = await upsertDraft(auth.userId, {
+    applicationId,
+    company,
+    role,
+    jobUrl: body.job?.jobUrl || body.pageUrl || null,
+    contactName: body.contact?.name ?? null,
+    contactTitle: body.contact?.title ?? null,
+    contactEmail: body.contact?.email ?? null,
+  });
 
   return extJson(request, {
     ok: true,
-    // Named to avoid colliding with body.job.jobId, which is the LinkedIn
-    // posting id. This one identifies the queued outreach job.
-    outreachJobId: queued.id ?? null,
+    applicationId,
+    draftId: draft?.id ?? null,
     contactPrefilled: hasContact,
     message: hasContact
-      ? `We'll email ${body.contact!.name} at ${company || "this company"} — read straight from the page.`
-      : `Finding someone hiring at ${company || "this company"} to reach out to.`,
-    crmUrl: "https://studojo.pro/crm",
+      ? `Draft ready for ${body.contact!.name} at ${company || "this company"} — review it before it sends.`
+      : `Saved. Open your CRM to review the email before it sends.`,
+    crmUrl: "/crm",
   });
 }
