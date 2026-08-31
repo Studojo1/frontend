@@ -2322,22 +2322,22 @@ function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
       <div className="flex-1 min-h-0 overflow-auto">
         <table className="w-full text-[13px] border-separate border-spacing-0">
           <thead className="sticky top-0 z-10">
-            <tr className="bg-neutral-50/90 backdrop-blur">
-              <th className="w-9 px-3 py-2.5 border-b border-neutral-200">
+            <tr className="bg-neutral-100">
+              <th className="w-9 px-3 py-2.5 border-b-2 border-neutral-900">
                 <input type="checkbox" checked={allSel} onChange={toggleAll}
                   className="accent-violet-600 cursor-pointer" />
               </th>
               {columns.map((c) => (
                 <th key={c.key} onClick={() => clickSort(c.key)}
-                  className={`px-3 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wide text-neutral-400 border-b border-neutral-200 whitespace-nowrap cursor-pointer select-none hover:text-neutral-700 ${c.grow ? "" : "w-px"}`}>
+                  className={`px-3 py-2.5 text-left font-bold text-[11px] uppercase tracking-wide text-neutral-600 border-b-2 border-neutral-900 whitespace-nowrap cursor-pointer select-none hover:text-neutral-900 ${c.grow ? "" : "w-px"}`}>
                   <span className="inline-flex items-center gap-1">
                     {c.label}
                     {sort?.key === c.key && <span className="text-violet-500">{sort.dir === 1 ? "↑" : "↓"}</span>}
                   </span>
                 </th>
               ))}
-              <th className="px-3 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wide text-neutral-400 border-b border-neutral-200 w-px">Stage</th>
-              <th className="border-b border-neutral-200 w-px" />
+              <th className="px-3 py-2.5 text-left font-bold text-[11px] uppercase tracking-wide text-neutral-600 border-b-2 border-neutral-900 w-px">Stage</th>
+              <th className="border-b-2 border-neutral-900 w-px" />
             </tr>
           </thead>
           <tbody>
@@ -2349,14 +2349,14 @@ function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
                 <tr key={r.id}
                   onClick={() => setOpenRow(openRow === r.id ? null : r.id)}
                   className={`group cursor-pointer transition-colors ${selected ? "bg-violet-50/60" : "hover:bg-neutral-50"}`}>
-                  <td className="px-3 py-2.5 border-b border-neutral-100" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3 py-2.5 border-b border-neutral-200" onClick={(e) => e.stopPropagation()}>
                     <input type="checkbox" checked={selected} onChange={() => toggle(r.id)}
                       className="accent-violet-600 cursor-pointer" />
                   </td>
                   {columns.map((col, ci) => {
                     const v = col.get(c);
                     return (
-                      <td key={col.key} className="px-3 py-2.5 border-b border-neutral-100 align-middle max-w-[280px]">
+                      <td key={col.key} className="px-3 py-2.5 border-b border-neutral-200 align-middle max-w-[280px]">
                         {ci === 0 ? (
                           <span className="inline-flex items-center gap-2 min-w-0">
                             {peopleTable
@@ -2376,7 +2376,7 @@ function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
                       </td>
                     );
                   })}
-                  <td className="px-3 py-2.5 border-b border-neutral-100" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3 py-2.5 border-b border-neutral-200" onClick={(e) => e.stopPropagation()}>
                     {has ? (
                       <select value={r.status || "new"} onChange={(e) => onRowStatus(r.id, e.target.value)}
                         className="text-[12px] rounded-lg border border-neutral-200 bg-white px-2 py-1 text-neutral-600 focus:outline-none focus:ring-1 focus:ring-violet-400">
@@ -2387,7 +2387,7 @@ function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
                         className="text-[12px] font-semibold text-violet-700 hover:text-violet-900">Enrich</button>
                     )}
                   </td>
-                  <td className="px-2 py-2.5 border-b border-neutral-100" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-2 py-2.5 border-b border-neutral-200" onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => onDeleteRow(r.id)} title="Remove"
                       className="opacity-0 group-hover:opacity-100 text-neutral-300 hover:text-red-500 transition-opacity">
                       <FiX size={14} />
@@ -2950,7 +2950,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
             <tr
               key={r.id}
               onClick={() => onRowClick(r)}
-              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
+              className={`border-b border-neutral-200 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
             >
               <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
                 <span className="inline-flex items-center gap-2">
