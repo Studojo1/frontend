@@ -23,7 +23,11 @@ import {
 import type { Route } from "./+types/api.extension.apply";
 
 const CAREER_AGENT_URL =
-  process.env.CAREER_AGENT_URL ?? "http://studojo-career-agent.studojo.svc.cluster.local:8000";
+  // Bare service name, resolving in whatever namespace we are deployed to.
+  // The previous value pinned `.studojo.svc`, so from the staging namespace it
+  // pointed at the wrong cluster address — every CRM write failed silently and
+  // the page showed "Nothing saved yet" while the extension said "Saved".
+  process.env.CAREER_AGENT_URL ?? "http://studojo-career-agent:8000";
 const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET ?? "";
 /** Where the student's browser can reach us. Links sent to the extension are
  *  rendered inside a job board's page, so every one of them must be absolute. */
@@ -123,7 +127,10 @@ async function writeCrmRow(userId: string, body: ApplyBody, board: string): Prom
     const created = (await res.json()) as { id?: string };
     return created?.id ?? null;
   } catch (e) {
-    // A CRM write failure must not lose the outreach. Log and continue.
+    // A CRM write failure must not lose the outreach — but it must not be
+    // hidden either. Returning null silently let the extension announce
+    // "Saved to your CRM" while the CRM page showed "Nothing saved yet".
+    // The caller now reports what actually happened.
     console.error("[extension.apply] CRM write failed:", e);
     return null;
   }
@@ -214,6 +221,7 @@ export async function action({ request }: Route.ActionArgs) {
       needsGmail: true,
       connectUrl,
       applicationId,
+      savedToCrm: Boolean(applicationId),
       draftId: draft?.id ?? null,
       message: "Saved. Review your email — connect Gmail when you're ready to send.",
     });
@@ -240,6 +248,9 @@ export async function action({ request }: Route.ActionArgs) {
   return extJson(request, {
     ok: true,
     applicationId,
+    // Whether the job actually reached the CRM. The panel must not claim a
+    // save it cannot back up.
+    savedToCrm: Boolean(applicationId),
     draftId: draft?.id ?? null,
     contactPrefilled: hasContact,
     message: hasContact

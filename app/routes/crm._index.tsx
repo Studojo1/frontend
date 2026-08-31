@@ -6,10 +6,17 @@ import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import { Footer, Header } from "~/components";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
+import { desc, eq } from "drizzle-orm";
+import db from "~/lib/db";
+import { extensionDrafts } from "../../auth-schema";
 import type { Route } from "./+types/crm._index";
 
 const CAREER_AGENT_URL =
-  process.env.CAREER_AGENT_URL ?? "http://studojo-career-agent.studojo.svc.cluster.local:8000";
+  // Bare service name, resolving in whatever namespace we are deployed to.
+  // The previous value pinned `.studojo.svc`, so from the staging namespace it
+  // pointed at the wrong cluster address — every CRM write failed silently and
+  // the page showed "Nothing saved yet" while the extension said "Saved".
+  process.env.CAREER_AGENT_URL ?? "http://studojo-career-agent:8000";
 
 interface Application {
   id: string;
@@ -45,37 +52,65 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Read server-side using the SESSION's id. The career agent's own auth is
   // soft-enforced, so a client-supplied id here would be an open door.
   let applications: Application[] = [];
+  let agentReachable = true;
   try {
     const res = await fetch(
       `${CAREER_AGENT_URL}/jobs/${encodeURIComponent(session.user.id)}`,
       { signal: AbortSignal.timeout(6000) },
     );
     if (res.ok) applications = ((await res.json())?.jobs ?? []) as Application[];
+    else agentReachable = false;
   } catch (e) {
     console.error("[crm] could not load applications:", e);
+    agentReachable = false;
   }
 
-  return { applications };
+  // Drafts live in OUR database, so they survive the career agent being
+  // unreachable. Reading them here means a student still sees their emails
+  // instead of a page that says "Nothing saved yet" while a draft exists.
+  const drafts = await db
+    .select()
+    .from(extensionDrafts)
+    .where(eq(extensionDrafts.userId, session.user.id))
+    .orderBy(desc(extensionDrafts.createdAt))
+    .limit(100);
+
+  return { applications, drafts, agentReachable };
 }
 
 export default function Crm({ loaderData }: Route.ComponentProps) {
-  const { applications } = loaderData as { applications: Application[] };
-  const [drafts, setDrafts] = useState<Record<string, DraftRow>>({});
+  const { applications, drafts: draftRows, agentReachable } = loaderData as {
+    applications: Application[];
+    drafts: any[];
+    agentReachable: boolean;
+  };
 
-  useEffect(() => {
-    fetch("/api/crm/drafts")
-      .then((r) => r.json())
-      .then((d) => {
-        const byApplication: Record<string, DraftRow> = {};
-        for (const row of (d?.drafts ?? []) as DraftRow[]) {
-          if (row.applicationId) byApplication[row.applicationId] = row;
-        }
-        setDrafts(byApplication);
-      })
-      .catch(() => {});
-  }, []);
+  const drafts: Record<string, DraftRow> = {};
+  for (const row of draftRows ?? []) {
+    if (row.applicationId) drafts[row.applicationId] = row;
+  }
 
-  const fromExtension = applications.filter((a) => a.source === "browser_extension").length;
+  // Show a draft even when the career agent did not return its application.
+  // Previously the page rendered ONLY agent rows, so an unreachable agent
+  // meant "Nothing saved yet" while a perfectly good draft sat in our
+  // database — which is exactly the contradiction that was reported.
+  const seen = new Set(applications.map((a) => a.id));
+  const orphanRows: Application[] = (draftRows ?? [])
+    .filter((d) => !d.applicationId || !seen.has(d.applicationId))
+    .map((d) => ({
+      id: d.applicationId ?? d.id,
+      company_name: d.company ?? "",
+      role: d.role ?? "",
+      date_applied: null,
+      platform: null,
+      source: "browser_extension",
+      location: null,
+      contact_name: d.contactName ?? null,
+      contact_title: d.contactTitle ?? null,
+      status: null,
+    }));
+  const rows = [...applications, ...orphanRows];
+  const fromExtension = rows.filter((a) => a.source === "browser_extension").length;
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -87,15 +122,24 @@ export default function Crm({ loaderData }: Route.ComponentProps) {
               My CRM
             </h1>
             <p className="font-['Satoshi'] text-studojo-muted">
-              {applications.length === 0
+              {rows.length === 0
                 ? "Jobs you save from the extension will appear here."
-                : `${applications.length} saved${
+                : `${rows.length} saved${
                     fromExtension ? ` · ${fromExtension} from the extension` : ""
                   }`}
             </p>
           </div>
 
-          {applications.length === 0 ? (
+          {!agentReachable && rows.length > 0 ? (
+            <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+              <p className="font-['Satoshi'] text-sm text-amber-900">
+                Some details couldn&rsquo;t be loaded just now. Your drafts are
+                here and safe &mdash; job details may fill in shortly.
+              </p>
+            </div>
+          ) : null}
+
+          {rows.length === 0 ? (
             <div className="rounded-2xl border-2 border-studojo-ink/15 bg-studojo-surface-muted p-10 text-center">
               <p className="font-['Satoshi'] text-studojo-ink">Nothing saved yet.</p>
               <p className="mt-2 font-['Satoshi'] text-sm text-studojo-muted">
@@ -105,7 +149,7 @@ export default function Crm({ loaderData }: Route.ComponentProps) {
             </div>
           ) : (
             <ul className="flex flex-col gap-3">
-              {applications.map((a) => {
+              {rows.map((a) => {
                 const draft = drafts[a.id];
                 return (
                   <li key={a.id}>
