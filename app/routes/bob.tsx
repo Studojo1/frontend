@@ -1121,7 +1121,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             {credits?.enabled && <CreditsMenu credits={credits} />}
             {hasTables && (
               <div className="flex items-center rounded-lg bg-neutral-100 p-0.5">
-                {([["chat", "Ask"], ["table", "Work"]] as const).map(([m, label]) => (
+                {([["chat", "Ask"], ["split", "Work"]] as const).map(([m, label]) => (
                   <button
                     key={m}
                     onClick={() => setMode(m as PanelMode)}
@@ -1316,6 +1316,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   <button onClick={() => exportTable(activeWorkTable)}
                     className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-neutral-700 border border-neutral-200 hover:border-neutral-400 rounded-lg px-3 py-1.5">
                     <FiDownload size={13} /> Export
+                  </button>
+                  <button onClick={() => setMode("split")}
+                    title="Back to split view (keep the chat open)"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">
+                    <FiMinimize2 size={15} />
                   </button>
                 </div>
               </div>
