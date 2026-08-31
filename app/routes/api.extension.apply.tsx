@@ -25,6 +25,9 @@ import type { Route } from "./+types/api.extension.apply";
 const CAREER_AGENT_URL =
   process.env.CAREER_AGENT_URL ?? "http://studojo-career-agent.studojo.svc.cluster.local:8000";
 const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET ?? "";
+/** Where the student's browser can reach us. Links sent to the extension are
+ *  rendered inside a job board's page, so every one of them must be absolute. */
+const PUBLIC_ORIGIN = process.env.PUBLIC_ORIGIN ?? "https://studojo.pro";
 
 /** Board id from the extension → the career agent's `platform` values. */
 const PLATFORM: Record<string, string> = {
@@ -177,13 +180,20 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (!gmail?.email_account_id || gmail.token_valid === false) {
-    let connectUrl = "/outreach/connect/gmail";
+    // MUST be absolute. The extension renders this link inside a LinkedIn
+    // page, so a relative path resolves against linkedin.com and 404s there
+    // (observed: linkedin.com/outreach/connect/gmail).
+    let connectUrl = `${PUBLIC_ORIGIN}/outreach/connect/gmail`;
     try {
       const r = await outreachFetch<{ url: string }>("/gmail/oauth/connect-url", {
         timeout: 6000,
         maxRetries: 1,
       });
-      if (r?.url) connectUrl = r.url;
+      // The service may itself return a relative path; make it absolute here
+      // rather than trusting it.
+      if (r?.url) {
+        connectUrl = /^https?:\/\//.test(r.url) ? r.url : `${PUBLIC_ORIGIN}${r.url}`;
+      }
     } catch {
       /* fall back to the in-app page */
     }
@@ -235,6 +245,6 @@ export async function action({ request }: Route.ActionArgs) {
     message: hasContact
       ? `Draft ready for ${body.contact!.name} at ${company || "this company"} — review it before it sends.`
       : `Saved. Open your CRM to review the email before it sends.`,
-    crmUrl: "/crm",
+    crmUrl: `${PUBLIC_ORIGIN}/crm`,
   });
 }
