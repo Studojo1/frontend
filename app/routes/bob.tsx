@@ -2507,7 +2507,22 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
                   </div>
                 </>
               )}
-              {isPersonRow && <div className="min-w-0 flex-1" />}
+              {isPersonRow && (
+                <div className="min-w-0 flex-1 flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
+                  {contactPhone && (
+                    <a href={`tel:${contactPhone}`} title="Call"
+                       className="inline-flex items-center gap-1 text-[11px] font-semibold rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 hover:border-neutral-900">
+                      <FiPhone size={11} className="text-green-600" /> {contactPhone}
+                    </a>
+                  )}
+                  {contactEmail && (
+                    <a href={`mailto:${contactEmail}`} title="Email"
+                       className="inline-flex items-center gap-1 text-[11px] font-semibold rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 hover:border-neutral-900 max-w-[15rem] truncate">
+                      <FiMail size={11} className="text-violet-600" /> {contactEmail}
+                    </a>
+                  )}
+                </div>
+              )}
               {tier && <TierBadge tier={tier} />}
               {profileUrl && (
                 <a
@@ -2536,7 +2551,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
           <DeleteRowButton onDelete={onDelete} />
         </div>
         )}
-        {!prov && (contactPhone || contactEmail) && (
+        {!prov && !isPersonRow && (contactPhone || contactEmail) && (
           <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
             {contactPhone && (
               <a href={`tel:${contactPhone}`} title="Call"
