@@ -502,7 +502,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [pendingFiles, setPendingFiles] = useState<{ id: number; name: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean } | null>(null);
+  const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean; tiers?: any[] } | null>(null);
   const [notice, setNotice] = useState<string>("");
   const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean } } | null>(null);
   const [showTeam, setShowTeam] = useState(false);
@@ -882,6 +882,18 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const running = run?.status === "running";
   useEffect(() => { if (!running) setStopping(false); }, [running]);
   const hasTables = tables.length > 0;
+  // The table Work mode shows: the most recent one that has rows.
+  const activeWorkTable = [...tables].reverse().find((t) => t.rows.length > 0) || tables[tables.length - 1] || null;
+  const exportTable = async (t: BobTable) => {
+    const res = await fetch(`${API}/tables/${t.id}/export`, { headers: authHeaders() });
+    if (!res.ok) { setNotice("Export failed"); return; }
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${t.name.replace(/[^a-z0-9 _-]/gi, "")}.xlsx`;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  };
   const showChat = mode !== "table";
   // Mount the results panel as soon as a run STARTS (not only once a table object
   // exists), so the live-progress banner + provisional rows can show immediately.
@@ -1107,17 +1119,17 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           <div className="ml-auto flex items-center gap-2">
             {credits?.enabled && <CreditsMenu credits={credits} />}
             {hasTables && (
-              <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden">
-                {([["chat", FiMessageSquare, "Chat only"], ["split", FiColumns, "Split view"], ["table", FiGrid, "Results only"]] as const).map(([m, Icon, label]) => (
+              <div className="flex items-center rounded-lg bg-neutral-100 p-0.5">
+                {([["chat", "Ask"], ["table", "Work"]] as const).map(([m, label]) => (
                   <button
                     key={m}
                     onClick={() => setMode(m as PanelMode)}
-                    title={label}
-                    className={`w-9 h-8 flex items-center justify-center text-sm transition-colors ${
-                      mode === m ? "bg-neutral-900 text-white" : "bg-white text-neutral-500 hover:bg-neutral-100"
+                    className={`h-7 px-3.5 rounded-md text-[13px] font-semibold transition-colors ${
+                      (m === "chat" ? mode === "chat" : mode !== "chat")
+                        ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
                     }`}
                   >
-                    <Icon size={14} />
+                    {label}
                   </button>
                 ))}
               </div>
@@ -1288,14 +1300,34 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           )}
 
           {/* Results */}
-          {showTable && (
+          {showTable && mode === "table" && activeWorkTable && (
+            <section className="flex-1 min-w-0 flex flex-col bg-white border-l border-neutral-200">
+              <div className="shrink-0 flex items-center gap-2 px-4 h-12 border-b border-neutral-200">
+                <span className="font-semibold text-[14px] text-neutral-900 truncate">{activeWorkTable.name}</span>
+                <span className="text-[12px] text-neutral-400">{activeWorkTable.rows.length} rows</span>
+                <div className="ml-auto flex items-center gap-2">
+                  <button onClick={() => enrichTable(activeWorkTable.id)}
+                    className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg px-3 py-1.5">
+                    <FiUserPlus size={13} /> Enrich all
+                  </button>
+                  <button onClick={() => exportTable(activeWorkTable)}
+                    className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-neutral-700 border border-neutral-200 hover:border-neutral-400 rounded-lg px-3 py-1.5">
+                    <FiDownload size={13} /> Export
+                  </button>
+                </div>
+              </div>
+              <WorkGrid table={activeWorkTable} onEnrichRow={enrichRow} onRowStatus={updateRowStatus}
+                onDeleteRow={deleteRow} tiered={!!credits?.tiers?.length} />
+            </section>
+          )}
+          {showTable && mode !== "table" && (
             <ResultsPanel
-              widthPct={mode === "table" ? 100 : tablePct}
-              fullWidth={mode === "table"}
+              widthPct={tablePct}
+              fullWidth={false}
               tables={tables}
               run={running ? run : null}
-              expanded={mode === "table"}
-              onExpand={() => setMode(mode === "table" ? "split" : "table")}
+              expanded={false}
+              onExpand={() => setMode("table")}
               viewPref={viewPref}
               onViewPref={setViewPref}
               onRowStatus={updateRowStatus}
@@ -2086,6 +2118,163 @@ function RunGraph({ run }: { run: Run }) {
 }
 
 // ── Results panel (cards ⇄ table) ────────────────────────────────────────────
+
+
+type SortState = { key: string; dir: 1 | -1 } | null;
+
+function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
+  table: BobTable;
+  onEnrichRow: (rowId: number, tier?: string) => void;
+  onRowStatus: (rowId: number, status: string) => void;
+  onDeleteRow: (rowId: number) => void;
+  tiered: boolean;
+}) {
+  const [sel, setSel] = useState<Set<number>>(new Set());
+  const [sort, setSort] = useState<SortState>(null);
+  const [openRow, setOpenRow] = useState<number | null>(null);
+
+  const rows = table.rows;
+  // Is this a people table or a companies table? Decides the primary column.
+  const peopleTable = rows.some((r) => str(r.cells.name) && !str(r.cells.contact_name));
+
+  const nameOf = (c: any) => str(c.name) || str(c.contact_name) || "";
+  const orgOf = (c: any) => str(c.company) || "";
+  const phoneOf = (c: any) => str(c.phone) || str(c.contact_phone) || "";
+  const emailOf = (c: any) => str(c.email) || str(c.contact_email) || "";
+  const titleOf = (c: any) => str(c.title) || str(c.contact_title) || "";
+  const primaryOf = (c: any) => (peopleTable ? nameOf(c) : orgOf(c));
+
+  const columns: { key: string; label: string; get: (c: any) => string; grow?: boolean }[] = peopleTable
+    ? [
+        { key: "name", label: "Name", get: nameOf, grow: true },
+        { key: "company", label: "Company", get: orgOf },
+        { key: "title", label: "Title", get: titleOf },
+        { key: "phone", label: "Phone", get: phoneOf },
+        { key: "email", label: "Email", get: emailOf, grow: true },
+      ]
+    : [
+        { key: "company", label: "Company", get: orgOf, grow: true },
+        { key: "contact_name", label: "Contact", get: nameOf },
+        { key: "phone", label: "Phone", get: phoneOf },
+        { key: "email", label: "Email", get: emailOf, grow: true },
+      ];
+
+  let view = rows;
+  if (sort) {
+    const col = columns.find((c) => c.key === sort.key);
+    if (col) view = [...rows].sort((a, b) => col.get(a.cells).localeCompare(col.get(b.cells)) * sort.dir);
+  }
+
+  const allSel = view.length > 0 && view.every((r) => sel.has(r.id));
+  const toggleAll = () => setSel(allSel ? new Set() : new Set(view.map((r) => r.id)));
+  const toggle = (id: number) => setSel((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const clickSort = (key: string) =>
+    setSort((p) => (p?.key === key ? { key, dir: (p.dir * -1) as 1 | -1 } : { key, dir: 1 }));
+
+  const selRows = view.filter((r) => sel.has(r.id));
+  const enrichSelected = () => { selRows.forEach((r) => onEnrichRow(r.id)); setSel(new Set()); };
+
+  return (
+    <div className="flex-1 min-h-0 flex flex-col bg-white">
+      <div className="flex-1 min-h-0 overflow-auto">
+        <table className="w-full text-[13px] border-separate border-spacing-0">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-neutral-50/90 backdrop-blur">
+              <th className="w-9 px-3 py-2.5 border-b border-neutral-200">
+                <input type="checkbox" checked={allSel} onChange={toggleAll}
+                  className="accent-violet-600 cursor-pointer" />
+              </th>
+              {columns.map((c) => (
+                <th key={c.key} onClick={() => clickSort(c.key)}
+                  className={`px-3 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wide text-neutral-400 border-b border-neutral-200 whitespace-nowrap cursor-pointer select-none hover:text-neutral-700 ${c.grow ? "" : "w-px"}`}>
+                  <span className="inline-flex items-center gap-1">
+                    {c.label}
+                    {sort?.key === c.key && <span className="text-violet-500">{sort.dir === 1 ? "↑" : "↓"}</span>}
+                  </span>
+                </th>
+              ))}
+              <th className="px-3 py-2.5 text-left font-semibold text-[11px] uppercase tracking-wide text-neutral-400 border-b border-neutral-200 w-px">Stage</th>
+              <th className="border-b border-neutral-200 w-px" />
+            </tr>
+          </thead>
+          <tbody>
+            {view.map((r) => {
+              const c = r.cells as any;
+              const has = phoneOf(c) || emailOf(c);
+              const selected = sel.has(r.id);
+              return (
+                <tr key={r.id}
+                  onClick={() => setOpenRow(openRow === r.id ? null : r.id)}
+                  className={`group cursor-pointer transition-colors ${selected ? "bg-violet-50/60" : "hover:bg-neutral-50"}`}>
+                  <td className="px-3 py-2.5 border-b border-neutral-100" onClick={(e) => e.stopPropagation()}>
+                    <input type="checkbox" checked={selected} onChange={() => toggle(r.id)}
+                      className="accent-violet-600 cursor-pointer" />
+                  </td>
+                  {columns.map((col, ci) => {
+                    const v = col.get(c);
+                    return (
+                      <td key={col.key} className="px-3 py-2.5 border-b border-neutral-100 align-middle max-w-[280px]">
+                        {ci === 0 ? (
+                          <span className="inline-flex items-center gap-2 min-w-0">
+                            {peopleTable
+                              ? <span className="w-6 h-6 shrink-0 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold flex items-center justify-center">
+                                  {primaryOf(c).split(/\s+/).map((w: string) => w[0]).slice(0, 2).join("").toUpperCase()}
+                                </span>
+                              : <CompanyLogo company={orgOf(c)} website={str(c.website)} domain={str(c._domain)} size={22} />}
+                            <span className="font-semibold text-neutral-900 truncate">{v || "—"}</span>
+                          </span>
+                        ) : col.key === "phone" ? (
+                          v ? <a href={`tel:${v}`} onClick={(e) => e.stopPropagation()} className="tabular-nums text-neutral-700 hover:text-violet-700">{v}</a> : <span className="text-neutral-300">—</span>
+                        ) : col.key === "email" ? (
+                          v ? <a href={`mailto:${v}`} onClick={(e) => e.stopPropagation()} className="text-neutral-600 hover:text-violet-700 truncate block max-w-[240px]">{v}</a> : <span className="text-neutral-300">—</span>
+                        ) : (
+                          <span className="text-neutral-700 truncate block">{v || <span className="text-neutral-300">—</span>}</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td className="px-3 py-2.5 border-b border-neutral-100" onClick={(e) => e.stopPropagation()}>
+                    {has ? (
+                      <select value={r.status || "new"} onChange={(e) => onRowStatus(r.id, e.target.value)}
+                        className="text-[12px] rounded-lg border border-neutral-200 bg-white px-2 py-1 text-neutral-600 focus:outline-none focus:ring-1 focus:ring-violet-400">
+                        {ROW_STATUSES.map((st) => <option key={st} value={st}>{st}</option>)}
+                      </select>
+                    ) : (
+                      <button onClick={() => onEnrichRow(r.id)}
+                        className="text-[12px] font-semibold text-violet-700 hover:text-violet-900">Enrich</button>
+                    )}
+                  </td>
+                  <td className="px-2 py-2.5 border-b border-neutral-100" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => onDeleteRow(r.id)} title="Remove"
+                      className="opacity-0 group-hover:opacity-100 text-neutral-300 hover:text-red-500 transition-opacity">
+                      <FiX size={14} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {view.length === 0 && (
+          <div className="p-10 text-center text-neutral-400 text-sm">No rows yet.</div>
+        )}
+      </div>
+
+      {sel.size > 0 && (
+        <div className="shrink-0 border-t border-neutral-200 bg-white px-4 py-2.5 flex items-center gap-3">
+          <span className="text-[13px] font-medium text-neutral-600">{sel.size} selected</span>
+          <button onClick={enrichSelected}
+            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg px-3 py-1.5">
+            <FiUserPlus size={13} /> Enrich {sel.size}
+          </button>
+          <button onClick={() => { selRows.forEach((r) => onDeleteRow(r.id)); setSel(new Set()); }}
+            className="text-[13px] font-medium text-neutral-500 hover:text-red-600">Remove</button>
+          <button onClick={() => setSel(new Set())} className="ml-auto text-[13px] text-neutral-400 hover:text-neutral-700">Clear</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow }: {
   tables: BobTable[];
