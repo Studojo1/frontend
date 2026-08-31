@@ -68,22 +68,36 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Drafts live in OUR database, so they survive the career agent being
   // unreachable. Reading them here means a student still sees their emails
   // instead of a page that says "Nothing saved yet" while a draft exists.
-  const drafts = await db
-    .select()
-    .from(extensionDrafts)
-    .where(eq(extensionDrafts.userId, session.user.id))
-    .orderBy(desc(extensionDrafts.createdAt))
-    .limit(100);
+  //
+  // WRAPPED. An unguarded query here took the whole page down with "Oops! An
+  // unexpected error occurred" — if extension_drafts is missing or the pool is
+  // unreachable, a student should still see their applications rather than a
+  // dead end. A page that degrades beats a page that dies.
+  let drafts: (typeof extensionDrafts.$inferSelect)[] = [];
+  let draftsReadable = true;
+  try {
+    drafts = await db
+      .select()
+      .from(extensionDrafts)
+      .where(eq(extensionDrafts.userId, session.user.id))
+      .orderBy(desc(extensionDrafts.createdAt))
+      .limit(100);
+  } catch (e) {
+    console.error("[crm] could not load drafts:", e);
+    draftsReadable = false;
+  }
 
-  return { applications, drafts, agentReachable };
+  return { applications, drafts, agentReachable, draftsReadable };
 }
 
 export default function Crm({ loaderData }: Route.ComponentProps) {
-  const { applications, drafts: draftRows, agentReachable } = loaderData as {
-    applications: Application[];
-    drafts: any[];
-    agentReachable: boolean;
-  };
+  const { applications, drafts: draftRows, agentReachable, draftsReadable } =
+    loaderData as {
+      applications: Application[];
+      drafts: any[];
+      agentReachable: boolean;
+      draftsReadable: boolean;
+    };
 
   const drafts: Record<string, DraftRow> = {};
   for (const row of draftRows ?? []) {
@@ -129,6 +143,15 @@ export default function Crm({ loaderData }: Route.ComponentProps) {
                   }`}
             </p>
           </div>
+
+          {!draftsReadable ? (
+            <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+              <p className="font-['Satoshi'] text-sm text-amber-900">
+                Your drafts couldn&rsquo;t be loaded just now. Nothing is lost
+                &mdash; refresh in a moment.
+              </p>
+            </div>
+          ) : null}
 
           {!agentReachable && rows.length > 0 ? (
             <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
