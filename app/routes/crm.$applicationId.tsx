@@ -22,22 +22,33 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw redirect(`/auth?redirect=${encodeURIComponent(`/crm/${params.applicationId}`)}`);
   }
 
-  const [draft] = await db
-    .select()
-    .from(extensionDrafts)
-    .where(
-      and(
-        eq(extensionDrafts.userId, session.user.id),
-        eq(extensionDrafts.applicationId, params.applicationId as string),
-      ),
-    )
-    .limit(1);
+  // Guarded for the same reason as the CRM list: an unhandled query error here
+  // renders "Oops! An unexpected error occurred", which tells a student
+  // nothing and loses the page entirely.
+  let draft: typeof extensionDrafts.$inferSelect | null = null;
+  let failed = false;
+  try {
+    const rows = await db
+      .select()
+      .from(extensionDrafts)
+      .where(
+        and(
+          eq(extensionDrafts.userId, session.user.id),
+          eq(extensionDrafts.applicationId, params.applicationId as string),
+        ),
+      )
+      .limit(1);
+    draft = rows[0] ?? null;
+  } catch (e) {
+    console.error("[crm] could not load draft:", e);
+    failed = true;
+  }
 
-  return { draft: draft ?? null };
+  return { draft, failed };
 }
 
 export default function CrmDraft({ loaderData }: Route.ComponentProps) {
-  const { draft } = loaderData as { draft: any };
+  const { draft, failed } = loaderData as { draft: any; failed: boolean };
   const [subject, setSubject] = useState(draft?.subject ?? "");
   const [body, setBody] = useState(draft?.body ?? "");
   const [state, setState] = useState<"idle" | "saving" | "sending" | "sent">(
@@ -49,7 +60,9 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     return (
       <Shell>
         <p className="font-['Satoshi'] text-studojo-ink">
-          No draft for this application.
+          {failed
+            ? "We couldn't load this draft just now. Try again in a moment."
+            : "No draft for this application."}
         </p>
         <Link to="/crm" className="mt-4 inline-block font-['Satoshi'] underline">
           Back to CRM
