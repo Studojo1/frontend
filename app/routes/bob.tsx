@@ -2437,25 +2437,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
               ? [contactTitle, company].filter(Boolean).join(" · ")
               : (meta || what || "")}
           </div>
-          {/* The reason he spent a credit, shown on the row itself rather than
-              hidden behind a drawer. */}
-          {isPersonRow && (contactEmail || contactPhone) && (
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
-              {contactPhone && (
-                <span className="inline-flex items-center gap-1 text-[12px] font-medium text-neutral-800">
-                  <FiPhone size={11} className="text-emerald-600" />
-                  <span className="tabular-nums">{contactPhone}</span>
-                </span>
-              )}
-              {contactEmail && (
-                <a href={`mailto:${contactEmail}`} onClick={(e) => e.stopPropagation()}
-                   className="inline-flex items-center gap-1 text-[12px] text-neutral-600 hover:text-violet-700 truncate">
-                  <FiMail size={11} className="text-neutral-400" />
-                  <span className="truncate">{contactEmail}</span>
-                </a>
-              )}
-            </div>
-          )}
+
         </div>
         {!isNaN(fit) && (
           <div
