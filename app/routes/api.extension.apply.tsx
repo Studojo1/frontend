@@ -190,7 +190,10 @@ export async function action({ request }: Route.ActionArgs) {
     // MUST be absolute. The extension renders this link inside a LinkedIn
     // page, so a relative path resolves against linkedin.com and 404s there
     // (observed: linkedin.com/outreach/connect/gmail).
-    let connectUrl = `${PUBLIC_ORIGIN}/outreach/connect/gmail`;
+    // Our own entry point, not the outreach funnel's. It starts the same OAuth
+    // flow but returns the student to their draft instead of continuing into
+    // campaign setup, which is not what they came here to do.
+    let connectUrl = `${PUBLIC_ORIGIN}/crm/connect-gmail`;
     try {
       const r = await outreachFetch<{ url: string }>("/gmail/oauth/connect-url", {
         timeout: 6000,
@@ -198,9 +201,11 @@ export async function action({ request }: Route.ActionArgs) {
       });
       // The service may itself return a relative path; make it absolute here
       // rather than trusting it.
-      if (r?.url) {
-        connectUrl = /^https?:\/\//.test(r.url) ? r.url : `${PUBLIC_ORIGIN}${r.url}`;
-      }
+      // Deliberately NOT overriding connectUrl with r.url here. That URL sends
+      // the student into the outreach funnel's post-connect steps; ours brings
+      // them back to the email they were reading. The call is still made so a
+      // service outage surfaces before the student clicks.
+      void r;
     } catch {
       /* fall back to the in-app page */
     }
@@ -219,7 +224,9 @@ export async function action({ request }: Route.ActionArgs) {
     return extJson(request, {
       ok: true,
       needsGmail: true,
-      connectUrl,
+      connectUrl: applicationId
+        ? `${connectUrl}?back=${encodeURIComponent(`/crm/${applicationId}`)}`
+        : connectUrl,
       applicationId,
       savedToCrm: Boolean(applicationId),
       draftId: draft?.id ?? null,

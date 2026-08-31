@@ -156,7 +156,11 @@ export async function action({ request }: Route.ActionArgs) {
       {
         error: "needs_gmail",
         message: "Connect Gmail so this sends from your own address.",
-        actionUrl: "/outreach/connect/gmail",
+        // Our entry point: returns them to THIS draft rather than continuing
+        // into the outreach funnel's campaign setup.
+        actionUrl: `/crm/connect-gmail?back=${encodeURIComponent(
+          draft.applicationId ? `/crm/${draft.applicationId}` : "/crm",
+        )}`,
       },
       409,
     );
