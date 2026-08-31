@@ -2323,7 +2323,7 @@ function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
   const enrichSelected = () => { selRows.forEach((r) => onEnrichRow(r.id)); setSel(new Set()); };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-white">
+    <div className="relative flex-1 min-h-0 flex flex-col bg-white">
       <div className="flex-1 min-h-0 overflow-auto">
         <table className="w-full text-[13px] border-separate border-spacing-0">
           <thead className="sticky top-0 z-10">
@@ -2420,6 +2420,21 @@ function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
           <button onClick={() => setSel(new Set())} className="ml-auto text-[13px] text-neutral-400 hover:text-neutral-700">Clear</button>
         </div>
       )}
+
+      {/* Row detail — clicking a row opens the full dossier drawer (was dead state before). */}
+      {openRow != null && (() => {
+        const r = rows.find((x) => x.id === openRow);
+        return r ? (
+          <RowDrawer
+            row={r}
+            columns={orderColumns(table.columns)}
+            onClose={() => setOpenRow(null)}
+            onStatus={(s) => onRowStatus(r.id, s)}
+            onEnrich={() => onEnrichRow(r.id)}
+            onDelete={() => { onDeleteRow(r.id); setOpenRow(null); }}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }
