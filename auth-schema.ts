@@ -1045,3 +1045,64 @@ export const apiKeys = pgTable("api_keys", {
   revokedAt: timestamp("revoked_at"),
   requestCount: integer("request_count").default(0).notNull(),
 });
+
+/**
+ * Drafts created by the browser extension.
+ *
+ * These live here rather than in job-outreach-svc because that service has no
+ * endpoint to edit an email before it sends: `/campaign/{id}/emails` returns
+ * subject and body but nothing writes them, and emails are generated
+ * server-side at `/campaign/create` time. So the student's draft is composed
+ * and edited on our side, and handed over as subject_template/body_template at
+ * the moment they press Send.
+ *
+ * A row exists from the moment Apply is clicked. `campaignId` stays null until
+ * Send — which is what guarantees nothing can leave before a human reads it.
+ */
+export const extensionDrafts = pgTable(
+  "extension_drafts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    // The career agent's JobApplication.id. Nullable: a CRM write can fail
+    // (it is deliberately fire-and-forget) and losing the draft too would be
+    // worse than losing the link between them.
+    applicationId: text("application_id"),
+    // Null until Send. Its presence is the record that outreach was launched.
+    campaignId: integer("campaign_id"),
+
+    contactName: text("contact_name"),
+    contactEmail: text("contact_email"),
+    contactTitle: text("contact_title"),
+    company: text("company"),
+    role: text("role"),
+    jobUrl: text("job_url"),
+
+    subject: text("subject"),
+    body: text("body"),
+
+    // draft | sending | sent | failed
+    status: text("status").notNull().default("draft"),
+    // Read by the outreach dashboard so extension-sourced work is visible as
+    // such. Written before this column existed, but never displayed.
+    source: text("source").notNull().default("browser_extension"),
+    failureReason: text("failure_reason"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    sentAt: timestamp("sent_at"),
+  },
+  (table) => [
+    // One draft per application per student: clicking Apply twice on the same
+    // posting should not produce two emails to the same person.
+    unique("extension_drafts_user_application_unique").on(table.userId, table.applicationId),
+    index("extension_drafts_user_id_idx").on(table.userId),
+    index("extension_drafts_status_idx").on(table.status),
+  ],
+);
+
+export const extensionDraftsRelations = relations(extensionDrafts, ({ one }) => ({
+  user: one(user, { fields: [extensionDrafts.userId], references: [user.id] }),
+}));
