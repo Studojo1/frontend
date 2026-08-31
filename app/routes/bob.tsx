@@ -5,7 +5,7 @@ import {
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
   FiMessageSquare, FiColumns, FiUsers,
   FiLayers, FiGlobe, FiPaperclip, FiFile, FiPhone, FiMail, FiUserPlus, FiSlash,
-  FiMoon, FiSun,
+  FiMoon, FiSun, FiChevronDown,
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1105,12 +1105,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             </span>
           )}
           <div className="ml-auto flex items-center gap-2">
-            {credits?.enabled && (
-              <div className="flex items-center gap-1.5">
-                <CreditPill kind="enrichment" value={credits.enrichment} />
-                <CreditPill kind="ai" value={credits.ai} />
-              </div>
-            )}
+            {credits?.enabled && <CreditsMenu credits={credits} />}
             {hasTables && (
               <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden">
                 {([["chat", FiMessageSquare, "Chat only"], ["split", FiColumns, "Split view"], ["table", FiGrid, "Results only"]] as const).map(([m, Icon, label]) => (
@@ -1153,20 +1148,26 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     exchange sits just above the composer instead of stranded at
                     the top of an empty pane. Long transcripts scroll normally. */}
                 <div className="max-w-2xl w-full mx-auto space-y-4 mt-auto">
-                  {messages.map((m) => (
-                    m.role === "user" ? (
-                      <div key={m.id} className="flex justify-end">
-                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-br-md border-2 border-neutral-900 bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
-                          {m.content}
+                  {groupMessages(messages).map((g, gi) => (
+                    g.role === "user" ? (
+                      <div key={g.items[0].id} className="flex justify-end">
+                        <div className="max-w-[82%] px-4 py-2.5 rounded-2xl rounded-br-sm bg-violet-600 text-white whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
+                          {g.items.map((m) => m.content).join("\n\n")}
                         </div>
                       </div>
                     ) : (
-                      <div key={m.id} className="flex gap-2.5">
-                        <div className="w-7 h-7 mt-1 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
+                      /* One avatar per TURN, and the turn's lines stack as
+                         paragraphs instead of separate boxes. */
+                      <div key={g.items[0].id} className="flex gap-3">
+                        <div className="w-7 h-7 mt-0.5 shrink-0 rounded-full overflow-hidden ring-1 ring-neutral-200">
                           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                         </div>
-                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
-                          {m.content}
+                        <div className="min-w-0 max-w-[88%] space-y-2">
+                          {g.items.map((m) => (
+                            <p key={m.id} className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.65] text-neutral-800">
+                              {m.content}
+                            </p>
+                          ))}
                         </div>
                       </div>
                     )
@@ -1176,10 +1177,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       line rather than a progress bar promising "10 min left". */}
                   {running && !hasTables && (
                     <div className="flex gap-2.5">
-                      <div className="w-7 h-7 mt-1 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
+                      <div className="w-7 h-7 mt-0.5 shrink-0 rounded-full overflow-hidden ring-1 ring-neutral-200">
                         <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                       </div>
-                      <div className="px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] flex items-center gap-1.5">
+                      <div className="py-2 flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:150ms]" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:300ms]" />
@@ -1188,7 +1189,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   )}
                   {searching && run && <RunProgress run={run} />}
                   {suggestions.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pl-9">
+                    <div className="flex flex-wrap gap-2 pl-10">
                       {suggestions.map((q) => (
                         <button
                           key={q}
@@ -1305,6 +1306,84 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+type MsgGroup = { role: string; items: { id: any; content: string }[] };
+
+function groupMessages(msgs: any[]): MsgGroup[] {
+  const out: MsgGroup[] = [];
+  for (const m of msgs) {
+    const last = out[out.length - 1];
+    if (last && last.role === m.role) last.items.push(m);
+    else out.push({ role: m.role, items: [m] });
+  }
+  return out;
+}
+
+function CreditsMenu({ credits }: { credits: any }) {
+  const [open, setOpen] = useState(false);
+  const tiers: any[] = credits?.tiers || [];
+  // Headline is what he can still DO: reveals available. AI sits behind it,
+  // because nobody plans their day around an AI-credit number.
+  const reveals = tiers.length
+    ? tiers.reduce((n: number, t: any) => n + (t.balance || 0), 0)
+    : credits.enrichment;
+  const low = reveals <= 0;
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-1.5 h-8 rounded-lg px-2.5 text-[12.5px] font-semibold transition-colors ${
+          low ? "bg-red-50 text-red-600 hover:bg-red-100" : "text-neutral-600 hover:bg-neutral-100"
+        }`}
+      >
+        <FiPhone size={12} />
+        <span className="tabular-nums">{reveals}</span>
+        <span className="font-medium text-neutral-400">reveals</span>
+        <FiChevronDown size={12} className="text-neutral-400" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 mt-2 w-72 z-50 bg-white border border-neutral-200 rounded-2xl shadow-xl p-4 text-left">
+            {tiers.length > 0 ? (
+              <>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400 mb-2.5">
+                  Enrichment credits
+                </div>
+                <div className="space-y-2">
+                  {tiers.map((t) => (
+                    <div key={t.key} className="flex items-baseline justify-between gap-3">
+                      <span className="text-[13.5px] text-neutral-700">{t.label}</span>
+                      <span className={`text-[13.5px] font-semibold tabular-nums ${
+                        t.balance <= 0 ? "text-red-500" : "text-neutral-900"}`}>{t.balance}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-3 text-[11.5px] leading-5 text-neutral-500">
+                  Each has its own balance. You are only charged when we find a personal mobile.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-2xl font-bold leading-none tabular-nums">{credits.enrichment}</div>
+                <div className="text-[13px] text-neutral-500 mb-2">contact reveals left</div>
+                <p className="text-[11.5px] leading-5 text-neutral-500">
+                  You are only charged when we actually return a contact.
+                </p>
+              </>
+            )}
+            <div className="mt-3 pt-3 border-t border-neutral-100 flex items-baseline justify-between">
+              <span className="text-[13px] text-neutral-500">AI credits</span>
+              <span className="text-[13px] font-semibold tabular-nums text-neutral-700">
+                {credits.ai >= 100000000 ? "unlimited" : credits.ai?.toLocaleString?.() ?? credits.ai}
+              </span>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -2047,7 +2126,11 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
 
   const displayRows = useMemo(() => [...(active?.rows ?? []), ...provisional], [active, provisional]);
   const activeDisplay: BobTable | null = active ? { ...active, rows: displayRows } : null;
-  const view: ResultsView = viewPref ?? (displayRows.length > 40 ? "table" : "cards");
+  // Cards only for a handful of rows, where the extra detail earns its space.
+  // The old threshold was 40, so an 8-row contact list rendered as eight large
+  // cards and a single result floated alone in a mostly empty pane. A recruiter
+  // scanning names, numbers and status wants rows, not posters.
+  const view: ResultsView = viewPref ?? (displayRows.length > 5 ? "table" : "cards");
 
   // Provisional rows (negative id) must never trigger a PATCH/enrich/delete on a
   // non-existent bob_row — guard every row action at the boundary.
