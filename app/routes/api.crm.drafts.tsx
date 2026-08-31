@@ -171,14 +171,29 @@ export async function action({ request }: Route.ActionArgs) {
     // The student's edited text is handed over as the template. This is the
     // only channel job-outreach-svc offers for controlling the copy — there is
     // no per-email write endpoint.
-    const created = await outreachFetch<{ campaign_id: number }>("/campaign/create", {
+    //
+    // `selected_styles` MUST be omitted. Verified against the service source
+    // (api/routes_campaign.py:262): when styles are present the endpoint takes
+    // the AI-generation branch and subject_template/body_template are never
+    // read — the student's edits would be silently discarded and a generated
+    // email sent in their place. Only the `else` branch (:275-283) uses the
+    // templates, and campaign_service.py:82 confirms the switch is
+    // `use_ai_generation = selected_styles && len > 0`.
+    //
+    // The endpoint defaults blank styles to ["warm_intro", "value_prop"]
+    // (:258-260), so sending an empty array is NOT enough — the key must be
+    // absent from the payload entirely.
+    const created = await outreachFetch<{
+      campaign_id: number;
+      queued_messages: number;
+      generation_mode: string;
+    }>("/campaign/create", {
       method: "POST",
       body: JSON.stringify({
         candidate_id: candidateId,
         email_account_id: emailAccountId,
         name: `${draft.company ?? "Outreach"} — ${draft.role ?? "role"}`.slice(0, 120),
         user_timezone: "Asia/Kolkata",
-        selected_styles: ["value_prop"],
         lead_limit: 1,
         subject_template: subject,
         body_template: text,
@@ -186,6 +201,38 @@ export async function action({ request }: Route.ActionArgs) {
       timeout: 20000,
       maxRetries: 1,
     });
+
+    // Two things the service will tell us that we must not paper over.
+    //
+    // generation_mode reports which branch ran. If it says "ai" the student's
+    // edits were discarded — better to stop than to send something they never
+    // wrote and report it as their email.
+    if (created.generation_mode && created.generation_mode !== "template") {
+      throw new Error(
+        `Campaign used ${created.generation_mode} generation, not the edited text`,
+      );
+    }
+
+    // Legacy mode only queues leads that already have a VERIFIED email address
+    // (campaign_service.py:135-142). Zero queued means nobody was reachable —
+    // the campaign exists but nothing will ever send from it.
+    if (created.queued_messages === 0) {
+      await db
+        .update(extensionDrafts)
+        .set({
+          status: "draft",
+          failureReason: "No verified email address for this contact yet.",
+        })
+        .where(eq(extensionDrafts.id, draft.id));
+      return json(
+        {
+          error: "no_reachable_contact",
+          message:
+            "We don't have a verified email for this person yet. We'll keep looking — your draft is saved.",
+        },
+        409,
+      );
+    }
 
     await outreachFetch(`/campaign/${created.campaign_id}/send`, {
       method: "POST",
