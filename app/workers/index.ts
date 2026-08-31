@@ -14,6 +14,7 @@ import {
 import { discoverJobsForUser } from "./job-discovery";
 import { applyToJob } from "./apply-worker";
 import { runOutreachStep, withdrawStaleInvitations } from "./outreach-worker";
+import { runExtensionOutreach } from "./extension-outreach";
 import { checkFleetHealth, incrementWarmupDay, logEvent } from "./safety-manager";
 import { pollAllUsers } from "./acceptance-poller";
 import {
@@ -90,6 +91,15 @@ const applyWorker = new Worker(
 const outreachWorker = new Worker(
   "outreach",
   async (job) => {
+    // Two job shapes share this queue:
+    //   "extension-outreach" -> a student clicked Apply on a job board
+    //   "outreach"           -> a step in an existing drip sequence
+    if (job.name === "extension-outreach") {
+      console.log(`[worker] extension-outreach ${job.data?.job?.company ?? "?"}`);
+      const result = await runExtensionOutreach(job.data);
+      console.log(`[worker] extension-outreach result:`, result);
+      return result;
+    }
     const { contactId } = job.data;
     console.log(`[worker] outreach contact ${contactId}`);
     const result = await runOutreachStep(contactId);
