@@ -50,8 +50,16 @@ export function composeDraft(seed: DraftSeed, profile: SenderProfile = {}) {
   const company = seed.company || "your team";
   const role = seed.role || "the role";
 
-  const subject = profile.topCredential
-    ? `${trimTo(profile.topCredential, 34)} → ${trimTo(company, 26)}`
+  // Subject follows the framework's "[credential] → [company]" pattern, but
+  // only when the credential is short enough to survive intact. A truncated
+  // phrase ("built a fintech newsletter with → Acme") is worse than the plain
+  // role line, so fall back rather than ship a half-sentence.
+  const shortCredential =
+    profile.topCredential && profile.topCredential.trim().length <= 38
+      ? profile.topCredential.trim()
+      : null;
+  const subject = shortCredential
+    ? `${shortCredential} → ${trimTo(company, 26)}`
     : `${trimTo(role, 40)} — ${trimTo(company, 26)}`;
 
   // The bridge is the honest part. With no credential we say less rather than
@@ -60,23 +68,25 @@ export function composeDraft(seed: DraftSeed, profile: SenderProfile = {}) {
   const bridge = profile.topCredential
     ? `I'm ${profile.name ? profile.name.split(/\s+/)[0] : "a student"}${
         profile.university ? ` at ${profile.university}` : ""
-      } — ${profile.topCredential}.`
-    : `I'm a student and I've been following ${company}.`;
+      }, and the short version of me is this: ${profile.topCredential}. I mention it because it is the closest thing I have to evidence that I can do the work rather than just say I want it.`
+    : `I'm a student, and I'd rather say something true than something polished: I don't have a decade of experience to point at. What I do have is the willingness to learn ${company}'s problems properly before claiming I can solve them.`;
 
   const why = seed.contactTitle
-    ? `I'm reaching out to you specifically because you're ${withArticle(seed.contactTitle)} — you'd know what actually matters for ${role}.`
-    : `I'd rather talk to someone on the team than send another application into a queue.`;
+    ? `I'm writing to you specifically rather than the careers inbox because you're ${withArticle(seed.contactTitle)} — you'd know what actually separates someone who lasts in ${role} from someone who looks good on paper. That's the part I can't work out from the job description.`
+    : `I'm writing to a person rather than a careers inbox because an application form can't tell me what this team is actually trying to build, and that's what I'd want to know before asking anyone to take a chance on me.`;
+
+  const ask = `I'm not asking you to find me a role. Would you be open to a 15-minute chat about what you look for?`;
 
   const body = [
     `Hi ${contact},`,
     ``,
-    `I saw ${company} is hiring for ${role}.`,
+    `I saw ${company} is hiring for ${role}, and I'd rather reach out properly than add one more application to the pile.`,
     ``,
     bridge,
     ``,
     why,
     ``,
-    `Would you be open to a 15-minute chat?`,
+    ask,
     ``,
     profile.name ? profile.name : "",
   ]
@@ -87,9 +97,14 @@ export function composeDraft(seed: DraftSeed, profile: SenderProfile = {}) {
   return { subject, body };
 }
 
+/** Trim on a word boundary. Cutting mid-word ("newsletter with 2…") reads as
+ *  broken software, not brevity. */
 function trimTo(s: string, n: number) {
   const t = (s ?? "").trim();
-  return t.length <= n ? t : t.slice(0, n - 1).trimEnd() + "…";
+  if (t.length <= n) return t;
+  const cut = t.slice(0, n);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > n * 0.5 ? cut.slice(0, lastSpace) : cut).trimEnd();
 }
 
 function withArticle(title: string) {
