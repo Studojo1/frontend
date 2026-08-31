@@ -2405,10 +2405,17 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
     allLinkedin.find((u) => /linkedin\.com\/in\//i.test(u)) ||
     extractUrls(str(c.evidence_url)).find((u) => /linkedin\.com\/in\//i.test(u));
   const companyPageUrl = allLinkedin.find((u) => /linkedin\.com\/(company|school)\//i.test(u));
-  const contactName = str(c.contact_name);
-  const contactTitle = str(c.contact_title);
-  const contactPhone = str(c.contact_phone);
-  const contactEmail = str(c.contact_email);
+  // Two row shapes reach this card. The placement pipeline writes contact_* on a
+  // COMPANY row; bulk enrichment writes flat name/email/phone on a PERSON row.
+  // Reading only contact_* meant an enriched contact rendered as an empty card
+  // with a company name and nothing else, which is exactly the data the user
+  // just paid for.
+  const contactName = str(c.contact_name) || str(c.name);
+  const contactTitle = str(c.contact_title) || str(c.title);
+  const contactPhone = str(c.contact_phone) || str(c.phone);
+  const contactEmail = str(c.contact_email) || str(c.email);
+  // A person row leads with the PERSON; the employer is context, not the headline.
+  const isPersonRow = !str(c.contact_name) && !!str(c.name);
   const tier = str(c.tier).toUpperCase().replace(/[^T0-9]/g, "");
   const fit = parseFloat(str(c.fit_score));
   const funding = str(c.funding);
@@ -2422,8 +2429,33 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
       <div className="flex items-start gap-2.5">
         <CompanyLogo company={company} website={website} domain={str(c._domain)} size={36} />
         <div className="min-w-0 flex-1">
-          <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">{company}</div>
-          <div className="text-[11.5px] text-neutral-500 truncate">{meta || what || ""}</div>
+          <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">
+            {isPersonRow ? contactName : company}
+          </div>
+          <div className="text-[11.5px] text-neutral-500 truncate">
+            {isPersonRow
+              ? [contactTitle, company].filter(Boolean).join(" · ")
+              : (meta || what || "")}
+          </div>
+          {/* The reason he spent a credit, shown on the row itself rather than
+              hidden behind a drawer. */}
+          {isPersonRow && (contactEmail || contactPhone) && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+              {contactPhone && (
+                <span className="inline-flex items-center gap-1 text-[12px] font-medium text-neutral-800">
+                  <FiPhone size={11} className="text-emerald-600" />
+                  <span className="tabular-nums">{contactPhone}</span>
+                </span>
+              )}
+              {contactEmail && (
+                <a href={`mailto:${contactEmail}`} onClick={(e) => e.stopPropagation()}
+                   className="inline-flex items-center gap-1 text-[12px] text-neutral-600 hover:text-violet-700 truncate">
+                  <FiMail size={11} className="text-neutral-400" />
+                  <span className="truncate">{contactEmail}</span>
+                </a>
+              )}
+            </div>
+          )}
         </div>
         {!isNaN(fit) && (
           <div
