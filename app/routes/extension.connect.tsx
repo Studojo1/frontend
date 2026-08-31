@@ -35,11 +35,20 @@ export default function ExtensionConnect({ loaderData }: Route.ComponentProps) {
         if (!res.ok) throw new Error(`Could not create a token (${res.status})`);
         const { token } = await res.json();
 
-        // Chrome / Edge
+        // Chrome / Edge. `ext_id` comes from the extension when it opens this
+        // page — externally_connectable is a permission, not an address, so
+        // without an id there is nowhere to send the token. This page used to
+        // say "Extension connected" while silently sending it nowhere.
         const w = window as any;
         const extId = new URL(window.location.href).searchParams.get("ext_id");
         if (w.chrome?.runtime?.sendMessage && extId) {
-          w.chrome.runtime.sendMessage(extId, { type: "SJ_SET_TOKEN", token }, () => {});
+          w.chrome.runtime.sendMessage(extId, { type: "SJ_SET_TOKEN", token }, () => {
+            void w.chrome.runtime.lastError;
+          });
+        } else if (!extId) {
+          throw new Error(
+            "This page was opened directly. Click Sign in from the extension instead.",
+          );
         }
 
         // Firefox / fallback — the content script on this URL listens for it.
@@ -70,8 +79,20 @@ export default function ExtensionConnect({ loaderData }: Route.ComponentProps) {
         <>
           <h1 className="text-xl font-semibold">Extension connected</h1>
           <p className="mt-2 text-sm text-gray-500">
-            Signed in as {loaderData.email}. You can close this tab and go back to
-            the job you were looking at.
+            Signed in as {loaderData.email}. Your job is being saved — nothing has
+            been sent.
+          </p>
+          {/* Two useful exits. Telling someone to "go back and click Apply
+              again" made them redo a step the extension can now finish on its
+              own the moment the token arrives. */}
+          <a
+            href="/crm"
+            className="mt-5 inline-block rounded-full bg-violet-700 px-6 py-2.5 text-sm font-semibold text-white"
+          >
+            Review my emails
+          </a>
+          <p className="mt-3 text-xs text-gray-400">
+            Or just switch back to the job tab — the extension already knows.
           </p>
         </>
       )}
