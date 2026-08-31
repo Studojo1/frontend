@@ -9,17 +9,23 @@
 // externally_connectable, so we also emit a DOM CustomEvent that the extension's
 // content script picks up on this one URL.
 import { useEffect, useState } from "react";
+import { redirect } from "react-router";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/extension.connect";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) {
-    const url = new URL(request.url);
-    return Response.redirect(
-      `${url.origin}/login?redirect=${encodeURIComponent("/extension/connect")}`,
-      302,
-    );
+    // Two bugs lived in the line this replaces.
+    //
+    // It redirected to /login, which DOES NOT EXIST — the sign-in page is
+    // /auth (app/routes/auth.tsx). A student clicking Sign in was sent to a
+    // 404, which is why the handover appeared to do nothing.
+    //
+    // It also built the URL from `url.origin`, which behind the load balancer
+    // resolves to http:// and downgraded the connection. A relative redirect
+    // avoids the question entirely and matches what /crm already does.
+    throw redirect(`/auth?redirect=${encodeURIComponent("/extension/connect")}`);
   }
   return { name: session.user.name ?? "", email: session.user.email ?? "" };
 }
