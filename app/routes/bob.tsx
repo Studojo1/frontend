@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap, FiSearch,
   FiFileText, FiGrid, FiLoader, FiExternalLink,
@@ -1896,88 +1897,228 @@ function currentStageIndex(events: RunEvent[]): number {
   return idx;
 }
 
-function RunProgress({ run }: { run: Run }) {
+// ── Shared run estimator ─────────────────────────────────────────────────────
+// One source of truth for elapsed + a SANE countdown, used by every in-run surface.
+// The old ETA projected total = elapsed/prog with no ceiling, so a slow stage made
+// "min left" CLIMB toward 40-90 min. This version: derives the clock from the run's
+// REAL start (first backend event, so it survives a page reload), caps the projected
+// total at 25 min, drives "remaining" off real stage progress (so it accelerates when
+// a stage completes), and clamps it to only ever DECREASE.
+const RUN_HARD_CAP_S = 25 * 60;
+const RUN_FLOOR_TOTAL_S = 12 * 60;
+
+function fmtClock(s: number): string {
+  s = Math.max(0, Math.floor(s));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+function useRunEstimate(run: Run) {
   const events = run.events || [];
-  const recent = events.slice(-5);
-  const c = run.counters || {};
   const stageIdx = currentStageIndex(events);
 
-  // Elapsed + rough ETA. Typical full run ~3 min; the bar advances by stage
-  // weight but never sits still (a slow stage like "assemble" still creeps).
-  const [now, setNow] = useState(() => 0);
-  const startRef = useRef<number | null>(null);
+  // Re-render the elapsed clock once a second.
+  const [, setTick] = useState(0);
   useEffect(() => {
-    if (startRef.current == null) startRef.current = Date.now();
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    const t = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(t);
   }, []);
-  const elapsedS = startRef.current ? Math.floor((Date.now() - startRef.current) / 1000) : 0;
+
+  // Real run start: the first backend event's timestamp survives a reload/remount;
+  // fall back to a mount ref for the brief window before any event has landed.
+  const mountRef = useRef<number>(Date.now());
+  const firstTs = events.length ? Date.parse(events[0].ts) : NaN;
+  const startMs = Number.isFinite(firstTs) ? firstTs : mountRef.current;
+  const elapsedS = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
 
   const stageProgress = RUN_STAGES.slice(0, stageIdx).reduce((s, x) => s + x.weight, 0)
     + RUN_STAGES[stageIdx].weight * 0.5;
-  // Real runs take ~10 min (measured median 9:49, p75 14:22) and vary widely, so a
-  // fixed countdown is always wrong. Estimate the total from how far the run has
-  // actually progressed (by stage weight): a slow run projects longer. Floor it at the
-  // measured typical so a fresh run never over-promises. Shown coarsely in minutes.
-  const TYPICAL_S = 600;
-  const prog = Math.max(0.03, Math.min(0.97, stageProgress));
-  const remainingS = Math.max(0, Math.max(TYPICAL_S, elapsedS / prog) - elapsedS);
-  const timeProgress = Math.min(0.92, elapsedS / TYPICAL_S);
-  const pct = Math.min(0.96, Math.max(stageProgress, timeProgress)) * 100;
-  const mm = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-  const etaText = stageIdx >= RUN_STAGES.length - 1 || remainingS < 45
-    ? "wrapping up…"
-    : `about ${Math.max(1, Math.round(remainingS / 60))} min left`;
+
+  const prog = Math.max(0.06, Math.min(0.98, stageProgress));
+  const estTotalS = Math.max(RUN_FLOOR_TOTAL_S, Math.min(RUN_HARD_CAP_S, elapsedS / prog));
+  const rawRemaining = Math.max(0, Math.min(estTotalS * (1 - prog), RUN_HARD_CAP_S - elapsedS));
+  // Monotonic: remaining only ever counts down, never jumps up (per component instance).
+  const remainRef = useRef<number>(Infinity);
+  remainRef.current = Math.min(remainRef.current, rawRemaining);
+  const remainingS = remainRef.current;
+
+  const last = stageIdx >= RUN_STAGES.length - 1;
+  const etaText = last || remainingS < 45 ? "wrapping up…" : `~${Math.max(1, Math.round(remainingS / 60))} min left`;
+
+  // Bar: max of real stage progress and a smooth time creep (so it is never frozen),
+  // capped at 96% until the run actually finishes.
+  const timeProgress = Math.min(0.92, elapsedS / estTotalS);
+  const pct = Math.min(96, Math.max(stageProgress, timeProgress) * 100);
+
+  return { stageIdx, elapsedS, remainingS, etaText, pct, last };
+}
+
+// A number that eases toward its target as the funnel counters tick up.
+function TickingNumber({ value, className }: { value: number; className?: string }) {
+  const [display, setDisplay] = useState(value);
+  const raf = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    const from = display, to = value;
+    if (from === to) return;
+    const start = performance.now(), dur = 500;
+    const step = (t: number) => {
+      const k = Math.min(1, (t - start) / dur);
+      const eased = 1 - Math.pow(1 - k, 3);
+      setDisplay(Math.round(from + (to - from) * eased));
+      if (k < 1) raf.current = requestAnimationFrame(step);
+    };
+    raf.current = requestAnimationFrame(step);
+    return () => { if (raf.current) cancelAnimationFrame(raf.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  return <span className={className}>{display.toLocaleString("en-US")}</span>;
+}
+
+function RunCounter({ n, label, keep }: { n: number; label: string; keep?: boolean }) {
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-[#faf7f2] px-2.5 py-1.5">
+      <TickingNumber value={n} className={`font-['Clash_Display'] font-bold text-lg leading-none tabular-nums ${keep ? "text-green-600" : "text-neutral-900"}`} />
+      <div className="text-[9.5px] font-bold uppercase tracking-wide text-neutral-400 mt-1">{label}</div>
+    </div>
+  );
+}
+
+function FitChip({ fit }: { fit: number }) {
+  const per100 = fit > 10;
+  const high = per100 ? fit >= 80 : fit >= 8;
+  const mid = per100 ? fit >= 60 : fit >= 6;
+  const cls = high ? "bg-green-100 text-green-700" : mid ? "bg-amber-100 text-amber-700" : "bg-neutral-100 text-neutral-500";
+  return <span className={`text-[10.5px] font-bold rounded-md px-1.5 py-0.5 shrink-0 tabular-nums ${cls}`}>{Math.round(fit)}</span>;
+}
+
+// The companies Sensei has already found this run (provisional opportunities, before
+// assemble writes the final rows), streamed in best-first — the live proof-of-work.
+function LiveCompanies({ run }: { run: Run }) {
+  const reduce = useReducedMotion();
+  const opp = run.opportunities;
+  const rows = useMemo(() => {
+    if (!opp) return [] as { id: number; name: string; city: string; website: string; domain: string; fit: number | null }[];
+    return [...opp.rows]
+      .filter((o) => o.status !== "rejected" && o.status !== "written")
+      .map((o) => {
+        const fitRaw = typeof o.fit_score === "number" ? o.fit_score : parseFloat(str(o.cells.fit_score));
+        return {
+          id: o.id,
+          name: o.company_norm || str(o.cells.company) || "Company",
+          city: str(o.cells.city),
+          website: str(o.cells.website),
+          domain: str(o.cells._domain),
+          fit: Number.isFinite(fitRaw) ? fitRaw : null,
+        };
+      })
+      .sort((a, b) => (b.fit ?? 0) - (a.fit ?? 0));
+  }, [opp]);
+
+  if (rows.length === 0) return null;
+  const top = rows.slice(0, 6);
+  const extra = rows.length - top.length;
 
   return (
-    <div className="flex gap-2.5" data-tick={now}>
+    <div className="mb-1">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[10.5px] font-bold uppercase tracking-wide text-neutral-500">Companies found so far</span>
+        <span className="text-[10.5px] font-bold text-violet-700 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5 tabular-nums">{rows.length}</span>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <AnimatePresence initial={false}>
+          {top.map((r) => (
+            <motion.div
+              key={r.id}
+              layout={!reduce}
+              initial={reduce ? false : { opacity: 0, y: -8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={reduce ? undefined : { opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.35, ease: [0.2, 0.9, 0.25, 1] }}
+              className="flex items-center gap-2.5 rounded-xl border border-neutral-200 bg-[#faf7f2] px-2.5 py-1.5"
+            >
+              <CompanyLogo company={r.name} website={r.website} domain={r.domain} size={22} />
+              <div className="min-w-0 flex-1">
+                <p className="text-[12.5px] font-bold leading-tight truncate">{r.name}</p>
+                {r.city && <p className="text-[10.5px] text-neutral-500 leading-tight truncate">{r.city}</p>}
+              </div>
+              {r.fit != null ? <FitChip fit={r.fit} /> : <span className="text-[10px] text-neutral-400 font-semibold shrink-0">scoring…</span>}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+      {extra > 0 && <p className="text-[10.5px] text-neutral-400 font-semibold mt-1.5">+ {extra} more found</p>}
+    </div>
+  );
+}
+
+function RunProgress({ run }: { run: Run }) {
+  const events = run.events || [];
+  const c = run.counters || {};
+  const { stageIdx, elapsedS, etaText, pct, last } = useRunEstimate(run);
+  const reduce = useReducedMotion();
+
+  const sourced = Number(c.sourced ?? c.extracted ?? 0);
+  const scored = Number(c.scored ?? 0);
+  const kept = Number(c.kept ?? c.rows_added ?? 0);
+  const lastEv = events[events.length - 1];
+
+  return (
+    <div className="flex gap-2.5">
       <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
         <FiLoader className="animate-spin text-violet-400" size={13} />
       </div>
       <div className="flex-1 bg-white border-2 border-neutral-900 rounded-2xl rounded-tl-md shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] p-4">
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
+        {/* header: live dot + stage + elapsed / eta */}
+        <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            {!reduce && <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-60 animate-ping" />}
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+          </span>
           <span className="font-bold text-sm">{RUN_STAGES[stageIdx].label}…</span>
-          <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
-            {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} found</span> : null}
-            {c.ai_credits ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="AI credits this search, scales with research depth">{c.ai_credits} AI credits{c.depth ? ` · ${RUN_DEPTH[c.depth]}` : ""}</span> : null}
+          <span className="ml-auto flex items-center gap-2 text-[11px] text-neutral-500">
+            <span className="tabular-nums">{fmtClock(elapsedS)} elapsed</span>
+            <span className={`rounded-full px-2 py-0.5 font-bold border ${last ? "bg-green-50 text-green-700 border-green-300" : "bg-violet-50 text-violet-700 border-violet-300"}`}>{etaText}</span>
           </span>
         </div>
 
-        {/* Progress bar + ETA */}
-        <div className="mb-3">
-          <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
-            <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
-          </div>
-          <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1">
-            <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
-            <span>{mm(elapsedS)} elapsed · {etaText}</span>
-          </div>
+        {/* progress bar */}
+        <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
+          <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
+        </div>
+        <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1 mb-3">
+          <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
+          <span className="tabular-nums">{Math.round(pct)}%</span>
         </div>
 
-        {/* Stage stepper */}
+        {/* stage stepper */}
         <div className="flex items-center gap-1 mb-3">
           {RUN_STAGES.map((s, i) => (
             <div key={s.key} title={s.label}
-              className={`h-1.5 flex-1 rounded-full ${i < stageIdx ? "bg-violet-500" : i === stageIdx ? "bg-violet-400 animate-pulse" : "bg-neutral-200"}`} />
+              className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${i < stageIdx ? "bg-violet-500" : i === stageIdx ? `bg-violet-400 ${reduce ? "" : "animate-pulse"}` : "bg-neutral-200"}`} />
           ))}
         </div>
 
-        {/* Recent friendly activity */}
-        <div className="space-y-1.5">
-          {recent.map((ev, i) => (
-            <div key={i} className={`flex items-start gap-2 text-[13px] ${i === recent.length - 1 ? "text-neutral-900 font-semibold" : "text-neutral-400"}`}>
-              <span className="mt-0.5 text-violet-500 shrink-0">
-                {ev.type === "search" || ev.type === "search_done" ? <FiSearch size={13} /> :
-                 ev.type === "scrape" ? <FiFileText size={13} /> :
-                 ev.type === "table" || ev.type === "rows" ? <FiGrid size={13} /> : <FiZap size={13} />}
-              </span>
-              <span>{humanizeEvent(ev)}</span>
-            </div>
-          ))}
-          {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research…</p>}
+        {/* funnel counters */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <RunCounter n={sourced} label="Sourced" />
+          <RunCounter n={scored} label="Scored" />
+          <RunCounter n={kept} label="Kept" keep />
         </div>
+
+        {/* live companies streaming in */}
+        <LiveCompanies run={run} />
+
+        {/* what is happening right now */}
+        <div className="flex items-start gap-2 text-[13px] text-neutral-900 font-semibold border-t border-neutral-100 pt-2.5 mt-3">
+          <span className="mt-0.5 text-violet-500 shrink-0">
+            {lastEv && (lastEv.type === "search" || lastEv.type === "search_done") ? <FiSearch size={13} /> :
+             lastEv && lastEv.type === "scrape" ? <FiFileText size={13} /> :
+             lastEv && (lastEv.type === "table" || lastEv.type === "rows") ? <FiGrid size={13} /> : <FiZap size={13} />}
+          </span>
+          <span>{lastEv ? humanizeEvent(lastEv) : "Planning the research…"}</span>
+        </div>
+
         <p className="text-[11px] text-neutral-400 mt-3">
-          Companies appear on the right as Sensei finds them. A full run usually takes around 10 minutes.
+          Companies appear on the right as Sensei finds them. Most runs finish in about 12 to 20 minutes. You can leave this tab open.
         </p>
       </div>
     </div>
@@ -1989,7 +2130,7 @@ function RunProgress({ run }: { run: Run }) {
 // stage helpers + the pipeline's own funnel counters (sourced/extracted/scored/removed/kept).
 function RunBanner({ run, provisional }: { run: Run; provisional: number }) {
   const c = run.counters || {};
-  const stageIdx = currentStageIndex(run.events || []);
+  const { stageIdx, pct } = useRunEstimate(run);
   const kept = Number(c.kept ?? c.rows_added ?? 0);
   const chips: { label: string; tone?: string }[] = [];
   if (c.sourced) chips.push({ label: `${c.sourced} posts read` });
@@ -2015,8 +2156,8 @@ function RunBanner({ run, provisional }: { run: Run; provisional: number }) {
         </span>
       </div>
       <div className="h-1 w-full bg-violet-100 overflow-hidden">
-        <div className="h-full bg-violet-500/70 animate-pulse"
-          style={{ width: `${Math.min(96, (stageIdx + 1) / RUN_STAGES.length * 100)}%` }} />
+        <div className="h-full bg-violet-500/70"
+          style={{ width: `${pct}%`, transition: "width .7s ease-out" }} />
       </div>
     </div>
   );
@@ -2049,8 +2190,7 @@ function nnNodes(): { x: number; y: number; layer: number }[][] {
 }
 
 function RunGraph({ run }: { run: Run }) {
-  const events = run.events || [];
-  const idx = currentStageIndex(events);
+  const { stageIdx: idx, elapsedS, etaText } = useRunEstimate(run);
   const c = run.counters || {};
   // Progress across the network layers, from the current pipeline stage.
   const frac = (idx + 1) / RUN_STAGES.length;
@@ -2072,6 +2212,7 @@ function RunGraph({ run }: { run: Run }) {
           </div>
           <h3 className="font-['Clash_Display'] text-xl font-semibold">Sensei is thinking</h3>
           <p className="text-sm text-neutral-500 mt-1">{RUN_STAGES[idx].label}…</p>
+          <p className="text-[11px] text-neutral-400 mt-1 tabular-nums">{fmtClock(elapsedS)} elapsed · {etaText}</p>
         </div>
 
         {/* Neural network, framed like a little screen */}
