@@ -2492,13 +2492,22 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
         <div className="flex items-center gap-2">
           {contactName ? (
             <>
-              <div className="w-7 h-7 shrink-0 rounded-full bg-violet-100 border border-violet-300 flex items-center justify-center text-[10px] font-black text-violet-700">
-                {contactName.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[12.5px] font-bold truncate">{contactName}</div>
-                <div className="text-[10.5px] text-neutral-500 truncate">{contactTitle || ""}</div>
-              </div>
+              {/* On a PERSON row the card headline is already this person, so
+                  repeating the avatar and name here just says it twice. Company
+                  rows still need it: there the contact is a separate human from
+                  the company in the headline. */}
+              {!isPersonRow && (
+                <>
+                  <div className="w-7 h-7 shrink-0 rounded-full bg-violet-100 border border-violet-300 flex items-center justify-center text-[10px] font-black text-violet-700">
+                    {contactName.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[12.5px] font-bold truncate">{contactName}</div>
+                    <div className="text-[10.5px] text-neutral-500 truncate">{contactTitle || ""}</div>
+                  </div>
+                </>
+              )}
+              {isPersonRow && <div className="min-w-0 flex-1" />}
               {tier && <TierBadge tier={tier} />}
               {profileUrl && (
                 <a
