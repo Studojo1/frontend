@@ -1164,7 +1164,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   {groupMessages(messages).map((g, gi) => (
                     g.role === "user" ? (
                       <div key={g.items[0].id} className="flex justify-end">
-                        <div className="max-w-[82%] px-4 py-2.5 rounded-2xl rounded-br-sm bg-violet-600 text-white whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
+                        <div className="max-w-[82%] px-4 py-2.5 rounded-2xl rounded-br-md border-2 border-neutral-900 bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
                           {g.items.map((m) => m.content).join("\n\n")}
                         </div>
                       </div>
@@ -1172,7 +1172,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       /* One avatar per TURN, and the turn's lines stack as
                          paragraphs instead of separate boxes. */
                       <div key={g.items[0].id} className="flex gap-3">
-                        <div className="w-7 h-7 mt-0.5 shrink-0 rounded-full overflow-hidden ring-1 ring-neutral-200">
+                        <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
                           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                         </div>
                         <div className="min-w-0 max-w-[88%]">
@@ -1192,10 +1192,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       line rather than a progress bar promising "10 min left". */}
                   {running && !hasTables && (
                     <div className="flex gap-2.5">
-                      <div className="w-7 h-7 mt-0.5 shrink-0 rounded-full overflow-hidden ring-1 ring-neutral-200">
+                      <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
                         <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                       </div>
-                      <div className="py-2 flex items-center gap-1.5">
+                      <div className="px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:150ms]" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:300ms]" />
