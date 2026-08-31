@@ -1175,12 +1175,14 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                         <div className="w-7 h-7 mt-0.5 shrink-0 rounded-full overflow-hidden ring-1 ring-neutral-200">
                           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                         </div>
-                        <div className="min-w-0 max-w-[88%] space-y-2">
-                          {g.items.map((m) => (
-                            <p key={m.id} className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.65] text-neutral-800">
-                              {m.content}
-                            </p>
-                          ))}
+                        <div className="min-w-0 max-w-[88%]">
+                          <div className="bg-white border-2 border-neutral-900 rounded-2xl rounded-tl-md shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] px-4 py-3 space-y-2">
+                            {g.items.map((m) => (
+                              <p key={m.id} className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.65] text-neutral-800">
+                                {m.content}
+                              </p>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     )
