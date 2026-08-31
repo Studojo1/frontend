@@ -87,6 +87,26 @@ export default function GmailConnectPage() {
   };
 
   const handleContinue = () => {
+    // A student who started at /crm/connect-gmail came here from a LinkedIn
+    // job with one email waiting for review. Continuing into campaign setup
+    // would abandon it, so hand control back to where they started.
+    //
+    // Additive: when the key is absent — every student who came through the
+    // outreach funnel — the original navigation below is unchanged. The OAuth
+    // callback URL is hardcoded server-side (job-outreach-svc
+    // api/routes_gmail.py:52), so this page is the only place the handoff can
+    // happen.
+    try {
+      const back = sessionStorage.getItem("sj_gmail_return");
+      if (back && back.startsWith("/")) {
+        sessionStorage.removeItem("sj_gmail_return");
+        navigate(back);
+        return;
+      }
+    } catch {
+      /* private mode — fall through to the normal funnel */
+    }
+
     // 'both' plans chain into LinkedIn connect before campaign setup
     if (planType === "both") {
       navigate("/outreach/connect/linkedin");
