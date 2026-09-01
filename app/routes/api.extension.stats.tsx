@@ -17,7 +17,7 @@
 // 3. `jobBoardPct` is ALWAYS an estimate. Nothing can measure it — replies to
 //    job-board applications never reach Studojo.
 import { createClient } from "redis";
-import { outreachFetch } from "~/lib/outreach/api";
+import { outreachServerFetch } from "~/lib/outreach/server-api";
 import {
   resolveExtensionToken,
   extJson,
@@ -56,17 +56,17 @@ interface Metrics {
  */
 async function measure(): Promise<{ sent: number; replied: number } | null> {
   try {
-    const latest = await outreachFetch<{ campaigns?: Array<{ id: number }>; id?: number }>(
-      "/campaign/user/latest",
-      { timeout: 8000, maxRetries: 1 },
-    );
+    const latest = await outreachServerFetch<{
+      campaigns?: Array<{ id: number }>;
+      id?: number;
+    }>("/campaign/user/latest", { timeout: 8000 });
 
     const ids = latest?.campaigns?.map((c) => c.id) ?? (latest?.id ? [latest.id] : []);
     if (!ids.length) return null;
 
     const results = await Promise.allSettled(
       ids.slice(0, 25).map((id) =>
-        outreachFetch<Metrics>(`/campaign/${id}/metrics`, { timeout: 8000, maxRetries: 1 }),
+        outreachServerFetch<Metrics>(`/campaign/${id}/metrics`, { timeout: 8000 }),
       ),
     );
 

@@ -13,7 +13,7 @@
 // The outreach worker then skips the headless-browser profile fetch it would
 // otherwise pay for — one fewer Chromium launch, one fewer proxied page load,
 // and one fewer automated LinkedIn view against the account's rate limit.
-import { outreachFetch } from "~/lib/outreach/api";
+import { outreachServerFetch } from "~/lib/outreach/server-api";
 import { upsertDraft } from "~/lib/extension-draft.server";
 import {
   resolveExtensionTokenDetailed,
@@ -189,9 +189,9 @@ export async function action({ request }: Route.ActionArgs) {
   type GmailAccount = { email_account_id?: number; token_valid?: boolean };
   let gmail: GmailAccount | null = null;
   try {
-    gmail = await outreachFetch<GmailAccount>("/gmail/oauth/account", {
+    gmail = await outreachServerFetch<GmailAccount>("/gmail/oauth/account", {
+      userId: auth.userId,
       timeout: 6000,
-      maxRetries: 1,
     });
   } catch {
     gmail = null;
@@ -206,9 +206,9 @@ export async function action({ request }: Route.ActionArgs) {
     // campaign setup, which is not what they came here to do.
     let connectUrl = `${PUBLIC_ORIGIN}/crm/connect-gmail`;
     try {
-      const r = await outreachFetch<{ url: string }>("/gmail/oauth/connect-url", {
+      const r = await outreachServerFetch<{ url: string }>("/gmail/oauth/connect-url", {
+        userId: auth.userId,
         timeout: 6000,
-        maxRetries: 1,
       });
       // The service may itself return a relative path; make it absolute here
       // rather than trusting it.

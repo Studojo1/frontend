@@ -7,7 +7,7 @@ import { and, desc, eq } from "drizzle-orm";
 import db from "~/lib/db";
 import { extensionDrafts } from "../../auth-schema";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
-import { outreachFetch } from "~/lib/outreach/api";
+import { outreachServerFetch } from "~/lib/outreach/server-api";
 import { composeDraft, type SenderProfile } from "~/lib/extension-draft.server";
 import type { Route } from "./+types/api.crm.drafts";
 
@@ -116,9 +116,9 @@ export async function action({ request }: Route.ActionArgs) {
   let candidateId: number | null = null;
   let emailAccountId: number | null = null;
   try {
-    const order = await outreachFetch<{
+    const order = await outreachServerFetch<{
       order: { candidate_id?: number; email_account_id?: number } | null;
-    }>("/orders/active", { timeout: 8000, maxRetries: 1 });
+    }>("/orders/active", { userId: session.user.id, timeout: 8000 });
     candidateId = order?.order?.candidate_id ?? null;
     emailAccountId = order?.order?.email_account_id ?? null;
   } catch {
@@ -127,10 +127,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (!emailAccountId) {
     try {
-      const acct = await outreachFetch<{ email_account_id?: number; token_valid?: boolean }>(
-        "/gmail/oauth/account",
-        { timeout: 6000, maxRetries: 1 },
-      );
+      const acct = await outreachServerFetch<{ email_account_id?: number; token_valid?: boolean }>("/gmail/oauth/account", { userId: session.user.id, timeout: 6000 });
       if (acct?.email_account_id && acct.token_valid !== false) {
         emailAccountId = acct.email_account_id;
       }
@@ -187,13 +184,11 @@ export async function action({ request }: Route.ActionArgs) {
     // The endpoint defaults blank styles to ["warm_intro", "value_prop"]
     // (:258-260), so sending an empty array is NOT enough — the key must be
     // absent from the payload entirely.
-    const created = await outreachFetch<{
+    const created = await outreachServerFetch<{
       campaign_id: number;
       queued_messages: number;
       generation_mode: string;
-    }>("/campaign/create", {
-      method: "POST",
-      body: JSON.stringify({
+    }>("/campaign/create", { userId: session.user.id, method: "POST", body: ({
         candidate_id: candidateId,
         email_account_id: emailAccountId,
         name: `${draft.company ?? "Outreach"} — ${draft.role ?? "role"}`.slice(0, 120),
@@ -203,7 +198,6 @@ export async function action({ request }: Route.ActionArgs) {
         body_template: text,
       }),
       timeout: 20000,
-      maxRetries: 1,
     });
 
     // Two things the service will tell us that we must not paper over.
@@ -238,11 +232,7 @@ export async function action({ request }: Route.ActionArgs) {
       );
     }
 
-    await outreachFetch(`/campaign/${created.campaign_id}/send`, {
-      method: "POST",
-      timeout: 20000,
-      maxRetries: 1,
-    });
+    await outreachServerFetch(`/campaign/${created.campaign_id}/send`, { userId: session.user.id, method: "POST", timeout: 20000 });
 
     await db
       .update(extensionDrafts)
