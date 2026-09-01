@@ -1164,7 +1164,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   {groupMessages(messages).map((g, gi) => (
                     g.role === "user" ? (
                       <div key={g.items[0].id} className="flex justify-end">
-                        <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-sm bg-violet-600 text-white whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
+                        <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md ${BRUT} bg-violet-500 text-white ${SHADOW} whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed`}>
                           {g.items.map((m) => m.content).join("\n\n")}
                         </div>
                       </div>
@@ -1172,7 +1172,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       /* One avatar per TURN, and the turn's lines stack as
                          paragraphs instead of separate boxes. */
                       <div key={g.items[0].id} className="flex gap-3">
-                        <div className="w-7 h-7 mt-0.5 shrink-0 rounded-full overflow-hidden ring-1 ring-neutral-200">
+                        <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
                           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                         </div>
                         <div className="min-w-0 max-w-[92%] space-y-2.5">
@@ -1180,7 +1180,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                             const rep = parseSearchReport(m.content);
                             return rep
                               ? <SearchReport key={m.id} report={rep} />
-                              : <p key={m.id} className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.7] text-neutral-800">{m.content}</p>;
+                              : <div key={m.id} className={`${CARD} rounded-tl-md px-4 py-3`}>
+                                  <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.7] text-neutral-800">{m.content}</p>
+                                </div>;
                           })}
                         </div>
                       </div>
@@ -1191,10 +1193,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       line rather than a progress bar promising "10 min left". */}
                   {running && !hasTables && (
                     <div className="flex gap-2.5">
-                      <div className="w-7 h-7 mt-0.5 shrink-0 rounded-full overflow-hidden ring-1 ring-neutral-200">
+                      <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
                         <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                       </div>
-                      <div className="py-2 flex items-center gap-1.5">
+                      <div className={`${CARD} rounded-tl-md px-4 py-3 flex items-center gap-1.5`}>
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:150ms]" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:300ms]" />
@@ -1208,7 +1210,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                         <button
                           key={q}
                           onClick={() => send(q)}
-                          className="text-[12.5px] font-medium bg-white border border-neutral-200 rounded-full px-3.5 py-1.5 text-neutral-600 hover:border-violet-400 hover:text-violet-700 hover:bg-violet-50/50 transition-colors"
+                          className="text-[12.5px] font-semibold bg-white border-2 border-neutral-900 rounded-full px-3.5 py-1.5 text-neutral-700 hover:bg-violet-500 hover:text-white transition-colors"
                         >
                           {q}
                         </button>
@@ -1244,7 +1246,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       if (f) uploadFile(f);
                     }}
                   />
-                  <div className="border border-neutral-200 rounded-2xl bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-all focus-within:border-violet-400 focus-within:shadow-[0_0_0_3px_rgba(124,92,255,0.12)]">
+                  <div className="border-2 border-neutral-900 rounded-2xl bg-white transition-all focus-within:shadow-[5px_5px_0px_0px_rgba(124,92,255,1)]">
                     <textarea
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
@@ -1358,7 +1360,14 @@ function groupMessages(msgs: any[]): MsgGroup[] {
 
 
 // One surface language for the whole workspace, so chat and results agree.
-const CARD = "bg-white border border-neutral-200/80 rounded-2xl shadow-[0_1px_2px_rgba(16,24,40,0.04)]";
+// ── Brutalist design tokens (LOCKED, owner directive) ──────────────────────────────────────────
+// The Sensei look is a HARD black outline + solid offset shadow, never soft/thin. Do NOT flatten
+// these to shadow-sm / thin neutral-200 borders — that "calm design system" pass was reverted.
+const BRUT = "border-2 border-neutral-900";
+const SHADOW = "shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]";
+const SHADOW_LG = "shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]";
+const PRESS = "transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
+const CARD = `bg-white ${BRUT} rounded-2xl ${SHADOW}`;
 
 function parseSearchReport(text: string): { headline: string; sub: string; raw: string } | null {
   if (!/^\s*search REPORT/i.test(text) && !/harvested items:/i.test(text)) return null;
@@ -2809,7 +2818,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   return (
     <div
       onClick={onOpen}
-      className={`bg-white border border-neutral-200/80 rounded-2xl p-4 cursor-pointer shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:border-neutral-300 hover:shadow-[0_4px_12px_rgba(16,24,40,0.06)] transition-all flex flex-col gap-2.5 ${isNew ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
+      className={`${CARD} p-4 cursor-pointer ${PRESS} flex flex-col gap-2.5 ${isNew ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
     >
       {/* Header */}
       <div className="flex items-start gap-2.5">
