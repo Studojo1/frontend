@@ -201,13 +201,46 @@ export async function action({ request }: Route.ActionArgs) {
   // to `never`, and every field access below silently becomes unreachable.
   type GmailAccount = { email_account_id?: number; token_valid?: boolean };
   let gmail: GmailAccount | null = null;
+  let gmailCheckFailed = false;
   try {
     gmail = await outreachServerFetch<GmailAccount>("/gmail/oauth/account", {
       userId: auth.userId,
       timeout: 6000,
     });
-  } catch {
+  } catch (e) {
+    // Distinguish "no mailbox" from "we could not ask". Swallowing every error
+    // as null meant a 401, a timeout and a genuinely unconnected account all
+    // produced the same "connect Gmail" card — so connecting it changed
+    // nothing and there was no way to tell why.
     gmail = null;
+    gmailCheckFailed = true;
+    console.error("[extension.apply] Gmail check failed:", e);
+  }
+
+  if (gmailCheckFailed) {
+    // Still save the work. The student gets a draft; we just cannot say
+    // whether their mailbox is ready.
+    const applicationId = await writeCrmRow(auth.userId, body, board);
+    const draft = await upsertDraft(auth.userId, {
+      applicationId,
+      company,
+      role,
+      jobUrl: body.job?.jobUrl || body.pageUrl || null,
+      contactName: body.contact?.name ?? null,
+      contactTitle: body.contact?.title ?? null,
+      contactEmail: body.contact?.email ?? null,
+    });
+    return extJson(request, {
+      ok: true,
+      applicationId,
+      savedToCrm: Boolean(applicationId),
+      draftId: draft?.id ?? null,
+      gmailUnknown: true,
+      crmUrl: applicationId
+        ? `${PUBLIC_ORIGIN}/crm/${applicationId}`
+        : `${PUBLIC_ORIGIN}/crm`,
+      message: "Draft saved. We couldn't check your mailbox just now.",
+    });
   }
 
   if (!gmail?.email_account_id || gmail.token_valid === false) {

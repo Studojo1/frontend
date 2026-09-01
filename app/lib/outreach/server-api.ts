@@ -44,8 +44,12 @@ export async function outreachServerFetch<T = unknown>(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  // The service authenticates the caller; we say who we are acting for.
-  if (userId) headers["X-Studojo-User-Id"] = userId;
+  // MUST be exactly "X-User-Id". job-outreach-svc's get_current_user
+  // (api/dependencies.py:34) reads that header and nothing else; anything
+  // differently named is ignored, it then finds no session cookie, and every
+  // call comes back 401 — which the callers were swallowing as "not
+  // connected". I had sent X-Studojo-User-Id.
+  if (userId) headers["X-User-Id"] = userId;
   if (INTERNAL_SECRET) headers["x-studojo-internal"] = INTERNAL_SECRET;
 
   const res = await fetch(`${OUTREACH_URL}/api/v1${path}`, {
