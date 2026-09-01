@@ -14,7 +14,7 @@
 // otherwise pay for — one fewer Chromium launch, one fewer proxied page load,
 // and one fewer automated LinkedIn view against the account's rate limit.
 import { outreachServerFetch } from "~/lib/outreach/server-api";
-import { upsertDraft } from "~/lib/extension-draft.server";
+import { upsertDraft, lastDraftError } from "~/lib/extension-draft.server";
 import {
   resolveExtensionTokenDetailed,
   extJson,
@@ -260,6 +260,7 @@ export async function action({ request }: Route.ActionArgs) {
       applicationId,
       savedToCrm: Boolean(applicationId),
       draftId: draft?.id ?? null,
+      draftError: draft ? null : lastDraftError(),
       gmailUnknown: true,
       crmUrl: applicationId
         ? `${PUBLIC_ORIGIN}/crm/${applicationId}`
@@ -312,6 +313,7 @@ export async function action({ request }: Route.ActionArgs) {
       applicationId,
       savedToCrm: Boolean(applicationId),
       draftId: draft?.id ?? null,
+      draftError: draft ? null : lastDraftError(),
       message: "Saved. Review your email — connect Gmail when you're ready to send.",
     });
   }
@@ -341,6 +343,7 @@ export async function action({ request }: Route.ActionArgs) {
     // save it cannot back up.
     savedToCrm: Boolean(applicationId),
     draftId: draft?.id ?? null,
+    draftError: draft ? null : lastDraftError(),
     contactPrefilled: hasContact,
     message: hasContact
       ? `Draft ready for ${body.contact!.name} at ${company || "this company"} — review it before it sends.`
