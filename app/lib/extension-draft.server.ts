@@ -33,6 +33,10 @@ export interface SenderProfile {
   tone?: "direct" | "warm" | "formal" | null;
 }
 
+/** Why the most recent upsert failed, for the route to surface. */
+let _lastError: string | null = null;
+export function lastDraftError() { return _lastError; }
+
 const FIRST_NAME = (full: string | null) =>
   (full ?? "").trim().split(/\s+/)[0] || "there";
 
@@ -160,6 +164,10 @@ export async function upsertDraft(
     // A draft failure must not lose the application. The CRM row is already
     // written by this point; the student can still see the job, just without
     // a prepared email.
+    // Keep the reason. The route returns it to the extension so the panel can
+    // say what actually went wrong instead of "try again", and so this stops
+    // being invisible from the outside.
+    _lastError = String((e as { message?: string })?.message ?? e).slice(0, 300);
     console.error("[extension-draft] upsert failed:", e);
     return null;
   }
