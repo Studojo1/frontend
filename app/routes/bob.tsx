@@ -1302,31 +1302,26 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             </div>
           )}
 
-          {/* Results */}
-          {showTable && mode === "table" && activeWorkTable && (
-            <section className="flex-1 min-w-0 flex flex-col bg-white border-l border-neutral-200">
-              <div className="shrink-0 flex items-center gap-2 px-4 h-12 border-b border-neutral-200">
-                <span className="font-semibold text-[14px] text-neutral-900 truncate">{activeWorkTable.name}</span>
-                <span className="text-[12px] text-neutral-400">{activeWorkTable.rows.length} rows</span>
-                <div className="ml-auto flex items-center gap-2">
-                  <button onClick={() => enrichTable(activeWorkTable.id)}
-                    className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg px-3 py-1.5">
-                    <FiUserPlus size={13} /> Enrich all
-                  </button>
-                  <button onClick={() => exportTable(activeWorkTable)}
-                    className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-neutral-700 border border-neutral-200 hover:border-neutral-400 rounded-lg px-3 py-1.5">
-                    <FiDownload size={13} /> Export
-                  </button>
-                  <button onClick={() => setMode("split")}
-                    title="Back to split view (keep the chat open)"
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">
-                    <FiMinimize2 size={15} />
-                  </button>
-                </div>
-              </div>
-              <WorkGrid table={activeWorkTable} onEnrichRow={enrichRow} onRowStatus={updateRowStatus}
-                onDeleteRow={deleteRow} tiered={!!credits?.tiers?.length} />
-            </section>
+          {/* Results — full-width Work view reuses the SAME rich table as the split view
+              (DenseTable = every column: fit score, city, hiring evidence, why now, what
+              they do, ...), with its detail drawer, cards toggle and reduce-to-split. The
+              old bespoke WorkGrid only showed company/contact/phone/email, so the Work
+              table read as blank vs prod. */}
+          {showTable && mode === "table" && (
+            <ResultsPanel
+              widthPct={tablePct}
+              fullWidth={true}
+              tables={tables}
+              run={running ? run : null}
+              expanded={true}
+              onExpand={() => setMode("split")}
+              viewPref={viewPref}
+              onViewPref={setViewPref}
+              onRowStatus={updateRowStatus}
+              onEnrichRow={enrichRow}
+              onEnrichTable={enrichTable}
+              onDeleteRow={deleteRow}
+            />
           )}
           {showTable && mode !== "table" && (
             <ResultsPanel
