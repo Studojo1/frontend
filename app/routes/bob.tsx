@@ -2738,14 +2738,13 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
         </div>
       </div>
 
-      {/* Live-progress banner over the table: rows fill in below as the funnel narrows. */}
-      {run && displayRows.length > 0 && <RunBanner run={run} provisional={provisional.length} />}
-
       {/* Body */}
-      {/* Thinking diagram ONLY before the first row (real or provisional) has landed. */}
-      {run && displayRows.length === 0 && (MISSION_CONTROL ? <MissionControl run={run} /> : <RunGraph run={run} />)}
+      {/* While a run is ACTIVE, MissionControl owns the pane the whole time — companies stream into
+          its own live list, not a half-baked "In review…" provisional table. The real table only
+          takes over once the run is DONE (run is null here). */}
+      {run && (MISSION_CONTROL ? <MissionControl run={run} /> : <RunGraph run={run} />)}
 
-      {activeDisplay && view === "cards" && !(run && displayRows.length === 0) && (
+      {!run && activeDisplay && view === "cards" && (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
             {activeDisplay.rows.map((r, idx) => (
@@ -2767,7 +2766,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
         </div>
       )}
 
-      {activeDisplay && view === "table" && !(run && displayRows.length === 0) && (
+      {!run && activeDisplay && view === "table" && (
         <DenseTable
           table={activeDisplay}
           newIds={newIds}
