@@ -1164,7 +1164,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   {groupMessages(messages).map((g, gi) => (
                     g.role === "user" ? (
                       <div key={g.items[0].id} className="flex justify-end">
-                        <div className="max-w-[82%] px-4 py-2.5 rounded-2xl rounded-br-md border-2 border-neutral-900 bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
+                        <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-sm bg-violet-600 text-white whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
                           {g.items.map((m) => m.content).join("\n\n")}
                         </div>
                       </div>
@@ -1172,17 +1172,16 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       /* One avatar per TURN, and the turn's lines stack as
                          paragraphs instead of separate boxes. */
                       <div key={g.items[0].id} className="flex gap-3">
-                        <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
+                        <div className="w-7 h-7 mt-0.5 shrink-0 rounded-full overflow-hidden ring-1 ring-neutral-200">
                           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                         </div>
-                        <div className="min-w-0 max-w-[88%]">
-                          <div className="bg-white border-2 border-neutral-900 rounded-2xl rounded-tl-md shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] px-4 py-3 space-y-2">
-                            {g.items.map((m) => (
-                              <p key={m.id} className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.65] text-neutral-800">
-                                {m.content}
-                              </p>
-                            ))}
-                          </div>
+                        <div className="min-w-0 max-w-[92%] space-y-2.5">
+                          {g.items.map((m) => {
+                            const rep = parseSearchReport(m.content);
+                            return rep
+                              ? <SearchReport key={m.id} report={rep} />
+                              : <p key={m.id} className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.7] text-neutral-800">{m.content}</p>;
+                          })}
                         </div>
                       </div>
                     )
@@ -1192,10 +1191,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       line rather than a progress bar promising "10 min left". */}
                   {running && !hasTables && (
                     <div className="flex gap-2.5">
-                      <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
+                      <div className="w-7 h-7 mt-0.5 shrink-0 rounded-full overflow-hidden ring-1 ring-neutral-200">
                         <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                       </div>
-                      <div className="px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] flex items-center gap-1.5">
+                      <div className="py-2 flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:150ms]" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:300ms]" />
@@ -1209,7 +1208,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                         <button
                           key={q}
                           onClick={() => send(q)}
-                          className="text-[12px] font-semibold bg-white border border-neutral-300 rounded-full px-3 py-1.5 text-neutral-600 hover:border-violet-500 hover:text-violet-700 transition-colors"
+                          className="text-[12.5px] font-medium bg-white border border-neutral-200 rounded-full px-3.5 py-1.5 text-neutral-600 hover:border-violet-400 hover:text-violet-700 hover:bg-violet-50/50 transition-colors"
                         >
                           {q}
                         </button>
@@ -1245,7 +1244,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       if (f) uploadFile(f);
                     }}
                   />
-                  <div className="border-2 border-neutral-900 rounded-2xl bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-shadow focus-within:shadow-[5px_5px_0px_0px_rgba(124,92,255,1)]">
+                  <div className="border border-neutral-200 rounded-2xl bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-all focus-within:border-violet-400 focus-within:shadow-[0_0_0_3px_rgba(124,92,255,0.12)]">
                     <textarea
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
@@ -1355,6 +1354,46 @@ function groupMessages(msgs: any[]): MsgGroup[] {
     else out.push({ role: m.role, items: [m] });
   }
   return out;
+}
+
+
+// One surface language for the whole workspace, so chat and results agree.
+const CARD = "bg-white border border-neutral-200/80 rounded-2xl shadow-[0_1px_2px_rgba(16,24,40,0.04)]";
+
+function parseSearchReport(text: string): { headline: string; sub: string; raw: string } | null {
+  if (!/^\s*search REPORT/i.test(text) && !/harvested items:/i.test(text)) return null;
+  const written = text.match(/written\s+(\d+)/i)?.[1];
+  const target = text.match(/target\s+(\d+)\s*rows?/i)?.[1];
+  const loc = text.match(/location\s+([^,)]+(?:,\s*[^,)]+)?)/i)?.[1]?.trim();
+  const fresh = text.match(/freshness\s+(\d+)\s*d/i)?.[1];
+  const n = written || target || "";
+  const bits = [loc && `in ${loc}`, fresh && `posted in the last ${fresh} days`].filter(Boolean);
+  const headline = n ? `Found ${n} compan${n === "1" ? "y" : "ies"}` : "Search complete";
+  return { headline, sub: bits.join(" · "), raw: text.trim() };
+}
+
+function SearchReport({ report }: { report: { headline: string; sub: string; raw: string } }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`${CARD} overflow-hidden`}>
+      <div className="flex items-center gap-3 px-4 py-3">
+        <span className="w-8 h-8 shrink-0 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+          <FiCheck size={16} />
+        </span>
+        <div className="min-w-0">
+          <div className="text-[14px] font-semibold text-neutral-900 leading-tight">{report.headline}</div>
+          {report.sub && <div className="text-[12.5px] text-neutral-500 truncate">{report.sub}</div>}
+        </div>
+        <button onClick={() => setOpen((v) => !v)}
+          className="ml-auto text-[12px] font-medium text-neutral-400 hover:text-neutral-700 shrink-0">
+          {open ? "Hide details" : "Search details"}
+        </button>
+      </div>
+      {open && (
+        <pre className="border-t border-neutral-100 bg-neutral-50 px-4 py-3 text-[11.5px] leading-5 text-neutral-500 whitespace-pre-wrap font-mono overflow-x-auto">{report.raw}</pre>
+      )}
+    </div>
+  );
 }
 
 function CreditsMenu({ credits }: { credits: any }) {
@@ -1684,7 +1723,7 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
           <div className="mt-5">
             <div className="text-[13px] font-semibold mb-2">{result.billing}</div>
             {result.rows.length > 0 && (
-              <div className="border-2 border-neutral-900 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
+              <div className="border border-neutral-200 rounded-lg overflow-hidden max-h-64 overflow-y-auto">
                 <table className="w-full text-[12.5px]">
                   <thead className="bg-neutral-100 sticky top-0">
                     <tr><th className="text-left px-3 py-2">Name</th><th className="text-left px-3 py-2">Email</th>
@@ -2770,7 +2809,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   return (
     <div
       onClick={onOpen}
-      className={`bg-white border-2 border-neutral-900 rounded-2xl p-4 cursor-pointer shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all flex flex-col gap-2.5 ${isNew ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
+      className={`bg-white border border-neutral-200/80 rounded-2xl p-4 cursor-pointer shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:border-neutral-300 hover:shadow-[0_4px_12px_rgba(16,24,40,0.06)] transition-all flex flex-col gap-2.5 ${isNew ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
     >
       {/* Header */}
       <div className="flex items-start gap-2.5">
