@@ -1160,7 +1160,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 {/* mt-auto anchors a short transcript to the BOTTOM, so the first
                     exchange sits just above the composer instead of stranded at
                     the top of an empty pane. Long transcripts scroll normally. */}
-                <div className="max-w-2xl w-full mx-auto space-y-4 mt-auto">
+                <div className="max-w-3xl w-full mx-auto space-y-4 mt-auto">
                   {groupMessages(messages).map((g, gi) => (
                     g.role === "user" ? (
                       <div key={g.items[0].id} className="flex justify-end">
@@ -1222,7 +1222,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
               <div className={atRest ? "px-3 pb-3" : "border-t-2 border-neutral-900 bg-white p-3"}>
                 {pendingFiles.length > 0 && (
-                  <div className="max-w-2xl mx-auto flex flex-wrap gap-1.5 mb-2">
+                  <div className="max-w-3xl mx-auto flex flex-wrap gap-1.5 mb-2">
                     {pendingFiles.map((f) => (
                       <span key={f.id} className="inline-flex items-center gap-1.5 bg-violet-50 border border-violet-300 rounded-lg px-2.5 py-1 text-[11.5px] font-semibold text-violet-800">
                         <FiFile size={12} /> {f.name}
@@ -1235,7 +1235,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     controls live INSIDE the field, the way every chat product
                     does it, so it reads as a single object to type into rather
                     than a field flanked by two unrelated buttons. */}
-                <div className="max-w-2xl mx-auto">
+                <div className="max-w-3xl mx-auto">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -2100,76 +2100,33 @@ function LiveCompanies({ run }: { run: Run }) {
   );
 }
 
+// Compact in-CHAT status line while a run works. The rich, live detail (counters, sources,
+// company stream) lives in the MissionControl on the RIGHT, so this stays a slim one-liner and
+// the two panels never duplicate the same big card.
 function RunProgress({ run }: { run: Run }) {
-  const events = run.events || [];
-  const c = run.counters || {};
   const { stageIdx, elapsedS, etaText, pct, last } = useRunEstimate(run);
   const reduce = useReducedMotion();
-
-  const sourced = Number(c.sourced ?? c.extracted ?? 0);
-  const scored = Number(c.scored ?? 0);
-  const kept = Number(c.kept ?? c.rows_added ?? 0);
-  const lastEv = events[events.length - 1];
-
   return (
     <div className="flex gap-2.5">
-      <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
-        <FiLoader className="animate-spin text-violet-400" size={13} />
+      <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
+        <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
       </div>
-      <div className="flex-1 bg-white border-2 border-neutral-900 rounded-2xl rounded-tl-md shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] p-4">
-        {/* header: live dot + stage + elapsed / eta */}
-        <div className="flex items-center gap-2 mb-2.5 flex-wrap">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
+      <div className={`flex-1 ${CARD} rounded-tl-md px-3.5 py-2.5`}>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="relative flex h-2 w-2 shrink-0">
             {!reduce && <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-60 animate-ping" />}
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
           </span>
-          <span className="font-bold text-sm">{RUN_STAGES[stageIdx].label}…</span>
+          <span className="font-bold text-[13.5px]">{RUN_STAGES[stageIdx].label}…</span>
           <span className="ml-auto flex items-center gap-2 text-[11px] text-neutral-500">
-            <span className="tabular-nums">{fmtClock(elapsedS)} elapsed</span>
+            <span className="tabular-nums">{fmtClock(elapsedS)}</span>
             <span className={`rounded-full px-2 py-0.5 font-bold border ${last ? "bg-green-50 text-green-700 border-green-300" : "bg-violet-50 text-violet-700 border-violet-300"}`}>{etaText}</span>
           </span>
         </div>
-
-        {/* progress bar */}
-        <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
+        <div className="mt-2 h-1.5 w-full rounded-full bg-neutral-100 overflow-hidden">
           <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
         </div>
-        <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1 mb-3">
-          <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
-          <span className="tabular-nums">{Math.round(pct)}%</span>
-        </div>
-
-        {/* stage stepper */}
-        <div className="flex items-center gap-1 mb-3">
-          {RUN_STAGES.map((s, i) => (
-            <div key={s.key} title={s.label}
-              className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${i < stageIdx ? "bg-violet-500" : i === stageIdx ? `bg-violet-400 ${reduce ? "" : "animate-pulse"}` : "bg-neutral-200"}`} />
-          ))}
-        </div>
-
-        {/* funnel counters */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <RunCounter n={sourced} label="Sourced" />
-          <RunCounter n={scored} label="Scored" />
-          <RunCounter n={kept} label="Kept" keep />
-        </div>
-
-        {/* live companies streaming in */}
-        <LiveCompanies run={run} />
-
-        {/* what is happening right now */}
-        <div className="flex items-start gap-2 text-[13px] text-neutral-900 font-semibold border-t border-neutral-100 pt-2.5 mt-3">
-          <span className="mt-0.5 text-violet-500 shrink-0">
-            {lastEv && (lastEv.type === "search" || lastEv.type === "search_done") ? <FiSearch size={13} /> :
-             lastEv && lastEv.type === "scrape" ? <FiFileText size={13} /> :
-             lastEv && (lastEv.type === "table" || lastEv.type === "rows") ? <FiGrid size={13} /> : <FiZap size={13} />}
-          </span>
-          <span>{lastEv ? humanizeEvent(lastEv) : "Planning the research…"}</span>
-        </div>
-
-        <p className="text-[11px] text-neutral-400 mt-3">
-          Companies appear on the right as Sensei finds them. Most runs finish in about 12 to 20 minutes. You can leave this tab open.
-        </p>
+        <p className="text-[11px] text-neutral-400 mt-1.5">Live progress is in the panel on the right.</p>
       </div>
     </div>
   );
@@ -2222,6 +2179,139 @@ function ProvChip({ status }: { status: string }) {
     <span className="inline-flex items-center gap-1 text-[10.5px] font-bold rounded-lg px-1.5 py-0.5 bg-neutral-100 text-neutral-500 border border-neutral-200 whitespace-nowrap">
       <FiLoader size={9} className="animate-spin opacity-60" /> {label}
     </span>
+  );
+}
+
+// ── Live mission-control (right panel, while a run works before rows land) ─────────────────────────
+// Fills the pane with real, moving signal so a long run NEVER reads as stuck: a ticking countdown,
+// funnel counters that climb, sources lighting up as they're scanned, the current action in plain
+// words, and companies as they're found. Replaces the small floating "Sensei is thinking" card.
+const MISSION_CONTROL = true;   // kill-switch: set false to fall back to the RunGraph neural-net card
+const MC_BOARDS: [string, string][] = [
+  ["linkedin", "LinkedIn"], ["naukri", "Naukri"], ["yc", "Y Combinator"],
+  ["getro", "Startup boards"], ["ats", "Career pages"], ["hirist", "Hirist"],
+  ["iimjobs", "IIMJobs"], ["ctx_li_posts", "LinkedIn posts"], ["reddit", "Reddit"],
+];
+
+function MissionControl({ run }: { run: Run }) {
+  const reduce = useReducedMotion();
+  const { stageIdx, elapsedS, etaText, pct, last } = useRunEstimate(run);
+  const c = run.counters || {};
+  const events = run.events || [];
+  const sourced = Number(c.sourced ?? c.extracted ?? 0);
+  const scored = Number(c.scored ?? 0);
+  const kept = Number(c.kept ?? c.rows_added ?? 0);
+  const lastEv = events[events.length - 1];
+
+  // sources actually seen in the event stream -> lit chips (proof it's scanning the web)
+  const seen = useMemo(() => {
+    const s = new Set<string>();
+    for (const ev of events) {
+      const low = (ev.label || "").toLowerCase();
+      const m = low.match(/^\[([a-z_]+)\]/);
+      if (m) s.add(m[1]);
+      if (/harvest|linkedin/.test(low)) s.add("linkedin");
+    }
+    return s;
+  }, [events]);
+  const liveCount = useMemo(
+    () => (run.opportunities?.rows || []).filter((o) => o.status !== "rejected" && o.status !== "written").length,
+    [run.opportunities],
+  );
+
+  const stats: [string, number, boolean][] = [["Sourced", sourced, false], ["Scored", scored, false], ["Kept", kept, true]];
+
+  return (
+    <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
+      <div className="max-w-2xl mx-auto flex flex-col gap-4">
+
+        {/* identity + stage + live countdown + progress */}
+        <div className={`${CARD} p-5`}>
+          <div className="flex items-start gap-3">
+            <div className={`w-10 h-10 shrink-0 ${BRUT} rounded-xl overflow-hidden ${SHADOW}`}>
+              <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                  {!reduce && <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-60 animate-ping" />}
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+                </span>
+                <h3 className="font-['Clash_Display'] text-lg font-bold leading-none">Sensei is researching</h3>
+              </div>
+              <p className="text-[13px] text-neutral-700 font-semibold mt-2">{RUN_STAGES[stageIdx].label}</p>
+              <p className="text-[12px] text-neutral-400">{RUN_STAGE_HINT[RUN_STAGES[stageIdx].key]}</p>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="font-['Clash_Display'] text-2xl font-bold tabular-nums leading-none">{fmtClock(elapsedS)}</div>
+              <div className={`inline-block mt-2 text-[11px] font-bold rounded-full px-2 py-0.5 border ${last ? "bg-green-50 text-green-700 border-green-300" : "bg-violet-50 text-violet-700 border-violet-300"}`}>{etaText}</div>
+            </div>
+          </div>
+
+          <div className="mt-4 h-2.5 w-full rounded-full bg-neutral-100 border border-neutral-200 overflow-hidden relative">
+            <div className={`h-full rounded-full relative overflow-hidden ${reduce ? "" : "sd-shimmer"}`}
+              style={{ width: `${pct}%`, background: "linear-gradient(90deg,#8b5cf6,#ec4899)", transition: "width .7s ease-out" }} />
+          </div>
+          <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1.5">
+            <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
+            <span className="tabular-nums">{Math.round(pct)}%</span>
+          </div>
+          <div className="flex items-center gap-1 mt-2">
+            {RUN_STAGES.map((s, i) => (
+              <div key={s.key} title={s.label}
+                className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${i < stageIdx ? "bg-violet-500" : i === stageIdx ? `bg-violet-400 ${reduce ? "" : "animate-pulse"}` : "bg-neutral-200"}`} />
+            ))}
+          </div>
+        </div>
+
+        {/* funnel counters, ticking up */}
+        <div className="grid grid-cols-3 gap-3">
+          {stats.map(([label, n, keep]) => (
+            <div key={label} className={`${CARD} px-3 py-3 text-center`}>
+              <TickingNumber value={n} className={`block font-['Clash_Display'] font-bold text-2xl leading-none tabular-nums ${keep ? "text-green-600" : "text-neutral-900"}`} />
+              <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 mt-1.5">{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* sources being scanned */}
+        <div className={`${CARD} p-4`}>
+          <div className="flex items-center gap-1.5 mb-2.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-[10.5px] font-bold uppercase tracking-wide text-neutral-500">Scanning the web</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {MC_BOARDS.map(([k, name]) => {
+              const lit = seen.has(k);
+              return (
+                <span key={k} className={`inline-flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2 py-1 border-2 transition-colors ${lit ? "border-neutral-900 bg-green-50 text-green-700" : "border-neutral-200 bg-white text-neutral-400"}`}>
+                  {lit ? <FiCheck size={11} /> : <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />} {name}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* companies as they're found — the centerpiece */}
+        <div className={`${CARD} p-4 min-h-[128px]`}>
+          {liveCount > 0 ? <LiveCompanies run={run} /> : (
+            <div className="flex flex-col items-center justify-center text-center py-7 gap-2">
+              <FiSearch className={`text-violet-400 ${reduce ? "" : "animate-pulse"}`} size={20} />
+              <p className="text-[13px] font-bold text-neutral-600">Companies appear here as Sensei finds them</p>
+              <p className="text-[11px] text-neutral-400">Reading job boards, career pages and hiring posts…</p>
+            </div>
+          )}
+        </div>
+
+        {/* current action, in plain words */}
+        <div className="flex items-start gap-2 text-[13px] text-neutral-900 font-semibold px-1">
+          <FiZap className="text-violet-500 shrink-0 mt-0.5" size={14} />
+          <span>{lastEv ? humanizeEvent(lastEv) : "Planning the research…"}</span>
+        </div>
+
+        <p className="text-[11px] text-neutral-400 text-center pb-2">Most runs finish in about 12 to 20 minutes. You can leave this tab open.</p>
+      </div>
+    </div>
   );
 }
 
@@ -2649,11 +2739,11 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
       </div>
 
       {/* Live-progress banner over the table: rows fill in below as the funnel narrows. */}
-      {run && <RunBanner run={run} provisional={provisional.length} />}
+      {run && displayRows.length > 0 && <RunBanner run={run} provisional={provisional.length} />}
 
       {/* Body */}
       {/* Thinking diagram ONLY before the first row (real or provisional) has landed. */}
-      {run && displayRows.length === 0 && <RunGraph run={run} />}
+      {run && displayRows.length === 0 && (MISSION_CONTROL ? <MissionControl run={run} /> : <RunGraph run={run} />)}
 
       {activeDisplay && view === "cards" && !(run && displayRows.length === 0) && (
         <div className="flex-1 overflow-y-auto p-4">
