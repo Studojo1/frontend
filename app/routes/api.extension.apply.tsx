@@ -126,10 +126,30 @@ async function writeCrmRow(userId: string, body: ApplyBody, board: string): Prom
       }),
       signal: AbortSignal.timeout(4000),
     });
-    // The agent returns the created row (main.py POST /jobs/{student_id}).
-    // We used to discard it, which left the CRM page with no way to link an
-    // application to its draft.
-    const created = (await res.json()) as { id?: string };
+    // CHECK res.ok. Without this an error response was parsed as if it had
+    // succeeded: `created.id` came back undefined, the function returned null,
+    // and the real reason — whatever the agent actually said — was discarded.
+    // Five rounds of "we couldn't reach your CRM" with no diagnosis came from
+    // exactly this.
+    const text = await res.text();
+    if (!res.ok) {
+      console.error(
+        `[extension.apply] CRM write rejected ${res.status} from ${CAREER_AGENT_URL}: ${text.slice(0, 400)}`,
+      );
+      return null;
+    }
+    let created: { id?: string } = {};
+    try {
+      created = JSON.parse(text) as { id?: string };
+    } catch {
+      console.error(
+        `[extension.apply] CRM returned non-JSON: ${text.slice(0, 200)}`,
+      );
+      return null;
+    }
+    if (!created?.id) {
+      console.error(`[extension.apply] CRM returned no id: ${text.slice(0, 200)}`);
+    }
     return created?.id ?? null;
   } catch (e) {
     // A CRM write failure must not lose the outreach — but it must not be
@@ -244,7 +264,7 @@ export async function action({ request }: Route.ActionArgs) {
       crmUrl: applicationId
         ? `${PUBLIC_ORIGIN}/crm/${applicationId}`
         : `${PUBLIC_ORIGIN}/crm`,
-      message: "Draft saved. We couldn't check your mailbox just now.",
+      message: "Draft ready. Review it before it sends.",
     });
   }
 

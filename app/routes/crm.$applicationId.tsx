@@ -5,7 +5,7 @@
 // reading it first.
 import { useState } from "react";
 import { Link, redirect } from "react-router";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import db from "~/lib/db";
 import { extensionDrafts } from "../../auth-schema";
 import { Footer, Header } from "~/components";
@@ -28,13 +28,18 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   let draft: typeof extensionDrafts.$inferSelect | null = null;
   let failed = false;
   try {
+    // Match on EITHER key. When the career-agent write fails there is no
+    // applicationId, so the list links to the draft's own id — and looking up
+    // only by applicationId meant that link led to "No draft for this
+    // application" while the draft sat right there in the table.
+    const key = params.applicationId as string;
     const rows = await db
       .select()
       .from(extensionDrafts)
       .where(
         and(
           eq(extensionDrafts.userId, session.user.id),
-          eq(extensionDrafts.applicationId, params.applicationId as string),
+          or(eq(extensionDrafts.applicationId, key), eq(extensionDrafts.id, key)),
         ),
       )
       .limit(1);
