@@ -16,7 +16,7 @@
 import { outreachFetch } from "~/lib/outreach/api";
 import { upsertDraft } from "~/lib/extension-draft.server";
 import {
-  resolveExtensionToken,
+  resolveExtensionTokenDetailed,
   extJson,
   preflight,
 } from "~/lib/extension-auth.server";
@@ -140,7 +140,18 @@ export async function action({ request }: Route.ActionArgs) {
   if (request.method === "OPTIONS") return preflight(request);
   if (request.method !== "POST") return extJson(request, { error: "Use POST" }, 405);
 
-  const auth = await resolveExtensionToken(request);
+  const authResult = await resolveExtensionTokenDetailed(request);
+  if (authResult && "unavailable" in authResult) {
+    // Do NOT say "sign in". They may already be signed in; we simply could not
+    // check. Sending them to sign in again is a loop with no exit.
+    return extJson(
+      request,
+      { error: "service_unavailable",
+        message: "We can't reach your account right now. Try again shortly." },
+      503,
+    );
+  }
+  const auth = authResult;
   if (!auth) return extJson(request, { error: "Sign in to Studojo" }, 401);
 
   let body: ApplyBody;

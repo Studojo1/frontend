@@ -39,9 +39,26 @@ export async function mintExtensionToken(userId: string): Promise<string> {
  * Resolve the bearer token on an extension request.
  * Returns null rather than throwing so callers decide the status code.
  */
+/** Distinguishes "no valid token" from "we could not check".
+ *
+ *  Both used to return null, so an unreachable Redis was reported to the
+ *  student as "sign in" — they signed in, it failed again, and nothing
+ *  explained why. Never authorise on an error; just say which error it is. */
+export type TokenResult =
+  | { userId: string }
+  | { unavailable: true }
+  | null;
+
 export async function resolveExtensionToken(
   request: Request,
 ): Promise<{ userId: string } | null> {
+  const r = await resolveExtensionTokenDetailed(request);
+  return r && "userId" in r ? r : null;
+}
+
+export async function resolveExtensionTokenDetailed(
+  request: Request,
+): Promise<TokenResult> {
   const header = request.headers.get("Authorization");
   if (!header?.startsWith("Bearer ")) return null;
   const token = header.slice(7).trim();
@@ -54,8 +71,12 @@ export async function resolveExtensionToken(
     // Sliding expiry: an actively used extension stays signed in.
     await redis.expire(KEY(token), TOKEN_TTL);
     return { userId };
-  } catch {
-    return null; // Redis down — treat as unauthenticated, never as authorised
+  } catch (e) {
+    // Redis down. NOT authorised — but not "signed out" either. Telling a
+    // student to sign in when they already are sends them round a loop that
+    // cannot succeed.
+    console.error("[extension-auth] token store unreachable:", e);
+    return { unavailable: true };
   }
 }
 
