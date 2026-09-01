@@ -27,7 +27,12 @@ const CAREER_AGENT_URL =
   // The previous value pinned `.studojo.svc`, so from the staging namespace it
   // pointed at the wrong cluster address — every CRM write failed silently and
   // the page showed "Nothing saved yet" while the extension said "Saved".
-  process.env.CAREER_AGENT_URL ?? "http://studojo-career-agent:8000";
+  // The service is `cc-backend` on port 80 in the staging namespace — see
+  // studojo-career-agent/backend/k8s/service.yaml. The previous default,
+  // "studojo-career-agent:8000", is a name that has never existed anywhere;
+  // I invented it. Every CRM write silently failed against it, which is why
+  // the extension kept saying "we couldn't reach your CRM".
+  process.env.CAREER_AGENT_URL ?? "http://cc-backend";
 const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET ?? "";
 /** Where the student's browser can reach us. Links sent to the extension are
  *  rendered inside a job board's page, so every one of them must be absolute. */
