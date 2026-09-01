@@ -136,6 +136,19 @@ async function writeCrmRow(userId: string, body: ApplyBody, board: string): Prom
   }
 }
 
+/** CORS preflight.
+ *
+ * React Router routes OPTIONS to the LOADER, never to the action — so an
+ * `if (request.method === "OPTIONS")` check inside the action never runs and
+ * the framework rejects the request with 400 before reaching it. Chrome then
+ * blocks every extension call to this route without sending it.
+ *
+ * This route and api.extension.token were the only two missing a loader, which
+ * is why they were unreachable from the extension while stats and note worked. */
+export async function loader({ request }: Route.LoaderArgs) {
+  return preflight(request);
+}
+
 export async function action({ request }: Route.ActionArgs) {
   if (request.method === "OPTIONS") return preflight(request);
   if (request.method !== "POST") return extJson(request, { error: "Use POST" }, 405);
