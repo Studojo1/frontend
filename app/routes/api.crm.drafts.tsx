@@ -243,13 +243,25 @@ export async function action({ request }: Route.ActionArgs) {
   } catch (e: any) {
     // Put it back to draft: a failed send must leave something the student can
     // retry, not a row stuck in "sending" forever.
+    const reason = String(e?.body?.detail ?? e?.message ?? e).slice(0, 500);
+    const status = Number(e?.status) || 0;
+    console.error(`[crm.send] failed (${status || "no status"}): ${reason}`);
     await db
       .update(extensionDrafts)
-      .set({
-        status: "draft",
-        failureReason: String(e?.body?.detail ?? e?.message ?? e).slice(0, 500),
-      })
+      .set({ status: "draft", failureReason: reason })
       .where(eq(extensionDrafts.id, draft.id));
-    return json({ error: "send_failed", message: "Could not send just now — try again." }, 502);
+    // SAY WHAT WENT WRONG. "Try again" is only honest when a retry can help,
+    // and it hides the one piece of information that would let a student —
+    // or me — do anything about it.
+    return json(
+      {
+        error: "send_failed",
+        status,
+        message: reason
+          ? `Couldn't send: ${reason}`
+          : "Couldn't send just now — try again.",
+      },
+      502,
+    );
   }
 }
