@@ -76,7 +76,12 @@ async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promi
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface ChatSummary { id: number; title: string; updated_at: string }
-interface Message { id: number; role: string; content: string; created_at: string; meta?: { suggestions?: string[] } }
+// Coach (bob-svc BOB_COACH): a finished run attaches the diagnosis + soft levers to the last
+// assistant message, so the results panel can show an edge-case card with one-click re-run chips.
+type Lever = { key?: string; label: string; message: string; est_gain?: number | null; patch?: Record<string, unknown> };
+type Diagnosis = { delivered?: number; target?: number | null; short?: boolean; zero?: boolean; widened_to?: number | null; pinned?: boolean; binding?: { label: string; dropped: number }[] };
+type Coach = { diagnosis: Diagnosis; levers: Lever[] };
+interface Message { id: number; role: string; content: string; created_at: string; meta?: { suggestions?: string[]; levers?: Lever[]; diagnosis?: Diagnosis } }
 interface RunEvent { ts: string; type: string; label: string; detail?: string; credits?: number }
 // Live-progress overlay: opportunities already found this run (before assemble writes
 // the authoritative bob_rows). Rendered as provisional rows; never persisted client-side.
@@ -908,6 +913,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const lastMsg = messages[messages.length - 1];
   const suggestions: string[] =
     !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
+  // Coach card data: only after a run finishes, from the last assistant message's diagnosis.
+  const coach: Coach | null = (!running && lastMsg?.role === "assistant" && lastMsg.meta?.diagnosis)
+    ? { diagnosis: lastMsg.meta.diagnosis, levers: lastMsg.meta.levers || [] }
+    : null;
   // A brand-new chat with nothing said yet. The greeting and the composer centre
   // together as one block instead of sitting at opposite ends of the pane.
   const atRest = messages.length === 0 && !running;
@@ -1322,6 +1331,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               onEnrichRow={enrichRow}
               onEnrichTable={enrichTable}
               onDeleteRow={deleteRow}
+              coach={coach}
+              onLever={send}
             />
           )}
           {showTable && mode !== "table" && (
@@ -1338,6 +1349,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               onEnrichRow={enrichRow}
               onEnrichTable={enrichTable}
               onDeleteRow={deleteRow}
+              coach={coach}
+              onLever={send}
             />
           )}
         </div>
@@ -2572,7 +2585,53 @@ function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
   );
 }
 
-function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow }: {
+// Coach card shown ABOVE the results once a run finishes short / zero / widened. Leads positive
+// (what you got), names the tightest constraint, and offers the soft levers as one-click re-run chips
+// (tap = re-run with that single change relaxed). Brutalist, sits above the table, never over it.
+function ResultSummaryCard({ coach, onLever }: { coach: Coach; onLever: (message: string) => void }) {
+  const d = coach.diagnosis || {};
+  const levers = (coach.levers || []).filter((l) => l && l.message);
+  const zero = !!d.zero;
+  const tight = !!d.short && !zero;
+  // nothing worth surfacing: hit the target, no widen, no levers
+  if (!zero && !tight && !d.widened_to && levers.length === 0) return null;
+
+  const binding = (d.binding || [])[0];
+  const headline = zero
+    ? "No companies cleared this exact mandate"
+    : `${d.delivered ?? 0} compan${d.delivered === 1 ? "y" : "ies"} ready${tight && d.target ? ` of the ${d.target} you asked for` : ""}`;
+  const sub = zero
+    ? (binding ? `The tightest constraint was ${binding.label}. Loosen one to open it up:` : "This mandate was very tight. Try loosening one constraint:")
+    : tight
+      ? (binding ? `A tight slice — ${binding.label} cost the most. One tap to get more:` : "A tight slice. One tap to get more:")
+      : (d.widened_to ? `Extended the posting window to ${d.widened_to} days to reach the count.` : "");
+
+  return (
+    <div className={`shrink-0 border-b-2 border-neutral-900 ${zero ? "bg-amber-50" : "bg-violet-50"} px-4 py-3`}>
+      <div className="flex items-start gap-2.5">
+        <div className={`w-7 h-7 shrink-0 ${BRUT} rounded-lg flex items-center justify-center ${zero ? "bg-amber-100 text-amber-700" : "bg-violet-100 text-violet-700"}`}>
+          {zero ? <FiSearch size={14} /> : <FiZap size={14} />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-['Clash_Display'] font-bold text-[15px] leading-tight">{headline}</p>
+          {sub && <p className="text-[12.5px] text-neutral-600 mt-0.5">{sub}</p>}
+          {levers.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2.5">
+              {levers.map((l, i) => (
+                <button key={i} onClick={() => onLever(l.message)} title={l.message}
+                  className={`text-[12px] font-bold bg-white ${BRUT} rounded-lg px-2.5 py-1 ${PRESS}`}>
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow, coach, onLever }: {
   tables: BobTable[];
   run: Run | null;
   widthPct: number;
@@ -2585,6 +2644,8 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
   onEnrichRow: (rowId: number) => void;
   onEnrichTable: (tableId: number) => void;
   onDeleteRow: (rowId: number) => void;
+  coach: Coach | null;
+  onLever: (message: string) => void;
 }) {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [detailRow, setDetailRow] = useState<BobRow | null>(null);
@@ -2737,6 +2798,10 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
           </button>
         </div>
       </div>
+
+      {/* Coach card: once the run is done, if it fell short / hit zero / widened, show the outcome
+          and the one-click relax levers right above the results. */}
+      {!run && coach && <ResultSummaryCard coach={coach} onLever={onLever} />}
 
       {/* Body */}
       {/* While a run is ACTIVE, MissionControl owns the pane the whole time — companies stream into
