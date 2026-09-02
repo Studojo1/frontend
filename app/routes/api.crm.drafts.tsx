@@ -205,10 +205,37 @@ export async function action({ request }: Route.ActionArgs) {
     // generation_mode reports which branch ran. If it says "ai" the student's
     // edits were discarded — better to stop than to send something they never
     // wrote and report it as their email.
+    // VERIFIED UNREACHABLE. routes_campaign.py:258-260 defaults blank styles to
+    // ["warm_intro","value_prop"] — "never silently fall back to blank
+    // template" — so selected_styles is always non-empty by the time the
+    // branch is taken, and the template path can never run. subject_template
+    // and body_template are accepted by the endpoint and never read.
+    //
+    // Stopping is still right: sending an AI-written email while telling the
+    // student it was theirs would be worse than not sending. But say so in
+    // words they can act on.
     if (created.generation_mode && created.generation_mode !== "template") {
-      throw new Error(
-        `Campaign used ${created.generation_mode} generation, not the edited text`,
+      // Credits are reserved at create time (routes_campaign.py:254-255), so
+      // abandoning the campaign here would burn them on every press of Send.
+      // Cancel it before giving up.
+      try {
+        await outreachServerFetch(`/campaign/${created.campaign_id}/cancel`, {
+          userId: session.user.id,
+          method: "POST",
+          timeout: 10000,
+        });
+      } catch (cancelErr) {
+        console.error(
+          `[crm.send] could not cancel orphaned campaign ${created.campaign_id}:`,
+          cancelErr,
+        );
+      }
+      const err = new Error(
+        "Your edited email can't be sent through the campaign system — it " +
+          "rewrites the message itself. Nothing was sent. Your draft is saved.",
       );
+      (err as { status?: number }).status = 501;
+      throw err;
     }
 
     // Legacy mode only queues leads that already have a VERIFIED email address
