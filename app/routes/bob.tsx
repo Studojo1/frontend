@@ -1978,14 +1978,11 @@ function currentStageIndex(events: RunEvent[]): number {
 }
 
 // ── Shared run estimator ─────────────────────────────────────────────────────
-// One source of truth for elapsed + a SANE countdown, used by every in-run surface.
-// The old ETA projected total = elapsed/prog with no ceiling, so a slow stage made
-// "min left" CLIMB toward 40-90 min. This version: derives the clock from the run's
-// REAL start (first backend event, so it survives a page reload), caps the projected
-// total at 25 min, drives "remaining" off real stage progress (so it accelerates when
-// a stage completes), and clamps it to only ever DECREASE.
-const RUN_HARD_CAP_S = 25 * 60;
-const RUN_FLOOR_TOTAL_S = 12 * 60;
+// One source of truth for a SANE "time left" countdown, used by every in-run surface. It starts at a
+// fixed ~14 min and ONLY ticks down, driven by real stage progress: smooth run -> ticks down; slow
+// run -> holds; it never climbs and never shows more than the start (the old elapsed/prog model
+// ballooned to a 25-min cap early and showed "22 min left", which was wrong).
+const INITIAL_TOTAL_S = 14 * 60;
 
 function fmtClock(s: number): string {
   s = Math.max(0, Math.floor(s));
@@ -2025,21 +2022,23 @@ function useRunEstimate(run: Run) {
   const stageProgress = RUN_STAGES.slice(0, stageIdx).reduce((s, x) => s + x.weight, 0)
     + RUN_STAGES[stageIdx].weight * 0.5;
 
-  const prog = Math.max(0.06, Math.min(0.98, stageProgress));
-  const estTotalS = Math.max(RUN_FLOOR_TOTAL_S, Math.min(RUN_HARD_CAP_S, elapsedS / prog));
-  const rawRemaining = Math.max(0, Math.min(estTotalS * (1 - prog), RUN_HARD_CAP_S - elapsedS));
-  // Monotonic: remaining only ever counts down, never jumps up (per component instance).
-  const remainRef = useRef<number>(Infinity);
-  remainRef.current = Math.min(remainRef.current, rawRemaining);
-  const remainingS = remainRef.current;
+  // Countdown model (owner spec): start at a fixed ~14 min and ONLY ever tick DOWN. Driven by real
+  // stage PROGRESS, not elapsed/prog (which ballooned to the 25-min cap early and showed "22 min"):
+  //   - run going smoothly -> stages advance -> remaining ticks down
+  //   - run is slow         -> progress stalls -> remaining HOLDS (a tiny time-creep, then flat)
+  //   - never climbs back up, never shows more than the ~14-min start
+  const stageProg = Math.max(0.02, Math.min(0.97, stageProgress));
+  const creep = Math.min(0.04, elapsedS / (INITIAL_TOTAL_S * 6));   // gentle intra-stage tick, then flat
+  const shown = Math.min(0.97, stageProg + creep);
+  const rawRemaining = INITIAL_TOTAL_S * (1 - shown);
+  const remainRef = useRef<number>(INITIAL_TOTAL_S);
+  remainRef.current = Math.min(remainRef.current, rawRemaining);    // never above the start, never climbs
+  const remainingS = Math.max(remainRef.current, 40);               // hold "~1 min" near the end, not 0
 
   const last = stageIdx >= RUN_STAGES.length - 1;
-  const etaText = last || remainingS < 45 ? "wrapping up…" : `~${Math.max(1, Math.round(remainingS / 60))} min left`;
+  const etaText = last || remainingS < 50 ? "wrapping up…" : `~${Math.max(1, Math.round(remainingS / 60))} min left`;
 
-  // Bar: max of real stage progress and a smooth time creep (so it is never frozen),
-  // capped at 96% until the run actually finishes.
-  const timeProgress = Math.min(0.92, elapsedS / estTotalS);
-  const pct = Math.min(96, Math.max(stageProgress, timeProgress) * 100);
+  const pct = Math.min(96, shown * 100);
 
   return { stageIdx, elapsedS, remainingS, etaText, pct, last };
 }
