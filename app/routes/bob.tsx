@@ -2241,45 +2241,31 @@ const MC_BOARDS: [string, string][] = [
 
 function MissionControl({ run }: { run: Run }) {
   const reduce = useReducedMotion();
-  const { stageIdx, remainingS, pct, last } = useRunEstimate(run);
-  const c = run.counters || {};
+  const { stageIdx, elapsedS, remainingS, pct, last } = useRunEstimate(run);
   const events = run.events || [];
-  // The authoritative `sourced` counter only lands AFTER harvest buffers + bulk-inserts raw items
-  // (can be 6+ min in). Until then the per-source search events already carry the counts
-  // ("1453 new"), so sum those for a live, honest number instead of a stark 0 for minutes.
-  const sourcedLive = useMemo(() => {
-    let sum = 0;
-    for (const ev of events) {
-      if (ev.type === "search" || ev.type === "search_done") {
-        const m = (ev.detail || "").match(/([\d,]+)\s+new/);
-        if (m) sum += parseInt(m[1].replace(/,/g, ""), 10) || 0;
-      }
-    }
-    return sum;
-  }, [events]);
-  const sourced = Number(c.sourced ?? c.extracted ?? 0) || sourcedLive;
-  const scored = Number(c.scored ?? 0);
-  const kept = Number(c.kept ?? c.rows_added ?? 0);
   const lastEv = events[events.length - 1];
 
-  // sources actually seen in the event stream -> lit chips (proof it's scanning the web)
-  const seen = useMemo(() => {
-    const s = new Set<string>();
-    for (const ev of events) {
-      const low = (ev.label || "").toLowerCase();
-      const m = low.match(/^\[([a-z_]+)\]/);
-      if (m) s.add(m[1]);
-      if (/harvest|linkedin/.test(low)) s.add("linkedin");
-    }
-    return s;
-  }, [events]);
+  // Progress theater (owner directive): the REAL raw harvest arrives in one ~5-min burst, which reads
+  // as a dead 0 then a jump. These are plausible, deterministic, time-paced ramps tuned to what real
+  // runs actually produce (~5k sourced, ~35 shortlisted, ~12 kept) — NOT from the backend. The REAL
+  // results stay honest: the companies streaming below + the final table and coach card.
+  const seed = (((run.id || 1) * 2654435761) % 100000) / 100000;   // stable per run, varies run to run
+  const ramp = (startS: number, fullS: number) => {
+    const f = Math.max(0, Math.min(1, (elapsedS - startS) / Math.max(1, fullS - startS)));
+    return 1 - Math.pow(1 - f, 2.4);                                // ease-out
+  };
+  const sourced = Math.round((4800 + seed * 1500) * ramp(4, 300));         // ~4.8-6.3k, fills by ~5 min
+  const shortlisted = Math.round((26 + seed * 22) * ramp(150, 540));       // ~26-48, 2.5 -> 9 min
+  const kept = Math.round((8 + seed * 8) * ramp(430, 780));                // ~8-16, 7 -> 13 min
+  // source chips light up one by one across the search window (not the real all-at-once burst)
+  const litCount = Math.min(MC_BOARDS.length, Math.floor(ramp(6, 250) * (MC_BOARDS.length + 1)));
+
   const liveCount = useMemo(
     () => (run.opportunities?.rows || []).filter((o) => o.status !== "rejected" && o.status !== "written").length,
     [run.opportunities],
   );
 
-  // "Scored" was misleading (every company is scored; this is how many SURVIVED into the shortlist).
-  const stats: [string, number, boolean][] = [["Sourced", sourced, false], ["Shortlisted", scored, false], ["Kept", kept, true]];
+  const stats: [string, number, boolean][] = [["Sourced", sourced, false], ["Shortlisted", shortlisted, false], ["Kept", kept, true]];
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
@@ -2348,8 +2334,8 @@ function MissionControl({ run }: { run: Run }) {
             <span className="text-[10.5px] font-bold uppercase tracking-wide text-neutral-500">Scanning the web</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {MC_BOARDS.map(([k, name]) => {
-              const lit = seen.has(k);
+            {MC_BOARDS.map(([k, name], i) => {
+              const lit = i < litCount;
               return (
                 <span key={k} className={`inline-flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2 py-1 border-2 transition-colors ${lit ? "border-neutral-900 bg-green-50 text-green-700" : "border-neutral-200 bg-white text-neutral-400"}`}>
                   {lit ? <FiCheck size={11} /> : <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />} {name}
