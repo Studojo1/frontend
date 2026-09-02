@@ -58,7 +58,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
   const [subject, setSubject] = useState(draft?.subject ?? "");
   const [style, setStyle] = useState(draft?.emailStyle ?? DEFAULT_STYLE);
   const [body, setBody] = useState(draft?.body ?? "");
-  const [state, setState] = useState<"idle" | "saving" | "sending" | "sent">(
+  const [state, setState] = useState<"idle" | "saving" | "sending" | "sent" | "restyling">(
     draft?.status === "sent" ? "sent" : "idle",
   );
   const [problem, setProblem] = useState<{ message: string; actionUrl?: string } | null>(null);
@@ -82,6 +82,38 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
   // With no credential the bridge is generic. Say so rather than letting a
   // student send a thin email believing it is finished.
   const thin = !draft.subject?.includes("→");
+
+  // Rewrite the draft in the chosen style. Without this the picker changed a
+  // hidden value and the email on screen stayed identical — which reads as a
+  // broken control, and gives no sense of what will actually be sent.
+  async function pickStyle(id: string) {
+    if (id === style) return;
+    // Restyling REPLACES the text. If they have already edited it, say so
+    // rather than quietly throwing their words away.
+    const edited = body !== (draft.body ?? "") || subject !== (draft.subject ?? "");
+    if (edited && !confirm("Rewriting in this style will replace your edits. Continue?")) {
+      return;
+    }
+    setStyle(id);
+    setProblem(null);
+    setState("restyling");
+    try {
+      const res = await fetch("/api/crm/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: draft.id, intent: "regenerate", emailStyle: id }),
+      });
+      const data = await res.json();
+      if (res.ok && data.subject) {
+        setSubject(data.subject);
+        setBody(data.body);
+      }
+    } catch {
+      setProblem({ message: "Couldn't rewrite the draft. Your text is unchanged." });
+    } finally {
+      setState("idle");
+    }
+  }
 
   async function post(intent: "save" | "send") {
     setProblem(null);
@@ -154,7 +186,8 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
               <button
                 key={s.id}
                 type="button"
-                onClick={() => setStyle(s.id)}
+                onClick={() => pickStyle(s.id)}
+                disabled={state === "restyling"}
                 className={`rounded-xl border-2 p-3 text-left transition-all ${
                   style === s.id
                     ? "border-studojo-ink bg-studojo-purple-bg"

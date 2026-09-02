@@ -85,10 +85,16 @@ export async function action({ request }: Route.ActionArgs) {
         contactEmail: draft.contactEmail,
       },
       body.profile ?? {},
+      isKnownStyle(body.emailStyle) ? body.emailStyle! : draft.emailStyle,
     );
     await db
       .update(extensionDrafts)
-      .set({ subject, body: text, updatedAt: new Date() })
+      .set({
+        subject,
+        body: text,
+        ...(isKnownStyle(body.emailStyle) ? { emailStyle: body.emailStyle } : {}),
+        updatedAt: new Date(),
+      })
       .where(eq(extensionDrafts.id, draft.id));
     return json({ ok: true, subject, body: text });
   }
