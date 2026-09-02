@@ -2242,21 +2242,23 @@ const MC_BOARDS: [string, string][] = [
 function MissionControl({ run }: { run: Run }) {
   const reduce = useReducedMotion();
   const { stageIdx, elapsedS, remainingS, pct, last } = useRunEstimate(run);
+  const c = run.counters || {};
   const events = run.events || [];
   const lastEv = events[events.length - 1];
 
-  // Progress theater (owner directive): the REAL raw harvest arrives in one ~5-min burst, which reads
-  // as a dead 0 then a jump. These are plausible, deterministic, time-paced ramps tuned to what real
-  // runs actually produce (~5k sourced, ~35 shortlisted, ~12 kept) — NOT from the backend. The REAL
-  // results stay honest: the companies streaming below + the final table and coach card.
+  // Progress theater (owner directive): ONLY the raw-harvest number is faked. The real raw harvest
+  // arrives in one ~5-min burst, reading as a dead 0 then a jump — so drive "Sourced" (+ the source
+  // chips) off a deterministic, per-run, ease-out ramp tuned to real magnitudes (~4.8-6.3k by ~5 min).
+  // SHORTLISTED and KEPT stay REAL from the backend counters so they always match the rows actually
+  // delivered in the table below (a faked kept would contradict the real output).
   const seed = (((run.id || 1) * 2654435761) % 100000) / 100000;   // stable per run, varies run to run
   const ramp = (startS: number, fullS: number) => {
     const f = Math.max(0, Math.min(1, (elapsedS - startS) / Math.max(1, fullS - startS)));
     return 1 - Math.pow(1 - f, 2.4);                                // ease-out
   };
-  const sourced = Math.round((4800 + seed * 1500) * ramp(4, 300));         // ~4.8-6.3k, fills by ~5 min
-  const shortlisted = Math.round((26 + seed * 22) * ramp(150, 540));       // ~26-48, 2.5 -> 9 min
-  const kept = Math.round((8 + seed * 8) * ramp(430, 780));                // ~8-16, 7 -> 13 min
+  const sourced = Math.round((4800 + seed * 1500) * ramp(4, 300));  // FAKED: ~4.8-6.3k, fills by ~5 min
+  const shortlisted = Number(c.scored ?? 0);                        // REAL: survivors after scoring
+  const kept = Number(c.kept ?? c.rows_added ?? 0);                 // REAL: rows actually delivered
   // source chips light up one by one across the search window (not the real all-at-once burst)
   const litCount = Math.min(MC_BOARDS.length, Math.floor(ramp(6, 250) * (MC_BOARDS.length + 1)));
 
