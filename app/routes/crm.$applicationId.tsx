@@ -10,6 +10,7 @@ import db from "~/lib/db";
 import { extensionDrafts } from "../../auth-schema";
 import { Footer, Header } from "~/components";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
+import { EMAIL_STYLES, DEFAULT_STYLE } from "~/lib/outreach/email-styles";
 import type { Route } from "./+types/crm.$applicationId";
 
 export function meta() {
@@ -55,6 +56,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export default function CrmDraft({ loaderData }: Route.ComponentProps) {
   const { draft, failed } = loaderData as { draft: any; failed: boolean };
   const [subject, setSubject] = useState(draft?.subject ?? "");
+  const [style, setStyle] = useState(draft?.emailStyle ?? DEFAULT_STYLE);
   const [body, setBody] = useState(draft?.body ?? "");
   const [state, setState] = useState<"idle" | "saving" | "sending" | "sent">(
     draft?.status === "sent" ? "sent" : "idle",
@@ -88,7 +90,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
       const res = await fetch("/api/crm/drafts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: draft.id, intent, subject, body }),
+        body: JSON.stringify({ id: draft.id, intent, subject, body, emailStyle: style }),
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -133,6 +135,44 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           >
             Add my resume
           </Link>
+        </div>
+      ) : null}
+
+      {!sent ? (
+        <div className="mb-6">
+          <label className="mb-1 block font-['Satoshi'] text-xs font-bold uppercase tracking-wide text-studojo-muted">
+            How should it sound
+          </label>
+          {/* This is not decoration. The campaign system rewrites the message
+              in the chosen style, so this is what actually controls the email
+              that gets sent — the text below is a preview of the intent. */}
+          <p className="mb-3 font-['Satoshi'] text-sm text-studojo-muted">
+            Studojo writes the final email in this style, using the details below.
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {EMAIL_STYLES.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setStyle(s.id)}
+                className={`rounded-xl border-2 p-3 text-left transition-all ${
+                  style === s.id
+                    ? "border-studojo-ink bg-studojo-purple-bg"
+                    : "border-studojo-ink/15 hover:border-studojo-ink/40"
+                }`}
+              >
+                <span className="block font-['Satoshi'] text-sm font-semibold text-studojo-ink">
+                  {s.name}
+                </span>
+                <span className="mt-0.5 block font-['Satoshi'] text-xs text-studojo-muted">
+                  {s.tone}
+                </span>
+                <span className="mt-1 block font-['Satoshi'] text-xs text-studojo-muted">
+                  {s.ask}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 
