@@ -9,6 +9,7 @@ import { extensionDrafts } from "../../auth-schema";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { outreachServerFetch } from "~/lib/outreach/server-api";
 import { composeDraft, type SenderProfile } from "~/lib/extension-draft.server";
+import { isKnownStyle, DEFAULT_STYLE } from "~/lib/outreach/email-styles";
 import type { Route } from "./+types/api.crm.drafts";
 
 const json = (data: unknown, status = 200) => Response.json(data, { status });
@@ -44,6 +45,7 @@ export async function action({ request }: Route.ActionArgs) {
     intent?: "save" | "send" | "regenerate";
     subject?: string;
     body?: string;
+    emailStyle?: string;
     profile?: SenderProfile;
   };
   try {
@@ -97,6 +99,9 @@ export async function action({ request }: Route.ActionArgs) {
       .set({
         subject: (body.subject ?? "").slice(0, 300),
         body: (body.body ?? "").slice(0, 8000),
+        // Ignore an unknown id rather than storing something the generator
+        // would silently fall back on.
+        ...(isKnownStyle(body.emailStyle) ? { emailStyle: body.emailStyle } : {}),
         updatedAt: new Date(),
       })
       .where(eq(extensionDrafts.id, draft.id));
@@ -194,6 +199,15 @@ export async function action({ request }: Route.ActionArgs) {
         name: `${draft.company ?? "Outreach"} — ${draft.role ?? "role"}`.slice(0, 120),
         user_timezone: "Asia/Kolkata",
         lead_limit: 1,
+        // The style the student picked. /campaign/create ALWAYS generates —
+        // blank styles default to two AI styles and the template path is
+        // unreachable (routes_campaign.py:258-260) — so this is what actually
+        // shapes the email that goes out.
+        selected_styles: [
+          isKnownStyle(draft.emailStyle) ? draft.emailStyle : DEFAULT_STYLE,
+        ],
+        // Still sent as a hint. The endpoint accepts them; whether it reads
+        // them is its business, and passing the student's words costs nothing.
         subject_template: subject,
         body_template: text,
       }),
@@ -214,30 +228,10 @@ export async function action({ request }: Route.ActionArgs) {
     // Stopping is still right: sending an AI-written email while telling the
     // student it was theirs would be worse than not sending. But say so in
     // words they can act on.
-    if (created.generation_mode && created.generation_mode !== "template") {
-      // Credits are reserved at create time (routes_campaign.py:254-255), so
-      // abandoning the campaign here would burn them on every press of Send.
-      // Cancel it before giving up.
-      try {
-        await outreachServerFetch(`/campaign/${created.campaign_id}/cancel`, {
-          userId: session.user.id,
-          method: "POST",
-          timeout: 10000,
-        });
-      } catch (cancelErr) {
-        console.error(
-          `[crm.send] could not cancel orphaned campaign ${created.campaign_id}:`,
-          cancelErr,
-        );
-      }
-      const err = new Error(
-        "Your edited email can't be sent through the campaign system — it " +
-          "rewrites the message itself. Nothing was sent. Your draft is saved.",
-      );
-      (err as { status?: number }).status = 501;
-      throw err;
-    }
-
+    // NO LONGER REFUSING AI MODE. The student now picks the style, so an
+    // AI-written email is what they asked for rather than a silent
+    // substitution of their words. Refusing here would block the only path
+    // that can actually send.
     // Legacy mode only queues leads that already have a VERIFIED email address
     // (campaign_service.py:135-142). Zero queued means nobody was reachable —
     // the campaign exists but nothing will ever send from it.

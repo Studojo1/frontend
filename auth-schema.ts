@@ -1083,6 +1083,10 @@ export const extensionDrafts = pgTable(
     subject: text("subject"),
     body: text("body"),
 
+    // Which of job-outreach-svc's six email styles the student picked. The
+    // service rewrites the message with the chosen style, so this is what
+    // actually controls the email they send — see routes_campaign.py:258.
+    emailStyle: text("email_style").notNull().default("warm_intro"),
     // draft | sending | sent | failed
     status: text("status").notNull().default("draft"),
     // Read by the outreach dashboard so extension-sourced work is visible as
