@@ -1921,15 +1921,30 @@ const FRIENDLY_SOURCE: Record<string, string> = {
 };
 
 // Turn one raw event into a human sentence. Never leak internal ids / ring jargon.
+// User-friendly copy for every internal pipeline step, so the chat/panel NEVER leak raw names like
+// "jd_fetch: started", "stream_front4", "company_ctx". Checked in order; first match wins.
+const STEP_FRIENDLY: [RegExp, string][] = [
+  [/plan|understood/, "Planning the search"],
+  [/harvest|stream_front|scanning/, "Searching boards & LinkedIn"],
+  [/created table|create_table|setting up/, "Setting up your results"],
+  [/shortlist/, "Shortlisting the best matches"],
+  [/extract|pulling out|reading/, "Reading & pulling out companies"],
+  [/linkedin_company|company details/, "Finding company details"],
+  [/jd_fetch|job description/, "Analysing job descriptions"],
+  [/prefilter|filtering/, "Filtering out weak matches"],
+  [/company_ctx|company_verify|verify/, "Researching the companies"],
+  [/scor/, "Scoring how well each fits"],
+  [/enrich|hiring signal/, "Checking live hiring signals"],
+  [/contact|right person/, "Finding the right person to reach"],
+  [/assemble|building your table/, "Building your table"],
+  [/search summary|finalising|finalizing/, "Finalising the shortlist"],
+  [/pipeline finished|wrapping|finished/, "Wrapping up"],
+];
+
 function humanizeEvent(ev: RunEvent): string {
   const raw = ev.label || "";
   const low = raw.toLowerCase();
-  for (const s of RUN_STAGES) {
-    if (s.key !== "search" && low.startsWith(s.key)) return s.label;
-  }
-  if (/harvest/.test(low)) return "Searching boards & LinkedIn";
-  // Search events look like "[getro] sre engineer @ Pune" or
-  // "[ctx_li_posts] site:linkedin.com/posts \"sre engineer\" Pune hiring".
+  // Search events look like "[getro] sre engineer @ Pune" -> "Searching startup boards: sre engineer in Pune".
   const m = raw.match(/^\[([a-z_]+)\]\s*(.*)$/i);
   if (m) {
     const src = FRIENDLY_SOURCE[m[1].toLowerCase()] || m[1];
@@ -1943,6 +1958,8 @@ function humanizeEvent(ev: RunEvent): string {
     if (q.length > 60) q = q.slice(0, 60) + "…";
     return q ? `Searching ${src}: ${q}` : `Searching ${src}`;
   }
+  // Internal step name -> friendly phrase (never leak "jd_fetch: started").
+  for (const [rx, friendly] of STEP_FRIENDLY) if (rx.test(low)) return friendly;
   return raw;
 }
 
@@ -1979,18 +1996,30 @@ function useRunEstimate(run: Run) {
   const events = run.events || [];
   const stageIdx = currentStageIndex(events);
 
-  // Re-render the elapsed clock once a second.
+  // Re-render the elapsed clock once a second, SELF-CORRECTING to the real second boundary. A plain
+  // setInterval(1000) drifts and coalesces when the poll (2.5s) + streaming list jank the main
+  // thread, so the clock jumps unevenly (2-3s at a time). Re-scheduling to `1000 - now%1000` each
+  // tick keeps every update near a true second, however busy the thread is.
   const [, setTick] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 1000);
-    return () => clearInterval(t);
+    let id: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      setTick((n) => n + 1);
+      id = setTimeout(tick, 1000 - (Date.now() % 1000));
+    };
+    id = setTimeout(tick, 1000 - (Date.now() % 1000));
+    return () => clearTimeout(id);
   }, []);
 
-  // Real run start: the first backend event's timestamp survives a reload/remount;
-  // fall back to a mount ref for the brief window before any event has landed.
-  const mountRef = useRef<number>(Date.now());
-  const firstTs = events.length ? Date.parse(events[0].ts) : NaN;
-  const startMs = Number.isFinite(firstTs) ? firstTs : mountRef.current;
+  // Real run start, LOCKED ONCE: the first backend event's timestamp (survives a reload/remount);
+  // fall back to mount time only if no event has landed yet. Locking it in a ref means a later poll
+  // that reorders the events array can never move the start and make elapsed jump backwards/forwards.
+  const startRef = useRef<number | null>(null);
+  if (startRef.current == null) {
+    const firstTs = events.length ? Date.parse(events[0].ts) : NaN;
+    startRef.current = Number.isFinite(firstTs) ? firstTs : Date.now();
+  }
+  const startMs = startRef.current;
   const elapsedS = Math.max(0, Math.floor((Date.now() - startMs) / 1000));
 
   const stageProgress = RUN_STAGES.slice(0, stageIdx).reduce((s, x) => s + x.weight, 0)
@@ -2066,7 +2095,9 @@ function LiveCompanies({ run }: { run: Run }) {
         const fitRaw = typeof o.fit_score === "number" ? o.fit_score : parseFloat(str(o.cells.fit_score));
         return {
           id: o.id,
-          name: o.company_norm || str(o.cells.company) || "Company",
+          // Show the real company name, NOT company_norm (that's the lowercased, punctuation-stripped
+          // dedup KEY — "accentureinindia", "bnpparibas", "tvsd" — never a display name).
+          name: str(o.cells.company) || o.company_norm || "Company",
           city: str(o.cells.city),
           website: str(o.cells.website),
           domain: str(o.cells._domain),
@@ -2117,8 +2148,12 @@ function LiveCompanies({ run }: { run: Run }) {
 // company stream) lives in the MissionControl on the RIGHT, so this stays a slim one-liner and
 // the two panels never duplicate the same big card.
 function RunProgress({ run }: { run: Run }) {
-  const { stageIdx, elapsedS, etaText, pct, last } = useRunEstimate(run);
+  const { stageIdx, etaText, pct, last } = useRunEstimate(run);
   const reduce = useReducedMotion();
+  // Show the REAL current step (friendly), not a stale "Searching LinkedIn" when we've moved on.
+  const events = run.events || [];
+  const lastEv = events[events.length - 1];
+  const activity = lastEv ? humanizeEvent(lastEv) : RUN_STAGES[stageIdx].label;
   return (
     <div className="flex gap-2.5">
       <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
@@ -2130,16 +2165,15 @@ function RunProgress({ run }: { run: Run }) {
             {!reduce && <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-60 animate-ping" />}
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
           </span>
-          <span className="font-bold text-[13.5px]">{RUN_STAGES[stageIdx].label}…</span>
-          <span className="ml-auto flex items-center gap-2 text-[11px] text-neutral-500">
-            <span className="tabular-nums">{fmtClock(elapsedS)}</span>
-            <span className={`rounded-full px-2 py-0.5 font-bold border ${last ? "bg-green-50 text-green-700 border-green-300" : "bg-violet-50 text-violet-700 border-violet-300"}`}>{etaText}</span>
+          <span className="font-bold text-[13.5px] min-w-0 truncate">{activity}…</span>
+          <span className="ml-auto shrink-0">
+            <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold border ${last ? "bg-green-50 text-green-700 border-green-300" : "bg-violet-50 text-violet-700 border-violet-300"}`}>{etaText}</span>
           </span>
         </div>
         <div className="mt-2 h-1.5 w-full rounded-full bg-neutral-100 overflow-hidden">
           <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
         </div>
-        <p className="text-[11px] text-neutral-400 mt-1.5">Live progress is in the panel on the right.</p>
+        <p className="text-[11px] text-neutral-400 mt-1.5">Full live progress is in the panel on the right.</p>
       </div>
     </div>
   );
@@ -2208,10 +2242,23 @@ const MC_BOARDS: [string, string][] = [
 
 function MissionControl({ run }: { run: Run }) {
   const reduce = useReducedMotion();
-  const { stageIdx, elapsedS, etaText, pct, last } = useRunEstimate(run);
+  const { stageIdx, remainingS, pct, last } = useRunEstimate(run);
   const c = run.counters || {};
   const events = run.events || [];
-  const sourced = Number(c.sourced ?? c.extracted ?? 0);
+  // The authoritative `sourced` counter only lands AFTER harvest buffers + bulk-inserts raw items
+  // (can be 6+ min in). Until then the per-source search events already carry the counts
+  // ("1453 new"), so sum those for a live, honest number instead of a stark 0 for minutes.
+  const sourcedLive = useMemo(() => {
+    let sum = 0;
+    for (const ev of events) {
+      if (ev.type === "search" || ev.type === "search_done") {
+        const m = (ev.detail || "").match(/([\d,]+)\s+new/);
+        if (m) sum += parseInt(m[1].replace(/,/g, ""), 10) || 0;
+      }
+    }
+    return sum;
+  }, [events]);
+  const sourced = Number(c.sourced ?? c.extracted ?? 0) || sourcedLive;
   const scored = Number(c.scored ?? 0);
   const kept = Number(c.kept ?? c.rows_added ?? 0);
   const lastEv = events[events.length - 1];
@@ -2232,7 +2279,8 @@ function MissionControl({ run }: { run: Run }) {
     [run.opportunities],
   );
 
-  const stats: [string, number, boolean][] = [["Sourced", sourced, false], ["Scored", scored, false], ["Kept", kept, true]];
+  // "Scored" was misleading (every company is scored; this is how many SURVIVED into the shortlist).
+  const stats: [string, number, boolean][] = [["Sourced", sourced, false], ["Shortlisted", scored, false], ["Kept", kept, true]];
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
@@ -2252,12 +2300,19 @@ function MissionControl({ run }: { run: Run }) {
                 </span>
                 <h3 className="font-['Clash_Display'] text-lg font-bold leading-none">Sensei is researching</h3>
               </div>
-              <p className="text-[13px] text-neutral-700 font-semibold mt-2">{RUN_STAGES[stageIdx].label}</p>
-              <p className="text-[12px] text-neutral-400">{RUN_STAGE_HINT[RUN_STAGES[stageIdx].key]}</p>
+              <p className="text-[13px] text-neutral-700 font-semibold mt-2">{lastEv ? humanizeEvent(lastEv) : RUN_STAGES[stageIdx].label}</p>
             </div>
-            <div className="text-right shrink-0">
-              <div className="font-['Clash_Display'] text-2xl font-bold tabular-nums leading-none">{fmtClock(elapsedS)}</div>
-              <div className={`inline-block mt-2 text-[11px] font-bold rounded-full px-2 py-0.5 border ${last ? "bg-green-50 text-green-700 border-green-300" : "bg-violet-50 text-violet-700 border-violet-300"}`}>{etaText}</div>
+            {/* Only the time LEFT, bold — the elapsed timer had no value. It re-predicts as stages
+                complete (adaptive, capped, only counts down). */}
+            <div className="text-right shrink-0 leading-none">
+              {last ? (
+                <div className="font-['Clash_Display'] text-xl font-bold text-green-600">wrapping up…</div>
+              ) : (
+                <>
+                  <span className="font-['Clash_Display'] text-3xl font-bold text-violet-700 tabular-nums">{Math.max(1, Math.round(remainingS / 60))}</span>
+                  <span className="text-[12px] font-bold text-neutral-500 ml-1">min left</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -2316,12 +2371,8 @@ function MissionControl({ run }: { run: Run }) {
           )}
         </div>
 
-        {/* current action, in plain words */}
-        <div className="flex items-start gap-2 text-[13px] text-neutral-900 font-semibold px-1">
-          <FiZap className="text-violet-500 shrink-0 mt-0.5" size={14} />
-          <span>{lastEv ? humanizeEvent(lastEv) : "Planning the research…"}</span>
-        </div>
-
+        {/* The live current-action line moved to the CHAT one-liner (people watch that), so it is
+            not repeated here at the bottom where it went unseen. */}
         <p className="text-[11px] text-neutral-400 text-center pb-2">Most runs finish in about 12 to 20 minutes. You can leave this tab open.</p>
       </div>
     </div>
@@ -2589,12 +2640,14 @@ function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
 // (what you got), names the tightest constraint, and offers the soft levers as one-click re-run chips
 // (tap = re-run with that single change relaxed). Brutalist, sits above the table, never over it.
 function ResultSummaryCard({ coach, onLever }: { coach: Coach; onLever: (message: string) => void }) {
+  const [dismissed, setDismissed] = useState(false);
   const d = coach.diagnosis || {};
   const levers = (coach.levers || []).filter((l) => l && l.message);
   const zero = !!d.zero;
   const tight = !!d.short && !zero;
   // nothing worth surfacing: hit the target, no widen, no levers
   if (!zero && !tight && !d.widened_to && levers.length === 0) return null;
+  if (dismissed) return null;
 
   const binding = (d.binding || [])[0];
   const headline = zero
@@ -2607,25 +2660,25 @@ function ResultSummaryCard({ coach, onLever }: { coach: Coach; onLever: (message
       : (d.widened_to ? `Extended the posting window to ${d.widened_to} days to reach the count.` : "");
 
   return (
-    <div className={`shrink-0 border-b-2 border-neutral-900 ${zero ? "bg-amber-50" : "bg-violet-50"} px-4 py-3`}>
-      <div className="flex items-start gap-2.5">
-        <div className={`w-7 h-7 shrink-0 ${BRUT} rounded-lg flex items-center justify-center ${zero ? "bg-amber-100 text-amber-700" : "bg-violet-100 text-violet-700"}`}>
-          {zero ? <FiSearch size={14} /> : <FiZap size={14} />}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-['Clash_Display'] font-bold text-[15px] leading-tight">{headline}</p>
-          {sub && <p className="text-[12.5px] text-neutral-600 mt-0.5">{sub}</p>}
-          {levers.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2.5">
-              {levers.map((l, i) => (
-                <button key={i} onClick={() => onLever(l.message)} title={l.message}
-                  className={`text-[12px] font-bold bg-white ${BRUT} rounded-lg px-2.5 py-1 ${PRESS}`}>
-                  {l.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+    <div className={`relative shrink-0 border-b-2 border-neutral-900 ${zero ? "bg-amber-50" : "bg-violet-50"} px-4 py-3`}>
+      {/* dismiss so the user can see the table alone */}
+      <button onClick={() => setDismissed(true)} title="Dismiss"
+        className="absolute top-2 right-2 w-6 h-6 rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-black/5 transition-colors">
+        <FiX size={15} />
+      </button>
+      <div className="pr-8">
+        <p className="font-['Clash_Display'] font-bold text-[15px] leading-tight">{headline}</p>
+        {sub && <p className="text-[12.5px] text-neutral-600 mt-0.5">{sub}</p>}
+        {levers.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2.5">
+            {levers.map((l, i) => (
+              <button key={i} onClick={() => onLever(l.message)} title={l.message}
+                className={`text-[12px] font-bold bg-white ${BRUT} rounded-lg px-2.5 py-1 ${PRESS}`}>
+                {l.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
