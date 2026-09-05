@@ -14,6 +14,27 @@ import type { Route } from "./+types/api.crm.drafts";
 
 const json = (data: unknown, status = 200) => Response.json(data, { status });
 
+/** Turn any error shape the service can return into a readable sentence. */
+function describeError(e: any): string {
+  const d = e?.body?.detail;
+  if (typeof d === "string" && d) return d;
+  // Pydantic validation: [{loc:["body","contact_name"], msg:"...", ...}, ...]
+  if (Array.isArray(d)) {
+    const parts = d
+      .map((item: any) => {
+        const field = Array.isArray(item?.loc) ? item.loc[item.loc.length - 1] : null;
+        const msg = item?.msg ?? "is invalid";
+        return field ? `${field}: ${msg}` : msg;
+      })
+      .filter(Boolean);
+    if (parts.length) return parts.join("; ");
+  }
+  if (d && typeof d === "object") {
+    try { return JSON.stringify(d); } catch { /* fall through */ }
+  }
+  return String(e?.message ?? e);
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) return json({ error: "Sign in to Studojo" }, 401);
@@ -121,6 +142,24 @@ export async function action({ request }: Route.ActionArgs) {
   const text = (body.body ?? draft.body ?? "").trim();
   if (!subject || !text) return json({ error: "Add a subject and a message first." }, 400);
 
+  // Without a named person there is nobody to look up and nobody to send to.
+  // Caught HERE rather than at the service, which rejects an empty
+  // contact_name as a 422 validation error — technically correct, useless to
+  // read, and the reason this surfaced as "[object Object]".
+  //
+  // The draft is still worth keeping: the extension could not find a contact
+  // on that page, but the same job posted elsewhere often names one.
+  if (!draft.contactName?.trim()) {
+    return json(
+      {
+        error: "no_contact",
+        message:
+          "This job didn't show us a person to write to, so there's no one to send it to yet. Your draft is saved.",
+      },
+      409,
+    );
+  }
+
   // Sending needs two things the drafting step deliberately did not: a
   // candidate profile and a connected mailbox. Both are resolved server-side
   // so the client cannot claim someone else's.
@@ -224,7 +263,11 @@ export async function action({ request }: Route.ActionArgs) {
     return json({ ok: true, toEmail: sent.to_email, creditsCharged: sent.credits_charged });
   } catch (e: any) {
     // Put it back to draft: a failed send must leave something to retry.
-    const raw = String(e?.body?.detail ?? e?.message ?? e).slice(0, 500);
+    // FastAPI returns `detail` as a STRING for our own HTTPExceptions but as
+    // an ARRAY OF OBJECTS for request-validation failures. String() on the
+    // array produced "[object Object]" — which told the student nothing and
+    // told me nothing either, hiding the actual cause for a full round trip.
+    const raw = describeError(e).slice(0, 500);
     const status = Number(e?.status) || 0;
     console.error(`[crm.send] failed (${status || "no status"}): ${raw}`);
 

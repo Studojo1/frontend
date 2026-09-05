@@ -217,6 +217,18 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           Deliberately understated when the answer is good and prominent when
           it is not — a green banner on every draft is noise, but "we can't
           reach this person" is worth interrupting for. */}
+      {!sent && !draft.contactName ? (
+        <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+          <p className="font-['Satoshi'] text-sm font-semibold text-amber-900">
+            This job didn&rsquo;t show us a person to write to.
+          </p>
+          <p className="mt-1 font-['Satoshi'] text-sm text-amber-800">
+            Your draft is saved. When the same role is posted with a named
+            contact, apply from there and we&rsquo;ll have someone to send it to.
+          </p>
+        </div>
+      ) : null}
+
       {!sent && reach && reach.status === "unreachable" ? (
         <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
           <p className="font-['Satoshi'] text-sm font-semibold text-amber-900">
@@ -336,7 +348,14 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => post("send")}
-            disabled={state === "sending" || !subject.trim() || !body.trim()}
+            disabled={
+              state === "sending" ||
+              !subject.trim() ||
+              !body.trim() ||
+              // No named person means no recipient. Disabling is honester than
+              // letting them press it and get a failure they cannot act on.
+              !draft.contactName
+            }
             className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple px-6 py-3 font-['Satoshi'] font-medium text-white shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-60"
           >
             {state === "sending" ? "Sending…" : "Send this email"}
