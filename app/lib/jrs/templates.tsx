@@ -1310,8 +1310,6 @@ export function ResumeTemplate({ id, data }: { id: TemplateId; data: ResumeData 
       return <Banner data={data} />;
     case "consulting":
       return <Consulting data={data} />;
-    case "harvard":
-      return <Harvard data={data} />;
     default:
       return <Harvard data={data} />;
   }

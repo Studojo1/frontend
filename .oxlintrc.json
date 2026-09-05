@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "ignorePatterns": [
+    "build/**",
+    "node_modules/**",
+    ".react-router/**"
+  ],
+  "rules": {
+    "no-unused-vars": [
+      "warn",
+      {
+        "args": "none",
+        "caughtErrors": "none",
+        "varsIgnorePattern": "^_",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "no-empty-pattern": "off",
+    "no-useless-escape": "off",
+    "no-duplicate-case": "error",
+    "no-dupe-keys": "error",
+    "no-unsafe-negation": "error",
+    "no-unreachable": "error"
+  }
+}
