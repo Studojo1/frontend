@@ -62,6 +62,10 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     draft?.status === "sent" ? "sent" : "idle",
   );
   const [problem, setProblem] = useState<{ message: string; actionUrl?: string } | null>(null);
+  // The address the email actually went to. Worth showing: the student never
+  // typed it — it is resolved server-side — so confirming it is the only way
+  // they can tell the message reached the right person.
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   if (!draft) {
     return (
@@ -130,6 +134,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         setState("idle");
         return;
       }
+      if (intent === "send" && data.toEmail) setSentTo(data.toEmail);
       setState(intent === "send" ? "sent" : "idle");
     } catch {
       setProblem({ message: "Could not reach Studojo. Try again." });
@@ -175,11 +180,12 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           <label className="mb-1 block font-['Satoshi'] text-xs font-bold uppercase tracking-wide text-studojo-muted">
             How should it sound
           </label>
-          {/* This is not decoration. The campaign system rewrites the message
-              in the chosen style, so this is what actually controls the email
-              that gets sent — the text below is a preview of the intent. */}
+          {/* Picking a style REWRITES the draft below. The text the student
+              ends up with is now exactly what gets sent — /extension/send-one
+              takes the subject and body verbatim — so this control shapes the
+              starting point, and their edits always win over it. */}
           <p className="mb-3 font-['Satoshi'] text-sm text-studojo-muted">
-            Studojo writes the final email in this style, using the details below.
+            Pick a starting point, then edit it. We send exactly what you write below.
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {EMAIL_STYLES.map((s) => (
@@ -246,7 +252,9 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
 
       {sent ? (
         <p className="rounded-xl border-2 border-studojo-green/30 bg-studojo-green-bg p-4 font-['Satoshi'] text-sm text-studojo-green">
-          Sent from your Gmail. Replies land in your inbox.
+          {sentTo
+            ? `Sent to ${sentTo} from your Gmail. Replies land in your inbox.`
+            : "Sent from your Gmail. Replies land in your inbox."}
         </p>
       ) : (
         <div className="flex flex-wrap gap-3">
