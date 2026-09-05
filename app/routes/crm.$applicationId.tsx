@@ -3,7 +3,7 @@
 // This is the step that did not exist: previously Apply composed and sent an
 // email the student never saw. Nothing leaves this page without someone
 // reading it first.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import { and, eq, or } from "drizzle-orm";
 import db from "~/lib/db";
@@ -62,6 +62,48 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     draft?.status === "sent" ? "sent" : "idle",
   );
   const [problem, setProblem] = useState<{ message: string; actionUrl?: string } | null>(null);
+  // The address the email actually went to. Worth showing: the student never
+  // typed it — it is resolved server-side — so confirming it is the only way
+  // they can tell the message reached the right person.
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  // Whether we can actually reach this person. Checked while they edit, so
+  // "no verified email" arrives BEFORE the work rather than after it.
+  const [reach, setReach] = useState<{ status: string; message: string } | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  // Free on mount: answers from the page and from contacts already resolved.
+  // No Apollo call unless the student presses "Check now".
+  useEffect(() => {
+    if (!draft?.id || !draft.contactName || draft.status !== "draft") return;
+    let cancelled = false;
+    fetch("/api/crm/contact-check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: draft.id }),
+    })
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled && d?.status) setReach(d); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [draft?.id, draft?.contactName, draft?.status]);
+
+  async function checkNow() {
+    if (!draft?.id) return;
+    setChecking(true);
+    try {
+      const res = await fetch("/api/crm/contact-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: draft.id, allowLookup: true }),
+      });
+      const d = await res.json();
+      if (d?.status) setReach(d);
+    } catch {
+      /* a failed check must never block writing the email */
+    } finally {
+      setChecking(false);
+    }
+  }
 
   if (!draft) {
     return (
@@ -130,6 +172,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         setState("idle");
         return;
       }
+      if (intent === "send" && data.toEmail) setSentTo(data.toEmail);
       setState(intent === "send" ? "sent" : "idle");
     } catch {
       setProblem({ message: "Could not reach Studojo. Try again." });
@@ -170,16 +213,55 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         </div>
       ) : null}
 
+      {/* Reachability, shown while they edit rather than after they press Send.
+          Deliberately understated when the answer is good and prominent when
+          it is not — a green banner on every draft is noise, but "we can't
+          reach this person" is worth interrupting for. */}
+      {!sent && reach && reach.status === "unreachable" ? (
+        <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+          <p className="font-['Satoshi'] text-sm font-semibold text-amber-900">
+            We don&rsquo;t have an email for this person yet.
+          </p>
+          <p className="mt-1 font-['Satoshi'] text-sm text-amber-800">
+            You can still write and save this draft &mdash; we&rsquo;ll keep looking. Sending
+            won&rsquo;t work until we find a verified address.
+          </p>
+        </div>
+      ) : null}
+
+      {!sent && reach && reach.status === "reachable" ? (
+        <p className="mb-6 font-['Satoshi'] text-sm text-studojo-green">
+          ✓ We can reach {draft.contactName?.split(" ")[0] ?? "this person"}.
+        </p>
+      ) : null}
+
+      {!sent && draft.contactName && (!reach || reach.status === "unknown") ? (
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <p className="font-['Satoshi'] text-sm text-studojo-muted">
+            We&rsquo;ll look for their email when you send.
+          </p>
+          <button
+            type="button"
+            onClick={checkNow}
+            disabled={checking}
+            className="rounded-lg border-2 border-studojo-ink/20 px-3 py-1.5 font-['Satoshi'] text-xs font-medium transition-all hover:border-studojo-ink/50 disabled:opacity-60"
+          >
+            {checking ? "Checking…" : "Check now"}
+          </button>
+        </div>
+      ) : null}
+
       {!sent ? (
         <div className="mb-6">
           <label className="mb-1 block font-['Satoshi'] text-xs font-bold uppercase tracking-wide text-studojo-muted">
             How should it sound
           </label>
-          {/* This is not decoration. The campaign system rewrites the message
-              in the chosen style, so this is what actually controls the email
-              that gets sent — the text below is a preview of the intent. */}
+          {/* Picking a style REWRITES the draft below. The text the student
+              ends up with is now exactly what gets sent — /extension/send-one
+              takes the subject and body verbatim — so this control shapes the
+              starting point, and their edits always win over it. */}
           <p className="mb-3 font-['Satoshi'] text-sm text-studojo-muted">
-            Studojo writes the final email in this style, using the details below.
+            Pick a starting point, then edit it. We send exactly what you write below.
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {EMAIL_STYLES.map((s) => (
@@ -246,7 +328,9 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
 
       {sent ? (
         <p className="rounded-xl border-2 border-studojo-green/30 bg-studojo-green-bg p-4 font-['Satoshi'] text-sm text-studojo-green">
-          Sent from your Gmail. Replies land in your inbox.
+          {sentTo
+            ? `Sent to ${sentTo} from your Gmail. Replies land in your inbox.`
+            : "Sent from your Gmail. Replies land in your inbox."}
         </p>
       ) : (
         <div className="flex flex-wrap gap-3">

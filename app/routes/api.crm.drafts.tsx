@@ -9,7 +9,7 @@ import { extensionDrafts } from "../../auth-schema";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { outreachServerFetch } from "~/lib/outreach/server-api";
 import { composeDraft, type SenderProfile } from "~/lib/extension-draft.server";
-import { isKnownStyle, DEFAULT_STYLE } from "~/lib/outreach/email-styles";
+import { isKnownStyle } from "~/lib/outreach/email-styles";
 import type { Route } from "./+types/api.crm.drafts";
 
 const json = (data: unknown, status = 200) => Response.json(data, { status });
@@ -180,113 +180,94 @@ export async function action({ request }: Route.ActionArgs) {
     .where(eq(extensionDrafts.id, draft.id));
 
   try {
-    // The student's edited text is handed over as the template. This is the
-    // only channel job-outreach-svc offers for controlling the copy — there is
-    // no per-email write endpoint.
+    // ONE email, to the person on the job page, in the student's own words.
     //
-    // `selected_styles` MUST be omitted. Verified against the service source
-    // (api/routes_campaign.py:262): when styles are present the endpoint takes
-    // the AI-generation branch and subject_template/body_template are never
-    // read — the student's edits would be silently discarded and a generated
-    // email sent in their place. Only the `else` branch (:275-283) uses the
-    // templates, and campaign_service.py:82 confirms the switch is
-    // `use_ai_generation = selected_styles && len > 0`.
+    // This used to call /campaign/create, which could do neither of those
+    // things: it picks recipients with `Lead.candidate_id == candidate_id`
+    // ordered by score (campaign_service.py:104), so lead_limit=1 emailed the
+    // student's top-scored EXISTING lead — a stranger — and it always
+    // AI-generates, because blank selected_styles defaults to two styles
+    // (routes_campaign.py:258-260), so the edited text was discarded.
     //
-    // The endpoint defaults blank styles to ["warm_intro", "value_prop"]
-    // (:258-260), so sending an empty array is NOT enough — the key must be
-    // absent from the payload entirely.
-    const created = await outreachServerFetch<{
-      campaign_id: number;
-      queued_messages: number;
-      generation_mode: string;
-    }>("/campaign/create", { userId: session.user.id, method: "POST", body: ({
-        candidate_id: candidateId,
-        email_account_id: emailAccountId,
-        name: `${draft.company ?? "Outreach"} — ${draft.role ?? "role"}`.slice(0, 120),
-        user_timezone: "Asia/Kolkata",
-        lead_limit: 1,
-        // The style the student picked. /campaign/create ALWAYS generates —
-        // blank styles default to two AI styles and the template path is
-        // unreachable (routes_campaign.py:258-260) — so this is what actually
-        // shapes the email that goes out.
-        selected_styles: [
-          isKnownStyle(draft.emailStyle) ? draft.emailStyle : DEFAULT_STYLE,
-        ],
-        // Still sent as a hint. The endpoint accepts them; whether it reads
-        // them is its business, and passing the student's words costs nothing.
-        subject_template: subject,
-        body_template: text,
-      }),
-      timeout: 20000,
+    // /extension/send-one resolves the contact's verified address via the same
+    // Apollo lookup enrichment uses, sends the exact subject and body through
+    // the student's Gmail, and charges 1 credit only after Gmail confirms.
+    const sent = await outreachServerFetch<{
+      sent: boolean;
+      to_email: string;
+      credits_charged: number;
+    }>("/extension/send-one", {
+      userId: session.user.id,
+      method: "POST",
+      body: {
+        contact_name: draft.contactName ?? "",
+        company: draft.company ?? "",
+        contact_title: draft.contactTitle,
+        linkedin_url: draft.jobUrl,
+        contact_email: draft.contactEmail,
+        subject,
+        body: text,
+      },
+      timeout: 30000,
     });
 
-    // Two things the service will tell us that we must not paper over.
-    //
-    // generation_mode reports which branch ran. If it says "ai" the student's
-    // edits were discarded — better to stop than to send something they never
-    // wrote and report it as their email.
-    // VERIFIED UNREACHABLE. routes_campaign.py:258-260 defaults blank styles to
-    // ["warm_intro","value_prop"] — "never silently fall back to blank
-    // template" — so selected_styles is always non-empty by the time the
-    // branch is taken, and the template path can never run. subject_template
-    // and body_template are accepted by the endpoint and never read.
-    //
-    // Stopping is still right: sending an AI-written email while telling the
-    // student it was theirs would be worse than not sending. But say so in
-    // words they can act on.
-    // NO LONGER REFUSING AI MODE. The student now picks the style, so an
-    // AI-written email is what they asked for rather than a silent
-    // substitution of their words. Refusing here would block the only path
-    // that can actually send.
-    // Legacy mode only queues leads that already have a VERIFIED email address
-    // (campaign_service.py:135-142). Zero queued means nobody was reachable —
-    // the campaign exists but nothing will ever send from it.
-    if (created.queued_messages === 0) {
-      await db
-        .update(extensionDrafts)
-        .set({
-          status: "draft",
-          failureReason: "No verified email address for this contact yet.",
-        })
-        .where(eq(extensionDrafts.id, draft.id));
-      return json(
-        {
-          error: "no_reachable_contact",
-          message:
-            "We don't have a verified email for this person yet. We'll keep looking — your draft is saved.",
-        },
-        409,
-      );
-    }
-
-    await outreachServerFetch(`/campaign/${created.campaign_id}/send`, { userId: session.user.id, method: "POST", timeout: 20000 });
-
     await db
       .update(extensionDrafts)
-      .set({ status: "sent", campaignId: created.campaign_id, sentAt: new Date() })
+      .set({
+        status: "sent",
+        contactEmail: sent.to_email ?? draft.contactEmail,
+        sentAt: new Date(),
+        failureReason: null,
+      })
       .where(eq(extensionDrafts.id, draft.id));
 
-    return json({ ok: true, campaignId: created.campaign_id });
+    return json({ ok: true, toEmail: sent.to_email, creditsCharged: sent.credits_charged });
   } catch (e: any) {
-    // Put it back to draft: a failed send must leave something the student can
-    // retry, not a row stuck in "sending" forever.
-    const reason = String(e?.body?.detail ?? e?.message ?? e).slice(0, 500);
+    // Put it back to draft: a failed send must leave something to retry.
+    const raw = String(e?.body?.detail ?? e?.message ?? e).slice(0, 500);
     const status = Number(e?.status) || 0;
-    console.error(`[crm.send] failed (${status || "no status"}): ${reason}`);
+    console.error(`[crm.send] failed (${status || "no status"}): ${raw}`);
+
     await db
       .update(extensionDrafts)
-      .set({ status: "draft", failureReason: reason })
+      .set({ status: "draft", failureReason: raw })
       .where(eq(extensionDrafts.id, draft.id));
-    // SAY WHAT WENT WRONG. "Try again" is only honest when a retry can help,
-    // and it hides the one piece of information that would let a student —
-    // or me — do anything about it.
+
+    // The service prefixes actionable failures with a machine-readable code so
+    // the student gets a specific next step rather than "try again", which is
+    // only honest when a retry can actually help.
+    const [code, ...rest] = raw.split(":");
+    const detail = rest.join(":").trim() || raw;
+    const known: Record<string, { message: string; actionUrl?: string }> = {
+      needs_profile: {
+        message: "Add your resume so we know what to say about you.",
+        actionUrl: "/crm/setup",
+      },
+      needs_gmail: {
+        message: "Connect Gmail so this sends from your own address.",
+        actionUrl: `/crm/connect-gmail?back=${encodeURIComponent(
+          draft.applicationId ? `/crm/${draft.applicationId}` : "/crm",
+        )}`,
+      },
+      needs_credits: { message: detail, actionUrl: "/outreach/enrichment" },
+      no_contact_email: { message: detail },
+      // The service-side kill switch. Not an error the student caused, so it
+      // says so plainly rather than blaming their draft.
+      send_paused: { message: "Sending is paused right now. Your draft is saved — try again shortly." },
+      lookup_unavailable: { message: detail },
+      lookup_failed: { message: detail },
+      send_failed: { message: detail },
+    };
+
+    const mapped = known[code.trim()];
+    if (mapped) {
+      return json({ error: code.trim(), message: mapped.message, actionUrl: mapped.actionUrl }, 409);
+    }
     return json(
       {
         error: "send_failed",
         status,
-        message: reason
-          ? `Couldn't send: ${reason}`
-          : "Couldn't send just now — try again.",
+        message: raw ? `Couldn't send: ${raw}` : "Couldn't send just now — try again.",
       },
       502,
     );
