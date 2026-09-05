@@ -20,6 +20,8 @@ const OUTREACH_URL =
   process.env.OUTREACH_SVC_URL ?? "http://job-outreach-svc:8000";
 const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET ?? "";
 
+import { describeError } from "~/lib/error-detail";
+
 export class OutreachServerError extends Error {
   status: number;
   body: unknown;
@@ -74,10 +76,11 @@ export async function outreachServerFetch<T = unknown>(
   }
 
   if (!res.ok) {
-    const detail =
-      (data as { detail?: string; error?: { message?: string } })?.detail ??
-      (data as { error?: { message?: string } })?.error?.message ??
-      `Request failed (${res.status})`;
+    // describeError, not a `??` chain. FastAPI returns `detail` as a STRING
+    // for our own HTTPExceptions and as an ARRAY OF OBJECTS for validation
+    // failures — and an array is truthy, so it wins the fallback and then
+    // stringifies to "[object Object]". That reached a student once.
+    const detail = describeError(data, `Request failed (${res.status})`);
     throw new OutreachServerError(detail, res.status, data);
   }
 

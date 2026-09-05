@@ -12,6 +12,7 @@
     "seed:examples": "tsx ../../scripts/seed-resume-examples.ts",
     "setup:examples": "../../scripts/setup-resume-examples.sh",
     "start": "react-router-serve ./build/server/index.js",
+    "test": "npx tsx app/lib/error-detail.test.mjs && npx tsx app/lib/no-raw-error-stringify.test.mjs",
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {

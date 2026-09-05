@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { getToken, ControlPlaneError } from "~/lib/control-plane";
 import { fetchWithRetry } from "~/lib/fetch-with-retry";
 
@@ -64,7 +65,10 @@ export async function outreachFetch<T = unknown>(
 
   if (!res.ok) {
     throw new ControlPlaneError(
-      data?.error?.message ?? data?.detail ?? `Request failed (${res.status})`,
+      // See error-detail.ts: `detail` can be an array of validation objects,
+      // which is truthy and stringifies to "[object Object]". Every caller
+      // that renders err.message inherits this fix.
+      data?.error?.message ?? describeError(data, `Request failed (${res.status})`),
       res.status,
       data,
     );

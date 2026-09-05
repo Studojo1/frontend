@@ -10,30 +10,13 @@ import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { outreachServerFetch } from "~/lib/outreach/server-api";
 import { composeDraft, type SenderProfile } from "~/lib/extension-draft.server";
 import { isKnownStyle } from "~/lib/outreach/email-styles";
+import { describeError } from "~/lib/error-detail";
 import type { Route } from "./+types/api.crm.drafts";
 
 const json = (data: unknown, status = 200) => Response.json(data, { status });
 
-/** Turn any error shape the service can return into a readable sentence. */
-function describeError(e: any): string {
-  const d = e?.body?.detail;
-  if (typeof d === "string" && d) return d;
-  // Pydantic validation: [{loc:["body","contact_name"], msg:"...", ...}, ...]
-  if (Array.isArray(d)) {
-    const parts = d
-      .map((item: any) => {
-        const field = Array.isArray(item?.loc) ? item.loc[item.loc.length - 1] : null;
-        const msg = item?.msg ?? "is invalid";
-        return field ? `${field}: ${msg}` : msg;
-      })
-      .filter(Boolean);
-    if (parts.length) return parts.join("; ");
-  }
-  if (d && typeof d === "object") {
-    try { return JSON.stringify(d); } catch { /* fall through */ }
-  }
-  return String(e?.message ?? e);
-}
+// describeError lives in ~/lib/error-detail — shared, so every caller that
+// renders an API error inherits the same handling.
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);

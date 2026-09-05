@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 // Server-side client for bob-svc (Sensei), used ONLY by the hosted MCP (app/routes/api.mcp.tsx).
 // Every call is scoped to ONE isolated per-key org through the trusted gateway
 // (X-Internal-Secret + X-Bob-Org-Id), so bob-svc's own _same_org checks enforce per-key
@@ -142,6 +143,6 @@ export async function whoAmI(
   } catch {
     data = null;
   }
-  if (!r.ok) return { ok: false, status: r.status, error: String(data?.detail || `http_${r.status}`) };
+  if (!r.ok) return { ok: false, status: r.status, error: describeError(data, `http_${r.status}`) };
   return { ok: true, data };
 }
