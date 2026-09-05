@@ -251,6 +251,9 @@ export async function action({ request }: Route.ActionArgs) {
       },
       needs_credits: { message: detail, actionUrl: "/outreach/enrichment" },
       no_contact_email: { message: detail },
+      // The service-side kill switch. Not an error the student caused, so it
+      // says so plainly rather than blaming their draft.
+      send_paused: { message: "Sending is paused right now. Your draft is saved — try again shortly." },
       lookup_unavailable: { message: detail },
       lookup_failed: { message: detail },
       send_failed: { message: detail },
