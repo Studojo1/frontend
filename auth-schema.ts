@@ -66,6 +66,14 @@ export const account = pgTable(
     refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
     scope: text("scope"),
     password: text("password"),
+    // Required by better-auth 1.7+, which writes it on every account creation:
+    // 'local:<provider>' for credential and passkey, the provider's own issuer
+    // URL for OAuth (Google declares https://accounts.google.com).
+    //
+    // Nullable here even though the library calls it required — every existing
+    // row predates the column, and a NOT NULL add would fail on them. The
+    // backfill in drizzle/0032 populates it; tightening is a later decision.
+    issuer: text("issuer"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .$onUpdate(() => /* @__PURE__ */ new Date())
