@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useState } from "react";
 import {
   FiSearch, FiBriefcase, FiUser, FiLinkedin, FiMail, FiCheck, FiAlertCircle,
@@ -76,7 +77,7 @@ export default function MarketingDojoPage() {
       });
       setResult(r);
     } catch (err: any) {
-      setError(err?.body?.detail || err.message || "Search failed. Try again.");
+      setError(describeError(err, "Search failed. Try again."));
     } finally {
       setSearching(false);
     }
@@ -117,7 +118,7 @@ export default function MarketingDojoPage() {
       if (status === 401) {
         setError("Sign in to enrich emails. Email enrichment requires a Studojo account.");
       } else {
-        setError(err?.body?.detail || err.message || "Enrichment failed.");
+        setError(describeError(err, "Enrichment failed."));
       }
     } finally {
       setEnriching(false);
