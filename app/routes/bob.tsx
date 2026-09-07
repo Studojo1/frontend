@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-<<<<<<< HEAD
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap, FiSearch,
@@ -7,16 +6,7 @@ import {
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
   FiMessageSquare, FiColumns, FiUsers,
   FiLayers, FiGlobe, FiPaperclip, FiFile, FiPhone, FiMail, FiUserPlus, FiSlash,
-  FiMoon, FiSun, FiChevronDown,
-=======
-import {
-  FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap, FiSearch,
-  FiFileText, FiGrid, FiLoader, FiExternalLink, FiChevronRight,
-  FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
-  FiMessageSquare, FiColumns, FiUser, FiUsers, FiBriefcase, FiTarget,
-  FiLayers, FiGlobe, FiPaperclip, FiFile, FiPhone, FiMail, FiUserPlus, FiSlash,
   FiMoon, FiSun,
->>>>>>> origin/main
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,16 +76,12 @@ async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promi
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface ChatSummary { id: number; title: string; updated_at: string }
-<<<<<<< HEAD
 // Coach (bob-svc BOB_COACH): a finished run attaches the diagnosis + soft levers to the last
 // assistant message, so the results panel can show an edge-case card with one-click re-run chips.
 type Lever = { key?: string; label: string; message: string; est_gain?: number | null; patch?: Record<string, unknown> };
 type Diagnosis = { delivered?: number; target?: number | null; short?: boolean; zero?: boolean; widened_to?: number | null; pinned?: boolean; binding?: { label: string; dropped: number }[] };
 type Coach = { diagnosis: Diagnosis; levers: Lever[] };
 interface Message { id: number; role: string; content: string; created_at: string; meta?: { suggestions?: string[]; levers?: Lever[]; diagnosis?: Diagnosis } }
-=======
-interface Message { id: number; role: string; content: string; created_at: string; meta?: { suggestions?: string[] } }
->>>>>>> origin/main
 interface RunEvent { ts: string; type: string; label: string; detail?: string; credits?: number }
 // Live-progress overlay: opportunities already found this run (before assemble writes
 // the authoritative bob_rows). Rendered as provisional rows; never persisted client-side.
@@ -522,11 +508,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [pendingFiles, setPendingFiles] = useState<{ id: number; name: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-<<<<<<< HEAD
-  const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean; tiers?: any[] } | null>(null);
-=======
   const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean; tiers?: EnrichTier[] | null } | null>(null);
->>>>>>> origin/main
   const [notice, setNotice] = useState<string>("");
   const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean } } | null>(null);
   const [showTeam, setShowTeam] = useState(false);
@@ -588,11 +570,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   // the counter rather than disrupting the workspace.
   const loadCredits = useCallback(async () => {
     try {
-<<<<<<< HEAD
-      setCredits(await bobFetch<{ enrichment: number; ai: number; enabled: boolean }>("/credits"));
-=======
       setCredits(await bobFetch<{ enrichment: number; ai: number; enabled: boolean; tiers?: EnrichTier[] | null }>("/credits"));
->>>>>>> origin/main
     } catch { /* counter is non-critical */ }
   }, []);
   useEffect(() => { loadCredits(); }, [loadCredits]);
@@ -865,16 +843,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     refreshTables();
   };
 
-<<<<<<< HEAD
-  const enrichRow = async (rowId: number) => {
-    markEnriching(new Set([rowId]));
-    try {
-      await bobFetch(`/rows/${rowId}/enrich`, { method: "POST" });
-    } catch (e) { onEnrichError(e); }
-  };
-
-  const enrichTable = async (tableId: number) => {
-=======
   // A tiered workspace has separate pools, so "enrich this" is not a default to
   // assume — it is a question. These buttons used to post with no tier and the
   // backend fell through to whatever the default was, which could drain a pool
@@ -892,7 +860,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   };
 
   const enrichTable = async (tableId: number, tier?: string) => {
->>>>>>> origin/main
     const t = tables.find((x) => x.id === tableId);
     if (!t) return;
     const todo = new Set(
@@ -901,11 +868,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         .map((r) => r.id),
     );
     if (todo.size === 0) return;
-<<<<<<< HEAD
-    markEnriching(todo);
-    try {
-      await bobFetch(`/tables/${tableId}/enrich`, { method: "POST" });
-=======
     if (credits?.tiers?.length && !tier) {
       setPendingEnrich({ kind: "table", id: tableId, count: todo.size });
       return;
@@ -913,7 +875,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     markEnriching(todo);
     try {
       await bobFetch(`/tables/${tableId}/enrich${tier ? `?tier=${tier}` : ""}`, { method: "POST" });
->>>>>>> origin/main
     } catch (e) { onEnrichError(e); }
   };
 
@@ -940,7 +901,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const running = run?.status === "running";
   useEffect(() => { if (!running) setStopping(false); }, [running]);
   const hasTables = tables.length > 0;
-<<<<<<< HEAD
   // The table Work mode shows: the most recent one that has rows.
   const activeWorkTable = [...tables].reverse().find((t) => t.rows.length > 0) || tables[tables.length - 1] || null;
   const exportTable = async (t: BobTable) => {
@@ -973,22 +933,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   // A brand-new chat with nothing said yet. The greeting and the composer centre
   // together as one block instead of sitting at opposite ends of the pane.
   const atRest = messages.length === 0 && !running;
-=======
-  const showChat = mode !== "table";
-  // Mount the results panel as soon as a run STARTS (not only once a table object
-  // exists), so the live-progress banner + provisional rows can show immediately.
-  const showTable = (hasTables || running) && mode !== "chat";
-  const lastMsg = messages[messages.length - 1];
-  const suggestions: string[] =
-    !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
->>>>>>> origin/main
 
   return (
     <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
       {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
       {showEnrich && <EnrichModal onClose={() => { setShowEnrich(false); loadCredits(); }} />}
-<<<<<<< HEAD
-=======
       {pendingEnrich && credits?.tiers?.length && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6"
              onClick={() => setPendingEnrich(null)}>
@@ -1028,7 +977,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </div>
         </div>
       )}
->>>>>>> origin/main
       {showSupport && <SupportModal email={me?.email || ""} orgName={me?.org?.name || ""} onClose={() => setShowSupport(false)} />}
       {showChangePw && (
         <ChangePasswordModal
@@ -1048,7 +996,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         .bob-thinscroll::-webkit-scrollbar { height: 5px; width: 5px; }
         .bob-thinscroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 9px; }
         .bob-thinscroll::-webkit-scrollbar-track { background: transparent; }
-<<<<<<< HEAD
         /* The conversation surface. A flat cream panel read as an unfinished void
            next to the hard borders and offset shadows everywhere else in this UI,
            so the chat sits on a faint dot grid: the drafting-paper texture that
@@ -1077,8 +1024,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             radial-gradient(80% 40% at 100% 0%, rgba(124,92,255,.09), transparent 60%);
         }
         .bob-canvas > * { position: relative; z-index: 1; }
-=======
->>>>>>> origin/main
         /* Dark mode: override the app's hard-coded surface colours. */
         .bob-dark { background:#131316 !important; color:#e7e7ea; }
         .bob-dark .bg-white { background:#1c1c20 !important; }
@@ -1181,11 +1126,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 <FiUsers size={15} /> Team dashboard
               </a>
             )}
-<<<<<<< HEAD
             {/* Only for a workspace whose product is finding people. Everyone else
                 never sees this and its routes refuse them anyway. */}
-=======
->>>>>>> origin/main
             {me?.capabilities?.candidate_sourcing && (
               <button
                 onClick={() => setShowEnrich(true)}
@@ -1231,28 +1173,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </span>
           {running && (
             <span className="flex items-center gap-1.5 text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2.5 py-1">
-<<<<<<< HEAD
-              {/* "researching" is only true once a table exists. A run that is
-                  about to come back with a question was claiming to research. */}
+              {/* "researching" is only true once a table exists; a run about to come
+                  back with a clarifying question was falsely claiming to research. */}
               <FiLoader className="animate-spin" size={11} /> {searching ? "researching" : "thinking"}
-            </span>
-          )}
-          <div className="ml-auto flex items-center gap-2">
-            {credits?.enabled && <CreditsMenu credits={credits} />}
-            {hasTables && (
-              <div className="flex items-center rounded-lg bg-neutral-100 p-0.5">
-                {([["chat", "Ask"], ["split", "Work"]] as const).map(([m, label]) => (
-                  <button
-                    key={m}
-                    onClick={() => setMode(m as PanelMode)}
-                    className={`h-7 px-3.5 rounded-md text-[13px] font-semibold transition-colors ${
-                      (m === "chat" ? mode === "chat" : mode !== "chat")
-                        ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
-                    }`}
-                  >
-                    {label}
-=======
-              <FiLoader className="animate-spin" size={11} /> researching
             </span>
           )}
           <div className="ml-auto flex items-center gap-2">
@@ -1278,7 +1201,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     }`}
                   >
                     <Icon size={14} />
->>>>>>> origin/main
                   </button>
                 ))}
               </div>
@@ -1299,7 +1221,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
           {/* Chat */}
           {showChat && (
-<<<<<<< HEAD
             <section className={`bob-canvas flex flex-col min-w-0 flex-1 ${atRest ? "justify-center" : ""}`}>
               {/* At rest the transcript area does not stretch, so this and the
                   composer below centre together as one block. Mid-conversation it
@@ -1333,31 +1254,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                                   <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.7] text-neutral-800">{m.content}</p>
                                 </div>;
                           })}
-=======
-            <section className="flex flex-col min-w-0 flex-1">
-              <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6">
-                {messages.length === 0 && !running && <EmptyChat onPick={(s) => setInput(s)} sourcing={!!me?.capabilities?.candidate_sourcing} />}
-                <div className="max-w-2xl mx-auto space-y-4">
-                  {messages.map((m) => (
-                    m.role === "user" ? (
-                      <div key={m.id} className="flex justify-end">
-                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-br-md border-2 border-neutral-900 bg-violet-500 text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
-                          {m.content}
-                        </div>
-                      </div>
-                    ) : (
-                      <div key={m.id} className="flex gap-2.5">
-                        <div className="w-7 h-7 mt-1 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
-                          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="max-w-[85%] px-4 py-3 rounded-2xl rounded-tl-md border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed">
-                          {m.content}
->>>>>>> origin/main
                         </div>
                       </div>
                     )
                   ))}
-<<<<<<< HEAD
                   {/* Before a table exists we do not yet know whether this run
                       is a search or a one-line question, so show a quiet thinking
                       line rather than a progress bar promising "10 min left". */}
@@ -1376,20 +1276,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   {searching && run && <RunProgress run={run} />}
                   {suggestions.length > 0 && (
                     <div className="flex flex-wrap gap-2 pl-10">
-=======
-                  {running && run && <RunProgress run={run} />}
-                  {suggestions.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pl-9">
->>>>>>> origin/main
                       {suggestions.map((q) => (
                         <button
                           key={q}
                           onClick={() => send(q)}
-<<<<<<< HEAD
                           className="text-[12.5px] font-semibold bg-white border-2 border-neutral-900 rounded-full px-3.5 py-1.5 text-neutral-700 hover:bg-violet-500 hover:text-white transition-colors"
-=======
-                          className="text-[12px] font-semibold bg-white border border-neutral-300 rounded-full px-3 py-1.5 text-neutral-600 hover:border-violet-500 hover:text-violet-700 transition-colors"
->>>>>>> origin/main
                         >
                           {q}
                         </button>
@@ -1399,15 +1290,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 </div>
               </div>
 
-<<<<<<< HEAD
               <div className={atRest ? "px-3 pb-3" : "border-t-2 border-neutral-900 bg-white p-3"}>
                 {pendingFiles.length > 0 && (
                   <div className="max-w-3xl mx-auto flex flex-wrap gap-1.5 mb-2">
-=======
-              <div className="border-t-2 border-neutral-900 bg-white p-3">
-                {pendingFiles.length > 0 && (
-                  <div className="max-w-2xl mx-auto flex flex-wrap gap-1.5 mb-2">
->>>>>>> origin/main
                     {pendingFiles.map((f) => (
                       <span key={f.id} className="inline-flex items-center gap-1.5 bg-violet-50 border border-violet-300 rounded-lg px-2.5 py-1 text-[11.5px] font-semibold text-violet-800">
                         <FiFile size={12} /> {f.name}
@@ -1416,15 +1301,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     ))}
                   </div>
                 )}
-<<<<<<< HEAD
                 {/* One composer, not three floating boxes. The attach and send
                     controls live INSIDE the field, the way every chat product
                     does it, so it reads as a single object to type into rather
                     than a field flanked by two unrelated buttons. */}
                 <div className="max-w-3xl mx-auto">
-=======
-                <div className="max-w-2xl mx-auto flex gap-2">
->>>>>>> origin/main
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -1435,7 +1316,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       if (f) uploadFile(f);
                     }}
                   />
-<<<<<<< HEAD
                   <div className="border-2 border-neutral-900 rounded-2xl bg-white transition-all focus-within:shadow-[5px_5px_0px_0px_rgba(124,92,255,1)]">
                     <textarea
                       value={input}
@@ -1477,45 +1357,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       )}
                     </div>
                   </div>
-=======
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={running || uploading}
-                    title="Attach a resume or cohort sheet (PDF, Word, Excel, CSV)"
-                    className="self-end w-11 h-11 shrink-0 rounded-2xl border-2 border-neutral-900 bg-white text-neutral-600 flex items-center justify-center hover:bg-violet-50 hover:text-violet-700 transition-colors disabled:opacity-40"
-                  >
-                    {uploading ? <FiLoader className="animate-spin" /> : <FiPaperclip />}
-                  </button>
-                  <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
-                    }}
-                    rows={2}
-                    placeholder={running ? "Sensei is working on it. Ask your next question when it finishes." : "Describe a candidate, cohort, or the companies you need..."}
-                    disabled={running}
-                    className="flex-1 border-2 border-neutral-900 rounded-2xl px-4 py-2.5 text-[14.5px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-neutral-100"
-                  />
-                  {running ? (
-                    <button
-                      onClick={stopRun}
-                      disabled={stopping}
-                      title="Stop this run (keeps what's already found)"
-                      className="self-end bg-red-600 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-60 border-2 border-neutral-900"
-                    >
-                      {stopping ? <FiLoader className="animate-spin" size={16} /> : <span className="w-3.5 h-3.5 bg-white rounded-[3px]" />}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => send()}
-                      disabled={sending || !input.trim()}
-                      className="self-end bg-violet-700 text-white w-11 h-11 rounded-2xl flex items-center justify-center hover:bg-violet-800 transition-colors disabled:opacity-40"
-                    >
-                      {sending ? <FiLoader className="animate-spin" /> : <FiSend />}
-                    </button>
-                  )}
->>>>>>> origin/main
                 </div>
               </div>
             </section>
@@ -1532,7 +1373,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             </div>
           )}
 
-<<<<<<< HEAD
           {/* Results — full-width Work view reuses the SAME rich table as the split view
               (DenseTable = every column: fit score, city, hiring evidence, why now, what
               they do, ...), with its detail drawer, cards toggle and reduce-to-split. The
@@ -1546,24 +1386,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               run={running ? run : null}
               expanded={true}
               onExpand={() => setMode("split")}
-=======
-          {/* Results */}
-          {showTable && (
-            <ResultsPanel
-              widthPct={mode === "table" ? 100 : tablePct}
-              fullWidth={mode === "table"}
-              tables={tables}
-              run={running ? run : null}
-              expanded={mode === "table"}
-              onExpand={() => setMode(mode === "table" ? "split" : "table")}
->>>>>>> origin/main
               viewPref={viewPref}
               onViewPref={setViewPref}
               onRowStatus={updateRowStatus}
               onEnrichRow={enrichRow}
               onEnrichTable={enrichTable}
               onDeleteRow={deleteRow}
-<<<<<<< HEAD
               coach={coach}
               onLever={send}
             />
@@ -1584,8 +1412,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               onDeleteRow={deleteRow}
               coach={coach}
               onLever={send}
-=======
->>>>>>> origin/main
             />
           )}
         </div>
@@ -1594,7 +1420,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   );
 }
 
-<<<<<<< HEAD
 type MsgGroup = { role: string; items: { id: any; content: string }[] };
 
 function groupMessages(msgs: any[]): MsgGroup[] {
@@ -1654,80 +1479,6 @@ function SearchReport({ report }: { report: { headline: string; sub: string; raw
   );
 }
 
-function CreditsMenu({ credits }: { credits: any }) {
-  const [open, setOpen] = useState(false);
-  const tiers: any[] = credits?.tiers || [];
-  // Headline is what he can still DO: reveals available. AI sits behind it,
-  // because nobody plans their day around an AI-credit number.
-  const reveals = tiers.length
-    ? tiers.reduce((n: number, t: any) => n + (t.balance || 0), 0)
-    : credits.enrichment;
-  const low = reveals <= 0;
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1.5 h-8 rounded-lg px-2.5 text-[12.5px] font-semibold transition-colors ${
-          low ? "bg-red-50 text-red-600 hover:bg-red-100" : "text-neutral-600 hover:bg-neutral-100"
-        }`}
-      >
-        <FiPhone size={12} />
-        <span className="tabular-nums">{reveals}</span>
-        <span className="font-medium text-neutral-400">reveals</span>
-        <FiChevronDown size={12} className="text-neutral-400" />
-=======
-// ── Empty chat: mandate templates ────────────────────────────────────────────
-
-// A sourcing workspace hires PEOPLE; it does not place students into companies.
-// The placement templates below are actively wrong for them ("Place a candidate"
-// reads as the opposite of what they do), so they get their own set and their own
-// heading. Chosen by capability at render time, never mixed.
-const SOURCING_TEMPLATES = [
-  {
-    icon: FiSearch, title: "Find candidates",
-    subtitle: "People to hire, ranked by who might move",
-    prompt: "Find me [role, e.g. React developers] in [city] with [3-6] years of experience. Show me who looks most likely to move.",
-  },
-  {
-    icon: FiUserPlus, title: "Enrich a list",
-    subtitle: "LinkedIn links or a spreadsheet, contacts back",
-    prompt: "I'm attaching a list of people (use the paperclip), or here are their LinkedIn links. Get me their work email and phone number.",
-  },
-  {
-    icon: FiTarget, title: "Target one company",
-    subtitle: "Who works there, and who is worth approaching",
-    prompt: "Find [role] people at [company name]. I want to know who is there and how to reach them.",
-  },
-  {
-    icon: FiUsers, title: "Build a shortlist",
-    subtitle: "A batch for one open role",
-    prompt: "I'm hiring a [role] in [city]. Build me a shortlist of [number] people, with what their current employer looks like right now.",
-  },
-];
-
-const TEMPLATES = [
-  {
-    icon: FiUser, title: "Place a candidate",
-    subtitle: "One resume, the companies hiring them now",
-    prompt: "I've attached my candidate's resume (use the paperclip). Preferences: [city, company stage, expected CTC]. Find the best companies hiring for this profile right now, with evidence and the right hiring contact per company.",
-  },
-  {
-    icon: FiUsers, title: "Place a cohort",
-    subtitle: "Companies that hire a whole batch",
-    prompt: "I have a cohort of [number] [role] students graduating in [timeframe]. Target CTC band: [e.g. 4-8 LPA]. Company profile: [e.g. product startups, mid-size IT services, any that bulk-hire freshers]. Location: [cities]. Find companies that can absorb them at volume (bulk hiring, walk-in drives, fresher intakes), with a TA/HR contact for each.",
-  },
-  {
-    icon: FiBriefcase, title: "Build a partner pipeline",
-    subtitle: "Recurring hiring partners worth an MoU",
-    prompt: "Find [number] companies that should become recurring hiring partners for our [domain] training programs. Look for sustained hiring velocity and fresher-friendliness. Target HR/TA leadership as contacts.",
-  },
-  {
-    icon: FiTarget, title: "Track a market",
-    subtitle: "Who just raised money and is hiring",
-    prompt: "Which [sector] startups in [city/India] raised funding in the last 6 months and are actively hiring? Build a table with the round details, hiring evidence, and why-now for each.",
-  },
-];
-
 // Short names for the header; the full label lives in the popover. Three pills
 // have to fit beside the AI counter without wrapping.
 const TIER_SHORT: Record<string, string> = { tier1: "Full", tier2: "Pipeline", tier3: "DB" };
@@ -1747,47 +1498,10 @@ function TierPill({ tier }: { tier: EnrichTier }) {
         <FiPhone size={11} />
         <span className="tabular-nums">{tier.balance}</span>
         <span className="font-medium text-neutral-400">{TIER_SHORT[tier.key] || tier.label}</span>
->>>>>>> origin/main
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-<<<<<<< HEAD
-          <div className="absolute right-0 mt-2 w-72 z-50 bg-white border border-neutral-200 rounded-2xl shadow-xl p-4 text-left">
-            {tiers.length > 0 ? (
-              <>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400 mb-2.5">
-                  Enrichment credits
-                </div>
-                <div className="space-y-2">
-                  {tiers.map((t) => (
-                    <div key={t.key} className="flex items-baseline justify-between gap-3">
-                      <span className="text-[13.5px] text-neutral-700">{t.label}</span>
-                      <span className={`text-[13.5px] font-semibold tabular-nums ${
-                        t.balance <= 0 ? "text-red-500" : "text-neutral-900"}`}>{t.balance}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-3 text-[11.5px] leading-5 text-neutral-500">
-                  Each has its own balance. You are only charged when we find a personal mobile.
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-bold leading-none tabular-nums">{credits.enrichment}</div>
-                <div className="text-[13px] text-neutral-500 mb-2">contact reveals left</div>
-                <p className="text-[11.5px] leading-5 text-neutral-500">
-                  You are only charged when we actually return a contact.
-                </p>
-              </>
-            )}
-            <div className="mt-3 pt-3 border-t border-neutral-100 flex items-baseline justify-between">
-              <span className="text-[13px] text-neutral-500">AI credits</span>
-              <span className="text-[13px] font-semibold tabular-nums text-neutral-700">
-                {credits.ai >= 100000000 ? "unlimited" : credits.ai?.toLocaleString?.() ?? credits.ai}
-              </span>
-            </div>
-=======
           <div className="absolute right-0 mt-2 w-72 z-50 bg-white border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] p-4 text-left">
             <div className="text-2xl font-black leading-none tabular-nums">{tier.balance}</div>
             <div className="text-sm font-semibold text-neutral-500 mb-2">{tier.label} credits left</div>
@@ -1796,7 +1510,6 @@ function TierPill({ tier }: { tier: EnrichTier }) {
               This tier has its own balance. Run the same list through more than one to compare hit rates. You are only charged for a contact we actually find.
             </p>
             {low && <p className="text-[12px] text-red-600 font-semibold mt-2">Out of credits in this tier.</p>}
->>>>>>> origin/main
           </div>
         </>
       )}
@@ -1971,14 +1684,11 @@ function TeamModal({ orgName, onClose }: { orgName: string; onClose: () => void 
 // sheet, get contacts back. Rendered only when /me reports the capability, so no
 // other workspace ever sees it. The file path streams the enriched spreadsheet
 // straight back, so what they upload is what they download, plus contacts.
-<<<<<<< HEAD
-=======
 // Deliberately no provider/vendor field. Which data sources sit behind a tier is
 // our commercial detail, not the customer's, and a type that cannot carry them is
 // a stronger guarantee than remembering not to render them.
 type EnrichTier = { key: string; label: string; detail: string; balance: number };
 
->>>>>>> origin/main
 function EnrichModal({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"paste" | "file">("paste");
   const [text, setText] = useState("");
@@ -1986,8 +1696,6 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [result, setResult] = useState<{ rows: any[]; billing: string } | null>(null);
-<<<<<<< HEAD
-=======
   // Each tier bills its OWN balance, so the choice has to be visible and
   // deliberate rather than buried in a default.
   const [tiers, setTiers] = useState<EnrichTier[]>([]);
@@ -2007,18 +1715,13 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
       } catch { /* no tiers: the panel just runs on the backend default */ }
     })();
   }, []);
->>>>>>> origin/main
 
   const runPaste = async () => {
     setBusy(true); setErr(""); setResult(null);
     try {
       const d = await bobFetch<{ rows: any[]; billing: string }>("/sourcing/enrich", {
-<<<<<<< HEAD
-        method: "POST", body: JSON.stringify({ text }),
-=======
         method: "POST",
         body: JSON.stringify(chosen.length ? { text, tiers: chosen } : { text }),
->>>>>>> origin/main
       });
       setResult(d);
     } catch (e: any) { setErr(String(e?.message || e)); }
@@ -2030,10 +1733,7 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
     setBusy(true); setErr(""); setResult(null);
     try {
       const fd = new FormData(); fd.append("file", file);
-<<<<<<< HEAD
-=======
       chosen.forEach((t) => fd.append("tiers", t));
->>>>>>> origin/main
       const res = await fetch(`${API}/sourcing/enrich-file/download`, {
         method: "POST", headers: authHeaders(), body: fd,
       });
@@ -2061,8 +1761,6 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
           Paste LinkedIn profile links, or upload a sheet. You are charged only for contacts we actually find.
         </p>
 
-<<<<<<< HEAD
-=======
         {tiers.length > 0 && (
           <div className="mb-4">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400 mb-2">
@@ -2095,7 +1793,6 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
           </div>
         )}
 
->>>>>>> origin/main
         <div className="flex gap-2 mb-4">
           {(["paste", "file"] as const).map((t) => (
             <button key={t} onClick={() => { setTab(t); setResult(null); setErr(""); }}
@@ -2111,11 +1808,7 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
             <textarea value={text} onChange={(e) => setText(e.target.value)} rows={7}
               placeholder={"https://www.linkedin.com/in/one\nhttps://www.linkedin.com/in/two\n\nOr rows from a sheet:\nName | Company\nJay Parekh | Bajaj Broking"}
               className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2.5 text-[13.5px] resize-none focus:outline-none focus:ring-2 focus:ring-violet-500" />
-<<<<<<< HEAD
-            <button onClick={runPaste} disabled={busy || !text.trim()}
-=======
             <button onClick={runPaste} disabled={busy || !text.trim() || (tiers.length > 0 && !chosen.length)}
->>>>>>> origin/main
               className="mt-3 bg-violet-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl border-2 border-neutral-900 disabled:opacity-40">
               {busy ? "Enriching..." : "Enrich"}
             </button>
@@ -2143,11 +1836,7 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
           <div className="mt-5">
             <div className="text-[13px] font-semibold mb-2">{result.billing}</div>
             {result.rows.length > 0 && (
-<<<<<<< HEAD
-              <div className="border border-neutral-200 rounded-lg overflow-hidden max-h-64 overflow-y-auto">
-=======
               <div className="border-2 border-neutral-900 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
->>>>>>> origin/main
                 <table className="w-full text-[12.5px]">
                   <thead className="bg-neutral-100 sticky top-0">
                     <tr><th className="text-left px-3 py-2">Name</th><th className="text-left px-3 py-2">Email</th>
@@ -2263,7 +1952,6 @@ function SupportModal({ email, orgName, onClose }: { email: string; orgName: str
   );
 }
 
-<<<<<<< HEAD
 // The first thing a new chat shows is Sensei speaking, not a menu. The four
 // template cards were doing the intake layer's job from the front end: they made
 // the user pick a shape before they had said anything, and each one pasted a
@@ -2285,41 +1973,6 @@ function EmptyChat() {
       <h2 className="font-['Clash_Display'] text-[30px] sm:text-[34px] leading-[1.15] font-semibold tracking-tight">
         Who are we getting hired today?
       </h2>
-=======
-function EmptyChat({ onPick, sourcing }: { onPick: (s: string) => void; sourcing?: boolean }) {
-  const cards = sourcing ? SOURCING_TEMPLATES : TEMPLATES;
-  return (
-    <div className="max-w-2xl mx-auto mt-10 mb-10 bob-pop">
-      <div className="text-center">
-        <div className="w-14 h-14 mx-auto border-2 border-neutral-900 rounded-2xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] overflow-hidden mb-5">
-          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
-        </div>
-        <h2 className="font-['Clash_Display'] text-3xl font-semibold">
-          {sourcing ? "Who are we hiring today?" : "Who are we getting hired today?"}
-        </h2>
-        <p className="text-neutral-600 mt-3 mb-8 max-w-md mx-auto">
-          {sourcing
-            ? "Tell Sensei the kind of person you need. It finds them, and shows you what is happening at the company they work for right now, so you know who might actually take your call."
-            : "Point Sensei at a candidate, a cohort, or a market. It reads live hiring evidence and builds a working list of companies, each with the right person to reach."}
-        </p>
-      </div>
-      <div className="grid sm:grid-cols-2 gap-3">
-        {cards.map((t) => (
-          <button
-            key={t.title}
-            onClick={() => onPick(t.prompt)}
-            className="bg-white border-2 border-neutral-900 rounded-2xl p-4 text-left shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all group"
-          >
-            <t.icon className="text-violet-500 mb-2" size={18} />
-            <div className="font-bold text-sm">{t.title}</div>
-            <div className="text-[12px] text-neutral-500 mt-0.5">{t.subtitle}</div>
-            <div className="text-[11px] text-violet-600 font-semibold mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              Use template <FiChevronRight className="inline" size={11} />
-            </div>
-          </button>
-        ))}
-      </div>
->>>>>>> origin/main
     </div>
   );
 }
@@ -2359,7 +2012,6 @@ const FRIENDLY_SOURCE: Record<string, string> = {
 };
 
 // Turn one raw event into a human sentence. Never leak internal ids / ring jargon.
-<<<<<<< HEAD
 // User-friendly copy for every internal pipeline step, so the chat/panel NEVER leak raw names like
 // "jd_fetch: started", "stream_front4", "company_ctx". Checked in order; first match wins.
 const STEP_FRIENDLY: [RegExp, string][] = [
@@ -2384,17 +2036,6 @@ function humanizeEvent(ev: RunEvent): string {
   const raw = ev.label || "";
   const low = raw.toLowerCase();
   // Search events look like "[getro] sre engineer @ Pune" -> "Searching startup boards: sre engineer in Pune".
-=======
-function humanizeEvent(ev: RunEvent): string {
-  const raw = ev.label || "";
-  const low = raw.toLowerCase();
-  for (const s of RUN_STAGES) {
-    if (s.key !== "search" && low.startsWith(s.key)) return s.label;
-  }
-  if (/harvest/.test(low)) return "Searching boards & LinkedIn";
-  // Search events look like "[getro] sre engineer @ Pune" or
-  // "[ctx_li_posts] site:linkedin.com/posts \"sre engineer\" Pune hiring".
->>>>>>> origin/main
   const m = raw.match(/^\[([a-z_]+)\]\s*(.*)$/i);
   if (m) {
     const src = FRIENDLY_SOURCE[m[1].toLowerCase()] || m[1];
@@ -2408,11 +2049,8 @@ function humanizeEvent(ev: RunEvent): string {
     if (q.length > 60) q = q.slice(0, 60) + "…";
     return q ? `Searching ${src}: ${q}` : `Searching ${src}`;
   }
-<<<<<<< HEAD
   // Internal step name -> friendly phrase (never leak "jd_fetch: started").
   for (const [rx, friendly] of STEP_FRIENDLY) if (rx.test(low)) return friendly;
-=======
->>>>>>> origin/main
   return raw;
 }
 
@@ -2430,7 +2068,6 @@ function currentStageIndex(events: RunEvent[]): number {
   return idx;
 }
 
-<<<<<<< HEAD
 // ── Shared run estimator ─────────────────────────────────────────────────────
 // One source of truth for a SANE "time left" countdown, used by every in-run surface. It starts at a
 // fixed ~14 min and ONLY ticks down, driven by real stage progress: smooth run -> ticks down; slow
@@ -2627,91 +2264,6 @@ function RunProgress({ run }: { run: Run }) {
           <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
         </div>
         <p className="text-[11px] text-neutral-400 mt-1.5">Full live progress is in the panel on the right.</p>
-=======
-function RunProgress({ run }: { run: Run }) {
-  const events = run.events || [];
-  const recent = events.slice(-5);
-  const c = run.counters || {};
-  const stageIdx = currentStageIndex(events);
-
-  // Elapsed + rough ETA. Typical full run ~3 min; the bar advances by stage
-  // weight but never sits still (a slow stage like "assemble" still creeps).
-  const [now, setNow] = useState(() => 0);
-  const startRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (startRef.current == null) startRef.current = Date.now();
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  const elapsedS = startRef.current ? Math.floor((Date.now() - startRef.current) / 1000) : 0;
-
-  const stageProgress = RUN_STAGES.slice(0, stageIdx).reduce((s, x) => s + x.weight, 0)
-    + RUN_STAGES[stageIdx].weight * 0.5;
-  // Real runs take ~10 min (measured median 9:49, p75 14:22) and vary widely, so a
-  // fixed countdown is always wrong. Estimate the total from how far the run has
-  // actually progressed (by stage weight): a slow run projects longer. Floor it at the
-  // measured typical so a fresh run never over-promises. Shown coarsely in minutes.
-  const TYPICAL_S = 600;
-  const prog = Math.max(0.03, Math.min(0.97, stageProgress));
-  const remainingS = Math.max(0, Math.max(TYPICAL_S, elapsedS / prog) - elapsedS);
-  const timeProgress = Math.min(0.92, elapsedS / TYPICAL_S);
-  const pct = Math.min(0.96, Math.max(stageProgress, timeProgress)) * 100;
-  const mm = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-  const etaText = stageIdx >= RUN_STAGES.length - 1 || remainingS < 45
-    ? "wrapping up…"
-    : `about ${Math.max(1, Math.round(remainingS / 60))} min left`;
-
-  return (
-    <div className="flex gap-2.5" data-tick={now}>
-      <div className="w-7 h-7 mt-1 shrink-0 bg-neutral-900 rounded-lg flex items-center justify-center">
-        <FiLoader className="animate-spin text-violet-400" size={13} />
-      </div>
-      <div className="flex-1 bg-white border-2 border-neutral-900 rounded-2xl rounded-tl-md shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] p-4">
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className="font-bold text-sm">{RUN_STAGES[stageIdx].label}…</span>
-          <span className="ml-auto flex gap-1.5 text-[11px] text-neutral-500">
-            {c.rows_added ? <span className="bg-violet-100 text-violet-700 rounded-full px-2 py-0.5">{c.rows_added} found</span> : null}
-            {c.ai_credits ? <span className="bg-neutral-100 rounded-full px-2 py-0.5" title="AI credits this search, scales with research depth">{c.ai_credits} AI credits{c.depth ? ` · ${RUN_DEPTH[c.depth]}` : ""}</span> : null}
-          </span>
-        </div>
-
-        {/* Progress bar + ETA */}
-        <div className="mb-3">
-          <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
-            <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
-          </div>
-          <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1">
-            <span>Step {stageIdx + 1} of {RUN_STAGES.length}</span>
-            <span>{mm(elapsedS)} elapsed · {etaText}</span>
-          </div>
-        </div>
-
-        {/* Stage stepper */}
-        <div className="flex items-center gap-1 mb-3">
-          {RUN_STAGES.map((s, i) => (
-            <div key={s.key} title={s.label}
-              className={`h-1.5 flex-1 rounded-full ${i < stageIdx ? "bg-violet-500" : i === stageIdx ? "bg-violet-400 animate-pulse" : "bg-neutral-200"}`} />
-          ))}
-        </div>
-
-        {/* Recent friendly activity */}
-        <div className="space-y-1.5">
-          {recent.map((ev, i) => (
-            <div key={i} className={`flex items-start gap-2 text-[13px] ${i === recent.length - 1 ? "text-neutral-900 font-semibold" : "text-neutral-400"}`}>
-              <span className="mt-0.5 text-violet-500 shrink-0">
-                {ev.type === "search" || ev.type === "search_done" ? <FiSearch size={13} /> :
-                 ev.type === "scrape" ? <FiFileText size={13} /> :
-                 ev.type === "table" || ev.type === "rows" ? <FiGrid size={13} /> : <FiZap size={13} />}
-              </span>
-              <span>{humanizeEvent(ev)}</span>
-            </div>
-          ))}
-          {recent.length === 0 && <p className="text-[13px] text-neutral-500">Planning the research…</p>}
-        </div>
-        <p className="text-[11px] text-neutral-400 mt-3">
-          Companies appear on the right as Sensei finds them. A full run usually takes around 10 minutes.
-        </p>
->>>>>>> origin/main
       </div>
     </div>
   );
@@ -2722,11 +2274,7 @@ function RunProgress({ run }: { run: Run }) {
 // stage helpers + the pipeline's own funnel counters (sourced/extracted/scored/removed/kept).
 function RunBanner({ run, provisional }: { run: Run; provisional: number }) {
   const c = run.counters || {};
-<<<<<<< HEAD
   const { stageIdx, pct } = useRunEstimate(run);
-=======
-  const stageIdx = currentStageIndex(run.events || []);
->>>>>>> origin/main
   const kept = Number(c.kept ?? c.rows_added ?? 0);
   const chips: { label: string; tone?: string }[] = [];
   if (c.sourced) chips.push({ label: `${c.sourced} posts read` });
@@ -2752,13 +2300,8 @@ function RunBanner({ run, provisional }: { run: Run; provisional: number }) {
         </span>
       </div>
       <div className="h-1 w-full bg-violet-100 overflow-hidden">
-<<<<<<< HEAD
         <div className="h-full bg-violet-500/70"
           style={{ width: `${pct}%`, transition: "width .7s ease-out" }} />
-=======
-        <div className="h-full bg-violet-500/70 animate-pulse"
-          style={{ width: `${Math.min(96, (stageIdx + 1) / RUN_STAGES.length * 100)}%` }} />
->>>>>>> origin/main
       </div>
     </div>
   );
@@ -2776,7 +2319,6 @@ function ProvChip({ status }: { status: string }) {
   );
 }
 
-<<<<<<< HEAD
 // ── Live mission-control (right panel, while a run works before rows land) ─────────────────────────
 // Fills the pane with real, moving signal so a long run NEVER reads as stuck: a ticking countdown,
 // funnel counters that climb, sources lighting up as they're scanned, the current action in plain
@@ -2915,8 +2457,6 @@ function MissionControl({ run }: { run: Run }) {
   );
 }
 
-=======
->>>>>>> origin/main
 // Live animated pipeline graph — a neural-network visual on the right panel while
 // a run works and no rows have landed yet, so the user sees Sensei "thinking".
 const NN_LAYERS = [3, 5, 5, 4, 2];
@@ -2932,12 +2472,7 @@ function nnNodes(): { x: number; y: number; layer: number }[][] {
 }
 
 function RunGraph({ run }: { run: Run }) {
-<<<<<<< HEAD
   const { stageIdx: idx, elapsedS, etaText } = useRunEstimate(run);
-=======
-  const events = run.events || [];
-  const idx = currentStageIndex(events);
->>>>>>> origin/main
   const c = run.counters || {};
   // Progress across the network layers, from the current pipeline stage.
   const frac = (idx + 1) / RUN_STAGES.length;
@@ -2959,10 +2494,7 @@ function RunGraph({ run }: { run: Run }) {
           </div>
           <h3 className="font-['Clash_Display'] text-xl font-semibold">Sensei is thinking</h3>
           <p className="text-sm text-neutral-500 mt-1">{RUN_STAGES[idx].label}…</p>
-<<<<<<< HEAD
           <p className="text-[11px] text-neutral-400 mt-1 tabular-nums">{fmtClock(elapsedS)} elapsed · {etaText}</p>
-=======
->>>>>>> origin/main
         </div>
 
         {/* Neural network, framed like a little screen */}
@@ -3009,179 +2541,6 @@ function RunGraph({ run }: { run: Run }) {
 }
 
 // ── Results panel (cards ⇄ table) ────────────────────────────────────────────
-
-<<<<<<< HEAD
-
-type SortState = { key: string; dir: 1 | -1 } | null;
-
-function WorkGrid({ table, onEnrichRow, onRowStatus, onDeleteRow, tiered }: {
-  table: BobTable;
-  onEnrichRow: (rowId: number, tier?: string) => void;
-  onRowStatus: (rowId: number, status: string) => void;
-  onDeleteRow: (rowId: number) => void;
-  tiered: boolean;
-}) {
-  const [sel, setSel] = useState<Set<number>>(new Set());
-  const [sort, setSort] = useState<SortState>(null);
-  const [openRow, setOpenRow] = useState<number | null>(null);
-
-  const rows = table.rows;
-  // Is this a people table or a companies table? Decides the primary column.
-  const peopleTable = rows.some((r) => str(r.cells.name) && !str(r.cells.contact_name));
-
-  const nameOf = (c: any) => str(c.name) || str(c.contact_name) || "";
-  const orgOf = (c: any) => str(c.company) || "";
-  const phoneOf = (c: any) => str(c.phone) || str(c.contact_phone) || "";
-  const emailOf = (c: any) => str(c.email) || str(c.contact_email) || "";
-  const titleOf = (c: any) => str(c.title) || str(c.contact_title) || "";
-  const primaryOf = (c: any) => (peopleTable ? nameOf(c) : orgOf(c));
-
-  const columns: { key: string; label: string; get: (c: any) => string; grow?: boolean }[] = peopleTable
-    ? [
-        { key: "name", label: "Name", get: nameOf, grow: true },
-        { key: "company", label: "Company", get: orgOf },
-        { key: "title", label: "Title", get: titleOf },
-        { key: "phone", label: "Phone", get: phoneOf },
-        { key: "email", label: "Email", get: emailOf, grow: true },
-      ]
-    : [
-        { key: "company", label: "Company", get: orgOf, grow: true },
-        { key: "contact_name", label: "Contact", get: nameOf },
-        { key: "phone", label: "Phone", get: phoneOf },
-        { key: "email", label: "Email", get: emailOf, grow: true },
-      ];
-
-  let view = rows;
-  if (sort) {
-    const col = columns.find((c) => c.key === sort.key);
-    if (col) view = [...rows].sort((a, b) => col.get(a.cells).localeCompare(col.get(b.cells)) * sort.dir);
-  }
-
-  const allSel = view.length > 0 && view.every((r) => sel.has(r.id));
-  const toggleAll = () => setSel(allSel ? new Set() : new Set(view.map((r) => r.id)));
-  const toggle = (id: number) => setSel((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const clickSort = (key: string) =>
-    setSort((p) => (p?.key === key ? { key, dir: (p.dir * -1) as 1 | -1 } : { key, dir: 1 }));
-
-  const selRows = view.filter((r) => sel.has(r.id));
-  const enrichSelected = () => { selRows.forEach((r) => onEnrichRow(r.id)); setSel(new Set()); };
-
-  return (
-    <div className="relative flex-1 min-h-0 flex flex-col bg-white">
-      <div className="flex-1 min-h-0 overflow-auto">
-        <table className="w-full text-[13px] border-separate border-spacing-0">
-          <thead className="sticky top-0 z-10">
-            <tr className="bg-neutral-100">
-              <th className="w-9 px-3 py-2.5 border-b-2 border-neutral-900">
-                <input type="checkbox" checked={allSel} onChange={toggleAll}
-                  className="accent-violet-600 cursor-pointer" />
-              </th>
-              {columns.map((c) => (
-                <th key={c.key} onClick={() => clickSort(c.key)}
-                  className={`px-3 py-2.5 text-left font-bold text-[11px] uppercase tracking-wide text-neutral-600 border-b-2 border-neutral-900 whitespace-nowrap cursor-pointer select-none hover:text-neutral-900 ${c.grow ? "" : "w-px"}`}>
-                  <span className="inline-flex items-center gap-1">
-                    {c.label}
-                    {sort?.key === c.key && <span className="text-violet-500">{sort.dir === 1 ? "↑" : "↓"}</span>}
-                  </span>
-                </th>
-              ))}
-              <th className="px-3 py-2.5 text-left font-bold text-[11px] uppercase tracking-wide text-neutral-600 border-b-2 border-neutral-900 w-px">Stage</th>
-              <th className="border-b-2 border-neutral-900 w-px" />
-            </tr>
-          </thead>
-          <tbody>
-            {view.map((r) => {
-              const c = r.cells as any;
-              const has = phoneOf(c) || emailOf(c);
-              const selected = sel.has(r.id);
-              return (
-                <tr key={r.id}
-                  onClick={() => setOpenRow(openRow === r.id ? null : r.id)}
-                  className={`group cursor-pointer transition-colors ${selected ? "bg-violet-50/60" : "hover:bg-neutral-50"}`}>
-                  <td className="px-3 py-2.5 border-b border-neutral-200" onClick={(e) => e.stopPropagation()}>
-                    <input type="checkbox" checked={selected} onChange={() => toggle(r.id)}
-                      className="accent-violet-600 cursor-pointer" />
-                  </td>
-                  {columns.map((col, ci) => {
-                    const v = col.get(c);
-                    return (
-                      <td key={col.key} className="px-3 py-2.5 border-b border-neutral-200 align-middle max-w-[280px]">
-                        {ci === 0 ? (
-                          <span className="inline-flex items-center gap-2 min-w-0">
-                            {peopleTable
-                              ? <span className="w-6 h-6 shrink-0 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold flex items-center justify-center">
-                                  {primaryOf(c).split(/\s+/).map((w: string) => w[0]).slice(0, 2).join("").toUpperCase()}
-                                </span>
-                              : <CompanyLogo company={orgOf(c)} website={str(c.website)} domain={str(c._domain)} size={22} />}
-                            <span className="font-semibold text-neutral-900 truncate">{v || "—"}</span>
-                          </span>
-                        ) : col.key === "phone" ? (
-                          v ? <a href={`tel:${v}`} onClick={(e) => e.stopPropagation()} className="tabular-nums text-neutral-700 hover:text-violet-700">{v}</a> : <span className="text-neutral-300">—</span>
-                        ) : col.key === "email" ? (
-                          v ? <a href={`mailto:${v}`} onClick={(e) => e.stopPropagation()} className="text-neutral-600 hover:text-violet-700 truncate block max-w-[240px]">{v}</a> : <span className="text-neutral-300">—</span>
-                        ) : (
-                          <span className="text-neutral-700 truncate block">{v || <span className="text-neutral-300">—</span>}</span>
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td className="px-3 py-2.5 border-b border-neutral-200" onClick={(e) => e.stopPropagation()}>
-                    {has ? (
-                      <select value={r.status || "new"} onChange={(e) => onRowStatus(r.id, e.target.value)}
-                        className="text-[12px] rounded-lg border border-neutral-200 bg-white px-2 py-1 text-neutral-600 focus:outline-none focus:ring-1 focus:ring-violet-400">
-                        {ROW_STATUSES.map((st) => <option key={st} value={st}>{st}</option>)}
-                      </select>
-                    ) : (
-                      <button onClick={() => onEnrichRow(r.id)}
-                        className="text-[12px] font-semibold text-violet-700 hover:text-violet-900">Enrich</button>
-                    )}
-                  </td>
-                  <td className="px-2 py-2.5 border-b border-neutral-200" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => onDeleteRow(r.id)} title="Remove"
-                      className="opacity-0 group-hover:opacity-100 text-neutral-300 hover:text-red-500 transition-opacity">
-                      <FiX size={14} />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {view.length === 0 && (
-          <div className="p-10 text-center text-neutral-400 text-sm">No rows yet.</div>
-        )}
-      </div>
-
-      {sel.size > 0 && (
-        <div className="shrink-0 border-t border-neutral-200 bg-white px-4 py-2.5 flex items-center gap-3">
-          <span className="text-[13px] font-medium text-neutral-600">{sel.size} selected</span>
-          <button onClick={enrichSelected}
-            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg px-3 py-1.5">
-            <FiUserPlus size={13} /> Enrich {sel.size}
-          </button>
-          <button onClick={() => { selRows.forEach((r) => onDeleteRow(r.id)); setSel(new Set()); }}
-            className="text-[13px] font-medium text-neutral-500 hover:text-red-600">Remove</button>
-          <button onClick={() => setSel(new Set())} className="ml-auto text-[13px] text-neutral-400 hover:text-neutral-700">Clear</button>
-        </div>
-      )}
-
-      {/* Row detail — clicking a row opens the full dossier drawer (was dead state before). */}
-      {openRow != null && (() => {
-        const r = rows.find((x) => x.id === openRow);
-        return r ? (
-          <RowDrawer
-            row={r}
-            columns={orderColumns(table.columns)}
-            onClose={() => setOpenRow(null)}
-            onStatus={(s) => onRowStatus(r.id, s)}
-            onEnrich={() => onEnrichRow(r.id)}
-            onDelete={() => { onDeleteRow(r.id); setOpenRow(null); }}
-          />
-        ) : null;
-      })()}
-    </div>
-  );
-}
 
 // Coach card shown ABOVE the results once a run finishes short / zero / widened. Leads positive
 // (what you got), names the tightest constraint, and offers the soft levers as one-click re-run chips
@@ -3232,9 +2591,6 @@ function ResultSummaryCard({ coach, onLever }: { coach: Coach; onLever: (message
 }
 
 function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow, coach, onLever }: {
-=======
-function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow }: {
->>>>>>> origin/main
   tables: BobTable[];
   run: Run | null;
   widthPct: number;
@@ -3247,11 +2603,8 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
   onEnrichRow: (rowId: number) => void;
   onEnrichTable: (tableId: number) => void;
   onDeleteRow: (rowId: number) => void;
-<<<<<<< HEAD
   coach: Coach | null;
   onLever: (message: string) => void;
-=======
->>>>>>> origin/main
 }) {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [detailRow, setDetailRow] = useState<BobRow | null>(null);
@@ -3278,15 +2631,11 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
 
   const displayRows = useMemo(() => [...(active?.rows ?? []), ...provisional], [active, provisional]);
   const activeDisplay: BobTable | null = active ? { ...active, rows: displayRows } : null;
-<<<<<<< HEAD
   // Cards only for a handful of rows, where the extra detail earns its space.
   // The old threshold was 40, so an 8-row contact list rendered as eight large
   // cards and a single result floated alone in a mostly empty pane. A recruiter
   // scanning names, numbers and status wants rows, not posters.
   const view: ResultsView = viewPref ?? (displayRows.length > 5 ? "table" : "cards");
-=======
-  const view: ResultsView = viewPref ?? (displayRows.length > 40 ? "table" : "cards");
->>>>>>> origin/main
 
   // Provisional rows (negative id) must never trigger a PATCH/enrich/delete on a
   // non-existent bob_row — guard every row action at the boundary.
@@ -3409,7 +2758,6 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
         </div>
       </div>
 
-<<<<<<< HEAD
       {/* Coach card: once the run is done, if it fell short / hit zero / widened, show the outcome
           and the one-click relax levers right above the results. */}
       {!run && coach && <ResultSummaryCard coach={coach} onLever={onLever} />}
@@ -3421,16 +2769,6 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
       {run && (MISSION_CONTROL ? <MissionControl run={run} /> : <RunGraph run={run} />)}
 
       {!run && activeDisplay && view === "cards" && (
-=======
-      {/* Live-progress banner over the table: rows fill in below as the funnel narrows. */}
-      {run && <RunBanner run={run} provisional={provisional.length} />}
-
-      {/* Body */}
-      {/* Thinking diagram ONLY before the first row (real or provisional) has landed. */}
-      {run && displayRows.length === 0 && <RunGraph run={run} />}
-
-      {activeDisplay && view === "cards" && !(run && displayRows.length === 0) && (
->>>>>>> origin/main
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
             {activeDisplay.rows.map((r, idx) => (
@@ -3452,11 +2790,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
         </div>
       )}
 
-<<<<<<< HEAD
       {!run && activeDisplay && view === "table" && (
-=======
-      {activeDisplay && view === "table" && !(run && displayRows.length === 0) && (
->>>>>>> origin/main
         <DenseTable
           table={activeDisplay}
           newIds={newIds}
@@ -3579,7 +2913,6 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
     allLinkedin.find((u) => /linkedin\.com\/in\//i.test(u)) ||
     extractUrls(str(c.evidence_url)).find((u) => /linkedin\.com\/in\//i.test(u));
   const companyPageUrl = allLinkedin.find((u) => /linkedin\.com\/(company|school)\//i.test(u));
-<<<<<<< HEAD
   // Two row shapes reach this card. The placement pipeline writes contact_* on a
   // COMPANY row; bulk enrichment writes flat name/email/phone on a PERSON row.
   // Reading only contact_* meant an enriched contact rendered as an empty card
@@ -3591,12 +2924,6 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   const contactEmail = str(c.contact_email) || str(c.email);
   // A person row leads with the PERSON; the employer is context, not the headline.
   const isPersonRow = !str(c.contact_name) && !!str(c.name);
-=======
-  const contactName = str(c.contact_name);
-  const contactTitle = str(c.contact_title);
-  const contactPhone = str(c.contact_phone);
-  const contactEmail = str(c.contact_email);
->>>>>>> origin/main
   const tier = str(c.tier).toUpperCase().replace(/[^T0-9]/g, "");
   const fit = parseFloat(str(c.fit_score));
   const funding = str(c.funding);
@@ -3604,17 +2931,12 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   return (
     <div
       onClick={onOpen}
-<<<<<<< HEAD
       className={`${CARD} p-4 cursor-pointer ${PRESS} flex flex-col gap-2.5 ${isNew ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
-=======
-      className={`bg-white border-2 border-neutral-900 rounded-2xl p-4 cursor-pointer shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all flex flex-col gap-2.5 ${isNew ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
->>>>>>> origin/main
     >
       {/* Header */}
       <div className="flex items-start gap-2.5">
         <CompanyLogo company={company} website={website} domain={str(c._domain)} size={36} />
         <div className="min-w-0 flex-1">
-<<<<<<< HEAD
           <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">
             {isPersonRow ? contactName : company}
           </div>
@@ -3624,10 +2946,6 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
               : (meta || what || "")}
           </div>
 
-=======
-          <div className="font-['Clash_Display'] text-[17px] font-semibold leading-tight truncate">{str(c.name) || company}</div>
-          <div className="text-[11.5px] text-neutral-500 truncate">{str(c.name) ? [str(c.role), company, str(c.city)].filter(Boolean).join(" · ") : (meta || what || "")}</div>
->>>>>>> origin/main
         </div>
         {!isNaN(fit) && (
           <div
@@ -3682,7 +3000,6 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
         <div className="flex items-center gap-2">
           {contactName ? (
             <>
-<<<<<<< HEAD
               {/* On a PERSON row the card headline is already this person, so
                   repeating the avatar and name here just says it twice. Company
                   rows still need it: there the contact is a separate human from
@@ -3714,15 +3031,6 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
                   )}
                 </div>
               )}
-=======
-              <div className="w-7 h-7 shrink-0 rounded-full bg-violet-100 border border-violet-300 flex items-center justify-center text-[10px] font-black text-violet-700">
-                {contactName.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[12.5px] font-bold truncate">{contactName}</div>
-                <div className="text-[10.5px] text-neutral-500 truncate">{contactTitle || ""}</div>
-              </div>
->>>>>>> origin/main
               {tier && <TierBadge tier={tier} />}
               {profileUrl && (
                 <a
@@ -3751,11 +3059,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
           <DeleteRowButton onDelete={onDelete} />
         </div>
         )}
-<<<<<<< HEAD
         {!prov && !isPersonRow && (contactPhone || contactEmail) && (
-=======
-        {!prov && (contactPhone || contactEmail) && (
->>>>>>> origin/main
           <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
             {contactPhone && (
               <a href={`tel:${contactPhone}`} title="Call"
@@ -3822,21 +3126,13 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
             <tr
               key={r.id}
               onClick={() => onRowClick(r)}
-<<<<<<< HEAD
               className={`border-b border-neutral-200 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
-=======
-              className={`border-b border-neutral-100 align-top cursor-pointer transition-colors hover:bg-neutral-100 ${idx % 2 ? "bg-neutral-50" : "bg-white"} ${newIds.has(r.id) ? "bob-new" : ""} ${prov ? "bob-prov" : ""}`}
->>>>>>> origin/main
             >
               <td className="sticky left-0 z-10 px-3 py-2.5 font-bold whitespace-nowrap bg-inherit border-r border-neutral-100">
                 <span className="inline-flex items-center gap-2">
                   <span className="w-4 text-right text-[10px] font-normal text-neutral-300">{idx + 1}</span>
                   <CompanyLogo company={str(r.cells.company)} website={str(r.cells.website)} domain={str(r.cells._domain)} size={20} />
-<<<<<<< HEAD
-                  {str(r.cells.company)}
-=======
                   {str(r.cells.name) || str(r.cells.company)}
->>>>>>> origin/main
                 </span>
               </td>
               <td className="px-3 py-2.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
@@ -4000,11 +3296,7 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
   onDelete: () => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
-<<<<<<< HEAD
-  const company = str(row.cells.company) || "Details";
-=======
   const company = str(row.cells.name) || str(row.cells.company) || "Details";
->>>>>>> origin/main
 
   const copy = (key: string, v: string) => {
     navigator.clipboard?.writeText(v);
