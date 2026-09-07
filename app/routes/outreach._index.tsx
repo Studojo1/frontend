@@ -33,16 +33,16 @@ type WallItem =
   | { type: "whatsapp"; q: string; t: string }
   | { type: "linkedin"; n: string; role: string; deg: string; q: string };
 const WALL: WallItem[] = [
-  { type: "tweet", n: "Sahil Gulihar", h: "@Sahil_Gulihar", d: "May 30", v: false, q: "went in as a casual tester to find bugs. came out with an interview lol 💀 no messy emails, no hunting. just chat, then interview", re: 4, rt: 4, lk: 34 },
-  { type: "imsg", in: "yo update, my profile got shortlisted for a role 😭", out: "and I wasn't even trying that hard", t: "2:11 PM" },
-  { type: "linkedin", n: "Rimjhim Hazarika", role: "L&D Consultant · Career Coach", deg: "2nd", q: "Trying it out and saying this with a lot of respect. The convo feels anything but transactional. Genuinely impressed." },
-  { type: "tweet", n: "Siddharth K S", h: "@sidks", d: "4d", v: true, q: "been testing this for the past hour, honestly seamless. gives such a great handle on things right away :D", re: 1, rt: 2, lk: 21 },
-  { type: "whatsapp", q: "have been using studojo, it's pretty good at finding the right people. really liked it", t: "9:09 PM" },
-  { type: "tweet", n: "Anunaya Tandon", h: "@AnunayaTandon", d: "May 28", v: false, q: "first experience of @studojo, the ai is so good!", re: 0, rt: 1, lk: 12 },
-  { type: "imsg", in: "wait this actually works??", out: "told you 😎", t: "3:38 AM" },
-  { type: "whatsapp", q: "studojo slaps hard <3", t: "9:12 PM" },
-  { type: "linkedin", n: "Marcus T.", role: "CS @ NYU", deg: "2nd", q: "3 founder replies in week one. Genuinely did not expect this from a tool. Telling everyone in my batch." },
-  { type: "tweet", n: "Meera P.", h: "@meera_builds", d: "Jun 2", v: false, q: "stopped spamming applications. finally getting actual responses 🙌", re: 2, rt: 3, lk: 27 },
+  { type: "tweet", n: "Priya Nair", h: "@priyabuilds", d: "May 24", v: false, q: "40 applications on job boards = total silence. one week on studojo = 3 replies from actual founders 💀 the math isn't close", re: 5, rt: 6, lk: 41 },
+  { type: "imsg", in: "a founder just replied to my message directly 😭", out: "the studojo one?? told you to set it up", t: "11:47 PM" },
+  { type: "linkedin", n: "Karthik Menon", role: "Talent Lead · Seed-stage SaaS", deg: "2nd", q: "Got a note from a student via Studojo — tight, specific, clearly not a mass blast. Replied within the hour. More of this, please." },
+  { type: "tweet", n: "Devansh Rao", h: "@devansh_rao", d: "6d", v: true, q: "the outreach actually sounds like me, not a bot. recruiter wrote back that my note 'stood out' :D still not over it", re: 2, rt: 4, lk: 33 },
+  { type: "whatsapp", q: "ok studojo is lowkey unfair. two interview calls this week and I never touched a single job portal", t: "8:21 PM" },
+  { type: "tweet", n: "Sara Qureshi", h: "@sara_q", d: "May 31", v: false, q: "months of getting ghosted, then one weekend on studojo and my inbox finally has real humans in it", re: 3, rt: 5, lk: 29 },
+  { type: "imsg", in: "wait the internship is locked?? 🔒", out: "the role studojo dug up?? lets gooo", t: "4:02 PM" },
+  { type: "whatsapp", q: "the follow-ups run on their own so I don't have to chase. woke up to a reply I never had to send twice <3", t: "7:58 AM" },
+  { type: "linkedin", n: "Hannah Lim", role: "CS @ NUS", deg: "2nd", q: "Four intro calls in my first week, all for roles I'd never have surfaced on a job board. Quietly impressed — sending this to my whole cohort." },
+  { type: "tweet", n: "Rohit Bansal", h: "@rohitships", d: "Jun 5", v: false, q: "done firing résumés into the void. studojo drops me straight into the right person's inbox 🙌 genuinely a different game", re: 4, rt: 7, lk: 38 },
 ];
 const WALL_ROW_A = WALL.slice(0, Math.ceil(WALL.length / 2));
 const WALL_ROW_B = WALL.slice(Math.ceil(WALL.length / 2));

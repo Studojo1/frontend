@@ -4,13 +4,13 @@ import { checkEmail } from "~/lib/email-validate";
 
 export function meta() {
   return [
-    { title: "Become a Campus Ambassador | Studojo" },
+    { title: "Become a Studojo Insider | Studojo" },
     {
       name: "description",
       content:
-        "Apply to be a Studojo Campus Ambassador. Represent Studojo at your college. Takes under a minute to apply.",
+        "Apply to be a Studojo Insider. Represent Studojo at your college. Takes under a minute to apply.",
     },
-    { property: "og:title", content: "Become a Studojo Campus Ambassador" },
+    { property: "og:title", content: "Become a Studojo Insider" },
     {
       property: "og:description",
       content: "Represent Studojo at your college. Apply in under a minute.",
@@ -152,7 +152,7 @@ export default function CampusAmbassador() {
             NOW HIRING
           </span>
           <h1 className="mt-4 text-3xl md:text-4xl font-bold text-neutral-900 font-['Clash_Display']">
-            Become a Campus Ambassador
+            Become a Studojo Insider
           </h1>
           <p className="mt-2 text-neutral-600 font-['Satoshi']">
             Represent Studojo at your college. Fill this in and we will get back
@@ -308,7 +308,7 @@ export default function CampusAmbassador() {
             <div className="grid grid-cols-1 gap-5">
               <div>
                 <label className={LABEL}>
-                  Why would you be a good Campus Ambassador?{" "}
+                  Why would you be a good Studojo Insider?{" "}
                   <span className="text-red-500">*</span>
                 </label>
                 <textarea

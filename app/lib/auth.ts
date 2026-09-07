@@ -396,16 +396,10 @@ export const auth = betterAuth({
           // Fire for ALL signup methods (email/password, Google OAuth, etc.)
           try {
             const { publishEmailEvent } = await import("./events");
-            // Transactional account welcome (unchanged).
-            publishEmailEvent("event.user.signup", {
-              user_id: user.id,
-              email: user.email,
-              name: user.name,
-            }).catch((err) => {
-              console.error("[auth] Failed to publish signup event via databaseHook:", err);
-            });
-            // New efficient flow: starts the Outreach welcome + not-used nudge
-            // sequence. Suppressed automatically for paid users by the emailer.
+            // ONLY the new flow welcome fires on signup. The old transactional
+            // event.user.signup ("welcome" template) is retired — it produced a
+            // duplicate second welcome. The new flow's cc-welcome-new-user is the
+            // single welcome and also starts the Outreach not-used gate/chase.
             publishEmailEvent("event.cc.welcome_new_user", {
               user_id: user.id,
               email: user.email,

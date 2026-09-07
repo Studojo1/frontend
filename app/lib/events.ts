@@ -1,28 +1,49 @@
-import { getEmailerServiceUrl } from "./emailer";
+/**
+ * Base URL of the EMAILER service (NOT the control plane). Events must go to the
+ * emailer's /v1/email/events, which is a different service than getEmailerServiceUrl()
+ * (that returns the control plane, whose /v1/email/events expects a different
+ * shape and 400s our payload — the original silent bug). Override with
+ * EMAILER_SERVICE_URL; defaults to the public emailer host.
+ */
+function emailerBaseUrl(): string {
+  if (typeof process !== "undefined" && process.env?.EMAILER_SERVICE_URL) {
+    return process.env.EMAILER_SERVICE_URL;
+  }
+  return "https://email.studojo.com";
+}
 
 /**
- * Publish an email event directly to the emailer service.
+ * Publish an email event directly to the EMAILER service.
  *
  * SERVER-SIDE ONLY. The emailer's /v1/email/events endpoint is gated by
  * X-Internal-Secret, so this attaches EMAILER_INTERNAL_SECRET from the server
- * environment. Calling this from the browser will send no secret and be
- * rejected (401) by design — client code must use the /api/email-event resource
- * route (see publishEmailEventFromClient) which holds the secret server-side.
+ * environment. Browser code must use publishEmailEventFromClient instead.
+ *
+ * Non-blocking (a failed email never fails the calling operation) but it now
+ * checks res.ok and logs a clear error on a non-2xx, so a misconfigured secret
+ * or wrong URL is visible in logs instead of failing silently.
  */
 export async function publishEmailEvent(routingKey: string, event: any): Promise<void> {
   try {
-    const base = getEmailerServiceUrl();
+    const base = emailerBaseUrl();
     const secret =
       typeof process !== "undefined" ? process.env?.EMAILER_INTERNAL_SECRET : undefined;
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (secret) headers["X-Internal-Secret"] = secret;
-    await fetch(`${base}/v1/email/events`, {
+    const res = await fetch(`${base}/v1/email/events`, {
       method: "POST",
       headers,
       body: JSON.stringify({ routing_key: routingKey, event }),
     });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(
+        `[publishEmailEvent] emailer rejected ${routingKey}: HTTP ${res.status} ${body.slice(0, 200)}` +
+          (secret ? "" : " (no EMAILER_INTERNAL_SECRET set)")
+      );
+    }
   } catch (error) {
-    // Non-blocking - log but don't fail the main operation
+    // Network-level failure only; non-blocking.
     console.error("Failed to publish email event:", error);
   }
 }

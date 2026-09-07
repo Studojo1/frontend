@@ -1,7 +1,6 @@
 import { saveWebinarRegistration } from "~/lib/webinar.server";
+import { checkEmail } from "~/lib/email-validate";
 import type { Route } from "./+types/api.webinar-register";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function clamp(v: unknown, max = 200): string {
   return String(v ?? "").trim().slice(0, max);
@@ -25,17 +24,23 @@ export async function action({ request }: Route.ActionArgs) {
   const college = clamp(body.college);
   const course = clamp(body.course);
   const yearOfStudy = clamp(body.yearOfStudy, 40);
+  const lifeStage = clamp(body.lifeStage, 60); // required (the intent question)
   // Optional fields
   const specialisation = clamp(body.specialisation);
   const graduationYear = clamp(body.graduationYear, 10);
-  const lifeStage = clamp(body.lifeStage, 60);
   const referralSource = clamp(body.referralSource, 60);
 
-  if (!fullName || !whatsapp || !email || !college || !course || !yearOfStudy) {
+  if (!fullName || !whatsapp || !email || !college || !course || !yearOfStudy || !lifeStage) {
     return Response.json({ error: "Please fill in all required fields." }, { status: 400 });
   }
-  if (!EMAIL_RE.test(email)) {
-    return Response.json({ error: "Please enter a valid email address." }, { status: 400 });
+  // Authoritative email check: rejects typo domains (gmail.cok, gnail.com, ...)
+  // and invalid TLDs, which the old shape-only regex let through.
+  const emailCheck = checkEmail(email);
+  if (!emailCheck.ok) {
+    return Response.json(
+      { error: emailCheck.error, suggestion: emailCheck.suggestion },
+      { status: 400 }
+    );
   }
 
   const { isNew } = await saveWebinarRegistration({

@@ -38,7 +38,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
   };
 
   // LinkedIn login through the Evomi proxy spawns a Playwright browser and
-  // navigates through the full login + checkpoint flow — easily 60-120s.
+  // navigates through the full login + checkpoint flow, easily 60-120s.
   // Retrying creates a brand-new Playwright session each time, which fires a
   // fresh phone notification on the user's device. So: long timeout, NO retries.
   const LOGIN_FETCH_OPTS = { timeout: 180_000, maxRetries: 1 } as const;
@@ -98,7 +98,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
         { method: "POST", body: JSON.stringify({ session_key: challenge.sessionKey }), ...LOGIN_FETCH_OPTS },
       );
       if (res.still_waiting) {
-        setError('Not approved yet — tap "Yes" on your phone first, then click Continue.');
+        setError('Not approved yet, tap "Yes" on your phone first, then click Continue.');
         return;
       }
       setChallenge(null);
@@ -215,7 +215,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
             <p className="text-sm text-blue-700 font-satoshi mt-1">Follow these steps:</p>
             <ol className="mt-2 space-y-1 text-sm text-blue-700 font-satoshi list-none">
               <li className="flex items-start gap-2"><span className="font-bold flex-shrink-0">1.</span> Open the LinkedIn app on your phone</li>
-              <li className="flex items-start gap-2"><span className="font-bold flex-shrink-0">2.</span> You'll see a notification — tap it</li>
+              <li className="flex items-start gap-2"><span className="font-bold flex-shrink-0">2.</span> You'll see a notification, tap it</li>
               <li className="flex items-start gap-2"><span className="font-bold flex-shrink-0">3.</span> Tap <span className="font-bold">"Yes, it's me"</span> to approve</li>
               <li className="flex items-start gap-2"><span className="font-bold flex-shrink-0">4.</span> Come back here and click Continue</li>
             </ol>
@@ -227,7 +227,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
           disabled={phoneTapLoading}
           className="w-full h-11 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
         >
-          {phoneTapLoading ? "Checking..." : "I approved it — Continue"}
+          {phoneTapLoading ? "Checking..." : "I approved it, Continue"}
         </button>
         <button onClick={() => setChallenge(null)} className="text-xs text-studojo-muted font-satoshi w-full text-center mt-2">
           ← Use different credentials
@@ -243,7 +243,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
         <div className="space-y-1">
           <p className="text-sm font-bold font-satoshi text-studojo-ink">How this works</p>
           <p className="text-sm text-studojo-muted font-satoshi">
-            We use your email and password to log in to LinkedIn once, collect your session cookies, then <span className="font-bold text-studojo-ink">permanently delete your credentials</span>. Your password is never stored — only the session cookies needed to send connection requests on your behalf.
+            We use your email and password to log in to LinkedIn once, collect your session cookies, then <span className="font-bold text-studojo-ink">permanently delete your credentials</span>. Your password is never stored, only the session cookies needed to send connection requests on your behalf.
           </p>
         </div>
       </div>

@@ -20,6 +20,20 @@ const PLAYBOOKS = [
     description: "Build a standout LinkedIn profile end to end: photo, banner, custom URL, and two AI prompts that write the rest.",
     file: "/webinar-2-playbook.pdf",
   },
+  {
+    id: "no-experience-internship",
+    label: "Playbook 3",
+    title: "No-Experience Internship Playbook",
+    description: "How to land an internship or job that asks for experience when you have none: an AI coach, a clear plan, and the proof to back it up.",
+    file: "/webinar-3-playbook.pdf",
+  },
+  {
+    id: "referrals-right-way",
+    label: "Playbook 4",
+    title: "How to Get Referrals the Right Way",
+    description: "Build relationships before asking for opportunities: the seven-step framework, an AI referral coach, and a 14-day networking sprint.",
+    file: "/webinar-4-playbook.pdf",
+  },
 ] as const;
 
 export function meta() {

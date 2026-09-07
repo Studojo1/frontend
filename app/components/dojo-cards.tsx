@@ -19,22 +19,6 @@ type DojoCard = {
 
 const DOJOS: DojoCard[] = [
   {
-    id: "assignment",
-    title: "Assignment Dojo",
-    description:
-      "Ace your assignments with AI-powered help. Due soon? We got you.",
-    checklist: [
-      "Plagiarism-safe content",
-      "Properly formatted",
-      "References included",
-    ],
-    accent: "violet",
-    cta: "Try it now",
-    ctaClass: "text-violet-600",
-    icon: <FiBookOpen />,
-    href: "/dojos/assignment",
-  },
-  {
     id: "careers",
     title: "Careers Dojo",
     description:

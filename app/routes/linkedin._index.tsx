@@ -8,7 +8,7 @@ import { Footer } from "~/components/common/footer";
 
 export function meta() {
   return [
-    { title: "Studojo LinkedIn — Auto-send connection requests to hiring managers" },
+    { title: "Studojo LinkedIn, Auto-send connection requests to hiring managers" },
     { name: "description", content: "Upload your resume. We find decision-makers. You connect on LinkedIn at scale, safely." },
   ];
 }
@@ -24,13 +24,13 @@ const STEPS = [
     n: 2,
     icon: <FiUsers className="w-5 h-5" />,
     title: "We find the right hiring managers",
-    body: "200+ decision-makers matched to your profile — founders, heads, hiring leads. Not random recruiters.",
+    body: "200+ decision-makers matched to your profile, founders, heads, hiring leads. Not random recruiters.",
   },
   {
     n: 3,
     icon: <FiLinkedin className="w-5 h-5" />,
     title: "Connect your LinkedIn",
-    body: "One-time secure login. We send connection requests on your behalf — paced safely, hand-personalised notes.",
+    body: "One-time secure login. We send connection requests on your behalf, paced safely, hand-personalised notes.",
   },
   {
     n: 4,
@@ -41,24 +41,23 @@ const STEPS = [
 ];
 
 const FEATURES = [
-  "Sends 8–12 invites per day (LinkedIn-safe pacing)",
+  "Sends 8-12 invites per day (LinkedIn-safe pacing)",
   "AI-written personal notes referencing their company",
   "Auto-follow-up message when they accept",
   "Withdraws stale invites after 14 days to keep your limit clean",
-  "Full transparency — see every invite, every reply",
+  "Full transparency, see every invite, every reply",
 ];
 
 const TIERS = [
-  { id: "linkedin_200", label: "Starter", count: 200, priceUSD: 20, priceINR: 1825, anchorINR: 2500, save: "27%" },
-  { id: "linkedin_350", label: "Growth", count: 350, priceUSD: 27, priceINR: 2325, anchorINR: 3500, save: "34%", popular: true },
-  { id: "linkedin_500", label: "Scale", count: 500, priceUSD: 50, priceINR: 3465, anchorINR: 5000, save: "31%" },
+  { id: "linkedin_weekly", label: "Weekly", count: 80, priceUSD: 8, priceINR: 500, per: "week", duration: 7 },
+  { id: "linkedin_monthly", label: "Monthly", count: 350, priceUSD: 25, priceINR: 1800, per: "month", duration: 30, popular: true },
 ];
 
 const FAQ: [string, string][] = [
-  ["Is this safe for my LinkedIn account?", "Yes. We pace invites at 8–12/day (well below LinkedIn's 100/week limit), use your own session cookies, and randomise send times to mirror human behaviour. We don't use bots or third-party automation tools — everything runs through real browser sessions."],
+  ["Is this safe for my LinkedIn account?", "Yes. We pace invites at 8-12/day (well below LinkedIn's 100/week limit), use your own session cookies, and randomise send times to mirror human behaviour. We don't use bots or third-party automation tools, everything runs through real browser sessions."],
   ["What if someone reports me?", "Reports are rare because every invite has a real personal note. We also let you blacklist companies or titles you don't want contacted. If LinkedIn ever asks you to verify, we pause automatically."],
-  ["Will I be the one signing in?", "Yes. You log into LinkedIn once on our connect page. We never store your password — only the session token. You can revoke access from LinkedIn → Settings → Sessions at any time."],
-  ["What's the reply rate?", "Acceptance rate is usually 25–40% (depends on profile match). Of those who accept, about 8–15% reply to the follow-up message."],
+  ["Will I be the one signing in?", "Yes. You log into LinkedIn once on our connect page. We never store your password, only the session token. You can revoke access from LinkedIn → Settings → Sessions at any time."],
+  ["What's the reply rate?", "Acceptance rate is usually 25-40% (depends on profile match). Of those who accept, about 8-15% reply to the follow-up message."],
 ];
 
 export default function LinkedInLanding() {
@@ -81,7 +80,7 @@ export default function LinkedInLanding() {
             <span className="text-studojo-ink/80">Automatically.</span>
           </h1>
           <p className="text-base md:text-xl text-studojo-muted font-satoshi max-w-2xl mx-auto mb-8">
-            Upload your resume. We find the right decision-makers. You connect with 200+ hand-personalised invites — sent safely on autopilot.
+            Upload your resume. We find the right decision-makers. You connect with hand-personalised invites, sent safely on autopilot.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
@@ -101,7 +100,7 @@ export default function LinkedInLanding() {
 
           {/* Quick trust row */}
           <div className="flex flex-wrap justify-center gap-3 max-w-2xl mx-auto">
-            {["200+ matched contacts", "8–12 invites/day", "Auto follow-ups", "LinkedIn-safe pacing"].map((t) => (
+            {["200+ matched contacts", "8-12 invites/day", "Auto follow-ups", "LinkedIn-safe pacing"].map((t) => (
               <span key={t} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold font-satoshi bg-white border-2 border-studojo-ink/15 text-studojo-ink">
                 <FiCheckCircle className="w-3.5 h-3.5 text-studojo-green" /> {t}
               </span>
@@ -165,14 +164,14 @@ export default function LinkedInLanding() {
                 <span className="text-blue-300">Hi Aarav,</span>
               </p>
               <p className="mb-3 text-white/90">
-                Saw you're scaling Polymath AI's LLM orchestration stack —
+                Saw you're scaling Polymath AI's LLM orchestration stack,
                 I've been building production voice AI pipelines at Cred and
                 am drawn to teams shipping real-time inference at your stage.
               </p>
               <p className="mb-3 text-white/90">
                 Would love to connect.
               </p>
-              <p className="text-blue-300">— Himanshu</p>
+              <p className="text-blue-300">Himanshu</p>
               <div className="mt-4 pt-3 border-t border-white/15 flex items-center justify-between text-[10px] text-white/40">
                 <span>≤ 300 chars · LinkedIn-safe</span>
                 <span>Sent · Tuesday 10:42 AM</span>
@@ -185,10 +184,10 @@ export default function LinkedInLanding() {
         <section className="py-16 border-t border-studojo-ink/10">
           <div className="text-center mb-10">
             <span className="text-xs font-bold font-satoshi text-studojo-purple uppercase tracking-wider">Pricing</span>
-            <h2 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink mt-2">Pay once. Send 200+ invites.</h2>
-            <p className="text-base text-studojo-muted font-satoshi mt-2">No subscription. No hidden costs. India launch pricing.</p>
+            <h2 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink mt-2">Weekly or monthly. Your call.</h2>
+            <p className="text-base text-studojo-muted font-satoshi mt-2">No hidden costs. Cancel any time. India launch pricing.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
             {TIERS.map((t) => (
               <div
                 key={t.id}
@@ -201,18 +200,15 @@ export default function LinkedInLanding() {
                 )}
                 <p className="text-xs font-bold font-satoshi text-studojo-muted uppercase mb-1">{t.label}</p>
                 <h3 className="font-clash text-2xl font-bold text-studojo-ink">{t.count} invites</h3>
-                <div className="mt-3 mb-1 flex items-baseline gap-2 flex-wrap">
-                  <span className="text-base font-clash font-bold text-studojo-muted line-through">₹{t.anchorINR}</span>
+                <div className="mt-3 mb-4 flex items-baseline gap-1 flex-wrap">
                   <span className="font-clash text-3xl font-bold text-studojo-ink">₹{t.priceINR}</span>
+                  <span className="text-sm font-satoshi text-studojo-muted">/{t.per}</span>
                 </div>
-                <span className="self-start mb-4 px-2 py-0.5 rounded-full text-[10px] font-bold font-satoshi bg-studojo-green/15 text-studojo-green border border-studojo-green/40">
-                  Save {t.save}
-                </span>
                 <ul className="space-y-2 mb-5 flex-1 text-sm font-satoshi text-studojo-ink">
                   <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> {t.count} hand-personalised invites</li>
                   <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> AI-written follow-up on accept</li>
                   <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Reply tracking + inbox</li>
-                  <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Safe pacing (~{Math.round(t.count / 30)}/day)</li>
+                  <li className="flex items-start gap-2"><FiCheckCircle className="w-4 h-4 text-studojo-green flex-shrink-0 mt-0.5" /> Safe pacing (~{Math.round(t.count / t.duration)}/day)</li>
                 </ul>
                 <button
                   onClick={() => navigate("/linkedin/onboarding/upload")}
@@ -251,7 +247,7 @@ export default function LinkedInLanding() {
           <div className="rounded-2xl border-2 border-studojo-ink bg-[#0a66c2] text-white shadow-brutal p-10 text-center">
             <h2 className="font-clash text-3xl md:text-4xl font-bold mb-3">Ready to connect with the right people?</h2>
             <p className="text-base font-satoshi text-white/80 mb-6 max-w-xl mx-auto">
-              Upload your resume — we'll have your contact list ready in 3 minutes.
+              Upload your resume, we'll have your contact list ready in 3 minutes.
             </p>
             <button
               onClick={() => navigate("/linkedin/onboarding/upload")}

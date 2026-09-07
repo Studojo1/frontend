@@ -1,4 +1,3 @@
-import { describeError } from "~/lib/error-detail";
 // Server-side client for bob-svc (Sensei), used ONLY by the hosted MCP (app/routes/api.mcp.tsx).
 // Every call is scoped to ONE isolated per-key org through the trusted gateway
 // (X-Internal-Secret + X-Bob-Org-Id), so bob-svc's own _same_org checks enforce per-key
@@ -118,12 +117,19 @@ export function enrichTable(orgId: number, tableId: number): Promise<BobResp<any
 export function sourcingEnrich(
   orgId: number,
   text: string,
-  opts: { want_email?: boolean; want_phone?: boolean } = {},
+  opts: { want_email?: boolean; want_phone?: boolean; tier?: string } = {},
 ): Promise<BobResp<any>> {
   return call("/sourcing/enrich", {
     method: "POST",
     orgId,
-    body: { text, want_email: opts.want_email !== false, want_phone: opts.want_phone !== false },
+    body: {
+      text,
+      want_email: opts.want_email !== false,
+      want_phone: opts.want_phone !== false,
+      // Omitted means bob-svc picks the default tier. Never guess one here: a
+      // wrong guess spends the wrong pool.
+      ...(opts.tier ? { tier: opts.tier } : {}),
+    },
   });
 }
 
@@ -143,6 +149,6 @@ export async function whoAmI(
   } catch {
     data = null;
   }
-  if (!r.ok) return { ok: false, status: r.status, error: describeError(data, `http_${r.status}`) };
+  if (!r.ok) return { ok: false, status: r.status, error: String(data?.detail || `http_${r.status}`) };
   return { ok: true, data };
 }

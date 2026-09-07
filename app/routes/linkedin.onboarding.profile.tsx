@@ -12,7 +12,7 @@ const COMPANY_STAGES = [
   { id: "growth", label: "Growth-stage", desc: "Series B+ · 50-500 people" },
   { id: "mid-market", label: "Mid-market", desc: "500-5000 people · proven companies" },
   { id: "enterprise", label: "Big tech / enterprise", desc: "5000+ · MNCs, FAANG, unicorns" },
-  { id: "any", label: "I'm open", desc: "Mix everything — surprise me" },
+  { id: "any", label: "I'm open", desc: "Mix everything, surprise me" },
 ];
 
 export default function LinkedInProfile() {
@@ -47,7 +47,7 @@ export default function LinkedInProfile() {
       // We try to override them with the user's typed answer via the existing
       // flex-notes mechanism (used by /outreach/onboarding to capture extra
       // preferences). If the endpoint isn't available we just keep the
-      // resume-derived targeting — the user is never blocked.
+      // resume-derived targeting, the user is never blocked.
       await outreachFetch(`/candidate/${candidateId}/flex`, {
         method: "PUT",
         body: JSON.stringify({
@@ -67,11 +67,11 @@ export default function LinkedInProfile() {
         method: "POST",
         body: JSON.stringify({ candidate_id: candidateId }),
         timeout: 30_000,
-      }).catch(() => {/* non-fatal — leads page will retry */});
+      }).catch(() => {/* non-fatal, leads page will retry */});
 
       navigate("/linkedin/leads/discovery?fresh=1");
     } catch (e: any) {
-      setError(e?.body?.detail || e.message || "Couldn't continue — try again.");
+      setError(e?.body?.detail || e.message || "Couldn't continue, try again.");
     } finally {
       setSaving(false);
     }
@@ -90,11 +90,11 @@ export default function LinkedInProfile() {
         </div>
 
         <div className="space-y-6">
-          {/* Q1 — target role */}
+          {/* Q1, target role */}
           <div>
             <label className="block mb-2">
               <span className="text-xs font-bold font-satoshi text-studojo-ink uppercase tracking-wide">What role are you going for?</span>
-              <span className="block text-xs text-studojo-muted font-satoshi mt-0.5">e.g. "Product Manager", "Marketing Intern" — comma-separate up to 3.</span>
+              <span className="block text-xs text-studojo-muted font-satoshi mt-0.5">e.g. "Product Manager", "Marketing Intern", comma-separate up to 3.</span>
             </label>
             <div className="relative">
               <FiBriefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-studojo-muted" />
@@ -107,7 +107,7 @@ export default function LinkedInProfile() {
             </div>
           </div>
 
-          {/* Q2 — location */}
+          {/* Q2, location */}
           <div>
             <label className="block mb-2">
               <span className="text-xs font-bold font-satoshi text-studojo-ink uppercase tracking-wide">Where? <span className="text-studojo-muted normal-case font-normal">(optional)</span></span>
@@ -124,7 +124,7 @@ export default function LinkedInProfile() {
             </div>
           </div>
 
-          {/* Q3 — company stage */}
+          {/* Q3, company stage */}
           <div>
             <label className="block mb-3">
               <span className="text-xs font-bold font-satoshi text-studojo-ink uppercase tracking-wide">What type of companies?</span>
