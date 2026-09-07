@@ -1246,14 +1246,11 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                           <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
                         </div>
                         <div className="min-w-0 max-w-[92%] space-y-2.5">
-                          {g.items.map((m) => {
-                            const rep = parseSearchReport(m.content);
-                            return rep
-                              ? <SearchReport key={m.id} report={rep} />
-                              : <div key={m.id} className={`${CARD} rounded-tl-md px-4 py-3`}>
-                                  <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.7] text-neutral-800">{m.content}</p>
-                                </div>;
-                          })}
+                          {g.items.map((m) => (
+                            <div key={m.id} className={`${CARD} rounded-tl-md px-4 py-3`}>
+                              <p className="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-[1.7] text-neutral-800">{plainAnswer(m.content)}</p>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )
@@ -1443,40 +1440,31 @@ const SHADOW_LG = "shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]";
 const PRESS = "transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
 const CARD = `bg-white ${BRUT} rounded-2xl ${SHADOW}`;
 
-function parseSearchReport(text: string): { headline: string; sub: string; raw: string } | null {
-  if (!/^\s*search REPORT/i.test(text) && !/harvested items:/i.test(text)) return null;
-  const written = text.match(/written\s+(\d+)/i)?.[1];
-  const target = text.match(/target\s+(\d+)\s*rows?/i)?.[1];
-  const loc = text.match(/location\s+([^,)]+(?:,\s*[^,)]+)?)/i)?.[1]?.trim();
-  const fresh = text.match(/freshness\s+(\d+)\s*d/i)?.[1];
-  const n = written || target || "";
-  const bits = [loc && `in ${loc}`, fresh && `posted in the last ${fresh} days`].filter(Boolean);
-  const headline = n ? `Found ${n} compan${n === "1" ? "y" : "ies"}` : "Search complete";
-  return { headline, sub: bits.join(" · "), raw: text.trim() };
-}
+// The chat shows ONLY natural language. Internal pipeline output (the "search REPORT" funnel dump:
+// harvested/extracted/verified counts, "rejected at shortlist ... x673", pool caps, stage names)
+// must NEVER reach a user, so it is stripped HERE as well as at the source. Belt and braces: the
+// backend resume path used to answer with that raw report verbatim, and those messages are already
+// stored in chat history — this keeps them out of the UI even when re-read from the DB.
+const _INTERNAL_LINE =
+  /^\s*(?:search|pipeline)\s+REPORT\b|^\s*harvested items:|^\s*opportunities:\s*extracted|^\s*rejected at\b|^\s*stopped:|^\s*stage\s|^\s*=== /i;
 
-function SearchReport({ report }: { report: { headline: string; sub: string; raw: string } }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`${CARD} overflow-hidden`}>
-      <div className="flex items-center gap-3 px-4 py-3">
-        <span className="w-8 h-8 shrink-0 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
-          <FiCheck size={16} />
-        </span>
-        <div className="min-w-0">
-          <div className="text-[14px] font-semibold text-neutral-900 leading-tight">{report.headline}</div>
-          {report.sub && <div className="text-[12.5px] text-neutral-500 truncate">{report.sub}</div>}
-        </div>
-        <button onClick={() => setOpen((v) => !v)}
-          className="ml-auto text-[12px] font-medium text-neutral-400 hover:text-neutral-700 shrink-0">
-          {open ? "Hide details" : "Search details"}
-        </button>
-      </div>
-      {open && (
-        <pre className="border-t border-neutral-100 bg-neutral-50 px-4 py-3 text-[11.5px] leading-5 text-neutral-500 whitespace-pre-wrap font-mono overflow-x-auto">{report.raw}</pre>
-      )}
-    </div>
-  );
+function plainAnswer(text: string): string {
+  const raw = String(text || "");
+  // A report-shaped message: rebuild it as the one plain sentence a person actually wants.
+  if (/^\s*(?:search|pipeline)\s+REPORT/i.test(raw) || /harvested items:/i.test(raw)) {
+    const n = raw.match(/written\s+(\d+)/i)?.[1];
+    const loc = raw.match(/location\s+([^,)]+(?:,\s*[^,)]+)?)/i)?.[1]?.trim();
+    const fresh = raw.match(/freshness\s+(\d+)\s*d/i)?.[1];
+    const bits = [loc && `in ${loc}`, fresh && `posted in the last ${fresh} days`].filter(Boolean);
+    const where = bits.length ? `, ${bits.join(", ")}` : "";
+    if (n && n !== "0") {
+      return `Found ${n} compan${n === "1" ? "y" : "ies"}${where}. They're in the table on the right.`;
+    }
+    return `No companies cleared this search${where}.`;
+  }
+  // Otherwise keep the model's own words, minus any internal lines that leaked into them.
+  const kept = raw.split("\n").filter((ln) => !_INTERNAL_LINE.test(ln));
+  return (kept.join("\n").trim() || raw.trim());
 }
 
 // Short names for the header; the full label lives in the popover. Three pills
