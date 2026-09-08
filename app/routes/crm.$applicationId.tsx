@@ -233,21 +233,20 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           reach this person" is worth interrupting for. */}
       {!sent && !draft.contactName ? (
         <div className="mb-6 rounded-2xl border-2 border-studojo-ink/15 bg-studojo-surface-muted p-4">
+          {/* A name is shown ONLY once we hold an address for them. Announcing
+              "we found Santoshi" and then failing to send is worse than saying
+              nothing: the student believes they have a contact and writes to
+              that person in their head. Naming someone is a promise we can
+              reach them, so we make it only when we can keep it. */}
           <p className="font-['Satoshi'] text-sm text-studojo-ink">
-            {reach?.contactName
+            {reach?.status === "reachable" && reach.contactName
               ? `This posting didn't name anyone, so we found ${reach.contactName}${
                   reach.contactTitle ? ` — ${reach.contactTitle}` : ""
                 } at ${draft.company}.`
-              : `This posting didn't name anyone. We'll find whoever hires for this role at ${draft.company} when you send.`}
+              : reach?.status === "unreachable"
+                ? `We don't have a confirmed email address for anyone at ${draft.company} yet. Your draft is saved and we keep looking.`
+                : `This posting didn't name anyone. We'll find whoever hires for this role at ${draft.company} when you send.`}
           </p>
-          {reach?.status === "unreachable" ? (
-            <p className="mt-2 font-['Satoshi'] text-sm text-studojo-muted">
-              We don&rsquo;t have a confirmed email address for them yet. Finding
-              someone and confirming their address are two different lookups
-              &mdash; we have the first, not the second. Your draft is saved and
-              we keep looking.
-            </p>
-          ) : null}
         </div>
       ) : null}
 
