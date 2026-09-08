@@ -88,7 +88,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
       body: JSON.stringify({ id: draft.id }),
     })
       .then((r) => r.json())
-      .then((d) => { if (!cancelled && d?.status) setReach(d); })
+      .then((d) => { if (!cancelled && d?.status) setReach((prev) => ({ ...(prev ?? {}), ...d })); })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [draft?.id, draft?.status]);
@@ -103,7 +103,11 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         body: JSON.stringify({ id: draft.id, allowLookup: true }),
       });
       const d = await res.json();
-      if (d?.status) setReach(d);
+      // MERGE, never replace. A "no verified email" answer used to arrive
+      // without the contact name, which wiped the name we already had and
+      // flipped the page from "we found Santoshi" back to "we'll find whoever
+      // hires for this role" — two contradictory claims about one draft.
+      if (d?.status) setReach((prev) => ({ ...(prev ?? {}), ...d }));
     } catch {
       /* a failed check must never block writing the email */
     } finally {
@@ -236,17 +240,28 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
                 } at ${draft.company}.`
               : `This posting didn't name anyone. We'll find whoever hires for this role at ${draft.company} when you send.`}
           </p>
+          {reach?.status === "unreachable" ? (
+            <p className="mt-2 font-['Satoshi'] text-sm text-studojo-muted">
+              We don&rsquo;t have a confirmed email address for them yet. Finding
+              someone and confirming their address are two different lookups
+              &mdash; we have the first, not the second. Your draft is saved and
+              we keep looking.
+            </p>
+          ) : null}
         </div>
       ) : null}
 
-      {!sent && reach && reach.status === "unreachable" ? (
+      {/* The "unreachable" case is explained inside the banner above when the
+          posting named nobody. Only show a standalone notice when the page DID
+          name someone — otherwise two boxes describe the same state. */}
+      {!sent && draft.contactName && reach?.status === "unreachable" ? (
         <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
           <p className="font-['Satoshi'] text-sm font-semibold text-amber-900">
-            We don&rsquo;t have an email for this person yet.
+            We don&rsquo;t have a confirmed email for {draft.contactName} yet.
           </p>
           <p className="mt-1 font-['Satoshi'] text-sm text-amber-800">
-            You can still write and save this draft &mdash; we&rsquo;ll keep looking. Sending
-            won&rsquo;t work until we find a verified address.
+            We know who they are; we don&rsquo;t yet have an address we trust.
+            Your draft is saved and we keep looking.
           </p>
         </div>
       ) : null}
