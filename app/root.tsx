@@ -15,6 +15,7 @@ import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
 import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
 import { capturePostHog, identifyPostHogUser, initPostHog, registerPostHogProps } from "./lib/posthog";
+import { initMetaPixel, trackMeta, trackMetaPageView } from "./lib/meta-pixel";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
 import "./app.css";
@@ -108,6 +109,7 @@ function MixpanelInit() {
   useEffect(() => {
     initMixpanel();
     initPostHog();
+    initMetaPixel();
   }, []);
 
   // Register UTM params as PostHog super properties so all subsequent events carry them
@@ -165,6 +167,9 @@ function MixpanelInit() {
           const key = `ph_signed_up_${u.id}`;
           if (ageMs >= 0 && ageMs < 10 * 60 * 1000 && !localStorage.getItem(key)) {
             capturePostHog("signed_up", { email: u.email, name: u.name });
+            // Meta optimises ad delivery against this event, so it must fire exactly
+            // once per real account. The same recency + localStorage guard applies.
+            trackMeta("CompleteRegistration");
             localStorage.setItem(key, "1");
           }
         }
@@ -188,6 +193,9 @@ function MixpanelInit() {
           $current_url: window.location.href,
           page_title: document.title,
         });
+        // Client-side navigation does not reload the document, so the pixel's own
+        // PageView would only ever fire on the first hard load.
+        trackMetaPageView();
       }, 100);
 
       return () => clearTimeout(timeoutId);

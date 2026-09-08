@@ -13,6 +13,11 @@ ARG VITE_PUBLIC_POSTHOG_KEY=""
 ENV VITE_PUBLIC_POSTHOG_KEY=${VITE_PUBLIC_POSTHOG_KEY}
 ARG VITE_CONTEXT_LOGO_CLIENT_ID=""
 ENV VITE_CONTEXT_LOGO_CLIENT_ID=${VITE_CONTEXT_LOGO_CLIENT_ID}
+# Meta Pixel ID is public (it ships in the page source), so it is defaulted here
+# rather than passed as a build secret. An empty value silently disables the pixel,
+# which is exactly the failure a missing GitHub secret would cause.
+ARG VITE_PUBLIC_META_PIXEL_ID="1402801611979819"
+ENV VITE_PUBLIC_META_PIXEL_ID=${VITE_PUBLIC_META_PIXEL_ID}
 COPY package.json bun.lockb ./
 RUN bun install --frozen-lockfile
 COPY . .

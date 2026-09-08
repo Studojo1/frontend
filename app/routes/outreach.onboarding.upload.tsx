@@ -9,6 +9,7 @@ import { useOutreachStore } from "~/lib/outreach/store";
 import { getToken, ControlPlaneError } from "~/lib/control-plane";
 import { fetchWithRetry } from "~/lib/fetch-with-retry";
 import { capturePostHog } from "~/lib/posthog";
+import { trackMeta } from "~/lib/meta-pixel";
 import type { ResumePreview } from "~/lib/outreach/types";
 
 export default function UploadPage() {
@@ -61,6 +62,9 @@ export default function UploadPage() {
     setUploading(true);
     setError("");
     capturePostHog("resume_upload_started", { file_type: file.type || "unknown", file_size: file.size });
+    // Committing a resume is the real entry into the funnel, so this is what Meta
+    // should read as a lead rather than a page visit.
+    trackMeta("Lead");
     try {
       const token = await getToken();
       if (!token) throw new ControlPlaneError("Not authenticated", 401);
@@ -87,6 +91,9 @@ export default function UploadPage() {
         experience_years: data.preview?.experience_years ?? null,
         char_count: data.preview?.char_count ?? null,
       });
+      // Custom event, not a standard one: this is the activation-rate numerator
+      // (signups who actually upload). Never optimise campaigns against it.
+      trackMeta("ResumeUploaded");
       // Uploading a resume IS using Outreach — fire the used signal now (the
       // earliest "they're using the tool" moment), not only at quiz completion.
       if (user?.id) {
