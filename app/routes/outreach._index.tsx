@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { trackMeta } from "~/lib/meta-pixel";
 import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard, FiChevronDown, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -176,6 +177,12 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 export default function OutreachLanding() {
   const navigate = useNavigate();
+
+  // Ad traffic lands here. This is the audience the retargeting campaigns are
+  // built from, so it needs its own event rather than a bare PageView.
+  useEffect(() => {
+    trackMeta("ViewContent", { content_name: "Outreach Dojo LP" });
+  }, []);
 
   return (
     <div className="w-full bg-white">
