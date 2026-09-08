@@ -25,7 +25,6 @@
 // student already chose the lead by opening the job.
 import { useEffect, useState } from "react";
 import { describeError } from "~/lib/error-detail";
-import { getToken } from "~/lib/control-plane";
 import { redirect, useNavigate } from "react-router";
 import { Footer, Header } from "~/components";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
@@ -145,17 +144,16 @@ export default function CrmSetup() {
     try {
       const form = new FormData();
       form.append("file", file);
-      // MUST send the bearer token. The main upload page does
-      // (outreach.onboarding.upload.tsx:72-75) and this did not — it relied on
-      // `credentials: "include"` alone, so the service returned 401, the throw
-      // below fired, and the student got a dead page instead of a parsed
-      // resume. Same endpoint, same headers, so the two stay in step.
-      const token = await getToken();
-      const res = await fetch("/api/v1/outreach/candidate/upload", {
+      // Posted to OUR server, which holds the token and forwards the file.
+      //
+      // Calling the service directly from here meant importing getToken from
+      // ~/lib/control-plane, which dynamically imports ~/lib/auth — better-auth,
+      // drizzle and the database client, none of which belong in a browser
+      // bundle. That is what took this page down with "Oops!" on load, before
+      // anyone had chosen a file.
+      const res = await fetch("/api/crm/upload-resume", {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body: form,
-        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(describeError(data, "Upload failed"));
