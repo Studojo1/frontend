@@ -62,9 +62,6 @@ export default function UploadPage() {
     setUploading(true);
     setError("");
     capturePostHog("resume_upload_started", { file_type: file.type || "unknown", file_size: file.size });
-    // Committing a resume is the real entry into the funnel, so this is what Meta
-    // should read as a lead rather than a page visit.
-    trackMeta("Lead");
     try {
       const token = await getToken();
       if (!token) throw new ControlPlaneError("Not authenticated", 401);
@@ -91,8 +88,11 @@ export default function UploadPage() {
         experience_years: data.preview?.experience_years ?? null,
         char_count: data.preview?.char_count ?? null,
       });
-      // Custom event, not a standard one: this is the activation-rate numerator
-      // (signups who actually upload). Never optimise campaigns against it.
+      // Both fire only once the resume is genuinely in the system. Firing on the
+      // upload attempt instead would count expired sessions, rejected files and
+      // retries as conversions, and Meta would optimise toward users who bounced.
+      trackMeta("Lead");
+      // Custom event: the activation-rate numerator. Never optimise against it.
       trackMeta("ResumeUploaded");
       // Uploading a resume IS using Outreach — fire the used signal now (the
       // earliest "they're using the tool" moment), not only at quiz completion.
