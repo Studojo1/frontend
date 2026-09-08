@@ -25,6 +25,7 @@
 // student already chose the lead by opening the job.
 import { useEffect, useState } from "react";
 import { describeError } from "~/lib/error-detail";
+import { getToken } from "~/lib/control-plane";
 import { redirect, useNavigate } from "react-router";
 import { Footer, Header } from "~/components";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
@@ -35,9 +36,60 @@ export function meta() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await getSessionFromRequest(request);
+  // GUARDED. getSessionFromRequest calls better-auth's getSession with no
+  // try/catch of its own, so a database blip or a malformed cookie throws
+  // straight out of this loader — and React Router renders "Oops! An
+  // unexpected error occurred", which tells a student nothing and loses the
+  // page. The other CRM routes already guard their reads for exactly this
+  // reason; this one did not.
+  //
+  // A failure here is treated as "not signed in", which is both the safe
+  // assumption and the one with a useful next step.
+  let session = null;
+  try {
+    session = await getSessionFromRequest(request);
+  } catch (e) {
+    console.error("[crm.setup] session lookup failed:", e);
+  }
   if (!session) throw redirect(`/auth?redirect=${encodeURIComponent("/crm/setup")}`);
   return null;
+}
+
+// A last-resort boundary. If anything else in this route throws, a student
+// should see what to do next rather than a question mark — they arrived here
+// from a job page and the whole point is momentum.
+export function ErrorBoundary() {
+  return (
+    <div className="flex min-h-screen flex-col bg-white">
+      <Header />
+      <main className="flex-1">
+        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
+          <h1 className="mb-3 font-['Clash_Display'] text-3xl font-bold text-studojo-ink">
+            We couldn&rsquo;t load this page
+          </h1>
+          <p className="mb-6 font-['Satoshi'] text-studojo-muted">
+            Your drafts are safe. You can write and send emails without
+            finishing setup &mdash; this step only makes them more specific.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href="/crm"
+              className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple px-6 py-3 font-['Satoshi'] font-medium text-white shadow-brutal"
+            >
+              Go to my CRM
+            </a>
+            <a
+              href="/crm/setup"
+              className="rounded-2xl border-2 border-studojo-ink bg-white px-6 py-3 font-['Satoshi'] font-medium shadow-brutal"
+            >
+              Try again
+            </a>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
 }
 
 /** Kept identical to the main quiz's first question so the two never diverge. */
@@ -93,8 +145,15 @@ export default function CrmSetup() {
     try {
       const form = new FormData();
       form.append("file", file);
+      // MUST send the bearer token. The main upload page does
+      // (outreach.onboarding.upload.tsx:72-75) and this did not — it relied on
+      // `credentials: "include"` alone, so the service returned 401, the throw
+      // below fired, and the student got a dead page instead of a parsed
+      // resume. Same endpoint, same headers, so the two stay in step.
+      const token = await getToken();
       const res = await fetch("/api/v1/outreach/candidate/upload", {
         method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body: form,
         credentials: "include",
       });
