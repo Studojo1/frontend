@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -103,7 +104,7 @@ export default function InboxPage() {
       setConversations(data || []);
       setError("");
     } catch (err: any) {
-      setError(err?.body?.detail || "Couldn't load conversations");
+      setError(describeError(err, "Couldn't load conversations"));
     } finally {
       setLoading(false);
     }
@@ -135,7 +136,7 @@ export default function InboxPage() {
       );
       setThread(data);
     } catch (err: any) {
-      setError(err?.body?.detail || "Couldn't load thread");
+      setError(describeError(err, "Couldn't load thread"));
     } finally {
       setThreadLoading(false);
     }
@@ -161,7 +162,7 @@ export default function InboxPage() {
       fetchThread(activeRequestId);
       fetchConversations();
     } catch (err: any) {
-      setSendError(err?.body?.detail || err?.message || "Couldn't send reply");
+      setSendError(describeError(err, "Couldn't send reply"));
     } finally {
       setSending(false);
     }

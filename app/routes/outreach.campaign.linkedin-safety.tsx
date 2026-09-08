@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -38,7 +39,7 @@ export default function LinkedInSafetyPage() {
     outreachFetch<LinkedInCampaignSettings>(`/linkedin/automation/campaigns/${linkedInCampaignId}`)
       .then((d) => setSettings(d))
       .catch((err: any) => {
-        setLoadError(err?.body?.detail || "Could not load campaign settings.");
+        setLoadError(describeError(err, "Could not load campaign settings."));
       });
   }, [authLoading, linkedInCampaignId, navigate]);
 

@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { Header } from "~/components/common/header";
@@ -322,8 +323,8 @@ export default function DiscoveryPage() {
       })
       .catch((err: any) => {
         if (!cancelled) {
-          capturePostHog("discovery_failed", { candidate_id: candidateId, reason: err?.body?.detail || err?.message || "search_error" });
-          setError(err?.body?.detail || err.message || "Lead discovery failed");
+          capturePostHog("discovery_failed", { candidate_id: candidateId, reason: describeError(err, "search_error") });
+          setError(describeError(err, "Lead discovery failed"));
         }
       });
 

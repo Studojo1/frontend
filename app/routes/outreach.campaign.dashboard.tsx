@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useState, useCallback, useRef, Fragment } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -366,7 +367,7 @@ export default function DashboardPage() {
       initialLoaded.current = true;
     } catch (err: any) {
       if (!initialLoaded.current) {
-        setError(err?.body?.detail || "Failed to load campaign data");
+        setError(describeError(err, "Failed to load campaign data"));
       }
     }
   }, [campaignId, testJobId]);
@@ -410,7 +411,7 @@ export default function DashboardPage() {
       setLiRequests(reqData || []);
       setLiError("");
     } catch (err: any) {
-      setLiError(err?.body?.detail || "Failed to load LinkedIn data");
+      setLiError(describeError(err, "Failed to load LinkedIn data"));
     } finally {
       setLiLoading(false);
     }
@@ -491,7 +492,7 @@ export default function DashboardPage() {
       });
       fetchCampaignData();
     } catch (err: any) {
-      setError(err?.body?.detail || "Failed to update campaign");
+      setError(describeError(err, "Failed to update campaign"));
     }
   };
 
@@ -507,7 +508,7 @@ export default function DashboardPage() {
       setShowTzPanel(false);
       fetchCampaignData();
     } catch (err: any) {
-      setTzError(err?.body?.detail || "Failed to update timezone");
+      setTzError(describeError(err, "Failed to update timezone"));
     } finally {
       setTzSaving(false);
     }
@@ -580,7 +581,7 @@ export default function DashboardPage() {
       setTestError("");
       fetchCampaignData();
     } catch (err: any) {
-      setTestError(err?.body?.detail || "Failed to schedule test emails");
+      setTestError(describeError(err, "Failed to schedule test emails"));
     } finally {
       setSendingTest(false);
     }

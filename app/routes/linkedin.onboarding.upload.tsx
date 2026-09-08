@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { FiUploadCloud, FiLinkedin, FiCheckCircle, FiAlertCircle, FiFileText } from "react-icons/fi";
@@ -55,7 +56,7 @@ export default function LinkedInUpload() {
       setCandidateId(data.candidate_id);
       navigate("/linkedin/onboarding/profile");
     } catch (e: any) {
-      setError(e?.body?.detail || e?.message || "Couldn't parse your resume. Try a different file?");
+      setError(describeError(e, "Couldn't parse your resume. Try a different file?"));
     } finally {
       setUploading(false);
     }

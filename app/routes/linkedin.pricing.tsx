@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiCheckCircle, FiLinkedin, FiShield, FiTag, FiArrowRight, FiAlertCircle } from "react-icons/fi";
@@ -75,7 +76,7 @@ export default function LinkedInPricing() {
         setCouponError("That code didn't work.");
       }
     } catch (e: any) {
-      setCouponError(e?.body?.detail || "Invalid code");
+      setCouponError(describeError(e, "Invalid code"));
     }
   };
 
@@ -140,7 +141,7 @@ export default function LinkedInPricing() {
             });
             navigate("/linkedin/connect");
           } catch (e: any) {
-            setError(e?.body?.detail || "Payment verification failed. Contact support.");
+            setError(describeError(e, "Payment verification failed. Contact support."));
             setPaying(false);
             setPayingId(null);
           }
@@ -153,7 +154,7 @@ export default function LinkedInPricing() {
       });
       rzp.open();
     } catch (e: any) {
-      setError(e?.body?.detail || "Couldn't start payment. Try again.");
+      setError(describeError(e, "Couldn't start payment. Try again."));
       setPaying(false);
       setPayingId(null);
     }

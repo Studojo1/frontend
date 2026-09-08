@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -87,7 +88,7 @@ export default function CampaignLaunchingPage() {
           navigate("/outreach/campaign/dashboard");
         }, Math.max(0, totalDuration + 500));
       } catch (err: any) {
-        setError(err?.body?.detail || "Campaign launch failed. Please try again.");
+        setError(describeError(err, "Campaign launch failed. Please try again."));
       }
     };
 
