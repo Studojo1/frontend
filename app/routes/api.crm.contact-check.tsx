@@ -34,23 +34,25 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (!draft) return json({ error: "Not found" }, 404);
 
-  // No contact name means there is nobody to look up — the draft is addressed
-  // to a team, not a person.
-  if (!draft.contactName) {
-    return json({ status: "unknown", message: "", cached: true });
-  }
+  // No early return for a missing contact name. That used to mean "nobody to
+  // look up"; it now means "find whoever hires for this role at this company",
+  // which is exactly the case the check is most useful for.
 
   try {
     const res = await outreachServerFetch<{
       status: string;
       message: string;
       cached: boolean;
+      contact_name?: string | null;
+      contact_title?: string | null;
+      found_by_search?: boolean;
     }>("/extension/contact-check", {
       userId: session.user.id,
       method: "POST",
       body: {
-        contact_name: draft.contactName,
+        contact_name: draft.contactName || null,
         company: draft.company ?? "",
+        role: draft.role,
         contact_title: draft.contactTitle,
         linkedin_url: draft.jobUrl,
         contact_email: draft.contactEmail,
@@ -61,7 +63,14 @@ export async function action({ request }: Route.ActionArgs) {
       },
       timeout: 20000,
     });
-    return json(res);
+    return json({
+      status: res.status,
+      message: res.message,
+      cached: res.cached,
+      contactName: res.contact_name ?? null,
+      contactTitle: res.contact_title ?? null,
+      foundBySearch: Boolean(res.found_by_search),
+    });
   } catch (e: any) {
     // A failed check must never block writing the email. Degrade to silence
     // rather than showing an error about a feature the student did not ask

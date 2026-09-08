@@ -23,7 +23,8 @@
 // their title — the extension already read off the page. The main quiz's extra
 // questions produce lead SCORING signals, which this path does not use: the
 // student already chose the lead by opening the job.
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { describeError } from "~/lib/error-detail";
 import { redirect, useNavigate } from "react-router";
 import { Footer, Header } from "~/components";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
@@ -60,12 +61,28 @@ export default function CrmSetup() {
   const [step, setStep] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  // What the resume told us. Shown back for confirmation, never re-asked.
+  const [parsed, setParsed] = useState<{
+    name: string | null;
+    education: string | null;
+    skills: string[];
+    yearsExperience: number | null;
+  } | null>(null);
   const [answers, setAnswers] = useState({
     careerStage: "",
+    // Prefilled from the resume; the student only touches it if we got it wrong.
     university: "",
     topCredential: "",
     tone: "warm",
   });
+
+  // Prefill from the parse rather than asking. The student corrects it only
+  // if we got it wrong, which is a much smaller ask than typing it out.
+  useEffect(() => {
+    if (parsed?.education && !answers.university) {
+      setAnswers((a) => ({ ...a, university: parsed.education as string }));
+    }
+  }, [parsed]);
 
   // The resume upload is deliberately UNCHANGED from the main flow: same
   // endpoint, same accepted types. It is also the only way to mint a
@@ -82,7 +99,17 @@ export default function CrmSetup() {
         credentials: "include",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.detail || "Upload failed");
+      if (!res.ok) throw new Error(describeError(data, "Upload failed"));
+      // KEEP the parse. The service already extracted name, education, skills
+      // and years of experience — asking the student to retype any of it is
+      // asking for something we just read off the page they uploaded.
+      const p = data?.preview ?? {};
+      setParsed({
+        name: p.name ?? null,
+        education: p.education ?? null,
+        skills: Array.isArray(p.skills) ? p.skills.slice(0, 8) : [],
+        yearsExperience: p.years_experience ?? null,
+      });
       setStep(1);
     } catch (e: any) {
       setUploadError(e?.message ?? "Could not read that file.");
@@ -180,7 +207,14 @@ export default function CrmSetup() {
           ) : null}
 
           {step === 2 ? (
-            <Question title="Where do you study or work?">
+            <Question
+              title={parsed?.education ? "Is this right?" : "Where do you study or work?"}
+              hint={
+                parsed?.education
+                  ? "We read this off your resume. Fix it only if it's wrong."
+                  : "We couldn't find it on your resume, so we have to ask."
+              }
+            >
               <input
                 autoFocus
                 value={answers.university}
@@ -195,7 +229,11 @@ export default function CrmSetup() {
           {step === 3 ? (
             <Question
               title="What's the single best thing you've done?"
-              hint="One specific, real thing. “Built a fintech newsletter with 2,000 readers” beats “strong communication skills”."
+              hint={
+                parsed?.skills?.length
+                  ? `We saw ${parsed.skills.slice(0, 3).join(", ")} on your resume. Give us the one achievement you'd lead with — you can swap it per application later.`
+                  : "One specific, real thing. “Built a fintech newsletter with 2,000 readers” beats “strong communication skills”."
+              }
             >
               <textarea
                 autoFocus
