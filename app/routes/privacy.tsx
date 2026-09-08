@@ -234,7 +234,7 @@ export default function Privacy() {
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    We do not sell your personal data to any third party. We do not share your personal data with advertisers.
+                    We do not sell your personal data to any third party. We do share a limited amount of activity data, such as pages viewed and actions like signing up or uploading a resume, with Meta Platforms so we can measure how well our advertising works and show our ads to people who have visited us before. We never share your resume, your outreach emails, or the contacts we find for you.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -246,6 +246,8 @@ export default function Privacy() {
                     <li><span className="font-semibold text-neutral-900">Dodo Payments</span> - payment processing</li>
                     <li><span className="font-semibold text-neutral-900">Google</span> - Gmail OAuth for email sending and thread reading</li>
                     <li><span className="font-semibold text-neutral-900">Sentry</span> - error monitoring and diagnostics</li>
+                    <li><span className="font-semibold text-neutral-900">PostHog and Mixpanel</span> - product analytics, so we can see which features get used</li>
+                    <li><span className="font-semibold text-neutral-900">Meta Platforms</span> - advertising measurement and retargeting</li>
                   </ul>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -335,7 +337,7 @@ export default function Privacy() {
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    We use only essential cookies necessary to keep you authenticated and the platform functional. We do not use advertising cookies, tracking cookies, or third-party analytics cookies.
+                    We use essential cookies to keep you authenticated and the platform functional. We also use analytics cookies from PostHog and Mixpanel to understand how the product is used, and advertising cookies set by the Meta Pixel (named _fbp and _fbc) to measure our advertising and show ads to people who have visited us before. You can block these in your browser settings, or through your Meta ad preferences, without losing access to any feature.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
