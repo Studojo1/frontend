@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { FiBriefcase, FiMapPin, FiTrendingUp, FiCheckCircle, FiArrowRight, FiAlertCircle, FiLinkedin } from "react-icons/fi";
@@ -71,7 +72,7 @@ export default function LinkedInProfile() {
 
       navigate("/linkedin/leads/discovery?fresh=1");
     } catch (e: any) {
-      setError(e?.body?.detail || e.message || "Couldn't continue, try again.");
+      setError(describeError(e, "Couldn't continue, try again."));
     } finally {
       setSaving(false);
     }

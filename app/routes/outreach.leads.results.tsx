@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { capturePostHog } from "~/lib/posthog";
@@ -47,7 +48,7 @@ export default function ResultsPage() {
             pollTimer = setTimeout(() => fetchLeads(false, pollCount + 1), 15_000);
           }
         })
-        .catch((err) => setError(err?.body?.detail || err.message || "Failed to load leads"))
+        .catch((err) => setError(describeError(err, "Failed to load leads")))
         .finally(() => { if (isInitial) setLoading(false); });
     };
 

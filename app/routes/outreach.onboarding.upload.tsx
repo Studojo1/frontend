@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { FiUpload, FiFileText, FiCheckCircle } from "react-icons/fi";
@@ -99,8 +100,8 @@ export default function UploadPage() {
         }).catch(() => {});
       }
     } catch (err: any) {
-      capturePostHog("resume_upload_failed", { file_type: file?.type || "unknown", reason: err?.body?.detail || err?.message || "unknown" });
-      setError(err?.body?.detail || err.message || "Upload failed. Please try again.");
+      capturePostHog("resume_upload_failed", { file_type: file?.type || "unknown", reason: describeError(err, "unknown") });
+      setError(describeError(err, "Upload failed. Please try again."));
     } finally {
       setUploading(false);
     }

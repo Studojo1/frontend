@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiClipboard, FiArrowRight, FiClock, FiCheckCircle, FiZap } from "react-icons/fi";
@@ -54,7 +55,7 @@ export default function OrdersPage() {
         setOrders(data.orders?.map((o) => (o as any).order || o) || []);
       })
       .catch((err) => {
-        setError(err?.body?.detail || err.message || "Failed to load orders");
+        setError(describeError(err, "Failed to load orders"));
       })
       .finally(() => setLoading(false));
   }, [authLoading]);

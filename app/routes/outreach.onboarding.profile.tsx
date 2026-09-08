@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -40,7 +41,7 @@ export default function ProfilePage() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err?.body?.detail || err.message || "Failed to load profile");
+          setError(describeError(err, "Failed to load profile"));
           setLoading(false);
         }
       });

@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -127,7 +128,7 @@ export default function CampaignSetupPage() {
       setTestEmails(data.emails);
       setOverrides({});
     } catch (err: any) {
-      setError(err?.body?.detail || "Failed to load test emails");
+      setError(describeError(err, "Failed to load test emails"));
     } finally {
       setTestEmailsLoading(false);
     }
@@ -164,7 +165,7 @@ export default function CampaignSetupPage() {
       sessionStorage.setItem("test_started_at", new Date().toISOString());
       navigate("/outreach/campaign/dashboard");
     } catch (err: any) {
-      setError(err?.body?.detail || "Failed to start test launch");
+      setError(describeError(err, "Failed to start test launch"));
       setTestLaunching(false);
     }
   };
@@ -187,7 +188,7 @@ export default function CampaignSetupPage() {
       }
     } catch (err: any) {
       if (err?.status !== 404) {
-        setError(err?.body?.detail || "Validation failed");
+        setError(describeError(err, "Validation failed"));
         setLaunching(false);
         return;
       }

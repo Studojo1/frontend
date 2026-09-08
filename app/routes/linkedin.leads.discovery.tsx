@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiLinkedin, FiCheckCircle, FiAlertCircle, FiSearch, FiUsers, FiZap } from "react-icons/fi";
@@ -75,7 +76,7 @@ export default function LinkedInLeadsDiscovery() {
         }, POLL_INTERVAL_MS);
       })
       .catch((err: any) => {
-        if (!cancelled) setError(err?.body?.detail || err?.message || "Lead discovery failed");
+        if (!cancelled) setError(describeError(err, "Lead discovery failed"));
       });
 
     return () => {
