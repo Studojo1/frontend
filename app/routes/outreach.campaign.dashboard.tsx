@@ -256,10 +256,6 @@ export default function DashboardPage() {
   // Campaign mode state
   const [metrics, setMetrics] = useState<CampaignMetrics | null>(null);
   const [emails, setEmails] = useState<CampaignEmail[]>([]);
-  // Was this campaign launched from the browser extension? job-outreach-svc
-  // does not track that, so it is looked up in our own drafts table by
-  // campaign id.
-  const [extensionSourced, setExtensionSourced] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(true);
@@ -335,24 +331,10 @@ export default function DashboardPage() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [testJobId, pollTestStatus]);
 
-  // Campaign metrics polling
-  useEffect(() => {
-    if (!campaignId) return;
-    let cancelled = false;
-    fetch("/api/crm/drafts")
-      .then((r) => r.json())
-      .then((d) => {
-        if (cancelled) return;
-        const match = (d?.drafts ?? []).some(
-          (row: { campaignId: number | null }) => row.campaignId === campaignId,
-        );
-        setExtensionSourced(match);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [campaignId]);
+  // Removed: a fetch of /api/crm/drafts on every dashboard load, to compute a
+  // badge that no longer renders. It matched on campaignId, which Send stopped
+  // writing when it moved to /extension/send-one — so this ran on every visit
+  // to every campaign and could never produce a true result.
 
   const fetchCampaignData = useCallback(async () => {
     if (!campaignId || testJobId) return;
@@ -1052,15 +1034,12 @@ export default function DashboardPage() {
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium border ${statusColor[metrics.status] || statusColor.draft}`}>
                     {metrics.status.charAt(0).toUpperCase() + metrics.status.slice(1)}
                   </span>
-                  {/* Extension-sourced campaigns were previously indistinguishable
-                      here: source="browser_extension" was written to the database
-                      and nothing ever read it. job-outreach-svc has no source
-                      field, so this comes from our own drafts table. */}
-                  {extensionSourced ? (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium border border-studojo-purple/30 bg-studojo-purple-bg text-studojo-purple">
-                      via extension
-                    </span>
-                  ) : null}
+                  {/* No "via extension" badge here any more. It matched a
+                      draft's campaignId against this campaign — and since Send
+                      moved to /extension/send-one, which addresses ONE person
+                      and creates no campaign, campaignId is never written. The
+                      badge could not appear under any circumstances.
+                      Extension-sourced work is shown in /crm, where it lives. */}
                 </div>
               </div>
               <div className="flex gap-3 flex-wrap">

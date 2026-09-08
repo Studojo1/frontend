@@ -42,6 +42,7 @@ interface DraftRow {
   status: string;
   subject: string | null;
   contactName: string | null;
+  contactTitle: string | null;
 }
 
 export function meta() {
@@ -193,10 +194,19 @@ export default function Crm({ loaderData }: Route.ComponentProps) {
                           <p className="font-['Satoshi'] text-sm text-studojo-muted">
                             {[a.company_name, a.location].filter(Boolean).join(" · ")}
                           </p>
-                          {a.contact_name ? (
+                          {/* Prefer the DRAFT's contact over the career
+                              agent's. When the posting named nobody we found
+                              someone ourselves, and that person — the one who
+                              actually received the email — exists only on our
+                              row. Showing the agent's blank instead was how a
+                              sent email ended up with no visible recipient. */}
+                          {draft?.contactName || a.contact_name ? (
                             <p className="mt-1 font-['Satoshi'] text-sm text-studojo-ink">
-                              Contact: {a.contact_name}
-                              {a.contact_title ? ` — ${a.contact_title}` : ""}
+                              {draft?.status === "sent" ? "Sent to" : "Contact"}:{" "}
+                              {draft?.contactName || a.contact_name}
+                              {draft?.contactTitle || a.contact_title
+                                ? ` — ${draft?.contactTitle || a.contact_title}`
+                                : ""}
                             </p>
                           ) : null}
                         </div>
