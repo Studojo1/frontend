@@ -68,13 +68,19 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
   const [sentTo, setSentTo] = useState<string | null>(null);
   // Whether we can actually reach this person. Checked while they edit, so
   // "no verified email" arrives BEFORE the work rather than after it.
-  const [reach, setReach] = useState<{ status: string; message: string } | null>(null);
+  const [reach, setReach] = useState<{
+    status: string;
+    message: string;
+    contactName?: string | null;
+    contactTitle?: string | null;
+    foundBySearch?: boolean;
+  } | null>(null);
   const [checking, setChecking] = useState(false);
 
   // Free on mount: answers from the page and from contacts already resolved.
   // No Apollo call unless the student presses "Check now".
   useEffect(() => {
-    if (!draft?.id || !draft.contactName || draft.status !== "draft") return;
+    if (!draft?.id || draft.status !== "draft") return;
     let cancelled = false;
     fetch("/api/crm/contact-check", {
       method: "POST",
@@ -85,7 +91,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
       .then((d) => { if (!cancelled && d?.status) setReach(d); })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [draft?.id, draft?.contactName, draft?.status]);
+  }, [draft?.id, draft?.status]);
 
   async function checkNow() {
     if (!draft?.id) return;
@@ -172,7 +178,11 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         setState("idle");
         return;
       }
-      if (intent === "send" && data.toEmail) setSentTo(data.toEmail);
+      if (intent === "send" && data.toEmail) {
+        setSentTo(
+          data.contactName ? `${data.contactName} (${data.toEmail})` : data.toEmail,
+        );
+      }
       setState(intent === "send" ? "sent" : "idle");
     } catch {
       setProblem({ message: "Could not reach Studojo. Try again." });
@@ -218,13 +228,13 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           it is not — a green banner on every draft is noise, but "we can't
           reach this person" is worth interrupting for. */}
       {!sent && !draft.contactName ? (
-        <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
-          <p className="font-['Satoshi'] text-sm font-semibold text-amber-900">
-            This job didn&rsquo;t show us a person to write to.
-          </p>
-          <p className="mt-1 font-['Satoshi'] text-sm text-amber-800">
-            Your draft is saved. When the same role is posted with a named
-            contact, apply from there and we&rsquo;ll have someone to send it to.
+        <div className="mb-6 rounded-2xl border-2 border-studojo-ink/15 bg-studojo-surface-muted p-4">
+          <p className="font-['Satoshi'] text-sm text-studojo-ink">
+            {reach?.contactName
+              ? `This posting didn't name anyone, so we found ${reach.contactName}${
+                  reach.contactTitle ? ` — ${reach.contactTitle}` : ""
+                } at ${draft.company}.`
+              : `This posting didn't name anyone. We'll find whoever hires for this role at ${draft.company} when you send.`}
           </p>
         </div>
       ) : null}
@@ -247,7 +257,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
-      {!sent && draft.contactName && (!reach || reach.status === "unknown") ? (
+      {!sent && (!reach || reach.status === "unknown") ? (
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <p className="font-['Satoshi'] text-sm text-studojo-muted">
             We&rsquo;ll look for their email when you send.
@@ -348,14 +358,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => post("send")}
-            disabled={
-              state === "sending" ||
-              !subject.trim() ||
-              !body.trim() ||
-              // No named person means no recipient. Disabling is honester than
-              // letting them press it and get a failure they cannot act on.
-              !draft.contactName
-            }
+            disabled={state === "sending" || !subject.trim() || !body.trim()}
             className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple px-6 py-3 font-['Satoshi'] font-medium text-white shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-60"
           >
             {state === "sending" ? "Sending…" : "Send this email"}
