@@ -6,6 +6,23 @@
 
 const PIXEL_ID = import.meta.env.VITE_PUBLIC_META_PIXEL_ID as string | undefined;
 
+// Staging builds from the same Dockerfile and so carries the same pixel id. Without
+// this gate, QA and smoke runs on studojo.pro would fire real conversions into the
+// live dataset, and Meta gives no way to filter them out afterwards. Append
+// ?fbdebug to deliberately exercise the pixel on a non-production host.
+const PROD_HOST = "studojo.com";
+
+function isTrackableHost(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  if (host === PROD_HOST || host.endsWith(`.${PROD_HOST}`)) return true;
+  try {
+    return new URLSearchParams(window.location.search).has("fbdebug");
+  } catch {
+    return false;
+  }
+}
+
 let isInitialized = false;
 
 type Fbq = (...args: unknown[]) => void;
@@ -30,6 +47,7 @@ export function initMetaPixel() {
   if (typeof window === "undefined") return;
   if (!PIXEL_ID) return;
   if (isInitialized) return;
+  if (!isTrackableHost()) return;
 
   try {
     /* eslint-disable */
