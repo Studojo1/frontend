@@ -70,9 +70,27 @@ export async function action({ request }: Route.ActionArgs) {
 
   // A sent email cannot be unsent, so it cannot be edited either. Saying so is
   // better than accepting the edit and silently doing nothing with it.
-  if (draft.status !== "draft") {
+  //
+  // "sending" is the exception. Every failure path sets the row back to
+  // "draft", but a process that dies mid-send cannot run its own catch — and
+  // the row would then sit in "sending" forever, telling the student their
+  // email "has already been sent" when it never left. That is both false and
+  // unrecoverable, so a stale one is reclaimed.
+  const STALE_SEND_MS = 5 * 60 * 1000;
+  const updatedAt = draft.updatedAt ? new Date(draft.updatedAt).getTime() : 0;
+  const stuckSending =
+    draft.status === "sending" && Date.now() - updatedAt > STALE_SEND_MS;
+
+  if (draft.status !== "draft" && !stuckSending) {
     return json(
-      { error: "This email has already been sent.", status: draft.status },
+      {
+        error: "already_sent",
+        message:
+          draft.status === "sending"
+            ? "This email is being sent right now. Give it a moment."
+            : "This email has already been sent.",
+        status: draft.status,
+      },
       409,
     );
   }
