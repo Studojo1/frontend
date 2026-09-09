@@ -118,6 +118,11 @@ export function trackMeta(
   if (typeof window === "undefined") return null;
   if (!isTrackableHost()) return null;
 
+  // A route's effect runs before the root effect that normally initialises the
+  // pixel, so ViewContent on the landing page would otherwise lose its browser
+  // copy and rely on the server mirror alone. init is idempotent and cheap.
+  initMetaPixel();
+
   const eventId = newEventId();
   try {
     // Best effort. Deliberately not gating the server copy on this succeeding,
