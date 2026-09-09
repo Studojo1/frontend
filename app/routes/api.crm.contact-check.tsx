@@ -46,6 +46,7 @@ export async function action({ request }: Route.ActionArgs) {
       contact_name?: string | null;
       contact_title?: string | null;
       found_by_search?: boolean;
+      similar?: { company: string; contact_title?: string | null; industry?: string | null }[];
     }>("/extension/contact-check", {
       userId: session.user.id,
       method: "POST",
@@ -70,12 +71,24 @@ export async function action({ request }: Route.ActionArgs) {
       contactName: res.contact_name ?? null,
       contactTitle: res.contact_title ?? null,
       foundBySearch: Boolean(res.found_by_search),
+      // Only present when this company is unreachable. Advisory — the student
+      // chooses; nothing is drafted or redirected for them.
+      //
+      // MAPPED to camelCase. Passing the service's snake_case straight through
+      // would have rendered blank titles: the component reads contactTitle and
+      // the service sends contact_title, and a missing key renders as nothing
+      // rather than failing loudly.
+      similar: (res.similar ?? []).map((c) => ({
+        company: c.company,
+        contactTitle: c.contact_title ?? null,
+        industry: c.industry ?? null,
+      })),
     });
   } catch (e: any) {
     // A failed check must never block writing the email. Degrade to silence
     // rather than showing an error about a feature the student did not ask
     // for.
     console.error("[crm.contact-check] failed:", String(e?.message ?? e).slice(0, 200));
-    return json({ status: "unknown", message: "", cached: true });
+    return json({ status: "unknown", message: "", cached: true, similar: [] });
   }
 }
