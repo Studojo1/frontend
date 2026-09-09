@@ -83,21 +83,53 @@ export function initMetaPixel() {
 }
 
 /**
- * Fire a Meta standard event. Returns the eventId used, for server-side deduplication.
- * Returns null when the pixel is disabled or unavailable.
+ * Mirror the event to our own server, which then calls Meta's Conversions API.
+ *
+ * This is the copy that actually survives. When an ad blocker kills
+ * connect.facebook.net the browser pixel still *appears* to work, because the
+ * bootstrap stub queues calls that are never sent. This request goes to our own
+ * origin, so it is not blocked, and the server sends the event instead.
+ */
+function mirrorToServer(eventName: string, eventId: string) {
+  try {
+    fetch("/api/meta-event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventName, eventId, sourceUrl: window.location.href }),
+      // survives the page being navigated away mid-flight
+      keepalive: true,
+      // the session cookie is how the server gets a trustworthy email
+      credentials: "same-origin",
+    }).catch(() => {});
+  } catch {
+    // Analytics must never break the app
+  }
+}
+
+/**
+ * Fire a Meta standard event, in the browser and via the server, sharing one
+ * eventId so Meta deduplicates the pair into a single conversion.
+ * Returns that eventId, or null when tracking is disabled for this host.
  */
 export function trackMeta(
   eventName: string,
   properties?: Record<string, unknown>
 ): string | null {
-  if (typeof window === "undefined" || !isInitialized) return null;
+  if (typeof window === "undefined") return null;
+  if (!isTrackableHost()) return null;
+
+  const eventId = newEventId();
   try {
-    const eventId = newEventId();
-    fbq()?.("track", eventName, properties ?? {}, { eventID: eventId });
-    return eventId;
+    // Best effort. Deliberately not gating the server copy on this succeeding,
+    // because a blocked pixel is exactly the case CAPI exists to cover.
+    if (isInitialized) {
+      fbq()?.("track", eventName, properties ?? {}, { eventID: eventId });
+    }
   } catch {
-    return null;
+    // fall through to the server copy
   }
+  mirrorToServer(eventName, eventId);
+  return eventId;
 }
 
 /** PageView on every client-side route change. Meta only auto-fires it on hard loads. */
