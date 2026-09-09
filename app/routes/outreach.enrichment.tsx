@@ -365,15 +365,16 @@ export default function EnrichmentPage() {
     });
   }, [candidateId]);
 
-  const validateCoupon = async () => {
+  const validateCoupon = async (tierOverride?: number) => {
     if (!couponCode.trim()) return;
+    const tierForCheck = tierOverride ?? selectedTier;
     setCouponLoading(true);
     setCouponError("");
     setCouponResult(null);
     try {
       const data = await outreachFetch<CouponResult>("/payment/coupon/validate", {
         method: "POST",
-        body: JSON.stringify({ code: couponCode.trim(), tier: selectedTier, currency }),
+        body: JSON.stringify({ code: couponCode.trim(), tier: tierForCheck, currency }),
       });
       setCouponResult(data);
       capturePostHog("coupon_applied", { coupon_code: couponCode.trim(), valid: !!data?.valid });
@@ -615,7 +616,7 @@ export default function EnrichmentPage() {
             return (
               <div
                 key={tier.value}
-                onClick={() => { capturePostHog("tier_selected", { tier: tier.value }); setSelectedTier(tier.value); setCouponResult(null); setCouponError(""); }}
+                onClick={() => { capturePostHog("tier_selected", { tier: tier.value }); setSelectedTier(tier.value); setCouponError(""); if (couponCode.trim()) { void validateCoupon(tier.value); } else { setCouponResult(null); } }}
                 className={`relative rounded-2xl border-2 p-5 cursor-pointer transition-all flex flex-col ${
                   tier.recommended
                     ? "border-studojo-purple bg-studojo-purple-bg/20 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)]"
@@ -750,7 +751,7 @@ export default function EnrichmentPage() {
               className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
             />
             <button
-              onClick={validateCoupon}
+              onClick={() => void validateCoupon()}
               disabled={couponLoading}
               className="h-10 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50"
             >
