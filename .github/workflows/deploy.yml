@@ -152,6 +152,17 @@ jobs:
               BOB_MCP_SECRET="${{ secrets.BOB_MCP_SECRET }}"
           fi
 
+      - name: Configure Meta Conversions API
+        run: |
+          # Server-side half of the Meta Pixel (app/lib/meta-capi.server.ts).
+          # Recovers the 20-40%% of conversions that ad blockers and iOS delete
+          # from the browser pixel. Unset secret = CAPI stays disabled and only
+          # the browser copy is sent (fail-open on function, closed on data).
+          if [ -n "${{ secrets.META_CAPI_TOKEN }}" ]; then
+            kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+              META_CAPI_TOKEN="${{ secrets.META_CAPI_TOKEN }}"
+          fi
+
       - name: Apply schema migrations
         env:
           JOB_NAME: frontend-migrate-${{ github.run_id }}
