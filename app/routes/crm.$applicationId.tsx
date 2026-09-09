@@ -74,6 +74,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     contactName?: string | null;
     contactTitle?: string | null;
     foundBySearch?: boolean;
+    similar?: { company: string; contactTitle?: string | null; industry?: string | null }[];
   } | null>(null);
   const [checking, setChecking] = useState(false);
 
@@ -253,6 +254,38 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
       {/* The "unreachable" case is explained inside the banner above when the
           posting named nobody. Only show a standalone notice when the page DID
           name someone — otherwise two boxes describe the same state. */}
+      {/* When we cannot reach this company, offer ones we can. Same industry,
+          size band and role, and every one has a contact with a verified
+          email — an alternative we cannot email is the same dead end we are
+          trying to escape. Advisory: the student chooses, nothing is
+          redirected or drafted for them. */}
+      {!sent && reach?.status === "unreachable" && (reach.similar?.length ?? 0) > 0 ? (
+        <div className="mb-6 rounded-2xl border-2 border-studojo-ink/15 bg-white p-4">
+          <p className="font-['Satoshi'] text-sm font-semibold text-studojo-ink">
+            Companies like {draft.company} we can reach
+          </p>
+          <p className="mt-1 font-['Satoshi'] text-sm text-studojo-muted">
+            Same industry and size, hiring for similar roles. Open one and apply
+            through the extension to write to a real person there.
+          </p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {reach.similar!.map((c) => (
+              <li
+                key={c.company}
+                className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-studojo-ink/10 px-3 py-2"
+              >
+                <span className="font-['Satoshi'] text-sm font-medium text-studojo-ink">
+                  {c.company}
+                </span>
+                <span className="font-['Satoshi'] text-xs text-studojo-muted">
+                  {[c.contactTitle, c.industry].filter(Boolean).join(" · ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       {!sent && draft.contactName && reach?.status === "unreachable" ? (
         <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
           <p className="font-['Satoshi'] text-sm font-semibold text-amber-900">
