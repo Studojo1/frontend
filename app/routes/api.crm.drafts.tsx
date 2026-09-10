@@ -185,6 +185,7 @@ export async function action({ request }: Route.ActionArgs) {
         company: draft.company ?? "",
         contact_title: draft.contactTitle,
         role: draft.role,
+        location: draft.location,
         linkedin_url: draft.jobUrl,
         contact_email: draft.contactEmail,
         subject,

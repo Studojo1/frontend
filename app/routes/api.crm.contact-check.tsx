@@ -54,6 +54,8 @@ export async function action({ request }: Route.ActionArgs) {
         contact_name: draft.contactName || null,
         company: draft.company ?? "",
         role: draft.role,
+        // Filters alternative suggestions to the student's city.
+        location: draft.location,
         contact_title: draft.contactTitle,
         linkedin_url: draft.jobUrl,
         contact_email: draft.contactEmail,

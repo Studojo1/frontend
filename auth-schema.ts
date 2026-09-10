@@ -1086,6 +1086,9 @@ export const extensionDrafts = pgTable(
     contactTitle: text("contact_title"),
     company: text("company"),
     role: text("role"),
+    // The job's location. Used to filter alternative-company suggestions to
+    // the student's city — without it they are offered companies anywhere.
+    location: text("location"),
     jobUrl: text("job_url"),
 
     subject: text("subject"),

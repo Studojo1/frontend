@@ -19,6 +19,9 @@ export interface DraftSeed {
   applicationId: string | null;
   company: string;
   role: string;
+  // The job's location. Stored so alternative-company suggestions can be
+  // filtered to the student's city.
+  location?: string | null;
   jobUrl: string | null;
   contactName: string | null;
   contactTitle: string | null;
