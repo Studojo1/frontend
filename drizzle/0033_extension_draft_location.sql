@@ -1,0 +1,11 @@
+-- The job's location, so alternative-company suggestions can be filtered to
+-- the student's city.
+--
+-- The extension already scrapes it and api.extension.apply already forwards it
+-- to the career agent — it was simply never stored on our own draft row. So
+-- the suggestion code read a location that was always NULL, and a Bengaluru
+-- student was offered companies anywhere in the world.
+--
+-- Nullable and safe to re-run: the deploy applies SQL files rather than
+-- tracking migration state, so every migration must survive a second run.
+ALTER TABLE "extension_drafts" ADD COLUMN IF NOT EXISTS "location" text;

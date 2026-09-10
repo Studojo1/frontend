@@ -250,6 +250,10 @@ export async function action({ request }: Route.ActionArgs) {
       applicationId,
       company,
       role,
+      // Stored so alternative-company suggestions can be filtered to the
+      // student's city. The extension already scrapes it and we already
+      // forward it to the career agent; it was simply never kept on our row.
+      location: body.job?.location || null,
       jobUrl: body.job?.jobUrl || body.pageUrl || null,
       contactName: body.contact?.name ?? null,
       contactTitle: body.contact?.title ?? null,
@@ -299,6 +303,10 @@ export async function action({ request }: Route.ActionArgs) {
       applicationId,
       company,
       role,
+      // Stored so alternative-company suggestions can be filtered to the
+      // student's city. The extension already scrapes it and we already
+      // forward it to the career agent; it was simply never kept on our row.
+      location: body.job?.location || null,
       jobUrl: body.job?.jobUrl || body.pageUrl || null,
       contactName: body.contact?.name ?? null,
       contactTitle: body.contact?.title ?? null,
