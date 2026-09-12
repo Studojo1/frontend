@@ -121,16 +121,30 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
   }
 
   // Free on mount: the page's own contact, contacts already resolved, and — when
-  // the page named nobody — a fresh Apollo SEARCH, which costs nothing. The
-  // paid reveal happens at send, not here, so this runs unconditionally and the
-  // student never has to ask who they are writing to.
+  // the page named nobody — a fresh Apollo search, and then the reveal, so the
+  // page can say something true about whether this person is reachable.
   useEffect(() => {
     if (!draft?.id || draft.status !== "draft") return;
     let cancelled = false;
     fetch("/api/crm/contact-check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: draft.id }),
+      // RESOLVE THE ADDRESS HERE, not at send.
+      //
+      // This is the bug Pranav kept hitting. The backend found 17 people at
+      // Neo — the logs say so — and then refused to reveal an address because
+      // allow_lookup was false, returning "unknown". The CRM read that as a
+      // dead end and printed "we don't have a confirmed email for anyone".
+      //
+      // allow_lookup used to be set by the "Check now" button. Removing that
+      // button was right — the student should not have to ask — but I never
+      // moved the reveal anywhere, so nothing set the flag and the flow had no
+      // path to an address at all.
+      //
+      // Doing it on mount is also the only honest option: the page TELLS the
+      // student whether we can reach this person, so it has to actually find
+      // out before saying so.
+      body: JSON.stringify({ id: draft.id, allowLookup: true }),
     })
       .then((r) => r.json())
       .then((d) => { if (!cancelled && d?.status) setReach((prev) => ({ ...(prev ?? {}), ...d })); })
