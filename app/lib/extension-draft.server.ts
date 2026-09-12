@@ -22,6 +22,11 @@ export interface DraftSeed {
   // The job's location. Stored so alternative-company suggestions can be
   // filtered to the student's city.
   location?: string | null;
+  /** The posting's own text — "About the job". Extracted on LinkedIn, Naukri
+   *  and Indeed alike, and until now thrown away at this boundary, which is
+   *  why every draft was assembled from company + role + contact title and
+   *  read like a template with names slotted in. */
+  description?: string | null;
   jobUrl: string | null;
   contactName: string | null;
   contactTitle: string | null;
@@ -40,6 +45,95 @@ export interface SenderProfile {
 /** Why the most recent upsert failed, for the route to surface. */
 let _lastError: string | null = null;
 export function lastDraftError() { return _lastError; }
+
+/* Lines every posting has and no student should quote back.
+   Naming one of these is worse than naming nothing: it proves the sender
+   pattern-matched a job ad instead of reading it. */
+const BOILERPLATE = /equal opportunity|regardless of race|competitive salary|fast[- ]paced|rockstar|ninja|self[- ]starter|team player|excellent communication|roles? and responsibilit|about the compan|who we are|what we offer|benefits|perks|apply now|click here|send your (cv|resume)|bachelor'?s degree|years of experience|must have|good to have|we are looking for a|the ideal candidate|notice period|work from office|shifts?|rotational/i;
+
+/* The most specific sentence in the posting, or null.
+
+   Never the whole description: pasting it back reads as scraped, and most of a
+   job ad is boilerplate. We want the ONE line that says what this team is
+   actually building, so the student can name it as their own observation.
+
+   Conservative: when nothing clears the bar we return null and the draft says
+   less rather than quoting something generic. A vague "I saw you value
+   innovation" is worse than not mentioning the posting at all. */
+function detailFromPosting(description?: string | null): string | null {
+  const text = (description ?? "").replace(/\s+/g, " ").trim();
+  if (text.length < 80) return null;
+
+  const sentences = text
+    // Split on sentence ends, bullets, AND section-heading colons. Without the
+    // colon rule "About the job: You will build X" stays glued into one
+    // 200-char blob that the length filter then discards — a real posting
+    // detail lost to a heading nobody wanted anyway.
+    .split(/(?<=[.!?])\s+|\n+|(?:\s[•\u2022\u2023\u25aa-]\s)|(?<=^[^.!?]{0,40}):\s+/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+  const scored = sentences
+    // Up to 220: a specific sentence naming what a team builds runs long, and
+    // capping at 180 dropped real ones. Trimmed at the point of use, not here.
+    .filter((x) => x.length >= 40 && x.length <= 220)
+    .filter((x) => !BOILERPLATE.test(x))
+    // A sentence that is mostly capitalised words is a heading or a skills list.
+    .filter((x) => (x.match(/\b[A-Z][a-z]+/g) ?? []).length < x.split(" ").length * 0.6)
+    .map((x) => {
+      let score = 0;
+      // Concrete nouns beat adjectives: what the team BUILDS.
+      if (/\b(build|building|design|own|ship|scale|migrat|integrat|launch)\w*\b/i.test(x)) score += 3;
+      // A named system or domain is the most specific thing a posting holds.
+      if (/\b(pipeline|ledger|API|infrastructure|platform|latency|throughput|checkout|payments?|onboarding|recommendation|search|fraud|risk)\b/i.test(x)) score += 3;
+      if (/\byou(?:'ll| will)?\b/i.test(x)) score += 1;
+      return { x, score };
+    })
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (!scored.length) return null;
+  let best = scored[0].x.replace(/[.;,]+$/, "");
+
+  // Take ONE clause, not the whole sentence.
+  //
+  // Postings list several duties in one breath: "You will own the pipeline,
+  // and build the dashboards the category teams use". Converting the leading
+  // verb to "-ing" then leaves the later verbs unconverted — real output was
+  // "designing the retry semantics ..., and build the internal dashboards",
+  // which reads as broken software. Chasing every verb in the sentence is a
+  // losing game; stopping at the first clause boundary is not, and one
+  // concrete duty is what we wanted anyway.
+  const clause = best.match(/^(.*?)(?:,\s+(?:and|or|as well as)\s|\s+and\s+(?:then\s+)?(?:own|build|design|ship|scale|lead|drive|create|help)\b)/i);
+  if (clause && clause[1].length >= 40) best = clause[1].replace(/[.;,]+$/, "");
+
+  // Job ads address the reader: "You will own the pipeline". Quoted as-is
+  // after "the part that stuck with me was...", that reads as pasted from the
+  // ad — the exact impression we are trying to avoid.
+  //
+  // Only the LEADING verb is converted, and only when the sentence starts with
+  // one. An earlier version rewrote the first verb it saw and produced
+  // "building and maintain the internal ticketing platform" — a sentence with
+  // two verbs, one converted and one not. When the shape is not a clean
+  // "You will <verb> ..." we leave the sentence alone rather than mangle it.
+  const lead = best.match(/^you(?:'ll| will| would)?\s+(?:help\s+)?([a-z]+)\b(.*)$/i);
+  if (lead) {
+    const verb = lead[1].toLowerCase();
+    const rest = lead[2];
+    // "own and maintain X": converting only the first verb breaks agreement,
+    // so convert BOTH sides of the conjunction or neither.
+    const pair = rest.match(/^\s+and\s+([a-z]+)\b(.*)$/i);
+    const ing = (v: string) =>
+      /e$/.test(v) && !/ee$/.test(v) ? v.slice(0, -1) + "ing" : v + "ing";
+    if (pair) {
+      best = `${ing(verb)} and ${ing(pair[1].toLowerCase())}${pair[2]}`;
+    } else {
+      best = `${ing(verb)}${rest}`;
+    }
+  }
+
+  return best.charAt(0).toLowerCase() + best.slice(1);
+}
 
 const FIRST_NAME = (full: string | null) =>
   (full ?? "").trim().split(/\s+/)[0] || "there";
@@ -71,7 +165,14 @@ export function composeDraft(
   // no sense of what the sent email would read like.
   const S: Record<string, { open: string; ask: string }> = {
     warm_intro: {
-      open: `I saw ${company} is hiring for ${role}, and your name came up as someone actually on the team rather than a careers inbox.`,
+      // "your name came up" is a claim, and it is FALSE when we are greeting
+      // "Hi there" — the page named nobody and the backend has not resolved
+      // anyone yet. A draft that opens with something the student cannot stand
+      // behind is worse than a plainer one. Naukri never names a contact, so
+      // this was every Naukri draft.
+      open: seed.contactName
+        ? `I saw ${company} is hiring for ${role}, and your name came up as someone actually on the team rather than a careers inbox.`
+        : `I saw ${company} is hiring for ${role}, and I would rather write to a person on the team than drop another application into a careers inbox.`,
       ask: `Would you be open to pointing me in the right direction?`,
     },
     value_prop: {
@@ -113,9 +214,22 @@ export function composeDraft(
     ? `I'm ${who}${at}, and the short version of me is this: ${cred}. I mention it because it is the closest thing I have to evidence that I can do the work rather than just say I want it.`
     : `I'm a student, and I'd rather say something true than something polished: I don't have a decade of experience to point at. What I do have is the willingness to learn ${company}'s problems properly before claiming I can solve them.`;
 
+  // The third input: the posting itself. This paragraph was the most generic
+  // in the draft — it talked ABOUT writing to a person without ever showing
+  // the student had read the job. One concrete line from the posting, named as
+  // their own observation, is what makes it specific.
+  //
+  // When the posting yields nothing worth quoting we keep the old sentence
+  // rather than inventing a detail. A vague reference is worse than none: it
+  // proves the sender skimmed.
+  const detail = detailFromPosting(seed.description);
   const why = seed.contactTitle
-    ? `I'm writing to you specifically rather than the careers inbox because you're ${withArticle(seed.contactTitle)} — you'd know what actually separates someone who lasts in ${role} from someone who looks good on paper.`
-    : `I'm writing to a person rather than a careers inbox because an application form can't tell me what this team is actually trying to build.`;
+    ? (detail
+      ? `I'm writing to you specifically rather than the careers inbox because you're ${withArticle(seed.contactTitle)}. The part of the posting that stuck with me was ${detail} — that is the work I want to be near, and you'd know what actually separates someone who lasts in ${role} from someone who looks good on paper.`
+      : `I'm writing to you specifically rather than the careers inbox because you're ${withArticle(seed.contactTitle)} — you'd know what actually separates someone who lasts in ${role} from someone who looks good on paper.`)
+    : (detail
+      ? `I'm writing to a person rather than a careers inbox because an application form can't tell me what this team is actually trying to build. From the posting, ${detail} — that is the part I'd want to work on.`
+      : `I'm writing to a person rather than a careers inbox because an application form can't tell me what this team is actually trying to build.`);
 
   const body = [
     `Hi ${contact},`,
