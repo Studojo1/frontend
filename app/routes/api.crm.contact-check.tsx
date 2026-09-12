@@ -9,6 +9,7 @@ import db from "~/lib/db";
 import { extensionDrafts } from "../../auth-schema";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { outreachServerFetch } from "~/lib/outreach/server-api";
+import { upsertDraft } from "~/lib/extension-draft.server";
 import type { Route } from "./+types/api.crm.contact-check";
 
 const json = (data: unknown, status = 200) => Response.json(data, { status });
@@ -46,7 +47,7 @@ export async function action({ request }: Route.ActionArgs) {
       contact_name?: string | null;
       contact_title?: string | null;
       found_by_search?: boolean;
-      similar?: { company: string; contact_title?: string | null; industry?: string | null }[];
+      similar?: { company: string; contact_name?: string | null; contact_title?: string | null; apollo_id?: string | null; industry?: string | null }[];
     }>("/extension/contact-check", {
       userId: session.user.id,
       method: "POST",
@@ -66,6 +67,41 @@ export async function action({ request }: Route.ActionArgs) {
       },
       timeout: 20000,
     });
+    // PERSIST the person we found, and rewrite the email with their name.
+    //
+    // The page said "we found Aaron Santhosh" while the draft body still
+    // opened "Hi there," — Pranav: "still says hi there what is going on". The
+    // answer was returned to the browser and never written down, so the email
+    // the student would actually SEND still addressed nobody.
+    //
+    // Only when we did not already have a name, and only while it is still a
+    // draft: never overwrite a contact the student can already see, and never
+    // touch something sent.
+    if (
+      res.status === "reachable" &&
+      res.contact_name &&
+      !draft.contactName &&
+      draft.status === "draft"
+    ) {
+      try {
+        await upsertDraft(session.user.id, {
+          applicationId: draft.applicationId,
+          company: draft.company ?? "",
+          role: draft.role ?? "",
+          location: draft.location,
+          description: draft.description,
+          jobUrl: draft.jobUrl,
+          contactName: res.contact_name,
+          contactTitle: res.contact_title ?? null,
+          contactEmail: null,
+        });
+      } catch (e) {
+        // A failed rewrite must never break the check. The student keeps the
+        // draft they have; it just still says "Hi there".
+        console.error("[crm.contact-check] draft rewrite failed:", String(e).slice(0, 200));
+      }
+    }
+
     return json({
       status: res.status,
       message: res.message,
@@ -80,9 +116,14 @@ export async function action({ request }: Route.ActionArgs) {
       // would have rendered blank titles: the component reads contactTitle and
       // the service sends contact_title, and a missing key renders as nothing
       // rather than failing loudly.
+      // The PERSON comes through now, not just the company name. Without it the
+      // student got a list to go and research themselves, which is the job the
+      // tool exists to do for them.
       similar: (res.similar ?? []).map((c) => ({
         company: c.company,
+        contactName: c.contact_name ?? null,
         contactTitle: c.contact_title ?? null,
+        apolloId: c.apollo_id ?? null,
         industry: c.industry ?? null,
       })),
     });

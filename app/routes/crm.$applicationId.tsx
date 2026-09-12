@@ -4,7 +4,7 @@
 // email the student never saw. Nothing leaves this page without someone
 // reading it first.
 import { useEffect, useState } from "react";
-import { Link, redirect } from "react-router";
+import { Link, redirect, useNavigate } from "react-router";
 import { and, eq, or } from "drizzle-orm";
 import db from "~/lib/db";
 import { extensionDrafts } from "../../auth-schema";
@@ -74,8 +74,44 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     contactName?: string | null;
     contactTitle?: string | null;
     foundBySearch?: boolean;
-    similar?: { company: string; contactTitle?: string | null; industry?: string | null }[];
+    similar?: { company: string; contactName?: string | null; contactTitle?: string | null; apolloId?: string | null; industry?: string | null }[];
   } | null>(null);
+
+  const navigate = useNavigate();
+
+  // Which alternative we are currently turning into a draft.
+  const [drafting, setDrafting] = useState<string | null>(null);
+
+  // Clicking a suggestion WRITES THE EMAIL. It used to be a list of names, so
+  // the student had to go and find the company, find a person, and come back —
+  // which nobody does. The search that produced the suggestion already knew
+  // who to write to, so one click is all it should take.
+  async function draftAlternative(c: {
+    company: string; contactName?: string | null;
+    contactTitle?: string | null; apolloId?: string | null;
+  }) {
+    if (!draft?.id || drafting) return;
+    setDrafting(c.company);
+    try {
+      const res = await fetch("/api/crm/draft-alternative", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: draft.id, company: c.company,
+          contactName: c.contactName ?? null,
+          contactTitle: c.contactTitle ?? null,
+          apolloId: c.apolloId ?? null,
+        }),
+      });
+      const d = await res.json();
+      // Go to the NEW draft. The original stays untouched — the student may
+      // still send it if we find someone there later.
+      if (d?.id) navigate(`/crm/${d.id}`);
+      else setDrafting(null);
+    } catch {
+      setDrafting(null);
+    }
+  }
 
   // Free on mount: the page's own contact, contacts already resolved, and — when
   // the page named nobody — a fresh Apollo SEARCH, which costs nothing. The
@@ -259,16 +295,25 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           </p>
           <ul className="mt-3 flex flex-col gap-2">
             {reach!.similar!.map((c) => (
-              <li
-                key={c.company}
-                className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-studojo-ink/10 px-3 py-2"
-              >
-                <span className="font-['Satoshi'] text-sm font-medium text-studojo-ink">
-                  {c.company}
-                </span>
-                <span className="font-['Satoshi'] text-xs text-studojo-muted">
-                  {[c.contactTitle, c.industry].filter(Boolean).join(" · ")}
-                </span>
+              <li key={c.company}>
+                <button
+                  type="button"
+                  disabled={drafting === c.company}
+                  onClick={() => draftAlternative(c)}
+                  className="flex w-full flex-wrap items-baseline justify-between gap-2 rounded-xl border border-studojo-ink/10 px-3 py-2 text-left transition-all hover:border-studojo-ink/40 hover:bg-studojo-ink/[0.03] disabled:opacity-60"
+                >
+                  <span className="font-['Satoshi'] text-sm font-medium text-studojo-ink">
+                    {c.company}
+                    {c.contactName ? (
+                      <span className="font-normal text-studojo-muted"> — {c.contactName}</span>
+                    ) : null}
+                  </span>
+                  <span className="font-['Satoshi'] text-xs text-studojo-muted">
+                    {drafting === c.company
+                      ? "Writing…"
+                      : [c.contactTitle, c.industry].filter(Boolean).join(" · ") || "Write to them"}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
