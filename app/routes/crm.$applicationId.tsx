@@ -76,10 +76,11 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     foundBySearch?: boolean;
     similar?: { company: string; contactTitle?: string | null; industry?: string | null }[];
   } | null>(null);
-  const [checking, setChecking] = useState(false);
 
-  // Free on mount: answers from the page and from contacts already resolved.
-  // No Apollo call unless the student presses "Check now".
+  // Free on mount: the page's own contact, contacts already resolved, and — when
+  // the page named nobody — a fresh Apollo SEARCH, which costs nothing. The
+  // paid reveal happens at send, not here, so this runs unconditionally and the
+  // student never has to ask who they are writing to.
   useEffect(() => {
     if (!draft?.id || draft.status !== "draft") return;
     let cancelled = false;
@@ -94,27 +95,6 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     return () => { cancelled = true; };
   }, [draft?.id, draft?.status]);
 
-  async function checkNow() {
-    if (!draft?.id) return;
-    setChecking(true);
-    try {
-      const res = await fetch("/api/crm/contact-check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: draft.id, allowLookup: true }),
-      });
-      const d = await res.json();
-      // MERGE, never replace. A "no verified email" answer used to arrive
-      // without the contact name, which wiped the name we already had and
-      // flipped the page from "we found Santoshi" back to "we'll find whoever
-      // hires for this role" — two contradictory claims about one draft.
-      if (d?.status) setReach((prev) => ({ ...(prev ?? {}), ...d }));
-    } catch {
-      /* a failed check must never block writing the email */
-    } finally {
-      setChecking(false);
-    }
-  }
 
   if (!draft) {
     return (
@@ -313,20 +293,19 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
+      {/* No "Check now" button.
+          
+          Finding WHO to write to is a free Apollo search, and the backend
+          already runs it on the automatic check below. Getting their ADDRESS
+          is the paid reveal, and send-one already does that when the student
+          actually sends. The button gated the free half and made the paid half
+          look like something the student had to ask for — so most never did,
+          and the page sat saying "we'll look when you send" while the answer
+          was one free call away. */}
       {!sent && (!reach || reach.status === "unknown") ? (
-        <div className="mb-6 flex flex-wrap items-center gap-3">
-          <p className="font-['Satoshi'] text-sm text-studojo-muted">
-            We&rsquo;ll look for their email when you send.
-          </p>
-          <button
-            type="button"
-            onClick={checkNow}
-            disabled={checking}
-            className="rounded-lg border-2 border-studojo-ink/20 px-3 py-1.5 font-['Satoshi'] text-xs font-medium transition-all hover:border-studojo-ink/50 disabled:opacity-60"
-          >
-            {checking ? "Checking…" : "Check now"}
-          </button>
-        </div>
+        <p className="mb-6 font-['Satoshi'] text-sm text-studojo-muted">
+          We&rsquo;ll confirm their email when you send.
+        </p>
       ) : null}
 
       {!sent ? (
