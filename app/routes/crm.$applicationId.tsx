@@ -4,7 +4,7 @@
 // email the student never saw. Nothing leaves this page without someone
 // reading it first.
 import { useEffect, useState } from "react";
-import { Link, redirect } from "react-router";
+import { Link, redirect, useNavigate } from "react-router";
 import { and, eq, or } from "drizzle-orm";
 import db from "~/lib/db";
 import { extensionDrafts } from "../../auth-schema";
@@ -74,12 +74,49 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     contactName?: string | null;
     contactTitle?: string | null;
     foundBySearch?: boolean;
-    similar?: { company: string; contactTitle?: string | null; industry?: string | null }[];
+    similar?: { company: string; contactName?: string | null; contactTitle?: string | null; apolloId?: string | null; industry?: string | null }[];
   } | null>(null);
-  const [checking, setChecking] = useState(false);
 
-  // Free on mount: answers from the page and from contacts already resolved.
-  // No Apollo call unless the student presses "Check now".
+  const navigate = useNavigate();
+
+  // Which alternative we are currently turning into a draft.
+  const [drafting, setDrafting] = useState<string | null>(null);
+
+  // Clicking a suggestion WRITES THE EMAIL. It used to be a list of names, so
+  // the student had to go and find the company, find a person, and come back —
+  // which nobody does. The search that produced the suggestion already knew
+  // who to write to, so one click is all it should take.
+  async function draftAlternative(c: {
+    company: string; contactName?: string | null;
+    contactTitle?: string | null; apolloId?: string | null;
+  }) {
+    if (!draft?.id || drafting) return;
+    setDrafting(c.company);
+    try {
+      const res = await fetch("/api/crm/draft-alternative", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: draft.id, company: c.company,
+          contactName: c.contactName ?? null,
+          contactTitle: c.contactTitle ?? null,
+          apolloId: c.apolloId ?? null,
+        }),
+      });
+      const d = await res.json();
+      // Go to the NEW draft. The original stays untouched — the student may
+      // still send it if we find someone there later.
+      if (d?.id) navigate(`/crm/${d.id}`);
+      else setDrafting(null);
+    } catch {
+      setDrafting(null);
+    }
+  }
+
+  // Free on mount: the page's own contact, contacts already resolved, and — when
+  // the page named nobody — a fresh Apollo SEARCH, which costs nothing. The
+  // paid reveal happens at send, not here, so this runs unconditionally and the
+  // student never has to ask who they are writing to.
   useEffect(() => {
     if (!draft?.id || draft.status !== "draft") return;
     let cancelled = false;
@@ -94,27 +131,6 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     return () => { cancelled = true; };
   }, [draft?.id, draft?.status]);
 
-  async function checkNow() {
-    if (!draft?.id) return;
-    setChecking(true);
-    try {
-      const res = await fetch("/api/crm/contact-check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: draft.id, allowLookup: true }),
-      });
-      const d = await res.json();
-      // MERGE, never replace. A "no verified email" answer used to arrive
-      // without the contact name, which wiped the name we already had and
-      // flipped the page from "we found Santoshi" back to "we'll find whoever
-      // hires for this role" — two contradictory claims about one draft.
-      if (d?.status) setReach((prev) => ({ ...(prev ?? {}), ...d }));
-    } catch {
-      /* a failed check must never block writing the email */
-    } finally {
-      setChecking(false);
-    }
-  }
 
   if (!draft) {
     return (
@@ -259,7 +275,16 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           email — an alternative we cannot email is the same dead end we are
           trying to escape. Advisory: the student chooses, nothing is
           redirected or drafted for them. */}
-      {!sent && reach?.status === "unreachable" && (reach.similar?.length ?? 0) > 0 ? (
+      {/* Gate on HAVING suggestions, not on one status string. The service
+          populates `similar` only when it could not put an address in front of
+          the student, so a non-empty list IS the signal — and it arrives under
+          two different statuses: "unreachable" when nobody was found, and
+          "unknown" when a person was found but their address has not been
+          revealed yet. The old `status === "unreachable"` test silently
+          dropped the second, which is the branch nearly every draft takes:
+          the automatic check on mount passes allow_lookup=false. That is why
+          the suggestions almost never appeared. */}
+      {!sent && (reach?.similar?.length ?? 0) > 0 ? (
         <div className="mb-6 rounded-2xl border-2 border-studojo-ink/15 bg-white p-4">
           <p className="font-['Satoshi'] text-sm font-semibold text-studojo-ink">
             Companies like {draft.company} we can reach
@@ -269,17 +294,26 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
             through the extension to write to a real person there.
           </p>
           <ul className="mt-3 flex flex-col gap-2">
-            {reach.similar!.map((c) => (
-              <li
-                key={c.company}
-                className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-studojo-ink/10 px-3 py-2"
-              >
-                <span className="font-['Satoshi'] text-sm font-medium text-studojo-ink">
-                  {c.company}
-                </span>
-                <span className="font-['Satoshi'] text-xs text-studojo-muted">
-                  {[c.contactTitle, c.industry].filter(Boolean).join(" · ")}
-                </span>
+            {reach!.similar!.map((c) => (
+              <li key={c.company}>
+                <button
+                  type="button"
+                  disabled={drafting === c.company}
+                  onClick={() => draftAlternative(c)}
+                  className="flex w-full flex-wrap items-baseline justify-between gap-2 rounded-xl border border-studojo-ink/10 px-3 py-2 text-left transition-all hover:border-studojo-ink/40 hover:bg-studojo-ink/[0.03] disabled:opacity-60"
+                >
+                  <span className="font-['Satoshi'] text-sm font-medium text-studojo-ink">
+                    {c.company}
+                    {c.contactName ? (
+                      <span className="font-normal text-studojo-muted"> — {c.contactName}</span>
+                    ) : null}
+                  </span>
+                  <span className="font-['Satoshi'] text-xs text-studojo-muted">
+                    {drafting === c.company
+                      ? "Writing…"
+                      : [c.contactTitle, c.industry].filter(Boolean).join(" · ") || "Write to them"}
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
@@ -304,20 +338,19 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         </p>
       ) : null}
 
+      {/* No "Check now" button.
+          
+          Finding WHO to write to is a free Apollo search, and the backend
+          already runs it on the automatic check below. Getting their ADDRESS
+          is the paid reveal, and send-one already does that when the student
+          actually sends. The button gated the free half and made the paid half
+          look like something the student had to ask for — so most never did,
+          and the page sat saying "we'll look when you send" while the answer
+          was one free call away. */}
       {!sent && (!reach || reach.status === "unknown") ? (
-        <div className="mb-6 flex flex-wrap items-center gap-3">
-          <p className="font-['Satoshi'] text-sm text-studojo-muted">
-            We&rsquo;ll look for their email when you send.
-          </p>
-          <button
-            type="button"
-            onClick={checkNow}
-            disabled={checking}
-            className="rounded-lg border-2 border-studojo-ink/20 px-3 py-1.5 font-['Satoshi'] text-xs font-medium transition-all hover:border-studojo-ink/50 disabled:opacity-60"
-          >
-            {checking ? "Checking…" : "Check now"}
-          </button>
-        </div>
+        <p className="mb-6 font-['Satoshi'] text-sm text-studojo-muted">
+          We&rsquo;ll confirm their email when you send.
+        </p>
       ) : null}
 
       {!sent ? (

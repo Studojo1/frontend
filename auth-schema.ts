@@ -1089,6 +1089,11 @@ export const extensionDrafts = pgTable(
     // The job's location. Used to filter alternative-company suggestions to
     // the student's city — without it they are offered companies anywhere.
     location: text("location"),
+    // The posting's own "About the job" text. Stored because the draft is
+    // RECOMPOSED whenever we discover who to write to, and without it that
+    // rewrite would silently drop the one concrete detail from the job ad —
+    // the thing that makes the email read as written by a person.
+    description: text("description"),
     jobUrl: text("job_url"),
 
     subject: text("subject"),

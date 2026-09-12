@@ -254,6 +254,10 @@ export async function action({ request }: Route.ActionArgs) {
       // student's city. The extension already scrapes it and we already
       // forward it to the career agent; it was simply never kept on our row.
       location: body.job?.location || null,
+      // The posting's own text. Extracted on every board and, until now,
+      // dropped right here — which is why drafts were built from company +
+      // role + contact title alone and read like templates.
+      description: body.job?.description || null,
       jobUrl: body.job?.jobUrl || body.pageUrl || null,
       contactName: body.contact?.name ?? null,
       contactTitle: body.contact?.title ?? null,
@@ -307,6 +311,10 @@ export async function action({ request }: Route.ActionArgs) {
       // student's city. The extension already scrapes it and we already
       // forward it to the career agent; it was simply never kept on our row.
       location: body.job?.location || null,
+      // The posting's own text. Extracted on every board and, until now,
+      // dropped right here — which is why drafts were built from company +
+      // role + contact title alone and read like templates.
+      description: body.job?.description || null,
       jobUrl: body.job?.jobUrl || body.pageUrl || null,
       contactName: body.contact?.name ?? null,
       contactTitle: body.contact?.title ?? null,

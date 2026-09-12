@@ -1,0 +1,12 @@
+-- The posting's own "About the job" text, kept on the draft.
+--
+-- The extension extracts it on LinkedIn, Naukri and Indeed alike, and it is
+-- what makes the email name something concrete about the team instead of
+-- reading like a template with the company slotted in.
+--
+-- It has to be STORED, not just used once at compose time: the draft is
+-- recomposed whenever we discover who to write to (the page used to say "we
+-- found Aaron Santhosh" while the email still opened "Hi there,"). Without the
+-- column, that rewrite would silently drop the posting detail and the email
+-- would get blander the moment we learned the contact's name.
+ALTER TABLE "extension_drafts" ADD COLUMN IF NOT EXISTS "description" text;
