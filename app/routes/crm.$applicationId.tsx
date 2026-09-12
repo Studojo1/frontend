@@ -259,7 +259,16 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           email — an alternative we cannot email is the same dead end we are
           trying to escape. Advisory: the student chooses, nothing is
           redirected or drafted for them. */}
-      {!sent && reach?.status === "unreachable" && (reach.similar?.length ?? 0) > 0 ? (
+      {/* Gate on HAVING suggestions, not on one status string. The service
+          populates `similar` only when it could not put an address in front of
+          the student, so a non-empty list IS the signal — and it arrives under
+          two different statuses: "unreachable" when nobody was found, and
+          "unknown" when a person was found but their address has not been
+          revealed yet. The old `status === "unreachable"` test silently
+          dropped the second, which is the branch nearly every draft takes:
+          the automatic check on mount passes allow_lookup=false. That is why
+          the suggestions almost never appeared. */}
+      {!sent && (reach?.similar?.length ?? 0) > 0 ? (
         <div className="mb-6 rounded-2xl border-2 border-studojo-ink/15 bg-white p-4">
           <p className="font-['Satoshi'] text-sm font-semibold text-studojo-ink">
             Companies like {draft.company} we can reach
@@ -269,7 +278,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
             through the extension to write to a real person there.
           </p>
           <ul className="mt-3 flex flex-col gap-2">
-            {reach.similar!.map((c) => (
+            {reach!.similar!.map((c) => (
               <li
                 key={c.company}
                 className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-studojo-ink/10 px-3 py-2"
