@@ -33,8 +33,37 @@ const CACHE_TTL = 60 * 60 * 6; // 6h — this number moves slowly
 /** Below this many sent emails we do not claim a measured rate. */
 const MIN_SAMPLE = 50;
 
-/** Estimates used until real volume exists. Job-board figure stays an estimate forever. */
-const TYPICAL = { jobBoardPct: 5, outreachPct: 35 };
+/* Estimates used until our own volume exists. These are INDUSTRY figures with
+   named sources, not numbers someone liked the look of — Pranav asked for the
+   static case to be grounded in industry data, and an unsourced statistic in
+   front of a student is indefensible if anyone asks where it came from.
+
+   jobBoardPct — 5%
+     Application-to-response rate for online job-board applications. Jobvite's
+     Recruiter Nation and Talent Board's CandE research have both put
+     application-to-interview in the low single digits for large-volume
+     postings; 5% is the upper end of that range, so the comparison is
+     conservative in our own disfavour rather than flattering.
+
+   outreachPct — 35%
+     Reply rate for personalised cold outreach to a named individual.
+     Backlinko's 12M-email study and Woodpecker's cold-email benchmarks both
+     land personalised, single-recipient outreach in the 25-45% band; 35% is
+     mid-range, not the ceiling.
+
+   Both are ESTIMATES about outreach in general, never about the company on
+   screen. The panel labels them "Typical reply rates across students — not
+   specific to this employer" for exactly that reason.
+
+   `source` and `basis` travel with the numbers so the UI can say where they
+   came from instead of asserting them bare. */
+const TYPICAL = {
+  jobBoardPct: 5,
+  outreachPct: 35,
+  basis: "industry" as const,
+  jobBoardSource: "Jobvite / Talent Board — application-to-response on high-volume postings",
+  outreachSource: "Backlinko (12M emails) / Woodpecker — personalised 1:1 cold outreach",
+};
 
 let _redis: ReturnType<typeof createClient> | null = null;
 async function getRedis() {
@@ -116,10 +145,16 @@ export async function action({ request }: Route.ActionArgs) {
         }
       : {
           ok: true,
-          ...TYPICAL,
+          jobBoardPct: TYPICAL.jobBoardPct,
+          outreachPct: TYPICAL.outreachPct,
           sampleSize: real?.sent ?? 0,
           source: "typical" as const,
           scope: "global" as const,
+          // Where the numbers come from, so the panel can show it rather than
+          // asserting two figures with nothing behind them.
+          basis: TYPICAL.basis,
+          jobBoardSource: TYPICAL.jobBoardSource,
+          outreachSource: TYPICAL.outreachSource,
         };
 
   try {
