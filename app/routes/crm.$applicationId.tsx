@@ -79,6 +79,13 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
 
   const navigate = useNavigate();
 
+  // Are we still looking? The check runs on mount and the backend now widens
+  // its search three times before giving up, so it takes a moment. The page
+  // used to render "we don't have a confirmed email address for anyone"
+  // during that moment — a dead end announced before anyone had finished
+  // looking.
+  const [searching, setSearching] = useState(true);
+
   // Which alternative we are currently turning into a draft.
   const [drafting, setDrafting] = useState<string | null>(null);
 
@@ -127,7 +134,9 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     })
       .then((r) => r.json())
       .then((d) => { if (!cancelled && d?.status) setReach((prev) => ({ ...(prev ?? {}), ...d })); })
-      .catch(() => {});
+      .catch(() => {})
+      // Always clears, so a failed check can never leave a spinner forever.
+      .finally(() => { if (!cancelled) setSearching(false); });
     return () => { cancelled = true; };
   }, [draft?.id, draft?.status]);
 
@@ -248,7 +257,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           Deliberately understated when the answer is good and prominent when
           it is not — a green banner on every draft is noise, but "we can't
           reach this person" is worth interrupting for. */}
-      {!sent && !draft.contactName ? (
+      {!sent && !searching && !draft.contactName ? (
         <div className="mb-6 rounded-2xl border-2 border-studojo-ink/15 bg-studojo-surface-muted p-4">
           {/* A name is shown ONLY once we hold an address for them. Announcing
               "we found Santoshi" and then failing to send is worse than saying
@@ -263,6 +272,31 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
               : reach?.status === "unreachable"
                 ? `We don't have a confirmed email address for anyone at ${draft.company} yet. Your draft is saved and we keep looking.`
                 : `This posting didn't name anyone. We'll find whoever hires for this role at ${draft.company} when you send.`}
+          </p>
+        </div>
+      ) : null}
+
+      {/* WHILE WE LOOK: a skeleton, not a verdict. */}
+      {!sent && searching ? (
+        <div className="mb-6 rounded-2xl border-2 border-studojo-ink/10 bg-white p-4">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="h-4 w-4 flex-shrink-0 animate-spin rounded-full border-2 border-studojo-ink/20 border-t-studojo-ink"
+            />
+            <p className="font-['Satoshi'] text-sm font-medium text-studojo-ink">
+              Looking for the right hiring manager for{" "}
+              <span className="font-semibold">{draft.role || "this role"}</span> at{" "}
+              <span className="font-semibold">{draft.company || "this company"}</span>
+              &hellip;
+            </p>
+          </div>
+          <div className="mt-3 flex flex-col gap-2" aria-hidden="true">
+            <span className="h-3 w-2/3 animate-pulse rounded bg-studojo-ink/10" />
+            <span className="h-3 w-1/2 animate-pulse rounded bg-studojo-ink/10" />
+          </div>
+          <p className="mt-3 font-['Satoshi'] text-xs text-studojo-muted">
+            Your draft is saved. You can keep editing while we search.
           </p>
         </div>
       ) : null}
@@ -284,7 +318,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           dropped the second, which is the branch nearly every draft takes:
           the automatic check on mount passes allow_lookup=false. That is why
           the suggestions almost never appeared. */}
-      {!sent && (reach?.similar?.length ?? 0) > 0 ? (
+      {!sent && !searching && (reach?.similar?.length ?? 0) > 0 ? (
         <div className="mb-6 rounded-2xl border-2 border-studojo-ink/15 bg-white p-4">
           <p className="font-['Satoshi'] text-sm font-semibold text-studojo-ink">
             Companies like {draft.company} we can reach
@@ -320,7 +354,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         </div>
       ) : null}
 
-      {!sent && draft.contactName && reach?.status === "unreachable" ? (
+      {!sent && !searching && draft.contactName && reach?.status === "unreachable" ? (
         <div className="mb-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
           <p className="font-['Satoshi'] text-sm font-semibold text-amber-900">
             We don&rsquo;t have a confirmed email for {draft.contactName} yet.
@@ -347,7 +381,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           look like something the student had to ask for — so most never did,
           and the page sat saying "we'll look when you send" while the answer
           was one free call away. */}
-      {!sent && (!reach || reach.status === "unknown") ? (
+      {!sent && !searching && (!reach || reach.status === "unknown") ? (
         <p className="mb-6 font-['Satoshi'] text-sm text-studojo-muted">
           We&rsquo;ll confirm their email when you send.
         </p>
