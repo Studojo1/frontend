@@ -227,6 +227,19 @@ export async function action({ request }: Route.ActionArgs) {
   type GmailAccount = { email_account_id?: number; token_valid?: boolean };
   let gmail: GmailAccount | null = null;
   let gmailCheckFailed = false;
+
+  // START THE CRM WRITE NOW, alongside the Gmail check.
+  //
+  // These do not depend on each other — one asks the mailbox service whether
+  // the student can send, the other writes a row to the career agent — but
+  // they ran back to back, so the panel sat on "Sending…" for the SUM of both
+  // round trips before handing over the link. Pranav: "when i click on review
+  // my email that page took too much time to laod".
+  //
+  // Safe to start early: writeCrmRow catches internally and resolves to null,
+  // so this promise can never reject before something awaits it.
+  const crmRowPromise = writeCrmRow(auth.userId, body, board);
+
   try {
     gmail = await outreachServerFetch<GmailAccount>("/gmail/oauth/account", {
       userId: auth.userId,
@@ -245,7 +258,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (gmailCheckFailed) {
     // Still save the work. The student gets a draft; we just cannot say
     // whether their mailbox is ready.
-    const applicationId = await writeCrmRow(auth.userId, body, board);
+    const applicationId = await crmRowPromise;
     const draft = await upsertDraft(auth.userId, {
       applicationId,
       company,
@@ -302,7 +315,7 @@ export async function action({ request }: Route.ActionArgs) {
     }
     // Still record the application AND prepare the draft — the student did
     // apply, and Gmail is only needed at Send, not to write the email.
-    const applicationId = await writeCrmRow(auth.userId, body, board);
+    const applicationId = await crmRowPromise;
     const draft = await upsertDraft(auth.userId, {
       applicationId,
       company,
@@ -334,7 +347,7 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
-  const applicationId = await writeCrmRow(auth.userId, body, board);
+  const applicationId = await crmRowPromise;
 
   // NOTHING IS QUEUED HERE ANY MORE.
   //
