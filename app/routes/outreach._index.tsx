@@ -350,7 +350,7 @@ export default function OutreachLanding() {
           >
             Find My Hiring Managers <FiArrowRight className="w-5 h-5 ml-2" />
           </button>
-          <p className="font-satoshi text-xs text-white/50 mt-4">From ₹499 for 50 outreaches. One-time payment. No subscriptions.</p>
+          <p className="font-satoshi text-xs text-white/50 mt-4">From ₹1,825 for 200 outreaches. One-time payment. No subscriptions.</p>
         </div>
       </section>
 

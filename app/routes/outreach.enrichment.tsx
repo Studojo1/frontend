@@ -308,6 +308,13 @@ export default function EnrichmentPage() {
     }
   }, []);
 
+  // A returning user can still have the retired Rs 499 tier persisted in their
+  // store from before it was withdrawn. Nothing renders it any more and checkout
+  // now rejects it, so move them to the entry plan rather than dead-end them.
+  useEffect(() => {
+    if ((selectedTier as number) === 50) setSelectedTier(200);
+  }, [selectedTier, setSelectedTier]);
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -499,21 +506,8 @@ export default function EnrichmentPage() {
   ];
 
   const TIERS = [
-    ...(currency === "INR" ? [{
-      value: 50 as const,
-      name: "Starter",
-      tagline: "50 emails over 8 days. A focused sprint.",
-      fallbackPrice: "₹499",
-      durationDays: 8,
-      features: [
-        "50 verified hiring managers",
-        "Tailored to your role & industry",
-        "AI-personalised email per contact",
-        "8-day controlled send window",
-        "Reply tracking dashboard",
-        "Email support",
-      ],
-    }] : []),
+    // email_50 (Rs 499 Starter) retired Sept 2026. Existing holders keep their
+    // credits; the plan is no longer sold, and the API no longer returns it.
     {
       value: 200 as const,
       name: "Growth",
