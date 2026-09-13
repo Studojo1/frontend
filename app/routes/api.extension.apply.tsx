@@ -200,6 +200,25 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const board = (body.board ?? "generic").toLowerCase();
+
+  // LOG WHAT THE PAGE ACTUALLY SENT.
+  //
+  // Four rounds of "it still says nobody can be reached" were undiagnosable
+  // because nothing recorded whether the extension sent a contact at all. From
+  // the outside, "the panel never sent Rahul Raj" and "Rahul was sent and then
+  // discarded" produce identical symptoms — and I could only guess which.
+  //
+  // Greppable on purpose: `grep EXT-APPLY` answers it in one command.
+  // No email is logged; a name and title are already on the public job page.
+  console.log(
+    `[EXT-APPLY] board=${board} company=${JSON.stringify(body.job?.company ?? null)} ` +
+    `role=${JSON.stringify(body.job?.role ?? null)} ` +
+    `contact=${JSON.stringify(body.contact?.name ?? null)} ` +
+    `title=${JSON.stringify(body.contact?.title ?? null)} ` +
+    `via=${JSON.stringify(body.contact?.via ?? null)} ` +
+    `hasEmail=${Boolean(body.contact?.email)} ` +
+    `descLen=${(body.job?.description ?? "").length}`
+  );
   const role = body.job?.role?.trim() ?? "";
   const company = body.job?.company?.trim() ?? "";
   const hasContact = Boolean(body.contact?.name);
