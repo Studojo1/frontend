@@ -227,7 +227,8 @@ export default function EnrichmentPage() {
 
   const [pricing, setPricing] = useState<TierPricing[]>([]);
   const [currency, setCurrency] = useState("USD");
-  const [credits, setCredits] = useState<{ total_credits: number; used_credits: number; available_credits: number } | null>(null);
+  const [credits, setCredits] = useState<{ total_credits: number; used_credits: number; available_credits: number;
+    emails_delivered?: number; emails_scheduled?: number; has_active_campaign?: boolean } | null>(null);
   const [dreamCompanies, setDreamCompanies] = useState<Array<{ name: string; domain: string | null }>>([]);
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
@@ -319,7 +320,8 @@ export default function EnrichmentPage() {
       try {
         const [pricingData, creditsData] = await Promise.all([
           outreachFetch<{ tiers: TierPricing[]; currency: string }>("/payment/pricing"),
-          outreachFetch<{ total_credits: number; used_credits: number; available_credits: number }>("/payment/credits"),
+          outreachFetch<{ total_credits: number; used_credits: number; available_credits: number;
+            emails_delivered?: number; emails_scheduled?: number; has_active_campaign?: boolean }>("/payment/credits"),
         ]);
         setPricing(pricingData.tiers || []);
         if (pricingData.currency) setCurrency(pricingData.currency);
@@ -587,9 +589,22 @@ export default function EnrichmentPage() {
           <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg/30 px-5 py-3 mb-6 flex items-center justify-between max-w-md mx-auto shadow-brutal">
             <span className="text-sm font-bold font-satoshi text-studojo-ink flex items-center gap-2">
               <span className="w-7 h-7 rounded-lg bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-green text-sm font-bold">{currSymbol}</span>
-              You have {credits.available_credits} credits
+              {/* Credits are reserved up front when a campaign starts, so a live
+                  campaign leaves available at 0. Saying "you have 0 credits" to
+                  someone whose emails are going out reads as money vanishing. */}
+              {credits.available_credits > 0
+                ? `You have ${credits.available_credits} credits`
+                : (credits.emails_delivered || 0) + (credits.emails_scheduled || 0) > 0
+                  ? `${credits.emails_delivered || 0} emails sent, ${credits.emails_scheduled || 0} scheduled`
+                  : `You have ${credits.available_credits} credits`}
             </span>
-            <span className="px-3 py-0.5 rounded-full text-xs font-satoshi font-bold bg-studojo-green-bg text-studojo-green border-2 border-studojo-ink">available</span>
+            <span className="px-3 py-0.5 rounded-full text-xs font-satoshi font-bold bg-studojo-green-bg text-studojo-green border-2 border-studojo-ink">
+              {credits.available_credits > 0
+                ? "available"
+                : (credits.emails_delivered || 0) + (credits.emails_scheduled || 0) > 0
+                  ? "campaign running"
+                  : "available"}
+            </span>
           </div>
         )}
 
