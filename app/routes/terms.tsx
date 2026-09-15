@@ -39,7 +39,7 @@ export default function Terms() {
               </h2>
               <div className="space-y-3">
                 {[
-                  ["Full Legal Name", "Synovate People Solutions Private Limited"],
+                  ["Full Legal Name", "Studojo Labs Private Limited"],
                   ["Trading Name", "Studojo"],
                   ["Registered Address", "305, 2nd Floor, Glory Fields Apartment, Off Central Jail Road, Bengaluru, Karnataka | 560035"],
                   ["Business Structure", "Private Limited Company"],
@@ -143,7 +143,7 @@ export default function Terms() {
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    Studojo sources contact information (including names, job titles, company names, and email addresses) from third-party databases and publicly available sources. This data is aggregated from sources including but not limited to Apollo.io and other professional data providers. Studojo does not originate or verify this data.
+                    Studojo sources contact information (including names, job titles, company names, and email addresses) from third-party databases and publicly available sources. This data is aggregated from professional data providers. Studojo does not originate or verify this data.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -260,7 +260,7 @@ export default function Terms() {
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    To the maximum extent permitted by applicable law, Studojo (Synovate People Solutions Private Limited), its directors, employees, agents, and licensors shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of, or inability to use, the platform or any of its services.
+                    To the maximum extent permitted by applicable law, Studojo (Studojo Labs Private Limited), its directors, employees, agents, and licensors shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of, or inability to use, the platform or any of its services.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -302,7 +302,7 @@ export default function Terms() {
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    All platform content, software, designs, and trademarks are owned by Synovate People Solutions Private Limited or its licensors and are protected by applicable intellectual property laws.
+                    All platform content, software, designs, and trademarks are owned by Studojo Labs Private Limited or its licensors and are protected by applicable intellectual property laws.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">

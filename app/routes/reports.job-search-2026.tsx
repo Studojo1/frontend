@@ -418,7 +418,7 @@ export default function JobSearchReport() {
 
             <div className="rpt-callout rpt-cg">
               <div className="rpt-cl">Who to email and how to find them</div>
-              <p>Do not email HR or generic info@ addresses. Find the hiring manager or team lead directly. On LinkedIn: search the company + the function you want (e.g. "growth" at a startup). On company websites, About or Team pages often name department leads. Use Hunter.io or Apollo to find the correct email format for each company. One targeted email to the right person beats 50 applications to a black-hole inbox.</p>
+              <p>Do not email HR or generic info@ addresses. Find the hiring manager or team lead directly. On LinkedIn: search the company + the function you want (e.g. "growth" at a startup). On company websites, About or Team pages often name department leads. Once you have a name, work out the company's email format from any public address on their site. One targeted email to the right person beats 50 applications to a black-hole inbox.</p>
             </div>
             <p className="rpt-source">Source: LinkedIn InMail benchmark data 2025, Boomerang by Robinhood email response research 2025, Yesware cold email study 2025, Hunter.io email format data</p>
           </div>

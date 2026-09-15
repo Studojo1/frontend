@@ -39,7 +39,7 @@ export default function Privacy() {
               </h2>
               <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                 <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                  Studojo is operated by Synovate People Solutions Private Limited, registered in Bengaluru, Karnataka, India. We are the data controller for personal data collected through the studojo.com platform. If you have any privacy-related questions, contact us at admin@studojo.com.
+                  Studojo is operated by Studojo Labs Private Limited, registered in Bengaluru, Karnataka, India. We are the data controller for personal data collected through the studojo.com platform. If you have any privacy-related questions, contact us at admin@studojo.com.
                 </p>
               </div>
             </div>

@@ -216,7 +216,7 @@ export default function MarketingDojoPage() {
               )}
             </button>
             <p className="text-xs text-studojo-muted font-satoshi text-center">
-              Search is free. Email enrichment uses 1 Apollo credit per click.
+              Search is free. Email enrichment uses 1 credit per click.
             </p>
           </form>
         </div>
@@ -301,7 +301,7 @@ export default function MarketingDojoPage() {
                     <div>
                       <p className="text-sm font-bold font-satoshi text-studojo-ink">Work email</p>
                       <p className="text-xs text-studojo-muted font-satoshi mt-0.5">
-                        Reveal the verified email — uses 1 Apollo credit.
+                        Reveal the verified email, uses 1 credit.
                       </p>
                     </div>
                   </div>
@@ -317,7 +317,7 @@ export default function MarketingDojoPage() {
                     <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
                       <p className="text-sm font-bold font-satoshi text-amber-900 mb-1">Confirm enrichment</p>
                       <p className="text-xs font-satoshi text-amber-800 mb-3">
-                        This will burn <span className="font-bold">1 Apollo credit</span> to reveal{" "}
+                        This will use <span className="font-bold">1 credit</span> to reveal{" "}
                         {lead.first_name}'s verified work email, full name, and LinkedIn URL.
                       </p>
                       <div className="flex gap-2">
@@ -367,7 +367,7 @@ export default function MarketingDojoPage() {
                 <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-4">
                   <p className="text-sm font-bold font-satoshi text-amber-900 mb-0.5">Email not available</p>
                   <p className="text-xs text-studojo-muted font-satoshi">
-                    Apollo couldn't reveal a verified email for this contact. Try a slightly different role
+                    We couldn't find a verified email for this contact. Try a slightly different role
                     or someone else at the company.
                   </p>
                 </div>
@@ -413,7 +413,7 @@ export default function MarketingDojoPage() {
               {[
                 "Type the company and the role you want to reach — no resume upload needed.",
                 "We surface one matching decision maker with their LinkedIn profile, instantly. Free.",
-                "Click Enrich Email to reveal their verified work email — uses one Apollo credit.",
+                "Click Enrich Email to reveal their verified work email, uses one credit.",
                 "Browse similar companies in the same space and pull their hiring manager too.",
               ].map((step, i) => (
                 <li key={i} className="flex items-start gap-3 text-sm font-satoshi text-studojo-ink">

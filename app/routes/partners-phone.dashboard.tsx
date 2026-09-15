@@ -449,7 +449,7 @@ curl https://${BASE}/api/v1/phone/partners/me \\
               { name: "phone", type: "string | null", desc: "Verified direct phone number. May be null if enrichment could not resolve." },
               { name: "email", type: "string | null", desc: "Verified work email address." },
               { name: "linkedin_url", type: "string | null", desc: "LinkedIn profile URL." },
-              { name: "location", type: "string | null", desc: "Location string returned by Apollo." },
+              { name: "location", type: "string | null", desc: "Location string returned by the enrichment provider." },
               { name: "overall_score", type: "float", desc: "Composite heuristic relevance score (0–100)." },
               { name: "match_scores", type: "object", desc: "Sub-score breakdown. See Match Scores section." },
               { name: "outreach_intel", type: "object", desc: "5-field AI-generated outreach intelligence. See Intel Fields section." },
@@ -532,7 +532,7 @@ wh.verify(raw_body_bytes, {"webhook-signature": request.headers["webhook-signatu
               ["Use archetype: founder_office for non-technical roles", "Chief of Staff, Strategy & Ops, and BizDev roles targeting early-stage companies should always use archetype: founder_office to activate the Career Path Graph correctly."],
               ["Use company_type_avoid for clean results", "Pass [\"agency\", \"education\", \"consulting\"] if your candidate does not want those environments. These are hard-excluded, not just down-ranked."],
               ["Poll with 15–30s intervals", "Jobs typically complete in 2–4 minutes. Polling more frequently is wasted — use webhooks for production workloads."],
-              ["Handle null phone gracefully", "Phone numbers are enriched from Apollo. A small percentage of leads may return phone: null — always check before dialing."],
+              ["Handle null phone gracefully", "Phone numbers are enriched from our data providers. A small percentage of leads may return phone: null, so always check before dialing."],
             ].map(([title, desc]) => (
               <div key={title as string} className="mb-4 flex gap-3 rounded-xl border-2 border-neutral-100 px-5 py-4">
                 <span className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-violet-100 flex items-center justify-center">
@@ -607,7 +607,7 @@ leads.forEach(l => console.log(l.name, l.phone, l.match_scores.hiring_probabilit
           <Sec id="faq" title="FAQ">
             {[
               ["How is the Phone API different from the Email API?", "The Phone API delivers 25 leads per run (vs 215) with direct phone numbers per lead. It runs in ~3 minutes (vs ~10 minutes). Price is ₹3,000/run (₹120/lead vs ₹7/lead for email). Phone is designed for high-touch outreach; email is designed for volume campaigns."],
-              ["Are phone numbers always available?", "We enrich phone numbers from Apollo's database. The vast majority of leads will include a phone number. A small fraction may return phone: null if enrichment could not resolve a direct number — always handle this case."],
+              ["Are phone numbers always available?", "We enrich phone numbers from our data providers. The vast majority of leads will include a phone number. A small fraction may return phone: null if enrichment could not resolve a direct number, so always handle this case."],
               ["Can I run multiple jobs simultaneously?", "Yes, up to your concurrent_job_cap (default 5). Contact support to increase this limit."],
               ["When is a credit consumed?", "At job submission, before the job runs. A failed job does not refund the credit automatically — contact support if you experience repeated failures."],
               ["Can I filter by company type?", "Yes. Pass company_type_avoid: [\"agency\", \"education\"] in preferences. These companies are hard-excluded from results."],
