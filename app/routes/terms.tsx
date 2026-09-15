@@ -222,7 +222,7 @@ export default function Terms() {
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    All payments are processed by Razorpay. Studojo does not store your payment card details. By making a purchase, you agree to Razorpay's terms and conditions in addition to these Terms.
+                    All payments are processed by our payment providers, who are named in our Refund Policy along with how a refund reaches you. Studojo does not store your payment card details. By making a purchase, you agree to the terms and conditions of the provider that takes your payment, in addition to these Terms.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
