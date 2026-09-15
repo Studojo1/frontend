@@ -71,7 +71,7 @@ export default function Privacy() {
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Payment Data</p>
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    Payment transactions are processed by Razorpay and Dodo Payments. We store only a record of your payment status, amount, and credits granted. We do not store your card details.
+                    Payment transactions are processed by our payment providers. We store only a record of your payment status, amount, and credits granted. We do not store your card details.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
@@ -234,21 +234,21 @@ export default function Privacy() {
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    We do not sell your personal data to any third party. We do share a limited amount of activity data, such as pages viewed and actions like signing up or uploading a resume, with Meta Platforms so we can measure how well our advertising works and show our ads to people who have visited us before. We never share your resume, your outreach emails, or the contacts we find for you.
+                    We do not sell your personal data to any third party. We do share a limited amount of activity data, such as pages viewed and actions like signing up or uploading a resume, with the advertising platforms we use, so we can measure how well our advertising works and show our ads to people who have visited us before. We never share your resume, your outreach emails, or the contacts we find for you.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
-                  <p className="mb-2 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">We work with a limited number of trusted service providers who process data on our behalf:</p>
+                  <p className="mb-2 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">We work with a limited number of trusted service providers who process data on our behalf. These are the categories of provider we use, and what each one is for:</p>
                   <ul className="list-disc space-y-1 pl-5 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
                     <li><span className="font-semibold text-neutral-900">Microsoft Azure</span> - cloud hosting and AI services (resume parsing)</li>
-                    <li><span className="font-semibold text-neutral-900">Third-party professional data providers</span> - professional contact data for outreach</li>
-                    <li><span className="font-semibold text-neutral-900">Razorpay</span> - payment processing</li>
-                    <li><span className="font-semibold text-neutral-900">Dodo Payments</span> - payment processing</li>
-                    <li><span className="font-semibold text-neutral-900">Google</span> - Gmail OAuth for email sending and thread reading</li>
-                    <li><span className="font-semibold text-neutral-900">Sentry</span> - error monitoring and diagnostics</li>
-                    <li><span className="font-semibold text-neutral-900">PostHog and Mixpanel</span> - product analytics, so we can see which features get used</li>
-                    <li><span className="font-semibold text-neutral-900">Meta Platforms</span> - advertising measurement and retargeting</li>
+                    <li><span className="font-semibold text-neutral-900">Professional data providers</span> - professional contact data for outreach</li>
+                    <li><span className="font-semibold text-neutral-900">Payment processors</span> - taking payment and issuing refunds</li>
+                    <li><span className="font-semibold text-neutral-900">Email providers</span> - the mailbox you connect, so outreach can be sent and replies read</li>
+                    <li><span className="font-semibold text-neutral-900">Error monitoring providers</span> - diagnosing faults when something breaks</li>
+                    <li><span className="font-semibold text-neutral-900">Product analytics providers</span> - so we can see which features get used</li>
+                    <li><span className="font-semibold text-neutral-900">Advertising platforms</span> - advertising measurement and retargeting</li>
                   </ul>
+                  <p className="mt-3 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">If you want the names of the specific providers in any of these categories, email admin@studojo.com and we will tell you.</p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
@@ -271,7 +271,7 @@ export default function Privacy() {
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    Some of our service providers, including Google, are based in the United States. Where data is transferred to US-based processors, we rely on standard contractual clauses and the providers' applicable data processing agreements to ensure an adequate level of protection for your personal data.
+                    Some of our service providers are based in the United States. Where data is transferred to US-based processors, we rely on standard contractual clauses and the providers' applicable data processing agreements to ensure an adequate level of protection for your personal data.
                   </p>
                 </div>
               </div>
@@ -337,7 +337,7 @@ export default function Privacy() {
               <div className="space-y-3">
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
                   <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
-                    We use essential cookies to keep you authenticated and the platform functional. We also use analytics cookies from PostHog and Mixpanel to understand how the product is used, and advertising cookies set by the Meta Pixel (named _fbp and _fbc) to measure our advertising and show ads to people who have visited us before. You can block these in your browser settings, or through your Meta ad preferences, without losing access to any feature.
+                    We use essential cookies to keep you authenticated and the platform functional. We also use analytics cookies from our product analytics providers to understand how the product is used, and advertising cookies (named _fbp and _fbc) to measure our advertising and show ads to people who have visited us before. You can block these in your browser settings, or through your Meta ad preferences, without losing access to any feature.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
