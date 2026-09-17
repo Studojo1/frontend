@@ -27,6 +27,13 @@ export default [
   // ── LinkedIn connect (email link, no Studojo auth) ─────────────────────
   route("connect-linkedin", "routes/connect-linkedin.tsx"),
 
+  // ── /insider serves the same page as /campus-ambassador ────────────────
+  // The page is titled "Become a Studojo Insider", so /insider is the shorter
+  // URL to hand out. /campus-ambassador stays live because it is already
+  // published. Same module, so there is one page to maintain, and it carries
+  // its own canonical tag so search engines do not treat the two as duplicates.
+  route("insider", "routes/campus-ambassador.tsx", { id: "insider" }),
+
   // ── Reports (explicit to avoid nesting under reports.tsx layout) ───────
   route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),
