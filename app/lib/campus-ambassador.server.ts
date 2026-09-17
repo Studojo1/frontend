@@ -26,6 +26,18 @@ async function ensureTable() {
     CREATE INDEX IF NOT EXISTS idx_campus_ambassador_created_at
     ON campus_ambassador_applications (created_at DESC)
   `);
+  // Attribution columns, added after the table shipped. ADD COLUMN IF NOT
+  // EXISTS keeps this safe to run against a table that already holds
+  // applications: existing rows simply carry NULL.
+  await db.execute(sql`
+    ALTER TABLE campus_ambassador_applications
+      ADD COLUMN IF NOT EXISTS source_path TEXT,
+      ADD COLUMN IF NOT EXISTS utm_source TEXT,
+      ADD COLUMN IF NOT EXISTS utm_medium TEXT,
+      ADD COLUMN IF NOT EXISTS utm_campaign TEXT,
+      ADD COLUMN IF NOT EXISTS referrer TEXT
+  `);
+
   // One application per email. A repeat submission is a no-op rather than a
   // duplicate row — enforced at the DB level, so it holds under races too.
   await db.execute(sql`
@@ -46,6 +58,11 @@ export async function saveCampusAmbassadorApplication(params: {
   socialHandle?: string;
   whyYou: string;
   referralSource?: string;
+  sourcePath?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  referrer?: string;
 }): Promise<{ isNew: boolean }> {
   await ensureTable();
   // RETURNING id yields a row only on a genuine insert, so an existing
@@ -53,7 +70,8 @@ export async function saveCampusAmbassadorApplication(params: {
   const result = await db.execute(sql`
     INSERT INTO campus_ambassador_applications (
       full_name, whatsapp, email, college, course,
-      year_of_study, graduation_year, social_handle, why_you, referral_source
+      year_of_study, graduation_year, social_handle, why_you, referral_source,
+      source_path, utm_source, utm_medium, utm_campaign, referrer
     )
     VALUES (
       ${params.fullName},
@@ -65,7 +83,12 @@ export async function saveCampusAmbassadorApplication(params: {
       ${params.graduationYear || null},
       ${params.socialHandle || null},
       ${params.whyYou},
-      ${params.referralSource || null}
+      ${params.referralSource || null},
+      ${params.sourcePath || null},
+      ${params.utmSource || null},
+      ${params.utmMedium || null},
+      ${params.utmCampaign || null},
+      ${params.referrer || null}
     )
     ON CONFLICT (lower(email)) DO NOTHING
     RETURNING id
@@ -78,7 +101,8 @@ export async function getCampusAmbassadorApplications(limit = 200, offset = 0) {
   const result = await db.execute(sql`
     SELECT id, full_name, whatsapp, email, college, course,
            year_of_study, graduation_year, social_handle, why_you,
-           referral_source, status, created_at
+           referral_source, status, created_at,
+           source_path, utm_source, utm_medium, utm_campaign, referrer
     FROM campus_ambassador_applications
     ORDER BY created_at DESC
     LIMIT ${limit} OFFSET ${offset}
