@@ -127,10 +127,22 @@ export default function CampusAmbassador() {
 
     setSubmitting(true);
     try {
+      // Where this application came from. The page is served at both
+      // /campus-ambassador and /insider, and the same link gets posted to
+      // different channels, so the path alone does not say much. Send the UTM
+      // tags and the referrer too, and let the admin panel group on them.
+      const qs = new URLSearchParams(window.location.search);
       const res = await fetch("/api/campus-ambassador-apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          sourcePath: window.location.pathname,
+          utmSource: qs.get("utm_source") || "",
+          utmMedium: qs.get("utm_medium") || "",
+          utmCampaign: qs.get("utm_campaign") || "",
+          referrer: document.referrer || "",
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.ok) {

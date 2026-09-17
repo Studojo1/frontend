@@ -29,6 +29,14 @@ export async function action({ request }: Route.ActionArgs) {
   const graduationYear = clamp(body.graduationYear, 10);
   const socialHandle = clamp(body.socialHandle, 120);
   const referralSource = clamp(body.referralSource, 60);
+  // Attribution. Client-supplied, so treat it as a hint rather than a fact, and
+  // keep it out of any validation path: a missing or junk value must never stop
+  // a real application from being stored.
+  const sourcePath = clamp(body.sourcePath, 120);
+  const utmSource = clamp(body.utmSource, 80);
+  const utmMedium = clamp(body.utmMedium, 80);
+  const utmCampaign = clamp(body.utmCampaign, 120);
+  const referrer = clamp(body.referrer, 300);
 
   if (!fullName || !whatsapp || !email || !college || !yearOfStudy || !whyYou) {
     return Response.json({ error: "Please fill in all required fields." }, { status: 400 });
@@ -54,6 +62,11 @@ export async function action({ request }: Route.ActionArgs) {
     socialHandle: socialHandle || undefined,
     whyYou,
     referralSource: referralSource || undefined,
+    sourcePath: sourcePath || undefined,
+    utmSource: utmSource || undefined,
+    utmMedium: utmMedium || undefined,
+    utmCampaign: utmCampaign || undefined,
+    referrer: referrer || undefined,
   });
 
   // Already applied with this email — no duplicate row. Tell the form so it can
