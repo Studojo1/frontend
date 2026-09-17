@@ -15,6 +15,10 @@ export function meta() {
       property: "og:description",
       content: "Represent Studojo at your college. Apply in under a minute.",
     },
+    // This page is served at both /campus-ambassador and /insider. Point both at
+    // one canonical URL so the two paths are not read as duplicate content.
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/campus-ambassador" },
+    { property: "og:url", content: "https://studojo.com/campus-ambassador" },
   ];
 }
 
