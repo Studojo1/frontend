@@ -254,7 +254,7 @@ export function Footer() {
                     <li key={label}>
                       <Link
                         to={to}
-                        className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
+                        className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
                       >
                         {label}
                       </Link>
@@ -271,7 +271,7 @@ export function Footer() {
                     <li key={label}>
                       <Link
                         to={to}
-                        className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
+                        className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
                       >
                         {label}
                       </Link>
@@ -295,7 +295,7 @@ export function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-violet-500 transition hover:bg-purple-200 md:h-14 md:w-14 md:rounded-2xl md:bg-purple-300 md:text-white md:hover:bg-purple-400"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-100 text-violet-500 transition hover:bg-purple-200 md:h-14 md:w-14 md:rounded-2xl md:bg-purple-300 md:text-white md:hover:bg-purple-400"
                   aria-label={ariaLabel}
                 >
                   <span className="text-xl">{icon}</span>
@@ -310,13 +310,13 @@ export function Footer() {
             © 2025 Studojo. Crafted with ❤️ by students
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-            <Link to="/privacy" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
+            <Link to="/privacy" className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
               Privacy Policy
             </Link>
-            <Link to="/terms" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
+            <Link to="/terms" className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
               Terms of Service
             </Link>
-            <Link to="/refund-policy" className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
+            <Link to="/refund-policy" className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
               Refund Policy
             </Link>
           </div>
