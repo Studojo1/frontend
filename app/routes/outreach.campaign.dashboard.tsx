@@ -278,6 +278,15 @@ export default function DashboardPage() {
   const [pendingTz, setPendingTz] = useState("");
   const [tzSaving, setTzSaving] = useState(false);
   const [tzError, setTzError] = useState("");
+
+  // Pinning the send order. `pinnedOrder` holds email ids in the sequence the
+  // user dragged them into; only unsent rows can be pinned, because an email
+  // already on its way cannot be re-sequenced.
+  const [reorderMode, setReorderMode] = useState(false);
+  const [pinnedOrder, setPinnedOrder] = useState<number[]>([]);
+  const [dragId, setDragId] = useState<number | null>(null);
+  const [orderSaving, setOrderSaving] = useState(false);
+  const [orderError, setOrderError] = useState("");
   const [reportIssueOpen, setReportIssueOpen] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -493,6 +502,55 @@ export default function DashboardPage() {
       setTzError(describeError(err, "Failed to update timezone"));
     } finally {
       setTzSaving(false);
+    }
+  };
+
+  // Only rows that haven't gone out can be re-sequenced. The backend rejects
+  // anything else outright, so the UI must not offer it.
+  const REORDERABLE = ["pending_enrichment", "queued"];
+  const isReorderable = (email: CampaignEmail) => REORDERABLE.includes(email.status);
+
+  const enterReorder = () => {
+    setOrderError("");
+    setPinnedOrder(
+      emails
+        .filter(isReorderable)
+        .sort((a, b) => {
+          // Start from the order they're actually going out in, so the first
+          // drag moves one row rather than reshuffling the whole list.
+          if (!a.scheduled_at) return 1;
+          if (!b.scheduled_at) return -1;
+          return a.scheduled_at.localeCompare(b.scheduled_at);
+        })
+        .map((e) => e.id),
+    );
+    setReorderMode(true);
+  };
+
+  const moveTo = (targetId: number) => {
+    if (dragId === null || dragId === targetId) return;
+    setPinnedOrder((prev) => {
+      const next = prev.filter((id) => id !== dragId);
+      next.splice(next.indexOf(targetId), 0, dragId);
+      return next;
+    });
+  };
+
+  const handleSaveOrder = async () => {
+    if (!campaignId) return;
+    setOrderSaving(true);
+    setOrderError("");
+    try {
+      await outreachFetch(`/campaign/${campaignId}/send-order`, {
+        method: "POST",
+        body: JSON.stringify({ email_ids: pinnedOrder }),
+      });
+      setReorderMode(false);
+      fetchCampaignData();
+    } catch (err: any) {
+      setOrderError(describeError(err, "Could not save the send order"));
+    } finally {
+      setOrderSaving(false);
     }
   };
 
@@ -1312,7 +1370,78 @@ export default function DashboardPage() {
                 ))}
               </div>
 
-              {filteredEmails.length === 0 ? (
+              {/* Send order: pin the ones that matter, leave the rest ranked */}
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
+                {!reorderMode ? (
+                  <button
+                    type="button"
+                    onClick={enterReorder}
+                    disabled={emails.filter(isReorderable).length < 2}
+                    className="px-3 py-1.5 rounded-lg text-xs font-satoshi font-medium border border-studojo-ink/20 text-studojo-muted hover:border-studojo-purple/50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    title={
+                      emails.filter(isReorderable).length < 2
+                        ? "Needs at least two emails that haven't been sent yet"
+                        : "Choose the order these go out in"
+                    }
+                  >
+                    Set send order
+                  </button>
+                ) : (
+                  <>
+                    <span className="text-xs text-studojo-muted font-satoshi">
+                      Drag to reorder. Emails already sent stay where they are.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleSaveOrder}
+                      disabled={orderSaving}
+                      className="px-3 py-1.5 rounded-lg text-xs font-satoshi font-medium bg-studojo-purple text-white disabled:opacity-50"
+                    >
+                      {orderSaving ? "Saving…" : "Save order"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setReorderMode(false); setOrderError(""); }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-satoshi font-medium border border-studojo-ink/20 text-studojo-muted"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+                {orderError && <span className="text-xs text-red-600">{orderError}</span>}
+              </div>
+
+              {reorderMode ? (
+                <div className="overflow-x-auto">
+                  <ol className="divide-y divide-studojo-ink/5">
+                    {pinnedOrder.map((id, idx) => {
+                      const email = emails.find((e) => e.id === id);
+                      if (!email) return null;
+                      return (
+                        <li
+                          key={id}
+                          draggable
+                          onDragStart={() => setDragId(id)}
+                          onDragEnd={() => setDragId(null)}
+                          onDragOver={(e) => { e.preventDefault(); moveTo(id); }}
+                          className={`flex items-center gap-3 py-2.5 px-2 cursor-grab active:cursor-grabbing ${
+                            dragId === id ? "opacity-40" : "hover:bg-studojo-ink/5"
+                          }`}
+                        >
+                          <span className="w-6 text-right text-xs font-bold text-studojo-muted tabular-nums">
+                            {idx + 1}
+                          </span>
+                          <span className="font-bold text-studojo-ink text-sm">{email.lead_name}</span>
+                          <span className="text-studojo-muted text-xs truncate">{email.lead_company}</span>
+                          <span className="ml-auto text-studojo-purple text-xs">
+                            {email.scheduled_at ? formatTimestamp(email.scheduled_at, tz) : "Queued"}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </div>
+              ) : filteredEmails.length === 0 ? (
                 <p className="text-sm text-studojo-muted font-satoshi text-center py-6">
                   {statusFilter === "all" ? "No emails scheduled yet." : `No ${statusFilter} emails.`}
                 </p>
