@@ -286,8 +286,15 @@ export default function App() {
   // The resume maker has its own coach chat, and Sensei has its own "Get
   // support" — the global floating widget would just float over those UIs.
   const onSensei = isSenseiHost || location.pathname.startsWith("/bob");
+  // The launcher is fixed bottom-left at z-50, which on a 390px viewport lands
+  // squarely on top of the Confirm Password field and the submit button. Keep it
+  // off the routes where signing up is the only thing we need the user to finish.
+  const onAuth =
+    location.pathname.startsWith("/auth") ||
+    location.pathname.startsWith("/forgot-password") ||
+    location.pathname.startsWith("/reset-password");
   const hideGlobalChat =
-    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || onSensei;
+    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || onSensei || onAuth;
 
   return (
     <>

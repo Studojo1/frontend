@@ -42,7 +42,11 @@ export function TrustStrip() {
       <p className="font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-studojo-muted text-center mb-4">
         Positive replies from
       </p>
-      <div className="overflow-hidden">
+      {/* Names are whitespace-nowrap, so they never wrap — but the container edge
+          still guillotines whichever one is passing through it, which reads as a
+          broken logo strip ("an Sachs", "Pho") rather than a moving one. Fade the
+          two edges so a name on its way out looks intentional. */}
+      <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_2rem,black_calc(100%-2rem),transparent)]">
         <div className="flex items-center gap-8 w-max animate-marquee">
           {doubled.map((company, i) => (
             <span
