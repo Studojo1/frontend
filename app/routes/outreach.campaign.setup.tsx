@@ -193,13 +193,22 @@ export default function CampaignSetupPage() {
         return;
       }
     }
-    sessionStorage.setItem("campaign_launch", JSON.stringify({
+    const launchConfig = {
       campaignName,
       userTimezone,
       selectedStyles: ["ai"],
       selectedTemplate: null,
-    }));
-    navigate("/outreach/campaign/launching");
+    };
+    // Router state carries this across the navigation itself; sessionStorage is
+    // the backup for a reload on the launching screen. Mobile browsers evict
+    // background tabs, so neither is guaranteed -- launching now falls back to
+    // the same defaults this page starts with rather than dead-ending.
+    try {
+      sessionStorage.setItem("campaign_launch", JSON.stringify(launchConfig));
+    } catch {
+      // Private mode or blocked storage; router state still carries it.
+    }
+    navigate("/outreach/campaign/launching", { state: { launchConfig } });
   };
 
   if (authLoading) {
