@@ -113,7 +113,8 @@ function mirrorToServer(eventName: string, eventId: string) {
  */
 export function trackMeta(
   eventName: string,
-  properties?: Record<string, unknown>
+  properties?: Record<string, unknown>,
+  explicitEventId?: string
 ): string | null {
   if (typeof window === "undefined") return null;
   if (!isTrackableHost()) return null;
@@ -123,7 +124,10 @@ export function trackMeta(
   // copy and rely on the server mirror alone. init is idempotent and cheap.
   initMetaPixel();
 
-  const eventId = newEventId();
+  // A caller-supplied id is how two code paths reporting the SAME conversion
+  // (the Razorpay handler and the payment-success page both confirm one sale)
+  // collapse into a single event instead of double counting revenue.
+  const eventId = explicitEventId || newEventId();
   try {
     // Best effort. Deliberately not gating the server copy on this succeeding,
     // because a blocked pixel is exactly the case CAPI exists to cover.
