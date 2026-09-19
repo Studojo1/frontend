@@ -17,6 +17,7 @@ import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
 import { capturePostHog, identifyPostHogUser, initPostHog, registerPostHogProps } from "./lib/posthog";
 import { initMetaPixel, trackMetaPageView } from "./lib/meta-pixel";
 import { track } from "./lib/analytics";
+import { captureAttribution, flushAttribution } from "./lib/attribution";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
 import "./app.css";
@@ -281,6 +282,22 @@ export default function App() {
   useEffect(() => {
     suppressThirdPartyWarnings();
   }, []);
+
+  // Hold the ad click that brought this visitor in, before anything navigates
+  // away and loses the query string.
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+
+  // Write it against the user as soon as a session exists. This runs on every
+  // load rather than at signup on purpose: Google sign-in leaves the site for
+  // the OAuth round trip, so there is no signup callback to hang it on. The
+  // flush is a no-op once it has succeeded.
+  const { data: attributionSession } = authClient.useSession();
+  const attributionUserId = (attributionSession as any)?.user?.id as string | undefined;
+  useEffect(() => {
+    if (attributionUserId) flushAttribution();
+  }, [attributionUserId]);
 
   const { isSenseiHost } = useLoaderData<typeof loader>();
   const location = useLocation();

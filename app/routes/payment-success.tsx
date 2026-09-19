@@ -21,8 +21,27 @@ const Clock = ({ className }: { className?: string }) => (
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const sessionId = searchParams.get("session_id") || localStorage.getItem("dodo_session_id");
-  const jobType = localStorage.getItem("dodo_pending_job_type");
+  // localStorage does not exist while this renders on the server, and reading it
+  // here threw ReferenceError, which made the whole page a 500. This is the page
+  // an international customer lands on straight after paying, so they paid and
+  // then saw an error screen. Take the session id from the query string during
+  // render (it is there on the real redirect) and fill in the localStorage
+  // fallback once we are in the browser.
+  const sessionFromUrl = searchParams.get("session_id");
+  const [storedSession, setStoredSession] = useState<string | null>(null);
+  const [jobType, setJobType] = useState<string | null>(null);
+  // Polling waits for this. jobType decides which verify endpoint is called, so
+  // starting before localStorage has been read would send an outreach payment
+  // to the control-plane route on the first attempt.
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setStoredSession(localStorage.getItem("dodo_session_id"));
+    setJobType(localStorage.getItem("dodo_pending_job_type"));
+    setHydrated(true);
+  }, []);
+
+  const sessionId = sessionFromUrl || storedSession;
 
   const [status, setStatus] = useState<"polling" | "paid" | "failed" | "error">("polling");
   const [error, setError] = useState("");
@@ -80,10 +99,15 @@ export default function PaymentSuccess() {
   );
 
   useEffect(() => {
+    if (!hydrated) return;
     if (sessionId) {
       pollPayment(0);
+    } else {
+      // Nothing in the URL and nothing stored: say so rather than spinning.
+      setStatus("error");
+      setError("No session ID found");
     }
-  }, [sessionId, pollPayment]);
+  }, [hydrated, sessionId, pollPayment]);
 
   const handleContinue = () => {
     const jobType = localStorage.getItem("dodo_pending_job_type");
