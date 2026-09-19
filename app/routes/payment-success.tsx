@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router";
 import { verifyDodoPayment } from "~/lib/payments";
 import { outreachFetch } from "~/lib/outreach/api";
 import { capturePostHog } from "~/lib/posthog";
+import { track } from "~/lib/analytics";
 // Inline SVG replacements for lucide-react icons (not installed)
 const Loader2 = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
@@ -45,10 +46,13 @@ export default function PaymentSuccess() {
 
         if (res.status === "paid") {
           setStatus("paid");
-          capturePostHog("payment_confirmed", {
-            job_type: jobType,
-            session_id: sessionId,
-          });
+          // sessionId is the same value outreach.enrichment.tsx passes, so if a
+          // user is confirmed by both routes Meta sees one Purchase, not two.
+          track(
+            "payment_confirmed",
+            { job_type: jobType, session_id: sessionId },
+            { eventId: sessionId ?? undefined }
+          );
           return;
         }
         if (res.status === "failed") {

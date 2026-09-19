@@ -10,6 +10,7 @@ import { getToken, ControlPlaneError } from "~/lib/control-plane";
 import { fetchWithRetry } from "~/lib/fetch-with-retry";
 import { capturePostHog } from "~/lib/posthog";
 import { trackMeta } from "~/lib/meta-pixel";
+import { track } from "~/lib/analytics";
 import type { ResumePreview } from "~/lib/outreach/types";
 
 export default function UploadPage() {
@@ -82,17 +83,16 @@ export default function UploadPage() {
 
       setPreview(data.preview);
       setCandidateId(data.candidate_id);
-      capturePostHog("resume_uploaded", {
+      // track() maps resume_uploaded -> Meta Lead, so the admin funnel step and
+      // the ad-side conversion can never drift apart.
+      track("resume_uploaded", {
         candidate_id: data.candidate_id,
         skills_count: data.preview?.skills?.length ?? 0,
         experience_years: data.preview?.experience_years ?? null,
         char_count: data.preview?.char_count ?? null,
       });
-      // Both fire only once the resume is genuinely in the system. Firing on the
-      // upload attempt instead would count expired sessions, rejected files and
-      // retries as conversions, and Meta would optimise toward users who bounced.
-      trackMeta("Lead");
-      // Custom event: the activation-rate numerator. Never optimise against it.
+      // Custom event, kept alongside the mapped Lead: it is the activation-rate
+      // numerator in Meta's UI. Never optimise against it.
       trackMeta("ResumeUploaded");
       // Uploading a resume IS using Outreach — fire the used signal now (the
       // earliest "they're using the tool" moment), not only at quiz completion.
