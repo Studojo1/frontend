@@ -91,6 +91,22 @@ export default function Auth() {
   const lastMethod = authClient.getLastUsedLoginMethod();
   const isLastGoogle = authClient.isLastUsedLoginMethod("google");
   const isLastEmail = authClient.isLastUsedLoginMethod("email");
+
+  // On a 390px screen the signup form runs to 1.3 screens, so Sign Up sits below
+  // the fold behind four fields and two consent checkboxes. 2,963 of the 3,510
+  // users we lost arrived via Google, so lead with the buttons and let the email
+  // form be a deliberate choice. Anyone who last signed in with email gets it
+  // open, and so does anyone we bounced back here with an error to fix.
+  const [emailFormOpen, setEmailFormOpen] = useState(false);
+  const showEmailForm = emailFormOpen || !!error;
+
+  // isLastUsedLoginMethod reads a cookie, so it is false during SSR and only
+  // becomes true once we are on the client. Open the form in an effect rather
+  // than in useState's initialiser, which would capture the server's answer and
+  // never revisit it.
+  useEffect(() => {
+    if (isLastEmail) setEmailFormOpen(true);
+  }, [isLastEmail]);
   const passkeyAttemptedRef = useRef(false);
 
   // Get redirect URL from query params, validate it's same-origin, default to "/"
@@ -457,12 +473,23 @@ export default function Auth() {
                     <div className="w-full border-t border-neutral-200" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="bg-white px-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500">
-                      or
-                    </span>
+                    {showEmailForm ? (
+                      <span className="bg-white px-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500">
+                        or
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setEmailFormOpen(true)}
+                        className="inline-flex min-h-11 items-center bg-white px-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500 underline underline-offset-2 hover:text-neutral-900"
+                      >
+                        or use email instead
+                      </button>
+                    )}
                   </div>
                 </div>
 
+                <div className={showEmailForm ? "contents" : "hidden"}>
                 <div>
                   <label htmlFor="email" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
                     Email
@@ -557,6 +584,7 @@ export default function Auth() {
                 >
                   {submitting ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
                 </button>
+                </div>
               </form>
 
               {mode === "signin" && (
