@@ -294,12 +294,34 @@ export default function DiscoveryPage() {
       setTimeout(() => navigate("/outreach/leads/results"), 900);
     };
 
-    outreachFetch("/discovery/search", {
-      method: "POST",
-      body: JSON.stringify({ candidate_id: candidateId }),
-      timeout: 300_000,
-      maxRetries: 1,
-    })
+    // A mobile browser can evict this tab during the 5-minute search below. When
+    // the user comes back, the work the server already did is still there, so
+    // ask before paying for it again -- scoring-ready is keyed on candidate_id
+    // alone, with no job or session handle, so a fresh tab can read it.
+    const resumeIfAlreadyDone = async (): Promise<boolean> => {
+      try {
+        const data = await outreachFetch<any>(`/discovery/scoring-ready/${candidateId}`, { method: "GET" });
+        if (data?.ready && !cancelled) {
+          capturePostHog("discovery_resumed", { candidate_id: candidateId });
+          finish(data?.with_bullets ?? data?.count ?? undefined);
+          return true;
+        }
+      } catch {
+        // Never seen this candidate, or the check failed: fall through and run
+        // discovery normally.
+      }
+      return false;
+    };
+
+    resumeIfAlreadyDone().then((resumed) => {
+      if (resumed || cancelled) return;
+
+      outreachFetch("/discovery/search", {
+        method: "POST",
+        body: JSON.stringify({ candidate_id: candidateId }),
+        timeout: 300_000,
+        maxRetries: 1,
+      })
       .then(() => {
         const SCORING_TIMEOUT_MS = 6 * 60 * 1000;
         const started = Date.now();
@@ -327,6 +349,7 @@ export default function DiscoveryPage() {
           setError(describeError(err, "Lead discovery failed"));
         }
       });
+    });
 
     return () => {
       cancelled = true;
