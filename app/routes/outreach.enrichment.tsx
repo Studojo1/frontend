@@ -257,6 +257,15 @@ export default function EnrichmentPage() {
   const closeDodoModal = () => {
     setDodoCheckoutUrl(null);
     dodoPollingRef.current = false;
+    // This checkout is resolved one way or another, so drop the recovery
+    // breadcrumb. Leaving it would send the next visit to /payment-success
+    // chasing a session that is already settled.
+    try {
+      localStorage.removeItem("dodo_session_id");
+      localStorage.removeItem("dodo_pending_job_type");
+    } catch {
+      // Nothing to clean up if storage is unavailable.
+    }
   };
 
   // After payment succeeds, advance order and navigate to campaign setup.
@@ -465,6 +474,18 @@ export default function EnrichmentPage() {
         dodoSessionRef.current = orderData.session_id;
         dodoTierRef.current = selectedTier;
         dodoPollingRef.current = true;
+        // The verification below lives in page state, so a phone that locks or
+        // switches apps during checkout loses it and the order never advances
+        // even though the payment went through. /payment-success recovers from
+        // these two keys, and the other Dodo caller (lib/payments.ts) already
+        // writes them -- this path kept the session in a ref that dies with the
+        // tab. Leave the same breadcrumb so a returning user can be picked up.
+        try {
+          localStorage.setItem("dodo_session_id", orderData.session_id || "");
+          localStorage.setItem("dodo_pending_job_type", "outreach");
+        } catch {
+          // Private mode: the in-page poll below is still the happy path.
+        }
         track("checkout_opened", { tier: tierValue, provider: "dodo" });
         setDodoCheckoutUrl(orderData.checkout_url);
         pollDodoVerify(0);
