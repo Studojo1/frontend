@@ -544,7 +544,7 @@ export default function Auth() {
 
                 {mode === "signup" && (
                   <div className="space-y-3">
-                    <label className="flex items-start py-2">
+                    <label className="flex min-h-11 items-start py-2">
                       <input
                         type="checkbox"
                         checked={termsAccepted}
@@ -559,7 +559,7 @@ export default function Auth() {
                         </Link>
                       </span>
                     </label>
-                    <label className="flex items-start py-2">
+                    <label className="flex min-h-11 items-start py-2">
                       <input
                         type="checkbox"
                         checked={privacyAccepted}
