@@ -115,7 +115,7 @@ export function Footer() {
                   placeholder="your.email@university.edu"
                   required
                   disabled={loading}
-                  className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-3 font-['Satoshi'] text-sm font-normal text-neutral-950/50 placeholder:text-neutral-950/50 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60 md:rounded-2xl md:border-stone-600 md:bg-white/50 md:text-base md:text-neutral-900 md:placeholder:text-neutral-500"
+                  className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal text-neutral-950/50 placeholder:text-neutral-950/50 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60 md:rounded-2xl md:border-stone-600 md:bg-white/50 md:text-neutral-900 md:placeholder:text-neutral-500"
                 />
                 <button
                   type="submit"

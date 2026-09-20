@@ -215,14 +215,18 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Chat bubble — draggable */}
+      {/* Chat bubble — draggable. Bottom-LEFT sat on top of left-aligned content:
+          measured at 390x844 it covered the "Join the Dojo" submit button on
+          /outreach/orders and the footer links on the campaign dashboard. Page
+          content is left-aligned, so on mobile the right corner is the empty one;
+          desktop keeps the left position it has always had. */}
       <button
         onClick={() => { if (!didDrag.current) setOpen(!open); }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         style={{ ...(pos ? { left: pos.x, top: pos.y, bottom: "auto", right: "auto" } : {}), touchAction: "none" }}
-        className="fixed bottom-6 left-6 z-50 flex h-14 w-14 cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing md:left-6 md:right-auto"
         aria-label={open ? "Close chat" : "Open chat"}
       >
         {/* Unread admin-reply badge — shows count from the background poll. */}
@@ -260,7 +264,7 @@ export function ChatWidget() {
         return (
         <div
           style={pos ? winStyle : undefined}
-          className="fixed bottom-24 left-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl border-2 border-neutral-900 bg-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] max-[400px]:bottom-0 max-[400px]:left-0 max-[400px]:h-full max-[400px]:w-full max-[400px]:rounded-none max-[400px]:shadow-none">
+          className="fixed bottom-24 right-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl border-2 border-neutral-900 bg-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] md:left-6 md:right-auto max-[400px]:bottom-0 max-[400px]:left-0 max-[400px]:right-0 max-[400px]:h-full max-[400px]:w-full max-[400px]:rounded-none max-[400px]:shadow-none">
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-neutral-900 bg-violet-500 px-4 py-3">
             <div className="flex items-center gap-3">
