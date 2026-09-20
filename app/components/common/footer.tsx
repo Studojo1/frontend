@@ -254,7 +254,7 @@ export function Footer() {
                     <li key={label}>
                       <Link
                         to={to}
-                        className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
+                        className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
                       >
                         {label}
                       </Link>
@@ -271,7 +271,7 @@ export function Footer() {
                     <li key={label}>
                       <Link
                         to={to}
-                        className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
+                        className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
                       >
                         {label}
                       </Link>
@@ -310,13 +310,13 @@ export function Footer() {
             © 2025 Studojo. Crafted with ❤️ by students
           </p>
           <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-            <Link to="/privacy" className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
+            <Link to="/privacy" className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
               Privacy Policy
             </Link>
-            <Link to="/terms" className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
+            <Link to="/terms" className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
               Terms of Service
             </Link>
-            <Link to="/refund-policy" className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
+            <Link to="/refund-policy" className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
               Refund Policy
             </Link>
           </div>
