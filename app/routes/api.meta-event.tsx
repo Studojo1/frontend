@@ -20,7 +20,21 @@ import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured } from "~/
 // Only events the app actually fires. Without this an attacker could post
 // arbitrary standard events (Purchase, with a value) into the ad dataset and
 // corrupt the optimiser we bid with.
-const ALLOWED_EVENTS = new Set(["ViewContent", "Lead", "CompleteRegistration", "ResumeUploaded"]);
+const ALLOWED_EVENTS = new Set([
+  "ViewContent",
+  "Lead",
+  "CompleteRegistration",
+  "ResumeUploaded",
+  "InitiateCheckout",
+  "AddPaymentInfo",
+]);
+
+// Purchase is deliberately absent. It is the only event carrying a monetary
+// value, so accepting it here would let anyone POST fabricated revenue into the
+// dataset the campaigns bid against, and into reported ROAS. The browser pixel
+// still sends Purchase directly; the authoritative server-side copy belongs in
+// job-outreach-svc, which knows the real order amount and does not have to take
+// a caller's word for it.
 
 const ok = () =>
   new Response(JSON.stringify({ ok: true }), {

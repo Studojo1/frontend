@@ -9,6 +9,7 @@ import { useOutreachStore } from "~/lib/outreach/store";
 import { useOrder } from "~/lib/outreach/hooks";
 import { outreachFetch } from "~/lib/outreach/api";
 import { capturePostHog } from "~/lib/posthog";
+import { track } from "~/lib/analytics";
 import type { TierPricing } from "~/lib/outreach/types";
 
 declare global {
@@ -206,6 +207,16 @@ export default function EnrichmentPage() {
     }
   }, [orderId, candidateId]);
 
+  // Reaching the pricing page is the strongest pre-purchase intent signal in the
+  // funnel, and it is what the "viewed pricing but did not buy" retargeting
+  // audience is built from. Once per mount.
+  const pricingViewedRef = useRef(false);
+  useEffect(() => {
+    if (pricingViewedRef.current) return;
+    pricingViewedRef.current = true;
+    track("pricing_viewed", { content_name: "Outreach Dojo pricing" });
+  }, []);
+
   // Funnel: stamp "payment_page_reached" + schedule abandoned-checkout sequence.
   const funnelPingedRef = useRef(false);
   useEffect(() => {
@@ -248,8 +259,13 @@ export default function EnrichmentPage() {
     dodoPollingRef.current = false;
   };
 
-  // After payment succeeds, advance order and navigate to campaign setup
-  const onPaymentSuccess = async () => {
+  // After payment succeeds, advance order and navigate to campaign setup.
+  //
+  // paymentRef is the payment provider's own id (Razorpay order, Dodo session).
+  // It becomes the Meta event id, so if this same sale is also confirmed by
+  // payment-success.tsx, or later by a server-side copy from job-outreach-svc,
+  // Meta collapses them into one Purchase instead of reporting the revenue twice.
+  const onPaymentSuccess = async (paymentRef?: string, moneyMoved = true) => {
     // New email flow: cancel any pending cc marketing sequences for this user
     // now that the user has paid. event.cc.paid is cancel-only (no email).
     if (user?.id) {
@@ -259,7 +275,23 @@ export default function EnrichmentPage() {
     }
     // The outreach flow goes straight to Gmail connect (never payment-success.tsx),
     // so fire payment_confirmed here or the funnel's "Paid" step misses these.
-    capturePostHog("payment_confirmed", { tier: selectedTier, currency, amount_cents: pricing.find((p) => p.tier === selectedTier)?.amount_cents });
+    const amountCents = pricing.find((p) => p.tier === selectedTier)?.amount_cents;
+    // The admin funnel counts every one of these as "Paid", which is correct:
+    // the user got the product. Meta must NOT, unless money actually moved.
+    // Credit-covered and coupon-free orders reach this same handler, and sending
+    // a Purchase for them would invent revenue and corrupt ROAS.
+    track(
+      "payment_confirmed",
+      { tier: selectedTier, currency, amount_cents: amountCents, money_moved: moneyMoved },
+      moneyMoved
+        ? {
+            // Meta wants major units; the pricing API speaks cents.
+            value: typeof amountCents === "number" ? amountCents / 100 : undefined,
+            currency,
+            eventId: paymentRef,
+          }
+        : undefined
+    );
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
@@ -278,7 +310,9 @@ export default function EnrichmentPage() {
       if (res.status === "paid") {
         closeDodoModal();
         setPaying(false);
-        onPaymentSuccess();
+        // Real payment. The Dodo session id is also what payment-success.tsx
+        // sees, so both routes emit the same Meta event id for one sale.
+        onPaymentSuccess(dodoSessionRef.current);
         return;
       }
       if (res.status === "failed") {
@@ -399,13 +433,13 @@ export default function EnrichmentPage() {
     if (!candidateId) return;
 
     const coveredByCredits = !!(credits && credits.available_credits >= tierValue);
-    capturePostHog("pay_now_clicked", { tier: tierValue, covered_by_credits: coveredByCredits });
+    track("pay_now_clicked", { tier: tierValue, covered_by_credits: coveredByCredits });
 
     // If user already has enough credits for this specific tier, skip payment.
     // tierValue is passed explicitly from the button to avoid stale closure
     // (setSelectedTier is async; reading selectedTier here would get the old value).
     if (coveredByCredits) {
-      onPaymentSuccess();
+      onPaymentSuccess(undefined, false); // paid from existing credits, no new revenue
       return;
     }
 
@@ -423,7 +457,7 @@ export default function EnrichmentPage() {
           : { total_credits: orderData.credits_granted, used_credits: 0, available_credits: orderData.credits_granted }
         );
         setPaying(false);
-        onPaymentSuccess();
+        onPaymentSuccess(undefined, false); // free order, no revenue
         return;
       }
 
@@ -431,7 +465,7 @@ export default function EnrichmentPage() {
         dodoSessionRef.current = orderData.session_id;
         dodoTierRef.current = selectedTier;
         dodoPollingRef.current = true;
-        capturePostHog("checkout_opened", { tier: tierValue, provider: "dodo" });
+        track("checkout_opened", { tier: tierValue, provider: "dodo" });
         setDodoCheckoutUrl(orderData.checkout_url);
         pollDodoVerify(0);
         return;
@@ -455,7 +489,7 @@ export default function EnrichmentPage() {
               }),
             });
             setPaying(false);
-            onPaymentSuccess();
+            onPaymentSuccess(response.razorpay_order_id);
           } catch (err: any) {
             setError(describeError(err, "Payment verification failed"));
             setPaying(false);
@@ -472,7 +506,7 @@ export default function EnrichmentPage() {
         setError(response.error?.description || "Payment failed");
         setPaying(false);
       });
-      capturePostHog("checkout_opened", { tier: tierValue, provider: "razorpay" });
+      track("checkout_opened", { tier: tierValue, provider: "razorpay" });
       rzp.open();
     } catch (err: any) {
       setError(describeError(err, "Failed to create payment order"));

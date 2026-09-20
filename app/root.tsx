@@ -15,7 +15,9 @@ import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
 import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
 import { capturePostHog, identifyPostHogUser, initPostHog, registerPostHogProps } from "./lib/posthog";
-import { initMetaPixel, trackMeta, trackMetaPageView } from "./lib/meta-pixel";
+import { initMetaPixel, trackMetaPageView } from "./lib/meta-pixel";
+import { track } from "./lib/analytics";
+import { captureAttribution, flushAttribution } from "./lib/attribution";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
 import "./app.css";
@@ -166,10 +168,10 @@ function MixpanelInit() {
           const ageMs = Date.now() - new Date(u.createdAt).getTime();
           const key = `ph_signed_up_${u.id}`;
           if (ageMs >= 0 && ageMs < 10 * 60 * 1000 && !localStorage.getItem(key)) {
-            capturePostHog("signed_up", { email: u.email, name: u.name });
-            // Meta optimises ad delivery against this event, so it must fire exactly
-            // once per real account. The same recency + localStorage guard applies.
-            trackMeta("CompleteRegistration");
+            // track() maps signed_up -> Meta CompleteRegistration. Meta optimises
+            // delivery against it, so it must fire exactly once per real account;
+            // the recency + localStorage guard above is what guarantees that.
+            track("signed_up", { email: u.email, name: u.name });
             localStorage.setItem(key, "1");
           }
         }
@@ -280,6 +282,22 @@ export default function App() {
   useEffect(() => {
     suppressThirdPartyWarnings();
   }, []);
+
+  // Hold the ad click that brought this visitor in, before anything navigates
+  // away and loses the query string.
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+
+  // Write it against the user as soon as a session exists. This runs on every
+  // load rather than at signup on purpose: Google sign-in leaves the site for
+  // the OAuth round trip, so there is no signup callback to hang it on. The
+  // flush is a no-op once it has succeeded.
+  const { data: attributionSession } = authClient.useSession();
+  const attributionUserId = (attributionSession as any)?.user?.id as string | undefined;
+  useEffect(() => {
+    if (attributionUserId) flushAttribution();
+  }, [attributionUserId]);
 
   const { isSenseiHost } = useLoaderData<typeof loader>();
   const location = useLocation();
