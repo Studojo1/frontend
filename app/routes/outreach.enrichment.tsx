@@ -872,7 +872,7 @@ export default function EnrichmentPage() {
           <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden" style={{ width: "min(480px, 95vw)", height: "min(640px, 90vh)" }}>
             <button
               onClick={() => { capturePostHog("checkout_abandoned", { tier: selectedTier, provider: "dodo" }); closeDodoModal(); setPaying(false); }}
-              className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold"
+              className="absolute top-3 right-3 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold"
             >
               &times;
             </button>

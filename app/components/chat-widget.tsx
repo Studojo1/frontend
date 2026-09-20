@@ -215,7 +215,12 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Chat bubble — draggable. Bottom-LEFT sat on top of left-aligned content:
+      {/* z-40, below the z-50 modals across the app — the Dodo checkout iframe on
+          /outreach/enrichment is one of them, and a draggable bubble sharing a
+          layer with a live payment sheet is settled by paint order. The open
+          panel below stays at z-50 so it is not buried while someone types in it.
+
+          Chat bubble — draggable. Bottom-LEFT sat on top of left-aligned content:
           measured at 390x844 it covered the "Join the Dojo" submit button on
           /outreach/orders and the footer links on the campaign dashboard. Page
           content is left-aligned, so on mobile the right corner is the empty one;
@@ -226,7 +231,7 @@ export function ChatWidget() {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         style={{ ...(pos ? { left: pos.x, top: pos.y, bottom: "auto", right: "auto" } : {}), touchAction: "none" }}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing md:left-6 md:right-auto"
+        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing md:left-6 md:right-auto"
         aria-label={open ? "Close chat" : "Open chat"}
       >
         {/* Unread admin-reply badge — shows count from the background poll. */}
