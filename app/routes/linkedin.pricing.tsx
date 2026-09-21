@@ -208,7 +208,7 @@ export default function LinkedInPricing() {
                   value={coupon}
                   onChange={(e) => { setCoupon(e.target.value); setCouponError(""); }}
                   placeholder="Enter code"
-                  className="flex-1 border-2 border-studojo-ink/20 rounded-xl px-3 py-2 text-sm font-satoshi"
+                  className="flex-1 border-2 border-studojo-ink/20 rounded-xl px-3 py-2 text-base font-satoshi"
                 />
                 <button
                   onClick={validateCoupon}

@@ -817,7 +817,7 @@ export default function PhonePartnersDashboard() {
                 value={keyLabel}
                 onChange={(e) => setKeyLabel(e.target.value)}
                 placeholder="Key label (optional)"
-                className="flex-1 rounded-xl border-2 border-neutral-300 px-4 py-2.5 text-sm outline-none focus:border-neutral-900"
+                className="flex-1 rounded-xl border-2 border-neutral-300 px-4 py-2.5 text-base outline-none focus:border-neutral-900"
               />
               <button
                 onClick={handleCreateKey}

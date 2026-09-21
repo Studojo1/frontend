@@ -557,7 +557,7 @@ export default function AIRiskPage() {
                       value={linkedinUrl}
                       onChange={(e) => handleLinkedInUrlChange(e.target.value)}
                       placeholder="linkedin.com/in/your-username"
-                      className="w-full h-12 pl-10 pr-4 rounded-xl border-2 border-studojo-ink text-studojo-ink font-satoshi text-sm bg-white focus:outline-none focus:ring-4 focus:ring-studojo-purple/20 placeholder:text-studojo-muted/60"
+                      className="w-full h-12 pl-10 pr-4 rounded-xl border-2 border-studojo-ink text-studojo-ink font-satoshi text-base bg-white focus:outline-none focus:ring-4 focus:ring-studojo-purple/20 placeholder:text-studojo-muted/60"
                     />
                   </div>
                   {linkedinUsername && (
