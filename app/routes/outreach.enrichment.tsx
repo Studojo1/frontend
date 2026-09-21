@@ -257,6 +257,15 @@ export default function EnrichmentPage() {
   const closeDodoModal = () => {
     setDodoCheckoutUrl(null);
     dodoPollingRef.current = false;
+    // This checkout is resolved one way or another, so drop the recovery
+    // breadcrumb. Leaving it would send the next visit to /payment-success
+    // chasing a session that is already settled.
+    try {
+      localStorage.removeItem("dodo_session_id");
+      localStorage.removeItem("dodo_pending_job_type");
+    } catch {
+      // Nothing to clean up if storage is unavailable.
+    }
   };
 
   // After payment succeeds, advance order and navigate to campaign setup.
@@ -465,6 +474,18 @@ export default function EnrichmentPage() {
         dodoSessionRef.current = orderData.session_id;
         dodoTierRef.current = selectedTier;
         dodoPollingRef.current = true;
+        // The verification below lives in page state, so a phone that locks or
+        // switches apps during checkout loses it and the order never advances
+        // even though the payment went through. /payment-success recovers from
+        // these two keys, and the other Dodo caller (lib/payments.ts) already
+        // writes them -- this path kept the session in a ref that dies with the
+        // tab. Leave the same breadcrumb so a returning user can be picked up.
+        try {
+          localStorage.setItem("dodo_session_id", orderData.session_id || "");
+          localStorage.setItem("dodo_pending_job_type", "outreach");
+        } catch {
+          // Private mode: the in-page poll below is still the happy path.
+        }
         track("checkout_opened", { tier: tierValue, provider: "dodo" });
         setDodoCheckoutUrl(orderData.checkout_url);
         pollDodoVerify(0);
@@ -851,7 +872,7 @@ export default function EnrichmentPage() {
           <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden" style={{ width: "min(480px, 95vw)", height: "min(640px, 90vh)" }}>
             <button
               onClick={() => { capturePostHog("checkout_abandoned", { tier: selectedTier, provider: "dodo" }); closeDodoModal(); setPaying(false); }}
-              className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold"
+              className="absolute top-3 right-3 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold"
             >
               &times;
             </button>
