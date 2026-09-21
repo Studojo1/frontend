@@ -389,6 +389,21 @@ export function Header() {
               );
             })}
             <li>
+              {/* The chat used to be a bubble floating over the page, where it
+                  covered form fields and submit buttons on small screens. On
+                  mobile it lives here instead; the desktop launcher is unchanged. */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  window.dispatchEvent(new CustomEvent("studojo:open-chat"));
+                }}
+                className="block w-full rounded-lg min-h-11 py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+              >
+                Help &amp; support
+              </button>
+            </li>
+            <li>
               <Link
                 to="/blog"
                 onClick={() => setMobileOpen(false)}
@@ -452,7 +467,7 @@ export function Header() {
                         setMobileOpen(false);
                         handleSignOut();
                       }}
-                      className="block w-full rounded-lg py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                      className="block w-full rounded-lg min-h-11 py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >
                       Sign out
                     </button>

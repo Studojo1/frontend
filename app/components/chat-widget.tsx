@@ -128,6 +128,15 @@ export function ChatWidget() {
       window.removeEventListener("studojo:open-ticket", handler as EventListener);
   }, []);
 
+  // Plain "open the chat" with no particular ticket, so the header menu can be
+  // the way in on mobile instead of a bubble floating over the page:
+  //   window.dispatchEvent(new CustomEvent("studojo:open-chat"))
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("studojo:open-chat", handler);
+    return () => window.removeEventListener("studojo:open-chat", handler);
+  }, []);
+
   // Drag state — null means use default CSS bottom-left position
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const dragging = useRef(false);
@@ -231,7 +240,7 @@ export function ChatWidget() {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         style={{ ...(pos ? { left: pos.x, top: pos.y, bottom: "auto", right: "auto" } : {}), touchAction: "none" }}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing md:left-6 md:right-auto"
+        className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 md:flex cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing md:left-6 md:right-auto"
         aria-label={open ? "Close chat" : "Open chat"}
       >
         {/* Unread admin-reply badge — shows count from the background poll. */}
@@ -474,7 +483,7 @@ export function ChatWidget() {
                 placeholder="Type your message..."
                 disabled={loading}
                 maxLength={500}
-                className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-['Satoshi'] text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400 disabled:opacity-60"
+                className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-['Satoshi'] text-base text-neutral-900 placeholder:text-neutral-400 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400 disabled:opacity-60"
               />
               <button
                 type="submit"

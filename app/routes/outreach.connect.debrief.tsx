@@ -134,7 +134,7 @@ export default function DebriefPage() {
                 value={bestProject}
                 onChange={(e) => setBestProject(e.target.value)}
                 placeholder="Built a real-time inventory dashboard for 200+ SKUs that cut stockouts by 40%…"
-                className="w-full resize-none rounded-xl border-2 border-studojo-ink/30 bg-studojo-surface-muted px-3 py-2.5 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted/50 focus:border-studojo-purple focus:outline-none transition-colors"
+                className="w-full resize-none rounded-xl border-2 border-studojo-ink/30 bg-studojo-surface-muted px-3 py-2.5 font-satoshi text-base text-studojo-ink placeholder:text-studojo-muted/50 focus:border-studojo-purple focus:outline-none transition-colors"
               />
             </div>
 
@@ -156,7 +156,7 @@ export default function DebriefPage() {
                 value={outcome}
                 onChange={(e) => setOutcome(e.target.value)}
                 placeholder="Shipped it to 200 users, or: built the whole ingestion pipeline end to end…"
-                className="w-full resize-none rounded-xl border-2 border-studojo-ink/30 bg-studojo-surface-muted px-3 py-2.5 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted/50 focus:border-studojo-purple focus:outline-none transition-colors"
+                className="w-full resize-none rounded-xl border-2 border-studojo-ink/30 bg-studojo-surface-muted px-3 py-2.5 font-satoshi text-base text-studojo-ink placeholder:text-studojo-muted/50 focus:border-studojo-purple focus:outline-none transition-colors"
               />
             </div>
 
@@ -178,7 +178,7 @@ export default function DebriefPage() {
                 value={workPrinciple}
                 onChange={(e) => setWorkPrinciple(e.target.value)}
                 placeholder="I batched the reviews by clause type instead of by vendor, so one read covered thirty agreements…"
-                className="w-full resize-none rounded-xl border-2 border-studojo-ink/30 bg-studojo-surface-muted px-3 py-2.5 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted/50 focus:border-studojo-purple focus:outline-none transition-colors"
+                className="w-full resize-none rounded-xl border-2 border-studojo-ink/30 bg-studojo-surface-muted px-3 py-2.5 font-satoshi text-base text-studojo-ink placeholder:text-studojo-muted/50 focus:border-studojo-purple focus:outline-none transition-colors"
               />
             </div>
 

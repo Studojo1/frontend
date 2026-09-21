@@ -531,7 +531,7 @@ function AddLeadsModal({ campaignId, onClose, onSave }: { campaignId: string; on
         </p>
         <pre className="bg-gray-50 rounded-xl px-4 py-3 text-xs text-gray-500 font-mono overflow-auto">{EXAMPLE}</pre>
         <textarea
-          className={`${INPUT} resize-none font-mono text-xs`}
+          className={`${INPUT} resize-none font-mono text-base`}
           rows={8}
           placeholder="Paste JSON here…"
           value={raw}

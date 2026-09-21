@@ -7,7 +7,6 @@ import {
   CollegesBanner,
   FeaturedProductCard,
   Footer,
-  FreeToolsSection,
   Header,
   Hero,
   ProblemSolution,
@@ -225,9 +224,6 @@ export default function Home() {
         </motion.div>
         <motion.div variants={sectionVariants}>
           <FeaturedProductCard />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <FreeToolsSection />
         </motion.div>
         <motion.div variants={sectionVariants}>
           <BackedBySection />
