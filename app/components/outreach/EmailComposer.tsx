@@ -300,7 +300,7 @@ function StyleProfileSetup({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Alex Johnson"
-                  className="w-full h-10 px-3 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple"
+                  className="w-full h-10 px-3 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple"
                 />
               </div>
               <div>
@@ -311,7 +311,7 @@ function StyleProfileSetup({
                   value={university}
                   onChange={(e) => setUniversity(e.target.value)}
                   placeholder="e.g. University of Delhi"
-                  className="w-full h-10 px-3 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple"
+                  className="w-full h-10 px-3 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple"
                 />
               </div>
             </div>
@@ -348,7 +348,7 @@ function StyleProfileSetup({
                 value={topCredential}
                 onChange={(e) => setTopCredential(e.target.value)}
                 placeholder="e.g. Built a newsletter to 3,000 subscribers in 4 months"
-                className="w-full h-10 px-3 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple"
+                className="w-full h-10 px-3 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple"
               />
               <p className="text-[11px] text-studojo-muted font-satoshi mt-1">
                 This gets woven into emails where it fits. Be specific.
@@ -387,7 +387,7 @@ function StyleProfileSetup({
                 value={targetRoles}
                 onChange={(e) => setTargetRoles(e.target.value)}
                 placeholder="e.g. Marketing Intern, Growth, SaaS startups, Fintech"
-                className="w-full h-10 px-3 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple"
+                className="w-full h-10 px-3 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple"
               />
             </div>
 
@@ -406,7 +406,7 @@ function StyleProfileSetup({
                   onChange={(e) => setSampleEmail(e.target.value)}
                   placeholder="Paste any cold email you've written before..."
                   rows={5}
-                  className="mt-2 w-full px-3 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
+                  className="mt-2 w-full px-3 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
                 />
               )}
             </div>
@@ -516,7 +516,7 @@ function RecipientSetup({
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
                 placeholder="Sarah Chen"
-                className="w-full h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+                className="w-full h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
               />
             </div>
             <div>
@@ -527,7 +527,7 @@ function RecipientSetup({
                 value={recipientTitle}
                 onChange={(e) => setRecipientTitle(e.target.value)}
                 placeholder="Head of Marketing"
-                className="w-full h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+                className="w-full h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
               />
             </div>
             <div>
@@ -538,7 +538,7 @@ function RecipientSetup({
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
                 placeholder="Notion, Stripe..."
-                className="w-full h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+                className="w-full h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
               />
             </div>
           </div>
@@ -552,7 +552,7 @@ function RecipientSetup({
               value={specificHook}
               onChange={(e) => setSpecificHook(e.target.value)}
               placeholder={`e.g. "They wrote about growing ${company || "their"} community on LinkedIn last week" or "just raised a Series A"`}
-              className="w-full h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+              className="w-full h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
             />
             <p className="text-[11px] text-studojo-muted font-satoshi mt-1">
               This is the single biggest driver of reply rates. Something specific beats something generic every time.
@@ -1031,7 +1031,7 @@ function ComposePanel({
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
                       placeholder="Subject line..."
-                      className="w-full text-sm font-bold font-satoshi text-studojo-ink bg-transparent border-none outline-none focus:outline-none placeholder:font-normal placeholder:text-studojo-muted/40"
+                      className="w-full text-base font-bold font-satoshi text-studojo-ink bg-transparent border-none outline-none focus:outline-none placeholder:font-normal placeholder:text-studojo-muted/40"
                     />
                   </div>
 
@@ -1062,7 +1062,7 @@ function ComposePanel({
                       value={body}
                       onChange={(e) => setBody(e.target.value)}
                       placeholder="Your email body will appear here after generation..."
-                      className="w-full text-sm font-satoshi text-studojo-ink bg-transparent border-none outline-none focus:outline-none resize-none leading-relaxed placeholder:text-studojo-muted/40 overflow-hidden"
+                      className="w-full text-base font-satoshi text-studojo-ink bg-transparent border-none outline-none focus:outline-none resize-none leading-relaxed placeholder:text-studojo-muted/40 overflow-hidden"
                       rows={1}
                     />
                   </div>
@@ -1206,7 +1206,7 @@ function ComposePanel({
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendChatMessage()}
               placeholder="Tell me what to change..."
               disabled={chatLoading}
-              className="flex-1 h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-xs font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple disabled:opacity-50"
+              className="flex-1 h-9 px-3 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple disabled:opacity-50"
             />
             <button
               onClick={() => sendChatMessage()}

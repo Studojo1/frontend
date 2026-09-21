@@ -40,9 +40,13 @@ const OFFENDERS = [
 // Real JSX puts <input, its type and its className on separate lines, so this
 // one cannot be a line scan -- matching per line is why an earlier version of
 // this rule never fired. Match the whole element across newlines instead.
-const INPUT_RE = /<input\b[^>]*?type=["'](?:email|text|password|tel|number|search|url)["'][^>]*?\btext-(?:xs|sm)\b[^>]*>|<input\b[^>]*?\btext-(?:xs|sm)\b[^>]*?type=["'](?:email|text|password|tel|number|search|url)["'][^>]*>/gs;
+// <textarea> and <select> zoom exactly like <input>, and a textarea is where
+// someone types a message -- the case this guard originally missed, found only
+// when a user reported the screen zooming while they typed. An <input> with no
+// type attribute defaults to text, so it counts too.
+const INPUT_RE = /<(?:textarea|select)\b[^>]*?\btext-(?:xs|sm)\b[^>]*>|<input\b(?![^>]*type=["'](?:checkbox|radio|hidden|submit|button|range|color|file)["'])[^>]*?\btext-(?:xs|sm)\b[^>]*>/gs;
 const INPUT_WHY =
-  "input under 16px — iOS Safari force-zooms on focus and never zooms back";
+  "text field under 16px — iOS Safari force-zooms on focus and never zooms back";
 
 let bad = 0, scanned = 0;
 for (const f of files) {

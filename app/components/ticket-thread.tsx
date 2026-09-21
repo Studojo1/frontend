@@ -220,7 +220,7 @@ export function TicketThread({
               }}
               rows={2}
               placeholder="Add an update..."
-              className="flex-1 rounded-xl border-2 border-neutral-900 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none resize-none"
+              className="flex-1 rounded-xl border-2 border-neutral-900 bg-white px-3 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none resize-none"
             />
             <button
               type="button"

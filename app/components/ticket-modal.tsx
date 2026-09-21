@@ -266,7 +266,7 @@ export function TicketModal({
               rows={5}
               placeholder="Be as specific as you can. Steps to reproduce, what you tried, what you expected."
               maxLength={5000}
-              className="w-full rounded-lg border-2 border-neutral-900 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none resize-none"
+              className="w-full rounded-lg border-2 border-neutral-900 bg-white px-3 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none resize-none"
             />
             <div className="flex justify-between mt-1">
               <span className="text-[10px] text-neutral-400">
