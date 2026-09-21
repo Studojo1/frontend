@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import {
   FiShield, FiCheckCircle, FiMail, FiZap, FiClock, FiSend, FiAlertCircle,
 } from "react-icons/fi";
@@ -26,18 +26,26 @@ export default function CampaignLaunchingPage() {
   const [currentStage, setCurrentStage] = useState(0);
   const [error, setError] = useState("");
   const launched = useRef(false);
+  const location = useLocation();
 
   useEffect(() => {
     if (authLoading || !candidateId || !emailAccountId || launched.current) return;
     launched.current = true;
 
-    const launchData = sessionStorage.getItem("campaign_launch");
-    if (!launchData) {
-      setError("No campaign configuration found. Please go back to setup.");
-      return;
+    // Setup passes this in router state. sessionStorage is the backup for a
+    // reload here, and mobile tab eviction can take both -- in which case every
+    // field below has the same default setup itself starts with, so fall through
+    // rather than stranding someone who has already paid.
+    let config: any = (location.state as any)?.launchConfig ?? null;
+    if (!config) {
+      try {
+        const stored = sessionStorage.getItem("campaign_launch");
+        if (stored) config = JSON.parse(stored);
+      } catch {
+        // Unreadable or malformed storage; defaults below cover it.
+      }
     }
-
-    const { campaignName, userTimezone, selectedStyles, selectedTemplate } = JSON.parse(launchData);
+    const { campaignName, userTimezone, selectedStyles, selectedTemplate } = config ?? {};
 
     const timers: ReturnType<typeof setTimeout>[] = [];
     let elapsed = 0;

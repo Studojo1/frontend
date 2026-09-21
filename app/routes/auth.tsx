@@ -91,6 +91,22 @@ export default function Auth() {
   const lastMethod = authClient.getLastUsedLoginMethod();
   const isLastGoogle = authClient.isLastUsedLoginMethod("google");
   const isLastEmail = authClient.isLastUsedLoginMethod("email");
+
+  // On a 390px screen the signup form runs to 1.3 screens, so Sign Up sits below
+  // the fold behind four fields and two consent checkboxes. 2,963 of the 3,510
+  // users we lost arrived via Google, so lead with the buttons and let the email
+  // form be a deliberate choice. Anyone who last signed in with email gets it
+  // open, and so does anyone we bounced back here with an error to fix.
+  const [emailFormOpen, setEmailFormOpen] = useState(false);
+  const showEmailForm = emailFormOpen || !!error;
+
+  // isLastUsedLoginMethod reads a cookie, so it is false during SSR and only
+  // becomes true once we are on the client. Open the form in an effect rather
+  // than in useState's initialiser, which would capture the server's answer and
+  // never revisit it.
+  useEffect(() => {
+    if (isLastEmail) setEmailFormOpen(true);
+  }, [isLastEmail]);
   const passkeyAttemptedRef = useRef(false);
 
   // Get redirect URL from query params, validate it's same-origin, default to "/"
@@ -438,7 +454,7 @@ export default function Auth() {
                       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                     </svg>
-                    Sign in with Google
+                    Continue with Google
                   </button>
                   {mode === "signin" && (
                     <button
@@ -457,12 +473,23 @@ export default function Auth() {
                     <div className="w-full border-t border-neutral-200" />
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="bg-white px-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500">
-                      or
-                    </span>
+                    {showEmailForm ? (
+                      <span className="bg-white px-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500">
+                        or
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setEmailFormOpen(true)}
+                        className="inline-flex min-h-11 items-center bg-white px-3 font-['Satoshi'] text-sm font-medium leading-5 text-neutral-500 underline underline-offset-2 hover:text-neutral-900"
+                      >
+                        or use email instead
+                      </button>
+                    )}
                   </div>
                 </div>
 
+                <div className={showEmailForm ? "contents" : "hidden"}>
                 <div>
                   <label htmlFor="email" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
                     Email
@@ -517,12 +544,12 @@ export default function Auth() {
 
                 {mode === "signup" && (
                   <div className="space-y-3">
-                    <label className="flex items-start">
+                    <label className="flex min-h-11 items-start py-2">
                       <input
                         type="checkbox"
                         checked={termsAccepted}
                         onChange={(e) => setTermsAccepted(e.target.checked)}
-                        className="mt-1 h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
+                        className="mt-1 h-4 w-4 shrink-0 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
                         required
                       />
                       <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
@@ -532,12 +559,12 @@ export default function Auth() {
                         </Link>
                       </span>
                     </label>
-                    <label className="flex items-start">
+                    <label className="flex min-h-11 items-start py-2">
                       <input
                         type="checkbox"
                         checked={privacyAccepted}
                         onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                        className="mt-1 h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
+                        className="mt-1 h-4 w-4 shrink-0 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
                         required
                       />
                       <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
@@ -557,6 +584,7 @@ export default function Auth() {
                 >
                   {submitting ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
                 </button>
+                </div>
               </form>
 
               {mode === "signin" && (

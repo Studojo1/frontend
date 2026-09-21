@@ -253,6 +253,10 @@ export default function DiscoveryPage() {
   const [countVal, setCountVal] = useState(0);
   const [barPct, setBarPct] = useState(0);
   const [headIdx, setHeadIdx] = useState(0);
+  // Bumped when the tab becomes visible again, to re-arm the paused animation
+  // timers below. animStartRef keeps the elapsed time across those re-arms.
+  const [tick, setTick] = useState(0);
+  const animStartRef = useRef<number | null>(null);
   const [scanChecked, setScanChecked] = useState(0);
   const [scanRows, setScanRows] = useState<{ src: string; n: number; key: number }[]>([]);
   const [matchOff, setMatchOff] = useState(0);
@@ -293,12 +297,34 @@ export default function DiscoveryPage() {
       setTimeout(() => navigate("/outreach/leads/results"), 900);
     };
 
-    outreachFetch("/discovery/search", {
-      method: "POST",
-      body: JSON.stringify({ candidate_id: candidateId }),
-      timeout: 300_000,
-      maxRetries: 1,
-    })
+    // A mobile browser can evict this tab during the 5-minute search below. When
+    // the user comes back, the work the server already did is still there, so
+    // ask before paying for it again -- scoring-ready is keyed on candidate_id
+    // alone, with no job or session handle, so a fresh tab can read it.
+    const resumeIfAlreadyDone = async (): Promise<boolean> => {
+      try {
+        const data = await outreachFetch<any>(`/discovery/scoring-ready/${candidateId}`, { method: "GET" });
+        if (data?.ready && !cancelled) {
+          capturePostHog("discovery_resumed", { candidate_id: candidateId });
+          finish(data?.with_bullets ?? data?.count ?? undefined);
+          return true;
+        }
+      } catch {
+        // Never seen this candidate, or the check failed: fall through and run
+        // discovery normally.
+      }
+      return false;
+    };
+
+    resumeIfAlreadyDone().then((resumed) => {
+      if (resumed || cancelled) return;
+
+      outreachFetch("/discovery/search", {
+        method: "POST",
+        body: JSON.stringify({ candidate_id: candidateId }),
+        timeout: 300_000,
+        maxRetries: 1,
+      })
       .then(() => {
         const SCORING_TIMEOUT_MS = 6 * 60 * 1000;
         const started = Date.now();
@@ -326,6 +352,7 @@ export default function DiscoveryPage() {
           setError(err?.body?.detail || err.message || "Lead discovery failed");
         }
       });
+    });
 
     return () => {
       cancelled = true;
@@ -336,7 +363,11 @@ export default function DiscoveryPage() {
   // ── Visual animation loop ──
   useEffect(() => {
     if (!candidateId || authLoading) return;
-    const start = Date.now();
+    // Held in a ref, not a local: this effect re-runs when the tab comes back to
+    // re-arm the timers, and a fresh Date.now() would snap the progress bar back
+    // to zero in front of someone who has been waiting.
+    if (animStartRef.current === null) animStartRef.current = Date.now();
+    const start = animStartRef.current;
 
     const step = setInterval(() => {
       const t = Date.now() - start;
@@ -360,8 +391,31 @@ export default function DiscoveryPage() {
 
     const match = setInterval(() => setMatchOff((o) => o + 1), 1900);
 
-    return () => { clearInterval(step); clearInterval(head); clearInterval(scan); clearInterval(match); };
-  }, [candidateId, authLoading, TARGET]);
+    // These four are decoration for a wait that runs up to five minutes: the
+    // fastest sets four pieces of state every 450ms, so a full run is roughly
+    // 2,600 re-renders. Nobody is watching a progress bar in a backgrounded tab,
+    // but the phone still pays for it, so stop them while the page is hidden and
+    // start them again on return. The scoring poll above is deliberately left
+    // running -- that one is the actual work.
+    const timers = [step, head, scan, match];
+    let paused = false;
+    const onVisibility = () => {
+      if (document.hidden && !paused) {
+        paused = true;
+        timers.forEach(clearInterval);
+      } else if (!document.hidden && paused) {
+        paused = false;
+        // Re-arm by remounting the effect; cheaper than duplicating each timer.
+        setTick((t) => t + 1);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      timers.forEach(clearInterval);
+    };
+  }, [candidateId, authLoading, TARGET, tick]);
 
   if (!candidateId) {
     navigate("/outreach/onboarding/upload");
