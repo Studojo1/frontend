@@ -254,7 +254,7 @@ export default function ChatPage() {
           placeholder={currentResponse?.input_placeholder || "Type your answer..."}
           onKeyDown={(e: any) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleTextSubmit())}
           rows={2}
-          className="flex-1 px-4 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
+          className="flex-1 px-4 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
         />
         <button
           onClick={handleTextSubmit}

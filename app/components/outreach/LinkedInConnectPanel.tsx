@@ -256,7 +256,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="LinkedIn email"
-          className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-sm font-satoshi"
+          className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-base font-satoshi"
         />
         <div className="relative">
           <input
@@ -265,7 +265,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="LinkedIn password"
-            className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-sm font-satoshi pr-12"
+            className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 text-base font-satoshi pr-12"
             onKeyDown={(e) => e.key === "Enter" && handleConnect()}
           />
           <button

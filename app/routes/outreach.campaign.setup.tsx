@@ -234,7 +234,7 @@ export default function CampaignSetupPage() {
               value={campaignName}
               onChange={(e) => setCampaignName(e.target.value)}
               placeholder="My Outreach Campaign"
-              className="w-full h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+              className="w-full h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
             />
           </div>
 
@@ -339,7 +339,7 @@ export default function CampaignSetupPage() {
                           value={overrides[email.index] || ""}
                           onChange={(e) => setOverrides((prev) => ({ ...prev, [email.index]: e.target.value }))}
                           placeholder={email.original_email}
-                          className="flex-1 h-8 px-3 rounded-lg border-2 border-studojo-ink/20 text-xs font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+                          className="flex-1 h-8 px-3 rounded-lg border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
                         />
                       </div>
                     </div>

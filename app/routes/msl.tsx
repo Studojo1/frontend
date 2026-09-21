@@ -332,12 +332,12 @@ function RangeFilter({ filter }: { filter: Stats["filter"] }) {
         <label className="flex flex-col gap-1 min-w-[140px]">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">From</span>
           <input name="start" type="date" defaultValue={filter.start || ""}
-            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-base text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
         </label>
         <label className="flex flex-col gap-1 min-w-[140px]">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">To</span>
           <input name="end" type="date" defaultValue={filter.end || ""}
-            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-base text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
         </label>
         <label className="flex flex-col gap-1 w-28">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">FX (₹/USD)</span>

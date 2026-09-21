@@ -47,7 +47,7 @@ export function TemplateEditor({ template, isSelected, onSelect, onUpdate }: Tem
             <input
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-studojo-ink/20 rounded-xl text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+              className="w-full px-4 py-2 border-2 border-studojo-ink/20 rounded-xl text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
             />
           </div>
           <div>
@@ -56,7 +56,7 @@ export function TemplateEditor({ template, isSelected, onSelect, onUpdate }: Tem
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={6}
-              className="w-full px-4 py-2 border-2 border-studojo-ink/20 rounded-xl text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
+              className="w-full px-4 py-2 border-2 border-studojo-ink/20 rounded-xl text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
             />
           </div>
           <div className="flex gap-2">

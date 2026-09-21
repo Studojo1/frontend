@@ -813,7 +813,7 @@ export default function EnrichmentPage() {
               value={couponCode}
               onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null); setCouponError(""); }}
               placeholder="Enter code"
-              className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
+              className="flex-1 h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
             />
             <button
               onClick={() => void validateCoupon()}
