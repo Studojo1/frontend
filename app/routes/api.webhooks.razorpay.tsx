@@ -40,6 +40,10 @@ export async function action({ request }: Route.ActionArgs) {
   switch (event.event) {
     case "payment.captured":
     case "subscription.activated":
+      // Webinar tickets ride the same webhook but are not AutoApply purchases:
+      // they carry no userId, and handlePaymentSuccess would log an error and
+      // drop them. The registration_id note tells the two apart.
+      if (await handleWebinarPayment(event)) break;
       await handlePaymentSuccess(event);
       break;
     case "subscription.cancelled":
@@ -54,6 +58,39 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Fulfil a webinar ticket, if this payment is one.
+ *
+ * Returns true when the event was a webinar payment and has been dealt with, so
+ * the caller knows not to run it through the AutoApply path as well.
+ *
+ * This is the authoritative fulfilment path. The browser may never come back
+ * after paying — a closed tab, a dead battery, a UPI app that does not return —
+ * and the ticket must still be valid. Failures here are swallowed rather than
+ * rethrown so a broken email never turns into a 500 that makes Razorpay retry
+ * a payment that has already been recorded.
+ */
+async function handleWebinarPayment(event: RazorpayEvent): Promise<boolean> {
+  const payload: Partial<RazorpayEntity> = event.payload?.payment?.entity ?? {};
+  const registrationId = payload.notes?.registration_id;
+  if (!registrationId) return false;
+
+  const orderId = typeof payload.order_id === "string" ? payload.order_id : "";
+  const paymentId = typeof payload.id === "string" ? payload.id : "";
+  if (!orderId || !paymentId) {
+    console.error("[razorpay] Webinar payment missing order/payment id");
+    return true; // It was ours; there is just nothing we can do with it.
+  }
+
+  try {
+    const { fulfilWebinarPayment } = await import("~/lib/webinar-payment.server");
+    await fulfilWebinarPayment({ orderId, paymentId, source: "webhook" });
+  } catch (err) {
+    console.error("[razorpay] Failed to fulfil webinar payment:", err);
+  }
+  return true;
+}
 
 async function handlePaymentSuccess(event: RazorpayEvent) {
   const payload = event.payload?.payment?.entity ?? event.payload?.subscription?.entity ?? {};
