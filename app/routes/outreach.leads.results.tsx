@@ -100,8 +100,16 @@ export default function ResultsPage() {
     let pollTimer: ReturnType<typeof setTimeout> | undefined;
     const controller = new AbortController();
 
+    // The full lead set, as last seen. Polls only fetch scores and merge them in.
+    let current: Lead[] = [];
+
     const fetchLeads = (isInitial: boolean, pollCount: number, lastWithBullets: number) => {
-      outreachFetch<{ leads: Lead[]; total?: number } | Lead[]>(`/candidate/${candidateId}/leads`, {
+      // Only justifications change while polling, so a poll asks for just
+      // those (fields=justification) instead of re-downloading every lead.
+      const path = isInitial
+        ? `/candidate/${candidateId}/leads`
+        : `/candidate/${candidateId}/leads?fields=justification`;
+      outreachFetch<{ leads: Lead[]; total?: number } | Lead[]>(path, {
         signal: controller.signal,
         // A poll is its own retry 15s later; stacking three more on top of it
         // only multiplies the work on a server that is already struggling.
@@ -109,7 +117,15 @@ export default function ResultsPage() {
       })
         .then((data) => {
           if (cancelled) return;
-          const list = Array.isArray(data) ? data : data.leads || [];
+          const rows = Array.isArray(data) ? data : data.leads || [];
+          let list: Lead[];
+          if (isInitial) {
+            list = rows;
+          } else {
+            const scores = new Map(rows.map((r) => [r.id, r.score]));
+            list = current.map((l) => (scores.has(l.id) ? { ...l, score: scores.get(l.id) ?? l.score } : l));
+          }
+          current = list;
           setLeads(list);
           setRefreshFailed(false);
           if (isInitial) {

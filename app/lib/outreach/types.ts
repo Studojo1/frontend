@@ -70,14 +70,11 @@ export interface LeadJustification {
   signal_strength: "high" | "medium" | "low";
 }
 
+// The leads endpoint returns only these two. The per-dimension relevance ints
+// and the per-candidate explanation string were dropped: nothing rendered them,
+// and they were repeated across every one of ~800 leads on every poll.
 export interface LeadScore {
   overall: number;
-  title_relevance: number;
-  department_relevance: number;
-  industry_relevance: number;
-  seniority_relevance: number;
-  location_relevance: number;
-  explanation: string | null;
   justification: LeadJustification | null;
 }
 
