@@ -5,6 +5,7 @@ import { WEBINAR } from "~/lib/webinar-event";
 import {
   WEBINAR_PRICE_PAISE,
   WEBINAR_PRICE_WITH_REF_PAISE,
+  WEBINAR_REF_DISCOUNT_PERCENT,
   formatPaise,
 } from "~/lib/webinar-pricing";
 import { loadRazorpayScript } from "~/lib/payments";
@@ -293,20 +294,19 @@ export default function Webinar() {
           {/* When and how much — the two things people scan for before reading. */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-sm font-bold text-neutral-900 font-['Satoshi']">
-              🗓️ {WEBINAR.dateLabel}
+              {WEBINAR.dateLabel}
             </span>
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-sm font-bold text-neutral-900 font-['Satoshi']">
-              ⏰ {WEBINAR.timeLabel}
+              {WEBINAR.timeLabel}
             </span>
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-100 border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-sm font-bold text-neutral-900 font-['Satoshi']">
-              🎟️ {formatPaise(WEBINAR_PRICE_WITH_REF_PAISE)} with a campus ambassador code
+              {WEBINAR_REF_DISCOUNT_PERCENT}% off with a campus ambassador code
             </span>
           </div>
         </div>
 
         {done ? (
           <div className="bg-white border-2 border-neutral-900 rounded-[32px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-10 text-center">
-            <div className="text-4xl mb-3">{alreadyPaid ? "✅" : "🎉"}</div>
             <h2 className="text-2xl font-bold text-neutral-900 font-['Clash_Display']">
               {alreadyPaid ? "You already have a seat!" : "Your seat is booked!"}
             </h2>
@@ -405,7 +405,7 @@ export default function Webinar() {
               <label className={LABEL}>
                 Have a code?{" "}
                 <span className="normal-case text-neutral-400 text-xs font-['Satoshi']">
-                  (optional — saves you {formatPaise(WEBINAR_PRICE_PAISE - WEBINAR_PRICE_WITH_REF_PAISE)})
+                  (optional — saves you {WEBINAR_REF_DISCOUNT_PERCENT}%)
                 </span>
               </label>
               <input
@@ -422,9 +422,9 @@ export default function Webinar() {
               )}
               {!ref.checking && ref.valid === true && (
                 <p className="mt-2 text-sm font-semibold text-green-700 font-['Satoshi']">
-                  ✅ Code applied{ref.ambassadorFirstName ? ` — ${ref.ambassadorFirstName}` : ""}
+                  Code applied{ref.ambassadorFirstName ? ` — ${ref.ambassadorFirstName}` : ""}
                   {ref.ambassadorCollege ? ` from ${ref.ambassadorCollege}` : ""} sent you.
-                  You pay {formatPaise(WEBINAR_PRICE_WITH_REF_PAISE)} instead of {formatPaise(WEBINAR_PRICE_PAISE)}.
+                  You save {WEBINAR_REF_DISCOUNT_PERCENT}%, paying {formatPaise(WEBINAR_PRICE_WITH_REF_PAISE)} instead of {formatPaise(WEBINAR_PRICE_PAISE)}.
                 </p>
               )}
               {!ref.checking && ref.valid === false && (

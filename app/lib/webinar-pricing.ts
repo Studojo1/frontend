@@ -20,6 +20,17 @@ export const WEBINAR_PRICE_WITH_REF_PAISE = 79_00;
 export const WEBINAR_REF_DISCOUNT_PAISE =
   WEBINAR_PRICE_PAISE - WEBINAR_PRICE_WITH_REF_PAISE;
 
+/**
+ * The ambassador discount as a whole-number percentage, for display: 21.
+ *
+ * Rounded because a price pair that does not divide evenly would otherwise
+ * render as "20.9957% off". Derived from the two prices rather than written
+ * down, so changing a price cannot leave a stale percentage on the page.
+ */
+export const WEBINAR_REF_DISCOUNT_PERCENT = Math.round(
+  (WEBINAR_REF_DISCOUNT_PAISE / WEBINAR_PRICE_PAISE) * 100
+);
+
 /** The amount to charge, given whether a referral code was recognised. */
 export function webinarPricePaise(hasValidRef: boolean): number {
   return hasValidRef ? WEBINAR_PRICE_WITH_REF_PAISE : WEBINAR_PRICE_PAISE;
