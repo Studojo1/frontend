@@ -327,8 +327,20 @@ export default function ChatPage() {
           // outreachFetch already retries transient failures internally and
           // throws on a non-2xx, so awaiting it and catching the throw is the
           // whole check.
-          let payloadWritten = true;
+          // The completion guard covers the write too, not just the analytics
+          // below it. Any route back into this branch for a quiz that has
+          // already finished — a resubmit, a re-render, browser-back onto a
+          // replay — used to rebuild and rewrite the whole payload, outside the
+          // guard that exists precisely to make completion happen once.
+          const completedKey = `quiz_completed_${candidateId}`;
+          let alreadyCompleted = false;
           try {
+            alreadyCompleted =
+              typeof window !== "undefined" && localStorage.getItem(completedKey) === "1";
+          } catch {}
+
+          let payloadWritten = true;
+          if (!alreadyCompleted) try {
             await outreachFetch(`/candidate/${candidateId}/generate-payload`, {
               method: "POST",
               body: JSON.stringify({
@@ -356,9 +368,9 @@ export default function ChatPage() {
           // Fire completion side-effects ONCE per candidate. Without this guard,
           // profile_quiz_completed (and the outreach_used email) re-fired on
           // resubmits, re-renders, and browser-back revisits — logging far more
-          // "completions" than there were quiz starts.
-          const completedKey = `quiz_completed_${candidateId}`;
-          const alreadyCompleted = typeof window !== "undefined" && localStorage.getItem(completedKey);
+          // "completions" than there were quiz starts. completedKey and
+          // alreadyCompleted are read above, where they now also guard the
+          // payload write.
           if (!alreadyCompleted) {
             try { localStorage.setItem(completedKey, "1"); } catch {}
 
