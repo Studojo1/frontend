@@ -34,6 +34,14 @@ export default [
   // its own canonical tag so search engines do not treat the two as duplicates.
   route("insider", "routes/campus-ambassador.tsx", { id: "insider" }),
 
+  // ── /no-one-is-hiring serves the same page as /webinar ─────────────────
+  // The webinar is titled "How to Get a Job When No One Is Hiring", so this
+  // path reads as the event rather than as a generic word. /webinar stays live
+  // and is the canonical URL: the nine campus ambassadors are already sharing
+  // it, and a link on someone's story has to keep working. Same module, so
+  // there is one page to maintain.
+  route("no-one-is-hiring", "routes/webinar.tsx", { id: "no-one-is-hiring" }),
+
   // ── Reports (explicit to avoid nesting under reports.tsx layout) ───────
   route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),

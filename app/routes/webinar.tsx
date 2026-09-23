@@ -22,6 +22,10 @@ export function meta() {
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: WEBINAR.title },
     { name: "twitter:description", content: WEBINAR.description },
+    // The page is served at both /webinar and /no-one-is-hiring. Naming one
+    // canonical URL keeps search engines from reading the two as duplicate
+    // content, and /webinar is the one the ambassadors are already sharing.
+    { tagName: "link", rel: "canonical", href: "https://studojo.com/webinar" },
   ];
 }
 
