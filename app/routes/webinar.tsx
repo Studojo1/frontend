@@ -295,7 +295,7 @@ export default function Webinar() {
             {WEBINAR.description}
           </p>
 
-          {/* When and how much — the two things people scan for before reading. */}
+          {/* When and how much: the two things people scan for before reading. */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-sm font-bold text-neutral-900 font-['Satoshi']">
               {WEBINAR.dateLabel}
