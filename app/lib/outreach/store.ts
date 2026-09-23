@@ -29,6 +29,11 @@ interface OutreachState {
   // means a new candidate and the old transcript must not be restored onto it.
   chatCandidateId: number | null;
   setChatCandidateId: (id: number | null) => void;
+  // False until zustand has read localStorage back. Pages that decide
+  // something from persisted state must wait for this, or they decide it from
+  // the empty initial state and act on an answer that is about to change.
+  hasHydrated: boolean;
+  setHasHydrated: (v: boolean) => void;
 
   // Lead discovery
   selectedTier: 50 | 200 | 350 | 500;
@@ -84,6 +89,8 @@ export const useOutreachStore = create<OutreachState>()(
       clearChatHistory: () => set({ chatHistory: [], chatCandidateId: null }),
       chatCandidateId: null,
       setChatCandidateId: (chatCandidateId) => set({ chatCandidateId }),
+      hasHydrated: false,
+      setHasHydrated: (hasHydrated) => set({ hasHydrated }),
 
       selectedTier: 350,
       setSelectedTier: (selectedTier) => set({ selectedTier }),
@@ -132,6 +139,11 @@ export const useOutreachStore = create<OutreachState>()(
         selectedPlanId: state.selectedPlanId,
         linkedInCampaignId: state.linkedInCampaignId,
       }),
+      // Fires once localStorage has been read back (and on failure, so a
+      // blocked or full store does not leave every gated page spinning).
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );
