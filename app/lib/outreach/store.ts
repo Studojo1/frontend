@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ChatMessage, EmailTemplate, PsychometricResult } from "./types";
+import type { ChatMessage, EmailTemplate } from "./types";
 
 export type PlanType = "email" | "linkedin" | "both";
 
@@ -8,10 +8,6 @@ interface OutreachState {
   // Onboarding flow
   candidateId: number | null;
   setCandidateId: (id: number | null) => void;
-
-  // Psychometric result — session only, not persisted
-  psychResult: PsychometricResult | null;
-  setPsychResult: (r: PsychometricResult | null) => void;
 
   // Profile data — cached from loading page so profile page renders instantly
   profileData: any | null;
@@ -74,9 +70,6 @@ export const useOutreachStore = create<OutreachState>()(
     (set) => ({
       candidateId: null,
       setCandidateId: (candidateId) => set({ candidateId }),
-
-      psychResult: null,
-      setPsychResult: (psychResult) => set({ psychResult }),
 
       profileData: null,
       setProfileData: (profileData) => set({ profileData }),

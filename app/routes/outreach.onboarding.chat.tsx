@@ -201,7 +201,6 @@ export default function ChatPage() {
               is_complete: evt.is_complete ?? false,
               questions_asked_so_far: evt.questions_asked_so_far ?? 0,
               questions_total: evt.questions_total ?? undefined,
-              psychometric: evt.psychometric ?? null,
             } as AgentResponse;
           }
         }
@@ -303,7 +302,6 @@ export default function ChatPage() {
               is_complete: evt.is_complete ?? false,
               questions_asked_so_far: evt.questions_asked_so_far ?? 0,
               questions_total: evt.questions_total ?? undefined,
-              psychometric: evt.psychometric ?? null,
             } as AgentResponse;
           } else if (evt.type === "error") {
             throw new Error(evt.message ?? "Stream error");
