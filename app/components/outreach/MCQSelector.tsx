@@ -93,7 +93,7 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
             <button
               key={opt.label}
               onClick={() => toggle(opt.label)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-left text-[13px] font-satoshi border-2 transition-all duration-150
+              className={`flex items-center gap-2 px-3 py-2 min-h-[44px] rounded-xl text-left text-[13px] font-satoshi border-2 transition-all duration-150
                 ${isSelected
                   ? "border-studojo-purple bg-studojo-purple-bg text-studojo-purple shadow-sm"
                   : "border-studojo-ink/20 text-studojo-ink hover:border-studojo-ink/40 hover:bg-studojo-surface-muted"
@@ -130,7 +130,7 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
+          className="min-h-[44px] px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
         >
           {loading ? "..." : "Continue"}
         </button>
