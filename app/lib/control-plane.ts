@@ -51,18 +51,25 @@ export function getControlPlaneUrl(): string {
   return "http://localhost:8080";
 }
 
-// Token cache to reduce auth requests (5 minute TTL)
+// Token cache to reduce auth requests (5 minute TTL). Browser only: on the SSR
+// server this module is shared by every request, so a cached token would be
+// handed to whichever user's request came next.
 let tokenCache: { token: string; expires: number } | null = null;
 const TOKEN_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+/** Drop the cached token. Call on sign-out so the next user never inherits it. */
+export function clearTokenCache(): void {
+  tokenCache = null;
+}
+
 export async function getToken(requestHeaders?: Headers, requestUrl?: string): Promise<string | null> {
-  // Check cache first
-  if (tokenCache && tokenCache.expires > Date.now()) {
+  // Check cache first (client only, see above)
+  if (!requestHeaders && tokenCache && tokenCache.expires > Date.now()) {
     return tokenCache.token;
   }
 
   // Clear expired cache
-  tokenCache = null;
+  if (!requestHeaders) tokenCache = null;
 
   // If we have request headers (server-side), use Better Auth's server API
   if (requestHeaders) {
@@ -146,11 +153,7 @@ export async function getToken(requestHeaders?: Headers, requestUrl?: string): P
       if (token) {
         // Log successful token retrieval
         console.info(`[getToken] Successfully retrieved token using: ${methodUsed}`);
-        // Cache the token
-        tokenCache = {
-          token,
-          expires: Date.now() + TOKEN_CACHE_TTL,
-        };
+        // Not cached: this is the server path, see tokenCache above.
         return token;
       } else {
         // Log that all methods failed
