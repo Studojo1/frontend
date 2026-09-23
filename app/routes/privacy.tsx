@@ -119,6 +119,21 @@ export default function Privacy() {
                     Your Gmail OAuth tokens are encrypted at rest. You can revoke access at any time via your Google account security settings at myaccount.google.com/permissions. Revoking access will disconnect your Gmail from the platform and stop any active campaigns.
                   </p>
                 </div>
+                <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5">
+                  <p className="mb-2 font-['Satoshi'] text-sm font-semibold text-neutral-900 md:text-base">Google API Services User Data Policy</p>
+                  <p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">
+                    Studojo's use and transfer to any other app of information received from Google APIs will adhere to the{" "}
+                    <a
+                      href="https://developers.google.com/terms/api-services-user-data-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold underline"
+                    >
+                      Google API Services User Data Policy
+                    </a>
+                    , including the Limited Use requirements.
+                  </p>
+                </div>
               </div>
             </div>
 
