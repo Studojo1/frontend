@@ -163,6 +163,46 @@ jobs:
               META_CAPI_TOKEN="${{ secrets.META_CAPI_TOKEN }}"
           fi
 
+      - name: Configure Razorpay (webinar ticketing)
+        run: |
+          # Server-side Razorpay credentials for webinar ticket sales
+          # (app/lib/razorpay.server.ts). The webinar page takes payments from
+          # people with no Studojo account, so it creates orders directly rather
+          # than going through the auth-gated control-plane endpoint.
+          #
+          # Sourced from the cluster's app-secrets rather than GitHub secrets:
+          # the same live keys job-outreach-svc uses already live there, and
+          # referencing them keeps one copy of the credential. They are wired as
+          # secretKeyRef, not literal values, so the key never appears in a
+          # deployment spec or in this job's logs.
+          #
+          # razorpay-mode selects which key pair is live. Anything other than
+          # "production" uses the test keys, so a staging cluster cannot take
+          # real money.
+          MODE=$(kubectl get secret app-secrets -n ${{ env.NAMESPACE }} \
+            -o jsonpath='{.data.razorpay-mode}' | base64 -d 2>/dev/null || echo "test")
+          if [ "$MODE" = "production" ]; then
+            ID_KEY="razorpay-key-prod-id"; SECRET_KEY="razorpay-key-prod-secret"
+          else
+            ID_KEY="razorpay-key-test-id"; SECRET_KEY="razorpay-key-test-secret"
+          fi
+          echo "Razorpay mode: $MODE (using $ID_KEY)"
+          # Written to a file rather than passed inline: a JSON document full of
+          # quotes inside a shell string inside YAML is where this breaks.
+          #
+          # A strategic-merge patch on env is keyed by name, so re-running this
+          # updates the three entries in place instead of appending duplicates
+          # the way a JSON-patch "add" to /env/- would on every deploy.
+          cat > /tmp/razorpay-env-patch.json <<PATCH
+          {"spec":{"template":{"spec":{"containers":[{"name":"${{ env.APP_NAME }}","env":[
+            {"name":"RAZORPAY_KEY_ID","valueFrom":{"secretKeyRef":{"name":"app-secrets","key":"$ID_KEY"}}},
+            {"name":"RAZORPAY_KEY_SECRET","valueFrom":{"secretKeyRef":{"name":"app-secrets","key":"$SECRET_KEY"}}},
+            {"name":"RAZORPAY_WEBHOOK_SECRET","valueFrom":{"secretKeyRef":{"name":"app-secrets","key":"razorpay-webhook-secret"}}}
+          ]}]}}}}
+          PATCH
+          kubectl patch deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            --type=strategic --patch-file=/tmp/razorpay-env-patch.json
+
       - name: Apply schema migrations
         env:
           JOB_NAME: frontend-migrate-${{ github.run_id }}
