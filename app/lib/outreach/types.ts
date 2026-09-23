@@ -17,6 +17,11 @@ export interface ResumePreview {
 export interface MCQOption {
   label: string;
   text: string;
+  // A stable value the backend attaches to some options. The UI does NOT send
+  // it: the answer a student picks is also the text of their chat bubble, so
+  // sending "onsite" instead of "Fully in-office" would show them raw jargon.
+  // The backend resolves text back to value on its own side.
+  value?: string;
 }
 
 export interface MCQQuestion {
