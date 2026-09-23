@@ -25,7 +25,10 @@ export interface FetchWithRetryOptions extends RequestInit {
   shouldRetry?: (error: Error, response: Response | null, attempt: number) => boolean;
   
   /**
-   * Suppress console errors during retries. Only log final failures. (default: true)
+   * Kept for call-site compatibility; has no effect. This used to stub out the
+   * global console.error/warn during retries, which silenced every other
+   * module's logging too, and two overlapping retrying calls could leave the
+   * console stubbed for the rest of the session.
    */
   silent?: boolean;
 }
@@ -105,7 +108,7 @@ export async function fetchWithRetry(
     timeout,
     isUpload = false,
     shouldRetry,
-    silent = true, // Default to silent retries
+    silent: _silent,
     ...fetchOptions
   } = options;
   
@@ -115,10 +118,6 @@ export async function fetchWithRetry(
   
   let lastError: Error | null = null;
   let lastResponse: Response | null = null;
-  
-  // Store original console methods for suppression
-  const originalConsoleError = console.error;
-  const originalConsoleWarn = console.warn;
   
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     // Check network state before attempting request
@@ -197,9 +196,14 @@ export async function fetchWithRetry(
           }
         }
         
-        // For 5xx errors, throw to trigger retry
+        // For 5xx errors, throw to trigger retry. The status rides on the error
+        // so the retry decision below does not depend on the statusText wording:
+        // only "Gateway Timeout" happened to contain a network keyword, so 504
+        // was retried while 500/502/503 failed on the first blip.
         if (response.status >= 500) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const err = new Error(`HTTP ${response.status}: ${response.statusText}`) as Error & { status?: number };
+          err.status = response.status;
+          throw err;
         }
         
         // For other non-OK responses, return as-is
@@ -228,7 +232,7 @@ export async function fetchWithRetry(
         shouldRetryError = shouldRetry(error, lastResponse, attempt);
       } else {
         // Default retry logic
-        shouldRetryError = isNetworkError(error);
+        shouldRetryError = isNetworkError(error) || (typeof error.status === "number" && error.status >= 500);
         
         // Don't retry on auth errors (these are handled above, but double-check)
         if (error.status === 401 || error.status === 403) {
@@ -238,10 +242,6 @@ export async function fetchWithRetry(
       
       // If we shouldn't retry or this is the last attempt, throw
       if (!shouldRetryError || isLastAttempt) {
-        // Restore console methods before throwing final error
-        console.error = originalConsoleError;
-        console.warn = originalConsoleWarn;
-        
         // Enhance error message for network errors
         if (isNetworkError(error) && isLastAttempt) {
           throw new Error(
@@ -251,27 +251,11 @@ export async function fetchWithRetry(
         throw error;
       }
       
-      // Suppress console errors during retries if silent mode is enabled
-      if (silent && !isLastAttempt) {
-        console.error = () => {}; // Suppress errors during retries
-        console.warn = () => {}; // Suppress warnings during retries
-      }
-      
       // Exponential backoff: 500ms, 1s, 2s
       const backoffMs = Math.min(500 * Math.pow(2, attempt), 2000);
       await new Promise(resolve => setTimeout(resolve, backoffMs));
-      
-      // Restore console methods after backoff (before next attempt)
-      if (silent) {
-        console.error = originalConsoleError;
-        console.warn = originalConsoleWarn;
-      }
     }
   }
-  
-  // Restore console methods before final throw
-  console.error = originalConsoleError;
-  console.warn = originalConsoleWarn;
   
   // Should never reach here, but TypeScript needs it
   throw lastError || new Error("Request failed: Unknown error");
