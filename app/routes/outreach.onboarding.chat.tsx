@@ -121,8 +121,12 @@ export default function ChatPage() {
   }, [candidateId]);
 
   const questionsAsked = currentResponse?.questions_asked_so_far ?? 0;
-  // Cap progress at 100% if the user is past the estimate (rare but possible for high-clarity flows)
-  const quizProgress = Math.min(100, (questionsAsked / ESTIMATED_TOTAL) * 100);
+  // Prefer the real sequence length the backend now sends. ESTIMATED_TOTAL is
+  // the fallback for a response that predates it, and was previously the only
+  // denominator: a hardcoded 10 against a quiz that is 8 to 11 questions long,
+  // so the bar was wrong for most students and never told them what was left.
+  const questionsTotal = currentResponse?.questions_total ?? ESTIMATED_TOTAL;
+  const quizProgress = Math.min(100, (questionsAsked / questionsTotal) * 100);
   const sidebarStep = currentResponse?.is_complete ? 3 : 2;
 
   /**
@@ -175,6 +179,7 @@ export default function ChatPage() {
               input_placeholder: evt.input_placeholder ?? null,
               is_complete: evt.is_complete ?? false,
               questions_asked_so_far: evt.questions_asked_so_far ?? 0,
+              questions_total: evt.questions_total ?? undefined,
               psychometric: evt.psychometric ?? null,
             } as AgentResponse;
           }
@@ -270,6 +275,7 @@ export default function ChatPage() {
               input_placeholder: evt.input_placeholder ?? null,
               is_complete: evt.is_complete ?? false,
               questions_asked_so_far: evt.questions_asked_so_far ?? 0,
+              questions_total: evt.questions_total ?? undefined,
               psychometric: evt.psychometric ?? null,
             } as AgentResponse;
           } else if (evt.type === "error") {
@@ -460,17 +466,34 @@ export default function ChatPage() {
           value={textInput}
           onChange={(e: any) => setTextInput(e.target.value)}
           placeholder={currentResponse?.input_placeholder || "Type your answer..."}
-          // Enter submits, but not while a turn is in flight: without the
-          // loading guard a second press sends the same answer again, which the
-          // position-keyed replay then treats as an answer to the next question.
-          onKeyDown={(e: any) =>
-            e.key === "Enter" && !e.shiftKey && !loading && (e.preventDefault(), handleTextSubmit())
-          }
+          // Enter submits on a physical keyboard, where Shift+Enter is the
+          // well-known way to get a newline. On a touch keyboard there is no
+          // Shift+Enter, so return would submit a half-typed answer and the
+          // student could never start a second line in a box that shows two.
+          // There, return does what it looks like it does and the send button
+          // submits.
+          //
+          // The loading guard matters on both: without it a second press sends
+          // the same answer again, which the position-keyed replay then treats
+          // as the answer to the next question.
+          onKeyDown={(e: any) => {
+            if (e.key !== "Enter" || e.shiftKey || loading) return;
+            const isTouch =
+              typeof window !== "undefined" &&
+              window.matchMedia?.("(pointer: coarse)").matches;
+            if (isTouch) return;
+            e.preventDefault();
+            handleTextSubmit();
+          }}
           rows={2}
+          id="quiz-answer"
+          aria-label="Your answer"
           className="flex-1 px-4 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
         />
         <button
+          type="button"
           onClick={handleTextSubmit}
+          aria-label="Send answer"
           disabled={!textInput.trim() || loading}
           className="h-11 w-11 rounded-xl bg-studojo-purple text-white flex items-center justify-center border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex-shrink-0"
         >
@@ -594,6 +617,8 @@ export default function ChatPage() {
               loading={loading}
               streamingText={streamingText}
               quizProgress={quizProgress}
+              questionsAsked={questionsAsked}
+              questionsTotal={currentResponse?.questions_total}
             >
               {inputArea}
             </ChatInterface>
