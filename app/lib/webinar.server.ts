@@ -43,6 +43,33 @@ async function ensureTable() {
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_webinar_registrations_created_at ON webinar_registrations (created_at DESC)
   `);
+  // Campus-ambassador attribution and payment state. Added after the table
+  // shipped, so ADD COLUMN IF NOT EXISTS: existing rows carry NULL / false.
+  //
+  // ref_code is stored even when it matched no ambassador, so a mistyped code
+  // is still visible when someone writes in asking where their discount went.
+  // ambassador_id is set only on a genuine match and is what reporting counts.
+  await db.execute(sql`
+    ALTER TABLE webinar_registrations
+      ADD COLUMN IF NOT EXISTS ref_code TEXT,
+      ADD COLUMN IF NOT EXISTS ambassador_id INTEGER,
+      ADD COLUMN IF NOT EXISTS amount_paise INTEGER,
+      ADD COLUMN IF NOT EXISTS paid BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS razorpay_order_id TEXT,
+      ADD COLUMN IF NOT EXISTS razorpay_payment_id TEXT,
+      ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ
+  `);
+  // The webhook finds the registration by order id, on every payment.
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_webinar_registrations_order_id
+    ON webinar_registrations (razorpay_order_id)
+    WHERE razorpay_order_id IS NOT NULL
+  `);
+  // Powers the per-ambassador leaderboard.
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_webinar_registrations_ambassador
+    ON webinar_registrations (webinar_id, ambassador_id)
+  `);
   // One registration per email PER WEBINAR. The same person can register for a
   // future webinar even if they attended a previous one, but not twice for the
   // same webinar. Enforced at the DB level, even under races.
@@ -144,7 +171,10 @@ export async function saveWebinarRegistration(params: {
   graduationYear?: string;
   lifeStage?: string;
   referralSource?: string;
-}): Promise<{ isNew: boolean }> {
+  refCode?: string;
+  ambassadorId?: number;
+  amountPaise?: number;
+}): Promise<{ isNew: boolean; registrationId: number | null }> {
   await ensureTable();
   const webinarId = await getActiveWebinarId();
   // Insert only if this email hasn't registered FOR THIS WEBINAR yet.
@@ -152,11 +182,21 @@ export async function saveWebinarRegistration(params: {
   // for the same webinar a no-op, while still allowing the same person to sign
   // up for a different webinar. RETURNING id is present only on a genuine
   // insert, so we can tell new vs. duplicate.
+  // On a repeat submission for the same webinar, update the existing row rather
+  // than doing nothing. A paid webinar makes this necessary: someone who
+  // registered, abandoned checkout and came back must be able to correct a
+  // typo'd referral code and get a fresh order, instead of being told they are
+  // "already registered" while holding no ticket.
+  //
+  // WHERE NOT paid protects a ticket already bought: once payment lands, a
+  // later submission with the same email cannot overwrite the row or reset the
+  // price. RETURNING then yields nothing, which the caller reads as "already
+  // registered and paid".
   const result = await db.execute(sql`
     INSERT INTO webinar_registrations (
       full_name, whatsapp, email, college, course,
       specialisation, year_of_study, graduation_year, life_stage, referral_source,
-      webinar_id
+      webinar_id, ref_code, ambassador_id, amount_paise
     )
     VALUES (
       ${params.fullName},
@@ -169,13 +209,118 @@ export async function saveWebinarRegistration(params: {
       ${params.graduationYear || null},
       ${params.lifeStage || null},
       ${params.referralSource || null},
-      ${webinarId}
+      ${webinarId},
+      ${params.refCode || null},
+      ${params.ambassadorId ?? null},
+      ${params.amountPaise ?? null}
     )
-    ON CONFLICT (lower(email), webinar_id) DO NOTHING
-    RETURNING id
+    ON CONFLICT (lower(email), webinar_id) DO UPDATE SET
+      full_name       = EXCLUDED.full_name,
+      whatsapp        = EXCLUDED.whatsapp,
+      college         = EXCLUDED.college,
+      course          = EXCLUDED.course,
+      specialisation  = EXCLUDED.specialisation,
+      year_of_study   = EXCLUDED.year_of_study,
+      graduation_year = EXCLUDED.graduation_year,
+      life_stage      = EXCLUDED.life_stage,
+      referral_source = EXCLUDED.referral_source,
+      ref_code        = EXCLUDED.ref_code,
+      ambassador_id   = EXCLUDED.ambassador_id,
+      amount_paise    = EXCLUDED.amount_paise
+    WHERE webinar_registrations.paid = FALSE
+    RETURNING id, (xmax = 0) AS inserted
   `);
-  const isNew = result.rows.length > 0;
-  return { isNew };
+  const row = result.rows[0] as { id: number; inserted: boolean } | undefined;
+  return {
+    isNew: row ? row.inserted : false,
+    registrationId: row ? row.id : null,
+  };
+}
+
+/**
+ * Attach a freshly created Razorpay order to a registration, so the webhook can
+ * find its way back here from the payment alone.
+ */
+export async function attachOrderToRegistration(params: {
+  registrationId: number;
+  orderId: string;
+  amountPaise: number;
+}): Promise<void> {
+  await ensureTable();
+  await db.execute(sql`
+    UPDATE webinar_registrations
+    SET razorpay_order_id = ${params.orderId},
+        amount_paise = ${params.amountPaise}
+    WHERE id = ${params.registrationId}
+  `);
+}
+
+/**
+ * Mark a registration paid, from a verified payment.
+ *
+ * Idempotent, and deliberately so: Razorpay retries webhooks, and the browser's
+ * success callback may arrive for the same payment. `AND paid = FALSE` means
+ * only the first one through returns a row, so the join-link email is sent
+ * exactly once no matter how many times this is called.
+ */
+export async function markRegistrationPaid(params: {
+  orderId: string;
+  paymentId: string;
+}): Promise<{ email: string; full_name: string; id: number } | null> {
+  await ensureTable();
+  const result = await db.execute(sql`
+    UPDATE webinar_registrations
+    SET paid = TRUE,
+        razorpay_payment_id = ${params.paymentId},
+        paid_at = NOW()
+    WHERE razorpay_order_id = ${params.orderId}
+      AND paid = FALSE
+    RETURNING id, email, full_name
+  `);
+  const row = result.rows[0] as
+    | { id: number; email: string; full_name: string }
+    | undefined;
+  return row ?? null;
+}
+
+/** Whether a registration has been paid for — drives the confirmation page. */
+export async function getRegistrationPaymentStatus(
+  orderId: string
+): Promise<{ paid: boolean; fullName: string } | null> {
+  await ensureTable();
+  const result = await db.execute(sql`
+    SELECT paid, full_name FROM webinar_registrations
+    WHERE razorpay_order_id = ${orderId}
+    LIMIT 1
+  `);
+  const row = result.rows[0] as
+    | { paid: boolean; full_name: string }
+    | undefined;
+  if (!row) return null;
+  return { paid: row.paid, fullName: row.full_name };
+}
+
+/**
+ * Per-ambassador totals for the active webinar: how many people each one
+ * brought, how many of those actually paid, and the revenue behind them.
+ */
+export async function getAmbassadorLeaderboard(webinarId?: number) {
+  await ensureTable();
+  const result = await db.execute(sql`
+    SELECT r.ref_code,
+           MAX(a.full_name) AS ambassador_name,
+           MAX(a.college)   AS ambassador_college,
+           COUNT(*)                                   AS registrations,
+           COUNT(*) FILTER (WHERE r.paid)             AS paid_count,
+           COALESCE(SUM(r.amount_paise) FILTER (WHERE r.paid), 0) AS revenue_paise
+    FROM webinar_registrations r
+    LEFT JOIN campus_ambassador_applications a ON a.id = r.ambassador_id
+    WHERE r.ref_code IS NOT NULL
+      AND (${webinarId ?? null}::int IS NULL OR r.webinar_id = ${webinarId ?? null})
+    GROUP BY r.ref_code
+    ORDER BY paid_count DESC, registrations DESC
+  `);
+  return result.rows;
 }
 
 export async function getWebinarRegistrations(limit = 200, offset = 0) {

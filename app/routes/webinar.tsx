@@ -1,11 +1,26 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Header, Footer } from "~/components";
 import { checkEmail } from "~/lib/email-validate";
+import { WEBINAR } from "~/lib/webinar-event";
+import {
+  WEBINAR_PRICE_PAISE,
+  WEBINAR_PRICE_WITH_REF_PAISE,
+  formatPaise,
+} from "~/lib/webinar-pricing";
+import { loadRazorpayScript } from "~/lib/payments";
 
 export function meta() {
   return [
-    { title: "Register for the Webinar | Studojo" },
-    { name: "description", content: "Register for the Studojo webinar. Reserve your spot in a minute." },
+    { title: `${WEBINAR.title} | Studojo Webinar` },
+    { name: "description", content: WEBINAR.description },
+    // Share previews. This link gets pasted into WhatsApp groups far more than
+    // it gets typed, so the card is the first thing most people see of it.
+    { property: "og:title", content: WEBINAR.title },
+    { property: "og:description", content: WEBINAR.description },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: WEBINAR.title },
+    { name: "twitter:description", content: WEBINAR.description },
   ];
 }
 
@@ -24,6 +39,7 @@ const REFERRAL_SOURCES = [
   "WhatsApp",
   "Friend or classmate",
   "College or professor",
+  "Campus ambassador",
   "Email from Studojo",
   "Google search",
   "Other",
@@ -61,6 +77,7 @@ interface FormState {
   graduationYear: string;
   lifeStage: string;
   referralSource: string;
+  refCode: string;
 }
 
 const EMPTY: FormState = {
@@ -74,7 +91,17 @@ const EMPTY: FormState = {
   graduationYear: "",
   lifeStage: "",
   referralSource: "",
+  refCode: "",
 };
+
+/** What the server said about the referral code currently typed in. */
+interface RefState {
+  checking: boolean;
+  valid: boolean | null;
+  ambassadorFirstName?: string;
+  ambassadorCollege?: string;
+  message?: string;
+}
 
 export default function Webinar() {
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -83,10 +110,50 @@ export default function Webinar() {
   // A corrected email we can offer when the entered one looks like a typo.
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
   const [done, setDone] = useState(false);
-  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
+  const [alreadyPaid, setAlreadyPaid] = useState(false);
+  const [ref, setRef] = useState<RefState>({ checking: false, valid: null });
+  // Debounce handle for the referral-code check, so typing a code does not fire
+  // a request per keystroke.
+  const refTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const price = ref.valid ? WEBINAR_PRICE_WITH_REF_PAISE : WEBINAR_PRICE_PAISE;
 
   const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  /** Check a referral code shortly after typing stops. */
+  function onRefCodeChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value.toUpperCase();
+    setForm((f) => ({ ...f, refCode: value }));
+    if (refTimer.current) clearTimeout(refTimer.current);
+
+    if (!value.trim()) {
+      setRef({ checking: false, valid: null });
+      return;
+    }
+    setRef((r) => ({ ...r, checking: true }));
+    refTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/webinar-ref-code", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refCode: value }),
+        });
+        const data = await res.json().catch(() => ({}));
+        setRef({
+          checking: false,
+          valid: Boolean(data.valid),
+          ambassadorFirstName: data.ambassadorFirstName,
+          ambassadorCollege: data.ambassadorCollege,
+          message: data.message,
+        });
+      } catch {
+        // A failed check must not block registration: leave it unresolved and
+        // let the server decide for real at submit time.
+        setRef({ checking: false, valid: null });
+      }
+    }, 450);
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -110,6 +177,10 @@ export default function Webinar() {
 
     setSubmitting(true);
     try {
+      // Load the checkout script alongside creating the order, so the modal
+      // opens the moment the order is ready instead of after a second fetch.
+      const scriptReady = loadRazorpayScript();
+
       const res = await fetch("/api/webinar-register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,15 +190,86 @@ export default function Webinar() {
       if (!res.ok || !data.ok) {
         setError(data.error || "Something went wrong. Please try again.");
         setEmailSuggestion(data.suggestion ?? null);
+        if (data.invalidRefCode) {
+          setRef({ checking: false, valid: false, message: "We don't recognise that code." });
+        }
         setSubmitting(false);
         return;
       }
-      setAlreadyRegistered(Boolean(data.alreadyRegistered));
-      setDone(true);
+
+      // Already registered and paid for this webinar — nothing to charge.
+      if (data.alreadyPaid) {
+        setAlreadyPaid(true);
+        setDone(true);
+        return;
+      }
+
+      await scriptReady;
+      openCheckout(data);
     } catch {
       setError("Network error. Please try again.");
       setSubmitting(false);
     }
+  }
+
+  /** Open Razorpay's modal and confirm the payment when it succeeds. */
+  function openCheckout(order: {
+    orderId: string;
+    amountPaise: number;
+    keyId: string;
+    prefill?: { name?: string; email?: string; contact?: string };
+  }) {
+    const Razorpay = (window as any).Razorpay;
+    if (!Razorpay) {
+      setError("Could not open the payment window. Please refresh and try again.");
+      setSubmitting(false);
+      return;
+    }
+
+    const rzp = new Razorpay({
+      key: order.keyId,
+      amount: order.amountPaise,
+      currency: "INR",
+      name: "Studojo",
+      description: WEBINAR.title,
+      order_id: order.orderId,
+      prefill: order.prefill ?? {},
+      theme: { color: "#8B5CF6" },
+      handler: async (response: any) => {
+        try {
+          await fetch("/api/webinar-confirm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(response),
+          });
+        } catch {
+          // The webhook is the authority and will fulfil this regardless, so a
+          // failed confirmation call must not tell someone who paid that they
+          // did not. Show the success screen either way.
+        }
+        setDone(true);
+      },
+      modal: {
+        ondismiss: () => {
+          // They closed the window without paying. The registration row is
+          // saved, so re-submitting the form picks up where they left off.
+          setSubmitting(false);
+          setError(
+            "Payment was not completed, so your seat is not booked yet. Submit again to retry — your details are still filled in."
+          );
+        },
+      },
+    });
+
+    rzp.on("payment.failed", (response: any) => {
+      setSubmitting(false);
+      setError(
+        response?.error?.description ||
+          "The payment failed. No money was taken — please try again."
+      );
+    });
+
+    rzp.open();
   }
 
   return (
@@ -136,26 +278,45 @@ export default function Webinar() {
       <div className="mx-auto max-w-3xl px-4 py-12 md:px-8">
         <div className="text-center mb-8">
           <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-violet-100 text-violet-700 border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] font-['Satoshi']">
-            FREE WEBINAR
+            LIVE WEBINAR · {WEBINAR.dateLabel.toUpperCase()}
           </span>
-          <h1 className="mt-4 text-3xl md:text-4xl font-bold text-neutral-900 font-['Clash_Display']">
-            Reserve your spot
+          <h1 className="mt-4 text-3xl md:text-5xl font-bold text-neutral-900 font-['Clash_Display'] leading-tight">
+            {WEBINAR.title}
           </h1>
-          <p className="mt-2 text-neutral-600 font-['Satoshi']">
-            Fill this in and we will send you the joining details. Takes under a minute.
+          <p className="mt-3 text-lg font-semibold text-neutral-800 font-['Satoshi']">
+            {WEBINAR.subtitle}
           </p>
+          <p className="mt-3 text-neutral-600 font-['Satoshi'] max-w-xl mx-auto">
+            {WEBINAR.description}
+          </p>
+
+          {/* When and how much — the two things people scan for before reading. */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-sm font-bold text-neutral-900 font-['Satoshi']">
+              🗓️ {WEBINAR.dateLabel}
+            </span>
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-sm font-bold text-neutral-900 font-['Satoshi']">
+              ⏰ {WEBINAR.timeLabel}
+            </span>
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-100 border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] text-sm font-bold text-neutral-900 font-['Satoshi']">
+              🎟️ {formatPaise(WEBINAR_PRICE_WITH_REF_PAISE)} with a campus ambassador code
+            </span>
+          </div>
         </div>
 
         {done ? (
           <div className="bg-white border-2 border-neutral-900 rounded-[32px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-10 text-center">
-            <div className="text-4xl mb-3">{alreadyRegistered ? "✅" : "🎉"}</div>
+            <div className="text-4xl mb-3">{alreadyPaid ? "✅" : "🎉"}</div>
             <h2 className="text-2xl font-bold text-neutral-900 font-['Clash_Display']">
-              {alreadyRegistered ? "You are already registered!" : "You are registered!"}
+              {alreadyPaid ? "You already have a seat!" : "Your seat is booked!"}
             </h2>
             <p className="mt-2 text-neutral-600 font-['Satoshi']">
-              {alreadyRegistered
-                ? "This email is already on the list, so you are all set. Check your inbox for the joining link closer to the date."
-                : "See you at the webinar. Check your email for the joining link closer to the date."}
+              {alreadyPaid
+                ? "This email already has a paid seat for this webinar, so you are all set. Check your inbox for the joining link closer to the date."
+                : `See you on ${WEBINAR.dateLabel} at ${WEBINAR.timeLabel}. A confirmation is on its way to your inbox, and we will send the joining link closer to the date.`}
+            </p>
+            <p className="mt-4 text-sm text-neutral-500 font-['Satoshi']">
+              Add the date to your calendar so it does not slip past you.
             </p>
           </div>
         ) : (
@@ -236,6 +397,59 @@ export default function Webinar() {
               </div>
             </div>
 
+            {/* Campus ambassador code */}
+            <h2 className="mt-10 text-lg font-bold text-violet-700 uppercase tracking-wide font-['Clash_Display'] mb-5">
+              Campus ambassador code
+            </h2>
+            <div>
+              <label className={LABEL}>
+                Have a code?{" "}
+                <span className="normal-case text-neutral-400 text-xs font-['Satoshi']">
+                  (optional — saves you {formatPaise(WEBINAR_PRICE_PAISE - WEBINAR_PRICE_WITH_REF_PAISE)})
+                </span>
+              </label>
+              <input
+                className={INPUT}
+                placeholder="e.g. PRIYA42"
+                value={form.refCode}
+                onChange={onRefCodeChange}
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+              {ref.checking && (
+                <p className="mt-2 text-sm text-neutral-500 font-['Satoshi']">Checking code…</p>
+              )}
+              {!ref.checking && ref.valid === true && (
+                <p className="mt-2 text-sm font-semibold text-green-700 font-['Satoshi']">
+                  ✅ Code applied{ref.ambassadorFirstName ? ` — ${ref.ambassadorFirstName}` : ""}
+                  {ref.ambassadorCollege ? ` from ${ref.ambassadorCollege}` : ""} sent you.
+                  You pay {formatPaise(WEBINAR_PRICE_WITH_REF_PAISE)} instead of {formatPaise(WEBINAR_PRICE_PAISE)}.
+                </p>
+              )}
+              {!ref.checking && ref.valid === false && (
+                <p className="mt-2 text-sm font-semibold text-amber-700 font-['Satoshi']">
+                  We don't recognise that code. Check the spelling, or clear the field to
+                  continue at {formatPaise(WEBINAR_PRICE_PAISE)}.
+                </p>
+              )}
+            </div>
+
+            {/* What they are about to pay */}
+            <div className="mt-8 flex items-center justify-between rounded-2xl border-2 border-neutral-900 bg-violet-50 px-5 py-4">
+              <span className="text-sm font-semibold text-neutral-700 font-['Satoshi']">
+                Your ticket
+              </span>
+              <span className="text-2xl font-bold text-neutral-900 font-['Clash_Display']">
+                {ref.valid && (
+                  <span className="mr-2 text-base font-semibold text-neutral-400 line-through">
+                    {formatPaise(WEBINAR_PRICE_PAISE)}
+                  </span>
+                )}
+                {formatPaise(price)}
+              </span>
+            </div>
+
             {error && (
               <div className="mt-6">
                 <p className="text-sm text-red-600 font-semibold font-['Satoshi']">{error}</p>
@@ -260,8 +474,11 @@ export default function Webinar() {
               disabled={submitting}
               className="mt-8 w-full bg-violet-500 text-white text-lg font-bold py-4 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60 disabled:cursor-not-allowed font-['Clash_Display']"
             >
-              {submitting ? "Registering..." : "Register for the webinar"}
+              {submitting ? "Opening payment…" : `Book my seat · ${formatPaise(price)}`}
             </button>
+            <p className="mt-3 text-center text-xs text-neutral-500 font-['Satoshi']">
+              Secure payment via Razorpay. Your seat is confirmed once payment goes through.
+            </p>
           </form>
         )}
       </div>
