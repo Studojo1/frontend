@@ -17,7 +17,7 @@ export const WEBINAR = {
   subtitle: "No one is hiring. Get hired anyway.",
   /** What the session actually covers. */
   description:
-    "“My dad knows a guy” is not enough. Learn how to create opportunities when job postings aren't enough — from cold emails to reaching out the right way.",
+    "“My dad knows a guy” is not enough. Learn how to create opportunities when job postings aren't enough, from cold emails to reaching out the right way.",
   /** Human-readable date, as written on the page. */
   dateLabel: "Saturday, 26 September",
   /** Start time, as written on the page. */

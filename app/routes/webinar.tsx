@@ -260,7 +260,7 @@ export default function Webinar() {
           // saved, so re-submitting the form picks up where they left off.
           setSubmitting(false);
           setError(
-            "Payment was not completed, so your seat is not booked yet. Submit again to retry — your details are still filled in."
+            "Payment was not completed, so your seat is not booked yet. Submit again to retry. Your details are still filled in."
           );
         },
       },
@@ -270,7 +270,7 @@ export default function Webinar() {
       setSubmitting(false);
       setError(
         response?.error?.description ||
-          "The payment failed. No money was taken — please try again."
+          "The payment failed. No money was taken, so please try again."
       );
     });
 
@@ -409,7 +409,7 @@ export default function Webinar() {
               <label className={LABEL}>
                 Have a code?{" "}
                 <span className="normal-case text-neutral-400 text-xs font-['Satoshi']">
-                  (optional — saves you {WEBINAR_REF_DISCOUNT_PERCENT}%)
+                  (optional, saves you {WEBINAR_REF_DISCOUNT_PERCENT}%)
                 </span>
               </label>
               <input
@@ -426,7 +426,7 @@ export default function Webinar() {
               )}
               {!ref.checking && ref.valid === true && (
                 <p className="mt-2 text-sm font-semibold text-green-700 font-['Satoshi']">
-                  Code applied{ref.ambassadorFirstName ? ` — ${ref.ambassadorFirstName}` : ""}
+                  Code applied{ref.ambassadorFirstName ? `. ${ref.ambassadorFirstName}` : ""}
                   {ref.ambassadorCollege ? ` from ${ref.ambassadorCollege}` : ""} sent you.
                   You save {WEBINAR_REF_DISCOUNT_PERCENT}%, paying {formatPaise(WEBINAR_PRICE_WITH_REF_PAISE)} instead of {formatPaise(WEBINAR_PRICE_PAISE)}.
                 </p>
