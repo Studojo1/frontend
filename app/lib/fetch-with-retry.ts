@@ -167,7 +167,12 @@ export async function fetchWithRetry(
           signal,
         });
         
-        clearTimeout(timeoutId);
+        // The timer is deliberately NOT cleared here. fetch() resolves once
+        // headers arrive, and clearing it then left the body download with no
+        // deadline, so a stalled stream hung the caller indefinitely. Left
+        // armed, the same deadline aborts a body read that overruns it; once the
+        // body is consumed, the abort is a no-op. Nothing routes a long-lived
+        // stream through this helper (outreachStreamFetch uses raw fetch).
         
         // Check if response is OK
         if (response.ok) {
