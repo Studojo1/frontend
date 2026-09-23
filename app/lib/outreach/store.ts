@@ -19,7 +19,16 @@ interface OutreachState {
 
   chatHistory: ChatMessage[];
   addChatMessage: (msg: ChatMessage) => void;
+  // Takes back the optimistically-added user message when its turn failed, so a
+  // retry does not send the same answer twice. The backend keys answers by
+  // position while replaying, so a duplicate shifts every later answer onto the
+  // wrong question.
+  removeLastChatMessage: () => void;
   clearChatHistory: () => void;
+  // Which candidate the persisted chatHistory belongs to. A new resume upload
+  // means a new candidate and the old transcript must not be restored onto it.
+  chatCandidateId: number | null;
+  setChatCandidateId: (id: number | null) => void;
 
   // Lead discovery
   selectedTier: 50 | 200 | 350 | 500;
@@ -70,7 +79,11 @@ export const useOutreachStore = create<OutreachState>()(
       chatHistory: [],
       addChatMessage: (msg) =>
         set((s) => ({ chatHistory: [...s.chatHistory, msg] })),
-      clearChatHistory: () => set({ chatHistory: [] }),
+      removeLastChatMessage: () =>
+        set((s) => ({ chatHistory: s.chatHistory.slice(0, -1) })),
+      clearChatHistory: () => set({ chatHistory: [], chatCandidateId: null }),
+      chatCandidateId: null,
+      setChatCandidateId: (chatCandidateId) => set({ chatCandidateId }),
 
       selectedTier: 350,
       setSelectedTier: (selectedTier) => set({ selectedTier }),
@@ -104,6 +117,11 @@ export const useOutreachStore = create<OutreachState>()(
       name: "internreach-app-store",
       partialize: (state) => ({
         candidateId: state.candidateId,
+        // Persisted so a refresh, a back gesture, or a mobile tab eviction does
+        // not destroy the quiz. chatCandidateId rides along so a transcript is
+        // only ever restored onto the candidate that produced it.
+        chatHistory: state.chatHistory,
+        chatCandidateId: state.chatCandidateId,
         currentStep: state.currentStep,
         selectedTier: state.selectedTier,
         selectedStyles: state.selectedStyles,

@@ -51,22 +51,69 @@ const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)/;
 export default function ChatPage() {
   const navigate = useNavigate();
   const { user } = useOutreachAuth();
-  const { candidateId, chatHistory, addChatMessage, clearChatHistory } = useOutreachStore();
+  const {
+    candidateId,
+    chatHistory,
+    addChatMessage,
+    removeLastChatMessage,
+    clearChatHistory,
+    chatCandidateId,
+    setChatCandidateId,
+  } = useOutreachStore();
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
   const [streamingText, setStreamingText] = useState<string | null>(null);
   const autoStarted = useRef(false);
 
-  // Always start fresh — clears any stale localStorage chatHistory
+  // Restore an in-progress quiz, or start a fresh one.
+  //
+  // This used to clear chatHistory unconditionally, which (together with
+  // chatHistory not being persisted at all) meant a refresh, a back gesture or
+  // a mobile tab eviction threw the quiz away and dropped the student back at
+  // question one. On a phone, a backgrounded tab being evicted is routine.
+  //
+  // Restoring is cheap because the stream endpoint is a stateless replay: post
+  // the transcript we saved and it returns the question that comes next. No
+  // backend call is needed to work out where the student had got to.
   useEffect(() => {
-    if (candidateId && !autoStarted.current) {
-      autoStarted.current = true;
-      clearChatHistory();
-      addChatMessage({ role: "assistant", content: Q1_STATIC.message });
-      setCurrentResponse(Q1_STATIC);
-      capturePostHog("quiz_started", { candidate_id: candidateId });
+    if (!candidateId || autoStarted.current) return;
+    autoStarted.current = true;
+
+    // Don't resurrect a quiz that is already finished. Browser-back onto this
+    // page after completing sets up a replay that would re-run the completion
+    // branch; the same localStorage key that guards the completion side-effects
+    // tells us to leave it alone.
+    let alreadyDone = false;
+    try {
+      alreadyDone =
+        typeof window !== "undefined" &&
+        localStorage.getItem(`quiz_completed_${candidateId}`) === "1";
+    } catch {}
+
+    // Only restore a transcript that belongs to THIS candidate. Uploading a new
+    // resume makes a new candidate, and replaying the previous quiz onto it
+    // would answer the new quiz with the old resume's answers.
+    const restorable =
+      !alreadyDone &&
+      chatCandidateId === candidateId &&
+      chatHistory.length > 0 &&
+      chatHistory.some((m) => m.role === "user");
+
+    if (restorable) {
+      capturePostHog("quiz_resumed", {
+        candidate_id: candidateId,
+        messages_restored: chatHistory.length,
+      });
+      void resumeFromHistory(chatHistory);
+      return;
     }
+
+    clearChatHistory();
+    setChatCandidateId(candidateId);
+    addChatMessage({ role: "assistant", content: Q1_STATIC.message });
+    setCurrentResponse(Q1_STATIC);
+    capturePostHog("quiz_started", { candidate_id: candidateId });
   }, [candidateId]);
 
   const questionsAsked = currentResponse?.questions_asked_so_far ?? 0;
@@ -74,11 +121,95 @@ export default function ChatPage() {
   const quizProgress = Math.min(100, (questionsAsked / ESTIMATED_TOTAL) * 100);
   const sidebarStep = currentResponse?.is_complete ? 3 : 2;
 
+  /**
+   * Re-request the current question for a transcript we already hold.
+   *
+   * Used when returning to a quiz that was interrupted. The stream endpoint is
+   * a pure replay of the history it is given, so posting the restored
+   * transcript returns whichever question the student was on. Nothing is
+   * appended to the history here: the answers are already in it.
+   */
+  const resumeFromHistory = async (history: ChatMessage[]) => {
+    if (!candidateId) return;
+    setLoading(true);
+    setStreamingText(null);
+
+    try {
+      const res = await outreachStreamFetch(`/candidate/${candidateId}/chat/stream`, {
+        method: "POST",
+        body: JSON.stringify({
+          message: "__resume__",
+          chat_history: history.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+
+      if (!res.ok || !res.body) throw new Error(`Resume failed (${res.status})`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let restored: AgentResponse | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (!raw) continue;
+          let evt: any;
+          try { evt = JSON.parse(raw); } catch { continue; }
+          if (evt.type === "complete") {
+            restored = {
+              message: evt.message ?? "",
+              current_state: evt.current_state ?? "MCQ",
+              mcq: evt.mcq ?? null,
+              text_input: evt.text_input ?? false,
+              input_placeholder: evt.input_placeholder ?? null,
+              is_complete: evt.is_complete ?? false,
+              questions_asked_so_far: evt.questions_asked_so_far ?? 0,
+              psychometric: evt.psychometric ?? null,
+            } as AgentResponse;
+          }
+        }
+      }
+
+      if (restored && !restored.is_complete) {
+        // The question itself is already the last assistant message in the
+        // restored transcript, so only the controls need rebuilding.
+        setCurrentResponse(restored);
+      } else {
+        // Either the quiz had already finished or the reply was unusable.
+        // Sending the student back to a clean question one is the safe fallback.
+        clearChatHistory();
+        setChatCandidateId(candidateId);
+        addChatMessage({ role: "assistant", content: Q1_STATIC.message });
+        setCurrentResponse(Q1_STATIC);
+      }
+    } catch {
+      // Restoring is best-effort. If it fails, start the quiz rather than leave
+      // the student on a transcript with no way to answer.
+      clearChatHistory();
+      setChatCandidateId(candidateId);
+      addChatMessage({ role: "assistant", content: Q1_STATIC.message });
+      setCurrentResponse(Q1_STATIC);
+    } finally {
+      setLoading(false);
+      setStreamingText(null);
+    }
+  };
+
   const sendMessage = async (content: string, answerType: string = "text") => {
     if (!candidateId) return;
 
     const userMsg: ChatMessage = { role: "user", content };
     addChatMessage(userMsg);
+    // Stamp ownership of the persisted transcript, so it is only ever restored
+    // onto the candidate whose quiz produced it.
+    if (chatCandidateId !== candidateId) setChatCandidateId(candidateId);
     // Track how far each student gets through the quiz (drop-off per question).
     capturePostHog("quiz_question_answered", { question_number: questionsAsked + 1, answer_type: answerType, candidate_id: candidateId });
     setLoading(true);
@@ -154,13 +285,42 @@ export default function ChatPage() {
             { role: "assistant" as const, content: finalResponse.message },
           ];
 
-          outreachFetch(`/candidate/${candidateId}/generate-payload`, {
-            method: "POST",
-            body: JSON.stringify({
-              message: "__generate__",
-              chat_history: historyForPayload.map((m) => ({ role: m.role, content: m.content })),
-            }),
-          }).catch(() => {});
+          // Await the profile write instead of firing it into the void.
+          //
+          // This is the quiz's only write, and it used to be fire-and-forget:
+          // if it failed, the student was still sent to the loading screen,
+          // which then waited on a profile that was never going to arrive. The
+          // ten second skip button was the only way out, and it skipped past a
+          // profile that did not exist.
+          //
+          // outreachFetch already retries transient failures internally and
+          // throws on a non-2xx, so awaiting it and catching the throw is the
+          // whole check.
+          let payloadWritten = true;
+          try {
+            await outreachFetch(`/candidate/${candidateId}/generate-payload`, {
+              method: "POST",
+              body: JSON.stringify({
+                message: "__generate__",
+                chat_history: historyForPayload.map((m) => ({ role: m.role, content: m.content })),
+              }),
+            });
+          } catch {
+            payloadWritten = false;
+          }
+
+          if (!payloadWritten) {
+            // Say so plainly and keep them on the quiz, where the answers still
+            // are, rather than sending them to a screen that will spin.
+            addChatMessage({
+              role: "assistant",
+              content:
+                "Your answers are saved, but building your profile did not go through. Tap Continue to try again.",
+            });
+            setCurrentResponse(finalResponse);
+            setLoading(false);
+            return;
+          }
 
           // Fire completion side-effects ONCE per candidate. Without this guard,
           // profile_quiz_completed (and the outreach_used email) re-fired on
@@ -202,6 +362,15 @@ export default function ChatPage() {
       }
     } catch {
       setStreamingText(null);
+      // Take the answer back out of the history before showing the error.
+      //
+      // It was added optimistically above, but the turn never landed. Leaving it
+      // in means a retry sends the same answer twice, and the backend assigns
+      // answers by position while replaying, so every later answer shifts onto
+      // the wrong question: the student's city ends up stored as their company
+      // stage and nothing errors. The bubble disappearing is also the honest
+      // signal that the answer did not go through and needs re-entering.
+      removeLastChatMessage();
       addChatMessage({ role: "assistant", content: "Something went wrong. Please try again." });
       setLoading(false);
     }
