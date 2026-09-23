@@ -23,6 +23,7 @@ interface Order {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   created: { label: "Created", color: "bg-studojo-surface-muted text-studojo-muted border-studojo-ink/20" },
+  profile_complete: { label: "Profile Ready", color: "bg-studojo-purple-bg text-studojo-purple border-studojo-purple/30" },
   leads_generating: { label: "Discovering Leads", color: "bg-studojo-orange-bg text-studojo-orange border-studojo-orange/30" },
   leads_ready: { label: "Leads Ready", color: "bg-studojo-purple-bg text-studojo-purple border-studojo-purple/30" },
   enriching: { label: "Enriching", color: "bg-studojo-orange-bg text-studojo-orange border-studojo-orange/30" },

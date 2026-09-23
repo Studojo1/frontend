@@ -260,7 +260,7 @@ export default function LinkedInLeads() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {paginated.map((lead) => (
-                <FlashCard key={lead.id} lead={lead} />
+                <FlashCard key={lead.id} lead={lead} actionLabel="Send an invite" onSelect={() => navigate("/linkedin/pricing")} />
               ))}
             </div>
             {totalPages > 1 && (
