@@ -64,6 +64,10 @@ export default function ChatPage() {
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
   const [streamingText, setStreamingText] = useState<string | null>(null);
+  // The answer whose turn failed, held so it can be resent verbatim. The error
+  // used to be dropped into the transcript as a chatbot line with no way to act
+  // on it, which read as the quiz talking rather than as something gone wrong.
+  const [failedAnswer, setFailedAnswer] = useState<{ content: string; answerType: string } | null>(null);
   const autoStarted = useRef(false);
 
   // Restore an in-progress quiz, or start a fresh one.
@@ -205,6 +209,7 @@ export default function ChatPage() {
   const sendMessage = async (content: string, answerType: string = "text") => {
     if (!candidateId) return;
 
+    setFailedAnswer(null);
     const userMsg: ChatMessage = { role: "user", content };
     addChatMessage(userMsg);
     // Stamp ownership of the persisted transcript, so it is only ever restored
@@ -358,7 +363,11 @@ export default function ChatPage() {
           setLoading(false);
         }
       } else {
-        setLoading(false);
+        // The stream ended without a 'complete' event, so the turn produced no
+        // question. Silently re-enabling the UI here left the student looking at
+        // their own answer with the previous question still on screen, and the
+        // answer itself never reached the server. Treat it as the failure it is.
+        throw new Error("Stream ended without a complete event");
       }
     } catch {
       setStreamingText(null);
@@ -371,9 +380,18 @@ export default function ChatPage() {
       // stage and nothing errors. The bubble disappearing is also the honest
       // signal that the answer did not go through and needs re-entering.
       removeLastChatMessage();
-      addChatMessage({ role: "assistant", content: "Something went wrong. Please try again." });
+      // Keep the answer so the retry button can resend it verbatim, rather than
+      // making the student retype what they already typed.
+      setFailedAnswer({ content, answerType });
       setLoading(false);
     }
+  };
+
+  const retryFailedAnswer = () => {
+    if (!failedAnswer) return;
+    const { content, answerType } = failedAnswer;
+    setFailedAnswer(null);
+    void sendMessage(content, answerType);
   };
 
   const handleMCQSubmit = (selected: string[]) => {
@@ -404,8 +422,29 @@ export default function ChatPage() {
     );
   }
 
+  // A failed turn shows a real error with a real retry, above the controls. The
+  // student's answer is held in failedAnswer, so retrying resends it rather
+  // than asking them to type it again.
+  const errorBanner = failedAnswer ? (
+    <div
+      role="alert"
+      className="mb-3 flex flex-wrap items-center gap-3 rounded-xl border-2 border-studojo-ink bg-red-50 px-4 py-3"
+    >
+      <p className="flex-1 text-sm font-satoshi text-studojo-ink">
+        That answer did not go through. Your place in the quiz is saved.
+      </p>
+      <button
+        onClick={retryFailedAnswer}
+        disabled={loading}
+        className="min-h-[44px] px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
+      >
+        Try again
+      </button>
+    </div>
+  ) : null;
+
   // Input area for chat — hidden while streaming or loading
-  const inputArea = streamingText !== null ? null
+  const controls = streamingText !== null ? null
     : currentResponse?.is_complete ? null
     : currentResponse?.mcq ? (
       <MCQSelector
@@ -421,25 +460,50 @@ export default function ChatPage() {
           value={textInput}
           onChange={(e: any) => setTextInput(e.target.value)}
           placeholder={currentResponse?.input_placeholder || "Type your answer..."}
-          onKeyDown={(e: any) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleTextSubmit())}
+          // Enter submits, but not while a turn is in flight: without the
+          // loading guard a second press sends the same answer again, which the
+          // position-keyed replay then treats as an answer to the next question.
+          onKeyDown={(e: any) =>
+            e.key === "Enter" && !e.shiftKey && !loading && (e.preventDefault(), handleTextSubmit())
+          }
           rows={2}
           className="flex-1 px-4 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
         />
         <button
           onClick={handleTextSubmit}
           disabled={!textInput.trim() || loading}
-          className="h-10 w-10 rounded-xl bg-studojo-purple text-white flex items-center justify-center border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex-shrink-0"
+          className="h-11 w-11 rounded-xl bg-studojo-purple text-white flex items-center justify-center border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex-shrink-0"
         >
           <FiSend className="w-4 h-4" />
         </button>
       </div>
     ) : null;
 
+  // The banner sits above whichever controls are showing. It survives on its
+  // own when the controls are hidden, so a failure during streaming still gives
+  // the student a way forward.
+  const inputArea = (errorBanner || controls) ? (
+    <>
+      {errorBanner}
+      {controls}
+    </>
+  ) : null;
+
+  // The quiz page uses min-h-[100dvh] rather than h-screen + overflow-hidden.
+  //
+  // That old pair capped the page at exactly one viewport and forbade it from
+  // scrolling, so any question taller than the screen had its Continue button
+  // pushed out of reach with no way to get to it. The twelve-option niche
+  // question does exactly that on a 360x640 phone: the student can see the
+  // options, pick one, and then cannot submit.
+  //
+  // dvh rather than vh because mobile browsers shrink the viewport when the
+  // address bar is showing, and vh ignores that.
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-white">
+    <div className="min-h-[100dvh] flex flex-col bg-white">
       <Header />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex">
         {/* Desktop sidebar — vertical progress timeline */}
         <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center justify-center flex-shrink-0">
           <div className="flex flex-col" style={{ alignItems: "flex-start" }}>
