@@ -3,19 +3,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { capturePostHog } from "~/lib/posthog";
 import { FiArrowRight, FiArrowLeft, FiSearch, FiSend, FiRefreshCw } from "react-icons/fi";
+import { LuArrowUpDown } from "react-icons/lu";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { FlashCard } from "~/components/outreach/FlashCard";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch, isAuthExpired } from "~/lib/outreach/api";
+import { pageWindow } from "~/lib/outreach/pagination";
 import type { Lead } from "~/lib/outreach/types";
 
 const PAGE_SIZE = 20;
-// Only surface the top 100 leads (matches the backend's JUSTIFY_TOP_K=100, the
-// only leads that get AI justifications). The heading says how many exist in
-// total, so nobody thinks the other leads they are paying for vanished.
-const SHOWN_LIMIT = 100;
+// Every lead is listed and paged. Only the top 100 get AI justifications (the
+// backend's JUSTIFY_TOP_K=100), so this is what polling waits on; the rest
+// show the title-based reason instead.
+const JUSTIFIED_LIMIT = 100;
 const POLL_MS = 15_000;
 const MAX_POLLS = 12;
 
@@ -29,17 +31,17 @@ const signalRank = (lead: Lead) => {
   return 0;
 };
 
-// The shown set is the top SHOWN_LIMIT by heuristic score. That score does not
-// change while justifications stream in, so the set is stable across polls,
-// and it is the same set the backend picks to justify. lead.id breaks ties so
-// equal scores cannot swap places between two identical responses.
-function pickShown(leads: Lead[]): Lead[] {
+// The leads the backend justifies: the top JUSTIFIED_LIMIT by heuristic score.
+// That score does not change while justifications stream in, so this set is
+// stable across polls. lead.id breaks ties so equal scores cannot swap places
+// between two identical responses.
+function pickJustified(leads: Lead[]): Lead[] {
   return [...leads]
     .sort((a, b) => (b.score?.overall || 0) - (a.score?.overall || 0) || a.id - b.id)
-    .slice(0, SHOWN_LIMIT);
+    .slice(0, JUSTIFIED_LIMIT);
 }
 
-// Within the shown set: best match puts high/medium signal leads first, and
+// Best match puts high/medium signal leads first, and
 // low-signal leads fall to the bottom. Don't hide low-signal leads: on
 // India-focused searches Apollo data is sparse and the LLM marks most leads
 // "low" even when they're legitimate targets.
@@ -52,10 +54,34 @@ function rank(shown: Lead[], sortBy: SortBy): number[] {
     .map((l) => l.id);
 }
 
+// This page is driven entirely by browser state (the persisted candidateId and
+// the BetterAuth client session), so the server has nothing real to render.
+// A clientLoader with hydrate=true makes the server send HydrateFallback, and
+// the page itself only ever renders in the browser.
+export async function clientLoader() {
+  return null;
+}
+clientLoader.hydrate = true as const;
+
+export function HydrateFallback() {
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
+      <main id="main" className="mx-auto max-w-[var(--section-max-width)] px-4 py-6 md:px-8">
+        <h1 className="font-clash text-xl sm:text-2xl font-bold text-studojo-ink">Your Hiring Managers</h1>
+        <div className="flex justify-center py-20" role="status">
+          <div className="w-8 h-8 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin" aria-hidden />
+          <span className="sr-only">Loading your matches</span>
+        </div>
+      </main>
+    </div>
+  );
+}
+
 export default function ResultsPage() {
   const navigate = useNavigate();
   const { loading: authLoading, recovering } = useOutreachAuth();
-  const { candidateId, planType } = useOutreachStore();
+  const { candidateId, setCandidateId, planType } = useOutreachStore();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -76,13 +102,25 @@ export default function ResultsPage() {
   // Lets the "couldn't refresh" banner retry right away without wiping the grid.
   const refreshNowRef = useRef<() => void>(() => {});
 
-  // No candidate at all, even after recovering the active order from the
-  // server: send them to the start. This runs as an effect, after hydration, so
-  // the server render and the first client render never take this branch.
+  // No candidate in the browser, even after recovering the active order: ask
+  // the server for the user's most recent candidate before giving up, so a
+  // cleared store or a new device does not send someone with leads back to
+  // resume upload. Runs as an effect, never during render.
   const ready = !authLoading && !recovering;
+  const [lookedUpLatest, setLookedUpLatest] = useState(false);
   useEffect(() => {
-    if (ready && !candidateId) navigate("/outreach/onboarding/upload", { replace: true });
-  }, [ready, candidateId, navigate]);
+    if (!ready || candidateId || lookedUpLatest) return;
+    let cancelled = false;
+    outreachFetch<{ candidate_id: number | null }>("/candidate/latest", { maxRetries: 1 })
+      .then((data) => {
+        if (cancelled) return;
+        if (data?.candidate_id) setCandidateId(data.candidate_id);
+        else navigate("/outreach/onboarding/upload", { replace: true });
+      })
+      .catch(() => { if (!cancelled) navigate("/outreach/onboarding/upload", { replace: true }); })
+      .finally(() => { if (!cancelled) setLookedUpLatest(true); });
+    return () => { cancelled = true; };
+  }, [ready, candidateId, lookedUpLatest, setCandidateId, navigate]);
 
   useEffect(() => {
     if (!ready || !candidateId) return;
@@ -129,8 +167,12 @@ export default function ResultsPage() {
           setLeads(list);
           setRefreshFailed(false);
           if (isInitial) {
-            const shown = Math.min(list.length, SHOWN_LIMIT);
-            capturePostHog("leads_loaded", { leads_returned: list.length, leads_shown: shown, candidate_id: candidateId });
+            capturePostHog("leads_loaded", {
+              leads_returned: list.length,
+              leads_shown: list.length,
+              leads_justified_target: Math.min(list.length, JUSTIFIED_LIMIT),
+              candidate_id: candidateId,
+            });
             if (!viewedMarkedRef.current && list.length > 0) {
               viewedMarkedRef.current = true;
               outreachFetch("/orders/funnel/mark", {
@@ -140,9 +182,9 @@ export default function ResultsPage() {
             }
           }
           // Bullets stream in after the page opens. Keep re-fetching until ~90%
-          // of the shown set has them, but stop early once two polls in a row
+          // of the top 100 have them, but stop early once two polls in a row
           // bring nothing new: a justification pass that failed is not coming back.
-          const shownSet = pickShown(list);
+          const shownSet = pickJustified(list);
           const withBullets = shownSet.filter((l) => l.score?.justification).length;
           lastKnown = withBullets;
           const stalled = !isInitial && pollCount > 1 && withBullets <= lastWithBullets;
@@ -190,7 +232,7 @@ export default function ResultsPage() {
     };
   }, [ready, candidateId, reloadKey]);
 
-  const shown = useMemo(() => pickShown(leads), [leads]);
+  const shown = leads;
   const byId = useMemo(() => new Map(shown.map((l) => [l.id, l])), [shown]);
   const liveOrder = useMemo(() => rank(shown, sortBy), [shown, sortBy]);
 
@@ -266,18 +308,11 @@ export default function ResultsPage() {
       : ""
     : leads.length === 0
       ? "No matches yet."
-      : leads.length > shown.length
-        ? `Your top ${shown.length} of ${leads.length.toLocaleString("en-US")} matches, across ${companies.toLocaleString("en-US")} companies. Tap any card to reach out.`
-        : `${shown.length} matches across ${companies.toLocaleString("en-US")} companies. Tap any card to reach out.`;
+      : `${leads.length.toLocaleString("en-US")} matches across ${companies.toLocaleString("en-US")} companies. ` +
+        `${leads.length > JUSTIFIED_LIMIT ? `The top ${JUSTIFIED_LIMIT} come` : "They come"} with AI notes on why to contact them. Tap any card to reach out.`;
 
   return (
     <div className="min-h-screen bg-white pb-24">
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-xl focus:bg-white focus:px-4 focus:py-2 focus:border-2 focus:border-studojo-ink font-satoshi"
-      >
-        Skip to your matches
-      </a>
       <Header />
       <main id="main" className="mx-auto max-w-[var(--section-max-width)] px-4 py-6 md:px-8">
         <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between sm:mb-6">
@@ -291,7 +326,7 @@ export default function ResultsPage() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <label className="flex items-center gap-2 flex-1 sm:flex-none">
-              <span className="text-sm text-studojo-muted font-satoshi">Sort</span>
+              <LuArrowUpDown className="w-4 h-4 text-studojo-muted flex-shrink-0" aria-hidden />
               <select
                 value={sortBy}
                 onChange={(e) => resort(e.target.value as SortBy)}
@@ -408,7 +443,7 @@ export default function ResultsPage() {
                 >
                   <FiArrowLeft className="w-4 h-4" aria-hidden />
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                {pageWindow(currentPage, totalPages).map((pageNum) => (
                   <button
                     key={pageNum}
                     onClick={() => goToPage(pageNum)}
