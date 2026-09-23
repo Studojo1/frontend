@@ -50,7 +50,7 @@ const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)/;
 
 export default function ChatPage() {
   const navigate = useNavigate();
-  const { user } = useOutreachAuth();
+  const { user, loading: authLoading } = useOutreachAuth();
   const {
     candidateId,
     chatHistory,
@@ -59,6 +59,7 @@ export default function ChatPage() {
     clearChatHistory,
     chatCandidateId,
     setChatCandidateId,
+    hasHydrated,
   } = useOutreachStore();
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
@@ -68,7 +69,13 @@ export default function ChatPage() {
   // used to be dropped into the transcript as a chatbot line with no way to act
   // on it, which read as the quiz talking rather than as something gone wrong.
   const [failedAnswer, setFailedAnswer] = useState<{ content: string; answerType: string } | null>(null);
-  const autoStarted = useRef(false);
+  // Which candidate the quiz on screen was started for. A ref rather than a
+  // boolean, because the guard has to notice the candidate CHANGING, not just
+  // that a quiz was started once: a re-upload in another tab swaps candidateId
+  // underneath a quiz in progress, and a plain "already started" flag then
+  // blocks re-initialisation, leaving the student answering the old resume's
+  // questions while every answer is filed against the new candidate.
+  const startedForCandidate = useRef<number | null>(null);
 
   // Restore an in-progress quiz, or start a fresh one.
   //
@@ -81,8 +88,21 @@ export default function ChatPage() {
   // the transcript we saved and it returns the question that comes next. No
   // backend call is needed to work out where the student had got to.
   useEffect(() => {
-    if (!candidateId || autoStarted.current) return;
-    autoStarted.current = true;
+    if (!hasHydrated || !candidateId) return;
+    // Re-run when the candidate changes, not only on first mount.
+    if (startedForCandidate.current === candidateId) return;
+    const switchedCandidate =
+      startedForCandidate.current !== null && startedForCandidate.current !== candidateId;
+    startedForCandidate.current = candidateId;
+
+    if (switchedCandidate) {
+      // A different resume is now active. Whatever is on screen belongs to the
+      // previous candidate, so drop it rather than letting the student keep
+      // answering questions that will be filed against someone else's profile.
+      setCurrentResponse(null);
+      setTextInput("");
+      setFailedAnswer(null);
+    }
 
     // Don't resurrect a quiz that is already finished. Browser-back onto this
     // page after completing sets up a replay that would re-run the completion
@@ -118,7 +138,7 @@ export default function ChatPage() {
     addChatMessage({ role: "assistant", content: Q1_STATIC.message });
     setCurrentResponse(Q1_STATIC);
     capturePostHog("quiz_started", { candidate_id: candidateId });
-  }, [candidateId]);
+  }, [candidateId, hasHydrated]);
 
   const questionsAsked = currentResponse?.questions_asked_so_far ?? 0;
   // Prefer the real sequence length the backend now sends. ESTIMATED_TOTAL is
@@ -410,6 +430,23 @@ export default function ChatPage() {
       setTextInput("");
     }
   };
+
+  // Wait for localStorage to be read back and for auth to settle before
+  // deciding the student has no candidate. Deciding it from the empty initial
+  // state told a student who was mid-quiz to go and upload their resume again,
+  // for the fraction of a second before the real candidateId arrived.
+  if (!hasHydrated || authLoading) {
+    return (
+      <div className="min-h-[100dvh] bg-white">
+        <Header />
+        <div className="mx-auto max-w-3xl px-4 py-8 md:px-8 text-center">
+          <p className="text-base text-studojo-muted mt-8 font-satoshi" role="status">
+            Loading your quiz...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!candidateId) {
     return (
