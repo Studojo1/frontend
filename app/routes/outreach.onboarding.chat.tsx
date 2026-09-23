@@ -157,8 +157,9 @@ export default function ChatPage() {
    * transcript returns whichever question the student was on. Nothing is
    * appended to the history here: the answers are already in it.
    */
-  const resumeFromHistory = async (history: ChatMessage[]) => {
-    if (!candidateId) return;
+  const resumeFromHistory = async (history: ChatMessage[], opts: { restartOnFailure?: boolean } = {}) => {
+    const { restartOnFailure = true } = opts;
+    if (!candidateId) return false;
     setLoading(true);
     setStreamingText(null);
 
@@ -210,21 +211,27 @@ export default function ChatPage() {
         // The question itself is already the last assistant message in the
         // restored transcript, so only the controls need rebuilding.
         setCurrentResponse(restored);
-      } else {
-        // Either the quiz had already finished or the reply was unusable.
-        // Sending the student back to a clean question one is the safe fallback.
-        clearChatHistory();
-        setChatCandidateId(candidateId);
-        addChatMessage({ role: "assistant", content: Q1_STATIC.message });
-        setCurrentResponse(Q1_STATIC);
+        return true;
       }
-    } catch {
-      // Restoring is best-effort. If it fails, start the quiz rather than leave
-      // the student on a transcript with no way to answer.
+
+      // Either the quiz had already finished or the reply was unusable.
+      if (!restartOnFailure) return false;
+      // Sending the student back to a clean question one is the safe fallback
+      // on mount, but never when they only asked to change one answer.
       clearChatHistory();
       setChatCandidateId(candidateId);
       addChatMessage({ role: "assistant", content: Q1_STATIC.message });
       setCurrentResponse(Q1_STATIC);
+      return false;
+    } catch {
+      // Restoring is best-effort. If it fails, start the quiz rather than leave
+      // the student on a transcript with no way to answer.
+      if (!restartOnFailure) return false;
+      clearChatHistory();
+      setChatCandidateId(candidateId);
+      addChatMessage({ role: "assistant", content: Q1_STATIC.message });
+      setCurrentResponse(Q1_STATIC);
+      return false;
     } finally {
       setLoading(false);
       setStreamingText(null);
@@ -425,6 +432,53 @@ export default function ChatPage() {
     }
   };
 
+  /**
+   * Step back to the previous question so an answer can be changed.
+   *
+   * There was no back control of any kind: an answer, once sent, could never be
+   * reviewed or corrected, and the only way out of a mistake was to abandon the
+   * quiz and start over.
+   *
+   * This works for the same reason resume does. The stream endpoint replays
+   * whatever history it is given, so dropping the last answer (and the question
+   * that followed it) and re-posting returns the student to that question with
+   * everything before it intact. The server's stored answers are keyed by
+   * question key and merged, so re-answering overwrites the right one.
+   */
+  const goBackOneQuestion = async () => {
+    if (loading || !candidateId) return;
+    const lastUserIdx = chatHistory.map((m) => m.role).lastIndexOf("user");
+    if (lastUserIdx < 0) return;
+
+    // Everything up to (not including) the last answer. The assistant question
+    // that prompted it stays, because that is the question being returned to.
+    const rewound = chatHistory.slice(0, lastUserIdx);
+    setFailedAnswer(null);
+    setTextInput("");
+    capturePostHog("quiz_went_back", { candidate_id: candidateId });
+
+    // Rewrite the transcript first so the screen matches what is being replayed.
+    const previous = chatHistory;
+    clearChatHistory();
+    setChatCandidateId(candidateId);
+    rewound.forEach((m) => addChatMessage(m));
+
+    const ok = await resumeFromHistory(rewound, { restartOnFailure: false });
+    if (!ok) {
+      // Put the student back exactly where they were. Losing the whole quiz
+      // because "go back one" did not land would be far worse than the problem
+      // the button exists to solve.
+      clearChatHistory();
+      setChatCandidateId(candidateId);
+      previous.forEach((m) => addChatMessage(m));
+      setFailedAnswer(null);
+      addChatMessage({
+        role: "assistant",
+        content: "Sorry, I could not go back just now. Please carry on from here.",
+      });
+    }
+  };
+
   const retryFailedAnswer = () => {
     if (!failedAnswer) return;
     const { content, answerType } = failedAnswer;
@@ -554,9 +608,29 @@ export default function ChatPage() {
   // The banner sits above whichever controls are showing. It survives on its
   // own when the controls are hidden, so a failure during streaming still gives
   // the student a way forward.
-  const inputArea = (errorBanner || controls) ? (
+  // Back is offered whenever there is an answer to walk back and the quiz is
+  // not finished. It sits above the controls so it never competes with the
+  // primary action for the same tap.
+  const canGoBack =
+    !currentResponse?.is_complete &&
+    streamingText === null &&
+    chatHistory.some((m) => m.role === "user");
+
+  const backControl = canGoBack ? (
+    <button
+      type="button"
+      onClick={goBackOneQuestion}
+      disabled={loading}
+      className="mb-2 min-h-[44px] px-3 -ml-1 text-sm font-satoshi text-studojo-muted hover:text-studojo-ink disabled:opacity-50 disabled:pointer-events-none"
+    >
+      &larr; Change my last answer
+    </button>
+  ) : null;
+
+  const inputArea = (errorBanner || controls || backControl) ? (
     <>
       {errorBanner}
+      {backControl}
       {controls}
     </>
   ) : null;
@@ -660,7 +734,7 @@ export default function ChatPage() {
           </div>
 
           {/* Chat container */}
-          <div className="flex-1 overflow-hidden px-4 md:px-6 pb-4">
+          <div className="flex-1 min-h-0 px-4 md:px-6 pb-4">
             <ChatInterface
               messages={chatHistory}
               loading={loading}
