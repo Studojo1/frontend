@@ -7,6 +7,7 @@ import {
   saveIdeas,
   setIdeaStatus,
   deleteIdea,
+  usedAngles,
 } from "~/lib/content/store.server";
 import {
   IDEA_STATUSES,
@@ -73,16 +74,16 @@ export async function action({ request }: Route.ActionArgs) {
     const accounts = await listAccounts();
     const account = accounts.find((a) => a.id === accountId) ?? null;
 
-    // Feed the model what this account has already had so it stops circling
-    // the same three topics.
-    const existing = await listIdeas({ accountId, limit: 60 });
+    // Roster wide, not per account. The playbook treats an idea as done once it
+    // has run anywhere, because these audiences already overlap.
+    const used = await usedAngles(200);
 
     try {
       const ideas = await generateIdeas({
         account,
         brief: String(form.get("brief") ?? "").trim(),
         count: Number(form.get("count") ?? 6),
-        avoidTitles: existing.map((i) => i.title),
+        usedAngles: used,
       });
       await saveIdeas(ideas, { accountId, source: "ai", createdBy: user.email });
       return { ok: true, generated: ideas.length };
@@ -97,6 +98,26 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   return { error: "Unknown action." };
+}
+
+function Tag({
+  children,
+  tone = "plain",
+}: {
+  children: React.ReactNode;
+  tone?: "plain" | "strong";
+}) {
+  return (
+    <span
+      className={`inline-block rounded-lg px-2 py-0.5 font-satoshi text-[11px] font-bold ${
+        tone === "strong"
+          ? "bg-studojo-purple-bg text-studojo-purple"
+          : "bg-neutral-100 text-neutral-600"
+      }`}
+    >
+      {children}
+    </span>
+  );
 }
 
 export default function ContentIdeas({ loaderData, actionData }: Route.ComponentProps) {
@@ -234,12 +255,30 @@ export default function ContentIdeas({ loaderData, actionData }: Route.Component
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-2 font-clash text-xl font-medium text-neutral-900">
-                    {idea.title}
-                  </h3>
+                  {/* The hook leads. It is the thing that has to pass the viral
+                      bar, so it is what you should be judging, not the title. */}
                   {idea.hook && (
-                    <p className="mt-3 border-l-4 border-studojo-purple-light pl-3 font-satoshi text-[15px] italic leading-relaxed text-neutral-800">
+                    <p className="mt-2 font-clash text-xl font-medium leading-snug text-neutral-900">
                       {idea.hook}
+                    </p>
+                  )}
+                  <p className="mt-2 font-satoshi text-sm text-neutral-500">
+                    {idea.title}
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {idea.hookType && (
+                      <Tag tone={idea.hookTier === "Tier 1" ? "strong" : "plain"}>
+                        {idea.hookType}
+                        {idea.hookTier ? ` · ${idea.hookTier}` : ""}
+                      </Tag>
+                    )}
+                    {idea.storyEngine && <Tag tone="plain">{idea.storyEngine}</Tag>}
+                  </div>
+
+                  {idea.cinematicDetail && (
+                    <p className="mt-3 border-l-4 border-studojo-purple-light pl-3 font-satoshi text-[15px] leading-relaxed text-neutral-800">
+                      {idea.cinematicDetail}
                     </p>
                   )}
                   {idea.angle && (
@@ -247,11 +286,20 @@ export default function ContentIdeas({ loaderData, actionData }: Route.Component
                       {idea.angle}
                     </p>
                   )}
-                  {idea.whyItWorks && (
-                    <p className="mt-2 font-satoshi text-sm leading-relaxed text-neutral-500">
-                      Why it lands: {idea.whyItWorks}
-                    </p>
-                  )}
+                  <dl className="mt-3 grid gap-1">
+                    {idea.whyItWorks && (
+                      <div className="font-satoshi text-sm leading-relaxed text-neutral-500">
+                        <dt className="inline font-bold">Why it lands: </dt>
+                        <dd className="inline">{idea.whyItWorks}</dd>
+                      </div>
+                    )}
+                    {idea.whyDifferent && (
+                      <div className="font-satoshi text-sm leading-relaxed text-neutral-500">
+                        <dt className="inline font-bold">Not a repeat because: </dt>
+                        <dd className="inline">{idea.whyDifferent}</dd>
+                      </div>
+                    )}
+                  </dl>
                 </div>
               </div>
 
@@ -267,7 +315,7 @@ export default function ContentIdeas({ loaderData, actionData }: Route.Component
                     <input type="hidden" name="id" value={idea.id} />
                     <input type="hidden" name="status" value="kept" />
                     <Button type="submit" name="intent" value="status" variant="ghost">
-                      Keep
+                      Shortlist
                     </Button>
                   </Form>
                 )}

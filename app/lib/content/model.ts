@@ -17,6 +17,9 @@ export type ContentAccount = {
   notes: string | null;
   accent: string;
   active: boolean;
+  /** "student" or "b2b". B2B profiles get no webinar content, ever. */
+  lane: string;
+  postsPerWeek: number;
 };
 
 export type PlaybookEntry = {
@@ -40,6 +43,34 @@ export type ContentIdea = {
   status: string;
   source: string;
   createdAt: string;
+  /** Which playbook hook type and tier this idea is built on. */
+  hookType: string | null;
+  hookTier: string | null;
+  /** Which of the seven story engines carries the post. */
+  storyEngine: string | null;
+  /** The one concrete detail the post is built around. */
+  cinematicDetail: string | null;
+  /** How this differs from the done-ideas list. */
+  whyDifferent: string | null;
+};
+
+export type KillCheckItem = {
+  check: string;
+  pass: boolean;
+  note: string;
+};
+
+export type KillCheck = {
+  items: KillCheckItem[];
+  wordCount: number;
+  verdict: "pass" | "fix";
+};
+
+export type PostRevision = {
+  id: number;
+  body: string;
+  instruction: string | null;
+  createdAt: string;
 };
 
 export type ContentPost = {
@@ -56,6 +87,10 @@ export type ContentPost = {
   postedAt: string | null;
   notes: string | null;
   updatedAt: string;
+  /** Last kill-check result, so the verdict survives a reload. */
+  killCheck: KillCheck | null;
+  /** The image, carousel or video planned. The playbook makes this mandatory. */
+  visualPlan: string | null;
 };
 
 /** The statuses a post moves through. Track only: nothing here posts for you. */
@@ -76,6 +111,14 @@ export const PLAYBOOK_KINDS = [
   { value: "examples", label: "Example posts" },
   { value: "reference", label: "Reference" },
 ] as const;
+
+export const LANES = [
+  { value: "student", label: "Student facing" },
+  { value: "b2b", label: "B2B (Sensei)" },
+] as const;
+
+/** Twelve posts a week is the plan: six live accounts, two each. */
+export const WEEKLY_ROSTER_TARGET = 12;
 
 export const PLATFORMS = [
   "linkedin",

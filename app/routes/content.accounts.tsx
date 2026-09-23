@@ -7,7 +7,12 @@ import {
   upsertAccount,
   deleteAccount,
 } from "~/lib/content/store.server";
-import { PLATFORMS, type ContentAccount } from "~/lib/content/model";
+import {
+  PLATFORMS,
+  LANES,
+  WEEKLY_ROSTER_TARGET,
+  type ContentAccount,
+} from "~/lib/content/model";
 import { CARD, INPUT, LABEL, PageHead, Button, Empty } from "~/components/content/ui";
 
 /**
@@ -49,6 +54,8 @@ export async function action({ request }: Route.ActionArgs) {
     audience: String(form.get("audience") ?? "").trim() || null,
     notes: String(form.get("notes") ?? "").trim() || null,
     active: form.get("active") === "on",
+    lane: String(form.get("lane") ?? "student"),
+    postsPerWeek: Number(form.get("postsPerWeek") ?? 2),
   });
   return { ok: true };
 }
@@ -104,6 +111,38 @@ function AccountForm({
         </div>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2">
+        <div>
+          <label className={LABEL} htmlFor="lane">Lane</label>
+          <select
+            id="lane"
+            name="lane"
+            className={`${INPUT} mt-1.5`}
+            defaultValue={account?.lane ?? "student"}
+          >
+            {LANES.map((l) => (
+              <option key={l.value} value={l.value}>{l.label}</option>
+            ))}
+          </select>
+          <p className="mt-1.5 font-satoshi text-xs leading-relaxed text-neutral-500">
+            B2B changes the rules, it is not a label. No webinar content at all,
+            and the CTA becomes direct response instead of a comment gate.
+          </p>
+        </div>
+        <div>
+          <label className={LABEL} htmlFor="postsPerWeek">Posts per week</label>
+          <input
+            id="postsPerWeek"
+            name="postsPerWeek"
+            type="number"
+            min={0}
+            max={14}
+            className={`${INPUT} mt-1.5`}
+            defaultValue={account?.postsPerWeek ?? 2}
+          />
+        </div>
+      </div>
+
       <div>
         <label className={LABEL} htmlFor="persona">Voice and persona</label>
         <textarea
@@ -147,7 +186,8 @@ function AccountForm({
           defaultChecked={account?.active ?? true}
           className="h-4 w-4 accent-[var(--color-studojo-purple)]"
         />
-        Active
+        Active. Uncheck to put the account on standby: it keeps its voice and
+        history but stops counting toward the weekly target.
       </label>
 
       <div className="flex gap-2">
@@ -177,7 +217,9 @@ export default function ContentAccounts({ loaderData, actionData }: Route.Compon
       />
 
       <p className="mt-3 font-satoshi text-sm text-neutral-500">
-        {accounts.filter((a) => a.active).length} active of {accounts.length} set up.
+        {accounts.filter((a) => a.active).length} live of {accounts.length} set up,{" "}
+        {accounts.filter((a) => a.active).reduce((n, a) => n + a.postsPerWeek, 0)}{" "}
+        posts a week against a plan of {WEEKLY_ROSTER_TARGET}.
       </p>
 
       {actionData && "error" in actionData && actionData.error && (
@@ -207,7 +249,10 @@ export default function ContentAccounts({ loaderData, actionData }: Route.Compon
                 </h3>
                 <p className="mt-1 font-satoshi text-sm text-neutral-500">
                   {a.handle} <span className="capitalize">· {a.platform}</span>
-                  {!a.active && " · inactive"}
+                  {a.lane === "b2b" && " · B2B, no webinar content"}
+                  {" · "}
+                  {a.postsPerWeek}/week
+                  {!a.active && " · on standby"}
                 </p>
               </div>
               <div className="flex gap-2">

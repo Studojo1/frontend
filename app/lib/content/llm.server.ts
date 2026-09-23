@@ -1,13 +1,30 @@
 import { playbookPrompt } from "./store.server";
-import type { ContentAccount } from "./model";
+import {
+  ideasSystemPrompt,
+  ideasUserPrompt,
+  draftSystemPrompt,
+  draftUserPrompt,
+  killCheckSystemPrompt,
+  killCheckUserPrompt,
+  cleanTells,
+  type DraftContext,
+} from "./prompts.server";
+import type { ContentAccount, KillCheck } from "./model";
+
+export type { DraftContext };
 
 /**
- * The model calls behind the idea generator and the writer.
+ * The model calls behind the idea generator, the writer and the kill check.
  *
  * Same provider and key as the rest of the repo (OPENAI_API_KEY, see
  * app/lib/chat/llm.server.ts). Model defaults to gpt-4o rather than the
  * gpt-4o-mini used for support chat: those answers are three sentences of
- * routing, these are posts that go out under a real name.
+ * routing, these are posts that go out under a real person's name.
+ *
+ * Almost none of the voice lives in this file. It lives in the playbook rows,
+ * which hold the studojo-content skill, and is pasted in whole. That is
+ * deliberate: changing how posts read should be an edit on /content/playbook,
+ * not a pull request.
  */
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -36,8 +53,8 @@ async function chat(
     body: JSON.stringify({
       model: MODEL,
       messages,
-      temperature: opts.temperature ?? 0.8,
-      max_tokens: opts.maxTokens ?? 1600,
+      temperature: opts.temperature ?? 0.9,
+      max_tokens: opts.maxTokens ?? 2000,
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
     }),
   });
@@ -57,159 +74,155 @@ async function chat(
   return content;
 }
 
-/** Em dashes are banned in Studojo copy, and the model emits them anyway. */
-function stripEmDashes(text: string): string {
-  return text.replace(/\s*[—–]\s*/g, ", ").replace(/,\s*,/g, ",");
-}
-
-function accountContext(account: ContentAccount | null): string {
-  if (!account) {
-    return "No specific account selected. Write in a neutral, credible voice.";
+function parseJson<T>(raw: string): T {
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    throw new ContentLlmError("The model returned something that was not JSON.");
   }
-  return [
-    `Account: ${account.displayName} (${account.handle}) on ${account.platform}.`,
-    account.persona ? `Voice and persona: ${account.persona}` : null,
-    account.audience ? `Audience: ${account.audience}` : null,
-    account.notes ? `Notes: ${account.notes}` : null,
-  ]
-    .filter(Boolean)
-    .join("\n");
 }
 
-async function baseSystem(account: ContentAccount | null, task: string) {
-  const playbook = await playbookPrompt();
-  return [
-    `You are the content lead for Studojo. Your job right now: ${task}`,
-    "",
-    "## Account you are writing for",
-    accountContext(account),
-    "",
-    playbook
-      ? `## The playbook. These rules override your own instincts.\n${playbook}`
-      : "## The playbook\nNo playbook entries yet. Fall back on plain, concrete, specific writing.",
-    "",
-    "## Hard rules",
-    "- Never use em dashes. Use a comma, a colon, or two sentences.",
-    "- No engagement bait, no 'Agree?', no 'Thoughts?', no emoji walls.",
-    "- Concrete over abstract. Name the number, the company, the situation.",
-    "- Never invent statistics, names, or client results.",
-    "- Write like a person who has actually done the thing, not a brand account.",
-  ].join("\n");
+function str(v: unknown): string {
+  return cleanTells(String(v ?? "").trim());
 }
+
+/* ------------------------------------------------------------------- ideas */
 
 export type GeneratedIdea = {
   title: string;
-  angle: string;
   hook: string;
+  hookType: string;
+  hookTier: string;
+  storyEngine: string;
+  angle: string;
+  cinematicDetail: string;
+  whyDifferent: string;
   whyItWorks: string;
   pillar: string;
 };
 
 /**
- * Idea generation. Returns structured ideas rather than prose so they can be
- * kept, binned, and promoted into a draft one by one.
+ * Mode 3 from the playbook: idea brainstorm.
+ *
+ * Structured rather than prose so each idea can be shortlisted, binned, or
+ * pushed straight into the writer with its hook type and story engine intact.
+ * The writer then does not have to re-derive the angle from a title.
  */
 export async function generateIdeas(input: {
   account: ContentAccount | null;
   brief: string;
   count?: number;
-  avoidTitles?: string[];
+  usedAngles?: string[];
 }): Promise<GeneratedIdea[]> {
   const count = Math.min(Math.max(input.count ?? 6, 1), 12);
-  const system = await baseSystem(
-    input.account,
-    `generate ${count} post ideas that this account could credibly publish.`
-  );
-
-  const avoid = input.avoidTitles?.length
-    ? `\n\nAlready used, do not repeat these or near-duplicates:\n${input.avoidTitles
-        .slice(0, 40)
-        .map((t) => `- ${t}`)
-        .join("\n")}`
-    : "";
-
-  const user = [
-    `Brief from the operator: ${input.brief || "No brief. Use the playbook and the account's usual pillars."}`,
-    avoid,
-    "",
-    `Return JSON exactly in this shape: {"ideas":[{"title":"","angle":"","hook":"","whyItWorks":"","pillar":""}]}`,
-    "- title: what the post is about, under 90 characters.",
-    "- angle: the specific take, one or two sentences. Not the topic, the argument.",
-    "- hook: the literal first line of the post.",
-    "- whyItWorks: why this lands with this audience, one sentence.",
-    "- pillar: which content pillar it belongs to, two or three words.",
-    `Return exactly ${count} ideas.`,
-  ].join("\n");
+  const playbook = await playbookPrompt();
 
   const raw = await chat(
     [
-      { role: "system", content: system },
-      { role: "user", content: user },
+      { role: "system", content: ideasSystemPrompt(input.account, playbook) },
+      {
+        role: "user",
+        content: ideasUserPrompt(input.brief, input.usedAngles ?? [], count),
+      },
     ],
-    { json: true, maxTokens: 2000 }
+    { json: true, maxTokens: 3000, temperature: 0.95 }
   );
 
-  let parsed: { ideas?: GeneratedIdea[] };
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new ContentLlmError("The model returned something that was not JSON.");
-  }
-
+  const parsed = parseJson<{ ideas?: Record<string, unknown>[] }>(raw);
   const ideas = Array.isArray(parsed.ideas) ? parsed.ideas : [];
   if (ideas.length === 0) throw new ContentLlmError("No ideas came back.");
 
   return ideas.slice(0, count).map((i) => ({
-    title: stripEmDashes(String(i.title ?? "").trim()).slice(0, 200),
-    angle: stripEmDashes(String(i.angle ?? "").trim()),
-    hook: stripEmDashes(String(i.hook ?? "").trim()),
-    whyItWorks: stripEmDashes(String(i.whyItWorks ?? "").trim()),
-    pillar: stripEmDashes(String(i.pillar ?? "").trim()).slice(0, 60),
+    title: str(i.title).slice(0, 200),
+    hook: str(i.hook),
+    hookType: str(i.hookType).slice(0, 80),
+    hookTier: str(i.hookTier).slice(0, 20),
+    storyEngine: str(i.storyEngine).slice(0, 80),
+    angle: str(i.angle),
+    cinematicDetail: str(i.cinematicDetail),
+    whyDifferent: str(i.whyDifferent),
+    whyItWorks: str(i.whyItWorks),
+    pillar: str(i.pillar).slice(0, 60),
   }));
 }
 
-/**
- * The writer. Produces the post body only, ready to paste, because that is
- * what goes into the scheduler.
- */
-export async function draftPost(input: {
-  account: ContentAccount | null;
-  title: string;
-  angle?: string | null;
-  hook?: string | null;
-  instructions?: string | null;
-  existingBody?: string | null;
-}): Promise<string> {
-  const rewriting = Boolean(input.existingBody?.trim());
-  const system = await baseSystem(
-    input.account,
-    rewriting
-      ? "rewrite an existing post so it follows the playbook more closely."
-      : "write a finished post, ready to publish."
-  );
+/* ------------------------------------------------------------------ writer */
 
-  const user = [
-    `Post topic: ${input.title}`,
-    input.angle ? `Angle: ${input.angle}` : null,
-    input.hook ? `Opening line to work from: ${input.hook}` : null,
-    input.instructions ? `Extra instructions: ${input.instructions}` : null,
-    rewriting ? `\nCurrent draft to rewrite:\n"""\n${input.existingBody}\n"""` : null,
-    "",
-    "Return the post body only. No title, no preamble, no commentary, no markdown fences.",
-    "Use line breaks the way the platform renders them. Short paragraphs.",
-  ]
-    .filter(Boolean)
-    .join("\n");
+/**
+ * Mode 2 from the playbook: full post.
+ *
+ * Returns the body only. That is what gets pasted into LinkedIn, and a model
+ * that returns a title and a preamble means someone hand-deletes two lines
+ * every single time.
+ */
+export async function draftPost(ctx: DraftContext): Promise<string> {
+  const playbook = await playbookPrompt();
 
   const raw = await chat(
     [
-      { role: "system", content: system },
-      { role: "user", content: user },
+      { role: "system", content: draftSystemPrompt(ctx, playbook) },
+      { role: "user", content: draftUserPrompt(ctx) },
     ],
-    { maxTokens: 1600, temperature: 0.75 }
+    { maxTokens: 1600, temperature: 0.85 }
   );
 
-  // The model sometimes wraps the post in a fence despite being told not to.
+  // The model wraps the post in a fence now and then despite being told not to.
   const unfenced = raw.replace(/^```[a-z]*\n?/i, "").replace(/\n?```$/, "");
-  return stripEmDashes(unfenced.trim());
+  return cleanTells(unfenced.trim());
+}
+
+/* -------------------------------------------------------------- kill check */
+
+/**
+ * The playbook's kill check, run against a finished draft.
+ *
+ * A separate call rather than a line in the writer's prompt: a model grading
+ * the draft it just produced in the same breath marks its own homework. This
+ * one is given the draft cold, with no memory of having written it, and is
+ * told to be hostile.
+ */
+export async function runKillCheck(input: {
+  account: ContentAccount | null;
+  body: string;
+  hasVisual: boolean;
+  usedAngles?: string[];
+}): Promise<KillCheck> {
+  const wordCount = input.body.trim().split(/\s+/).filter(Boolean).length;
+  const playbook = await playbookPrompt();
+
+  const raw = await chat(
+    [
+      { role: "system", content: killCheckSystemPrompt(input.account, playbook) },
+      {
+        role: "user",
+        content: killCheckUserPrompt({
+          body: input.body,
+          hasVisual: input.hasVisual,
+          wordCount,
+          used: input.usedAngles ?? [],
+        }),
+      },
+    ],
+    { json: true, maxTokens: 2000, temperature: 0.2 }
+  );
+
+  const parsed = parseJson<{
+    items?: { check?: unknown; pass?: unknown; note?: unknown }[];
+  }>(raw);
+
+  const items = (Array.isArray(parsed.items) ? parsed.items : []).map((i) => ({
+    check: str(i.check).slice(0, 120),
+    pass: Boolean(i.pass),
+    note: str(i.note).slice(0, 300),
+  }));
+
+  if (items.length === 0) {
+    throw new ContentLlmError("The kill check came back empty.");
+  }
+
+  // Derive the verdict rather than trusting it: the model has been seen
+  // returning "pass" with failing items underneath it.
+  const verdict = items.every((i) => i.pass) ? "pass" : "fix";
+
+  return { items, wordCount, verdict };
 }
