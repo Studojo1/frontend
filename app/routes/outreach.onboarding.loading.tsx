@@ -35,6 +35,9 @@ export default function OnboardingLoadingPage() {
   const [fadeIn, setFadeIn] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
   const [stepsComplete, setStepsComplete] = useState(false);
+  // The profile never became ready. Distinct from "still loading", because the
+  // page used to treat those two as the same thing and show an empty profile.
+  const [timedOut, setTimedOut] = useState(false);
   const pollingRef = useRef(false);
 
   // Rotate quotes every 5s
@@ -66,12 +69,19 @@ export default function OnboardingLoadingPage() {
     pollingRef.current = true;
 
     (async () => {
-      for (let i = 0; i < 60; i++) {
+      // Ask whether the profile is ready, rather than inferring it.
+      //
+      // This used to poll /profile and look for parsed_json.profile_summary or
+      // .career_analysis, which the RESUME PARSE already writes at upload. So
+      // the condition was satisfied before the quiz payload had been built, and
+      // the page could hand the student a profile page with no targeting behind
+      // it. profile-status answers the actual question: is target_roles written.
+      for (let i = 0; i < 30; i++) {
         if (i > 0) await new Promise((r) => setTimeout(r, 2000));
         try {
-          const data = await outreachFetch<any>(`/candidate/${candidateId}/profile`);
-          const parsed = data?.parsed_json;
-          if (parsed?.profile_summary || parsed?.career_analysis) {
+          const status = await outreachFetch<any>(`/candidate/${candidateId}/profile-status`);
+          if (status?.ready) {
+            const data = await outreachFetch<any>(`/candidate/${candidateId}/profile`);
             setProfileData(data);
             setCurrentStep(3);
             navigate("/outreach/onboarding/profile");
@@ -79,12 +89,39 @@ export default function OnboardingLoadingPage() {
           }
         } catch {}
       }
-      setCurrentStep(3);
-      navigate("/outreach/onboarding/profile");
+
+      // A minute without the profile becoming ready is a failure, not a cue to
+      // show an empty profile page and hope. Say so and offer the one action
+      // that can actually help.
+      setTimedOut(true);
     })();
   }, [candidateId, authLoading]);
 
   const quote = QUOTES[quoteIndex];
+
+  if (timedOut) {
+    return (
+      <div className="min-h-[100dvh] flex flex-col bg-white">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 text-center">
+          <h1 className="text-xl font-clash font-semibold text-studojo-ink mb-3">
+            Your profile is taking longer than expected
+          </h1>
+          <p className="text-sm font-satoshi text-studojo-muted max-w-sm mb-6">
+            Your answers are saved. Building the profile from them did not finish,
+            so there is nothing to show yet.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="min-h-[44px] px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
