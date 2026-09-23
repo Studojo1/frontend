@@ -30,20 +30,6 @@ export interface MCQQuestion {
   allow_multiple: boolean;
 }
 
-export interface PsychometricResult {
-  top_strengths: string[];
-  dimension_scores: {
-    analytical: number;
-    creative: number;
-    execution: number;
-    social: number;
-  };
-  traits: string[];
-  recommended_roles: string[];
-  reasoning: string;
-  confidence_score: number;
-}
-
 export interface AgentResponse {
   message: string;
   current_state: string;
@@ -56,7 +42,6 @@ export interface AgentResponse {
   // runs 8 to 11 questions, so this is the only honest denominator; it is
   // optional because an older cached response may not carry it.
   questions_total?: number;
-  psychometric?: PsychometricResult | null;
 }
 
 export interface ChatMessage {
