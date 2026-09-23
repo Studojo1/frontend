@@ -86,13 +86,21 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
 
   return (
     <div className="space-y-2.5">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {/* The question text is rendered by the chat transcript above, so the
+          option grid is labelled by it rather than repeating it visually. */}
+      <div
+        className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+        role="group"
+        aria-label={question}
+      >
         {options.map((opt) => {
           const isSelected = selected.includes(opt.label);
           return (
             <button
               key={opt.label}
+              type="button"
               onClick={() => toggle(opt.label)}
+              aria-pressed={isSelected}
               className={`flex items-center gap-2 px-3 py-2 min-h-[44px] rounded-xl text-left text-[13px] font-satoshi border-2 transition-all duration-150
                 ${isSelected
                   ? "border-studojo-purple bg-studojo-purple-bg text-studojo-purple shadow-sm"
