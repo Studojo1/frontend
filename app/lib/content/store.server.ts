@@ -402,6 +402,35 @@ export async function saveIdeas(
   return ids;
 }
 
+/**
+ * Hand edits to a generated idea.
+ *
+ * The model gets the hook nearly right more often than it gets it right, and
+ * regenerating the whole batch to fix six words throws away the five ideas you
+ * liked. Craft fields only: status has its own path.
+ */
+export async function updateIdea(input: {
+  id: number;
+  title: string;
+  hook?: string | null;
+  angle?: string | null;
+  cinematicDetail?: string | null;
+  pillar?: string | null;
+}) {
+  await ensureTables();
+  await db.execute(sql`
+    UPDATE content_ideas SET
+      title = ${input.title},
+      hook = ${input.hook ?? null},
+      angle = ${input.angle ?? null},
+      cinematic_detail = ${input.cinematicDetail ?? null},
+      pillar = ${input.pillar ?? null},
+      -- An edited idea is yours now, not the model's.
+      source = 'edited'
+    WHERE id = ${input.id}
+  `);
+}
+
 export async function setIdeaStatus(id: number, status: string) {
   await ensureTables();
   await db.execute(

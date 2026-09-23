@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Form, Link, useNavigation, useSearchParams } from "react-router";
 import type { Route } from "./+types/content.ideas";
 import { requireContentAccess } from "~/lib/content/guard.server";
@@ -6,6 +7,7 @@ import {
   listIdeas,
   saveIdeas,
   setIdeaStatus,
+  updateIdea,
   deleteIdea,
   usedAngles,
 } from "~/lib/content/store.server";
@@ -61,6 +63,20 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (intent === "status") {
     await setIdeaStatus(Number(form.get("id")), String(form.get("status")));
+    return { ok: true };
+  }
+
+  if (intent === "edit") {
+    const title = String(form.get("title") ?? "").trim();
+    if (!title) return { error: "An idea needs a title." };
+    await updateIdea({
+      id: Number(form.get("id")),
+      title,
+      hook: String(form.get("hook") ?? "").trim() || null,
+      angle: String(form.get("angle") ?? "").trim() || null,
+      cinematicDetail: String(form.get("cinematicDetail") ?? "").trim() || null,
+      pillar: String(form.get("pillar") ?? "").trim() || null,
+    });
     return { ok: true };
   }
 
@@ -123,6 +139,7 @@ function Tag({
 export default function ContentIdeas({ loaderData, actionData }: Route.ComponentProps) {
   const { accounts, ideas } = loaderData;
   const [params, setParams] = useSearchParams();
+  const [editing, setEditing] = useState<number | null>(null);
   const nav = useNavigation();
   const generating =
     nav.state === "submitting" && nav.formData?.get("intent") === "generate";
@@ -242,6 +259,61 @@ export default function ContentIdeas({ loaderData, actionData }: Route.Component
             <article key={idea.id} className={`${CARD} p-6`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
+                  {editing === idea.id ? (
+                    <Form method="post" className="grid gap-3" onSubmit={() => setEditing(null)}>
+                      <input type="hidden" name="id" value={idea.id} />
+                      <div>
+                        <label className={LABEL}>Hook, the literal first line</label>
+                        <textarea
+                          name="hook"
+                          rows={2}
+                          className={`${INPUT} mt-1.5`}
+                          defaultValue={idea.hook ?? ""}
+                        />
+                      </div>
+                      <div className="grid gap-3 md:grid-cols-[1fr_200px]">
+                        <div>
+                          <label className={LABEL}>Title</label>
+                          <input
+                            name="title"
+                            className={`${INPUT} mt-1.5`}
+                            defaultValue={idea.title}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className={LABEL}>Pillar</label>
+                          <input
+                            name="pillar"
+                            className={`${INPUT} mt-1.5`}
+                            defaultValue={idea.pillar ?? ""}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={LABEL}>Built around</label>
+                        <input
+                          name="cinematicDetail"
+                          className={`${INPUT} mt-1.5`}
+                          defaultValue={idea.cinematicDetail ?? ""}
+                        />
+                      </div>
+                      <div>
+                        <label className={LABEL}>Angle</label>
+                        <textarea
+                          name="angle"
+                          rows={2}
+                          className={`${INPUT} mt-1.5`}
+                          defaultValue={idea.angle ?? ""}
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button type="submit" name="intent" value="edit">Save idea</Button>
+                        <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+                      </div>
+                    </Form>
+                  ) : (
+                  <>
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusPill status={idea.status} />
                     {idea.pillar && (
@@ -300,6 +372,8 @@ export default function ContentIdeas({ loaderData, actionData }: Route.Component
                       </div>
                     )}
                   </dl>
+                  </>
+                  )}
                 </div>
               </div>
 
@@ -319,6 +393,12 @@ export default function ContentIdeas({ loaderData, actionData }: Route.Component
                     </Button>
                   </Form>
                 )}
+                <Button
+                  variant="ghost"
+                  onClick={() => setEditing(editing === idea.id ? null : idea.id)}
+                >
+                  {editing === idea.id ? "Close" : "Fix it"}
+                </Button>
                 {idea.status !== "binned" && (
                   <Form method="post">
                     <input type="hidden" name="id" value={idea.id} />
