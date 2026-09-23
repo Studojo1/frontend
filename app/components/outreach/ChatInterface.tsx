@@ -27,7 +27,7 @@ export function ChatInterface({ messages, children, loading, streamingText, quiz
   }, [messages, loading, streamingText]);
 
   return (
-    <div className="flex flex-col h-full bg-white border-2 border-studojo-ink rounded-2xl overflow-hidden shadow-brutal">
+    <div className="flex flex-col h-full min-h-0 bg-white border-2 border-studojo-ink rounded-2xl overflow-hidden shadow-brutal">
       {/* Quiz progress bar */}
       {quizProgress != null && quizProgress > 0 && (
         <div className="flex-shrink-0">
@@ -57,7 +57,7 @@ export function ChatInterface({ messages, children, loading, streamingText, quiz
           in mid-sentence. */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-5 space-y-4"
+        className="flex-1 min-h-[9rem] overflow-y-auto px-4 py-5 space-y-4"
         role="log"
         aria-live="polite"
         aria-atomic="false"
