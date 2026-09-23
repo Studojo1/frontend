@@ -130,12 +130,17 @@ jobs:
         run: |
           # Service-to-service secret for the Career Coach's gated routes — sent as
           # the x-studojo-internal header by the resume-ready + summary routes and
-          # checked against the coach's INTERNAL_API_SECRET (same GitHub secret).
-          # Without this, process.env.INTERNAL_API_SECRET is undefined on the
-          # frontend, the route bails "unconfigured", and the Resume Maker -> Coach
-          # cross-tool flow is dead (audit G1).
+          # checked against the coach's INTERNAL_API_SECRET. Without this,
+          # process.env.INTERNAL_API_SECRET is undefined on the frontend, the route
+          # bails "unconfigured", and the Resume Maker -> Coach cross-tool flow is
+          # dead (audit G1). job-outreach-svc also checks it before trusting
+          # X-User-Id, so the CRM and extension routes need it too.
+          #
+          # Read from the app-secrets key, as staging does. There is no
+          # INTERNAL_API_SECRET GitHub secret in this repo, so the old
+          # secrets.INTERNAL_API_SECRET line set it to an empty string.
           kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
-            INTERNAL_API_SECRET="${{ secrets.INTERNAL_API_SECRET }}"
+            --from=secret/app-secrets --keys=INTERNAL_API_SECRET
 
       - name: Configure Sensei MCP gateway env
         run: |
