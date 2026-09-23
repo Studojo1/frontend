@@ -53,7 +53,34 @@ interface OutreachState {
   // Current step in onboarding
   currentStep: number;
   setCurrentStep: (step: number) => void;
+
+  // The signed-in user this persisted funnel state belongs to. localStorage
+  // outlives a sign-out, so without this a second account on the same browser
+  // would open the first account's candidate and leads.
+  ownerUserId: string | null;
+  setOwnerUserId: (id: string | null) => void;
+  // Back to a clean slate: used on sign-out and when a different user signs in.
+  resetFunnel: () => void;
 }
+
+// Everything a sign-out must forget. hasHydrated is deliberately not here.
+const FUNNEL_DEFAULTS = {
+  candidateId: null,
+  profileData: null,
+  chatHistory: [] as ChatMessage[],
+  chatCandidateId: null,
+  selectedTier: 350 as const,
+  planType: "email" as PlanType,
+  selectedPlanId: null,
+  linkedInCampaignId: null,
+  selectedTemplate: null,
+  selectedStyles: [] as string[],
+  campaignId: null,
+  emailAccountId: null,
+  orderId: null,
+  currentStep: 1,
+  ownerUserId: null,
+};
 
 export const useOutreachStore = create<OutreachState>()(
   persist(
@@ -99,6 +126,10 @@ export const useOutreachStore = create<OutreachState>()(
 
       currentStep: 1,
       setCurrentStep: (currentStep) => set({ currentStep }),
+
+      ownerUserId: null,
+      setOwnerUserId: (ownerUserId) => set({ ownerUserId }),
+      resetFunnel: () => set({ ...FUNNEL_DEFAULTS }),
     }),
     {
       name: "internreach-app-store",
@@ -113,7 +144,18 @@ export const useOutreachStore = create<OutreachState>()(
         planType: state.planType,
         selectedPlanId: state.selectedPlanId,
         linkedInCampaignId: state.linkedInCampaignId,
+        ownerUserId: state.ownerUserId,
       }),
     },
   ),
 );
+// Two tabs share one localStorage blob, and persist rewrites the whole blob on
+// every change. Without this a stale background tab would write its old
+// candidateId back over the one the newer tab just set.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key === useOutreachStore.persist.getOptions().name) {
+      useOutreachStore.persist.rehydrate();
+    }
+  });
+}
