@@ -305,7 +305,13 @@ export default function EnrichmentPage() {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
     updateOrder({ status: "campaign_setup", log_entry: `Payment completed for ${selectedTier} credits (JIT enrichment)` });
-    navigate("/outreach/connect/gmail");
+    // Debrief BEFORE the Gmail gate. It used to sit after it, and only 151 of
+    // 4,791 orders ever reached gmail_connected, so the two answers it collects
+    // (best project, concrete outcome) were effectively never gathered:
+    // flex_notes coverage fell from 74% to 1.4% when these questions left the
+    // quiz. They are what make an outreach email specific rather than generic,
+    // so they are asked while the student is still in the flow.
+    navigate("/outreach/connect/debrief");
   };
 
   // Poll verify-dodo while modal is open
