@@ -125,6 +125,7 @@ export async function seedIfEmpty() {
         VALUES
           (${a.handle}, 'linkedin', ${a.displayName}, ${a.persona}, ${a.audience},
            ${a.notes || null}, ${a.accent}, ${a.active}, ${a.lane}, 2)
+        ON CONFLICT (handle) DO NOTHING
       `);
     }
   }
@@ -134,6 +135,7 @@ export async function seedIfEmpty() {
       await db.execute(sql`
         INSERT INTO content_playbook (kind, title, body, include_in_prompt)
         VALUES (${e.kind}, ${e.title}, ${e.body}, ${e.includeInPrompt})
+        ON CONFLICT (title) DO NOTHING
       `);
     }
   }

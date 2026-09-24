@@ -21,10 +21,28 @@ import type {
  * would put a staging tool's tables in the production migration chain.
  */
 
-let tablesCreated = false;
+/**
+ * Memoised on the promise, not on a boolean.
+ *
+ * A boolean flag is only set once the work finishes, so concurrent callers all
+ * see false and all run the setup. That is not hypothetical here: the /content
+ * index loader fires three store calls in one Promise.all, so the very first
+ * signed-in page load would have seeded the roster three times over.
+ *
+ * Cleared on failure so a transient database error does not leave every later
+ * call awaiting a permanently rejected promise.
+ */
+let tablesReady: Promise<void> | null = null;
 
-async function ensureTables() {
-  if (tablesCreated) return;
+function ensureTables(): Promise<void> {
+  tablesReady ??= createTables().catch((err) => {
+    tablesReady = null;
+    throw err;
+  });
+  return tablesReady;
+}
+
+async function createTables() {
 
   // The 7 handles posts are written for. Persona and audience are fed to the
   // model as context, which is why they are free text and not an enum.
@@ -179,6 +197,35 @@ async function ensureTables() {
       ADD COLUMN IF NOT EXISTS visual_plan TEXT
   `);
 
+  // Clear duplicates before the unique indexes below, which would otherwise
+  // fail to build and take every /content page down with them. The race these
+  // guard against could already have run once, on the first signed-in load,
+  // before ensureTables memoised on its promise. Lowest id wins, which is the
+  // row anything else already points at.
+  await db.execute(sql`
+    DELETE FROM content_accounts a
+    USING content_accounts b
+    WHERE a.handle = b.handle AND a.id > b.id
+  `);
+  await db.execute(sql`
+    DELETE FROM content_playbook a
+    USING content_playbook b
+    WHERE a.title = b.title AND a.id > b.id
+  `);
+
+  // The process-level memo in ensureTables serialises concurrent callers
+  // inside one pod. There is more than one pod, so the database has to be the
+  // one that says no: these make a second pod's seed a no-op instead of a
+  // duplicate roster.
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_content_accounts_handle
+      ON content_accounts (handle)
+  `);
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_content_playbook_title
+      ON content_playbook (title)
+  `);
+
   await db.execute(sql`
     CREATE INDEX IF NOT EXISTS idx_content_post_revisions_post
       ON content_post_revisions (post_id, created_at DESC)
@@ -195,8 +242,6 @@ async function ensureTables() {
   // Seed the roster and playbook once the tables exist. Only fills empty
   // tables, so it can never overwrite anything edited in the UI.
   await seedIfEmpty();
-
-  tablesCreated = true;
 }
 
 export type {
