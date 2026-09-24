@@ -15,6 +15,7 @@ import {
   setPostBody,
   saveKillCheck,
   usedAngles,
+  learnFromPost,
 } from "~/lib/content/store.server";
 import { draftPost, runKillCheck, ContentLlmError } from "~/lib/content/llm.server";
 import {
@@ -209,6 +210,8 @@ export async function action({ request }: Route.ActionArgs) {
   const status = intent === "schedule" ? "scheduled" : f.status;
   const savedId = await upsertPost({ ...f, status, createdBy: user.email });
   if (f.ideaId) await setIdeaStatus(f.ideaId, "drafted");
+  // Committing to a post is the strongest signal in the tool. Feed it back.
+  await learnFromPost(savedId, user.email);
   return redirect(`/content/write?post=${savedId}`);
 }
 

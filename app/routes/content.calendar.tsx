@@ -6,6 +6,7 @@ import {
   listPosts,
   upsertPost,
   getPost,
+  learnFromPost,
 } from "~/lib/content/store.server";
 import {
   POST_STATUSES,
@@ -133,6 +134,7 @@ export async function action({ request }: Route.ActionArgs) {
         String(form.get("scheduledWhere") ?? "").trim() || existing.scheduledWhere,
       notes: existing.notes,
     });
+    await learnFromPost(id, user.email);
     return { ok: true };
   }
 

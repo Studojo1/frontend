@@ -1,6 +1,7 @@
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
 import playbookSeed from "./playbook-seed.json";
+import examplesSeed from "./examples-seed.json";
 
 /**
  * First-run seed: the roster and the playbook.
@@ -22,7 +23,7 @@ import playbookSeed from "./playbook-seed.json";
 const ACCOUNTS = [
   {
     handle: "jeremy",
-    displayName: "Jeremy",
+    displayName: "Jeremy Zechariah Abraham",
     lane: "student",
     accent: "purple",
     active: true,
@@ -44,8 +45,8 @@ const ACCOUNTS = [
     notes: "",
   },
   {
-    handle: "pranav-shastri",
-    displayName: "Pranav Shastri",
+    handle: "pranav-shastry",
+    displayName: "Pranav Shastry",
     lane: "student",
     accent: "orange",
     active: true,
@@ -55,8 +56,8 @@ const ACCOUNTS = [
     notes: "Highest duplication risk with Pranav Hegde. Stagger and rewrite.",
   },
   {
-    handle: "vivan",
-    displayName: "Vivan",
+    handle: "vivaan",
+    displayName: "Vivaan Nagpal",
     lane: "b2b",
     accent: "teal",
     active: true,
@@ -69,7 +70,7 @@ const ACCOUNTS = [
   },
   {
     handle: "manashwini",
-    displayName: "Manashwini",
+    displayName: "Manashwini Chauhan",
     lane: "student",
     accent: "pink",
     active: true,
@@ -80,7 +81,7 @@ const ACCOUNTS = [
   },
   {
     handle: "ayushi",
-    displayName: "Ayushi",
+    displayName: "Ayushi Ladha",
     lane: "student",
     accent: "yellow",
     active: true,
@@ -110,7 +111,8 @@ export async function seedIfEmpty() {
   const counts = await db.execute(sql`
     SELECT
       (SELECT COUNT(*) FROM content_accounts) AS accounts,
-      (SELECT COUNT(*) FROM content_playbook) AS playbook
+      (SELECT COUNT(*) FROM content_playbook) AS playbook,
+      (SELECT COUNT(*) FROM content_examples) AS examples
   `);
   const row = counts.rows[0];
 
@@ -132,6 +134,50 @@ export async function seedIfEmpty() {
       await db.execute(sql`
         INSERT INTO content_playbook (kind, title, body, include_in_prompt)
         VALUES (${e.kind}, ${e.title}, ${e.body}, ${e.includeInPrompt})
+      `);
+    }
+  }
+
+  // The first seed guessed handles before the scrape existed. Correct the two
+  // that were wrong, in place, so the corpus below maps onto the right
+  // accounts. Matches on the old handle alone, so it is idempotent and does
+  // nothing to a row someone has already renamed by hand.
+  for (const [was, now, name] of [
+    ["vivan", "vivaan", "Vivaan Nagpal"],
+    ["pranav-shastri", "pranav-shastry", "Pranav Shastry"],
+  ]) {
+    await db.execute(sql`
+      UPDATE content_accounts
+      SET handle = ${now}, display_name = ${name}
+      WHERE handle = ${was}
+    `);
+  }
+
+  // The voice corpus: 87 real posts scraped off the six live profiles, with
+  // their engagement. Seeded rather than left for someone to paste, because
+  // without real posts the model writes from rules alone and the output reads
+  // generic. Exemplars were ranked inside each account, not across the roster:
+  // engagement scales with audience size, so a global top-N would teach every
+  // account to sound like the two biggest ones.
+  if (Number(row.examples) === 0) {
+    const accounts = await db.execute(
+      sql`SELECT id, handle FROM content_accounts`
+    );
+    const idByHandle = new Map(
+      accounts.rows.map((r) => [String(r.handle), Number(r.id)])
+    );
+
+    for (const e of examplesSeed) {
+      const accountId = e.handle ? (idByHandle.get(e.handle) ?? null) : null;
+      const hook =
+        e.body.split("\n").map((l) => l.trim()).find(Boolean)?.slice(0, 300) ?? "";
+      await db.execute(sql`
+        INSERT INTO content_examples
+          (account_id, hook, body, engagement, is_exemplar, source, notes)
+        VALUES
+          (${accountId}, ${hook}, ${e.body}, ${e.engagement}, ${e.isExemplar},
+           'imported', ${e.postedAt ? `Posted ${e.postedAt}` : null})
+        ON CONFLICT (md5(body)) DO NOTHING
       `);
     }
   }

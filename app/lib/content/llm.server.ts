@@ -1,4 +1,4 @@
-import { playbookPrompt } from "./store.server";
+import { playbookPrompt, voiceSamples, hookSignals } from "./store.server";
 import {
   ideasSystemPrompt,
   ideasUserPrompt,
@@ -115,11 +115,18 @@ export async function generateIdeas(input: {
   usedAngles?: string[];
 }): Promise<GeneratedIdea[]> {
   const count = Math.min(Math.max(input.count ?? 6, 1), 12);
-  const playbook = await playbookPrompt();
+  const [playbook, examples, signals] = await Promise.all([
+    playbookPrompt(),
+    voiceSamples(input.account?.id ?? null, 12),
+    hookSignals(25),
+  ]);
 
   const raw = await chat(
     [
-      { role: "system", content: ideasSystemPrompt(input.account, playbook) },
+      {
+        role: "system",
+        content: ideasSystemPrompt(input.account, playbook, examples, signals),
+      },
       {
         role: "user",
         content: ideasUserPrompt(input.brief, input.usedAngles ?? [], count),
@@ -156,11 +163,18 @@ export async function generateIdeas(input: {
  * every single time.
  */
 export async function draftPost(ctx: DraftContext): Promise<string> {
-  const playbook = await playbookPrompt();
+  const [playbook, examples, signals] = await Promise.all([
+    playbookPrompt(),
+    voiceSamples(ctx.account?.id ?? null, 12),
+    hookSignals(25),
+  ]);
 
   const raw = await chat(
     [
-      { role: "system", content: draftSystemPrompt(ctx, playbook) },
+      {
+        role: "system",
+        content: draftSystemPrompt(ctx, playbook, examples, signals),
+      },
       { role: "user", content: draftUserPrompt(ctx) },
     ],
     { maxTokens: 1600, temperature: 0.85 }
@@ -188,11 +202,19 @@ export async function runKillCheck(input: {
   usedAngles?: string[];
 }): Promise<KillCheck> {
   const wordCount = input.body.trim().split(/\s+/).filter(Boolean).length;
-  const playbook = await playbookPrompt();
+  const [playbook, examples] = await Promise.all([
+    playbookPrompt(),
+    // Fewer here than when writing: the checker needs enough to judge the
+    // register against, not the full corpus.
+    voiceSamples(input.account?.id ?? null, 6),
+  ]);
 
   const raw = await chat(
     [
-      { role: "system", content: killCheckSystemPrompt(input.account, playbook) },
+      {
+        role: "system",
+        content: killCheckSystemPrompt(input.account, playbook, examples),
+      },
       {
         role: "user",
         content: killCheckUserPrompt({

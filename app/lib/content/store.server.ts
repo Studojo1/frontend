@@ -8,6 +8,7 @@ import type {
   ContentPost,
   KillCheck,
   PostRevision,
+  ContentExample,
 } from "./model";
 
 /**
@@ -109,6 +110,35 @@ async function ensureTables() {
     )
   `);
 
+  // The voice corpus: real posts that actually went out, plus anything
+  // imported by hand. These are fed to the model verbatim as examples, which
+  // is the part that makes output sound like a person rather than like a
+  // summary of rules about a person.
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS content_examples (
+      id SERIAL PRIMARY KEY,
+      account_id INTEGER REFERENCES content_accounts(id) ON DELETE SET NULL,
+      hook TEXT NOT NULL,
+      body TEXT NOT NULL,
+      engagement INTEGER,
+      is_exemplar BOOLEAN NOT NULL DEFAULT FALSE,
+      source TEXT NOT NULL DEFAULT 'imported',
+      notes TEXT,
+      created_by TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await db.execute(sql`
+    CREATE INDEX IF NOT EXISTS idx_content_examples_rank
+      ON content_examples (is_exemplar DESC, engagement DESC NULLS LAST)
+  `);
+  // One row per post body. A post shipped twice should not become two
+  // examples and quietly double its own weight in the prompt.
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_content_examples_body
+      ON content_examples (md5(body))
+  `);
+
   // Added after the first deploy, so ALTER rather than a change to CREATE:
   // the staging tables already exist and CREATE TABLE IF NOT EXISTS would
   // silently skip them.
@@ -176,8 +206,15 @@ export type {
   ContentPost,
   KillCheck,
   PostRevision,
+  ContentExample,
 } from "./model";
-export { POST_STATUSES, IDEA_STATUSES, PLAYBOOK_KINDS, PLATFORMS } from "./model";
+export {
+  POST_STATUSES,
+  IDEA_STATUSES,
+  PLAYBOOK_KINDS,
+  PLATFORMS,
+  EXAMPLE_SOURCES,
+} from "./model";
 
 /* ---------------------------------------------------------------- accounts */
 
@@ -609,6 +646,234 @@ export async function usedAngles(limit = 200): Promise<string[]> {
   return out;
 }
 
+/* ---------------------------------------------------------------- examples */
+
+/** First non-empty line of a post. On LinkedIn that is the hook. */
+export function hookOf(body: string): string {
+  return body.split("\n").map((l) => l.trim()).find(Boolean)?.slice(0, 300) ?? "";
+}
+
+export async function listExamples(opts?: {
+  accountId?: number | null;
+  limit?: number;
+}): Promise<ContentExample[]> {
+  await ensureTables();
+  const res = await db.execute(sql`
+    SELECT e.id, e.account_id, a.handle AS account_handle, e.hook, e.body,
+           e.engagement, e.is_exemplar, e.source, e.notes, e.created_at
+    FROM content_examples e
+    LEFT JOIN content_accounts a ON a.id = e.account_id
+    WHERE (${opts?.accountId ?? null}::int IS NULL OR e.account_id = ${opts?.accountId ?? null}::int)
+    ORDER BY e.is_exemplar DESC, e.engagement DESC NULLS LAST, e.created_at DESC
+    LIMIT ${opts?.limit ?? 300}
+  `);
+  return res.rows.map((r) => ({
+    id: Number(r.id),
+    accountId: r.account_id === null ? null : Number(r.account_id),
+    accountHandle: (r.account_handle as string) ?? null,
+    hook: r.hook as string,
+    body: r.body as string,
+    engagement: r.engagement === null ? null : Number(r.engagement),
+    isExemplar: Boolean(r.is_exemplar),
+    source: r.source as string,
+    notes: (r.notes as string) ?? null,
+    createdAt: String(r.created_at),
+  }));
+}
+
+/**
+ * Add a real post to the corpus.
+ *
+ * Silently does nothing if that exact body is already stored: the same post
+ * arriving from a scrape and again from the studio should count once, not
+ * twice. Returns whether a row was actually written so a bulk import can
+ * report how many were new.
+ */
+export async function addExample(input: {
+  accountId?: number | null;
+  body: string;
+  engagement?: number | null;
+  isExemplar?: boolean;
+  source?: string;
+  notes?: string | null;
+  createdBy?: string | null;
+}): Promise<boolean> {
+  await ensureTables();
+  const body = input.body.trim();
+  if (!body) return false;
+  const res = await db.execute(sql`
+    INSERT INTO content_examples
+      (account_id, hook, body, engagement, is_exemplar, source, notes, created_by)
+    VALUES
+      (${input.accountId ?? null}, ${hookOf(body)}, ${body},
+       ${input.engagement ?? null}, ${input.isExemplar ?? false},
+       ${input.source ?? "imported"}, ${input.notes ?? null},
+       ${input.createdBy ?? null})
+    ON CONFLICT (md5(body)) DO NOTHING
+    RETURNING id
+  `);
+  return res.rows.length > 0;
+}
+
+/**
+ * Bulk paste import.
+ *
+ * Posts are separated by a line of three or more dashes. Chosen because a
+ * LinkedIn post can contain almost any character but essentially never a bare
+ * rule on its own line, and because it is what someone pasting from a scrape
+ * will reach for without being told.
+ */
+export function splitPastedPosts(raw: string): string[] {
+  return raw
+    .split(/\n\s*-{3,}\s*\n/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+}
+
+/**
+ * Parse an Apify LinkedIn profile-posts export.
+ *
+ * Accepts the scraper's own JSON so a fresh scrape can be dropped in without
+ * anyone reshaping it by hand. Matches profiles by publicIdentifier, which is
+ * stable, rather than by display name, which is not.
+ *
+ * Unknown shapes throw rather than importing nothing quietly: a silent
+ * zero-row import looks identical to a successful one.
+ */
+export function parseScrapeExport(raw: string): {
+  body: string;
+  handle: string | null;
+  engagement: number | null;
+  postedAt: string | null;
+}[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error("That is not valid JSON.");
+  }
+  if (!Array.isArray(parsed)) {
+    throw new Error("Expected a JSON array of posts.");
+  }
+
+  const out: {
+    body: string;
+    handle: string | null;
+    engagement: number | null;
+    postedAt: string | null;
+  }[] = [];
+
+  for (const item of parsed as Record<string, any>[]) {
+    const body = String(item?.content ?? "").trim();
+    if (!body) continue;
+    const e = item?.engagement ?? {};
+    const engagement =
+      Number(e.likes ?? 0) + Number(e.comments ?? 0) + Number(e.shares ?? 0);
+    out.push({
+      body,
+      handle: item?.author?.publicIdentifier
+        ? String(item.author.publicIdentifier)
+        : null,
+      engagement: Number.isFinite(engagement) ? engagement : null,
+      postedAt: item?.postedAt?.date ? String(item.postedAt.date).slice(0, 10) : null,
+    });
+  }
+
+  if (out.length === 0) {
+    throw new Error("No posts with content found in that file.");
+  }
+  return out;
+}
+
+/**
+ * Map a scraped profile to an account.
+ *
+ * The scraper's publicIdentifier is close to our handle but not equal to it
+ * ("pranav-hegde13", "pranav-shastry--"), so match on handle first and fall
+ * back to a prefix comparison before giving up and leaving it unattributed.
+ * An unattributed example is still a useful voice sample.
+ */
+export function matchAccountHandle(
+  publicIdentifier: string | null,
+  accounts: { id: number; handle: string }[]
+): number | null {
+  if (!publicIdentifier) return null;
+  const id = publicIdentifier.toLowerCase();
+  const exact = accounts.find((a) => a.handle.toLowerCase() === id);
+  if (exact) return exact.id;
+  const prefix = accounts.find(
+    (a) => id.startsWith(a.handle.toLowerCase()) || a.handle.toLowerCase().startsWith(id)
+  );
+  return prefix?.id ?? null;
+}
+
+export async function setExemplar(id: number, value: boolean) {
+  await ensureTables();
+  await db.execute(
+    sql`UPDATE content_examples SET is_exemplar = ${value} WHERE id = ${id}`
+  );
+}
+
+export async function deleteExample(id: number) {
+  await ensureTables();
+  await db.execute(sql`DELETE FROM content_examples WHERE id = ${id}`);
+}
+
+/**
+ * The examples that go into a prompt, best first.
+ *
+ * Ordering is the whole game. Anything hand-marked as an exemplar leads,
+ * then the highest engagement, then the most recent. The account's own posts
+ * come first so a profile sounds like itself rather than like the roster
+ * average, with the rest of the roster filling in behind.
+ */
+export async function voiceSamples(
+  accountId: number | null,
+  limit = 12
+): Promise<ContentExample[]> {
+  const all = await listExamples({ limit: 300 });
+  if (all.length === 0) return [];
+  const own = accountId ? all.filter((e) => e.accountId === accountId) : [];
+  const rest = all.filter((e) => !own.includes(e));
+  return [...own, ...rest].slice(0, limit);
+}
+
+/**
+ * What has been shortlisted and what has been thrown away.
+ *
+ * This is the cheapest real feedback in the system: every Shortlist and every
+ * Bin is a judgement on a hook, already recorded, costing nothing to collect.
+ * Rejected hooks matter as much as kept ones, because "not this" is the signal
+ * the playbook cannot express.
+ */
+export async function hookSignals(limit = 25): Promise<{
+  liked: string[];
+  rejected: string[];
+}> {
+  await ensureTables();
+  const res = await db.execute(sql`
+    SELECT hook, status FROM content_ideas
+    WHERE hook IS NOT NULL
+      AND length(trim(hook)) > 0
+      AND status IN ('kept', 'drafted', 'binned')
+    ORDER BY created_at DESC
+    LIMIT ${limit * 4}
+  `);
+  const liked: string[] = [];
+  const rejected: string[] = [];
+  for (const r of res.rows) {
+    const hook = String(r.hook).trim();
+    // Drafted counts as liked: it was picked up and written, which is a
+    // stronger endorsement than shortlisting and then leaving it.
+    if (r.status === "binned") {
+      if (rejected.length < limit) rejected.push(hook);
+    } else if (liked.length < limit) {
+      liked.push(hook);
+    }
+  }
+  return { liked, rejected };
+}
+
 /* --------------------------------------------------------------- revisions */
 
 export async function listRevisions(postId: number): Promise<PostRevision[]> {
@@ -640,6 +905,31 @@ export async function addRevision(input: {
     VALUES (${input.postId}, ${input.body}, ${input.instruction ?? null},
             ${input.createdBy ?? null})
   `);
+}
+
+/**
+ * Promote a post you committed to into the voice corpus.
+ *
+ * Scheduling or posting is the moment a draft stops being a guess and becomes
+ * evidence: you read it and decided it was good enough to go out under a real
+ * name. That is a far stronger signal than anything the model could infer, and
+ * it costs nothing to collect, so it is collected automatically rather than
+ * asked for.
+ *
+ * Only real bodies, and only once each: addExample drops duplicates.
+ */
+export async function learnFromPost(postId: number, by?: string | null) {
+  const post = await getPost(postId);
+  if (!post) return;
+  if (post.status !== "scheduled" && post.status !== "posted") return;
+  // A one-line placeholder slot is not a writing sample.
+  if (post.body.trim().split(/\s+/).filter(Boolean).length < 40) return;
+  await addExample({
+    accountId: post.accountId,
+    body: post.body,
+    source: "shipped",
+    createdBy: by ?? null,
+  });
 }
 
 /** Body-only write, for the refine loop and for reverting to a revision. */

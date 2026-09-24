@@ -29,21 +29,26 @@ const STEPS = [
   {
     to: "/content/playbook",
     title: "2. Playbook",
-    body: "The studojo-content skill: hook tiers, story engines, the kill check, the done-ideas list. Edit here and every draft changes.",
+    body: "The studojo-content skill: hook tiers, story engines, the kill check, the done-ideas list. The rules.",
+  },
+  {
+    to: "/content/examples",
+    title: "3. Real posts",
+    body: "87 posts that actually went out. The rules say what to do, these show what it sounds like. Anything you schedule is added here automatically.",
   },
   {
     to: "/content/ideas",
-    title: "3. Ideate",
+    title: "4. Ideate",
     body: "Ideas come with a hook, a hook tier, a story engine and the reason they are not a repeat. Shortlist what is worth writing.",
   },
   {
     to: "/content/write",
-    title: "4. Write",
+    title: "5. Write",
     body: "Draft, then tell it what to change and draft again. Corrections carry forward. Run the kill check before you call it done.",
   },
   {
     to: "/content/calendar",
-    title: "5. Schedule",
+    title: "6. Schedule",
     body: "Pick the day and it lands on the calendar so you know when it goes out. Nothing here posts for you.",
   },
 ];

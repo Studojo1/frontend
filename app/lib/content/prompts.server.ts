@@ -1,4 +1,4 @@
-import type { ContentAccount } from "./model";
+import type { ContentAccount, ContentExample } from "./model";
 
 /**
  * Prompt construction for the studio, kept free of the network and the
@@ -88,9 +88,96 @@ export function dedupBlock(used: string[]): string {
   ].join("\n");
 }
 
+/**
+ * Real posts, pasted in whole.
+ *
+ * This is the part that makes output sound like a person. The playbook
+ * describes the voice; these are the voice. A model given rules about writing
+ * produces competent generic writing, and a model given twelve real posts
+ * produces something closer to a pastiche of them, which is what is wanted.
+ *
+ * Whole posts, never excerpts: the rhythm, the line breaks, where a paragraph
+ * stops, and how a post ends are exactly the things an excerpt loses.
+ */
+export function voiceBlock(examples: ContentExample[]): string {
+  if (examples.length === 0) {
+    return [
+      "## Real posts",
+      "None have been added yet. Work from the playbook alone and expect the",
+      "result to read more generic than it should.",
+    ].join("\n");
+  }
+
+  return [
+    "## Real posts that actually went out. This is the voice.",
+    "Study the rhythm, the line breaks, where sentences stop, how the first",
+    "line lands, and how each one ends. Match that. Do not quote or rework",
+    "these, and do not reuse their subject matter: they are here for how they",
+    "sound, not for what they are about.",
+    "",
+    ...examples.map((e, i) => {
+      const meta = [
+        e.accountHandle ? e.accountHandle : null,
+        e.engagement != null ? `${e.engagement} engagement` : null,
+        e.isExemplar ? "marked as a standout" : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      return [
+        `### Post ${i + 1}${meta ? ` (${meta})` : ""}`,
+        '"""',
+        e.body,
+        '"""',
+        "",
+      ].join("\n");
+    }),
+  ].join("\n");
+}
+
+/**
+ * What has been shortlisted and what has been binned.
+ *
+ * Taste that the playbook cannot state. A rejected hook is the more useful
+ * half: "not this, in this specific way" is the thing rules are worst at
+ * capturing and a person is fastest at supplying with one click.
+ */
+export function signalsBlock(signals: {
+  liked: string[];
+  rejected: string[];
+}): string {
+  const { liked, rejected } = signals;
+  if (liked.length === 0 && rejected.length === 0) return "";
+
+  const out = [
+    "",
+    "## Taste, learned from what actually gets picked",
+    "These are real judgements made on generated hooks. They override your own",
+    "sense of what is good.",
+  ];
+
+  if (liked.length) {
+    out.push(
+      "",
+      "Hooks that were kept or written up. More like these:",
+      ...liked.slice(0, 25).map((h) => `- ${h}`)
+    );
+  }
+  if (rejected.length) {
+    out.push(
+      "",
+      "Hooks that were binned. Do not produce hooks like these, and work out",
+      "what they have in common before you write:",
+      ...rejected.slice(0, 25).map((h) => `- ${h}`)
+    );
+  }
+  return out.join("\n");
+}
+
 export function ideasSystemPrompt(
   account: ContentAccount | null,
-  playbook: string
+  playbook: string,
+  examples: ContentExample[] = [],
+  signals: { liked: string[]; rejected: string[] } = { liked: [], rejected: [] }
 ): string {
   return [
     "You are the content lead for Studojo, running Mode 3 of the playbook below:",
@@ -100,6 +187,9 @@ export function ideasSystemPrompt(
     accountContext(account),
     "",
     playbookBlock(playbook),
+    "",
+    voiceBlock(examples),
+    signalsBlock(signals),
     "",
     "## What a good batch looks like",
     "- Ideas should surprise even you. If an idea could have come from any",
@@ -115,6 +205,20 @@ export function ideasSystemPrompt(
     "  alone and send it to a friend?",
     "- The hook is the literal first line of the post. Lowercase first word,",
     "  except the sanctioned webinar/value register.",
+    "",
+    "## The hook has to be personal",
+    "This is where generated ideas usually fail, so treat it as the bar, not a",
+    "preference. A hook is personal when it could only have been written by the",
+    "person whose account this is.",
+    "- First person. Something they did, saw, got told, or got wrong.",
+    "- A real moment with a time, a place, a name, or a number in it. Not a",
+    "  category of moment.",
+    "- If the hook would still make sense posted from any other careers account,",
+    "  it is not personal enough. Throw it out and write another.",
+    "- No rhetorical questions at the reader, no \"here is what I learned\", no",
+    "  observations about the industry in the abstract.",
+    "Look at the real posts above and note how often the first line is something",
+    "that happened rather than something believed. Do that.",
   ].join("\n");
 }
 
@@ -167,7 +271,12 @@ export type DraftContext = {
   priorInstructions?: string[];
 };
 
-export function draftSystemPrompt(ctx: DraftContext, playbook: string): string {
+export function draftSystemPrompt(
+  ctx: DraftContext,
+  playbook: string,
+  examples: ContentExample[] = [],
+  signals: { liked: string[]; rejected: string[] } = { liked: [], rejected: [] }
+): string {
   const refining = Boolean(ctx.existingBody?.trim());
   return [
     "You are the content lead for Studojo, running Mode 2 of the playbook below:",
@@ -179,6 +288,9 @@ export function draftSystemPrompt(ctx: DraftContext, playbook: string): string {
     accountContext(ctx.account),
     "",
     playbookBlock(playbook),
+    "",
+    voiceBlock(examples),
+    signalsBlock(signals),
     "",
     "## Order of work",
     "1. Fix the story engine before writing a word.",
@@ -193,6 +305,12 @@ export function draftSystemPrompt(ctx: DraftContext, playbook: string): string {
     "   a real question for stories, direct response on B2B.",
     "7. Run the Do Not Sound Like AI checklist against your own draft.",
     "8. Run the kill check. Fix anything that fails before you answer.",
+    "",
+    "## Before you answer",
+    "Read your draft next to the real posts above. If it reads smoother, more",
+    "even, or more explained than they do, it is wrong. Those posts have",
+    "fragments, abrupt stops, and lines that do not balance. Match that, do not",
+    "improve on it.",
     "",
     "## Output",
     "The post body only. No title, no preamble, no commentary, no markdown",
@@ -241,7 +359,8 @@ export function draftUserPrompt(ctx: DraftContext): string {
 
 export function killCheckSystemPrompt(
   account: ContentAccount | null,
-  playbook: string
+  playbook: string,
+  examples: ContentExample[] = []
 ): string {
   return [
     "You are a hostile editor running the kill check from the playbook below on",
@@ -252,6 +371,8 @@ export function killCheckSystemPrompt(
     accountContext(account),
     "",
     playbookBlock(playbook),
+    "",
+    voiceBlock(examples),
     "",
     "Judge only what is in the draft. Do not rewrite it. A check passes only if",
     "it clearly passes: when you are unsure, it fails.",
@@ -277,8 +398,12 @@ export function killCheckUserPrompt(input: {
     'Return JSON: {"items":[{"check":"","pass":true,"note":""}],"verdict":"pass"}',
     "",
     "One item per kill-check point in the playbook, in the playbook's order,",
-    'plus one final item named "Sounds like AI" covering the Do Not Sound Like',
-    "AI list. Use the playbook's own wording for each check name.",
+    'then one item named "Sounds like AI" covering the Do Not Sound Like AI',
+    'list, then one named "Sounds like the real posts" comparing the draft',
+    "against the real posts above: it fails if the draft is smoother, more even",
+    'or more explained than they are. Finally one named "Hook is personal": it',
+    "fails if the first line could have been posted from any other careers",
+    "account. Use the playbook's own wording for the playbook's own checks.",
     "note: one short sentence. On a fail, name the exact word, line or missing",
     "thing. On a pass, say nothing longer than a few words.",
     'verdict: "pass" only if every item passes, otherwise "fix".',

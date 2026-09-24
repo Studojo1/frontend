@@ -54,6 +54,31 @@ export type ContentIdea = {
   whyDifferent: string | null;
 };
 
+/**
+ * A real post, used as a worked example in the prompt.
+ *
+ * `source` records where it came from, which is also how much it is worth:
+ * "shipped" means it passed the bar for going out under a real name, so it is
+ * evidence about the voice in a way an imported scrape is not quite.
+ */
+export type ContentExample = {
+  id: number;
+  accountId: number | null;
+  accountHandle: string | null;
+  hook: string;
+  body: string;
+  engagement: number | null;
+  isExemplar: boolean;
+  source: string;
+  notes: string | null;
+  createdAt: string;
+};
+
+export const EXAMPLE_SOURCES = [
+  { value: "imported", label: "Imported" },
+  { value: "shipped", label: "Shipped from the studio" },
+] as const;
+
 export type KillCheckItem = {
   check: string;
   pass: boolean;

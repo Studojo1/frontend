@@ -33,6 +33,7 @@ const NAV = [
   { to: "/content/calendar", label: "Calendar", end: false },
   { to: "/content/accounts", label: "Accounts", end: false },
   { to: "/content/playbook", label: "Playbook", end: false },
+  { to: "/content/examples", label: "Real posts", end: false },
 ];
 
 function SignInWall() {

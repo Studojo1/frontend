@@ -34,9 +34,15 @@ function allowedEmails(): string[] {
  * evilstudojo.pro both fail.
  */
 export function isContentHost(request: Request): boolean {
+  // Host first, x-forwarded-host only as a fallback. A client can put any
+  // value in x-forwarded-host; nginx happens to overwrite it today, but that
+  // is ingress config, not a guarantee, and this gate is the only thing
+  // keeping the tool off production. root.tsx reads "host" the same way for
+  // its own host routing, so it is known good behind this ingress. If a proxy
+  // ever rewrites Host, this fails closed to 404 rather than open.
   const host = (
-    request.headers.get("x-forwarded-host") ??
     request.headers.get("host") ??
+    request.headers.get("x-forwarded-host") ??
     ""
   )
     .split(",")[0]

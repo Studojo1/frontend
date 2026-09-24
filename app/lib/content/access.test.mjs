@@ -19,7 +19,24 @@ assert.equal(isContentHost(req("127.0.0.1:3000")), true, "loopback for dev");
 assert.equal(
   isContentHost(req("studojo.pro, studojo.com", "x-forwarded-host")),
   true,
-  "first forwarded host wins"
+  "first forwarded host wins when it is the only header"
+);
+
+// A client can set x-forwarded-host to anything. The real Host header decides,
+// so a spoofed forwarded host can neither open the gate nor close it.
+const spoof = (host, forwarded) =>
+  new Request("https://x/content", {
+    headers: { host, "x-forwarded-host": forwarded },
+  });
+assert.equal(
+  isContentHost(spoof("studojo.com", "studojo.pro")),
+  false,
+  "spoofed x-forwarded-host cannot open the gate on production"
+);
+assert.equal(
+  isContentHost(spoof("studojo.pro", "studojo.com")),
+  true,
+  "spoofed x-forwarded-host cannot close the gate on staging"
 );
 
 // The whole point: production must not serve this.
