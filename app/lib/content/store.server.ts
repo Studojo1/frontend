@@ -833,8 +833,10 @@ export async function voiceSamples(
 ): Promise<ContentExample[]> {
   const all = await listExamples({ limit: 300 });
   if (all.length === 0) return [];
-  const own = accountId ? all.filter((e) => e.accountId === accountId) : [];
-  const rest = all.filter((e) => !own.includes(e));
+  if (!accountId) return all.slice(0, limit);
+  const own = all.filter((e) => e.accountId === accountId);
+  const ownIds = new Set(own.map((e) => e.id));
+  const rest = all.filter((e) => !ownIds.has(e.id));
   return [...own, ...rest].slice(0, limit);
 }
 
