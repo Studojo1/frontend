@@ -17,26 +17,17 @@ export interface ResumePreview {
 export interface MCQOption {
   label: string;
   text: string;
+  // A stable value the backend attaches to some options. The UI does NOT send
+  // it: the answer a student picks is also the text of their chat bubble, so
+  // sending "onsite" instead of "Fully in-office" would show them raw jargon.
+  // The backend resolves text back to value on its own side.
+  value?: string;
 }
 
 export interface MCQQuestion {
   question: string;
   options: MCQOption[];
   allow_multiple: boolean;
-}
-
-export interface PsychometricResult {
-  top_strengths: string[];
-  dimension_scores: {
-    analytical: number;
-    creative: number;
-    execution: number;
-    social: number;
-  };
-  traits: string[];
-  recommended_roles: string[];
-  reasoning: string;
-  confidence_score: number;
 }
 
 export interface AgentResponse {
@@ -47,7 +38,10 @@ export interface AgentResponse {
   input_placeholder?: string | null;
   is_complete: boolean;
   questions_asked_so_far: number;
-  psychometric?: PsychometricResult | null;
+  // Total questions in this student's sequence. The quiz is clarity-gated and
+  // runs 8 to 11 questions, so this is the only honest denominator; it is
+  // optional because an older cached response may not carry it.
+  questions_total?: number;
 }
 
 export interface ChatMessage {

@@ -8,20 +8,66 @@ import { fetchWithRetry } from "~/lib/fetch-with-retry";
  */
 export async function outreachStreamFetch(
   path: string,
-  options: RequestInit = {},
+  options: RequestInit & { maxRetries?: number; timeout?: number } = {},
 ): Promise<Response> {
-  const token = await getToken();
-  if (!token) throw new ControlPlaneError("Not authenticated", 401);
+  // Token is optional, matching outreachFetch: the backend also accepts the
+  // same-origin session cookie. Throwing on a missing token meant a student
+  // whose token had simply not been minted yet was told to start over, on the
+  // one request that had no retry to recover with.
+  let token: string | null = null;
+  try {
+    token = await getToken();
+  } catch {}
+
+  const { maxRetries = 2, timeout = 20_000, ...fetchOpts } = options;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(fetchOpts.headers as Record<string, string>),
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const url = `/api/v1/outreach${path}`;
-  return fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+
+  // Retry is safe here specifically because the quiz stream endpoint is a pure
+  // replay of the history it is sent: zero LLM calls, questions served from a
+  // static sequence, and answers now merged by question key rather than
+  // appended, so sending the same turn twice cannot double-count an answer.
+  //
+  // Without a timeout this fetch could hang forever. On a phone that is not
+  // hypothetical: a connection that drops mid-stream leaves the request open,
+  // the quiz shows a spinner, and there is nothing the student can do but
+  // reload, which used to throw the quiz away as well.
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    try {
+      const res = await fetch(url, {
+        ...fetchOpts,
+        credentials: "include",
+        headers,
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+
+      // Retry a 5xx, but never a 4xx: the request itself is wrong and sending
+      // it again just burns the student's time.
+      if (res.status >= 500 && attempt < maxRetries) {
+        lastErr = new ControlPlaneError(`Stream failed (${res.status})`, res.status);
+        continue;
+      }
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      lastErr = err;
+      if (attempt >= maxRetries) break;
+      // Brief backoff so an immediate retry does not hit the same blip.
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+    }
+  }
+
+  throw lastErr ?? new ControlPlaneError("Stream request failed", 0);
 }
 
 /**
