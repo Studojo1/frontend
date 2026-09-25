@@ -76,6 +76,8 @@ export default function ChatPage() {
   // blocks re-initialisation, leaving the student answering the old resume's
   // questions while every answer is filed against the new candidate.
   const startedForCandidate = useRef<number | null>(null);
+  // True while a turn is in flight. See the guard in sendMessage.
+  const inFlight = useRef(false);
 
   // Restore an in-progress quiz, or start a fresh one.
   //
@@ -239,6 +241,18 @@ export default function ChatPage() {
 
   const sendMessage = async (content: string, answerType: string = "text") => {
     if (!candidateId) return;
+
+    // Re-entrancy guard, in a ref rather than state.
+    //
+    // `loading` is React state, so it does not update until the next render.
+    // Two submits inside the same tick (a double tap, Enter plus a click, a
+    // fast repeat on a laggy connection) both read the old `false` and both
+    // send. That puts the same answer in the history twice, which the backend
+    // replay then reads as the answer to the NEXT question, shifting every
+    // later answer by one. A ref flips synchronously, so the second call
+    // returns before it can do any of that.
+    if (inFlight.current) return;
+    inFlight.current = true;
 
     setFailedAnswer(null);
     const userMsg: ChatMessage = { role: "user", content };
@@ -427,6 +441,11 @@ export default function ChatPage() {
       // making the student retype what they already typed.
       setFailedAnswer({ content, answerType });
       setLoading(false);
+    } finally {
+      // Always release the guard. Every early return above (the completion
+      // branch, the failed-payload branch) leaves through here too, so the quiz
+      // cannot end up permanently refusing to send.
+      inFlight.current = false;
     }
   };
 
