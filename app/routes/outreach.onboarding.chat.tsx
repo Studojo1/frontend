@@ -581,6 +581,7 @@ export default function ChatPage() {
         loading={loading}
       />
     ) : (currentResponse?.text_input || (!currentResponse?.mcq && currentResponse !== null && !loading)) ? (
+      <>
       <div className="flex gap-2 items-end">
         <textarea
           value={textInput}
@@ -620,6 +621,14 @@ export default function ChatPage() {
           <FiSend className="w-4 h-4" />
         </button>
       </div>
+      {/* The box shows two rows, so it looks like it takes a paragraph. Say
+          which key sends it. Hidden on coarse pointers, where return inserts
+          a newline and the send button is the only way to submit, so the hint
+          would describe behaviour the student does not have. */}
+      <p className="hidden [@media(pointer:fine)]:block mt-1.5 text-xs font-satoshi text-studojo-muted">
+        Enter to send, Shift + Enter for a new line
+      </p>
+      </>
     ) : null;
 
   // The banner sits above whichever controls are showing. It survives on its
@@ -715,8 +724,14 @@ export default function ChatPage() {
           </div>
         </aside>
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Main content.
+
+            No overflow-hidden here. The page above is min-h-[100dvh] so it can
+            grow and scroll, but clipping this column put the cap straight back:
+            a twelve-option question still had its Continue button cut off, just
+            one level down. min-h-0 keeps the flex child able to shrink so the
+            transcript's own scroll area still works. */}
+        <div className="flex-1 flex flex-col min-h-0">
           {/* Mobile: compact progress dots + question count */}
           <div className="md:hidden flex items-center justify-between px-4 pt-4 pb-1 flex-shrink-0">
             <div className="flex items-center gap-1.5">
@@ -740,8 +755,12 @@ export default function ChatPage() {
             )}
           </div>
 
-          {/* Title */}
-          <div className="flex-shrink-0 px-6 pt-6 md:pt-8 pb-2">
+          {/* Title.
+
+              Hidden on phones: the sidebar and the progress row already say
+              where the student is, and this block costs about 90px of a screen
+              where the transcript was being squeezed to nothing. */}
+          <div className="hidden md:block flex-shrink-0 px-6 pt-6 md:pt-8 pb-2">
             <h1 className="font-clash text-xl md:text-2xl font-bold text-studojo-ink">
               Quick Profile Setup
             </h1>

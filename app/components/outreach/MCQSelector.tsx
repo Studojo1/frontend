@@ -134,7 +134,15 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
         </div>
       )}
 
-      <div className="flex items-center gap-3">
+      {/* Continue sticks to the bottom of the scroll area.
+
+          Removing the fixed height above lets the page scroll, but on the
+          twelve-option question the button still sits below a tall grid and a
+          student has to scroll past every option to reach it. Pinning it here
+          means the submit control is structurally incapable of leaving the
+          screen, whatever the option count. The safe-area padding keeps it
+          clear of the home indicator on a phone. */}
+      <div className="sticky bottom-0 flex items-center gap-3 bg-white pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
