@@ -68,7 +68,7 @@ export default function ChatPage() {
   // The answer whose turn failed, held so it can be resent verbatim. The error
   // used to be dropped into the transcript as a chatbot line with no way to act
   // on it, which read as the quiz talking rather than as something gone wrong.
-  const [failedAnswer, setFailedAnswer] = useState<{ content: string; answerType: string } | null>(null);
+  const [failedAnswer, setFailedAnswer] = useState<{ content: string; answerType: string; status?: number } | null>(null);
   // Which candidate the quiz on screen was started for. A ref rather than a
   // boolean, because the guard has to notice the candidate CHANGING, not just
   // that a quiz was started once: a re-upload in another tab swaps candidateId
@@ -277,7 +277,12 @@ export default function ChatPage() {
       });
 
       if (!res.ok || !res.body) {
-        throw new Error(`Stream failed (${res.status})`);
+        // Carry the status on the error so the banner can tell a signed-out
+        // session (401) apart from a server or network failure. A bare Error
+        // loses it and the student gets one generic line for both.
+        const streamErr: any = new Error(`Stream failed (${res.status})`);
+        streamErr.status = res.status;
+        throw streamErr;
       }
 
       const reader = res.body.getReader();
@@ -426,7 +431,7 @@ export default function ChatPage() {
         // answer itself never reached the server. Treat it as the failure it is.
         throw new Error("Stream ended without a complete event");
       }
-    } catch {
+    } catch (err: any) {
       setStreamingText(null);
       // Take the answer back out of the history before showing the error.
       //
@@ -439,7 +444,12 @@ export default function ChatPage() {
       removeLastChatMessage();
       // Keep the answer so the retry button can resend it verbatim, rather than
       // making the student retype what they already typed.
-      setFailedAnswer({ content, answerType });
+      // A signed-out session and a dropped connection need different things
+      // from the student: one means sign in again, the other means try again.
+      // A single generic line told them neither.
+      const status: number | undefined =
+        typeof err?.status === "number" ? err.status : undefined;
+      setFailedAnswer({ content, answerType, status });
       setLoading(false);
     } finally {
       // Always release the guard. Every early return above (the completion
@@ -557,7 +567,9 @@ export default function ChatPage() {
       className="mb-3 flex flex-wrap items-center gap-3 rounded-xl border-2 border-studojo-ink bg-red-50 px-4 py-3"
     >
       <p className="flex-1 text-sm font-satoshi text-studojo-ink">
-        That answer did not go through. Your place in the quiz is saved.
+        {failedAnswer.status === 401
+          ? "You have been signed out. Sign in again and your place in the quiz is still saved."
+          : "That answer did not go through. Your place in the quiz is saved."}
       </p>
       <button
         onClick={retryFailedAnswer}
