@@ -34,9 +34,21 @@ function buildContactReason(lead: Lead): string {
 
 // Company logo via our own /api/company-logo (see that route for why it is not
 // fetched from a third party directly), falling back to a coloured letter tile.
+// Stored domains are sometimes wrapped in prose or markdown by the research
+// step ("neurofin.ai. ([neurofin.ai](https://neurofin.ai/))"). The backend now
+// cleans them on write; this handles the rows saved before that.
+const DOMAIN_RE = /(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}/;
+function bareDomain(d: string | null): string | null {
+  const m = (d || "").trim().toLowerCase().replace(/^[a-z]+:\/\//, "").match(DOMAIN_RE);
+  return m ? m[0].replace(/^www\./, "") : null;
+}
+
 function CompanyLogo({ domain, name, size = 48 }: { domain: string | null; name: string; size?: number }) {
   const co = cleanCo(name);
-  const logoUrl = (d: string | null) => (d ? `/api/company-logo?domain=${encodeURIComponent(d)}` : null);
+  const logoUrl = (d: string | null) => {
+    const host = bareDomain(d);
+    return host ? `/api/company-logo?domain=${encodeURIComponent(host)}` : null;
+  };
   const [src, setSrc] = useState<string | null>(logoUrl(domain));
   // Domains resolve after the card mounts (the page now loads before justification
   // finishes, and domains stream in via polling). Without this, the initial null
