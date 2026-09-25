@@ -121,7 +121,10 @@ export async function fetchWithRetry(
   
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     // Check network state before attempting request
-    if (typeof navigator !== "undefined" && !navigator.onLine) {
+    // Browser only, and only on an explicit "offline". Node 21+ has a global
+    // navigator with no onLine at all, which read as offline and then crashed
+    // on window.addEventListener.
+    if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator.onLine === false) {
       // Wait for network to come back online
       await new Promise<void>((resolve) => {
         const checkOnline = () => {
