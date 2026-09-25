@@ -535,7 +535,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
                   onChange={(e) => setCvText(e.target.value)}
                   placeholder="Or paste your CV / resume text here..."
                   rows={12}
-                  className="w-full resize-none rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full resize-none rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
 
                 <div className="mt-2 flex items-center justify-between">
@@ -635,7 +635,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
                       onChange={(e) => setCompanyInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter" && companyInput.trim()) { setPreferredCompanies([...preferredCompanies, companyInput.trim()]); setCompanyInput(""); } }}
                       placeholder="Type company name and press Enter"
-                      className="flex-1 rounded-lg border-2 border-neutral-900 px-3 py-2 font-['Satoshi'] text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="flex-1 rounded-lg border-2 border-neutral-900 px-3 py-2 font-['Satoshi'] text-base focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                     <button
                       onClick={() => { if (companyInput.trim()) { setPreferredCompanies([...preferredCompanies, companyInput.trim()]); setCompanyInput(""); } }}
@@ -666,7 +666,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
                       onChange={(e) => setExcludeInput(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter" && excludeInput.trim()) { setExcludedCompanies([...excludedCompanies, excludeInput.trim()]); setExcludeInput(""); } }}
                       placeholder="Companies to never apply to"
-                      className="flex-1 rounded-lg border-2 border-neutral-900 px-3 py-2 font-['Satoshi'] text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                      className="flex-1 rounded-lg border-2 border-neutral-900 px-3 py-2 font-['Satoshi'] text-base focus:outline-none focus:ring-2 focus:ring-red-400"
                     />
                     <button
                       onClick={() => { if (excludeInput.trim()) { setExcludedCompanies([...excludedCompanies, excludeInput.trim()]); setExcludeInput(""); } }}
@@ -749,7 +749,7 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
                         value={liAt}
                         onChange={(e) => setLiAt(e.target.value)}
                         placeholder="AQEDATKr... (paste your li_at value)"
-                        className="w-full rounded-xl border-2 border-neutral-900 px-4 py-3 font-mono text-xs text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        className="w-full rounded-xl border-2 border-neutral-900 px-4 py-3 font-mono text-base text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
                       />
                     </div>
 

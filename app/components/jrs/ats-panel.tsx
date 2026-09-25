@@ -92,7 +92,7 @@ export function AtsPanel({
         onChange={(e) => setJd(e.target.value)}
         rows={6}
         placeholder="Paste the full job description here..."
-        className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+        className="w-full px-3 py-2 text-base border border-neutral-300 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
       />
 
       <div className="flex gap-2">

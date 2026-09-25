@@ -167,7 +167,7 @@ export default function MarketingDojoPage() {
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
                   placeholder="e.g. Razorpay, Bain, Zomato"
-                  className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                  className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-base font-satoshi focus:outline-none focus:border-studojo-purple"
                 />
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function MarketingDojoPage() {
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
                   placeholder="e.g. Head of Marketing, Analyst, VP Sales"
-                  className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                  className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-base font-satoshi focus:outline-none focus:border-studojo-purple"
                 />
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function MarketingDojoPage() {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. India, San Francisco, London"
-                  className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                  className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-base font-satoshi focus:outline-none focus:border-studojo-purple"
                 />
               </div>
             </div>

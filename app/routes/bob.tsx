@@ -1634,7 +1634,7 @@ function TeamModal({ orgName, onClose }: { orgName: string; onClose: () => void 
           <input
             type="email" value={email} onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && invite()} placeholder="teammate@company.com"
-            className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
           <select value={role} onChange={(e) => setRole(e.target.value as "member" | "admin")}
                   className="border-2 border-neutral-900 rounded-xl px-2 py-2 text-sm">
@@ -1921,7 +1921,7 @@ function SupportModal({ email, orgName, onClose }: { email: string; orgName: str
             <textarea
               value={description} onChange={(e) => setDescription(e.target.value)}
               rows={5} placeholder="Describe the issue or request..."
-              className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+              className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
             />
             {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
             <div className="flex justify-end gap-2 mt-4">

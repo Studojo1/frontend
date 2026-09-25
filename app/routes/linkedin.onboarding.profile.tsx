@@ -103,7 +103,7 @@ export default function LinkedInProfile() {
                 value={targetRole}
                 onChange={(e) => setTargetRole(e.target.value)}
                 placeholder="Product Manager, Growth Marketing Intern"
-                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-base font-satoshi focus:outline-none focus:border-studojo-purple"
               />
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function LinkedInProfile() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Bangalore, India · or remote"
-                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-base font-satoshi focus:outline-none focus:border-studojo-purple"
               />
             </div>
           </div>

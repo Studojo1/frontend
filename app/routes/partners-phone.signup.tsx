@@ -70,7 +70,7 @@ export default function PhonePartnersSignup() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Rahul Mehta"
-                className="w-full rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-400"
+                className="w-full rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-base outline-none focus:ring-2 focus:ring-violet-400"
               />
             </div>
             <div>
@@ -81,7 +81,7 @@ export default function PhonePartnersSignup() {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="rahul@yourcompany.com"
-                className="w-full rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-400"
+                className="w-full rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-base outline-none focus:ring-2 focus:ring-violet-400"
               />
             </div>
             <div>
@@ -91,7 +91,7 @@ export default function PhonePartnersSignup() {
                 value={form.company}
                 onChange={(e) => setForm({ ...form, company: e.target.value })}
                 placeholder="Acme Recruiting"
-                className="w-full rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-400"
+                className="w-full rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-base outline-none focus:ring-2 focus:ring-violet-400"
               />
             </div>
             <div>
@@ -103,7 +103,7 @@ export default function PhonePartnersSignup() {
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="Min. 8 characters"
-                className="w-full rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet-400"
+                className="w-full rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-base outline-none focus:ring-2 focus:ring-violet-400"
               />
             </div>
 

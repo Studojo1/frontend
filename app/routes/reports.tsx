@@ -716,7 +716,7 @@ function RequestForm() {
           required
           maxLength={500}
           rows={3}
-          className="w-full resize-none rounded-xl border-2 border-neutral-900 bg-neutral-50 px-4 py-3 font-['Satoshi'] text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+          className="w-full resize-none rounded-xl border-2 border-neutral-900 bg-neutral-50 px-4 py-3 font-['Satoshi'] text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
         />
         <div className="mt-1 text-right font-['Satoshi'] text-xs text-neutral-400">{topic.length}/500</div>
       </div>
@@ -731,7 +731,7 @@ function RequestForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           maxLength={200}
-          className="w-full rounded-xl border-2 border-neutral-900 bg-neutral-50 px-4 py-3 font-['Satoshi'] text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+          className="w-full rounded-xl border-2 border-neutral-900 bg-neutral-50 px-4 py-3 font-['Satoshi'] text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
         />
       </div>
 
