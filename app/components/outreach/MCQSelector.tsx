@@ -129,7 +129,7 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
             onChange={(e) => setExtraText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && canSubmit && handleSubmit()}
             placeholder={hasVagueSelected ? "Please describe..." : "Add more detail (optional)"}
-            className="w-full h-9 px-3 rounded-xl border-2 border-studojo-purple/40 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple placeholder:text-studojo-muted/50"
+            className="w-full min-h-[44px] px-3 rounded-xl border-2 border-studojo-purple/40 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple placeholder:text-studojo-muted/50"
           />
         </div>
       )}
