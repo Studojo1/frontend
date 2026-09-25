@@ -246,7 +246,7 @@ function ReviewCard({ v }: { v: Card }) {
 
 export default function DiscoveryPage() {
   const navigate = useNavigate();
-  const { loading: authLoading } = useOutreachAuth();
+  const { loading: authLoading, recovering } = useOutreachAuth();
   const { candidateId, profileData } = useOutreachStore();
 
   const [error, setError] = useState("");
@@ -282,6 +282,16 @@ export default function DiscoveryPage() {
   const visibleMatches = Array.from({ length: 6 }, (_, k) => pool[(matchOff + k) % pool.length]);
 
   useEffect(() => { allDoneRef.current = allDone; }, [allDone]);
+
+  // No candidate once auth and order recovery have settled: back to upload.
+  // This used to be a navigate() called during render, which re-rendered in a
+  // loop ("Maximum update depth exceeded", React #185) on every logged-out or
+  // candidate-less visit.
+  useEffect(() => {
+    if (!authLoading && !recovering && !candidateId) {
+      navigate("/outreach/onboarding/upload", { replace: true });
+    }
+  }, [authLoading, recovering, candidateId, navigate]);
 
   // ── Discovery + scoring orchestration (unchanged behaviour) ──
   useEffect(() => {
@@ -444,10 +454,7 @@ export default function DiscoveryPage() {
     };
   }, [candidateId, authLoading, TARGET, tick]);
 
-  if (!candidateId) {
-    navigate("/outreach/onboarding/upload");
-    return null;
-  }
+  if (!candidateId) return null;
 
   const headline = HEADLINES[headIdx];
   const rowA = WALL.slice(0, Math.ceil(WALL.length / 2));
