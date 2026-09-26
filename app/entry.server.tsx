@@ -24,6 +24,7 @@ export default function handleRequest(
   const url = new URL(request.url);
   if (url.hostname.startsWith("www.")) {
     url.hostname = url.hostname.slice(4);
+    url.protocol = "https:"; // TLS ends at the ingress, so request.url is http
     return new Response(null, { status: 301, headers: { Location: url.toString() } });
   }
 
