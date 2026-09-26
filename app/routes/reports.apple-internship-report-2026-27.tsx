@@ -296,7 +296,7 @@ export default function Report_AppleInternshipReport202627() {
             <p>{"That changes the strategy completely. You are not trying to impress Apple in general. You are trying to look like the obvious fit for one team's problem. A student who applies to five closely related postings with a tailored resume usually does better than one who applies to forty unrelated ones."}</p>
             <p>{"It also explains why Apple internship outcomes feel random from the outside. Two equally strong students can get very different results simply because one matched a team that had open headcount that month."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Treat every Apple posting as its own job. The team, not the company, is the hiring unit."}</div>
+            <div className="highlight"><strong>{"Key insight:"}</strong>{" Treat every Apple posting as its own job. The team, not the company, is the hiring unit."}</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"Where Apple internship roles concentrate (illustrative share of postings, %)"}</div>
@@ -330,7 +330,7 @@ export default function Report_AppleInternshipReport202627() {
             <p>{"For summer 2027 internships, Apple teams began posting in August 2026 and will keep posting through roughly February 2027. Recruiter screens and interviews are busiest from September to December. Because hiring is rolling, a role can close within weeks of posting once the team finds its candidate."}</p>
             <p>{"Apple also hires for fall, spring, and co-op terms, especially in hardware and engineering teams that want 6-month placements. These off-cycle roles get far fewer applicants than summer postings and are one of the most under-used routes in."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Apply in the first two weeks a relevant posting is live. On a rolling system, early and good beats late and perfect."}</div>
+            <div className="highlight"><strong>{"Key insight:"}</strong>{" Apply in the first two weeks a relevant posting is live. On a rolling system, early and good beats late and perfect."}</div>
 
             <div className="blist">
 
@@ -345,7 +345,7 @@ export default function Report_AppleInternshipReport202627() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>2026-27 timeline at a glance:</strong> August to October 2026: first wave of summer 2027 postings. September to December: peak recruiter screens and interviews. January to February 2027: second-wave and backfill postings. Year-round: fall, spring, and co-op roles, mostly in hardware and engineering."}</div>
+            <div className="callout"><strong>{"2026-27 timeline at a glance:"}</strong>{" August to October 2026: first wave of summer 2027 postings. September to December: peak recruiter screens and interviews. January to February 2027: second-wave and backfill postings. Year-round: fall, spring, and co-op roles, mostly in hardware and engineering."}</div>
           </div>
 
           <div className="rpt-section">
@@ -366,9 +366,9 @@ export default function Report_AppleInternshipReport202627() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Apple pays at the top of the intern market, but it rarely matches the absolute highest-paying quant or AI lab offers. People pick Apple for the product work and the brand, not the peak stipend."}</div>
+            <div className="highlight"><strong>{"Key insight:"}</strong>{" Apple pays at the top of the intern market, but it rarely matches the absolute highest-paying quant or AI lab offers. People pick Apple for the product work and the brand, not the peak stipend."}</div>
 
-            <div className="callout-red">{"<strong>Scam warning:</strong> Real Apple roles live on jobs.apple.com. If a site asks for a fee, a 'registration deposit', or promises a guaranteed Apple internship, walk away."}</div>
+            <div className="callout-red"><strong>{"Scam warning:"}</strong>{" Real Apple roles live on jobs.apple.com. If a site asks for a fee, a 'registration deposit', or promises a guaranteed Apple internship, walk away."}</div>
           </div>
 
           <div className="rpt-section">
@@ -390,7 +390,7 @@ export default function Report_AppleInternshipReport202627() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Prepare two projects you can defend for 20 minutes each. Depth on your own work is the most reliable signal you control."}</div>
+            <div className="highlight"><strong>{"Key insight:"}</strong>{" Prepare two projects you can defend for 20 minutes each. Depth on your own work is the most reliable signal you control."}</div>
 
             <div className="blist">
 
@@ -417,7 +417,7 @@ export default function Report_AppleInternshipReport202627() {
             <p>{"Apple has engineering and development teams in Hyderabad and Bengaluru, plus corporate and retail presence in cities like Mumbai and Delhi NCR. Intern roles posted in India cluster in software engineering, testing and quality, silicon and hardware, and some operations and business functions. At any given time the number of open India intern postings is in the dozens, not the hundreds."}</p>
             <p>{"Indian students applying to Apple US roles face an additional filter: they generally need to be enrolled at a university in the country where the role is based, and US roles typically require work authorisation such as CPT for F-1 students. For students studying in India, the realistic path is India-based postings, campus placement drives at the colleges Apple visits, and building domain depth that makes a team want you."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> For students in India, the competition is not the global applicant pool. It is the smaller set of students who applied to the same India-based team with relevant proof."}</div>
+            <div className="highlight"><strong>{"Key insight:"}</strong>{" For students in India, the competition is not the global applicant pool. It is the smaller set of students who applied to the same India-based team with relevant proof."}</div>
 
             <div className="blist">
 
@@ -432,7 +432,7 @@ export default function Report_AppleInternshipReport202627() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Eligibility check before you apply:</strong> Are you currently enrolled? Is the role in the country where you study or have work rights? Does your graduation date fit the internship term? If any answer is no, redirect your effort."}</div>
+            <div className="callout-amber"><strong>{"Eligibility check before you apply:"}</strong>{" Are you currently enrolled? Is the role in the country where you study or have work rights? Does your graduation date fit the internship term? If any answer is no, redirect your effort."}</div>
           </div>
 
           <div className="rpt-section">
@@ -454,7 +454,7 @@ export default function Report_AppleInternshipReport202627() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> Apple rewards depth, fit, and timing. Pick your lane, build real proof, apply early, and talk to the people doing the work."}</div>
+            <div className="highlight"><strong>{"Summary insight:"}</strong>{" Apple rewards depth, fit, and timing. Pick your lane, build real proof, apply early, and talk to the people doing the work."}</div>
 
             <div className="blist">
 
@@ -469,7 +469,7 @@ export default function Report_AppleInternshipReport202627() {
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>A one-page resume that works for Apple:</strong> Lead with 2 to 3 projects that match the posting. Name the specific tools (Swift, Metal, Core ML, Verilog, Python). Show a measurable result for each. Cut anything that does not help that one team say yes."}</div>
+            <div className="callout-green"><strong>{"A one-page resume that works for Apple:"}</strong>{" Lead with 2 to 3 projects that match the posting. Name the specific tools (Swift, Metal, Core ML, Verilog, Python). Show a measurable result for each. Cut anything that does not help that one team say yes."}</div>
           </div>
 
           <div className="takeaway-section">
