@@ -416,6 +416,8 @@ export const auth = betterAuth({
   },
 
   session: {
+    expiresIn: 60 * 60 * 24 * 60, // 60 days, so day-10/21/30 emails land on a logged-in user
+    updateAge: 60 * 60 * 24,
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60,

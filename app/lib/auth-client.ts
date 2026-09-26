@@ -44,7 +44,7 @@ const fetchWithRetryWrapper = async (
   
   return fetchWithRetry(urlString, {
     ...requestInit,
-    maxRetries: 3,
+    maxRetries: /\/(sign-up|sign-in)\/email/.test(urlString) ? 1 : 3,
     timeout: 30 * 1000, // 30 seconds for auth requests
   });
 };

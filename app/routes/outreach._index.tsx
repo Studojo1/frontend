@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { trackMeta } from "~/lib/meta-pixel";
+import { authClient } from "~/lib/auth-client";
 import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard, FiChevronDown, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -178,6 +179,13 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 export default function OutreachLanding() {
   const navigate = useNavigate();
 
+  // "View My Campaigns" is meaningless to someone who arrived from an ad and has
+  // no campaigns yet, and on mobile it stacks directly under the primary CTA. Show
+  // it only once we know there is a session to go back to. isPending keeps it
+  // hidden through the first render rather than letting it flash in and out.
+  const { data: session, isPending } = authClient.useSession();
+  const showMyCampaigns = !isPending && !!session;
+
   // Ad traffic lands here. This is the audience the retargeting campaigns are
   // built from, so it needs its own event rather than a bare PageView.
   useEffect(() => {
@@ -209,12 +217,14 @@ export default function OutreachLanding() {
               >
                 Find My Hiring Managers <FiArrowRight className="w-5 h-5 ml-2" />
               </button>
-              <button
-                onClick={() => navigate("/outreach/orders")}
-                className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-transparent text-white font-satoshi font-medium text-base border-2 border-white/40 transition-all hover:border-white/70"
-              >
-                View My Campaigns <FiClipboard className="w-5 h-5 ml-2" />
-              </button>
+              {showMyCampaigns && (
+                <button
+                  onClick={() => navigate("/outreach/orders")}
+                  className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-transparent text-white font-satoshi font-medium text-base border-2 border-white/40 transition-all hover:border-white/70"
+                >
+                  View My Campaigns <FiClipboard className="w-5 h-5 ml-2" />
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router";
-import { FiArrowRight, FiArrowDown, FiMail, FiUser, FiMessageSquare } from "react-icons/fi";
+import { FiArrowRight, FiMail, FiUser, FiMessageSquare } from "react-icons/fi";
 
 
 export function Hero() {
@@ -31,12 +31,6 @@ export function Hero() {
               className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-8"
             >
               Get me hired now <FiArrowRight className="h-5 w-5" />
-            </Link>
-            <Link
-              to="#free-tools"
-              className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-white font-['Satoshi'] text-base font-medium text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none md:w-auto md:px-8"
-            >
-              See free tools <FiArrowDown className="h-4 w-4" />
             </Link>
           </div>
 

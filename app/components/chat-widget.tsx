@@ -128,6 +128,15 @@ export function ChatWidget() {
       window.removeEventListener("studojo:open-ticket", handler as EventListener);
   }, []);
 
+  // Plain "open the chat" with no particular ticket, so the header menu can be
+  // the way in on mobile instead of a bubble floating over the page:
+  //   window.dispatchEvent(new CustomEvent("studojo:open-chat"))
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("studojo:open-chat", handler);
+    return () => window.removeEventListener("studojo:open-chat", handler);
+  }, []);
+
   // Drag state — null means use default CSS bottom-left position
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const dragging = useRef(false);
@@ -215,14 +224,23 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Chat bubble — draggable */}
+      {/* z-40, below the z-50 modals across the app — the Dodo checkout iframe on
+          /outreach/enrichment is one of them, and a draggable bubble sharing a
+          layer with a live payment sheet is settled by paint order. The open
+          panel below stays at z-50 so it is not buried while someone types in it.
+
+          Chat bubble — draggable. Bottom-LEFT sat on top of left-aligned content:
+          measured at 390x844 it covered the "Join the Dojo" submit button on
+          /outreach/orders and the footer links on the campaign dashboard. Page
+          content is left-aligned, so on mobile the right corner is the empty one;
+          desktop keeps the left position it has always had. */}
       <button
         onClick={() => { if (!didDrag.current) setOpen(!open); }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         style={{ ...(pos ? { left: pos.x, top: pos.y, bottom: "auto", right: "auto" } : {}), touchAction: "none" }}
-        className="fixed bottom-6 left-6 z-50 flex h-14 w-14 cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing"
+        className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 md:flex cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing md:left-6 md:right-auto"
         aria-label={open ? "Close chat" : "Open chat"}
       >
         {/* Unread admin-reply badge — shows count from the background poll. */}
@@ -260,7 +278,7 @@ export function ChatWidget() {
         return (
         <div
           style={pos ? winStyle : undefined}
-          className="fixed bottom-24 left-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl border-2 border-neutral-900 bg-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] max-[400px]:bottom-0 max-[400px]:left-0 max-[400px]:h-full max-[400px]:w-full max-[400px]:rounded-none max-[400px]:shadow-none">
+          className="fixed bottom-24 right-6 z-50 flex h-[480px] w-[360px] flex-col overflow-hidden rounded-2xl border-2 border-neutral-900 bg-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] md:left-6 md:right-auto max-[400px]:bottom-0 max-[400px]:left-0 max-[400px]:right-0 max-[400px]:h-full max-[400px]:w-full max-[400px]:rounded-none max-[400px]:shadow-none">
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-neutral-900 bg-violet-500 px-4 py-3">
             <div className="flex items-center gap-3">
@@ -465,7 +483,7 @@ export function ChatWidget() {
                 placeholder="Type your message..."
                 disabled={loading}
                 maxLength={500}
-                className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-['Satoshi'] text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400 disabled:opacity-60"
+                className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 font-['Satoshi'] text-base text-neutral-900 placeholder:text-neutral-400 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-400 disabled:opacity-60"
               />
               <button
                 type="submit"

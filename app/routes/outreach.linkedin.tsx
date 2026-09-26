@@ -218,7 +218,7 @@ function SendPanel({ connected }: { connected: boolean }) {
               onChange={(e) => { setProfileUrl(e.target.value); reset(); }}
               placeholder="https://linkedin.com/in/username"
               disabled={isLoading || !connected}
-              className="h-9 flex-1 rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
+              className="h-9 flex-1 rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 font-satoshi text-base text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
             />
           </div>
         </div>
@@ -235,7 +235,7 @@ function SendPanel({ connected }: { connected: boolean }) {
               placeholder="Hey [Name], I came across your profile and wanted to reach out…"
               rows={5}
               disabled={isLoading || !connected}
-              className="mb-4 w-full resize-none rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 py-2.5 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
+              className="mb-4 w-full resize-none rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 py-2.5 font-satoshi text-base text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
             />
             <ResultBox result={result} />
             <button
@@ -262,7 +262,7 @@ function SendPanel({ connected }: { connected: boolean }) {
               placeholder="Hi [Name], I'd love to connect — I'm interested in roles at [Company]."
               rows={4}
               disabled={isLoading || !connected}
-              className="mb-1 w-full resize-none rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 py-2.5 font-satoshi text-sm text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
+              className="mb-1 w-full resize-none rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 py-2.5 font-satoshi text-base text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
             />
             <div className="mb-4 text-right font-satoshi text-xs text-studojo-muted">
               {note.length}/300

@@ -332,22 +332,22 @@ function RangeFilter({ filter }: { filter: Stats["filter"] }) {
         <label className="flex flex-col gap-1 min-w-[140px]">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">From</span>
           <input name="start" type="date" defaultValue={filter.start || ""}
-            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-base text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
         </label>
         <label className="flex flex-col gap-1 min-w-[140px]">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">To</span>
           <input name="end" type="date" defaultValue={filter.end || ""}
-            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-base text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
         </label>
         <label className="flex flex-col gap-1 w-28">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">FX (₹/USD)</span>
           <input name="fx" type="number" step="0.1" min="1" placeholder={String(DEFAULT_FX)} defaultValue={filter.fx || ""}
-            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-base text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
         </label>
         <label className="flex flex-col gap-1 w-36">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">B2B total (₹)</span>
           <input name="b2b" type="number" step="1" min="0" placeholder="Auto from log" defaultValue={filter.b2b || ""}
-            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-sm text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
+            className="border-2 border-studojo-ink bg-white px-2 py-1.5 text-base text-studojo-ink focus:outline-none focus:ring-2 focus:ring-studojo-purple" />
         </label>
         <button type="submit"
           className="border-2 border-studojo-ink bg-studojo-ink px-4 py-1.5 text-sm font-semibold text-white shadow-brutal hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none">

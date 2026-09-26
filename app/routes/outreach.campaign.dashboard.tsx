@@ -1770,21 +1770,21 @@ export default function DashboardPage() {
                         placeholder="First Name"
                         value={recipient.first_name}
                         onChange={(e) => updateTestRecipient(i, "first_name", e.target.value)}
-                        className="w-full h-9 px-3 rounded-lg border-2 border-studojo-ink/20 text-sm font-satoshi focus:border-studojo-purple focus:outline-none"
+                        className="w-full h-9 px-3 rounded-lg border-2 border-studojo-ink/20 text-base font-satoshi focus:border-studojo-purple focus:outline-none"
                       />
                       <input
                         type="text"
                         placeholder="Company"
                         value={recipient.company}
                         onChange={(e) => updateTestRecipient(i, "company", e.target.value)}
-                        className="w-full h-9 px-3 rounded-lg border-2 border-studojo-ink/20 text-sm font-satoshi focus:border-studojo-purple focus:outline-none"
+                        className="w-full h-9 px-3 rounded-lg border-2 border-studojo-ink/20 text-base font-satoshi focus:border-studojo-purple focus:outline-none"
                       />
                       <input
                         type="email"
                         placeholder="Email"
                         value={recipient.email}
                         onChange={(e) => updateTestRecipient(i, "email", e.target.value)}
-                        className="w-full h-9 px-3 rounded-lg border-2 border-studojo-ink/20 text-sm font-satoshi focus:border-studojo-purple focus:outline-none"
+                        className="w-full h-9 px-3 rounded-lg border-2 border-studojo-ink/20 text-base font-satoshi focus:border-studojo-purple focus:outline-none"
                       />
                     </div>
                     {testRecipients.length > 1 && (

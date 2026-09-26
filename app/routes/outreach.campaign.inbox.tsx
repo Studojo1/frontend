@@ -279,7 +279,7 @@ export default function InboxPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search name, company, reply"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:border-studojo-ink focus:outline-none"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:border-studojo-ink focus:outline-none"
                 />
               </div>
             </div>
@@ -438,7 +438,7 @@ export default function InboxPage() {
                       }}
                       placeholder="Type a reply… (⌘/Ctrl+Enter to send)"
                       rows={2}
-                      className="flex-1 border-2 border-studojo-ink/20 rounded-xl px-3 py-2 text-sm font-satoshi resize-none focus:border-studojo-ink focus:outline-none"
+                      className="flex-1 border-2 border-studojo-ink/20 rounded-xl px-3 py-2 text-base font-satoshi resize-none focus:border-studojo-ink focus:outline-none"
                     />
                     <button
                       onClick={handleSendReply}
