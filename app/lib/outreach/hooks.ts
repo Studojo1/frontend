@@ -7,7 +7,7 @@ import { outreachFetch } from "./api";
 /**
  * Auth hook for outreach pages.
  * Uses the centralized BetterAuth session — no custom JWT exchange needed.
- * Redirects to /auth?mode=signin if not authenticated.
+ * Redirects to /auth (returning to the current page) if not authenticated.
  */
 export function useOutreachAuth(requireAuth = true) {
   const { data: session, isPending } = authClient.useSession();
@@ -73,7 +73,7 @@ export function useOutreachAuth(requireAuth = true) {
   // Redirect if not authenticated after loading completes
   useEffect(() => {
     if (!isPending && !session?.user && requireAuth) {
-      navigate("/auth?mode=signin&redirect=/outreach");
+      navigate(`/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
     }
   }, [isPending, session?.user, requireAuth, navigate]);
 
