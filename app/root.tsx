@@ -188,6 +188,18 @@ function MixpanelInit() {
         name: session.user.name,
       });
 
+      // Consent given on /auth (checkboxes or the notice under Google) is
+      // stored once the account exists; the flag survives the OAuth round trip.
+      if (localStorage.getItem("sj_consent_pending")) {
+        fetch("/api/user/accept-terms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ termsAccepted: true, privacyAccepted: true }),
+        })
+          .then((r) => { if (r.ok) localStorage.removeItem("sj_consent_pending"); })
+          .catch(() => {});
+      }
+
       // Fire a one-time `signed_up` event for brand-new accounts (any method:
       // email or Google). Anchors the admin funnel on real signups. Guarded by
       // recency of createdAt + a per-user localStorage flag so it fires once.

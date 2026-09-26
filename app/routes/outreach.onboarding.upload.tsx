@@ -16,7 +16,7 @@ import type { ResumePreview } from "~/lib/outreach/types";
 
 export default function UploadPage() {
   const navigate = useNavigate();
-  const { user } = useOutreachAuth();
+  const { user, loading: authLoading } = useOutreachAuth();
   const { setCandidateId, setCurrentStep } = useOutreachStore();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -118,6 +118,8 @@ export default function UploadPage() {
     setCurrentStep(2);
     navigate("/outreach/onboarding/chat");
   };
+
+  if (authLoading || !user) return <div className="min-h-screen bg-white" />;
 
   return (
     <div className="min-h-screen bg-white">

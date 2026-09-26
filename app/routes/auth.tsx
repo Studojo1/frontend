@@ -75,6 +75,9 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+// Read and cleared by root.tsx once a session exists
+const CONSENT_PENDING_KEY = "sj_consent_pending";
+
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -224,6 +227,7 @@ export default function Auth() {
         setSubmitting(false);
         return;
       }
+      localStorage.setItem(CONSENT_PENDING_KEY, "1");
       const { error: err, data } = await authClient.signUp.email(
         {
           email,
@@ -242,7 +246,10 @@ export default function Auth() {
         const msg =
           code === "PASSWORD_COMPROMISED"
             ? "This password has been found in a data breach. Please choose a different password."
-            : err.message ?? "Sign up failed";
+            : code?.startsWith("USER_ALREADY_EXISTS")
+              ? "You already have an account with this email. Sign in, or use Forgot password."
+              : err.message ?? "Sign up failed";
+        if (code?.startsWith("USER_ALREADY_EXISTS")) handleModeToggle("signin");
         setError(msg);
         // Track failed sign up
         trackEvent("Sign Up", {
@@ -312,6 +319,8 @@ export default function Auth() {
       login_method: "google",
       success: undefined, // Will be updated on success/failure
     });
+    // Continuing with Google is acceptance of the notice under the button
+    localStorage.setItem(CONSENT_PENDING_KEY, "1");
     authClient.signIn.social({
       provider: "google",
       callbackURL: redirectUrl,
@@ -459,6 +468,11 @@ export default function Auth() {
                     </svg>
                     Continue with Google
                   </button>
+                  <p className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
+                    By continuing, you agree to our{" "}
+                    <Link to="/terms" className="underline">Terms &amp; Conditions</Link> and{" "}
+                    <Link to="/privacy" className="underline">Privacy Policy</Link>.
+                  </p>
                   {mode === "signin" && (
                     <button
                       type="button"
