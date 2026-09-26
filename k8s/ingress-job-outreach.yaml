@@ -5,8 +5,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: staging-api-outreach-ingress
-  namespace: staging
+  name: job-outreach-ingress
+  namespace: studojo
   annotations:
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-User-Id "";
@@ -15,12 +15,12 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: 100m
     nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
     nginx.ingress.kubernetes.io/proxy-send-timeout: '600'
-    nginx.ingress.kubernetes.io/rewrite-target: /api/v1/$2
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/ssl-redirect: 'true'
 spec:
   ingressClassName: nginx
   rules:
-  - host: studojo.pro
+  - host: api.studojo.com
     http:
       paths:
       - backend:
@@ -28,9 +28,9 @@ spec:
             name: job-outreach-svc
             port:
               number: 8000
-        path: /api/v1/outreach(/|$)(.*)
+        path: /job-outreach(/|$)(.*)
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - studojo.pro
-    secretName: studojo-pro-tls-secret
+    - api.studojo.com
+    secretName: studojo-tls-secret

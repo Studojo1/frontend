@@ -1,37 +1,35 @@
+# Exported from the live cluster. Public route into job-outreach-svc.
+# The configuration-snippet blanks X-User-Id and x-studojo-internal so no
+# client on the internet can supply them; only our own servers send them,
+# in-cluster. Not applied by any workflow: kubectl apply -f <this file>.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: studojo-api-outreach-ingress
   namespace: studojo
   annotations:
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-body-size: 100m
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
-    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
-    nginx.ingress.kubernetes.io/rewrite-target: /api/v1/$2
-    # job-outreach-svc trusts X-User-Id only next to x-studojo-internal, and the
-    # only legitimate senders are our own servers, which call the service
-    # in-cluster and never come through here. Blank both on the public path so
-    # a browser or curl can never supply them.
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-User-Id "";
       proxy_set_header x-studojo-internal "";
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '600'
+    nginx.ingress.kubernetes.io/rewrite-target: /api/v1/$2
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
 spec:
   ingressClassName: nginx
   rules:
   - host: studojo.com
     http:
       paths:
-      - path: /api/v1/outreach(/|$)(.*)
-        pathType: ImplementationSpecific
-        backend:
+      - backend:
           service:
             name: job-outreach-svc
             port:
               number: 8000
+        path: /api/v1/outreach(/|$)(.*)
+        pathType: ImplementationSpecific
   tls:
   - hosts:
     - studojo.com
