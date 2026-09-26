@@ -25,7 +25,9 @@ export function initPostHog() {
     });
     isInitialized = true;
   } catch (error) {
-    // Silently fail — analytics must never break the app
+    // Analytics must never break the app, but a silent failure here disables
+    // every capture for the whole session, so leave a trace in the console.
+    console.error("[posthog] init failed; events will not be sent:", error);
   }
 }
 
