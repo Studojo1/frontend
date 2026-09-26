@@ -196,7 +196,9 @@ export default function Auth() {
   const handleModeToggle = (newMode: "signin" | "signup") => {
     setMode(newMode);
     setError(null);
-    setSearchParams({ mode: newMode });
+    const next = new URLSearchParams(searchParams);
+    next.set("mode", newMode);
+    setSearchParams(next, { replace: true });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -313,6 +315,7 @@ export default function Auth() {
     authClient.signIn.social({
       provider: "google",
       callbackURL: redirectUrl,
+      errorCallbackURL: `/auth?redirect=${encodeURIComponent(redirectUrl)}`,
     });
   };
 
@@ -533,7 +536,7 @@ export default function Auth() {
                 {mode === "signin" && (
                   <div className="flex items-center justify-between">
                     <label className="flex items-center">
-                      <input type="checkbox" name="remember" className="h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500" />
+                      <input type="checkbox" name="remember" defaultChecked className="h-4 w-4 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500" />
                       <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">Remember me</span>
                     </label>
                     <Link to="/forgot-password" className="font-['Satoshi'] text-sm font-medium leading-5 text-purple-500 hover:text-purple-600">

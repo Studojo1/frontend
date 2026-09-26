@@ -18,6 +18,15 @@ export default function handleRequest(
   // If you have middleware enabled:
   // loadContext: RouterContextProvider
 ) {
+  // www serves the app, but the OAuth state cookie is host-only and Google
+  // returns to the apex callback, so Google sign-in started on www always
+  // fails with state_mismatch. Send every www page to the apex.
+  const url = new URL(request.url);
+  if (url.hostname.startsWith("www.")) {
+    url.hostname = url.hostname.slice(4);
+    return new Response(null, { status: 301, headers: { Location: url.toString() } });
+  }
+
   // https://httpwg.org/specs/rfc9110.html#HEAD
   if (request.method.toUpperCase() === "HEAD") {
     return new Response(null, {
