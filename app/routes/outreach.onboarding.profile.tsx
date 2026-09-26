@@ -26,7 +26,7 @@ function formatSizeBand(band: string | undefined | null): string {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user } = useOutreachAuth();
+  const { user, loading: authLoading } = useOutreachAuth();
   const { candidateId, profileData, setProfileData } = useOutreachStore();
   const [profile, setProfile] = useState<any>(profileData ?? null);
   const [loading, setLoading] = useState(!profileData);
@@ -91,6 +91,8 @@ export default function ProfilePage() {
 
   const seniority = recommendedRoles[0]?.seniority || "";
   const sizeBands = companySize === "any" ? ["1-200", "201-2000", "2001+"] : [formatSizeBand(companySize)];
+
+  if (authLoading || !user) return <div className="min-h-screen bg-white" />;
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-studojo-surface-muted/50">
