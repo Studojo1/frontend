@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router";
 import { Header } from "~/components";
 import { PasswordInput } from "~/components/password-input";
 import { authClient } from "~/lib/auth-client";
+import { logFunnelStep } from "~/lib/funnel";
 import { identifyUser, trackEvent } from "~/lib/mixpanel";
 import type { Route } from "./+types/auth";
 
@@ -81,7 +82,12 @@ const CONSENT_PENDING_KEY = "sj_consent_pending";
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
+  // Someone bounced here off a product page (redirect, no explicit mode) is far
+  // more likely new than returning, so open on Sign Up. Returning visitors are
+  // switched back to Sign In below once their last login method is readable.
+  const modeParam = searchParams.get("mode");
+  const initialMode =
+    modeParam === "signup" || (!modeParam && searchParams.has("redirect")) ? "signup" : "signin";
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -94,6 +100,15 @@ export default function Auth() {
   const lastMethod = authClient.getLastUsedLoginMethod();
   const isLastGoogle = authClient.isLastUsedLoginMethod("google");
   const isLastEmail = authClient.isLastUsedLoginMethod("email");
+
+  useEffect(() => logFunnelStep("auth_view"), []);
+
+  // The last-used method is only readable in the browser, so this runs after
+  // hydration rather than in the initial state.
+  useEffect(() => {
+    if (lastMethod && !modeParam) setMode("signin");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastMethod]);
 
   // On a 390px screen the signup form runs to 1.3 screens, so Sign Up sits below
   // the fold behind four fields and two consent checkboxes. 2,963 of the 3,510
