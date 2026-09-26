@@ -7,6 +7,7 @@ import { Footer } from "~/components/common/footer";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
+import { logFunnelStep } from "~/lib/funnel";
 import { getToken, ControlPlaneError } from "~/lib/control-plane";
 import { fetchWithRetry } from "~/lib/fetch-with-retry";
 import { capturePostHog } from "~/lib/posthog";
@@ -22,6 +23,10 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<ResumePreview | null>(null);
   const [error, setError] = useState("");
+  const userId = user?.id;
+  useEffect(() => {
+    if (userId) logFunnelStep("upload_view");
+  }, [userId]);
 
   // Qualified handoff from the Career Coach: it passes the student's target
   // companies so this flow starts pre-populated. Stash them for later steps.
