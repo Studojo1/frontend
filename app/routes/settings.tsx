@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { onboardingUrl } from "~/lib/return-to";
 import { redirect, useNavigate } from "react-router";
 import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
@@ -15,7 +16,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Check if onboarding is complete (both phone and profile)
   const onboardingStatus = await requireOnboardingComplete(session.user.id);
   if (!onboardingStatus.complete) {
-    throw redirect("/onboarding");
+    throw redirect(onboardingUrl(request));
   }
   
   return null;

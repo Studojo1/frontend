@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { onboardingUrl } from "~/lib/return-to";
 import { redirect } from "react-router";
 import { FiDownload, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiLoader } from "react-icons/fi";
 import { Footer, Header } from "~/components";
@@ -13,7 +14,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!session) throw redirect("/auth");
   const onboardingStatus = await requireOnboardingComplete(session.user.id);
   if (!onboardingStatus.complete) {
-    throw redirect("/onboarding");
+    throw redirect(onboardingUrl(request));
   }
   return null;
 }
