@@ -260,6 +260,11 @@ jobs:
           kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
             BOB_INTERNAL_URL="http://bob-svc:8000" \
             BOB_ENV="staging"
+          # Staging must talk to the STAGING emailer. Unset, events.ts falls back
+          # to the production emailer (https://email.studojo.com), which rejects
+          # the staging secret, so no staging email was ever sent.
+          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            EMAILER_SERVICE_URL="http://emailer-service:8087"
           if [ -n "${{ secrets.BOB_MCP_SECRET }}" ]; then
             kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
               BOB_MCP_SECRET="${{ secrets.BOB_MCP_SECRET }}"
