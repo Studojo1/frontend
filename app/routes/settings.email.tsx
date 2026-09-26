@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
+import { onboardingUrl } from "~/lib/return-to";
 import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
 import { getEmailPreferences, updateEmailPreferences, type EmailPreferences } from "~/lib/emailer";
@@ -13,7 +14,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   
   const onboardingStatus = await requireOnboardingComplete(session.user.id);
   if (!onboardingStatus.complete) {
-    throw redirect("/onboarding");
+    throw redirect(onboardingUrl(request));
   }
   
   return null;

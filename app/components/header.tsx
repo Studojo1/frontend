@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
+import { authUrl } from "~/lib/return-to";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
@@ -49,13 +50,13 @@ export function Header() {
 
         <div className="flex items-center gap-4">
           <Link
-            to="/auth?mode=signin"
+            to={authUrl("signin", location.pathname + location.search)}
             className="hidden font-['Satoshi'] text-base font-medium leading-6 text-neutral-700 sm:block"
           >
             Sign In
           </Link>
           <Link
-            to="/auth?mode=signup"
+            to={authUrl("signup", location.pathname + location.search)}
             className={`flex h-12 flex-1 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-base font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] md:w-32 md:flex-none ${
               isHomePage ? "hidden md:flex" : ""
             }`}

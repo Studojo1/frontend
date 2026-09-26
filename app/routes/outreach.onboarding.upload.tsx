@@ -189,7 +189,7 @@ export default function UploadPage() {
                 <button
                   onClick={handleUpload}
                   disabled={!file || uploading}
-                  className="h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
+                  className="h-12 w-full md:w-auto px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {uploading ? "Analyzing..." : "Upload & Analyze"}
                 </button>
@@ -258,7 +258,7 @@ export default function UploadPage() {
               <div className="mt-8">
                 <button
                   onClick={handleContinue}
-                  className="h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                  className="h-12 w-full md:w-auto px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                 >
                   Build My Profile
                 </button>
