@@ -5,7 +5,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: staging-api-outreach-ingress
+  name: staging-api-outreach-direct-ingress
   namespace: staging
   annotations:
     nginx.ingress.kubernetes.io/configuration-snippet: |
@@ -20,7 +20,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: studojo.pro
+  - host: api.studojo.pro
     http:
       paths:
       - backend:
@@ -28,9 +28,9 @@ spec:
             name: job-outreach-svc
             port:
               number: 8000
-        path: /api/v1/outreach(/|$)(.*)
+        path: /v1/outreach(/|$)(.*)
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - studojo.pro
-    secretName: studojo-pro-tls-secret
+    - api.studojo.pro
+    secretName: api-studojo-pro-tls-secret
