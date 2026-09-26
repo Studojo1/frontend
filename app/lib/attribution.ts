@@ -24,6 +24,7 @@ export type Attribution = {
   referrer?: string;
   landing_path?: string;
   captured_at?: string;
+  untagged?: boolean;
 };
 
 const PARAMS = [
@@ -44,7 +45,10 @@ function read(): Attribution | null {
 export function captureAttribution(): void {
   if (typeof window === "undefined") return;
   try {
-    if (read()) return; // first touch already held, leave it alone
+    const held = read();
+    // A tagged first touch is never replaced. An untagged one only holds the
+    // slot until a tagged visit arrives.
+    if (held && !held.untagged) return;
 
     const qs = new URLSearchParams(window.location.search);
     const found: Attribution = {};
@@ -53,12 +57,14 @@ export function captureAttribution(): void {
       if (v) found[p] = v.slice(0, 300);
     }
 
-    // A visit with no tags and no external referrer tells us nothing, and
-    // storing it would block a later tagged click from being recorded as the
-    // first touch. Only keep a visit that carries some signal.
+    // Untagged direct visits are still recorded: a row with no source is data
+    // (it counts direct traffic), a missing row is not. It is marked so a later
+    // tagged click can still take the first-touch slot.
     const ref = document.referrer || "";
     const external = ref && !ref.includes(window.location.host);
-    if (Object.keys(found).length === 0 && !external) return;
+    const untagged = Object.keys(found).length === 0 && !external;
+    if (untagged && held) return;
+    if (untagged) found.untagged = true;
 
     found.referrer = ref.slice(0, 500);
     found.landing_path = window.location.pathname.slice(0, 200);
