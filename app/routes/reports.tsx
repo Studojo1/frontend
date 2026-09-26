@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "apple-internship-report-2026-27",
+    publishDate: "2026-09-26",
+    title: "The Apple Internship Report: 2026-27",
+    subtitle: "Apple Internships · 2026-27",
+    excerpt: "Apple hires interns team by team, not through one big campus funnel. This report maps the 2026-27 posting calendar, what interns earn, how the interviews differ from other Big Tech, and a practical plan for students in the US and India who want to get picked.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "September 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "cold-email-subject-lines-best-practices-2026",
     publishDate: "2026-06-16",
     title: "Cold Email Subject Lines: What Actually Gets Opened",
