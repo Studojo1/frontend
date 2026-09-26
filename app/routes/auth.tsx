@@ -485,8 +485,8 @@ export default function Auth() {
                   </button>
                   <p className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
                     By continuing, you agree to our{" "}
-                    <Link to="/terms" className="underline">Terms &amp; Conditions</Link> and{" "}
-                    <Link to="/privacy" className="underline">Privacy Policy</Link>.
+                    <a href="/terms" target="_blank" rel="noopener" className="underline">Terms &amp; Conditions</a> and{" "}
+                    <a href="/privacy" target="_blank" rel="noopener" className="underline">Privacy Policy</a>.
                   </p>
                   {mode === "signin" && (
                     <button
@@ -586,9 +586,9 @@ export default function Auth() {
                       />
                       <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
                         I agree to the{" "}
-                        <Link to="/terms" className="font-medium text-purple-500 hover:text-purple-600 underline">
+                        <a href="/terms" target="_blank" rel="noopener" className="font-medium text-purple-500 hover:text-purple-600 underline">
                           Terms & Conditions
-                        </Link>
+                        </a>
                       </span>
                     </label>
                     <label className="flex min-h-11 items-start py-2">
@@ -601,9 +601,9 @@ export default function Auth() {
                       />
                       <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
                         I agree to the{" "}
-                        <Link to="/privacy" className="font-medium text-purple-500 hover:text-purple-600 underline">
+                        <a href="/privacy" target="_blank" rel="noopener" className="font-medium text-purple-500 hover:text-purple-600 underline">
                           Privacy Policy
-                        </Link>
+                        </a>
                       </span>
                     </label>
                   </div>

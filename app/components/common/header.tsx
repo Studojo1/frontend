@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
+import { authUrl } from "~/lib/return-to";
 import { authClient } from "~/lib/auth-client";
 import { clearTokenCache } from "~/lib/control-plane";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -337,13 +338,13 @@ export function Header() {
             ) : (
               <>
                 <Link
-                  to="/auth?mode=signin"
+                  to={authUrl("signin", location.pathname + location.search)}
                   className="hidden font-['Satoshi'] text-base font-medium leading-6 text-neutral-700 sm:block"
                 >
                   Sign In
                 </Link>
                 <Link
-                  to="/auth?mode=signup"
+                  to={authUrl("signup", location.pathname + location.search)}
                   className={`flex h-12 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-sm font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] px-4 max-w-[120px] flex-shrink-0 md:w-32 md:text-base md:max-w-none ${
                     isHomePage ? "hidden md:flex" : ""
                   }`}
@@ -487,7 +488,7 @@ export function Header() {
                 <>
                   <li>
                     <Link
-                      to="/auth?mode=signin"
+                      to={authUrl("signin", location.pathname + location.search)}
                       onClick={() => setMobileOpen(false)}
                       className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >
@@ -496,7 +497,7 @@ export function Header() {
                   </li>
                   <li>
                     <Link
-                      to="/auth?mode=signup"
+                      to={authUrl("signup", location.pathname + location.search)}
                       onClick={() => setMobileOpen(false)}
                       className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >

@@ -67,3 +67,29 @@ export async function publishEmailEventFromClient(
     console.error("Failed to publish email event (client):", error);
   }
 }
+
+/**
+ * Send one named transactional template through the emailer (SERVER-SIDE ONLY,
+ * uses the internal secret). Non-blocking like publishEmailEvent.
+ */
+export async function sendTemplateEmail(
+  to: string,
+  template: string,
+  fields: { user_name?: string; action_url?: string } = {}
+): Promise<void> {
+  try {
+    const secret =
+      typeof process !== "undefined" ? process.env?.EMAILER_INTERNAL_SECRET : undefined;
+    const res = await fetch(`${emailerBaseUrl()}/v1/email/send-template`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(secret ? { "X-Internal-Secret": secret } : {}) },
+      body: JSON.stringify({ to, template, ...fields }),
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`[sendTemplateEmail] ${template} rejected: HTTP ${res.status} ${body.slice(0, 200)}`);
+    }
+  } catch (error) {
+    console.error("Failed to send template email:", error);
+  }
+}

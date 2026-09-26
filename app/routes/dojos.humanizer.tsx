@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { redirect } from "react-router";
+import { onboardingUrl } from "~/lib/return-to";
 import { Footer, Header } from "~/components";
 import { HumanizerDojoPage } from "~/components/dojos/humanizer-dojo";
 import { ComingSoon } from "~/components/dojos/coming-soon";
@@ -11,7 +12,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!session) throw redirect("/auth");
   const onboardingStatus = await requireOnboardingComplete(session.user.id);
   if (!onboardingStatus.complete) {
-    throw redirect("/onboarding");
+    throw redirect(onboardingUrl(request));
   }
   
   // Check if user is admin
