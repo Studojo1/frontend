@@ -5,6 +5,7 @@ import { redirect, useNavigate } from "react-router";
 import { Header } from "~/components";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import type { Route } from "./+types/onboarding";
+import { safeReturnPath } from "~/lib/return-to";
 
 const floatY = [0, -24, -12, -30, 0];
 const floatX = [0, 12, -18, 8, 0];
@@ -99,13 +100,15 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) throw redirect("/auth");
 
+  const next = safeReturnPath(new URL(request.url).searchParams.get("next")) ?? "/";
   const onboardingStatus = await requireOnboardingComplete(session.user.id);
   if (onboardingStatus.complete) {
-    throw redirect("/");
+    throw redirect(next);
   }
 
   return {
     userName: session.user.name || null,
+    next,
   };
 }
 
@@ -121,6 +124,7 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
   const [fullName, setFullName] = useState(loaderData.userName || "");
+  const next = loaderData.next;
   const [college, setCollege] = useState("");
   const [yearOfStudy, setYearOfStudy] = useState("");
   const [course, setCourse] = useState("");
@@ -227,14 +231,14 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
     } else if (step === 4) {
       if (referralSource) await updateField("referralSource", referralSource);
       capturePostHog("onboarding_completed", { referral_source: referralSource || null });
-      navigate("/", { replace: true });
+      navigate(next, { replace: true });
     }
   };
 
   const handleSkip = async () => {
     if (step === TOTAL_STEPS - 1) {
       // Last step | finish
-      navigate("/", { replace: true });
+      navigate(next, { replace: true });
     } else {
       goForward();
     }

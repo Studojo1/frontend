@@ -14,6 +14,7 @@ import * as schema from "../../auth-schema";
 import db from "./db";
 import { sendOtpSms, getVerificationSid, clearVerificationSid } from "./sms";
 import { verifyOtpCode } from "./verify";
+import { sendTemplateEmail } from "./events";
 
 // Helper to generate IDs similar to better-auth (base64url encoded random bytes)
 // Browser-compatible implementation that works in both server and client
@@ -445,6 +446,17 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 6,
+  },
+  // Email signups get a confirm link so email_verified means something (it was
+  // false for every one of them). Sign-in is deliberately NOT gated on it:
+  // requireEmailVerification stays off so nobody is blocked mid-funnel.
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      // Not awaited: signup must not wait on (or fail with) the emailer.
+      void sendTemplateEmail(user.email, "verify-email", { user_name: user.name, action_url: url });
+    },
   },
   socialProviders: {
     google: {

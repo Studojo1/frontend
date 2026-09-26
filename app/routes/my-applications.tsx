@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { onboardingUrl } from "~/lib/return-to";
 import { redirect, Link } from "react-router";
 import { FiBriefcase, FiCalendar, FiCheckCircle, FiClock, FiXCircle, FiArrowRight } from "react-icons/fi";
 import { Footer, Header } from "~/components";
@@ -14,7 +15,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Check if onboarding is complete (both phone and profile)
   const onboardingStatus = await requireOnboardingComplete(session.user.id);
   if (!onboardingStatus.complete) {
-    throw redirect("/onboarding");
+    throw redirect(onboardingUrl(request));
   }
   
   return null;
