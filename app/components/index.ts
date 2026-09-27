@@ -11,7 +11,6 @@ export { Hero } from "./home/hero";
 export { CollegesBanner } from "./home/colleges-banner";
 export { DojoCards, FeaturedProductCard } from "./home/dojo-cards";
 export { StepsSection } from "./home/steps-section";
-export { PricingSection } from "./home/pricing-section";
 export { TestimonialsSection } from "./home/testimonials-section";
 export { CTABanner } from "./home/cta-banner";
 export { StatsSection } from "./home/stats-section";

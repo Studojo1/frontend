@@ -18,7 +18,7 @@ import type { ResumePreview } from "~/lib/outreach/types";
 export default function UploadPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useOutreachAuth();
-  const { setCandidateId, setCurrentStep } = useOutreachStore();
+  const { setCandidateId, setCurrentStep, clearChatHistory } = useOutreachStore();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<ResumePreview | null>(null);
@@ -88,6 +88,14 @@ export default function UploadPage() {
       if (!res.ok) throw new Error(data?.detail || "Upload failed");
 
       setPreview(data.preview);
+      // A new resume starts a new quiz. Upload can hand back the SAME candidate
+      // id (it reuses a row whose quiz never finished), and the quiz page
+      // restores any transcript stamped with that id, so without this the old
+      // resume's answers would be replayed onto the new one.
+      clearChatHistory();
+      try {
+        localStorage.removeItem(`quiz_completed_${data.candidate_id}`);
+      } catch {}
       setCandidateId(data.candidate_id);
       // track() maps resume_uploaded -> Meta Lead, so the admin funnel step and
       // the ad-side conversion can never drift apart.

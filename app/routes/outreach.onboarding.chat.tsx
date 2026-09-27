@@ -42,12 +42,6 @@ const Q1_STATIC: AgentResponse = {
   questions_asked_so_far: 1,
 };
 
-/**
- * Partial message extraction — NO closing quote so it captures progressive
- * text as the LLM streams the "message" JSON field token by token.
- */
-const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)/;
-
 export default function ChatPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useOutreachAuth();
@@ -64,7 +58,6 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
-  const [streamingText, setStreamingText] = useState<string | null>(null);
   // The answer whose turn failed, held so it can be resent verbatim. The error
   // used to be dropped into the transcript as a chatbot line with no way to act
   // on it, which read as the quiz talking rather than as something gone wrong.
@@ -163,7 +156,6 @@ export default function ChatPage() {
     const { restartOnFailure = true } = opts;
     if (!candidateId) return false;
     setLoading(true);
-    setStreamingText(null);
 
     try {
       const res = await outreachStreamFetch(`/candidate/${candidateId}/chat/stream`, {
@@ -203,6 +195,7 @@ export default function ChatPage() {
               is_complete: evt.is_complete ?? false,
               questions_asked_so_far: evt.questions_asked_so_far ?? 0,
               questions_total: evt.questions_total ?? undefined,
+              question_key: evt.question_key ?? undefined,
             } as AgentResponse;
           }
         }
@@ -235,7 +228,6 @@ export default function ChatPage() {
       return false;
     } finally {
       setLoading(false);
-      setStreamingText(null);
     }
   };
 
@@ -263,7 +255,6 @@ export default function ChatPage() {
     // Track how far each student gets through the quiz (drop-off per question).
     capturePostHog("quiz_question_answered", { question_number: questionsAsked + 1, answer_type: answerType, candidate_id: candidateId });
     setLoading(true);
-    setStreamingText(null);
 
     const fullHistory = [...chatHistory, userMsg];
 
@@ -288,7 +279,6 @@ export default function ChatPage() {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
-      let accumulated = "";
       let finalResponse: AgentResponse | null = null;
 
       while (true) {
@@ -307,11 +297,9 @@ export default function ChatPage() {
           let evt: any;
           try { evt = JSON.parse(raw); } catch { continue; }
 
-          if (evt.type === "chunk" && typeof evt.text === "string") {
-            accumulated += evt.text;
-            const match = PARTIAL_MSG_RE.exec(accumulated);
-            setStreamingText(match ? match[1].replace(/\\n/g, "\n").replace(/\\"/g, '"') : "");
-          } else if (evt.type === "complete") {
+          // The backend sends one frame per turn: "complete" with the next
+          // question, or "error" when the turn failed on its side.
+          if (evt.type === "complete") {
             finalResponse = {
               message: evt.message ?? "",
               current_state: evt.current_state ?? "MCQ",
@@ -321,14 +309,13 @@ export default function ChatPage() {
               is_complete: evt.is_complete ?? false,
               questions_asked_so_far: evt.questions_asked_so_far ?? 0,
               questions_total: evt.questions_total ?? undefined,
+              question_key: evt.question_key ?? undefined,
             } as AgentResponse;
           } else if (evt.type === "error") {
             throw new Error(evt.message ?? "Stream error");
           }
         }
       }
-
-      setStreamingText(null);
 
       if (finalResponse) {
         if (finalResponse.is_complete) {
@@ -432,7 +419,6 @@ export default function ChatPage() {
         throw new Error("Stream ended without a complete event");
       }
     } catch (err: any) {
-      setStreamingText(null);
       // Take the answer back out of the history before showing the error.
       //
       // It was added optimistically above, but the turn never landed. Leaving it
@@ -581,9 +567,8 @@ export default function ChatPage() {
     </div>
   ) : null;
 
-  // Input area for chat — hidden while streaming or loading
-  const controls = streamingText !== null ? null
-    : currentResponse?.is_complete ? null
+  // Input area for chat
+  const controls = currentResponse?.is_complete ? null
     : currentResponse?.mcq ? (
       <MCQSelector
         question={currentResponse.mcq.question}
@@ -619,6 +604,12 @@ export default function ChatPage() {
             handleTextSubmit();
           }}
           rows={2}
+          // Phones label the return key from this. It inserts a newline on a
+          // touch keyboard (see onKeyDown), so "enter" is the honest label; the
+          // send button submits.
+          enterKeyHint="enter"
+          // dream_companies is a list of names, so capitalise each word.
+          autoCapitalize={currentResponse?.question_key === "dream_companies" ? "words" : "sentences"}
           id="quiz-answer"
           aria-label="Your answer"
           className="flex-1 px-4 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
@@ -651,7 +642,6 @@ export default function ChatPage() {
   // primary action for the same tap.
   const canGoBack =
     !currentResponse?.is_complete &&
-    streamingText === null &&
     chatHistory.some((m) => m.role === "user");
 
   const backControl = canGoBack ? (
@@ -786,7 +776,6 @@ export default function ChatPage() {
             <ChatInterface
               messages={chatHistory}
               loading={loading}
-              streamingText={streamingText}
               quizProgress={quizProgress}
               questionsAsked={questionsAsked}
               questionsTotal={currentResponse?.questions_total}
