@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "high-school-internships-how-to-get-one-2026",
+    publishDate: "2026-09-26",
+    title: "The High School Internship Report: How Teenagers Actually Get Real Experience",
+    subtitle: "High School Internships · 2026",
+    excerpt: "Very few high school internships are ever advertised, and the famous ones accept a few percent of applicants. This report maps the four routes that actually work for teenagers, the age and legal rules in the US and India, the paid-program traps to avoid, and a simple plan to land a first role.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "September 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "apple-internship-report-2026-27",
     publishDate: "2026-09-26",
     title: "The Apple Internship Report: 2026-27",

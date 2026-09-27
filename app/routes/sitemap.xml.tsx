@@ -61,6 +61,7 @@ export async function loader() {
     { loc: "/reports/first-1-lakh-month-report-fastest-paths-students-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/cold-email-subject-lines-best-practices-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/apple-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/high-school-internships-how-to-get-one-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },
@@ -139,6 +140,7 @@ export async function loader() {
     "/reports/first-1-lakh-month-report-fastest-paths-students-2026": "2026-06-12",
     "/reports/cold-email-subject-lines-best-practices-2026": "2026-06-16",
     "/reports/apple-internship-report-2026-27": "2026-09-26",
+    "/reports/high-school-internships-how-to-get-one-2026": "2026-09-26",
   };
 
   const urls = [
