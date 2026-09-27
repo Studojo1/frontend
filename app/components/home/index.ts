@@ -2,7 +2,6 @@ export { Hero } from "./hero";
 export { CollegesBanner } from "./colleges-banner";
 export { DojoCards } from "./dojo-cards";
 export { StepsSection } from "./steps-section";
-export { PricingSection } from "./pricing-section";
 export { TestimonialsSection } from "./testimonials-section";
 export { CTABanner } from "./cta-banner";
 export { StatsSection } from "./stats-section";

@@ -42,6 +42,8 @@ export interface AgentResponse {
   // runs 8 to 11 questions, so this is the only honest denominator; it is
   // optional because an older cached response may not carry it.
   questions_total?: number;
+  // The question's key in the backend sequence ("dream_companies", ...).
+  question_key?: string;
 }
 
 export interface ChatMessage {

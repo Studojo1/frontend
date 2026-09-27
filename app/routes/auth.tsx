@@ -66,9 +66,22 @@ function FloatShape({
   );
 }
 
-export function meta({}: Route.MetaArgs) {
+// Which tab /auth opens on, from the URL alone. Shared by the page and its
+// meta so the tab title can never disagree with the form: a signup link used
+// to render a "Sign Up" form under a browser tab reading "Sign In".
+function modeFromParams(params: URLSearchParams): "signin" | "signup" {
+  // Someone bounced here off a product page (redirect, no explicit mode) is far
+  // more likely new than returning, so open on Sign Up.
+  const modeParam = params.get("mode");
+  return modeParam === "signup" || (!modeParam && params.has("redirect")) ? "signup" : "signin";
+}
+
+const titleFor = (mode: "signin" | "signup") =>
+  mode === "signup" ? "Sign Up | Studojo" : "Sign In | Studojo";
+
+export function meta({ location }: Route.MetaArgs) {
   return [
-    { title: "Sign In | Studojo" },
+    { title: titleFor(modeFromParams(new URLSearchParams(location.search))) },
     {
       name: "description",
       content: "Sign in or create your Studojo account to get started.",
@@ -82,13 +95,17 @@ const CONSENT_PENDING_KEY = "sj_consent_pending";
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  // Someone bounced here off a product page (redirect, no explicit mode) is far
-  // more likely new than returning, so open on Sign Up. Returning visitors are
-  // switched back to Sign In below once their last login method is readable.
+  // Returning visitors are switched back to Sign In below once their last
+  // login method is readable.
   const modeParam = searchParams.get("mode");
-  const initialMode =
-    modeParam === "signup" || (!modeParam && searchParams.has("redirect")) ? "signup" : "signin";
-  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
+  const [mode, setMode] = useState<"signin" | "signup">(() => modeFromParams(searchParams));
+  // meta only sees the URL; the mode can also change on the client (the
+  // returning-visitor switch below), so keep the tab title in step with it.
+  // searchParams is a dependency because a URL change re-renders meta's title,
+  // and this has to run after that to have the last word.
+  useEffect(() => {
+    document.title = titleFor(mode);
+  }, [mode, searchParams]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
