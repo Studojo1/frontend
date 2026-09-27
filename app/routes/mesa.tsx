@@ -309,9 +309,9 @@ export default function Mesa() {
                         <>
                           <div className="relative">
                             <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" size={14} />
-                            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter title/company" className="w-44 rounded-xl border-2 border-neutral-300 py-1.5 pl-8 pr-2 text-sm focus:border-violet-500 focus:outline-none" />
+                            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter title/company" className="w-44 rounded-xl border-2 border-neutral-300 py-1.5 pl-8 pr-2 text-base focus:border-violet-500 focus:outline-none" />
                           </div>
-                          <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="rounded-xl border-2 border-neutral-300 px-2 py-1.5 text-sm focus:outline-none">
+                          <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="rounded-xl border-2 border-neutral-300 px-2 py-1.5 text-base focus:outline-none">
                             <option value="scraped">Newest scraped</option>
                             <option value="posted">Date posted</option>
                             <option value="company">Company</option>

@@ -1095,7 +1095,7 @@ export default function PartnersDashboard() {
                     value={newKeyLabel}
                     onChange={(e) => setNewKeyLabel(e.target.value)}
                     placeholder="e.g. Production, Staging"
-                    className="flex-1 rounded-xl border-2 border-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-violet-400"
+                    className="flex-1 rounded-xl border-2 border-neutral-900 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-violet-400"
                     onKeyDown={(e) => e.key === "Enter" && createKey()}
                   />
                   <button

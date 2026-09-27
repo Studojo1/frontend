@@ -564,7 +564,7 @@ export default function LkotPage() {
               value={quiz.target_role}
               onChange={e => setQuiz(q => ({ ...q, target_role: e.target.value }))}
               placeholder="e.g. Founder, Head of Marketing, VP Sales"
-              className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 font-satoshi text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 mb-4 bg-white"
+              className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 font-satoshi text-base focus:outline-none focus:ring-2 focus:ring-violet-400 mb-4 bg-white"
               autoFocus
             />
             <div className="flex flex-wrap gap-2">
@@ -624,7 +624,7 @@ export default function LkotPage() {
               <input type="text" value={quiz.campaign_name}
                 onChange={e => setQuiz(q => ({ ...q, campaign_name: e.target.value }))}
                 placeholder={`${quiz.target_role || "Founder"} outreach — ${new Date().toLocaleDateString("en", { month: "short", year: "numeric" })}`}
-                className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 font-satoshi text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 font-satoshi text-base focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
               />
             </div>
             <div>
@@ -634,7 +634,7 @@ export default function LkotPage() {
               <input type="text" value={quiz.target_keywords}
                 onChange={e => setQuiz(q => ({ ...q, target_keywords: e.target.value }))}
                 placeholder="e.g. Series A, YC, AI, fintech"
-                className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 font-satoshi text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
+                className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 font-satoshi text-base focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
               />
             </div>
             <StepNav onBack={back} onNext={next} disabled={!canNext()} />
@@ -742,13 +742,13 @@ export default function LkotPage() {
                             <label className="font-satoshi text-xs font-semibold block mb-1">li_at cookie</label>
                             <textarea value={liAtCookie} onChange={e => setLiAtCookie(e.target.value)}
                               placeholder="AQEDATxxxxxx..." rows={2}
-                              className="w-full border-2 border-studojo-ink rounded-xl px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none bg-neutral-50" />
+                              className="w-full border-2 border-studojo-ink rounded-xl px-3 py-2 font-mono text-base focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none bg-neutral-50" />
                           </div>
                           <div>
                             <label className="font-satoshi text-xs font-semibold block mb-1">JSESSIONID cookie</label>
                             <input type="text" value={jsessionidCookie} onChange={e => setJsessionidCookie(e.target.value)}
                               placeholder="ajax:xxxxxxxxxx"
-                              className="w-full border-2 border-studojo-ink rounded-xl px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50" />
+                              className="w-full border-2 border-studojo-ink rounded-xl px-3 py-2 font-mono text-base focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50" />
                           </div>
                           {connectError && (
                             <div className="flex items-start gap-2 border-2 border-red-300 bg-red-50 rounded-xl p-3 text-sm text-red-700">
@@ -779,14 +779,14 @@ export default function LkotPage() {
                         <label className="font-satoshi text-sm font-semibold block mb-1.5">LinkedIn email</label>
                         <input type="email" value={liEmail} onChange={e => setLiEmail(e.target.value)}
                           placeholder="you@example.com"
-                          className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 font-satoshi text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50" />
+                          className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 font-satoshi text-base focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50" />
                       </div>
                       <div>
                         <label className="font-satoshi text-sm font-semibold block mb-1.5">LinkedIn password</label>
                         <div className="relative">
                           <input type={showPass ? "text" : "password"} value={liPass}
                             onChange={e => setLiPass(e.target.value)} placeholder="••••••••"
-                            className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 pr-10 font-satoshi text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50"
+                            className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 pr-10 font-satoshi text-base focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50"
                             onKeyDown={e => e.key === "Enter" && canNext() && handleConnect()} />
                           <button type="button" onClick={() => setShowPass(v => !v)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-studojo-muted">
@@ -946,7 +946,7 @@ export default function LkotPage() {
                 </div>
                 <textarea value={connectionNote} onChange={e => setConnectionNote(e.target.value)}
                   placeholder={NOTE_PLACEHOLDER} rows={2}
-                  className="w-full font-satoshi text-sm border-2 border-studojo-ink rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50" />
+                  className="w-full font-satoshi text-base border-2 border-studojo-ink rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50" />
                 <p className="font-satoshi text-xs text-studojo-muted mt-1.5">
                   Use <code className="bg-neutral-100 px-1 rounded border border-neutral-200">{"{{name}}"}</code> and{" "}
                   <code className="bg-neutral-100 px-1 rounded border border-neutral-200">{"{{company}}"}</code> — AI personalises per lead
@@ -961,7 +961,7 @@ export default function LkotPage() {
                 </div>
                 <textarea value={followupMessage} onChange={e => setFollowupMessage(e.target.value)}
                   placeholder={FOLLOWUP_PLACEHOLDER} rows={3}
-                  className="w-full font-satoshi text-sm border-2 border-studojo-ink rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50" />
+                  className="w-full font-satoshi text-base border-2 border-studojo-ink rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50" />
               </div>
 
               <div className="border-2 border-studojo-ink bg-white rounded-2xl p-4">

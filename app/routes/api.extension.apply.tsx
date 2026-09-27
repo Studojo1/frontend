@@ -200,6 +200,25 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const board = (body.board ?? "generic").toLowerCase();
+
+  // LOG WHAT THE PAGE ACTUALLY SENT.
+  //
+  // Four rounds of "it still says nobody can be reached" were undiagnosable
+  // because nothing recorded whether the extension sent a contact at all. From
+  // the outside, "the panel never sent Rahul Raj" and "Rahul was sent and then
+  // discarded" produce identical symptoms — and I could only guess which.
+  //
+  // Greppable on purpose: `grep EXT-APPLY` answers it in one command.
+  // No email is logged; a name and title are already on the public job page.
+  console.log(
+    `[EXT-APPLY] board=${board} company=${JSON.stringify(body.job?.company ?? null)} ` +
+    `role=${JSON.stringify(body.job?.role ?? null)} ` +
+    `contact=${JSON.stringify(body.contact?.name ?? null)} ` +
+    `title=${JSON.stringify(body.contact?.title ?? null)} ` +
+    `via=${JSON.stringify(body.contact?.via ?? null)} ` +
+    `hasEmail=${Boolean(body.contact?.email)} ` +
+    `descLen=${(body.job?.description ?? "").length}`
+  );
   const role = body.job?.role?.trim() ?? "";
   const company = body.job?.company?.trim() ?? "";
   const hasContact = Boolean(body.contact?.name);
@@ -227,6 +246,19 @@ export async function action({ request }: Route.ActionArgs) {
   type GmailAccount = { email_account_id?: number; token_valid?: boolean };
   let gmail: GmailAccount | null = null;
   let gmailCheckFailed = false;
+
+  // START THE CRM WRITE NOW, alongside the Gmail check.
+  //
+  // These do not depend on each other — one asks the mailbox service whether
+  // the student can send, the other writes a row to the career agent — but
+  // they ran back to back, so the panel sat on "Sending…" for the SUM of both
+  // round trips before handing over the link. Pranav: "when i click on review
+  // my email that page took too much time to laod".
+  //
+  // Safe to start early: writeCrmRow catches internally and resolves to null,
+  // so this promise can never reject before something awaits it.
+  const crmRowPromise = writeCrmRow(auth.userId, body, board);
+
   try {
     gmail = await outreachServerFetch<GmailAccount>("/gmail/oauth/account", {
       userId: auth.userId,
@@ -254,11 +286,19 @@ export async function action({ request }: Route.ActionArgs) {
   if (gmailCheckFailed) {
     // Still save the work. The student gets a draft; we just cannot say
     // whether their mailbox is ready.
-    const applicationId = await writeCrmRow(auth.userId, body, board);
+    const applicationId = await crmRowPromise;
     const draft = await upsertDraft(auth.userId, {
       applicationId,
       company,
       role,
+      // Stored so alternative-company suggestions can be filtered to the
+      // student's city. The extension already scrapes it and we already
+      // forward it to the career agent; it was simply never kept on our row.
+      location: body.job?.location || null,
+      // The posting's own text. Extracted on every board and, until now,
+      // dropped right here — which is why drafts were built from company +
+      // role + contact title alone and read like templates.
+      description: body.job?.description || null,
       jobUrl: body.job?.jobUrl || body.pageUrl || null,
       contactName: body.contact?.name ?? null,
       contactTitle: body.contact?.title ?? null,
@@ -303,11 +343,19 @@ export async function action({ request }: Route.ActionArgs) {
     }
     // Still record the application AND prepare the draft — the student did
     // apply, and Gmail is only needed at Send, not to write the email.
-    const applicationId = await writeCrmRow(auth.userId, body, board);
+    const applicationId = await crmRowPromise;
     const draft = await upsertDraft(auth.userId, {
       applicationId,
       company,
       role,
+      // Stored so alternative-company suggestions can be filtered to the
+      // student's city. The extension already scrapes it and we already
+      // forward it to the career agent; it was simply never kept on our row.
+      location: body.job?.location || null,
+      // The posting's own text. Extracted on every board and, until now,
+      // dropped right here — which is why drafts were built from company +
+      // role + contact title alone and read like templates.
+      description: body.job?.description || null,
       jobUrl: body.job?.jobUrl || body.pageUrl || null,
       contactName: body.contact?.name ?? null,
       contactTitle: body.contact?.title ?? null,
@@ -327,7 +375,7 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
-  const applicationId = await writeCrmRow(auth.userId, body, board);
+  const applicationId = await crmRowPromise;
 
   // NOTHING IS QUEUED HERE ANY MORE.
   //

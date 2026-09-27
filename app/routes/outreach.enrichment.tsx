@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { FiTag, FiArrowRight, FiArrowLeft, FiCheck } from "react-icons/fi";
@@ -437,7 +438,7 @@ export default function EnrichmentPage() {
       setCouponResult(data);
       capturePostHog("coupon_applied", { coupon_code: couponCode.trim(), valid: !!data?.valid });
     } catch (err: any) {
-      setCouponError(err?.body?.detail || err.message || "Invalid coupon");
+      setCouponError(describeError(err, "Invalid coupon"));
     } finally {
       setCouponLoading(false);
     }
@@ -517,7 +518,7 @@ export default function EnrichmentPage() {
             setPaying(false);
             onPaymentSuccess(response.razorpay_order_id);
           } catch (err: any) {
-            setError(err?.body?.detail || err.message || "Payment verification failed");
+            setError(describeError(err, "Payment verification failed"));
             setPaying(false);
           }
         },
@@ -535,7 +536,7 @@ export default function EnrichmentPage() {
       track("checkout_opened", { tier: tierValue, provider: "razorpay" });
       rzp.open();
     } catch (err: any) {
-      setError(err?.body?.detail || err.message || "Failed to create payment order");
+      setError(describeError(err, "Failed to create payment order"));
       setPaying(false);
     }
   };

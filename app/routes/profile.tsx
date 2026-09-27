@@ -135,7 +135,7 @@ function InputField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 text-sm font-['Satoshi'] border-2 border-neutral-300 rounded-xl focus:outline-none focus:border-violet-500 transition-colors"
+        className="w-full px-3 py-2 text-base font-['Satoshi'] border-2 border-neutral-300 rounded-xl focus:outline-none focus:border-violet-500 transition-colors"
       />
     </div>
   );
@@ -372,7 +372,7 @@ function ProfileContent() {
                       value={editForm.fullName}
                       onChange={(e) => setEditForm((p) => ({ ...p, fullName: e.target.value }))}
                       placeholder="Your full name"
-                      className="w-full px-3 py-2 text-sm font-['Satoshi'] border-2 border-neutral-300 rounded-xl focus:outline-none focus:border-violet-500 transition-colors"
+                      className="w-full px-3 py-2 text-base font-['Satoshi'] border-2 border-neutral-300 rounded-xl focus:outline-none focus:border-violet-500 transition-colors"
                     />
                   </div>
                   <InputField

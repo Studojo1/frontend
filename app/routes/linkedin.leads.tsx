@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { FiArrowRight, FiArrowLeft, FiFilter, FiLinkedin, FiSend } from "react-icons/fi";
@@ -45,7 +46,7 @@ export default function LinkedInLeads() {
         setLeads(arr);
         return arr.length as number;
       })
-      .catch((e: any) => { setError(e?.body?.detail || "Couldn't load matches"); return 0; })
+      .catch((e: any) => { setError(describeError(e, "Couldn't load matches")); return 0; })
       .finally(() => { if (!silent) setLoading(false); });
   };
 
@@ -77,7 +78,7 @@ export default function LinkedInLeads() {
         prev = n;
       }
     } catch (e: any) {
-      setError(e?.body?.detail || "Couldn't find LinkedIn leads right now. Try again in a moment.");
+      setError(describeError(e, "Couldn't find LinkedIn leads right now. Try again in a moment."));
     } finally {
       setDiscovering(false);
     }
@@ -122,7 +123,7 @@ export default function LinkedInLeads() {
       setHasOutreachLeads(false);
       if ((r?.imported ?? 0) === 0) setError("No new leads to import, they're already here.");
     } catch (e: any) {
-      setError(e?.body?.detail || "Import failed");
+      setError(describeError(e, "Import failed"));
     } finally {
       setImporting(false);
     }

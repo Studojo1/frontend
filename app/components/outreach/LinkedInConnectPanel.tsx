@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useState } from "react";
 import { FiEye, FiEyeOff, FiShield, FiAlertCircle, FiLinkedin } from "react-icons/fi";
 import { outreachFetch } from "~/lib/outreach/api";
@@ -31,7 +32,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
       });
       onSuccess(res.id);
     } catch (err: any) {
-      setError(err?.body?.detail || err.message || "Could not create LinkedIn campaign. Please try again.");
+      setError(describeError(err, "Could not create LinkedIn campaign. Please try again."));
     } finally {
       setCreatingCampaign(false);
     }
@@ -63,7 +64,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
       }
       await afterLogin();
     } catch (err: any) {
-      setError(err?.body?.detail || err.message || "Connection failed. Check your credentials.");
+      setError(describeError(err, "Connection failed. Check your credentials."));
     } finally {
       setLoading(false);
     }
@@ -82,7 +83,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
       setChallenge(null);
       await afterLogin();
     } catch (err: any) {
-      setError(err?.body?.detail || err.message || "Incorrect code. Please try again.");
+      setError(describeError(err, "Incorrect code. Please try again."));
     } finally {
       setPinLoading(false);
     }
@@ -104,7 +105,7 @@ export function LinkedInConnectPanel({ orderId, onSuccess }: Props) {
       setChallenge(null);
       await afterLogin();
     } catch (err: any) {
-      setError(err?.body?.detail || err.message || "Session expired. Please log in again.");
+      setError(describeError(err, "Session expired. Please log in again."));
     } finally {
       setPhoneTapLoading(false);
     }
