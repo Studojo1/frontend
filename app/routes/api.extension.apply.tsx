@@ -269,9 +269,18 @@ export async function action({ request }: Route.ActionArgs) {
     // as null meant a 401, a timeout and a genuinely unconnected account all
     // produced the same "connect Gmail" card — so connecting it changed
     // nothing and there was no way to tell why.
+    //
+    // A 404 is the service's answer for "no Gmail account connected", not a
+    // failure to ask. Treating it as one sent every student who had not
+    // connected Gmail yet down the "we could not check" path, so they never
+    // saw the card that lets them connect it.
     gmail = null;
-    gmailCheckFailed = true;
-    console.error("[extension.apply] Gmail check failed:", e);
+    if ((e as { status?: number })?.status === 404) {
+      gmailCheckFailed = false;
+    } else {
+      gmailCheckFailed = true;
+      console.error("[extension.apply] Gmail check failed:", e);
+    }
   }
 
   if (gmailCheckFailed) {
