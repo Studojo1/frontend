@@ -31,11 +31,6 @@ interface OutreachState {
   hasHydrated: boolean;
   setHasHydrated: (v: boolean) => void;
 
-  // False until zustand has read localStorage back. Pages that decide
-  // something from persisted state must wait for this, or they decide it from
-  // the empty initial state and act on an answer that is about to change.
-  hasHydrated: boolean;
-  setHasHydrated: (v: boolean) => void;
 
   // Lead discovery
   selectedTier: 50 | 200 | 350 | 500;
@@ -118,8 +113,6 @@ export const useOutreachStore = create<OutreachState>()(
       hasHydrated: false,
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
 
-      hasHydrated: false,
-      setHasHydrated: (hasHydrated) => set({ hasHydrated }),
 
       selectedTier: 350,
       setSelectedTier: (selectedTier) => set({ selectedTier }),
