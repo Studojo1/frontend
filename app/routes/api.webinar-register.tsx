@@ -1,5 +1,15 @@
-import { saveWebinarRegistration } from "~/lib/webinar.server";
+import {
+  saveWebinarRegistration,
+  attachOrderToRegistration,
+} from "~/lib/webinar.server";
+import { lookupAmbassadorByRefCode } from "~/lib/campus-ambassador.server";
 import { checkEmail } from "~/lib/email-validate";
+import { webinarPricePaise } from "~/lib/webinar-pricing";
+import {
+  createRazorpayOrder,
+  razorpayKeyId,
+  RazorpayNotConfiguredError,
+} from "~/lib/razorpay.server";
 import type { Route } from "./+types/api.webinar-register";
 
 function clamp(v: unknown, max = 200): string {
@@ -29,6 +39,7 @@ export async function action({ request }: Route.ActionArgs) {
   const specialisation = clamp(body.specialisation);
   const graduationYear = clamp(body.graduationYear, 10);
   const referralSource = clamp(body.referralSource, 60);
+  const refCode = clamp(body.refCode, 40).toUpperCase();
 
   if (!fullName || !whatsapp || !email || !college || !course || !yearOfStudy || !lifeStage) {
     return Response.json({ error: "Please fill in all required fields." }, { status: 400 });
@@ -43,7 +54,22 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
 
-  const { isNew } = await saveWebinarRegistration({
+  // Resolve the ambassador code server-side. The browser is told whether it
+  // matched, but never gets to decide the price.
+  const ambassador = refCode ? await lookupAmbassadorByRefCode(refCode) : null;
+  if (refCode && !ambassador) {
+    return Response.json(
+      {
+        error:
+          "We don't recognise that campus ambassador code. Check the spelling, or clear the field to continue at full price.",
+        invalidRefCode: true,
+      },
+      { status: 400 }
+    );
+  }
+  const amountPaise = webinarPricePaise(Boolean(ambassador));
+
+  const { registrationId } = await saveWebinarRegistration({
     fullName,
     whatsapp,
     email,
@@ -54,26 +80,56 @@ export async function action({ request }: Route.ActionArgs) {
     graduationYear: graduationYear || undefined,
     lifeStage: lifeStage || undefined,
     referralSource: referralSource || undefined,
+    refCode: refCode || undefined,
+    ambassadorId: ambassador?.id,
+    amountPaise,
   });
 
-  // Already registered with this email — don't create a duplicate row and don't
-  // re-send the confirmation email. Tell the form so it can show a friendly note.
-  if (!isNew) {
-    return Response.json({ ok: true, alreadyRegistered: true });
+  // No row came back, so an existing registration for this webinar is already
+  // paid. Nothing to charge again — tell the form so it can say so kindly.
+  if (registrationId === null) {
+    return Response.json({ ok: true, alreadyPaid: true });
   }
 
-  // Fire the instant "registration confirmed" email. The join link is sent
-  // separately by the emailer's daily cron, one day before the webinar.
-  // Non-blocking: a failed email must never fail the registration.
+  // Create the payment order. The ticket is not a ticket until this is paid,
+  // so the confirmation email is deliberately NOT sent here — it goes out from
+  // the webhook, once money has actually moved.
   try {
-    const { publishEmailEvent } = await import("~/lib/events");
-    await publishEmailEvent("event.cc.webinar_registered", {
-      email,
-      name: fullName,
+    const order = await createRazorpayOrder({
+      amountPaise,
+      receipt: `web-${registrationId}-${Date.now().toString(36)}`,
+      notes: {
+        registration_id: String(registrationId),
+        ref_code: refCode || "",
+        ambassador_id: ambassador ? String(ambassador.id) : "",
+        email,
+      },
+    });
+    await attachOrderToRegistration({
+      registrationId,
+      orderId: order.id,
+      amountPaise,
+    });
+
+    return Response.json({
+      ok: true,
+      orderId: order.id,
+      amountPaise,
+      keyId: razorpayKeyId(),
+      prefill: { name: fullName, email, contact: whatsapp },
     });
   } catch (err) {
-    console.error("Failed to publish webinar_registered event:", err);
+    if (err instanceof RazorpayNotConfiguredError) {
+      console.error("[webinar] Razorpay is not configured; cannot take payment");
+      return Response.json(
+        { error: "Payments are temporarily unavailable. Please try again shortly." },
+        { status: 503 }
+      );
+    }
+    console.error("[webinar] Failed to create payment order:", err);
+    return Response.json(
+      { error: "We couldn't start the payment. Please try again." },
+      { status: 502 }
+    );
   }
-
-  return Response.json({ ok: true });
 }
