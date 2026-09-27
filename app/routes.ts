@@ -94,6 +94,10 @@ export default [
   route("reports/nepotism-report-how-much-hiring-happens-through-connections-2026", "routes/reports.nepotism-report-how-much-hiring-happens-through-connections-2026.tsx"),
   route("reports/first-1-lakh-month-report-fastest-paths-students-2026", "routes/reports.first-1-lakh-month-report-fastest-paths-students-2026.tsx"),
   route("reports/cold-email-subject-lines-best-practices-2026", "routes/reports.cold-email-subject-lines-best-practices-2026.tsx"),
-  route("reports/apple-internship-report-2026-27", "routes/reports.apple-internship-report-2026-27.tsx"),
+  route("reports/how-to-get-a-high-school-internship-2026", "routes/reports.how-to-get-a-high-school-internship-2026.tsx"),
   route("reports/high-school-internships-how-to-get-one-2026", "routes/reports.high-school-internships-how-to-get-one-2026.tsx"),
+  route("reports/internship-vs-externship-coop-practicum-2026", "routes/reports.internship-vs-externship-coop-practicum-2026.tsx"),
+  route("reports/cybersecurity-internship-report-2026", "routes/reports.cybersecurity-internship-report-2026.tsx"),
+  route("reports/google-internship-report-2026", "routes/reports.google-internship-report-2026.tsx"),
+  route("reports/apple-internship-report-2026-27", "routes/reports.apple-internship-report-2026-27.tsx"),
 ] satisfies RouteConfig;

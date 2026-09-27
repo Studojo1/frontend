@@ -60,8 +60,10 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
         return;
       }
       if (requiresDetail(opt) && extraText.trim()) {
-        // Vague option (e.g., "Other") — replace label with typed text
-        answers.push(extraText.trim());
+        // Vague option (e.g., "Other") — replace label with typed text. Two
+        // vague options share the one box, so push the text only once, or the
+        // student's answer arrives as "their text, their text".
+        if (!answers.includes(extraText.trim())) answers.push(extraText.trim());
       } else {
         answers.push(opt.text);
       }
@@ -128,6 +130,8 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
             value={extraText}
             onChange={(e) => setExtraText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && canSubmit && handleSubmit()}
+            // Return submits here (single-line box), so label the key that way.
+            enterKeyHint="send"
             placeholder={hasVagueSelected ? "Please describe..." : "Add more detail (optional)"}
             className="w-full min-h-[44px] px-3 rounded-xl border-2 border-studojo-purple/40 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple placeholder:text-studojo-muted/50"
           />
