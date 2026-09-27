@@ -9,9 +9,14 @@ interface ChatInterfaceProps {
   loading?: boolean;
   streamingText?: string | null;
   quizProgress?: number;
+  // Which question the student is on, and how many there are. Shown as text
+  // because a bare 1px bar never told them how much was left, and the quiz runs
+  // 8 to 11 questions so they cannot infer it.
+  questionsAsked?: number;
+  questionsTotal?: number;
 }
 
-export function ChatInterface({ messages, children, loading, streamingText, quizProgress }: ChatInterfaceProps) {
+export function ChatInterface({ messages, children, loading, streamingText, quizProgress, questionsAsked, questionsTotal }: ChatInterfaceProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,18 +27,42 @@ export function ChatInterface({ messages, children, loading, streamingText, quiz
   }, [messages, loading, streamingText]);
 
   return (
-    <div className="flex flex-col h-full bg-white border-2 border-studojo-ink rounded-2xl overflow-hidden shadow-brutal">
+    <div className="flex flex-col h-full min-h-0 bg-white border-2 border-studojo-ink rounded-2xl overflow-hidden shadow-brutal">
       {/* Quiz progress bar */}
       {quizProgress != null && quizProgress > 0 && (
-        <div className="h-1 bg-studojo-surface-muted flex-shrink-0">
-          <div
-            className="h-full bg-gradient-to-r from-studojo-purple to-studojo-pink rounded-r-full transition-all duration-700 ease-out"
-            style={{ width: `${Math.min(quizProgress, 100)}%` }}
-          />
+        <div className="flex-shrink-0">
+          {questionsAsked && questionsTotal ? (
+            <div className="flex items-center justify-between px-4 pt-3 pb-2">
+              <span className="text-xs font-satoshi text-studojo-muted">
+                Question {Math.min(questionsAsked, questionsTotal)} of {questionsTotal}
+              </span>
+              <span className="text-xs font-satoshi text-studojo-muted">
+                {Math.max(questionsTotal - questionsAsked, 0)} left
+              </span>
+            </div>
+          ) : null}
+          <div className="h-1 bg-studojo-surface-muted">
+            <div
+              className="h-full bg-gradient-to-r from-studojo-purple to-studojo-pink rounded-r-full transition-all duration-700 ease-out"
+              style={{ width: `${Math.min(quizProgress, 100)}%` }}
+            />
+          </div>
         </div>
       )}
 
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
+      {/* The transcript is a live region so a newly served question is
+          announced instead of appearing silently: the question is the only
+          thing on screen that changes between turns. "polite" rather than
+          "assertive" so it waits for the reader to finish rather than cutting
+          in mid-sentence. */}
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 min-h-[9rem] overflow-y-auto px-4 py-5 space-y-4"
+        role="log"
+        aria-live="polite"
+        aria-atomic="false"
+        aria-label="Quiz conversation"
+      >
         {messages.map((msg, i) => {
           const parts = msg.role === "assistant" ? msg.content.split("|||") : [msg.content];
 

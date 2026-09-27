@@ -86,14 +86,22 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
 
   return (
     <div className="space-y-2.5">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {/* The question text is rendered by the chat transcript above, so the
+          option grid is labelled by it rather than repeating it visually. */}
+      <div
+        className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+        role="group"
+        aria-label={question}
+      >
         {options.map((opt) => {
           const isSelected = selected.includes(opt.label);
           return (
             <button
               key={opt.label}
+              type="button"
               onClick={() => toggle(opt.label)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-left text-[13px] font-satoshi border-2 transition-all duration-150
+              aria-pressed={isSelected}
+              className={`flex items-center gap-2 px-3 py-2 min-h-[44px] rounded-xl text-left text-[13px] font-satoshi border-2 transition-all duration-150
                 ${isSelected
                   ? "border-studojo-purple bg-studojo-purple-bg text-studojo-purple shadow-sm"
                   : "border-studojo-ink/20 text-studojo-ink hover:border-studojo-ink/40 hover:bg-studojo-surface-muted"
@@ -121,16 +129,24 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
             onChange={(e) => setExtraText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && canSubmit && handleSubmit()}
             placeholder={hasVagueSelected ? "Please describe..." : "Add more detail (optional)"}
-            className="w-full h-9 px-3 rounded-xl border-2 border-studojo-purple/40 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple placeholder:text-studojo-muted/50"
+            className="w-full min-h-[44px] px-3 rounded-xl border-2 border-studojo-purple/40 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple focus:border-studojo-purple placeholder:text-studojo-muted/50"
           />
         </div>
       )}
 
-      <div className="flex items-center gap-3">
+      {/* Continue sticks to the bottom of the scroll area.
+
+          Removing the fixed height above lets the page scroll, but on the
+          twelve-option question the button still sits below a tall grid and a
+          student has to scroll past every option to reach it. Pinning it here
+          means the submit control is structurally incapable of leaving the
+          screen, whatever the option count. The safe-area padding keeps it
+          clear of the home indicator on a phone. */}
+      <div className="sticky bottom-0 flex items-center gap-3 bg-white pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
+          className="min-h-[44px] px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
         >
           {loading ? "..." : "Continue"}
         </button>

@@ -111,7 +111,10 @@ export default function GmailConnectPage() {
     if (planType === "both") {
       navigate("/outreach/connect/linkedin");
     } else {
-      navigate("/outreach/connect/debrief");
+      // Straight to campaign setup: the debrief now runs BEFORE this page, so
+      // sending the student back to it here would loop them through questions
+      // they have already answered.
+      navigate("/outreach/campaign/setup");
     }
   };
 

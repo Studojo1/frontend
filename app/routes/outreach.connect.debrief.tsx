@@ -84,10 +84,10 @@ export default function DebriefPage() {
     } catch {
       // non-blocking — don't stop the flow if save fails
     }
-    navigate("/outreach/campaign/setup");
+    navigate("/outreach/connect/gmail");
   };
 
-  const handleSkip = () => navigate("/outreach/campaign/setup");
+  const handleSkip = () => navigate("/outreach/connect/gmail");
 
   if (authLoading) {
     return (

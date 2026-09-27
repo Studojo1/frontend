@@ -50,35 +50,216 @@ const PARTIAL_MSG_RE = /"message"\s*:\s*"((?:[^"\\]|\\.)*)/;
 
 export default function ChatPage() {
   const navigate = useNavigate();
-  const { user } = useOutreachAuth();
-  const { candidateId, chatHistory, addChatMessage, clearChatHistory } = useOutreachStore();
+  const { user, loading: authLoading } = useOutreachAuth();
+  const {
+    candidateId,
+    chatHistory,
+    addChatMessage,
+    removeLastChatMessage,
+    clearChatHistory,
+    chatCandidateId,
+    setChatCandidateId,
+    hasHydrated,
+  } = useOutreachStore();
   const [loading, setLoading] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<AgentResponse | null>(null);
   const [textInput, setTextInput] = useState("");
   const [streamingText, setStreamingText] = useState<string | null>(null);
-  const autoStarted = useRef(false);
+  // The answer whose turn failed, held so it can be resent verbatim. The error
+  // used to be dropped into the transcript as a chatbot line with no way to act
+  // on it, which read as the quiz talking rather than as something gone wrong.
+  const [failedAnswer, setFailedAnswer] = useState<{ content: string; answerType: string; status?: number } | null>(null);
+  // Which candidate the quiz on screen was started for. A ref rather than a
+  // boolean, because the guard has to notice the candidate CHANGING, not just
+  // that a quiz was started once: a re-upload in another tab swaps candidateId
+  // underneath a quiz in progress, and a plain "already started" flag then
+  // blocks re-initialisation, leaving the student answering the old resume's
+  // questions while every answer is filed against the new candidate.
+  const startedForCandidate = useRef<number | null>(null);
+  // True while a turn is in flight. See the guard in sendMessage.
+  const inFlight = useRef(false);
 
-  // Always start fresh — clears any stale localStorage chatHistory
+  // Restore an in-progress quiz, or start a fresh one.
+  //
+  // This used to clear chatHistory unconditionally, which (together with
+  // chatHistory not being persisted at all) meant a refresh, a back gesture or
+  // a mobile tab eviction threw the quiz away and dropped the student back at
+  // question one. On a phone, a backgrounded tab being evicted is routine.
+  //
+  // Restoring is cheap because the stream endpoint is a stateless replay: post
+  // the transcript we saved and it returns the question that comes next. No
+  // backend call is needed to work out where the student had got to.
   useEffect(() => {
-    if (candidateId && !autoStarted.current) {
-      autoStarted.current = true;
-      clearChatHistory();
-      addChatMessage({ role: "assistant", content: Q1_STATIC.message });
-      setCurrentResponse(Q1_STATIC);
-      capturePostHog("quiz_started", { candidate_id: candidateId });
+    if (!hasHydrated || !candidateId) return;
+    // Re-run when the candidate changes, not only on first mount.
+    if (startedForCandidate.current === candidateId) return;
+    const switchedCandidate =
+      startedForCandidate.current !== null && startedForCandidate.current !== candidateId;
+    startedForCandidate.current = candidateId;
+
+    if (switchedCandidate) {
+      // A different resume is now active. Whatever is on screen belongs to the
+      // previous candidate, so drop it rather than letting the student keep
+      // answering questions that will be filed against someone else's profile.
+      setCurrentResponse(null);
+      setTextInput("");
+      setFailedAnswer(null);
     }
-  }, [candidateId]);
+
+    // Don't resurrect a quiz that is already finished. Browser-back onto this
+    // page after completing sets up a replay that would re-run the completion
+    // branch; the same localStorage key that guards the completion side-effects
+    // tells us to leave it alone.
+    let alreadyDone = false;
+    try {
+      alreadyDone =
+        typeof window !== "undefined" &&
+        localStorage.getItem(`quiz_completed_${candidateId}`) === "1";
+    } catch {}
+
+    // Only restore a transcript that belongs to THIS candidate. Uploading a new
+    // resume makes a new candidate, and replaying the previous quiz onto it
+    // would answer the new quiz with the old resume's answers.
+    const restorable =
+      !alreadyDone &&
+      chatCandidateId === candidateId &&
+      chatHistory.length > 0 &&
+      chatHistory.some((m) => m.role === "user");
+
+    if (restorable) {
+      capturePostHog("quiz_resumed", {
+        candidate_id: candidateId,
+        messages_restored: chatHistory.length,
+      });
+      void resumeFromHistory(chatHistory);
+      return;
+    }
+
+    clearChatHistory();
+    setChatCandidateId(candidateId);
+    addChatMessage({ role: "assistant", content: Q1_STATIC.message });
+    setCurrentResponse(Q1_STATIC);
+    capturePostHog("quiz_started", { candidate_id: candidateId });
+  }, [candidateId, hasHydrated]);
 
   const questionsAsked = currentResponse?.questions_asked_so_far ?? 0;
-  // Cap progress at 100% if the user is past the estimate (rare but possible for high-clarity flows)
-  const quizProgress = Math.min(100, (questionsAsked / ESTIMATED_TOTAL) * 100);
+  // Prefer the real sequence length the backend now sends. ESTIMATED_TOTAL is
+  // the fallback for a response that predates it, and was previously the only
+  // denominator: a hardcoded 10 against a quiz that is 8 to 11 questions long,
+  // so the bar was wrong for most students and never told them what was left.
+  const questionsTotal = currentResponse?.questions_total ?? ESTIMATED_TOTAL;
+  const quizProgress = Math.min(100, (questionsAsked / questionsTotal) * 100);
   const sidebarStep = currentResponse?.is_complete ? 3 : 2;
+
+  /**
+   * Re-request the current question for a transcript we already hold.
+   *
+   * Used when returning to a quiz that was interrupted. The stream endpoint is
+   * a pure replay of the history it is given, so posting the restored
+   * transcript returns whichever question the student was on. Nothing is
+   * appended to the history here: the answers are already in it.
+   */
+  const resumeFromHistory = async (history: ChatMessage[], opts: { restartOnFailure?: boolean } = {}) => {
+    const { restartOnFailure = true } = opts;
+    if (!candidateId) return false;
+    setLoading(true);
+    setStreamingText(null);
+
+    try {
+      const res = await outreachStreamFetch(`/candidate/${candidateId}/chat/stream`, {
+        method: "POST",
+        body: JSON.stringify({
+          message: "__resume__",
+          chat_history: history.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+
+      if (!res.ok || !res.body) throw new Error(`Resume failed (${res.status})`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let restored: AgentResponse | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (!raw) continue;
+          let evt: any;
+          try { evt = JSON.parse(raw); } catch { continue; }
+          if (evt.type === "complete") {
+            restored = {
+              message: evt.message ?? "",
+              current_state: evt.current_state ?? "MCQ",
+              mcq: evt.mcq ?? null,
+              text_input: evt.text_input ?? false,
+              input_placeholder: evt.input_placeholder ?? null,
+              is_complete: evt.is_complete ?? false,
+              questions_asked_so_far: evt.questions_asked_so_far ?? 0,
+              questions_total: evt.questions_total ?? undefined,
+            } as AgentResponse;
+          }
+        }
+      }
+
+      if (restored && !restored.is_complete) {
+        // The question itself is already the last assistant message in the
+        // restored transcript, so only the controls need rebuilding.
+        setCurrentResponse(restored);
+        return true;
+      }
+
+      // Either the quiz had already finished or the reply was unusable.
+      if (!restartOnFailure) return false;
+      // Sending the student back to a clean question one is the safe fallback
+      // on mount, but never when they only asked to change one answer.
+      clearChatHistory();
+      setChatCandidateId(candidateId);
+      addChatMessage({ role: "assistant", content: Q1_STATIC.message });
+      setCurrentResponse(Q1_STATIC);
+      return false;
+    } catch {
+      // Restoring is best-effort. If it fails, start the quiz rather than leave
+      // the student on a transcript with no way to answer.
+      if (!restartOnFailure) return false;
+      clearChatHistory();
+      setChatCandidateId(candidateId);
+      addChatMessage({ role: "assistant", content: Q1_STATIC.message });
+      setCurrentResponse(Q1_STATIC);
+      return false;
+    } finally {
+      setLoading(false);
+      setStreamingText(null);
+    }
+  };
 
   const sendMessage = async (content: string, answerType: string = "text") => {
     if (!candidateId) return;
 
+    // Re-entrancy guard, in a ref rather than state.
+    //
+    // `loading` is React state, so it does not update until the next render.
+    // Two submits inside the same tick (a double tap, Enter plus a click, a
+    // fast repeat on a laggy connection) both read the old `false` and both
+    // send. That puts the same answer in the history twice, which the backend
+    // replay then reads as the answer to the NEXT question, shifting every
+    // later answer by one. A ref flips synchronously, so the second call
+    // returns before it can do any of that.
+    if (inFlight.current) return;
+    inFlight.current = true;
+
+    setFailedAnswer(null);
     const userMsg: ChatMessage = { role: "user", content };
     addChatMessage(userMsg);
+    // Stamp ownership of the persisted transcript, so it is only ever restored
+    // onto the candidate whose quiz produced it.
+    if (chatCandidateId !== candidateId) setChatCandidateId(candidateId);
     // Track how far each student gets through the quiz (drop-off per question).
     capturePostHog("quiz_question_answered", { question_number: questionsAsked + 1, answer_type: answerType, candidate_id: candidateId });
     setLoading(true);
@@ -96,7 +277,12 @@ export default function ChatPage() {
       });
 
       if (!res.ok || !res.body) {
-        throw new Error(`Stream failed (${res.status})`);
+        // Carry the status on the error so the banner can tell a signed-out
+        // session (401) apart from a server or network failure. A bare Error
+        // loses it and the student gets one generic line for both.
+        const streamErr: any = new Error(`Stream failed (${res.status})`);
+        streamErr.status = res.status;
+        throw streamErr;
       }
 
       const reader = res.body.getReader();
@@ -134,7 +320,7 @@ export default function ChatPage() {
               input_placeholder: evt.input_placeholder ?? null,
               is_complete: evt.is_complete ?? false,
               questions_asked_so_far: evt.questions_asked_so_far ?? 0,
-              psychometric: evt.psychometric ?? null,
+              questions_total: evt.questions_total ?? undefined,
             } as AgentResponse;
           } else if (evt.type === "error") {
             throw new Error(evt.message ?? "Stream error");
@@ -154,20 +340,61 @@ export default function ChatPage() {
             { role: "assistant" as const, content: finalResponse.message },
           ];
 
-          outreachFetch(`/candidate/${candidateId}/generate-payload`, {
-            method: "POST",
-            body: JSON.stringify({
-              message: "__generate__",
-              chat_history: historyForPayload.map((m) => ({ role: m.role, content: m.content })),
-            }),
-          }).catch(() => {});
+          // Await the profile write instead of firing it into the void.
+          //
+          // This is the quiz's only write, and it used to be fire-and-forget:
+          // if it failed, the student was still sent to the loading screen,
+          // which then waited on a profile that was never going to arrive. The
+          // ten second skip button was the only way out, and it skipped past a
+          // profile that did not exist.
+          //
+          // outreachFetch already retries transient failures internally and
+          // throws on a non-2xx, so awaiting it and catching the throw is the
+          // whole check.
+          // The completion guard covers the write too, not just the analytics
+          // below it. Any route back into this branch for a quiz that has
+          // already finished — a resubmit, a re-render, browser-back onto a
+          // replay — used to rebuild and rewrite the whole payload, outside the
+          // guard that exists precisely to make completion happen once.
+          const completedKey = `quiz_completed_${candidateId}`;
+          let alreadyCompleted = false;
+          try {
+            alreadyCompleted =
+              typeof window !== "undefined" && localStorage.getItem(completedKey) === "1";
+          } catch {}
+
+          let payloadWritten = true;
+          if (!alreadyCompleted) try {
+            await outreachFetch(`/candidate/${candidateId}/generate-payload`, {
+              method: "POST",
+              body: JSON.stringify({
+                message: "__generate__",
+                chat_history: historyForPayload.map((m) => ({ role: m.role, content: m.content })),
+              }),
+            });
+          } catch {
+            payloadWritten = false;
+          }
+
+          if (!payloadWritten) {
+            // Say so plainly and keep them on the quiz, where the answers still
+            // are, rather than sending them to a screen that will spin.
+            addChatMessage({
+              role: "assistant",
+              content:
+                "Your answers are saved, but building your profile did not go through. Tap Continue to try again.",
+            });
+            setCurrentResponse(finalResponse);
+            setLoading(false);
+            return;
+          }
 
           // Fire completion side-effects ONCE per candidate. Without this guard,
           // profile_quiz_completed (and the outreach_used email) re-fired on
           // resubmits, re-renders, and browser-back revisits — logging far more
-          // "completions" than there were quiz starts.
-          const completedKey = `quiz_completed_${candidateId}`;
-          const alreadyCompleted = typeof window !== "undefined" && localStorage.getItem(completedKey);
+          // "completions" than there were quiz starts. completedKey and
+          // alreadyCompleted are read above, where they now also guard the
+          // payload write.
           if (!alreadyCompleted) {
             try { localStorage.setItem(completedKey, "1"); } catch {}
 
@@ -198,13 +425,92 @@ export default function ChatPage() {
           setLoading(false);
         }
       } else {
-        setLoading(false);
+        // The stream ended without a 'complete' event, so the turn produced no
+        // question. Silently re-enabling the UI here left the student looking at
+        // their own answer with the previous question still on screen, and the
+        // answer itself never reached the server. Treat it as the failure it is.
+        throw new Error("Stream ended without a complete event");
       }
-    } catch {
+    } catch (err: any) {
       setStreamingText(null);
-      addChatMessage({ role: "assistant", content: "Something went wrong. Please try again." });
+      // Take the answer back out of the history before showing the error.
+      //
+      // It was added optimistically above, but the turn never landed. Leaving it
+      // in means a retry sends the same answer twice, and the backend assigns
+      // answers by position while replaying, so every later answer shifts onto
+      // the wrong question: the student's city ends up stored as their company
+      // stage and nothing errors. The bubble disappearing is also the honest
+      // signal that the answer did not go through and needs re-entering.
+      removeLastChatMessage();
+      // Keep the answer so the retry button can resend it verbatim, rather than
+      // making the student retype what they already typed.
+      // A signed-out session and a dropped connection need different things
+      // from the student: one means sign in again, the other means try again.
+      // A single generic line told them neither.
+      const status: number | undefined =
+        typeof err?.status === "number" ? err.status : undefined;
+      setFailedAnswer({ content, answerType, status });
       setLoading(false);
+    } finally {
+      // Always release the guard. Every early return above (the completion
+      // branch, the failed-payload branch) leaves through here too, so the quiz
+      // cannot end up permanently refusing to send.
+      inFlight.current = false;
     }
+  };
+
+  /**
+   * Step back to the previous question so an answer can be changed.
+   *
+   * There was no back control of any kind: an answer, once sent, could never be
+   * reviewed or corrected, and the only way out of a mistake was to abandon the
+   * quiz and start over.
+   *
+   * This works for the same reason resume does. The stream endpoint replays
+   * whatever history it is given, so dropping the last answer (and the question
+   * that followed it) and re-posting returns the student to that question with
+   * everything before it intact. The server's stored answers are keyed by
+   * question key and merged, so re-answering overwrites the right one.
+   */
+  const goBackOneQuestion = async () => {
+    if (loading || !candidateId) return;
+    const lastUserIdx = chatHistory.map((m) => m.role).lastIndexOf("user");
+    if (lastUserIdx < 0) return;
+
+    // Everything up to (not including) the last answer. The assistant question
+    // that prompted it stays, because that is the question being returned to.
+    const rewound = chatHistory.slice(0, lastUserIdx);
+    setFailedAnswer(null);
+    setTextInput("");
+    capturePostHog("quiz_went_back", { candidate_id: candidateId });
+
+    // Rewrite the transcript first so the screen matches what is being replayed.
+    const previous = chatHistory;
+    clearChatHistory();
+    setChatCandidateId(candidateId);
+    rewound.forEach((m) => addChatMessage(m));
+
+    const ok = await resumeFromHistory(rewound, { restartOnFailure: false });
+    if (!ok) {
+      // Put the student back exactly where they were. Losing the whole quiz
+      // because "go back one" did not land would be far worse than the problem
+      // the button exists to solve.
+      clearChatHistory();
+      setChatCandidateId(candidateId);
+      previous.forEach((m) => addChatMessage(m));
+      setFailedAnswer(null);
+      addChatMessage({
+        role: "assistant",
+        content: "Sorry, I could not go back just now. Please carry on from here.",
+      });
+    }
+  };
+
+  const retryFailedAnswer = () => {
+    if (!failedAnswer) return;
+    const { content, answerType } = failedAnswer;
+    setFailedAnswer(null);
+    void sendMessage(content, answerType);
   };
 
   const handleMCQSubmit = (selected: string[]) => {
@@ -217,6 +523,23 @@ export default function ChatPage() {
       setTextInput("");
     }
   };
+
+  // Wait for localStorage to be read back and for auth to settle before
+  // deciding the student has no candidate. Deciding it from the empty initial
+  // state told a student who was mid-quiz to go and upload their resume again,
+  // for the fraction of a second before the real candidateId arrived.
+  if (!hasHydrated || authLoading) {
+    return (
+      <div className="min-h-[100dvh] bg-white">
+        <Header />
+        <div className="mx-auto max-w-3xl px-4 py-8 md:px-8 text-center">
+          <p className="text-base text-studojo-muted mt-8 font-satoshi" role="status">
+            Loading your quiz...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!candidateId) {
     return (
@@ -235,8 +558,31 @@ export default function ChatPage() {
     );
   }
 
+  // A failed turn shows a real error with a real retry, above the controls. The
+  // student's answer is held in failedAnswer, so retrying resends it rather
+  // than asking them to type it again.
+  const errorBanner = failedAnswer ? (
+    <div
+      role="alert"
+      className="mb-3 flex flex-wrap items-center gap-3 rounded-xl border-2 border-studojo-ink bg-red-50 px-4 py-3"
+    >
+      <p className="flex-1 text-sm font-satoshi text-studojo-ink">
+        {failedAnswer.status === 401
+          ? "You have been signed out. Sign in again and your place in the quiz is still saved."
+          : "That answer did not go through. Your place in the quiz is saved."}
+      </p>
+      <button
+        onClick={retryFailedAnswer}
+        disabled={loading}
+        className="min-h-[44px] px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
+      >
+        Try again
+      </button>
+    </div>
+  ) : null;
+
   // Input area for chat — hidden while streaming or loading
-  const inputArea = streamingText !== null ? null
+  const controls = streamingText !== null ? null
     : currentResponse?.is_complete ? null
     : currentResponse?.mcq ? (
       <MCQSelector
@@ -247,30 +593,101 @@ export default function ChatPage() {
         loading={loading}
       />
     ) : (currentResponse?.text_input || (!currentResponse?.mcq && currentResponse !== null && !loading)) ? (
+      <>
       <div className="flex gap-2 items-end">
         <textarea
           value={textInput}
           onChange={(e: any) => setTextInput(e.target.value)}
           placeholder={currentResponse?.input_placeholder || "Type your answer..."}
-          onKeyDown={(e: any) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleTextSubmit())}
+          // Enter submits on a physical keyboard, where Shift+Enter is the
+          // well-known way to get a newline. On a touch keyboard there is no
+          // Shift+Enter, so return would submit a half-typed answer and the
+          // student could never start a second line in a box that shows two.
+          // There, return does what it looks like it does and the send button
+          // submits.
+          //
+          // The loading guard matters on both: without it a second press sends
+          // the same answer again, which the position-keyed replay then treats
+          // as the answer to the next question.
+          onKeyDown={(e: any) => {
+            if (e.key !== "Enter" || e.shiftKey || loading) return;
+            const isTouch =
+              typeof window !== "undefined" &&
+              window.matchMedia?.("(pointer: coarse)").matches;
+            if (isTouch) return;
+            e.preventDefault();
+            handleTextSubmit();
+          }}
           rows={2}
+          id="quiz-answer"
+          aria-label="Your answer"
           className="flex-1 px-4 py-2.5 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple resize-none"
         />
         <button
+          type="button"
           onClick={handleTextSubmit}
+          aria-label="Send answer"
           disabled={!textInput.trim() || loading}
-          className="h-10 w-10 rounded-xl bg-studojo-purple text-white flex items-center justify-center border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex-shrink-0"
+          className="h-11 w-11 rounded-xl bg-studojo-purple text-white flex items-center justify-center border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none flex-shrink-0"
         >
           <FiSend className="w-4 h-4" />
         </button>
       </div>
+      {/* The box shows two rows, so it looks like it takes a paragraph. Say
+          which key sends it. Hidden on coarse pointers, where return inserts
+          a newline and the send button is the only way to submit, so the hint
+          would describe behaviour the student does not have. */}
+      <p className="hidden [@media(pointer:fine)]:block mt-1.5 text-xs font-satoshi text-studojo-muted">
+        Enter to send, Shift + Enter for a new line
+      </p>
+      </>
     ) : null;
 
+  // The banner sits above whichever controls are showing. It survives on its
+  // own when the controls are hidden, so a failure during streaming still gives
+  // the student a way forward.
+  // Back is offered whenever there is an answer to walk back and the quiz is
+  // not finished. It sits above the controls so it never competes with the
+  // primary action for the same tap.
+  const canGoBack =
+    !currentResponse?.is_complete &&
+    streamingText === null &&
+    chatHistory.some((m) => m.role === "user");
+
+  const backControl = canGoBack ? (
+    <button
+      type="button"
+      onClick={goBackOneQuestion}
+      disabled={loading}
+      className="mb-2 min-h-[44px] px-3 -ml-1 text-sm font-satoshi text-studojo-muted hover:text-studojo-ink disabled:opacity-50 disabled:pointer-events-none"
+    >
+      &larr; Change my last answer
+    </button>
+  ) : null;
+
+  const inputArea = (errorBanner || controls || backControl) ? (
+    <>
+      {errorBanner}
+      {backControl}
+      {controls}
+    </>
+  ) : null;
+
+  // The quiz page uses min-h-[100dvh] rather than h-screen + overflow-hidden.
+  //
+  // That old pair capped the page at exactly one viewport and forbade it from
+  // scrolling, so any question taller than the screen had its Continue button
+  // pushed out of reach with no way to get to it. The twelve-option niche
+  // question does exactly that on a 360x640 phone: the student can see the
+  // options, pick one, and then cannot submit.
+  //
+  // dvh rather than vh because mobile browsers shrink the viewport when the
+  // address bar is showing, and vh ignores that.
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-white">
+    <div className="min-h-[100dvh] flex flex-col bg-white">
       <Header />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex">
         {/* Desktop sidebar — vertical progress timeline */}
         <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center justify-center flex-shrink-0">
           <div className="flex flex-col" style={{ alignItems: "flex-start" }}>
@@ -319,8 +736,14 @@ export default function ChatPage() {
           </div>
         </aside>
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Main content.
+
+            No overflow-hidden here. The page above is min-h-[100dvh] so it can
+            grow and scroll, but clipping this column put the cap straight back:
+            a twelve-option question still had its Continue button cut off, just
+            one level down. min-h-0 keeps the flex child able to shrink so the
+            transcript's own scroll area still works. */}
+        <div className="flex-1 flex flex-col min-h-0">
           {/* Mobile: compact progress dots + question count */}
           <div className="md:hidden flex items-center justify-between px-4 pt-4 pb-1 flex-shrink-0">
             <div className="flex items-center gap-1.5">
@@ -344,8 +767,12 @@ export default function ChatPage() {
             )}
           </div>
 
-          {/* Title */}
-          <div className="flex-shrink-0 px-6 pt-6 md:pt-8 pb-2">
+          {/* Title.
+
+              Hidden on phones: the sidebar and the progress row already say
+              where the student is, and this block costs about 90px of a screen
+              where the transcript was being squeezed to nothing. */}
+          <div className="hidden md:block flex-shrink-0 px-6 pt-6 md:pt-8 pb-2">
             <h1 className="font-clash text-xl md:text-2xl font-bold text-studojo-ink">
               Quick Profile Setup
             </h1>
@@ -355,12 +782,14 @@ export default function ChatPage() {
           </div>
 
           {/* Chat container */}
-          <div className="flex-1 overflow-hidden px-4 md:px-6 pb-4">
+          <div className="flex-1 min-h-0 px-4 md:px-6 pb-4">
             <ChatInterface
               messages={chatHistory}
               loading={loading}
               streamingText={streamingText}
               quizProgress={quizProgress}
+              questionsAsked={questionsAsked}
+              questionsTotal={currentResponse?.questions_total}
             >
               {inputArea}
             </ChatInterface>

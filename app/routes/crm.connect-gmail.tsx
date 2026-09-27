@@ -3,7 +3,7 @@
 // Why this exists rather than reusing /outreach/connect/gmail:
 //
 // That page belongs to the outreach tool's funnel. On success it navigates to
-// /outreach/connect/debrief or /outreach/connect/linkedin — the next step of
+// /outreach/campaign/setup or /outreach/connect/linkedin — the next step of
 // CAMPAIGN SETUP. A student who came from a LinkedIn job has one email waiting
 // for review; dropping them into campaign setup abandons the thing they were
 // doing. Its destination is also chosen from `planType` in a client-side
