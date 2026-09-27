@@ -28,10 +28,11 @@ export default [
   route("connect-linkedin", "routes/connect-linkedin.tsx"),
 
   // ── /insider serves the same page as /campus-ambassador ────────────────
-  // The page is titled "Become a Studojo Insider", so /insider is the shorter
-  // URL to hand out. /campus-ambassador stays live because it is already
-  // published. Same module, so there is one page to maintain, and it carries
-  // its own canonical tag so search engines do not treat the two as duplicates.
+  // Kept only so links already posted under the short URL keep working; the
+  // page itself says Campus Ambassador throughout. /campus-ambassador is the
+  // URL to hand out. Same module, so there is one page to maintain, and it
+  // carries a canonical tag pointing at /campus-ambassador, so search engines
+  // do not treat the two as duplicates.
   route("insider", "routes/campus-ambassador.tsx", { id: "insider" }),
 
   // ── Reports (explicit to avoid nesting under reports.tsx layout) ───────
