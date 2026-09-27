@@ -44,7 +44,124 @@ async function ensureTable() {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_campus_ambassador_email_unique
     ON campus_ambassador_applications (lower(email))
   `);
+
+  // Referral code. Ambassadors hand this to people they bring to the webinar,
+  // who type it into the registration form for a discount. Nullable: a code is
+  // minted only once an application is accepted, so pending rows carry NULL.
+  await db.execute(sql`
+    ALTER TABLE campus_ambassador_applications
+      ADD COLUMN IF NOT EXISTS ref_code TEXT
+  `);
+  // Codes are compared case-insensitively (people type them by hand), so the
+  // uniqueness guarantee has to be case-insensitive too. A partial index keeps
+  // the many NULL rows out of it.
+  await db.execute(sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_campus_ambassador_ref_code_unique
+    ON campus_ambassador_applications (upper(ref_code))
+    WHERE ref_code IS NOT NULL
+  `);
   tableCreated = true;
+}
+
+/** An ambassador whose code was recognised, as shown back to a registrant. */
+export interface AmbassadorRef {
+  id: number;
+  refCode: string;
+  fullName: string;
+  college: string;
+}
+
+/**
+ * Resolve a referral code typed into a form to the ambassador who owns it.
+ * Case- and whitespace-insensitive. Returns null for an unknown code, which
+ * callers surface as "we don't recognise that code" rather than an error.
+ *
+ * Only a `selected` ambassador's code works: a code minted for someone who was
+ * later dropped from the programme stops granting discounts.
+ */
+export async function lookupAmbassadorByRefCode(
+  code: string
+): Promise<AmbassadorRef | null> {
+  await ensureTable();
+  const normalised = code.trim().toUpperCase();
+  if (!normalised) return null;
+  const result = await db.execute(sql`
+    SELECT id, ref_code, full_name, college
+    FROM campus_ambassador_applications
+    WHERE upper(ref_code) = ${normalised} AND status = 'selected'
+    LIMIT 1
+  `);
+  const row = result.rows[0] as
+    | { id: number; ref_code: string; full_name: string; college: string }
+    | undefined;
+  if (!row) return null;
+  return {
+    id: row.id,
+    refCode: row.ref_code,
+    fullName: row.full_name,
+    college: row.college,
+  };
+}
+
+/**
+ * Mint a referral code for an ambassador, idempotently: an ambassador who
+ * already has one keeps it, so codes already printed on a poster stay valid.
+ *
+ * The code is the first name (letters only, capped) plus a two-digit suffix, so
+ * it is short enough to type from memory and recognisably theirs. On the rare
+ * collision we retry with a different suffix rather than failing the caller.
+ */
+export async function ensureRefCode(applicationId: number): Promise<string | null> {
+  await ensureTable();
+  const existing = await db.execute(sql`
+    SELECT ref_code, full_name FROM campus_ambassador_applications
+    WHERE id = ${applicationId} LIMIT 1
+  `);
+  const row = existing.rows[0] as
+    | { ref_code: string | null; full_name: string }
+    | undefined;
+  if (!row) return null;
+  if (row.ref_code) return row.ref_code;
+
+  // Letters only — a name like "Anu R." must not produce a code with a dot in
+  // it, since the code travels through URLs and gets read aloud.
+  const firstName = (row.full_name || "")
+    .trim()
+    .split(/\s+/)[0]
+    .replace(/[^A-Za-z]/g, "")
+    .toUpperCase()
+    .slice(0, 10);
+  const stem = firstName || "STUDOJO";
+
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const suffix = String(Math.floor(Math.random() * 90) + 10); // 10–99
+    const candidate = `${stem}${suffix}`;
+    // WHERE ref_code IS NULL means a concurrent call that already set a code
+    // wins and we return theirs, instead of overwriting a published code.
+    const res = await db.execute(sql`
+      UPDATE campus_ambassador_applications
+      SET ref_code = ${candidate}
+      WHERE id = ${applicationId}
+        AND ref_code IS NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM campus_ambassador_applications
+          WHERE upper(ref_code) = ${candidate}
+        )
+      RETURNING ref_code
+    `);
+    if (res.rows.length > 0) {
+      return (res.rows[0] as { ref_code: string }).ref_code;
+    }
+    // Either the code was taken or someone else assigned one first. Re-read:
+    // if they now have a code, that is the answer.
+    const recheck = await db.execute(sql`
+      SELECT ref_code FROM campus_ambassador_applications
+      WHERE id = ${applicationId} LIMIT 1
+    `);
+    const got = (recheck.rows[0] as { ref_code: string | null } | undefined)?.ref_code;
+    if (got) return got;
+  }
+  return null;
 }
 
 export async function saveCampusAmbassadorApplication(params: {
@@ -101,7 +218,7 @@ export async function getCampusAmbassadorApplications(limit = 200, offset = 0) {
   const result = await db.execute(sql`
     SELECT id, full_name, whatsapp, email, college, course,
            year_of_study, graduation_year, social_handle, why_you,
-           referral_source, status, created_at,
+           referral_source, status, ref_code, created_at,
            source_path, utm_source, utm_medium, utm_campaign, referrer
     FROM campus_ambassador_applications
     ORDER BY created_at DESC

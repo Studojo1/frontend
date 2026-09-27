@@ -29,7 +29,6 @@ export default function WebinarQuickRegister({ loaderData }: Route.ComponentProp
       <div className="max-w-md w-full bg-white border-2 border-neutral-900 rounded-[32px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-10 text-center">
         {ok ? (
           <>
-            <div className="text-4xl mb-3">🎉</div>
             <h1 className="text-2xl font-bold text-neutral-900 font-['Clash_Display']">
               You're registered{loaderData.name ? `, ${loaderData.name}` : ""}!
             </h1>
@@ -39,7 +38,6 @@ export default function WebinarQuickRegister({ loaderData }: Route.ComponentProp
           </>
         ) : (
           <>
-            <div className="text-4xl mb-3">🔗</div>
             <h1 className="text-2xl font-bold text-neutral-900 font-['Clash_Display']">
               This link looks invalid
             </h1>
