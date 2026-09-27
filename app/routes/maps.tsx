@@ -498,7 +498,7 @@ export default function MapsPage() {
                   placeholder="Search companies, roles…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/25 pl-9 pr-4 py-2 outline-none focus:border-violet-500 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg text-base text-white placeholder:text-white/25 pl-9 pr-4 py-2 outline-none focus:border-violet-500 transition-colors"
                 />
                 {search && (
                   <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">

@@ -546,7 +546,7 @@ function LinkedInEnricher() {
   return (
     <Section title="TOOL 4 — LinkedIn Enrichment via Proxycurl (Paid ~$0.05/call)">
       <p style={{ fontFamily: "monospace", fontSize: 12, color: "#6b7280", marginTop: 0 }}>
-        Fetches data Apollo doesn't provide: post activity, follower count, skills. Requires PROXYCURL_API_KEY in backend .env.
+        Fetches data standard enrichment doesn't provide: post activity, follower count, skills. Requires the provider key to be set in the backend environment.
       </p>
       <div style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: 12 }}>
         <Input

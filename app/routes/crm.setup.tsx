@@ -23,7 +23,8 @@
 // their title — the extension already read off the page. The main quiz's extra
 // questions produce lead SCORING signals, which this path does not use: the
 // student already chose the lead by opening the job.
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { describeError } from "~/lib/error-detail";
 import { redirect, useNavigate } from "react-router";
 import { Footer, Header } from "~/components";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
@@ -34,9 +35,60 @@ export function meta() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await getSessionFromRequest(request);
+  // GUARDED. getSessionFromRequest calls better-auth's getSession with no
+  // try/catch of its own, so a database blip or a malformed cookie throws
+  // straight out of this loader — and React Router renders "Oops! An
+  // unexpected error occurred", which tells a student nothing and loses the
+  // page. The other CRM routes already guard their reads for exactly this
+  // reason; this one did not.
+  //
+  // A failure here is treated as "not signed in", which is both the safe
+  // assumption and the one with a useful next step.
+  let session = null;
+  try {
+    session = await getSessionFromRequest(request);
+  } catch (e) {
+    console.error("[crm.setup] session lookup failed:", e);
+  }
   if (!session) throw redirect(`/auth?redirect=${encodeURIComponent("/crm/setup")}`);
   return null;
+}
+
+// A last-resort boundary. If anything else in this route throws, a student
+// should see what to do next rather than a question mark — they arrived here
+// from a job page and the whole point is momentum.
+export function ErrorBoundary() {
+  return (
+    <div className="flex min-h-screen flex-col bg-white">
+      <Header />
+      <main className="flex-1">
+        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
+          <h1 className="mb-3 font-['Clash_Display'] text-3xl font-bold text-studojo-ink">
+            We couldn&rsquo;t load this page
+          </h1>
+          <p className="mb-6 font-['Satoshi'] text-studojo-muted">
+            Your drafts are safe. You can write and send emails without
+            finishing setup &mdash; this step only makes them more specific.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href="/crm"
+              className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple px-6 py-3 font-['Satoshi'] font-medium text-white shadow-brutal"
+            >
+              Go to my CRM
+            </a>
+            <a
+              href="/crm/setup"
+              className="rounded-2xl border-2 border-studojo-ink bg-white px-6 py-3 font-['Satoshi'] font-medium shadow-brutal"
+            >
+              Try again
+            </a>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
 }
 
 /** Kept identical to the main quiz's first question so the two never diverge. */
@@ -60,12 +112,28 @@ export default function CrmSetup() {
   const [step, setStep] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  // What the resume told us. Shown back for confirmation, never re-asked.
+  const [parsed, setParsed] = useState<{
+    name: string | null;
+    education: string | null;
+    skills: string[];
+    yearsExperience: number | null;
+  } | null>(null);
   const [answers, setAnswers] = useState({
     careerStage: "",
+    // Prefilled from the resume; the student only touches it if we got it wrong.
     university: "",
     topCredential: "",
     tone: "warm",
   });
+
+  // Prefill from the parse rather than asking. The student corrects it only
+  // if we got it wrong, which is a much smaller ask than typing it out.
+  useEffect(() => {
+    if (parsed?.education && !answers.university) {
+      setAnswers((a) => ({ ...a, university: parsed.education as string }));
+    }
+  }, [parsed]);
 
   // The resume upload is deliberately UNCHANGED from the main flow: same
   // endpoint, same accepted types. It is also the only way to mint a
@@ -76,13 +144,29 @@ export default function CrmSetup() {
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch("/api/v1/outreach/candidate/upload", {
+      // Posted to OUR server, which holds the token and forwards the file.
+      //
+      // Calling the service directly from here meant importing getToken from
+      // ~/lib/control-plane, which dynamically imports ~/lib/auth — better-auth,
+      // drizzle and the database client, none of which belong in a browser
+      // bundle. That is what took this page down with "Oops!" on load, before
+      // anyone had chosen a file.
+      const res = await fetch("/api/crm/upload-resume", {
         method: "POST",
         body: form,
-        credentials: "include",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.detail || "Upload failed");
+      if (!res.ok) throw new Error(describeError(data, "Upload failed"));
+      // KEEP the parse. The service already extracted name, education, skills
+      // and years of experience — asking the student to retype any of it is
+      // asking for something we just read off the page they uploaded.
+      const p = data?.preview ?? {};
+      setParsed({
+        name: p.name ?? null,
+        education: p.education ?? null,
+        skills: Array.isArray(p.skills) ? p.skills.slice(0, 8) : [],
+        yearsExperience: p.years_experience ?? null,
+      });
       setStep(1);
     } catch (e: any) {
       setUploadError(e?.message ?? "Could not read that file.");
@@ -180,7 +264,14 @@ export default function CrmSetup() {
           ) : null}
 
           {step === 2 ? (
-            <Question title="Where do you study or work?">
+            <Question
+              title={parsed?.education ? "Is this right?" : "Where do you study or work?"}
+              hint={
+                parsed?.education
+                  ? "We read this off your resume. Fix it only if it's wrong."
+                  : "We couldn't find it on your resume, so we have to ask."
+              }
+            >
               <input
                 autoFocus
                 value={answers.university}
@@ -195,7 +286,11 @@ export default function CrmSetup() {
           {step === 3 ? (
             <Question
               title="What's the single best thing you've done?"
-              hint="One specific, real thing. “Built a fintech newsletter with 2,000 readers” beats “strong communication skills”."
+              hint={
+                parsed?.skills?.length
+                  ? `We saw ${parsed.skills.slice(0, 3).join(", ")} on your resume. Give us the one achievement you'd lead with — you can swap it per application later.`
+                  : "One specific, real thing. “Built a fintech newsletter with 2,000 readers” beats “strong communication skills”."
+              }
             >
               <textarea
                 autoFocus

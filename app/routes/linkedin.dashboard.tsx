@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiLinkedin, FiSend, FiCheckCircle, FiMessageSquare, FiPause, FiPlay, FiAlertCircle, FiInbox } from "react-icons/fi";
@@ -70,7 +71,7 @@ export default function LinkedInDashboard() {
       const c = await outreachFetch<CampaignSummary>(`/linkedin/automation/campaigns/${id}`);
       setCampaign(c);
     } catch (e: any) {
-      setError(e?.body?.detail || "Couldn't load campaign");
+      setError(describeError(e, "Couldn't load campaign"));
     } finally {
       setLoading(false);
     }

@@ -416,7 +416,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
                   <FiUserPlus size={16} className="text-neutral-400 shrink-0" />
                   <input type="email" value={invite} onChange={(e) => setInvite(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && doInvite()} placeholder="teammate@company.com"
-                    className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" />
+                    className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-violet-500" />
                   <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as any)}
                     className="border-2 border-neutral-900 rounded-xl px-2 py-2 text-sm">
                     <option value="member">Member</option><option value="admin">Manager</option>

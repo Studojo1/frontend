@@ -65,6 +65,7 @@ export async function loader() {
     { loc: "/reports/internship-vs-externship-coop-practicum-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/cybersecurity-internship-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/google-internship-report-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/apple-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
     { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },
@@ -147,6 +148,7 @@ export async function loader() {
     "/reports/internship-vs-externship-coop-practicum-2026": "2026-09-27",
     "/reports/cybersecurity-internship-report-2026": "2026-09-27",
     "/reports/google-internship-report-2026": "2026-09-27",
+    "/reports/apple-internship-report-2026-27": "2026-09-26",
   };
 
   const urls = [

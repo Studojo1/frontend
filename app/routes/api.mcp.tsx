@@ -162,7 +162,7 @@ const TOOLS = [
       "workspaces set up for candidate sourcing; other workspaces get a clear refusal. A credit is " +
       "charged only for a contact actually found, never for a miss. Three tiers are available, each " +
       "with its own separate credit balance: tier3 (Studojo DB only, cheapest), tier2 (the enrichment " +
-      "pipeline, the default) and tier1 (full enrichment including Apollo, most expensive).",
+      "pipeline, the default) and tier1 (full enrichment, most expensive).",
     inputSchema: {
       type: "object",
       properties: {

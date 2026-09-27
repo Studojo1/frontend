@@ -1,3 +1,4 @@
+import { describeError } from "~/lib/error-detail";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { FiBriefcase, FiMapPin, FiTrendingUp, FiCheckCircle, FiArrowRight, FiAlertCircle, FiLinkedin } from "react-icons/fi";
@@ -71,7 +72,7 @@ export default function LinkedInProfile() {
 
       navigate("/linkedin/leads/discovery?fresh=1");
     } catch (e: any) {
-      setError(e?.body?.detail || e.message || "Couldn't continue, try again.");
+      setError(describeError(e, "Couldn't continue, try again."));
     } finally {
       setSaving(false);
     }
@@ -102,7 +103,7 @@ export default function LinkedInProfile() {
                 value={targetRole}
                 onChange={(e) => setTargetRole(e.target.value)}
                 placeholder="Product Manager, Growth Marketing Intern"
-                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-base font-satoshi focus:outline-none focus:border-studojo-purple"
               />
             </div>
           </div>
@@ -119,7 +120,7 @@ export default function LinkedInProfile() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Bangalore, India · or remote"
-                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-sm font-satoshi focus:outline-none focus:border-studojo-purple"
+                className="w-full border-2 border-studojo-ink/20 rounded-xl pl-10 pr-4 py-3 text-base font-satoshi focus:outline-none focus:border-studojo-purple"
               />
             </div>
           </div>

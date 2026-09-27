@@ -182,7 +182,7 @@ export default function PartnersCheckout() {
                   value={couponCode}
                   onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponState({}); }}
                   placeholder="Enter code"
-                  className="flex-1 rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-sm font-mono uppercase outline-none focus:ring-2 focus:ring-violet-400"
+                  className="flex-1 rounded-xl border-2 border-neutral-900 px-4 py-2.5 text-base font-mono uppercase outline-none focus:ring-2 focus:ring-violet-400"
                 />
                 <button
                   onClick={validateCoupon}

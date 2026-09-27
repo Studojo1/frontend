@@ -143,7 +143,7 @@ export function ChatPanel({
             }}
             rows={2}
             placeholder="Type your answer..."
-            className="flex-1 px-3 py-2 bg-white border-2 border-neutral-900 rounded-xl text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none resize-none"
+            className="flex-1 px-3 py-2 bg-white border-2 border-neutral-900 rounded-xl text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none resize-none"
           />
           <button
             onClick={toggleMic}

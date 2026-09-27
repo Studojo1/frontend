@@ -43,9 +43,14 @@ export async function outreachServerFetch<T = unknown>(
 ): Promise<T> {
   const { method = "GET", body, userId, timeout = 10_000 } = opts;
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  // FormData must NOT be JSON-stringified, and must NOT carry a
+  // Content-Type header — fetch sets its own multipart boundary, and
+  // overriding it makes the upstream unable to parse the body at all.
+  const isForm = typeof FormData !== "undefined" && body instanceof FormData;
+
+  const headers: Record<string, string> = isForm
+    ? {}
+    : { "Content-Type": "application/json" };
   // MUST be exactly "X-User-Id". job-outreach-svc's get_current_user
   // (api/dependencies.py:34) reads that header and nothing else; anything
   // differently named is ignored, it then finds no session cookie, and every
@@ -57,7 +62,7 @@ export async function outreachServerFetch<T = unknown>(
   const res = await fetch(`${OUTREACH_URL}/api/v1${path}`, {
     method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : isForm ? (body as FormData) : JSON.stringify(body),
     signal: AbortSignal.timeout(timeout),
   });
 

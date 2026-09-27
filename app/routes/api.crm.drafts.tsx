@@ -70,9 +70,27 @@ export async function action({ request }: Route.ActionArgs) {
 
   // A sent email cannot be unsent, so it cannot be edited either. Saying so is
   // better than accepting the edit and silently doing nothing with it.
-  if (draft.status !== "draft") {
+  //
+  // "sending" is the exception. Every failure path sets the row back to
+  // "draft", but a process that dies mid-send cannot run its own catch — and
+  // the row would then sit in "sending" forever, telling the student their
+  // email "has already been sent" when it never left. That is both false and
+  // unrecoverable, so a stale one is reclaimed.
+  const STALE_SEND_MS = 5 * 60 * 1000;
+  const updatedAt = draft.updatedAt ? new Date(draft.updatedAt).getTime() : 0;
+  const stuckSending =
+    draft.status === "sending" && Date.now() - updatedAt > STALE_SEND_MS;
+
+  if (draft.status !== "draft" && !stuckSending) {
     return json(
-      { error: "This email has already been sent.", status: draft.status },
+      {
+        error: "already_sent",
+        message:
+          draft.status === "sending"
+            ? "This email is being sent right now. Give it a moment."
+            : "This email has already been sent.",
+        status: draft.status,
+      },
       409,
     );
   }
@@ -125,76 +143,10 @@ export async function action({ request }: Route.ActionArgs) {
   const text = (body.body ?? draft.body ?? "").trim();
   if (!subject || !text) return json({ error: "Add a subject and a message first." }, 400);
 
-  // Without a named person there is nobody to look up and nobody to send to.
-  // Caught HERE rather than at the service, which rejects an empty
-  // contact_name as a 422 validation error — technically correct, useless to
-  // read, and the reason this surfaced as "[object Object]".
-  //
-  // The draft is still worth keeping: the extension could not find a contact
-  // on that page, but the same job posted elsewhere often names one.
-  if (!draft.contactName?.trim()) {
-    return json(
-      {
-        error: "no_contact",
-        message:
-          "This job didn't show us a person to write to, so there's no one to send it to yet. Your draft is saved.",
-      },
-      409,
-    );
-  }
-
-  // Sending needs two things the drafting step deliberately did not: a
-  // candidate profile and a connected mailbox. Both are resolved server-side
-  // so the client cannot claim someone else's.
-  let candidateId: number | null = null;
-  let emailAccountId: number | null = null;
-  try {
-    const order = await outreachServerFetch<{
-      order: { candidate_id?: number; email_account_id?: number } | null;
-    }>("/orders/active", { userId: session.user.id, timeout: 8000 });
-    candidateId = order?.order?.candidate_id ?? null;
-    emailAccountId = order?.order?.email_account_id ?? null;
-  } catch {
-    /* fall through to the specific errors below */
-  }
-
-  if (!emailAccountId) {
-    try {
-      const acct = await outreachServerFetch<{ email_account_id?: number; token_valid?: boolean }>("/gmail/oauth/account", { userId: session.user.id, timeout: 6000 });
-      if (acct?.email_account_id && acct.token_valid !== false) {
-        emailAccountId = acct.email_account_id;
-      }
-    } catch {
-      /* handled below */
-    }
-  }
-
-  // Be specific about what is missing. "Failed to send" tells a student
-  // nothing they can act on.
-  if (!candidateId) {
-    return json(
-      {
-        error: "needs_profile",
-        message: "Add your resume so we know what to say about you.",
-        actionUrl: "/crm/setup",
-      },
-      409,
-    );
-  }
-  if (!emailAccountId) {
-    return json(
-      {
-        error: "needs_gmail",
-        message: "Connect Gmail so this sends from your own address.",
-        // Our entry point: returns them to THIS draft rather than continuing
-        // into the outreach funnel's campaign setup.
-        actionUrl: `/crm/connect-gmail?back=${encodeURIComponent(
-          draft.applicationId ? `/crm/${draft.applicationId}` : "/crm",
-        )}`,
-      },
-      409,
-    );
-  }
+  // No check for a missing contact here any more. It used to refuse, which
+  // was correct when the service required a name and wrong now that it can
+  // find one. Refusing was treating a job-board quirk as the student's
+  // dead end.
 
   await db
     .update(extensionDrafts)
@@ -218,13 +170,22 @@ export async function action({ request }: Route.ActionArgs) {
       sent: boolean;
       to_email: string;
       credits_charged: number;
+      contact_name?: string | null;
+      contact_title?: string | null;
+      found_by_search?: boolean;
     }>("/extension/send-one", {
       userId: session.user.id,
       method: "POST",
       body: {
-        contact_name: draft.contactName ?? "",
+        // null, not "". The service now treats a missing name as "find me
+        // someone at this company who hires for this role" rather than
+        // rejecting the request — a job page that names nobody is a property
+        // of the job board, not a reason the student cannot reach the team.
+        contact_name: draft.contactName || null,
         company: draft.company ?? "",
         contact_title: draft.contactTitle,
+        role: draft.role,
+        location: draft.location,
         linkedin_url: draft.jobUrl,
         contact_email: draft.contactEmail,
         subject,
@@ -238,12 +199,23 @@ export async function action({ request }: Route.ActionArgs) {
       .set({
         status: "sent",
         contactEmail: sent.to_email ?? draft.contactEmail,
+        // The service may have found this person for us. Store who, so the CRM
+        // shows the real recipient instead of the blank the page gave us.
+        contactName: sent.contact_name ?? draft.contactName,
+        contactTitle: sent.contact_title ?? draft.contactTitle,
         sentAt: new Date(),
         failureReason: null,
       })
       .where(eq(extensionDrafts.id, draft.id));
 
-    return json({ ok: true, toEmail: sent.to_email, creditsCharged: sent.credits_charged });
+    return json({
+      ok: true,
+      toEmail: sent.to_email,
+      creditsCharged: sent.credits_charged,
+      contactName: sent.contact_name ?? null,
+      contactTitle: sent.contact_title ?? null,
+      foundBySearch: Boolean(sent.found_by_search),
+    });
   } catch (e: any) {
     // Put it back to draft: a failed send must leave something to retry.
     // FastAPI returns `detail` as a STRING for our own HTTPExceptions but as
@@ -277,6 +249,7 @@ export async function action({ request }: Route.ActionArgs) {
       },
       needs_credits: { message: detail, actionUrl: "/outreach/enrichment" },
       no_contact_email: { message: detail },
+      no_contact_found: { message: detail },
       // The service-side kill switch. Not an error the student caused, so it
       // says so plainly rather than blaming their draft.
       send_paused: { message: "Sending is paused right now. Your draft is saved — try again shortly." },
