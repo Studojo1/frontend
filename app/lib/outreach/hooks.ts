@@ -15,6 +15,11 @@ export function useOutreachAuth(requireAuth = true) {
 
   const {
     orderId,
+    candidateId,
+    hasHydrated,
+    ownerUserId,
+    setOwnerUserId,
+    resetFunnel,
     setOrderId,
     setCandidateId,
     setCampaignId,
@@ -24,28 +29,46 @@ export function useOutreachAuth(requireAuth = true) {
 
   const [recovered, setRecovered] = useState(false);
 
+  // Persisted funnel state that belongs to another account is discarded before
+  // anything reads it. Older blobs have no owner yet, so they are adopted.
+  const userId = session?.user?.id ?? null;
+  useEffect(() => {
+    if (!hasHydrated || !userId) return;
+    if (ownerUserId && ownerUserId !== userId) resetFunnel();
+    if (ownerUserId !== userId) setOwnerUserId(userId);
+  }, [hasHydrated, userId, ownerUserId, resetFunnel, setOwnerUserId]);
+
   // Auto-recover active order when authenticated
   useEffect(() => {
-    if (!session?.user || recovered) return;
+    if (!session?.user || recovered || !hasHydrated) return;
+    if (ownerUserId !== session.user.id) return; // wait for the owner check above
 
-    if (!orderId) {
-      outreachFetch<{ order: { id: number; candidate_id?: number; campaign_id?: number; email_account_id?: number; linkedin_campaign_id?: number } | null }>("/orders/active")
-        .then((data) => {
-          const order = data?.order;
-          if (order) {
-            setOrderId(order.id);
-            if (order.candidate_id) setCandidateId(order.candidate_id);
-            if (order.campaign_id) setCampaignId(order.campaign_id);
-            if (order.email_account_id) setEmailAccountId(order.email_account_id);
-            if (order.linkedin_campaign_id) setLinkedInCampaignId(order.linkedin_campaign_id);
-          }
-        })
-        .catch(() => {
-          // No active order — fine
-        });
+    if (orderId) {
+      setRecovered(true);
+      return;
     }
-    setRecovered(true);
-  }, [session?.user, recovered, orderId, setOrderId, setCandidateId, setCampaignId, setEmailAccountId, setLinkedInCampaignId]);
+    let cancelled = false;
+    outreachFetch<{ order: { id: number; candidate_id?: number; campaign_id?: number; email_account_id?: number; linkedin_campaign_id?: number } | null }>("/orders/active")
+      .then((data) => {
+        const order = data?.order;
+        if (order && !cancelled) {
+          setOrderId(order.id);
+          // Only fill a gap. Overwriting a candidate the user is already
+          // looking at swapped the results grid to an old order's leads.
+          if (order.candidate_id && !candidateId) setCandidateId(order.candidate_id);
+          if (order.campaign_id) setCampaignId(order.campaign_id);
+          if (order.email_account_id) setEmailAccountId(order.email_account_id);
+          if (order.linkedin_campaign_id) setLinkedInCampaignId(order.linkedin_campaign_id);
+        }
+      })
+      .catch(() => {
+        // No active order — fine
+      })
+      // Marked done only once the answer is in, so pages can wait for a
+      // recovered candidateId instead of bouncing the user to upload.
+      .finally(() => { if (!cancelled) setRecovered(true); });
+    return () => { cancelled = true; };
+  }, [session?.user, recovered, hasHydrated, ownerUserId, orderId, candidateId, setOrderId, setCandidateId, setCampaignId, setEmailAccountId, setLinkedInCampaignId]);
 
   // Redirect if not authenticated after loading completes
   useEffect(() => {
@@ -57,6 +80,9 @@ export function useOutreachAuth(requireAuth = true) {
   return {
     user: session?.user ?? null,
     loading: isPending,
+    // True until persisted state is read and any active order has been
+    // recovered. Decide "this user has no candidate" only after this is false.
+    recovering: !hasHydrated || (!!session?.user && !recovered),
   };
 }
 
@@ -89,14 +115,18 @@ export function useOrder() {
     leads_collected?: number;
     log_entry?: string;
   }) => {
-    if (!orderId) return;
+    if (!orderId) return false;
     try {
       await outreachFetch(`/orders/${orderId}/update`, {
         method: "POST",
         body: JSON.stringify(updates),
       });
-    } catch {
-      // silently fail
+      return true;
+    } catch (err) {
+      // Never block the funnel on this, but do not hide it either: a rejected
+      // transition used to vanish here and leave the order frozen.
+      console.warn("[outreach] order update rejected", { orderId, updates, err });
+      return false;
     }
   }, [orderId]);
 

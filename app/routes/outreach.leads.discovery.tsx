@@ -245,7 +245,7 @@ function ReviewCard({ v }: { v: Card }) {
 
 export default function DiscoveryPage() {
   const navigate = useNavigate();
-  const { loading: authLoading } = useOutreachAuth();
+  const { loading: authLoading, recovering } = useOutreachAuth();
   const { candidateId, profileData } = useOutreachStore();
 
   const [error, setError] = useState("");
@@ -282,6 +282,16 @@ export default function DiscoveryPage() {
 
   useEffect(() => { allDoneRef.current = allDone; }, [allDone]);
 
+  // No candidate once auth and order recovery have settled: back to upload.
+  // This used to be a navigate() called during render, which re-rendered in a
+  // loop ("Maximum update depth exceeded", React #185) on every logged-out or
+  // candidate-less visit.
+  useEffect(() => {
+    if (!authLoading && !recovering && !candidateId) {
+      navigate("/outreach/onboarding/upload", { replace: true });
+    }
+  }, [authLoading, recovering, candidateId, navigate]);
+
   // ── Discovery + scoring orchestration (unchanged behaviour) ──
   useEffect(() => {
     if (authLoading || !candidateId) return;
@@ -290,9 +300,18 @@ export default function DiscoveryPage() {
     const startedAt = Date.now();
     capturePostHog("discovery_started", { candidate_id: candidateId });
 
-    const finish = (leadsFound?: number) => {
+    // Only a run that actually produced ready results counts as completed. A
+    // timeout still moves the user on, but must not inflate discovery_completed.
+    const finish = (outcome: "ready" | "timeout", data?: { total?: number; with_bullets?: number }) => {
       if (cancelled) return;
-      capturePostHog("discovery_completed", { candidate_id: candidateId, leads_found: leadsFound ?? null, seconds: Math.round((Date.now() - startedAt) / 1000) });
+      if (outcome === "ready") {
+        capturePostHog("discovery_completed", {
+          candidate_id: candidateId,
+          leads_found: data?.total ?? null,
+          justified_count: data?.with_bullets ?? null,
+          seconds: Math.round((Date.now() - startedAt) / 1000),
+        });
+      }
       setAllDone(true);
       setTimeout(() => navigate("/outreach/leads/results"), 900);
     };
@@ -304,9 +323,12 @@ export default function DiscoveryPage() {
     const resumeIfAlreadyDone = async (): Promise<boolean> => {
       try {
         const data = await outreachFetch<any>(`/discovery/scoring-ready/${candidateId}`, { method: "GET" });
-        if (data?.ready && !cancelled) {
+        // A previous run that found nobody is not something to resume: the
+        // results page sends "Run the search again" here, and resuming it
+        // would bounce the user straight back to the empty page.
+        if (data?.ready && !data?.zero_leads && !cancelled) {
           capturePostHog("discovery_resumed", { candidate_id: candidateId });
-          finish(data?.with_bullets ?? data?.count ?? undefined);
+          finish("ready", data);
           return true;
         }
       } catch {
@@ -319,27 +341,41 @@ export default function DiscoveryPage() {
     resumeIfAlreadyDone().then((resumed) => {
       if (resumed || cancelled) return;
 
-      outreachFetch("/discovery/search", {
+      outreachFetch<{ leads_collected?: number }>("/discovery/search", {
         method: "POST",
         body: JSON.stringify({ candidate_id: candidateId }),
         timeout: 300_000,
         maxRetries: 1,
       })
-      .then(() => {
+      .then((res) => {
+        if (cancelled) return;
+        // Nothing was found, so nothing will ever be scored. Waiting on the
+        // scoring poll here held the user at 96% for the full six minutes.
+        if (res?.leads_collected === 0) {
+          capturePostHog("discovery_completed", {
+            candidate_id: candidateId,
+            leads_found: 0,
+            justified_count: 0,
+            seconds: Math.round((Date.now() - startedAt) / 1000),
+          });
+          setAllDone(true);
+          setTimeout(() => navigate("/outreach/leads/results"), 900);
+          return;
+        }
         const SCORING_TIMEOUT_MS = 6 * 60 * 1000;
         const started = Date.now();
         pollRef.current = setInterval(async () => {
           if (Date.now() - started >= SCORING_TIMEOUT_MS) {
             clearInterval(pollRef.current);
             capturePostHog("discovery_failed", { candidate_id: candidateId, reason: "scoring_timeout" });
-            finish();
+            finish("timeout");
             return;
           }
           try {
             const data = await outreachFetch<any>(`/discovery/scoring-ready/${candidateId}`, { method: "GET" });
             if (data?.ready) {
               clearInterval(pollRef.current);
-              finish(data?.with_bullets ?? data?.count ?? undefined);
+              finish("ready", data);
             }
           } catch {
             // non-fatal — keep polling
@@ -417,10 +453,7 @@ export default function DiscoveryPage() {
     };
   }, [candidateId, authLoading, TARGET, tick]);
 
-  if (!candidateId) {
-    navigate("/outreach/onboarding/upload");
-    return null;
-  }
+  if (!candidateId) return null;
 
   const headline = HEADLINES[headIdx];
   const rowA = WALL.slice(0, Math.ceil(WALL.length / 2));

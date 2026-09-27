@@ -15,6 +15,7 @@ import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
 import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
 import { capturePostHog, identifyPostHogUser, initPostHog, registerPostHogProps } from "./lib/posthog";
+import { clearTokenCache } from "./lib/control-plane";
 import { initMetaPixel, trackMetaPageView } from "./lib/meta-pixel";
 import { track } from "./lib/analytics";
 import { captureAttribution, flushAttribution } from "./lib/attribution";
@@ -83,6 +84,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
         />
       </head>
       <body>
+        {/* Skip link for keyboard and screen-reader users. It targets #main;
+            pages that have no #main fall back to their first <main> or h1, so
+            the link never points at nothing. */}
+        <a
+          href="#main"
+          onClick={(e) => {
+            const target =
+              document.getElementById("main") ??
+              document.querySelector("main") ??
+              document.querySelector("h1");
+            if (!target) return;
+            e.preventDefault();
+            if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+            (target as HTMLElement).focus();
+            target.scrollIntoView({ block: "start" });
+          }}
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-xl focus:bg-white focus:px-4 focus:py-2 focus:border-2 focus:border-studojo-ink focus:text-studojo-ink"
+        >
+          Skip to main content
+        </a>
         {children}
         <Toaster
           position="top-right"
@@ -146,6 +167,14 @@ function MixpanelInit() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [location.pathname]);
+
+  // A cached bearer token belongs to whoever was signed in when it was minted.
+  // Drop it whenever the signed-in user changes (sign-out, sign-in, account
+  // switch in another tab), not only on the header's sign-out button.
+  const sessionUserId = session?.user?.id ?? null;
+  useEffect(() => {
+    clearTokenCache();
+  }, [sessionUserId]);
 
   // Identify user when session is available
   useEffect(() => {

@@ -5,8 +5,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: studojo-api-outreach-ingress
-  namespace: studojo
+  name: staging-api-outreach-ingress
+  namespace: staging
   annotations:
     nginx.ingress.kubernetes.io/configuration-snippet: |
       proxy_set_header X-User-Id "";
@@ -20,7 +20,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: studojo.com
+  - host: studojo.pro
     http:
       paths:
       - backend:
@@ -32,5 +32,5 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - studojo.com
-    secretName: studojo-tls-secret
+    - studojo.pro
+    secretName: studojo-pro-tls-secret

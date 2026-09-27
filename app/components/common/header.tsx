@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { authUrl } from "~/lib/return-to";
 import { authClient } from "~/lib/auth-client";
+import { clearTokenCache } from "~/lib/control-plane";
+import { useOutreachStore } from "~/lib/outreach/store";
+import { resetPostHog } from "~/lib/posthog";
 import { SmoothLink } from "./smooth-link";
 
 const NAV_LINKS = [
@@ -85,7 +88,14 @@ export function Header() {
   const handleSignOut = () => {
     authClient.signOut({
       fetchOptions: {
-        onSuccess: () => navigate("/"),
+        onSuccess: () => {
+          // Nothing of this account may survive into the next one on this
+          // browser: its outreach funnel, its bearer token, its analytics id.
+          useOutreachStore.getState().resetFunnel();
+          clearTokenCache();
+          resetPostHog();
+          navigate("/");
+        },
       },
     });
   };
