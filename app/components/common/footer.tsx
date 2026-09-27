@@ -17,7 +17,7 @@ const RESOURCE_LINKS = [
 ];
 
 const DOJO_LINKS = [
-  { to: "/outreach/onboarding/upload", label: "Outreach Dojo", desc: "Email hiring managers directly", stat: "138 placed", color: "bg-violet-500", icon: <IoBriefcaseOutline /> },
+  { to: "/outreach/onboarding/upload", label: "Outreach Dojo", desc: "Email hiring managers directly", color: "bg-violet-500", icon: <IoBriefcaseOutline /> },
   { to: "/resume-maker", label: "Resume Maker", desc: "Build your career path", stat: "5k+ resumes", color: "bg-sky-500", icon: <FiBookOpen /> },
   { to: "/dojos/internships", label: "Internship Dojo", desc: "Browse live internships & jobs", stat: "Free", color: "bg-emerald-500", icon: <IoBriefcaseOutline /> },
   { to: "/dojos/ai-risk", label: "AI Risk Dojo", desc: "AI detection & rewriting", stat: "Free", color: "bg-rose-500", icon: <FiTarget /> },
@@ -206,9 +206,11 @@ export function Footer() {
                             <p className="font-['Satoshi'] text-sm font-normal leading-5 text-white/80">
                               {desc}
                             </p>
-                            <p className="font-['Satoshi'] text-xs font-normal leading-4 text-white/60">
-                              {stat}
-                            </p>
+                            {stat && (
+                              <p className="font-['Satoshi'] text-xs font-normal leading-4 text-white/60">
+                                {stat}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <span className="text-white" aria-hidden>→</span>
@@ -231,9 +233,11 @@ export function Footer() {
                             <p className="font-['Satoshi'] text-sm font-normal leading-5 text-white/80">
                               {desc}
                             </p>
-                            <p className="font-['Satoshi'] text-xs font-normal leading-4 text-white/60">
-                              {stat}
-                            </p>
+                            {stat && (
+                              <p className="font-['Satoshi'] text-xs font-normal leading-4 text-white/60">
+                                {stat}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <span className="text-white" aria-hidden>→</span>
