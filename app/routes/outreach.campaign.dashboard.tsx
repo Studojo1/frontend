@@ -667,7 +667,7 @@ export default function DashboardPage() {
           <div className="space-y-8 animate-fade-in">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h1 className="font-clash text-2xl font-bold text-studojo-ink">Campaign Dashboard</h1>
+                <h1 className="font-clash text-2xl font-bold text-studojo-ink">Test Emails</h1>
                 <span className={`mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium border ${
                   isComplete
                     ? "bg-studojo-green-bg text-studojo-green border-studojo-green/30"
@@ -677,12 +677,30 @@ export default function DashboardPage() {
                   {isComplete ? "Test Done" : isFailed ? "Test Failed" : "Sending Test Emails"}
                 </span>
               </div>
-              <button
-                onClick={() => { sessionStorage.removeItem("test_job_id"); sessionStorage.removeItem("test_started_at"); navigate("/outreach/campaign/setup"); }}
-                className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-              >
-                Back to Setup
-              </button>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => { sessionStorage.removeItem("test_job_id"); sessionStorage.removeItem("test_started_at"); navigate("/outreach/campaign/setup"); }}
+                  className="h-9 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-medium border-2 border-studojo-ink transition-all hover:translate-x-[2px] hover:translate-y-[2px]"
+                >
+                  Back to Setup
+                </button>
+                <button
+                  onClick={() => { sessionStorage.removeItem("test_job_id"); sessionStorage.removeItem("test_started_at"); navigate("/outreach/campaign/launching"); }}
+                  className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                >
+                  Launch my campaign
+                </button>
+              </div>
+            </div>
+
+            {/* This screen used to be titled "Campaign Dashboard" with a "Test
+                Done" badge, and a paying user read it as her campaign running.
+                Say plainly that nothing has gone to a hiring manager yet. */}
+            <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg p-5">
+              <p className="font-satoshi text-sm text-studojo-ink">
+                <strong>These are test emails to your own inbox.</strong> Your campaign hasn't started yet,
+                so no hiring managers have been emailed. When the tests look right, launch your campaign.
+              </p>
             </div>
 
             {isFailed && (

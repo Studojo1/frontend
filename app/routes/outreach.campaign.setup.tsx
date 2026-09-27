@@ -8,7 +8,7 @@ import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
-import { useOrder } from "~/lib/outreach/hooks";
+import { useOrder, fetchNextStep } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 
@@ -81,6 +81,27 @@ export default function CampaignSetupPage() {
     if (!candidateId) return;
     updateOrder({ status: "campaign_setup", log_entry: "Entered campaign setup" });
   }, [candidateId]);
+
+  // Fill whatever the local store is missing from the server's view of this
+  // user. Someone arriving from the "launch your campaign" email, on another
+  // device, has an empty store; before this, Launch told them to connect a
+  // Gmail they had already connected.
+  useEffect(() => {
+    if (authLoading) return;
+    let cancelled = false;
+    fetchNextStep().then((step) => {
+      if (cancelled || !step) return;
+      if (step.state === "campaign_active") {
+        navigate("/outreach/campaign/dashboard");
+        return;
+      }
+      if (!candidateId && step.candidate_id) setCandidateId(step.candidate_id);
+      if (!emailAccountId && step.email_account_id) setEmailAccountId(step.email_account_id);
+      if (step.state === "launch_draft" && step.campaign_id) setCampaignId(step.campaign_id);
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading]);
 
   // Active Gmail check: the local store can drift out of sync with the
   // backend (e.g. user connected Gmail in a different tab, the store still

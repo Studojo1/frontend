@@ -304,7 +304,14 @@ export default function EnrichmentPage() {
     try {
       setCredits(await outreachFetch("/payment/credits"));
     } catch {}
-    updateOrder({ status: "campaign_setup", log_entry: `Payment completed for ${selectedTier} credits (JIT enrichment)` });
+    updateOrder({
+      status: "campaign_setup",
+      // Credit-covered clicks land here too; logging each as a payment made one
+      // order read "Payment completed" six times for a single purchase.
+      log_entry: moneyMoved
+        ? `Payment completed for ${selectedTier} credits (JIT enrichment)`
+        : `Continued with existing credits (${selectedTier} tier, no new payment)`,
+    });
     // Debrief BEFORE the Gmail gate. It used to sit after it, and only 151 of
     // 4,791 orders ever reached gmail_connected, so the two answers it collects
     // (best project, concrete outcome) were effectively never gathered:

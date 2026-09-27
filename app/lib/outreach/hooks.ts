@@ -145,3 +145,77 @@ export function useOrder() {
 
   return { orderId, createOrder, updateOrder, loadActiveOrder };
 }
+/**
+ * Where this user should go next, from GET /orders/next-step.
+ *
+ * The backend decides from what the user actually holds (credits, campaigns,
+ * a finished profile, a mailbox), never from order.status, which goes stale
+ * after payment. A paid user with credits and nothing running always gets
+ * Launch, or the one thing blocking it. Paths are relative to /outreach.
+ */
+export type NextStepState =
+  | "campaign_active"
+  | "launch_draft"
+  | "launch_ready"
+  | "connect_gmail"
+  | "needs_profile"
+  | "not_paid";
+
+export interface NextStep {
+  state: NextStepState;
+  path: string | null;
+  available_credits: number;
+  order_id: number | null;
+  candidate_id: number | null;
+  email_account_id: number | null;
+  campaign_id: number | null;
+}
+
+/** States where the user has paid and has not launched. */
+export const PAID_NOT_LAUNCHED: NextStepState[] = [
+  "launch_draft",
+  "launch_ready",
+  "connect_gmail",
+  "needs_profile",
+];
+
+export function isPaidNotLaunched(step: NextStep | null | undefined): step is NextStep {
+  return !!step && PAID_NOT_LAUNCHED.includes(step.state) && !!step.path;
+}
+
+/** Button label for the step a paid-not-launched user is blocked on. */
+export function nextStepLabel(step: NextStep): string {
+  switch (step.state) {
+    case "connect_gmail":
+      return "Connect Gmail to launch";
+    case "needs_profile":
+      return "Finish my profile to launch";
+    default:
+      return "Launch my campaign";
+  }
+}
+
+export function fetchNextStep(): Promise<NextStep | null> {
+  return outreachFetch<NextStep>("/orders/next-step").catch(() => null);
+}
+
+/**
+ * Loads the next step once a session exists. `null` while loading, when
+ * signed out, or if the call fails, so callers fall back to their normal flow.
+ */
+export function useNextStep(): NextStep | null {
+  const { data: session, isPending } = authClient.useSession();
+  const [step, setStep] = useState<NextStep | null>(null);
+  const userId = session?.user?.id ?? null;
+  useEffect(() => {
+    if (isPending || !userId) return;
+    let cancelled = false;
+    fetchNextStep().then((s) => {
+      if (!cancelled) setStep(s);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isPending, userId]);
+  return step;
+}
