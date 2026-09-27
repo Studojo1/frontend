@@ -96,4 +96,7 @@ export default [
   route("reports/cold-email-subject-lines-best-practices-2026", "routes/reports.cold-email-subject-lines-best-practices-2026.tsx"),
   route("reports/how-to-get-a-high-school-internship-2026", "routes/reports.how-to-get-a-high-school-internship-2026.tsx"),
   route("reports/high-school-internships-how-to-get-one-2026", "routes/reports.high-school-internships-how-to-get-one-2026.tsx"),
+  route("reports/internship-vs-externship-coop-practicum-2026", "routes/reports.internship-vs-externship-coop-practicum-2026.tsx"),
+  route("reports/cybersecurity-internship-report-2026", "routes/reports.cybersecurity-internship-report-2026.tsx"),
+  route("reports/google-internship-report-2026", "routes/reports.google-internship-report-2026.tsx"),
 ] satisfies RouteConfig;
