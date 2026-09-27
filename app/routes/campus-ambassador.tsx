@@ -329,7 +329,7 @@ export default function CampusAmbassador() {
                 </label>
                 <textarea
                   className={`${INPUT} min-h-[120px] resize-y`}
-                  placeholder="A couple of lines is plenty — clubs you're part of, events you've run, your reach on campus, or just why you want this."
+                  placeholder="A couple of lines is plenty: clubs you're part of, events you've run, your reach on campus, or just why you want this."
                   maxLength={WHY_MAX}
                   value={form.whyYou}
                   onChange={set("whyYou")}
