@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "how-to-get-a-high-school-internship-2026",
+    publishDate: "2026-09-27",
+    title: "How to Get a High School Internship",
+    subtitle: "High School Internships · 2026",
+    excerpt: "Every guide hands you a list of famous programmes, and most of them closed months ago, take a few hundred students a year, and only exist in one country. This report is about the other route, the one available in any month and any market: local organisations that have never run an internship and will create one because a specific student asked well. It includes the email to send, who to send it to, what the rules are where you live, and what to do with the first no.",
+    category: "Internships",
+    type: "Internships" as ReportType,
+    date: "September 2026",
+    findings: 5,
+    badge: "New",
+  },
+  {
     slug: "cold-email-subject-lines-best-practices-2026",
     publishDate: "2026-06-16",
     title: "Cold Email Subject Lines: What Actually Gets Opened",
