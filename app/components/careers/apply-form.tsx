@@ -141,7 +141,9 @@ export function CareersApplyForm() {
 
             if (verifyResult.status === "completed") {
               // Track purchase event
-              const session = authClient.getSession();
+              // getSession() is async; reading .user off the Promise sent
+              // every Purchase event with no user_id.
+              const { data: session } = await authClient.getSession();
               const amountInRupees = amount / 100; // Convert paise to rupees
               trackEvent("Purchase", {
                 user_id: session?.user?.id,

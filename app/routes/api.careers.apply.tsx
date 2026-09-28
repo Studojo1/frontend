@@ -80,7 +80,9 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
 
-  const phoneNumber = data.fullPhoneNumber || (data.countryCode + data.phoneNumber);
+  // Missing parts used to concatenate as the string "undefinedundefined", which
+  // is 18 characters and passed the length check below.
+  const phoneNumber = data.fullPhoneNumber || `${data.countryCode ?? ""}${data.phoneNumber ?? ""}`;
   if (!phoneNumber || phoneNumber.length < 10) {
     return new Response(
       JSON.stringify({ error: "Valid phone number is required" }),

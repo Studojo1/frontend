@@ -148,7 +148,7 @@ function CountdownCell({ startedAt, offsetSeconds, status }: { startedAt: string
 
 function StatusBadge({ status, sentiment }: { status: string; sentiment?: string | null }) {
   if (status === "replied") {
-    const sentimentConfig: Record<string, { color: string; icon: JSX.Element; label: string }> = {
+    const sentimentConfig: Record<string, { color: string; icon: React.JSX.Element; label: string }> = {
       positive: { color: "text-studojo-green", icon: <FiThumbsUp className="w-3 h-3" />, label: "Positive" },
       negative: { color: "text-red-600", icon: <FiThumbsDown className="w-3 h-3" />, label: "Negative" },
       neutral: { color: "text-amber-600", icon: <FiMinus className="w-3 h-3" />, label: "Neutral" },
@@ -1166,7 +1166,7 @@ export default function DashboardPage() {
             <TicketBanner />
 
             {/* Cadence info banner — shown while campaign is running and not yet complete */}
-            {metrics.status === "running" && metrics.sent_count < metrics.total_leads && (
+            {metrics.status === "running" && (metrics.sent_count ?? 0) < (metrics.total_leads ?? 0) && (
               <div className="rounded-2xl border-2 border-studojo-ink/20 bg-amber-50 p-4 flex items-start gap-3">
                 <span className="text-lg mt-0.5">📬</span>
                 <div className="flex-1">

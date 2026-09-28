@@ -110,9 +110,9 @@ export async function loader({ params }: Route.LoaderArgs) {
     }
 
     // Convert stream to buffer
-    const chunks: Uint8Array[] = [];
+    const chunks: Buffer[] = [];
     for await (const chunk of downloadResponse.readableStreamBody) {
-      chunks.push(chunk);
+      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
     }
     const buffer = Buffer.concat(chunks);
 

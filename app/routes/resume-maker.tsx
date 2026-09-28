@@ -623,7 +623,11 @@ export default function JrsRoute() {
                 </a>
               </>
             )}
-            {tab === "ats" && <AtsPanel data={data} />}
+            {/* onChange is required: "Tailor to this job" hands the tailored
+                resume back through it. Without it the call threw after the AI
+                had answered, the catch showed "Couldn't connect", and the
+                result was discarded. */}
+            {tab === "ats" && <AtsPanel data={data} onChange={updateData} />}
             {tab === "chat" && (
               <div className="flex h-full flex-col gap-2">
                 <ChatPanel messages={messages} onSend={sendChat} sending={sending} />

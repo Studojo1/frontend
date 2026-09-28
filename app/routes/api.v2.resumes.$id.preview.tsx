@@ -10,6 +10,7 @@ import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { resumeDrafts } from "../../auth-schema";
 import { convertSectionsToLegacyResume } from "~/lib/resume-draft";
+import type { ResumeSection } from "~/lib/resume-draft";
 import type { Route } from "./+types/api.v2.resumes.$id.preview";
 
 // POST /api/v2/resumes/:id/preview - Generate PDF preview (streams PDF directly)
@@ -38,7 +39,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   const { templateId } = body;
 
   // Convert sections to legacy format for backend compatibility
-  const legacyResume = convertSectionsToLegacyResume(draft.sections, templateId || draft.templateId);
+  const legacyResume = convertSectionsToLegacyResume(draft.sections as ResumeSection[], templateId || draft.templateId);
   
   // Validate that resume has content
   const hasContent = 

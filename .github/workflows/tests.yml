@@ -34,4 +34,9 @@ jobs:
       - name: Create auth tables
         run: npx drizzle-kit push --force
       - run: npm test
+      # Type errors and lint errors fail the check. Both were at zero when
+      # these were added (88 type errors cleared, several of them real bugs),
+      # so any new one is a regression.
+      - run: npm run typecheck
+      - run: npm run lint
       - run: npm run build

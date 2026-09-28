@@ -65,9 +65,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   }
 }
 
-export default function InternshipDetail({ data }: Route.ComponentProps) {
+export default function InternshipDetail() {
   const loaderData = useLoaderData() as { internship: Internship } | undefined;
-  const internship = (loaderData?.internship || data?.internship) as Internship | undefined;
+  const internship = loaderData?.internship;
   const navigate = useNavigate();
   const location = useLocation();
   const [showApplicationFlow, setShowApplicationFlow] = useState(false);

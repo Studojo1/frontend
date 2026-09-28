@@ -93,7 +93,7 @@ async function handleWebinarPayment(event: RazorpayEvent): Promise<boolean> {
 }
 
 async function handlePaymentSuccess(event: RazorpayEvent) {
-  const payload = event.payload?.payment?.entity ?? event.payload?.subscription?.entity ?? {};
+  const payload: Partial<RazorpayEntity> = event.payload?.payment?.entity ?? event.payload?.subscription?.entity ?? {};
 
   // userId + location come from notes (set at checkout creation time)
   const notes = payload.notes ?? {};
@@ -144,7 +144,7 @@ async function handlePaymentSuccess(event: RazorpayEvent) {
 }
 
 async function handlePaymentFailed(event: RazorpayEvent) {
-  const payload = event.payload?.payment?.entity ?? event.payload?.subscription?.entity ?? {};
+  const payload: Partial<RazorpayEntity> = event.payload?.payment?.entity ?? event.payload?.subscription?.entity ?? {};
   const notes = payload.notes ?? {};
   const userId = notes.userId ?? notes.user_id;
 

@@ -35,10 +35,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     let jwtToken: string | null = null;
     
     try {
-      const tokenResult = await auth.api.getAccessToken({
+      // getToken (jwt plugin) returns our JWT; getAccessToken is for OAuth
+      // provider tokens and threw 400 here on every call.
+      const tokenResult = await auth.api.getToken({
         headers: request.headers,
       });
-      jwtToken = (tokenResult as any)?.token || (tokenResult as any)?.accessToken || null;
+      jwtToken = tokenResult?.token || null;
     } catch (e) {
       console.debug("Could not get token via getAccessToken:", e);
     }

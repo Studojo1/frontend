@@ -367,14 +367,21 @@ export default function App() {
 function ErrorTracker({ errorType, errorMessage, errorCode }: { errorType: string; errorMessage: string; errorCode?: string }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const session = authClient.getSession();
-      trackEvent("Error", {
-        error_type: errorType,
-        error_message: errorMessage,
-        error_code: errorCode,
-        page_url: window.location.href,
-        user_id: session?.user?.id,
-      });
+      // getSession() is async; reading .user off the Promise sent every
+      // Error event with no user_id.
+      const send = (userId?: string) =>
+        trackEvent("Error", {
+          error_type: errorType,
+          error_message: errorMessage,
+          error_code: errorCode,
+          page_url: window.location.href,
+          user_id: userId,
+        });
+      // A failed session lookup must not swallow the error event itself.
+      authClient.getSession().then(
+        ({ data: session }) => send(session?.user?.id),
+        () => send(undefined),
+      );
     }
   }, [errorType, errorMessage, errorCode]);
   return null;

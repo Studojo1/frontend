@@ -113,7 +113,7 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
     const page = await ctx.newPage();
     let rateLimited = false;
 
-    page.on("response", async (response) => {
+    page.on("response", async (response: { status(): number; url(): string }) => {
       if (response.status() === 429 || response.status() === 999) {
         rateLimited = true;
         await logEvent("linkedin_429", contact.userId, { step: "outreach" });

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { redirect } from "react-router";
 import { onboardingUrl } from "~/lib/return-to";
 import { Footer, Header } from "~/components";
@@ -32,7 +32,7 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -43,7 +43,7 @@ const containerVariants = {
   },
 };
 
-const sectionVariants = {
+const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
@@ -55,8 +55,10 @@ const sectionVariants = {
   },
 };
 
-export default function HumanizerDojoRoute({ data }: Route.ComponentProps) {
-  const isAdmin = data?.isAdmin ?? false;
+export default function HumanizerDojoRoute({ loaderData }: Route.ComponentProps) {
+  // React Router v7 passes the loader result as loaderData. This read `data`,
+  // which is always undefined, so admins got "Coming soon" like everyone else.
+  const isAdmin = loaderData?.isAdmin ?? false;
   
   return (
     <>
