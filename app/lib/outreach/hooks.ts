@@ -169,6 +169,8 @@ export interface NextStep {
   candidate_id: number | null;
   email_account_id: number | null;
   campaign_id: number | null;
+  /** True once any campaign has launched: a returning customer, not a first-timer. */
+  has_launched?: boolean;
 }
 
 /** States where the user has paid and has not launched. */
@@ -191,8 +193,19 @@ export function nextStepLabel(step: NextStep): string {
     case "needs_profile":
       return "Finish my profile to launch";
     default:
-      return "Launch my campaign";
+      return step.has_launched ? "Launch another campaign" : "Launch my campaign";
   }
+}
+
+/** One line telling a paid, unlaunched user what is waiting for them. */
+export function nextStepSummary(step: NextStep): string {
+  if (step.state === "launch_draft") {
+    return "Your campaign is set up but hasn't started. Nothing has been sent yet.";
+  }
+  if (step.has_launched) {
+    return `You have ${step.available_credits} unused email credits ready for another campaign.`;
+  }
+  return `You've paid and ${step.available_credits} email credits are waiting. Nothing has been sent yet.`;
 }
 
 export function fetchNextStep(): Promise<NextStep | null> {
