@@ -17,7 +17,6 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
     heading: "Company",
     links: [
       { to: "/", label: "Home" },
-      { to: "/cc", label: "Career Coach" },
       { to: "/about", label: "About" },
       { to: "/blog", label: "Blog" },
       { to: "/contact", label: "Contact" },
@@ -27,6 +26,7 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
     heading: "Resources",
     links: [
       { to: "/outreach", label: "Outreach" },
+      { to: "/cc", label: "Career Coach" },
       { to: "/dojos/internships", label: "Internship Dojo" },
       { to: "/resume-maker", label: "Resume Maker" },
       { to: "/reports", label: "Reports" },
