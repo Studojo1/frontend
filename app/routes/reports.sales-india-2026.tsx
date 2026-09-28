@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 
-const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
@@ -48,7 +47,6 @@ function initCharts() {
   const GREEN2 = "#34d399";
   const ORANGE = "#f59e0b";
   const RED = "#ef4444";
-  const GREY = "#e5e5e5";
   const MUTED = "#737373";
   const INK = "#171717";
   const grid = { color: "#f0f0ee", lineWidth: 1 };

@@ -62,12 +62,12 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps = { onFirst
   const [files, setFiles] = useState<File[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [phase, setPhase] = useState<Phase>("idle");
-  const [status, setStatus] = useState<Status>("idle"); // Keep for backward compatibility, sync with phase
+  const [, setStatus] = useState<Status>("idle"); // Keep for backward compatibility, sync with phase
   const [outline, setOutline] = useState<any | null>(null);
-  const [outlineJobId, setOutlineJobId] = useState<string | null>(null);
+  const [, setOutlineJobId] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [job, setJob] = useState<JobResponse | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [, setErrorMessage] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -206,7 +206,7 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps = { onFirst
       return;
 
     // Add user message
-    const userMsgId = addMessage("user", userMessage);
+    addMessage("user", userMessage);
     setInput("");
     setErrorMessage(null);
 
@@ -366,7 +366,7 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps = { onFirst
                   status: "sending",
                 });
                 
-                const verifyResult = await verifyPayment(
+                await verifyPayment(
                   orderId,
                   paymentId,
                   signature

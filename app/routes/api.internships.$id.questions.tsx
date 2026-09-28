@@ -1,4 +1,4 @@
-import { eq, asc, sql } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import db from "~/lib/db";
 import { internshipQuestions, internships } from "../../auth-schema";
 import type { Route } from "./+types/api.internships.$id.questions";

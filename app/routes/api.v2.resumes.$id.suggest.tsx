@@ -29,7 +29,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   const body = await request.json();
-  const { job_title, job_description, section_id, section_type, section_content } = body;
+  const { job_title, job_description, section_id } = body;
 
   // Convert sections to legacy format for backend compatibility
   const legacyResume = convertSectionsToLegacyResume(draft.sections as ResumeSection[], draft.templateId);

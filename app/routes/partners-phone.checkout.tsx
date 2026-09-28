@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { phonePartnersPost, PhonePartnersApiError, getStoredUser, clearToken } from "~/lib/partnersPhone/api";
+import { phonePartnersPost, getStoredUser, clearToken } from "~/lib/partnersPhone/api";
 import type { Route } from "./+types/partners-phone.checkout";
 
 export function meta({}: Route.MetaArgs) {

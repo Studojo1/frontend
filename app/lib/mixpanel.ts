@@ -35,7 +35,7 @@ export function identifyUser(userId: string, properties?: {
   if (!isInitialized) {
     try {
       initMixpanel();
-    } catch (error) {
+    } catch {
       return;
     }
   }
@@ -50,7 +50,7 @@ export function identifyUser(userId: string, properties?: {
       ...properties,
     });
     }
-  } catch (error) {
+  } catch {
     // Silently fail to avoid breaking the app
   }
 }
@@ -64,7 +64,7 @@ export function trackEvent(eventName: string, properties?: Record<string, any>) 
     // Try to initialize if not already done
     try {
       initMixpanel();
-    } catch (error) {
+    } catch {
       // Silently fail to avoid breaking the app
       return;
     }
@@ -75,7 +75,7 @@ export function trackEvent(eventName: string, properties?: Record<string, any>) 
     if (mixpanel && typeof mixpanel.track === "function") {
   mixpanel.track(eventName, properties);
     }
-  } catch (error) {
+  } catch {
     // Silently fail to avoid breaking the app - don't log to avoid console spam
     // The error is likely due to Mixpanel hooks not being set up, which happens
     // if init() hasn't completed or failed
@@ -90,7 +90,7 @@ export function resetMixpanel() {
     if (isInitialized && mixpanel && typeof mixpanel.reset === "function") {
   mixpanel.reset();
     }
-  } catch (error) {
+  } catch {
     // Silently fail to avoid breaking the app
   }
 }

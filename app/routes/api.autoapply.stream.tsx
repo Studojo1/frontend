@@ -81,7 +81,6 @@ export async function loader({ request }: Route.LoaderArgs) {
         send({ type: "snapshot", jobs: recentJobs, outreach: recentOutreach, stats, warnings });
 
         // Poll for updates every 15 seconds
-        let lastCheck = new Date();
         let ticks = 0;
         const maxTicks = 40; // ~10 minutes then close, client reconnects
 
@@ -119,7 +118,6 @@ export async function loader({ request }: Route.LoaderArgs) {
             };
 
             send({ type: "update", stats: newStats, jobs: newJobs.slice(0, 5) });
-            lastCheck = new Date();
           } catch {}
         }, 15_000);
 
@@ -128,7 +126,7 @@ export async function loader({ request }: Route.LoaderArgs) {
           clearInterval(interval);
           controller.close();
         });
-      } catch (err) {
+      } catch {
         controller.close();
       }
     },

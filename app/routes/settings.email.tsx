@@ -88,31 +88,6 @@ export default function EmailSettings() {
     }
   };
 
-  const handleSaveAll = async () => {
-    if (!session?.user?.id || !preferences) return;
-
-    setSaving(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const updated = await updateEmailPreferences(session.user.id, {
-        product_emails: preferences.product_emails,
-        resume_emails: preferences.resume_emails,
-        internship_emails: preferences.internship_emails,
-        security_emails: true, // Always true
-      });
-      setPreferences(updated);
-      setSuccess("Email preferences updated successfully");
-      toast.success("Preferences saved");
-    } catch (err: any) {
-      setError(err.message || "Failed to update preferences");
-      toast.error("Failed to update preferences");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   if (loading) {
     return (
       <>

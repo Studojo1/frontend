@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
-  FiPlus, FiTrash2, FiSend, FiDownload, FiLock, FiZap, FiSearch,
+  FiPlus, FiTrash2, FiSend, FiDownload, FiZap, FiSearch,
   FiFileText, FiGrid, FiLoader, FiExternalLink,
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
   FiMessageSquare, FiColumns, FiUsers,
@@ -901,18 +901,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const running = run?.status === "running";
   useEffect(() => { if (!running) setStopping(false); }, [running]);
   const hasTables = tables.length > 0;
-  // The table Work mode shows: the most recent one that has rows.
-  const activeWorkTable = [...tables].reverse().find((t) => t.rows.length > 0) || tables[tables.length - 1] || null;
-  const exportTable = async (t: BobTable) => {
-    const res = await fetch(`${API}/tables/${t.id}/export`, { headers: authHeaders() });
-    if (!res.ok) { setNotice("Export failed"); return; }
-    const blob = await res.blob();
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${t.name.replace(/[^a-z0-9 _-]/gi, "")}.xlsx`;
-    document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
-  };
   const showChat = mode !== "table";
   // Mount the results panel as soon as a run STARTS (not only once a table object
   // exists), so the live-progress banner + provisional rows can show immediately.
@@ -1436,7 +1424,6 @@ function groupMessages(msgs: any[]): MsgGroup[] {
 // these to shadow-sm / thin neutral-200 borders — that "calm design system" pass was reverted.
 const BRUT = "border-2 border-neutral-900";
 const SHADOW = "shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]";
-const SHADOW_LG = "shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]";
 const PRESS = "transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
 const CARD = `bg-white ${BRUT} rounded-2xl ${SHADOW}`;
 
@@ -1982,17 +1969,6 @@ const RUN_STAGES = [
 // A finished run is tagged with a depth (the pipeline sets counters.depth): a lean
 // job-scan costs few AI credits, a deep funding/company-research run costs more.
 const RUN_DEPTH: Record<number, string> = { 1: "Quick scan", 2: "Standard search", 3: "Deep research" };
-// One-line hint per stage for the live banner (the bold label names the stage; this
-// adds context that MATCHES the stage, instead of a hardcoded "scoring" line).
-const RUN_STAGE_HINT: Record<string, string> = {
-  plan: "understanding your brief",
-  search: "reading job boards and posts",
-  extract: "pulling out the real companies",
-  score: "scoring and removing weak matches",
-  enrich: "checking live hiring signals",
-  contact: "finding the right person to reach",
-  assemble: "finalizing your table",
-};
 const FRIENDLY_SOURCE: Record<string, string> = {
   getro: "startup job boards", careerjet: "Careerjet", ats: "company career pages",
   reddit: "Reddit", ctx_li_posts: "LinkedIn posts", ctx_x: "X (Twitter)",
@@ -2143,15 +2119,6 @@ function TickingNumber({ value, className }: { value: number; className?: string
   return <span className={className}>{display.toLocaleString("en-US")}</span>;
 }
 
-function RunCounter({ n, label, keep }: { n: number; label: string; keep?: boolean }) {
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-[#faf7f2] px-2.5 py-1.5">
-      <TickingNumber value={n} className={`font-['Clash_Display'] font-bold text-lg leading-none tabular-nums ${keep ? "text-green-600" : "text-neutral-900"}`} />
-      <div className="text-[9.5px] font-bold uppercase tracking-wide text-neutral-400 mt-1">{label}</div>
-    </div>
-  );
-}
-
 function FitChip({ fit }: { fit: number }) {
   const per100 = fit > 10;
   const high = per100 ? fit >= 80 : fit >= 8;
@@ -2252,44 +2219,6 @@ function RunProgress({ run }: { run: Run }) {
           <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
         </div>
         <p className="text-[11px] text-neutral-400 mt-1.5">Full live progress is in the panel on the right.</p>
-      </div>
-    </div>
-  );
-}
-
-// Compact live-progress banner shown ABOVE the results table while a run works, so a
-// slow run always reads as "actively narrowing the funnel", never as frozen. Reuses the
-// stage helpers + the pipeline's own funnel counters (sourced/extracted/scored/removed/kept).
-function RunBanner({ run, provisional }: { run: Run; provisional: number }) {
-  const c = run.counters || {};
-  const { stageIdx, pct } = useRunEstimate(run);
-  const kept = Number(c.kept ?? c.rows_added ?? 0);
-  const chips: { label: string; tone?: string }[] = [];
-  if (c.sourced) chips.push({ label: `${c.sourced} posts read` });
-  if (c.extracted) chips.push({ label: `${c.extracted} companies` });
-  if (c.scored) chips.push({ label: `${c.scored} scored` });
-  if (c.removed) chips.push({ label: `${c.removed} filtered out`, tone: "muted" });
-  if (kept) chips.push({ label: `${kept} kept`, tone: "keep" });
-  return (
-    <div className="shrink-0 border-b-2 border-neutral-900 bg-violet-50">
-      <div className="px-4 py-2 flex items-center gap-2 flex-wrap">
-        <FiLoader className="animate-spin text-violet-500 shrink-0" size={13} />
-        <span className="font-bold text-[12.5px]">{RUN_STAGES[stageIdx].label}…</span>
-        <span className="hidden sm:inline text-[11px] text-neutral-500">
-          {RUN_STAGE_HINT[RUN_STAGES[stageIdx].key] || ""}{provisional ? ` · ${provisional} still in review` : ""}
-        </span>
-        <span className="ml-auto flex items-center gap-1.5 text-[11px]">
-          {chips.map((ch, i) => (
-            <span key={i} className={`rounded-full px-2 py-0.5 font-semibold ${
-              ch.tone === "keep" ? "bg-violet-600 text-white"
-                : ch.tone === "muted" ? "bg-white text-neutral-400 border border-neutral-200"
-                : "bg-white text-neutral-600 border border-neutral-300"}`}>{ch.label}</span>
-          ))}
-        </span>
-      </div>
-      <div className="h-1 w-full bg-violet-100 overflow-hidden">
-        <div className="h-full bg-violet-500/70"
-          style={{ width: `${pct}%`, transition: "width .7s ease-out" }} />
       </div>
     </div>
   );

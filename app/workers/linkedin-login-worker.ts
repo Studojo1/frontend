@@ -228,7 +228,6 @@ export async function runLinkedinLogin(jobId: string, userId: string, email: str
     // ── Extract cookies ───────────────────────────────────────────────────
     const cookies: { name: string; value: string }[] = await context.cookies();
     const liAt = cookies.find((c) => c.name === "li_at")?.value;
-    const jsessionId = cookies.find((c) => c.name === "JSESSIONID")?.value;
 
     if (!liAt) {
       await setState(jobId, { status: "failed", error: "li_at cookie not found after login" });

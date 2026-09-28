@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 
-const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [

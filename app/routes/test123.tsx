@@ -109,7 +109,6 @@ const HEALTH_CHECKS = [
 ];
 
 export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
-  const { user } = loaderData;
 
   const [view, setView] = useState<View>("setup");
   const [loadingConfig, setLoadingConfig] = useState(true);

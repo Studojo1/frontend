@@ -1,11 +1,9 @@
 // Safety manager: per-user pause, fleet-wide sweep detection, acceptance rate monitor
 // All pause/resume is automatic — users notified via email, dashboard reflects status
 
-import { eq, and, gte, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import db from "~/lib/db";
-import { autoapplyConfigs, systemEvents, outreachContacts, userLinkedinSessions } from "../../auth-schema";
-
-const REDIS_URL = process.env.REDIS_URL ?? "redis://redis.studojo.svc.cluster.local:6379";
+import { autoapplyConfigs } from "../../auth-schema";
 
 // ── Per-user pause ────────────────────────────────────────────────────────────
 

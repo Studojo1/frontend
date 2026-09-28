@@ -482,7 +482,7 @@ export default function Settings() {
           setBackupCodes(result.data.backupCodes ?? []);
           setShowBackupCodes(true);
         }
-      } catch (err) {
+      } catch {
         setTwoFactorError("Two-factor authentication requires a password account. OAuth-only accounts cannot enable 2FA at this time.");
       } finally {
         setEnabling2FA(false);
