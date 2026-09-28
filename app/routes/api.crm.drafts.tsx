@@ -247,7 +247,7 @@ export async function action({ request }: Route.ActionArgs) {
           draft.applicationId ? `/crm/${draft.applicationId}` : "/crm",
         )}`,
       },
-      needs_credits: { message: detail, actionUrl: "/outreach/enrichment" },
+      needs_credits: { message: detail, actionUrl: "/outreach/enrichment?for=crm" },
       no_contact_email: { message: detail },
       no_contact_found: { message: detail },
       // The service-side kill switch. Not an error the student caused, so it

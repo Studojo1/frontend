@@ -80,7 +80,7 @@ const FUNNEL_DEFAULTS = {
   profileData: null,
   chatHistory: [] as ChatMessage[],
   chatCandidateId: null,
-  selectedTier: 350 as const,
+  selectedTier: 200 as const,
   planType: "email" as PlanType,
   selectedPlanId: null,
   linkedInCampaignId: null,
@@ -114,7 +114,7 @@ export const useOutreachStore = create<OutreachState>()(
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
 
 
-      selectedTier: 350,
+      selectedTier: 200,
       setSelectedTier: (selectedTier) => set({ selectedTier }),
 
       planType: "email",
