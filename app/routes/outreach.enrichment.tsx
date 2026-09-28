@@ -782,7 +782,7 @@ export default function EnrichmentPage() {
           </button>
         </div>
         <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink text-center mb-3">Contact Hiring Managers Directly</h1>
-        <p className="text-base text-studojo-muted text-center max-w-xl mx-auto font-satoshi">
+        <p className="text-base text-studojo-muted text-center max-w-xl mx-auto font-satoshi mb-8">
           Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
         </p>
 
