@@ -593,8 +593,8 @@ export const INTENTS: Intent[] = [
       "is it secure",
       "personal information",
     ],
-    response: "Your data is encrypted and never sold. We only use it to run the services you signed up for. To delete your account and data, tap 'Raise a ticket' above with 'Delete my account' in the description and the team will do it for you.",
-    links: [{ label: "Privacy policy", url: "/privacy" }],
+    response: "Your data is encrypted and never sold. We only use it to run the services you signed up for. To delete your account and all its data, open the link below and type DELETE to confirm. It also revokes Studojo's access to your Gmail.",
+    links: [{ label: "Delete my account", url: "/account/delete" }, { label: "Privacy policy", url: "/privacy" }],
   },
 
   // -- Contact / Human --
