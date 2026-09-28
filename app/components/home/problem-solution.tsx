@@ -71,7 +71,7 @@ export function ProblemSolution() {
           </div>
 
           {/* Good — The Studojo way */}
-          <div className="flex flex-col gap-4 rounded-[32px] border-2 border-neutral-900 bg-violet-500 p-6 shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:p-8">
+          <div className="flex flex-col gap-4 rounded-[32px] border-2 border-neutral-900 bg-violet-500 p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:p-8">
             <div className="inline-flex items-center gap-2">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/40 bg-white/20 text-white">
                 <CheckIcon />

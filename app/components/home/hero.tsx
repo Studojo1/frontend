@@ -6,7 +6,7 @@ import { FiArrowRight, FiMail, FiUser, FiMessageSquare } from "react-icons/fi";
 export function Hero() {
   return (
     <section className="border-b border-neutral-900 bg-purple-50">
-      <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col gap-10 px-4 pt-8 pb-8 md:flex-row md:items-center md:justify-between md:gap-16 md:px-8 md:py-20">
+      <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col gap-10 px-4 pt-10 pb-12 md:flex-row md:items-center md:justify-between md:gap-16 md:px-8 md:py-20">
 
         {/* Left: copy */}
         <div className="flex flex-col gap-5 md:max-w-lg md:gap-7 lg:max-w-xl">
@@ -36,11 +36,12 @@ export function Hero() {
 
         </div>
 
-        {/* Right: app simulation cards — stacked, gentle float only on y-axis */}
-        <div className="hidden shrink-0 flex-col gap-4 md:flex md:w-[320px] lg:w-[360px]">
+        {/* Right: app simulation cards — stacked, gentle float only on y-axis.
+            On phones they sit under the CTA so the hero reads as a full screen. */}
+        <div className="flex shrink-0 flex-col gap-3 pr-1.5 md:w-[320px] md:gap-4 md:pr-0 lg:w-[360px]">
           {/* Card 1: Contact Found */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-neutral-900 bg-violet-500 p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+            className="w-full rounded-2xl border-2 border-neutral-900 bg-violet-500 p-4 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-5 md:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
             animate={{ y: [0, -6, 0] }}
             transition={{ repeat: Infinity, repeatType: "mirror", duration: 4, ease: "easeInOut" }}
           >
@@ -65,7 +66,7 @@ export function Hero() {
 
           {/* Card 2: Email Written */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+            className="w-full rounded-2xl border-2 border-neutral-900 bg-white p-4 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-5 md:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
             animate={{ y: [0, -6, 0] }}
             transition={{ repeat: Infinity, repeatType: "mirror", duration: 4, ease: "easeInOut", delay: 1.3 }}
           >
@@ -88,7 +89,7 @@ export function Hero() {
 
           {/* Card 3: Reply Received */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-neutral-900 bg-emerald-400 p-5 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+            className="w-full rounded-2xl border-2 border-neutral-900 bg-emerald-400 p-4 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-5 md:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
             animate={{ y: [0, -6, 0] }}
             transition={{ repeat: Infinity, repeatType: "mirror", duration: 4, ease: "easeInOut", delay: 2.6 }}
           >

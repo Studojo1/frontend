@@ -59,11 +59,12 @@ export function BackedBySection() {
           </h2>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-5">
+        {/* Two-up grid on phones; the odd last tile centres on its own row. */}
+        <div className="mx-auto grid max-w-sm grid-cols-2 gap-3 pr-1 md:flex md:max-w-none md:flex-wrap md:items-center md:justify-center md:gap-5 md:pr-0 [&>*:last-child:nth-child(odd)]:col-span-2 [&>*:last-child:nth-child(odd)]:mx-auto [&>*:last-child:nth-child(odd)]:w-[calc(50%-0.375rem)] md:[&>*:last-child:nth-child(odd)]:w-48">
           {BACKERS.map((b) => (
             <div
               key={b.name}
-              className="flex h-16 w-48 items-center justify-center gap-2.5 rounded-2xl border-2 border-neutral-900 px-5 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+              className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 px-3 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] md:h-16 md:w-48 md:gap-2.5 md:px-5"
               style={{ backgroundColor: b.bg }}
             >
               <img src={b.img} alt={b.name} className={`shrink-0 object-contain ${b.imgClass}`} />
