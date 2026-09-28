@@ -26,6 +26,7 @@ export default function CampaignLaunchingPage() {
   const { candidateId, emailAccountId, setCampaignId, selectedTier } = useOutreachStore();
   const [currentStage, setCurrentStage] = useState(0);
   const [error, setError] = useState("");
+  const [existingCampaign, setExistingCampaign] = useState(false);
   const launched = useRef(false);
   const location = useLocation();
 
@@ -82,6 +83,9 @@ export default function CampaignLaunchingPage() {
             user_timezone: userTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata",
             selected_styles: selectedStyles?.length > 0 ? selectedStyles : ["value_prop"],
             lead_limit: selectedTier || undefined,
+            // Create and start in one request, so closing the tab can no
+            // longer strand the credits on a draft (audit P27).
+            launch: true,
             ...((!selectedStyles || selectedStyles.length === 0) && selectedTemplate && {
               template_id: selectedTemplate.id,
               subject_template: selectedTemplate.subject,
@@ -104,13 +108,20 @@ export default function CampaignLaunchingPage() {
           return;
         }
 
-        stage = "send";
-        await outreachFetch(`/campaign/${newCampaignId}/send`, { method: "POST" });
+        // Already running: /campaign/create launched it (launch: true).
 
         setTimeout(() => {
           navigate("/outreach/campaign/dashboard");
         }, Math.max(0, totalDuration + 500));
       } catch (err: any) {
+        // One campaign at a time (audit P03): send them to the one they have.
+        const existing = err?.status === 409 ? err?.body?.detail : null;
+        if (existing?.code === "campaign_exists") {
+          if (existing.campaign_id) setCampaignId(existing.campaign_id);
+          setError(existing.message || "You already have a campaign that hasn't finished.");
+          setExistingCampaign(true);
+          return;
+        }
         const message = describeError(err, "Campaign launch failed. Please try again.");
         // One paying user hit this screen about 20 times over two weeks and
         // nothing recorded why. Every failure is now visible in PostHog.
@@ -151,10 +162,10 @@ export default function CampaignLaunchingPage() {
             <FiAlertCircle className="w-10 h-10 text-red-600 mx-auto mb-4" />
             <p className="text-red-600 text-base font-satoshi mb-6">{error}</p>
             <button
-              onClick={() => navigate("/outreach/campaign/setup")}
+              onClick={() => navigate(existingCampaign ? "/outreach/campaign/dashboard" : "/outreach/campaign/setup")}
               className="h-12 px-6 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
             >
-              Back to Setup
+              {existingCampaign ? "Open my campaign" : "Back to Setup"}
             </button>
           </div>
         ) : (

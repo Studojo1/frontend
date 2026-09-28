@@ -111,6 +111,8 @@ interface CampaignEmail {
   reply_sentiment: string | null;
   reply_received_at: string | null;
   bounce_reason: string | null;
+  /** Customer-safe reason an email did not go out (never raw error text). */
+  failure_reason?: string | null;
   is_test: boolean;
   followup_number?: number;
   parent_email_id?: number | null;
@@ -194,6 +196,12 @@ function StatusBadge({ status, sentiment }: { status: string; sentiment?: string
       <span className="text-studojo-muted font-bold text-sm">Queued</span>
     </div>
   );
+  if (status === "expired" || status === "cancelled_expired") return (
+    <div className="flex items-center gap-1">
+      <FiMinus className="w-4 h-4 text-studojo-muted" />
+      <span className="text-studojo-muted font-medium text-sm italic">Not sent</span>
+    </div>
+  );
   if (status === "cancelled_reply") return (
     <div className="flex items-center gap-1">
       <FiMinus className="w-4 h-4 text-studojo-muted" />
@@ -205,6 +213,24 @@ function StatusBadge({ status, sentiment }: { status: string; sentiment?: string
       <FiClock className="w-4 h-4 text-studojo-muted" />
       <span className="text-studojo-muted font-bold text-sm">To Send</span>
     </div>
+  );
+}
+
+/** Why an email did not go out, in words a customer can act on (audit P22).
+ * A bare red "Failed" read as "Studojo broke my campaign"; most were contacts
+ * with no email address at all, which is a skip, and cost nothing. */
+function isSkip(email: { failure_reason?: string | null }) {
+  const r = email.failure_reason || "";
+  return r.startsWith("No verified email") || r.startsWith("We could not verify");
+}
+
+function FailureNote({ email }: { email: { status: string; failure_reason?: string | null } }) {
+  const reason = email.failure_reason || (email.status === "failed" ? "This email could not be sent." : "Not sent.");
+  const muted = isSkip(email) || email.status === "expired" || email.status === "cancelled_expired";
+  return (
+    <span className={`text-xs ${muted ? "text-studojo-muted" : "text-red-600"}`} title={reason}>
+      {muted ? "Skipped" : "Failed"}: {reason}
+    </span>
   );
 }
 
@@ -255,6 +281,11 @@ export default function DashboardPage() {
 
   // Campaign mode state
   const [metrics, setMetrics] = useState<CampaignMetrics | null>(null);
+  // Cancel returns the credits for everything not yet sent (audit P04). Two
+  // clicks: the first asks, the second does it.
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelNote, setCancelNote] = useState("");
   const [emails, setEmails] = useState<CampaignEmail[]>([]);
 
   // UI state
@@ -484,6 +515,22 @@ export default function DashboardPage() {
       fetchCampaignData();
     } catch (err: any) {
       setError(describeError(err, "Failed to update campaign"));
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!campaignId) return;
+    if (!confirmCancel) { setConfirmCancel(true); return; }
+    setCancelling(true);
+    try {
+      const res = await outreachFetch<{ credits_refunded: number }>(`/campaign/${campaignId}/cancel`, { method: "POST" });
+      setCancelNote(`Campaign cancelled. ${res.credits_refunded} unused credits are back in your account.`);
+      setConfirmCancel(false);
+      await fetchCampaignData();
+    } catch (err: any) {
+      setError(describeError(err, "Could not cancel the campaign"));
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -1135,12 +1182,16 @@ export default function DashboardPage() {
                     <FiPlay className="w-4 h-4 mr-2" /> Resume
                   </button>
                 )}
-                {metrics.status === "completed" && (
+                {["running", "paused", "draft"].includes(metrics.status) && (
                   <button
-                    onClick={() => handleTransition("running")}
-                    className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+                    onClick={handleCancel}
+                    disabled={cancelling}
+                    className={`h-9 px-4 rounded-xl border-2 text-sm font-satoshi font-medium transition-all inline-flex items-center disabled:opacity-50 ${
+                      confirmCancel ? "border-red-600 bg-red-600 text-white" : "border-studojo-ink bg-white"
+                    }`}
                   >
-                    <FiPlay className="w-4 h-4 mr-2" /> Resume Campaign
+                    <FiXCircle className="w-4 h-4 mr-2" />
+                    {confirmCancel ? "Yes, cancel and return unused credits" : "Cancel campaign"}
                   </button>
                 )}
                 {["running", "completed", "paused"].includes(metrics.status) && (
@@ -1165,13 +1216,68 @@ export default function DashboardPage() {
                 recently-resolved one. Resolved version overrides the open one. */}
             <TicketBanner />
 
+            {cancelNote && (
+              <div className="rounded-2xl border-2 border-studojo-green/40 bg-studojo-green-bg p-4 text-sm font-satoshi text-studojo-ink">{cancelNote}</div>
+            )}
+
+            {/* What a finished campaign actually did (audit P20). A bare
+                "Completed" pill hid a campaign that delivered 1 email of 503. */}
+            {["completed", "cancelled"].includes(metrics.status) && (metrics.first_touch_total ?? 0) > 0 && (
+              <div className="rounded-2xl border-2 border-studojo-ink/20 bg-studojo-surface-muted p-4">
+                <p className="text-sm font-satoshi text-studojo-ink">
+                  <span className="font-bold">
+                    {metrics.first_touch_delivered} of {metrics.first_touch_total} emails delivered
+                  </span>
+                  {(metrics.emails_skipped_no_email ?? 0) > 0 && <> · {metrics.emails_skipped_no_email} skipped because no email address exists</>}
+                  {(metrics.credits_released ?? 0) > 0 && <> · {metrics.credits_released} unused credits returned to you</>}
+                </p>
+              </div>
+            )}
+
+            {/* Why it's paused (audit P40). */}
+            {metrics.status === "paused" && (
+              <div className={`rounded-2xl border-2 p-4 ${metrics.pause_reason === "gmail_auth" ? "border-red-300 bg-red-50" : "border-studojo-ink/20 bg-amber-50"}`}>
+                {metrics.pause_reason === "gmail_auth" ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-sm font-satoshi text-studojo-ink">
+                      <span className="font-bold">Paused because Gmail disconnected.</span> Nothing was lost:
+                      {" "}{campaignToSend + campaignPendingEnrichment} emails are waiting. Reconnect Gmail and sending resumes automatically.
+                    </p>
+                    <button
+                      onClick={() => navigate("/outreach/connect/gmail")}
+                      className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal"
+                    >
+                      Reconnect Gmail
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-sm font-satoshi text-studojo-ink">
+                    <span className="font-bold">On hold{metrics.paused_by === "user" || metrics.pause_reason === "user" ? " (you paused it)" : ""}.</span>
+                    {" "}{campaignToSend + campaignPendingEnrichment} emails will not send until you resume.
+                    {metrics.paused_at ? ` Paused ${new Date(metrics.paused_at + "Z").toLocaleDateString()}.` : ""}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Credits held by this campaign (audit P39). The wallet reads 0
+                while a campaign runs, which looked like the money vanished. */}
+            {metrics.credits_reserved != null && metrics.credits_reserved > 0 && (
+              <p className="text-xs font-satoshi text-studojo-muted">
+                This campaign holds {metrics.credits_reserved - (metrics.credits_released ?? 0)} of your credits
+                ({metrics.first_touch_delivered ?? 0} delivered so far
+                {(metrics.credits_released ?? 0) > 0 ? `, ${metrics.credits_released} already returned` : ""}).
+                Credits for emails that can't be sent come back to you automatically.
+              </p>
+            )}
+
             {/* Cadence info banner — shown while campaign is running and not yet complete */}
-            {metrics.status === "running" && (metrics.sent_count ?? 0) < (metrics.total_leads ?? 0) && (
+            {metrics.status === "running" && campaignToSend + campaignPendingEnrichment > 0 && (
               <div className="rounded-2xl border-2 border-studojo-ink/20 bg-amber-50 p-4 flex items-start gap-3">
                 <span className="text-lg mt-0.5">📬</span>
                 <div className="flex-1">
                   <p className="text-sm font-satoshi text-studojo-ink">
-                    <span className="font-bold">Your emails go out gradually</span> (5–7 per day) to protect your Gmail reputation. Check back tomorrow. Most replies come within 3–5 days.
+                    <span className="font-bold">Your emails go out gradually</span> (about {metrics.daily_limit ?? 20} per day) to protect your Gmail reputation. Check back tomorrow. Most replies come within 3–5 days.
                   </p>
                   {metrics.user_timezone && (
                     <p className="text-xs text-studojo-muted font-satoshi mt-1 flex items-center gap-1">
@@ -1274,10 +1380,10 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Summary Stats — 5 cards */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {/* Summary Stats — 6 cards */}
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <MetricCard
-                label="To Send"
+                label={metrics.status === "running" ? "To Send" : "On hold"}
                 value={campaignToSend + campaignPendingEnrichment}
                 icon={<FiClock className="w-5 h-5" />}
               />
@@ -1305,8 +1411,13 @@ export default function DashboardPage() {
                 icon={<FiXCircle className="w-5 h-5" />}
               />
               <MetricCard
+                label="Skipped (no email)"
+                value={metrics.emails_skipped_no_email ?? 0}
+                icon={<FiMinus className="w-5 h-5" />}
+              />
+              <MetricCard
                 label="Failed"
-                value={campaignFailed}
+                value={metrics.emails_failed_other ?? campaignFailed}
                 icon={<FiAlertCircle className="w-5 h-5" />}
               />
             </div>
@@ -1527,8 +1638,8 @@ export default function DashboardPage() {
                                     ? <span className="text-studojo-green text-xs">Sent {formatTimestamp(email.sent_at, tz)}</span>
                                     : email.status === "bounced"
                                       ? <span className="text-red-600 text-xs" title={email.bounce_reason || ""}>Bounced</span>
-                                      : email.status === "failed"
-                                        ? <span className="text-red-600 text-xs">Failed</span>
+                                      : email.status === "failed" || email.status === "expired"
+                                        ? <FailureNote email={email} />
                                         : email.scheduled_at
                                           ? <span className="text-studojo-purple text-xs font-medium">{formatTimestamp(email.scheduled_at, tz)}</span>
                                           : <span className="text-studojo-muted text-xs">Queued</span>
@@ -1560,8 +1671,8 @@ export default function DashboardPage() {
                                       ? <span className="text-studojo-green text-xs">Sent {formatTimestamp(fu.sent_at, tz)}</span>
                                       : fu.status === "cancelled_reply"
                                         ? <span className="text-studojo-muted text-xs italic">Cancelled (reply received)</span>
-                                        : fu.status === "failed"
-                                          ? <span className="text-red-600 text-xs">Failed</span>
+                                        : fu.status === "failed" || fu.status === "cancelled_expired"
+                                          ? <FailureNote email={fu} />
                                           : fu.scheduled_at
                                             ? <span className="text-studojo-purple text-xs font-medium">Queued for {formatTimestamp(fu.scheduled_at, tz)}</span>
                                             : <span className="text-studojo-muted text-xs">Queued</span>
