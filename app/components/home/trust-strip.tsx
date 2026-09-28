@@ -38,7 +38,7 @@ const COMPANIES: Company[] = [
 export function TrustStrip() {
   const doubled = [...COMPANIES, ...COMPANIES];
   return (
-    <section className="py-6 bg-white border-y-2 border-studojo-ink overflow-hidden">
+    <section className="py-4 md:py-6 bg-white border-y-2 border-studojo-ink overflow-hidden">
       <p className="font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-studojo-muted text-center mb-4">
         Positive replies from
       </p>
