@@ -6,7 +6,7 @@ import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard, FiChevronDown, F
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TrustStrip } from "~/components";
-import { useNextStep, isPaidNotLaunched, nextStepLabel } from "~/lib/outreach/hooks";
+import { useNextStep, isPaidNotLaunched, nextStepLabel, nextStepSummary } from "~/lib/outreach/hooks";
 
 const STEPS = [
   {
@@ -227,9 +227,7 @@ export default function OutreachLanding() {
             </p>
             {paidNotLaunched && (
               <p className="max-w-xl font-satoshi text-sm font-semibold text-white">
-                {paidNotLaunched.state === "launch_draft"
-                  ? "Your campaign is set up but hasn't started. Nothing has been sent yet."
-                  : `You've paid and ${paidNotLaunched.available_credits} email credits are waiting. Nothing has been sent yet.`}
+                {nextStepSummary(paidNotLaunched)}
               </p>
             )}
             <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
