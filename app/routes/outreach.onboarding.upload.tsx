@@ -5,7 +5,7 @@ import { FiUpload, FiFileText, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
-import { useOutreachAuth } from "~/lib/outreach/hooks";
+import { useOutreachAuth, useNextStep, isPaidNotLaunched, nextStepLabel } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { logFunnelStep } from "~/lib/funnel";
 import { getToken, ControlPlaneError } from "~/lib/control-plane";
@@ -132,6 +132,13 @@ export default function UploadPage() {
     navigate("/outreach/onboarding/chat");
   };
 
+  // Paid and not launched: uploading again restarts onboarding and does not
+  // launch anything. Say so, and put the way to Launch first. Upload still
+  // works for anyone who really wants a new resume.
+  const nextStep = useNextStep();
+  const launchInstead =
+    isPaidNotLaunched(nextStep) && nextStep.state !== "needs_profile" ? nextStep : null;
+
   if (authLoading || !user) return <div className="min-h-screen bg-white" />;
 
   return (
@@ -139,6 +146,23 @@ export default function UploadPage() {
       <Header />
 
       <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
+        {launchInstead && (
+          <div className="mb-6 rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg shadow-brutal p-6">
+            <p className="font-clash text-lg font-bold text-studojo-ink">You've already paid. Your campaign is waiting.</p>
+            <p className="mt-1 text-sm text-studojo-muted font-satoshi">
+              {launchInstead.state === "launch_draft"
+                ? "Your campaign is set up but hasn't started, so nothing has been sent yet."
+                : `${launchInstead.available_credits} email credits are ready and nothing has been sent yet.`}{" "}
+              Uploading a new resume starts over; it won't launch anything.
+            </p>
+            <button
+              onClick={() => navigate(`/outreach${launchInstead.path}`)}
+              className="mt-4 h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+            >
+              {nextStepLabel(launchInstead)}
+            </button>
+          </div>
+        )}
         <ProgressSteps steps={["Upload Resume", "AI Chat", "Your Profile"]} currentStep={1} />
 
         <div className="mt-8">

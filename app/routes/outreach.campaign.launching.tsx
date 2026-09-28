@@ -6,7 +6,7 @@ import {
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
-import { useOutreachAuth } from "~/lib/outreach/hooks";
+import { useOutreachAuth, fetchNextStep } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 import { capturePostHog } from "~/lib/posthog";
@@ -58,7 +58,21 @@ export default function CampaignLaunchingPage() {
     const totalDuration = stages.reduce((sum, s) => sum + s.duration, 0);
 
     const launchCampaign = async () => {
+      let stage = "create";
       try {
+        // A campaign that was created but never sent (tab closed mid-launch,
+        // or /send failed) already holds its credits. Send it; a second
+        // /create would reserve the credits twice and strand the first one.
+        const step = await fetchNextStep();
+        if (step?.state === "launch_draft" && step.campaign_id) {
+          stage = "send_draft";
+          await outreachFetch(`/campaign/${step.campaign_id}/send`, { method: "POST" });
+          setCampaignId(step.campaign_id);
+          capturePostHog("campaign_started", { campaign_id: step.campaign_id, from_draft: true });
+          setTimeout(() => navigate("/outreach/campaign/dashboard"), Math.max(0, totalDuration + 500));
+          return;
+        }
+
         const createData = await outreachFetch<{ campaign_id: number; queued_messages: number }>("/campaign/create", {
           method: "POST",
           body: JSON.stringify({
@@ -90,13 +104,24 @@ export default function CampaignLaunchingPage() {
           return;
         }
 
+        stage = "send";
         await outreachFetch(`/campaign/${newCampaignId}/send`, { method: "POST" });
 
         setTimeout(() => {
           navigate("/outreach/campaign/dashboard");
         }, Math.max(0, totalDuration + 500));
       } catch (err: any) {
-        setError(describeError(err, "Campaign launch failed. Please try again."));
+        const message = describeError(err, "Campaign launch failed. Please try again.");
+        // One paying user hit this screen about 20 times over two weeks and
+        // nothing recorded why. Every failure is now visible in PostHog.
+        capturePostHog("campaign_launch_failed", {
+          stage,
+          status: err?.status ?? null,
+          message,
+          candidate_id: candidateId,
+          email_account_id: emailAccountId,
+        });
+        setError(message);
       }
     };
 
