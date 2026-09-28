@@ -23,16 +23,6 @@ const DOJO_LINKS = [
   { to: "/dojos/ai-risk", label: "AI Risk Dojo", desc: "AI detection & rewriting", stat: "Free", color: "bg-rose-500", icon: <FiTarget /> },
 ];
 
-// Site navigation lives here rather than in the header.
-const NAV_LINKS = [
-  { to: "/", label: "Home" },
-  { to: "/cc", label: "Career Coach" },
-  { to: "/outreach", label: "Outreach" },
-  { to: "/about", label: "About" },
-  { to: "/blog", label: "Blog" },
-  { to: "/reports", label: "Reports" },
-];
-
 const SOCIAL_LINKS = [
   { 
     href: "https://www.linkedin.com/company/studojo/", 
@@ -318,21 +308,6 @@ export function Footer() {
             </div>
           </div>
         </div>
-
-        <nav
-          aria-label="Site"
-          className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-1 border-t border-gray-200 pt-6 md:gap-x-10 md:border-b md:border-t-0 md:border-stone-700 md:py-8"
-        >
-          {NAV_LINKS.map(({ to, label }) => (
-            <Link
-              key={label}
-              to={to}
-              className="inline-flex min-h-11 items-center font-['Satoshi'] text-sm font-medium leading-5 text-neutral-700 hover:underline md:min-h-0 md:text-lg md:leading-6 md:text-neutral-900"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
 
         <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-gray-200 pt-6 md:mt-8 md:flex-row md:border-0 md:pt-0">
           <p className="text-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:flex md:items-center md:gap-2 md:text-lg md:leading-6 md:text-neutral-900">
