@@ -1,334 +1,131 @@
-import { useState } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router";
-import { FiBookOpen, FiTarget, FiMail, FiMapPin } from "react-icons/fi";
-import { IoBriefcaseOutline } from "react-icons/io5";
-import { FaInstagram, FaWhatsapp } from "react-icons/fa6";
-import { SmoothLink } from "./smooth-link";
-import { FaLinkedin } from "react-icons/fa6";
+import { FaInstagram, FaLinkedin, FaWhatsapp } from "react-icons/fa6";
+import { FiUsers } from "react-icons/fi";
 
-const COMPANY_LINKS = [
-  { to: "/about", label: "About Us" },
-  { to: "/blog", label: "Blog" },
-];
+type FooterLink = {
+  to: string;
+  label: string;
+  icon?: ReactNode;
+  external?: boolean;
+};
 
-const RESOURCE_LINKS = [
-  { to: "/contact", label: "Help Center" },
-  { to: "https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol?mode=gi_t", label: "Community" },
-];
+const WHATSAPP_COMMUNITY = "https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol?mode=gi_t";
 
-const DOJO_LINKS = [
-  { to: "/outreach/onboarding/upload", label: "Outreach Dojo", desc: "Email hiring managers directly", color: "bg-violet-500", icon: <IoBriefcaseOutline /> },
-  { to: "/resume-maker", label: "Resume Maker", desc: "Build your career path", stat: "5k+ resumes", color: "bg-sky-500", icon: <FiBookOpen /> },
-  { to: "/dojos/internships", label: "Internship Dojo", desc: "Browse live internships & jobs", stat: "Free", color: "bg-emerald-500", icon: <IoBriefcaseOutline /> },
-  { to: "/dojos/ai-risk", label: "AI Risk Dojo", desc: "AI detection & rewriting", stat: "Free", color: "bg-rose-500", icon: <FiTarget /> },
-];
-
-const SOCIAL_LINKS = [
-  { 
-    href: "https://www.linkedin.com/company/studojo/", 
-    label: "LinkedIns", 
-    icon: <FaLinkedin />,
-    ariaLabel: "Follow us on LinkedIn"
+const COLUMNS: { heading: string; links: FooterLink[] }[] = [
+  {
+    heading: "Company",
+    links: [
+      { to: "/", label: "Home" },
+      { to: "/cc", label: "Career Coach" },
+      { to: "/about", label: "About" },
+      { to: "/blog", label: "Blog" },
+      { to: "/contact", label: "Contact" },
+    ],
   },
-  { 
-    href: "https://instagram.com/studojo", 
-    label: "Instagram", 
-    icon: <FaInstagram />,
-    ariaLabel: "Follow us on Instagram"
+  {
+    heading: "Resources",
+    links: [
+      { to: "/outreach", label: "Outreach" },
+      { to: "/dojos/internships", label: "Internship Dojo" },
+      { to: "/resume-maker", label: "Resume Maker" },
+      { to: "/reports", label: "Reports" },
+    ],
   },
-  { 
-    href: "https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol?mode=gi_t", 
-    label: "WhatsApp", 
-    icon: <FaWhatsapp />,
-    ariaLabel: "Join our WhatsApp group"
+  {
+    heading: "Community",
+    links: [
+      { to: "https://www.linkedin.com/company/studojo/", label: "LinkedIn", icon: <FaLinkedin />, external: true },
+      { to: "https://instagram.com/studojo", label: "Instagram", icon: <FaInstagram />, external: true },
+      { to: WHATSAPP_COMMUNITY, label: "WhatsApp", icon: <FaWhatsapp />, external: true },
+      { to: "/campus-ambassador", label: "Campus Ambassador", icon: <FiUsers /> },
+    ],
+  },
+  {
+    heading: "Legal",
+    links: [
+      { to: "/privacy", label: "Privacy Policy" },
+      { to: "/terms", label: "Terms of Service" },
+      { to: "/refund-policy", label: "Refund Policy" },
+    ],
   },
 ];
+
+const LINK_CLASS =
+  "inline-flex min-h-11 items-center gap-2 font-['Satoshi'] text-sm leading-5 text-neutral-900 hover:text-violet-600 md:min-h-0 md:text-base md:leading-6";
+
+function FooterItem({ to, label, icon, external }: FooterLink) {
+  const content = (
+    <>
+      {icon && <span className="text-lg text-neutral-700" aria-hidden>{icon}</span>}
+      <span>{label}</span>
+    </>
+  );
+  return external ? (
+    <a href={to} target="_blank" rel="noopener noreferrer" className={LINK_CLASS}>
+      {content}
+    </a>
+  ) : (
+    <Link to={to} className={LINK_CLASS}>
+      {content}
+    </Link>
+  );
+}
 
 export function Footer() {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setMessage(null);
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/newsletter", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "footer" }),
-        credentials: "include",
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage({ type: "success", text: data.message || "Successfully subscribed!" });
-        setEmail("");
-      } else {
-        setMessage({ type: "error", text: data.error || "Failed to subscribe. Please try again." });
-      }
-    } catch (error) {
-      setMessage({ type: "error", text: "Failed to subscribe. Please try again." });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <footer
       id="resources"
-      className="relative scroll-mt-24 overflow-hidden border-b border-neutral-900 bg-white"
+      className="relative scroll-mt-24 overflow-hidden border-t border-neutral-900 bg-white"
     >
-      <div className="relative mx-auto max-w-[var(--section-max-width)] px-4 pt-8 md:px-8 md:py-24">
-        <div className="flex flex-col gap-8 md:grid md:grid-cols-2 md:gap-16 lg:gap-12">
-          {/* Left: branding, newsletter, contact */}
-          <div className="flex flex-col gap-8 md:gap-12">
-            <div className="flex flex-col gap-4 md:gap-6">
-              <div>
-                <Link
-                  to="/"
-                  className="font-['Satoshi'] text-2xl font-black leading-9 tracking-tight text-neutral-900 md:text-3xl"
-                >
-                  studojo
-                </Link>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 rounded-2xl border border-gray-300 bg-white p-6 md:rounded-3xl md:border-black/20 md:bg-purple-50 md:gap-4 md:p-8">
-              <h3 className="font-['Clash_Display'] text-lg font-medium leading-7 text-neutral-950 md:text-2xl">
-                Join the Dojo
-              </h3>
-              <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700 md:text-base md:leading-6 md:text-neutral-900">
-                Get weekly wisdom, tips, and exclusive student insights
-              </p>
-              <form
-                className="flex flex-col gap-3 md:flex-row"
-                onSubmit={handleSubmit}
+      <div className="relative mx-auto max-w-[var(--section-max-width)] px-4 pt-10 md:px-8 md:pt-16">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[2fr_1fr_1fr_1fr_1fr] md:gap-x-8">
+          {/* Brand */}
+          <div className="col-span-2 flex flex-col justify-between gap-6 md:col-span-1">
+            <div className="flex flex-col gap-2">
+              <Link
+                to="/"
+                className="font-['Satoshi'] text-3xl font-black leading-9 tracking-tight text-neutral-900"
               >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your.email@university.edu"
-                  required
-                  disabled={loading}
-                  className="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal text-neutral-950/50 placeholder:text-neutral-950/50 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60 md:rounded-2xl md:border-stone-600 md:bg-white/50 md:text-neutral-900 md:placeholder:text-neutral-500"
-                />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="h-12 rounded-lg bg-violet-500 font-['Satoshi'] text-sm font-medium leading-5 text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] outline outline-[1.58px] outline-offset-[-1.58px] outline-neutral-900 transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none md:h-12 md:w-24 md:rounded-2xl md:text-base md:leading-6 md:shadow-none md:outline-none md:hover:translate-x-[2px] md:hover:translate-y-[2px] md:active:translate-x-[4px] md:active:translate-y-[4px]"
-                >
-                  {loading ? "..." : "Join"}
-                </button>
-              </form>
-              {message && (
-                <p
-                  className={`font-['Satoshi'] text-sm font-normal leading-5 ${
-                    message.type === "success"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {message.text}
-                </p>
-              )}
+                studojo
+              </Link>
+              <p className="font-['Satoshi'] text-sm leading-5 text-neutral-600 md:text-base md:leading-6">
+                We find people who can hire you, and get you replies.
+              </p>
+              <p className="font-['Satoshi'] text-sm leading-5 text-neutral-600 md:text-base md:leading-6">
+                admin@studojo.com · Bangalore, India
+              </p>
             </div>
-
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-violet-500" aria-hidden>
-                  <FiMail />
-                </span>
-                <span className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-950 md:text-base md:leading-6">
-                   admin@studojo.com
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-violet-500" aria-hidden>
-                  <FiMapPin />
-                </span>
-                <span className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-950 md:text-base md:leading-6">
-                  Bangalore, Karnataka, India
-                </span>
-              </div>
-            </div>
+            <p className="hidden font-['Satoshi'] text-sm leading-5 text-neutral-500 md:block">
+              © {new Date().getFullYear()} Studojo Labs Private Limited. Crafted with ❤️ by students.
+            </p>
           </div>
 
-          {/* Right: dojos, company, resources */}
-          <div className="flex flex-col gap-8">
-            <div className="hidden md:block">
-              <h3 className="font-['Satoshi'] text-2xl font-black leading-8 tracking-tight text-neutral-900">
-                Explore Our Dojos
+          {COLUMNS.map(({ heading, links }) => (
+            <div key={heading}>
+              <h3 className="font-['Satoshi'] text-xs font-bold uppercase tracking-wider text-neutral-900 md:text-sm">
+                {heading}
               </h3>
-              <ul className="mt-6 flex flex-col gap-6" role="list">
-                {DOJO_LINKS.map(({ to, label, desc, stat, color, icon, comingSoon }) => (
-                  <li key={label}>
-                    {comingSoon ? (
-                      <div className={`flex items-center justify-between rounded-2xl ${color} p-6 opacity-60 cursor-not-allowed`}>
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20" aria-hidden >
-                            <span className={`text-2xl text-white`}>
-                              {icon}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-['Clash_Display'] text-2xl font-medium leading-7 text-white">
-                              {label}
-                            </p>
-                            <p className="font-['Satoshi'] text-sm font-normal leading-5 text-white/80">
-                              {desc}
-                            </p>
-                            <p className="font-['Satoshi'] text-xs font-normal leading-4 text-white/60">
-                              Coming soon
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : to.startsWith("#") ? (
-                      <SmoothLink
-                        to={to}
-                        className={`flex items-center justify-between rounded-2xl ${color} p-6 transition opacity-90 hover:opacity-100`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20" aria-hidden >
-                            <span className={`text-2xl text-white`}>
-                              {icon}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-['Clash_Display'] text-2xl font-medium leading-7 text-white">
-                              {label}
-                            </p>
-                            <p className="font-['Satoshi'] text-sm font-normal leading-5 text-white/80">
-                              {desc}
-                            </p>
-                            {stat && (
-                              <p className="font-['Satoshi'] text-xs font-normal leading-4 text-white/60">
-                                {stat}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <span className="text-white" aria-hidden>→</span>
-                      </SmoothLink>
-                    ) : (
-                      <Link
-                        to={to}
-                        className={`flex items-center justify-between rounded-2xl ${color} p-6 transition opacity-90 hover:opacity-100`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20" aria-hidden >
-                            <span className={`text-2xl text-white`}>
-                              {icon}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-['Clash_Display'] text-2xl font-medium leading-7 text-white">
-                              {label}
-                            </p>
-                            <p className="font-['Satoshi'] text-sm font-normal leading-5 text-white/80">
-                              {desc}
-                            </p>
-                            {stat && (
-                              <p className="font-['Satoshi'] text-xs font-normal leading-4 text-white/60">
-                                {stat}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <span className="text-white" aria-hidden>→</span>
-                      </Link>
-                    )}
+              <ul className="mt-3 flex flex-col md:mt-5 md:gap-4" role="list">
+                {links.map((link) => (
+                  <li key={link.label}>
+                    <FooterItem {...link} />
                   </li>
                 ))}
               </ul>
             </div>
-
-            <div className="grid grid-cols-2 gap-8 md:gap-8">
-              <div>
-                <h3 className="font-['Satoshi'] text-xs font-medium leading-4 text-neutral-900 md:text-base md:font-black md:leading-6">
-                  Company
-                </h3>
-                <ul className="mt-3 flex flex-col gap-2 md:mt-4 md:gap-3" role="list">
-                  {COMPANY_LINKS.map(({ to, label }) => (
-                    <li key={label}>
-                      <Link
-                        to={to}
-                        className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
-                      >
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 className="font-['Satoshi'] text-xs font-medium leading-4 text-neutral-900 md:text-base md:font-black md:leading-6">
-                  Help Center
-                </h3>
-                <ul className="mt-3 flex flex-col gap-2 md:mt-4 md:gap-3" role="list">
-                  {RESOURCE_LINKS.map(({ to, label }) => (
-                    <li key={label}>
-                      <Link
-                        to={to}
-                        className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-base md:leading-6 md:text-neutral-900 hover:underline"
-                      >
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
-        <div className="mt-8 flex flex-col gap-4 border-t border-gray-200 pt-6 md:mt-16 md:border-y md:border-stone-700 md:py-12">
-          <div className="flex flex-col items-center gap-4 text-center md:items-center">
-            <p className="font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:text-base md:leading-6 md:text-neutral-900">
-              Connect with thousands of students reaching their journey
-            </p>
-            <div className="flex gap-3 md:gap-4">
-              {SOCIAL_LINKS.map(({ href, label, icon, ariaLabel }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-purple-100 text-violet-500 transition hover:bg-purple-200 md:h-14 md:w-14 md:rounded-2xl md:bg-purple-300 md:text-white md:hover:bg-purple-400"
-                  aria-label={ariaLabel}
-                >
-                  <span className="text-xl">{icon}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-gray-200 pt-6 md:mt-8 md:flex-row md:border-0 md:pt-0">
-          <p className="text-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:flex md:items-center md:gap-2 md:text-lg md:leading-6 md:text-neutral-900">
-            © 2025 Studojo. Crafted with ❤️ by students
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 md:gap-8">
-            <Link to="/privacy" className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
-              Privacy Policy
-            </Link>
-            <Link to="/terms" className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
-              Terms of Service
-            </Link>
-            <Link to="/refund-policy" className="inline-flex min-h-11 min-w-11 items-center font-['Satoshi'] text-xs font-normal leading-4 text-neutral-700 md:min-h-0 md:min-w-0 md:text-lg md:leading-5 md:text-neutral-900 hover:underline">
-              Refund Policy
-            </Link>
-          </div>
-        </div>
+        {/* On desktop the copyright sits in the brand column. */}
+        <p className="mt-10 border-t border-neutral-200 py-6 text-center font-['Satoshi'] text-xs leading-4 text-neutral-500 md:hidden">
+          © {new Date().getFullYear()} Studojo Labs Private Limited. Crafted with ❤️ by students.
+        </p>
+        <div className="hidden md:block md:h-16" />
       </div>
 
       {/* Massive studojo text at bottom */}
-      <div className="relative flex w-full items-center justify-center overflow-hidden px-2 pb-4 pt-8 md:px-0 md:pb-8 md:pt-16">
+      <div className="relative flex w-full items-center justify-center overflow-hidden px-2 pb-4 pt-4 md:px-0 md:pb-8 md:pt-8">
         <span
           className="pointer-events-none select-none whitespace-nowrap font-['Clash_Display'] font-semibold leading-[0.6] tracking-tight text-purple-50 text-[clamp(72px,22vw,180px)] md:text-[min(356px,40vw)]"
           aria-hidden
