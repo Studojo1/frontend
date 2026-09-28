@@ -33,6 +33,16 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
     ],
   },
   {
+    // B2B: Sensei, our hiring-intelligence product for companies.
+    heading: "For Business",
+    links: [
+      { to: "https://sensei.studojo.com/", label: "Sensei", external: true },
+      { to: "https://sensei.studojo.com/#how", label: "How it works", external: true },
+      { to: "https://sensei.studojo.com/#book", label: "Book a demo", external: true },
+      { to: "https://app.studojo.com", label: "Sign in", external: true },
+    ],
+  },
+  {
     heading: "Community",
     links: [
       { to: "https://www.linkedin.com/company/studojo/", label: "LinkedIn", icon: <FaLinkedin />, external: true },
@@ -79,7 +89,7 @@ export function Footer() {
       className="relative scroll-mt-24 overflow-hidden border-t border-neutral-900 bg-white"
     >
       <div className="relative mx-auto max-w-[var(--section-max-width)] px-4 pt-10 md:px-8 md:pt-16">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[2fr_1fr_1fr_1fr_1fr] md:gap-x-8">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[1.6fr_repeat(5,minmax(0,1fr))] md:gap-x-8">
           {/* Brand */}
           <div className="col-span-2 flex flex-col justify-between gap-6 md:col-span-1">
             <div className="flex flex-col gap-2">
