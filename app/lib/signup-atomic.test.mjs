@@ -64,6 +64,34 @@ if (!process.env.DATABASE_URL) {
   const leftOn = await signUpWithFailingPassword(true, `on-${stamp}@example.test`);
   check(leftOn === 0, "with transactions ON a failed sign-up leaves no user behind", `user rows left: ${leftOn}`);
 
+  // Google sign-up takes a different route (createOAuthUser: user row, then
+  // the google account row) under the same transaction wrapper.
+  const oauthWithFailingAccount = async (transaction, email) => {
+    const auth = betterAuth({
+      secret: "test-secret-test-secret-test-secret-00",
+      baseURL: "http://localhost:3000",
+      database: drizzleAdapter(db, { provider: "pg", schema: tables, transaction }),
+      emailAndPassword: { enabled: true },
+      databaseHooks: {
+        account: { create: { before: async () => { throw new Error("google account write failed"); } } },
+      },
+      logger: { disabled: true },
+    });
+    const ctx = await auth.$context;
+    try {
+      await ctx.internalAdapter.createOAuthUser(
+        { email, name: "G", emailVerified: true },
+        { providerId: "google", accountId: `g-${email}`, accessToken: "x" },
+      );
+    } catch {}
+    const rows = await db.select().from(schema.user).where(eq(schema.user.email, email));
+    return rows.length;
+  };
+  const gOff = await oauthWithFailingAccount(false, `g-off-${stamp}@example.test`);
+  check(gOff === 1, "control: Google sign-up with transactions OFF also strands the user", `user rows left: ${gOff}`);
+  const gOn = await oauthWithFailingAccount(true, `g-on-${stamp}@example.test`);
+  check(gOn === 0, "Google sign-up with transactions ON leaves no user behind", `user rows left: ${gOn}`);
+
   // And a normal sign-up still works, leaving a user WITH a login.
   const auth = betterAuth({
     secret: "test-secret-test-secret-test-secret-00",
