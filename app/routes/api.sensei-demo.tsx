@@ -1,4 +1,5 @@
 import { saveSenseiDemoRequest } from "~/lib/sensei-demo.server";
+import { getEmailerServiceUrl } from "~/lib/emailer";
 import type { Route } from "./+types/api.sensei-demo";
 
 const FREE_MAIL = new Set([
@@ -61,6 +62,31 @@ export async function action({ request }: Route.ActionArgs) {
       { status: 500 },
     );
   }
+
+  // Tell the founders. Fire-and-forget: the request is already saved, so an
+  // emailer hiccup must never turn a real lead into an error for the prospect.
+  // Recipients are fixed inside the emailer, not chosen here.
+  const note = String(body?.note || "").trim().slice(0, 2000);
+  const topic = (note.match(/^\[([^\]]{1,60})\]/) || [])[1] || "";
+  fetch(`${getEmailerServiceUrl()}/v1/email/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      routing_key: "event.sensei.contact",
+      event: {
+        name,
+        email: workEmail,
+        organisation,
+        topic,
+        team_size: String(body?.cohortSize || "").trim(),
+        message: topic ? note.slice(topic.length + 2).trim() : note,
+        source: String(body?.source || "sensei-page").slice(0, 60),
+      },
+    }),
+    signal: AbortSignal.timeout(8000),
+  })
+    .then((r) => { if (!r.ok) console.error("[sensei-demo] notify failed", r.status); })
+    .catch((e) => console.error("[sensei-demo] notify error", e));
 
   return Response.json({ ok: true });
 }
