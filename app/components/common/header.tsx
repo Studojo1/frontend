@@ -6,6 +6,36 @@ import { authClient } from "~/lib/auth-client";
 import { clearTokenCache } from "~/lib/control-plane";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { resetPostHog } from "~/lib/posthog";
+import { SmoothLink } from "./smooth-link";
+
+const NAV_LINKS = [
+  { to: "/", label: "Home", active: true },
+  { to: "/outreach", label: "Outreach" },
+  { to: "/about", label: "About" },
+] as const;
+
+const RESOURCES_LINKS = [
+  {
+    to: "/blog",
+    label: "Blog",
+    desc: "Career tips, internship & job search guides, student insights",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h6" />
+      </svg>
+    ),
+  },
+  {
+    to: "/reports",
+    label: "Reports",
+    desc: "Data-driven market analyses for students",
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+  },
+];
 
 const USER_LINKS = [
   { to: "/profile", label: "My Profile" },
@@ -16,7 +46,9 @@ export function Header() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const resourcesRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   const { data: session, isPending } = authClient.useSession();
@@ -60,16 +92,19 @@ export function Header() {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setUserMenuOpen(false);
       }
+      if (resourcesRef.current && !resourcesRef.current.contains(event.target as Node)) {
+        setResourcesOpen(false);
+      }
     };
 
-    if (userMenuOpen) {
+    if (userMenuOpen || resourcesOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [userMenuOpen]);
+  }, [userMenuOpen, resourcesOpen]);
 
   return (
     <motion.header
@@ -85,6 +120,69 @@ export function Header() {
         >
           studojo
         </Link>
+
+        <nav className="hidden items-center gap-8 md:flex" aria-label="Main">
+          {NAV_LINKS.filter((link) => {
+            return !link.to.startsWith("#") || isHomePage;
+          }).map((link) => {
+            const LinkComponent = link.to.startsWith("#") ? SmoothLink : Link;
+            return (
+              <LinkComponent
+                key={link.label}
+                to={link.to}
+                className={`font-['Satoshi'] text-base leading-6 ${
+                  "active" in link && link.active
+                    ? "font-black text-neutral-700"
+                    : "font-normal text-neutral-700"
+                }`}
+              >
+                {link.label}
+              </LinkComponent>
+            );
+          })}
+
+          {/* Resources dropdown */}
+          <div className="relative" ref={resourcesRef}>
+            <button
+              type="button"
+              onClick={() => setResourcesOpen((o) => !o)}
+              className="flex items-center gap-1 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700 hover:text-neutral-900"
+            >
+              Resources
+              <svg
+                className={`h-4 w-4 transition-transform ${resourcesOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {resourcesOpen && (
+              <div className="absolute left-0 top-full mt-3 w-72 rounded-2xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] z-50">
+                <div className="p-2">
+                  {RESOURCES_LINKS.map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setResourcesOpen(false)}
+                      className="flex items-start gap-3 rounded-xl px-3 py-3 hover:bg-neutral-50 group"
+                    >
+                      <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 border-neutral-900 bg-violet-500 text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <div className="font-['Satoshi'] text-sm font-semibold text-neutral-900">{item.label}</div>
+                        <div className="font-['Satoshi'] text-xs text-neutral-500 leading-snug mt-0.5">{item.desc}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </nav>
 
         <div className="flex items-center gap-4">
           {!isPending &&
@@ -264,6 +362,22 @@ export function Header() {
           aria-label="Mobile menu"
         >
           <ul className="flex flex-col gap-2">
+            {NAV_LINKS.filter((link) => {
+              return !link.to.startsWith("#") || isHomePage;
+            }).map(({ to, label }) => {
+              const LinkComponent = to.startsWith("#") ? SmoothLink : Link;
+              return (
+                <li key={label}>
+                  <LinkComponent
+                    to={to}
+                    onClick={() => setMobileOpen(false)}
+                    className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                  >
+                    {label}
+                  </LinkComponent>
+                </li>
+              );
+            })}
             <li>
               {/* The chat used to be a bubble floating over the page, where it
                   covered form fields and submit buttons on small screens. On
@@ -278,6 +392,24 @@ export function Header() {
               >
                 Help &amp; support
               </button>
+            </li>
+            <li>
+              <Link
+                to="/blog"
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+              >
+                Blog
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/reports"
+                onClick={() => setMobileOpen(false)}
+                className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+              >
+                Reports
+              </Link>
             </li>
             {!isPending &&
               (session ? (

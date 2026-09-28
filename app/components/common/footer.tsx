@@ -19,6 +19,7 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
     heading: "Company",
     links: [
       { to: "/", label: "Home" },
+      { to: "/cc", label: "Career Coach" },
       { to: "/about", label: "About" },
       { to: "/blog", label: "Blog" },
       { to: "/contact", label: "Contact" },
