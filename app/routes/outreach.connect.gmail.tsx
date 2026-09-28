@@ -70,7 +70,11 @@ export default function GmailConnectPage() {
     const errorMsg = searchParams.get("message");
 
     if (status === "error") {
-      showPermissionError(errorMsg === "invalid_state" ? "This Gmail link expired. Please connect again." : errorMsg);
+      const friendly: Record<string, string> = {
+        invalid_state: "This Gmail link expired. Please connect again.",
+        cancelled: "You cancelled Google's permission screen. Tap Connect Gmail to try again.",
+      };
+      showPermissionError((errorMsg && friendly[errorMsg]) || errorMsg);
       setHandled(true);
       return;
     }
