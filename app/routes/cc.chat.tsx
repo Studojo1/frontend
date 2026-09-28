@@ -542,7 +542,7 @@ function renderBubbleText(text: string) {
 
   const urlRe = /(https?:\/\/[^\s)]+)/g;
   const parts = t.split(urlRe);
-  const rendered: JSX.Element[] = parts.map((part, i) =>
+  const rendered: React.JSX.Element[] = parts.map((part, i) =>
     urlRe.test(part)
       ? <a key={i} href={part} target="_blank" rel="noopener noreferrer">{part}</a>
       : <span key={i}>{part}</span>

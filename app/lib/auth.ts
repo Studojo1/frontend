@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { createAuthMiddleware, APIError } from "better-auth/api";
+import { createAuthMiddleware, APIError, getSessionFromCtx } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import {
   admin,
@@ -220,20 +220,23 @@ export const auth = betterAuth({
         await clearVerificationSid(phoneNumberValue);
 
         // Get the current session if available
+        // ctx.context.session is { session, user }. This read session.userId,
+        // which does not exist, so it was always undefined and every call fell
+        // through to a second session lookup below.
         let session = ctx.context?.session;
-        let userId: string | undefined = session?.userId;
+        let userId: string | undefined = session?.user?.id;
 
         // If updatePhoneNumber is true, we need a session - try to get it using better-auth's API
         if (updatePhoneNumber && !userId) {
           try {
-            // Use better-auth's getSession API to retrieve session from request
-            const sessionResult = await auth.api.getSession({
-              headers: ctx.headers as Headers,
-            });
-            
+            // Read the session from the request. getSessionFromCtx rather than
+            // auth.api.getSession: this runs inside auth's own definition, and
+            // referring to `auth` here made TypeScript give up on its type.
+            const sessionResult = await getSessionFromCtx(ctx);
+
             if (sessionResult?.user) {
               userId = sessionResult.user.id;
-              session = sessionResult as any;
+              session = sessionResult;
             }
           } catch (error) {
             console.error("[auth] Failed to retrieve session:", error);
@@ -380,10 +383,9 @@ export const auth = betterAuth({
               userAgent = ctx.headers.get("user-agent") || "unknown";
             } else if (typeof ctx.headers === "object") {
               // Plain object
-              ipAddress = (ctx.headers["x-forwarded-for"] as string) || 
-                         (ctx.headers["x-real-ip"] as string) || 
-                         "unknown";
-              userAgent = (ctx.headers["user-agent"] as string) || "unknown";
+              const h = ctx.headers as unknown as Record<string, string | undefined>;
+              ipAddress = h["x-forwarded-for"] || h["x-real-ip"] || "unknown";
+              userAgent = h["user-agent"] || "unknown";
             }
           }
 

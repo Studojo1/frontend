@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, redirect } from "react-router";
 import {
   BackedBySection,
@@ -17,7 +17,7 @@ import { useLoaderData } from "react-router";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import BobPage from "./bob";
 import DashboardPage from "./dashboard";
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/_index";
 
 // app.studojo.* is the Sensei workspace and dashboard.studojo.* is the org
 // manager portal — each host's root IS that app, independent of the studojo.com
@@ -71,28 +71,20 @@ export function meta({ data }: Route.MetaArgs) {
   ];
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const sectionVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-    },
-  },
-};
+// On phones a Screen is at least one viewport tall (minus the sticky
+// header) with its main section's content centred; strips passed as
+// before/after sit at its edges. Desktop layout is unchanged.
+function Screen({ children, before, after }: { children: ReactNode; before?: ReactNode; after?: ReactNode }) {
+  return (
+    <div className="flex flex-col max-md:min-h-[calc(100svh-4rem)]">
+      {before}
+      <div className="flex flex-1 flex-col max-md:[&>section]:flex max-md:[&>section]:flex-1 max-md:[&>section]:flex-col max-md:[&>section]:justify-center max-md:[&>section>*]:w-full">
+        {children}
+      </div>
+      {after}
+    </div>
+  );
+}
 
 function AnnouncementBar() {
   return (
@@ -115,6 +107,9 @@ function InternshipPopup() {
 
   useEffect(() => {
     if (sessionStorage.getItem("outreach-popup-dismissed")) return;
+    // Not on phones: it opened mid-scroll and swallowed the tap meant for
+    // whatever button was under the user's finger.
+    if (window.matchMedia("(max-width: 767px)").matches) return;
     let fired = false;
     function onScroll() {
       if (fired) return;
@@ -202,39 +197,29 @@ export default function Home() {
       <AnnouncementBar />
       <Header />
       <InternshipPopup />
-      <motion.main
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div variants={sectionVariants}>
+      {/* Each block below fills one phone screen (under the sticky header).
+          Content renders visible on the server, so links work before JS loads. */}
+      <main>
+        <Screen after={<CollegesBanner />}>
           <Hero />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <CollegesBanner />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
+        </Screen>
+        <Screen>
           <StepsSection />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
+        </Screen>
+        <Screen>
           <ProblemSolution />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <TrustStrip />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
+        </Screen>
+        <Screen before={<TrustStrip />}>
           <FeaturedProductCard />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
+        </Screen>
+        <Screen>
           <BackedBySection />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
+        </Screen>
+        <Screen>
           <CTABanner />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <Footer />
-        </motion.div>
-      </motion.main>
+        </Screen>
+        <Footer />
+      </main>
     </>
   );
 }

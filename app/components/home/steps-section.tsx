@@ -38,11 +38,11 @@ export function StepsSection() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-8 md:grid md:grid-cols-3">
+        <div className="flex flex-col gap-4 pr-1 md:grid md:grid-cols-3 md:gap-8 md:pr-0">
           {STEPS.map(({ num, circleClass, title, description }) => (
             <div
               key={num}
-              className="flex flex-col gap-4 rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:rounded-[40px] md:p-8 md:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+              className="flex flex-row items-start gap-4 rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:flex-col md:rounded-[40px] md:p-8 md:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
             >
               <div
                 className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 ${circleClass} font-['Satoshi'] text-xl font-black leading-8 tracking-tight text-neutral-900 md:h-16 md:w-16 md:text-2xl`}
@@ -50,12 +50,14 @@ export function StepsSection() {
               >
                 {num}
               </div>
-              <h3 className="font-['Clash_Display'] text-lg font-medium leading-7 text-neutral-900 md:text-2xl">
-                {title}
-              </h3>
-              <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700 md:text-base md:leading-6 md:max-w-[14rem]">
-                {description}
-              </p>
+              <div className="flex flex-col gap-1 md:gap-4">
+                <h3 className="font-['Clash_Display'] text-lg font-medium leading-7 text-neutral-900 md:text-2xl">
+                  {title}
+                </h3>
+                <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700 md:text-base md:leading-6 md:max-w-[14rem]">
+                  {description}
+                </p>
+              </div>
             </div>
           ))}
         </div>

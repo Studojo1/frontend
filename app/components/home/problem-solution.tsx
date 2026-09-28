@@ -35,7 +35,7 @@ export function ProblemSolution() {
   return (
     <section className="border-b border-neutral-900 bg-white px-4 pt-8 pb-8 md:px-8 md:pt-24 md:pb-16">
       <div className="mx-auto max-w-[var(--section-max-width)]">
-        <div className="mb-8 text-center md:mb-14">
+        <div className="mb-6 text-center md:mb-14">
           <h2 className="font-['Clash_Display'] text-3xl font-medium leading-8 text-neutral-900 md:text-4xl lg:text-5xl">
             The portal game is{" "}
             <span className="inline-flex items-center rounded-2xl border-2 border-neutral-900 bg-red-200 px-3 py-0.5 align-middle font-['Clash_Display'] text-3xl font-medium leading-none text-neutral-900 md:text-4xl lg:text-5xl">
@@ -47,9 +47,9 @@ export function ProblemSolution() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
           {/* Bad — The old way */}
-          <div className="flex flex-col gap-4 rounded-[32px] border-2 border-red-200 bg-red-50 p-6 md:rounded-[45px] md:p-8">
+          <div className="flex flex-col gap-3 rounded-[28px] border-2 border-red-200 bg-red-50 p-5 md:gap-4 md:rounded-[45px] md:p-8">
             <div className="inline-flex items-center gap-2">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-red-300 bg-red-100 text-red-500">
                 <XIcon />
@@ -58,9 +58,9 @@ export function ProblemSolution() {
                 The old way
               </span>
             </div>
-            <ul className="flex flex-col gap-3" role="list">
+            <ul className="flex flex-col gap-2 md:gap-3" role="list">
               {BAD_ITEMS.map((item) => (
-                <li key={item} className="flex items-center gap-3 font-['Satoshi'] text-base font-normal leading-6 text-red-800 md:text-lg">
+                <li key={item} className="flex items-center gap-3 font-['Satoshi'] text-sm font-normal leading-6 text-red-800 md:text-lg">
                   <span className="shrink-0 text-red-400">
                     <XIcon />
                   </span>
@@ -71,7 +71,7 @@ export function ProblemSolution() {
           </div>
 
           {/* Good — The Studojo way */}
-          <div className="flex flex-col gap-4 rounded-[32px] border-2 border-neutral-900 bg-violet-500 p-6 shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:p-8">
+          <div className="flex flex-col gap-3 rounded-[28px] border-2 border-neutral-900 bg-violet-500 p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:p-8">
             <div className="inline-flex items-center gap-2">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/40 bg-white/20 text-white">
                 <CheckIcon />
@@ -80,9 +80,9 @@ export function ProblemSolution() {
                 The Studojo way
               </span>
             </div>
-            <ul className="flex flex-col gap-3" role="list">
+            <ul className="flex flex-col gap-2 md:gap-3" role="list">
               {GOOD_ITEMS.map((item) => (
-                <li key={item} className="flex items-center gap-3 font-['Satoshi'] text-base font-medium leading-6 text-white md:text-lg">
+                <li key={item} className="flex items-center gap-3 font-['Satoshi'] text-sm font-medium leading-6 text-white md:text-lg">
                   <span className="shrink-0 text-emerald-300">
                     <CheckIcon />
                   </span>
@@ -93,7 +93,7 @@ export function ProblemSolution() {
           </div>
         </div>
 
-        <div className="mt-8 flex justify-center md:mt-10">
+        <div className="mt-6 flex justify-center md:mt-10">
           <Link
             to="/outreach/onboarding/upload"
             className="inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-neutral-900 bg-violet-500 px-8 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"

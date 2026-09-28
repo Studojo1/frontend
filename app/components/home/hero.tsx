@@ -6,7 +6,7 @@ import { FiArrowRight, FiMail, FiUser, FiMessageSquare } from "react-icons/fi";
 export function Hero() {
   return (
     <section className="border-b border-neutral-900 bg-purple-50">
-      <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col gap-10 px-4 pt-8 pb-8 md:flex-row md:items-center md:justify-between md:gap-16 md:px-8 md:py-20">
+      <div className="mx-auto flex max-w-[var(--section-max-width)] flex-col gap-10 px-4 py-10 md:flex-row md:items-center md:justify-between md:gap-16 md:px-8 md:py-20">
 
         {/* Left: copy */}
         <div className="flex flex-col gap-5 md:max-w-lg md:gap-7 lg:max-w-xl">
