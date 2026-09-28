@@ -125,6 +125,18 @@ export interface CampaignMetrics {
   reply_rate: number;
   total_leads?: number;
   sent_count?: number;
+  // Post-payment audit wave 4 (job-outreach-svc get_campaign_metrics)
+  emails_skipped_no_email?: number;
+  emails_failed_other?: number;
+  first_touch_total?: number;
+  first_touch_delivered?: number;
+  last_sent_at?: string | null;
+  daily_limit?: number;
+  paused_at?: string | null;
+  paused_by?: string | null;
+  pause_reason?: string | null;
+  credits_reserved?: number | null;
+  credits_released?: number;
 }
 
 // ── Pricing / Tiers ──────────────────────────────────────────────────

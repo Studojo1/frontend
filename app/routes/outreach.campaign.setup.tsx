@@ -69,7 +69,7 @@ export default function CampaignSetupPage() {
   const [testLaunching, setTestLaunching] = useState(false);
 
   const safeSettings = [
-    { icon: <FiMail className="w-4 h-4" />, label: "Daily limit", value: "5-7 emails/day" },
+    { icon: <FiMail className="w-4 h-4" />, label: "Daily limit", value: "Up to 20 emails/day" },
     { icon: <FiClock className="w-4 h-4" />, label: "Sending hours", value: "9 AM - 6 PM" },
     { icon: <FiZap className="w-4 h-4" />, label: "Gap between emails", value: "40-90 minutes (randomized)" },
     { icon: <FiShield className="w-4 h-4" />, label: "First email", value: "Within 3 minutes of launch" },
