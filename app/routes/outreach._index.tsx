@@ -6,6 +6,7 @@ import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard, FiChevronDown, F
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TrustStrip } from "~/components";
+import { useNextStep, isPaidNotLaunched, nextStepLabel } from "~/lib/outreach/hooks";
 
 const STEPS = [
   {
@@ -186,6 +187,20 @@ export default function OutreachLanding() {
   const { data: session, isPending } = authClient.useSession();
   const showMyCampaigns = !isPending && !!session;
 
+  // A signed-in user who has paid and not launched must never be sent back to
+  // resume upload from here. One who paid Rs 3,465 followed "Find My Hiring
+  // Managers" and re-uploaded her resume three times without reaching Launch.
+  const nextStep = useNextStep();
+  const paidNotLaunched = isPaidNotLaunched(nextStep) ? nextStep : null;
+  const primaryCta = paidNotLaunched
+    ? {
+        label: nextStepLabel(paidNotLaunched),
+        to: `/outreach${paidNotLaunched.path}`,
+      }
+    : nextStep?.state === "campaign_active"
+      ? { label: "Go to my campaign", to: "/outreach/campaign/dashboard" }
+      : { label: "Find My Hiring Managers", to: "/outreach/onboarding/upload" };
+
   // Ad traffic lands here. This is the audience the retargeting campaigns are
   // built from, so it needs its own event rather than a bare PageView.
   useEffect(() => {
@@ -210,12 +225,19 @@ export default function OutreachLanding() {
             <p className="max-w-xl font-satoshi text-sm font-normal leading-6 text-white/90 md:text-base md:leading-7">
               Upload your resume. We find who can actually hire you, write a personal email, and send it from your Gmail. Most students get their first reply within a week.
             </p>
+            {paidNotLaunched && (
+              <p className="max-w-xl font-satoshi text-sm font-semibold text-white">
+                {paidNotLaunched.state === "launch_draft"
+                  ? "Your campaign is set up but hasn't started. Nothing has been sent yet."
+                  : `You've paid and ${paidNotLaunched.available_credits} email credits are waiting. Nothing has been sent yet.`}
+              </p>
+            )}
             <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
               <button
-                onClick={() => navigate("/outreach/onboarding/upload")}
+                onClick={() => navigate(primaryCta.to)}
                 className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-white text-studojo-ink font-satoshi font-bold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
               >
-                Find My Hiring Managers <FiArrowRight className="w-5 h-5 ml-2" />
+                {primaryCta.label} <FiArrowRight className="w-5 h-5 ml-2" />
               </button>
               {showMyCampaigns && (
                 <button
@@ -355,10 +377,10 @@ export default function OutreachLanding() {
             Takes 2 minutes to set up. Most students get their first reply within a week.
           </p>
           <button
-            onClick={() => navigate("/outreach/onboarding/upload")}
+            onClick={() => navigate(primaryCta.to)}
             className="inline-flex items-center justify-center h-14 px-8 rounded-2xl bg-white text-studojo-ink font-satoshi font-bold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
           >
-            Find My Hiring Managers <FiArrowRight className="w-5 h-5 ml-2" />
+            {primaryCta.label} <FiArrowRight className="w-5 h-5 ml-2" />
           </button>
           <p className="font-satoshi text-xs text-white/50 mt-4">From ₹1,825 for 200 outreaches. One-time payment. No subscriptions.</p>
         </div>
