@@ -8,7 +8,7 @@
     "dev": "react-router dev",
     "generate:example-previews": "tsx ../../scripts/generate-example-previews.ts",
     "generate:template-previews": "tsx ../../scripts/generate-template-previews.ts",
-    "lint": "npx --yes oxlint@1.85.0 app/",
+    "lint": "npx --yes oxlint@1.85.0 --deny-warnings app/",
     "seed:examples": "tsx ../../scripts/seed-resume-examples.ts",
     "setup:examples": "../../scripts/setup-resume-examples.sh",
     "start": "react-router-serve ./build/server/index.js",

@@ -2,8 +2,7 @@ import { describeError } from "~/lib/error-detail";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  FiArrowLeft, FiCheck, FiCornerDownLeft, FiExternalLink, FiLinkedin,
-  FiMessageCircle, FiRefreshCw, FiSearch, FiUser,
+  FiArrowLeft, FiCheck, FiCornerDownLeft, FiExternalLink, FiMessageCircle, FiRefreshCw, FiSearch,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";

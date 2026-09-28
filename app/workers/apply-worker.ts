@@ -8,7 +8,7 @@ import { decrypt } from "~/lib/encrypt.server";
 import { buildProxy } from "~/lib/proxy.server";
 import { pauseUser, logEvent, getWarmupLimit } from "./safety-manager";
 import { answerQuestion } from "./prescreen";
-import { blockHeavyResources, withWatchdog, humanTypeLocator, jitter as jitterMs } from "./browser-utils";
+import { blockHeavyResources, withWatchdog, jitter as jitterMs } from "./browser-utils";
 
 let chromiumModule: any = null;
 async function getChromium() {

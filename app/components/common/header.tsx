@@ -37,11 +37,6 @@ const RESOURCES_LINKS = [
   },
 ];
 
-const USER_LINKS = [
-  { to: "/profile", label: "My Profile" },
-  { to: "/settings", label: "Settings" },
-] as const;
-
 export function Header() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);

@@ -42,11 +42,8 @@ function initCharts() {
   const VIO = "#8b5cf6";
   const VIO2 = "#a78bfa";
   const VIO3 = "#c4b5fd";
-  const GREEN = "#10b981";
   const RED = "#ef4444";
-  const AMBER = "#f59e0b";
   const MUTED = "#737373";
-  const INK = "#171717";
   const grid = { color: "#f0f0ee", lineWidth: 1 };
 
   function make(id: string, config: any) {

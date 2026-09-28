@@ -176,7 +176,7 @@ function DashGate({ onSuccess }: { onSuccess: () => void }) {
             ? "Enter your email and we'll send you a link to set a new password."
             : "Sign in with your manager email and password to see your team's activity."}
         </p>
-        <form onSubmit={(e) => { e.preventDefault(); forgot ? submitForgot() : submit(); }}>
+        <form onSubmit={(e) => { e.preventDefault(); if (forgot) submitForgot(); else submit(); }}>
         <input
           ref={emailRef} name="username" autoComplete="username"
           autoCapitalize="none" autoCorrect="off" spellCheck={false}
@@ -586,7 +586,7 @@ function AgentPanel({ card, orgName }: { card: string; orgName: string }) {
     const res = await fetch("/api/sensei/mcp-key", {
       method,
       headers: { "Content-Type": "application/json", ...authHeaders() },
-      body: body ? JSON.stringify(body) : undefined,
+      ...(body ? { body: JSON.stringify(body) } : {}),
     });
     const d = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(d?.message || d?.error || `Request failed (${res.status})`);

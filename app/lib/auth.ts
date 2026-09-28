@@ -156,24 +156,10 @@ export const auth = betterAuth({
 
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
-      // Intercept phone number send OTP endpoint to check uniqueness
-      if (ctx.path === "/phone-number/send-otp") {
-        const phoneNumberValue = ctx.body?.phoneNumber as string | undefined;
-        
-        if (phoneNumberValue) {
-          // Check if phone number is already registered
-          const existingUser = await db
-            .select()
-            .from(schema.user)
-            .where(eq(schema.user.phoneNumber, phoneNumberValue))
-            .limit(1)
-            .then((users) => users[0]);
-
-          // If phone number exists and user is trying to sign up (not updating), warn them
-          // Note: We allow OTP to be sent even if phone exists, as they might be signing in
-          // The actual uniqueness check happens during verification/registration
-        }
-      }
+      // /phone-number/send-otp is not intercepted: OTP is sent even if the
+      // phone is already registered (they may be signing in), and uniqueness
+      // is enforced at /phone-number/verify below. A lookup used to run here
+      // and discard its result.
 
       // Intercept phone number verification endpoint to use Twilio Verify API
       if (ctx.path === "/phone-number/verify") {

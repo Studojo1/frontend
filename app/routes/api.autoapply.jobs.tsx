@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
 import db from "~/lib/db";
-import { autoapplyJobs, autoapplyConfigs } from "../../auth-schema";
+import { autoapplyJobs } from "../../auth-schema";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/api.autoapply.jobs";
 

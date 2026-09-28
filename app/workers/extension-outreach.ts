@@ -59,7 +59,7 @@ function normaliseLinkedInUrl(raw?: string): string | null {
   if (!raw) return null;
   try {
     const u = new URL(raw.trim());
-    if (!/linkedin\.com$/.test(u.hostname.replace(/^www\./, ""))) return null;
+    if (!u.hostname.replace(/^www\./, "").endsWith("linkedin.com")) return null;
     return `https://www.linkedin.com${u.pathname.replace(/\/$/, "")}`;
   } catch {
     return null;

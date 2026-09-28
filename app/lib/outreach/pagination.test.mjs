@@ -6,7 +6,7 @@ import { pageWindow } from "./pagination.ts";
 let pass = 0, fail = 0;
 function eq(name, got, want) {
   const ok = JSON.stringify(got) === JSON.stringify(want);
-  ok ? pass++ : fail++;
+  if (ok) pass++; else fail++;
   if (!ok) console.error(`FAIL ${name}: got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
 }
 
@@ -25,7 +25,7 @@ for (let total = 1; total <= 45; total++) {
     const w = pageWindow(p, total);
     const ok = w.includes(p) && w.length === Math.min(7, total) && w[0] >= 1 && w[w.length - 1] <= total &&
       w.every((n, i) => i === 0 || n === w[i - 1] + 1);
-    ok ? pass++ : fail++;
+    if (ok) pass++; else fail++;
     if (!ok) console.error(`FAIL invariant page=${p} total=${total}: ${JSON.stringify(w)}`);
   }
 }

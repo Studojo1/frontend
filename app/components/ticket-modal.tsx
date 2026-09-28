@@ -160,7 +160,7 @@ export function TicketModal({
             filename: a.filename,
           })),
           context: {
-            ...(context || {}),
+            ...context,
             page_url:
               typeof window !== "undefined" ? window.location.href : null,
           },

@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { resumes, resumeVersions } from "../../auth-schema";

@@ -164,7 +164,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
   const context =
     clientContext || campaigns
-      ? { ...(clientContext as Record<string, unknown> | null ?? {}), ...(campaigns ? { campaigns } : {}) }
+      ? { ...(clientContext as Record<string, unknown> | null), ...(campaigns ? { campaigns } : {}) }
       : null;
 
   await ensureTicketTables();

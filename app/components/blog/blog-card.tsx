@@ -16,61 +16,6 @@ interface BlogCardProps {
   };
 }
 
-function normalizeImageUrl(url: string | undefined): string | undefined {
-  if (!url) return undefined;
-  
-  // If it's already a relative path starting with /api/images, return as is
-  if (url.startsWith("/api/images")) {
-    return url;
-  }
-  
-  // If it's an absolute URL, extract the path after the domain
-  try {
-    const urlObj = new URL(url);
-    // If it's from the same origin or a known CDN, use the pathname
-    if (urlObj.pathname.startsWith("/api/images")) {
-      return urlObj.pathname;
-    }
-    // If it contains blog-images in the path, construct the proper path
-    if (urlObj.pathname.includes("blog-images")) {
-      const pathMatch = urlObj.pathname.match(/\/api\/images\/blog-images\/.+/);
-      if (pathMatch) {
-        return pathMatch[0];
-      }
-      // Extract blog-images path from full URL
-      const blogImagesMatch = urlObj.pathname.match(/blog-images\/.+/);
-      if (blogImagesMatch) {
-        return `/api/images/${blogImagesMatch[0]}`;
-      }
-    }
-  } catch {
-    // If URL parsing fails, check if it's just a filename
-    // Check if it looks like a filename (starts with timestamp pattern or is just a filename)
-    // Pattern: timestamp-filename.ext or just filename.ext
-    const filenamePattern = /^(\d+-)?[^\/]+\.(png|jpg|jpeg|webp|gif)$/i;
-    if (filenamePattern.test(url) && !url.startsWith("/")) {
-      // It's just a filename, prepend the blog-images path
-      return `/api/images/blog-images/${url}`;
-    }
-    
-    // If it's already a relative path starting with /, return as is
-    if (url.startsWith("/")) {
-      return url;
-    }
-  }
-  
-  // Check if it's just a filename (not a URL and not starting with /)
-  // Pattern: timestamp-filename.ext or just filename.ext
-  const filenamePattern = /^(\d+-)?[^\/]+\.(png|jpg|jpeg|webp|gif)$/i;
-  if (filenamePattern.test(url) && !url.startsWith("/") && !url.includes("://")) {
-    // It's just a filename, prepend the blog-images path
-    return `/api/images/blog-images/${url}`;
-  }
-  
-  // Default: return as is (might be a relative path already)
-  return url;
-}
-
 export function BlogCard({ post }: BlogCardProps) {
   const posterUrl = `/api/blog-og/${post.slug}?v=3`;
 
