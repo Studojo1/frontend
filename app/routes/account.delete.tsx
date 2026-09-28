@@ -37,12 +37,13 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
     setDeleting(true);
     setError(null);
     try {
-      // No retries: once the first call succeeds the session is gone, and a
-      // retry would 401 and bounce to sign-in.
+      // One attempt, no retry: once the first call succeeds the session is
+      // gone, and a retry would 401 and bounce to sign-in. (fetchWithRetry's
+      // maxRetries counts attempts, so 0 would never send the request.)
       await outreachFetch("/account/delete", {
         method: "POST",
         body: JSON.stringify({ confirm }),
-        maxRetries: 0,
+        maxRetries: 1,
         timeout: 60_000,
       });
     } catch (err: any) {
