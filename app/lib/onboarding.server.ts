@@ -169,11 +169,14 @@ export async function checkAdminAccess(request: { headers: Headers }): Promise<b
     }
 
     // Get JWT token for control plane API
-    const authResponse = await auth.api.getAccessToken({
+    // getToken (jwt plugin) returns our JWT. This used getAccessToken, which is
+    // for an OAuth provider's token and throws 400 without a providerId, so it
+    // never returned anything.
+    const authResponse = await auth.api.getToken({
       headers: request.headers,
     });
-    
-    const token = (authResponse as any)?.token || (authResponse as any)?.accessToken || null;
+
+    const token = authResponse?.token || null;
     if (!token) {
       return false;
     }

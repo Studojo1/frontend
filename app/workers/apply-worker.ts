@@ -124,7 +124,7 @@ export async function applyToJob(jobId: string): Promise<{ status: string; error
 
     // Monitor for rate limiting
     let rateLimited = false;
-    page.on("response", async (response) => {
+    page.on("response", async (response: { status(): number; url(): string }) => {
       const status = response.status();
       const url = response.url();
       if (!url.includes("linkedin.com")) return;

@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
@@ -17,7 +17,7 @@ import { useLoaderData } from "react-router";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import BobPage from "./bob";
 import DashboardPage from "./dashboard";
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/_index";
 
 // app.studojo.* is the Sensei workspace and dashboard.studojo.* is the org
 // manager portal — each host's root IS that app, independent of the studojo.com
@@ -71,7 +71,7 @@ export function meta({ data }: Route.MetaArgs) {
   ];
 }
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -82,7 +82,7 @@ const containerVariants = {
   },
 };
 
-const sectionVariants = {
+const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,

@@ -16,11 +16,22 @@ const RESOURCE_LINKS = [
   { to: "https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol?mode=gi_t", label: "Community" },
 ];
 
-const DOJO_LINKS = [
+type DojoLink = {
+  to: string;
+  label: string;
+  desc: string;
+  color: string;
+  icon: React.ReactNode;
+  stat?: string;
+  // Renders the link greyed out with "Coming soon" instead of navigating.
+  comingSoon?: boolean;
+};
+
+const DOJO_LINKS: DojoLink[] = [
   { to: "/outreach/onboarding/upload", label: "Outreach Dojo", desc: "Email hiring managers directly", color: "bg-violet-500", icon: <IoBriefcaseOutline /> },
   { to: "/resume-maker", label: "Resume Maker", desc: "Build your career path", stat: "5k+ resumes", color: "bg-sky-500", icon: <FiBookOpen /> },
   { to: "/dojos/internships", label: "Internship Dojo", desc: "Browse live internships & jobs", stat: "Free", color: "bg-emerald-500", icon: <IoBriefcaseOutline /> },
-  { to: "/dojos/ai-risk", label: "AI Risk Dojo", desc: "AI detection & rewriting", stat: "Free", color: "bg-rose-500", icon: <FiTarget /> },
+  { to: "/dojos/ai-risk", label: "AI Risk Dojo", desc: "How likely AI is to replace your job", stat: "Free", color: "bg-rose-500", icon: <FiTarget /> },
 ];
 
 const SOCIAL_LINKS = [
