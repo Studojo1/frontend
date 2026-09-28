@@ -21,19 +21,56 @@ export default function GmailConnectPage() {
   const [needsReauth, setNeedsReauth] = useState(false);
   const [connectedEmail, setConnectedEmail] = useState("");
 
+  const showPermissionError = (msg: string | null) => {
+    if (msg === "missing_permissions" || msg === "missing_send_permission") {
+      setError(
+        'Google didn\'t grant all required permissions. On the Google sign-in screen, please TICK BOTH boxes — "Send email on your behalf" AND "Read your email" — before clicking Allow. We need read access to detect replies from leads.'
+      );
+    } else {
+      setError(msg || "Gmail connection failed. Please try again.");
+    }
+  };
+
+  // Google sends the user back via the API host, which cannot see their
+  // session, so it hands the one-time code here and this signed-in page
+  // finishes the connection. The backend only accepts it if this is the same
+  // user who started the flow.
+  useEffect(() => {
+    if (handled || authLoading) return;
+    const code = searchParams.get("gmail_code");
+    const state = searchParams.get("gmail_state");
+    if (!code || !state) return;
+    setHandled(true);
+    setConnecting(true);
+    // Drop the code from the address bar so a refresh cannot replay it.
+    navigate("/outreach/connect/gmail", { replace: true });
+    outreachFetch<{ email_account_id?: number; email_address?: string }>("/gmail/oauth/complete", {
+      method: "POST",
+      body: JSON.stringify({ code, state }),
+    })
+      .then((data) => {
+        const accountId = data?.email_account_id;
+        if (accountId) {
+          setEmailAccountId(accountId);
+          updateOrder({ status: "email_connected", email_account_id: accountId, log_entry: "Gmail account connected" });
+        }
+        setConnected(true);
+      })
+      .catch((err: any) => {
+        showPermissionError(err?.message || null);
+      })
+      .finally(() => setConnecting(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, handled, authLoading]);
+
   useEffect(() => {
     if (handled) return;
+    if (searchParams.get("gmail_code")) return; // handled above once auth is ready
     const status = searchParams.get("status");
     const errorMsg = searchParams.get("message");
 
     if (status === "error") {
-      if (errorMsg === "missing_permissions" || errorMsg === "missing_send_permission") {
-        setError(
-          'Google didn\'t grant all required permissions. On the Google sign-in screen, please TICK BOTH boxes — "Send email on your behalf" AND "Read your email" — before clicking Allow. We need read access to detect replies from leads.'
-        );
-      } else {
-        setError(errorMsg || "Gmail connection failed. Please try again.");
-      }
+      showPermissionError(errorMsg === "invalid_state" ? "This Gmail link expired. Please connect again." : errorMsg);
       setHandled(true);
       return;
     }
