@@ -68,11 +68,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     try {
       // Try to get token via Better Auth's internal API
       // The jwt() plugin should provide access to tokens
-      const tokenResult = await auth.api.getAccessToken({
+      // getToken (jwt plugin) returns our JWT; getAccessToken is for OAuth
+      
+      // provider tokens and threw 400 here on every call.
+      
+      const tokenResult = await auth.api.getToken({
         headers: request.headers,
       });
       
-      jwtToken = (tokenResult as any)?.token || (tokenResult as any)?.accessToken || null;
+      jwtToken = tokenResult?.token || null;
     } catch (e) {
       console.debug("Could not get token via getAccessToken:", e);
     }

@@ -76,49 +76,20 @@ export async function getToken(requestHeaders?: Headers, requestUrl?: string): P
     try {
       const { auth } = await import("~/lib/auth");
       
-      // Try getAccessToken first
       let token: string | null = null;
       let methodUsed: string | null = null;
-      
+
+      // The jwt plugin's getToken returns our JWT. This used to try
+      // getAccessToken twice first, which is for an OAuth provider's token and
+      // threw 400 on every call (no providerId), logging two warnings each time.
       try {
-        // Better Auth's getAccessToken may require a body parameter
-        // Pass an empty object if needed, or just headers
-        const tokenResult = await auth.api.getAccessToken({
-          headers: requestHeaders,
-          body: {}, // Some versions require a body parameter
-        } as any);
-        token = (tokenResult as any)?.token || (tokenResult as any)?.accessToken || null;
-        if (token) {
-          methodUsed = "getAccessToken (with body)";
-        }
+        const tokenResult = await auth.api.getToken({ headers: requestHeaders });
+        token = tokenResult?.token || null;
+        if (token) methodUsed = "auth.api.getToken";
       } catch (e: any) {
-        // Log detailed error information
-        console.warn("[getToken] getAccessToken (with body) failed:", {
-          message: e?.message,
-          body: e?.body,
-          stack: e?.stack,
-        });
-        
-        // If body parameter causes issues, try without it
-        if (e?.body?.message?.includes("body")) {
-          try {
-            const tokenResult = await auth.api.getAccessToken({
-              headers: requestHeaders,
-            } as any);
-            token = (tokenResult as any)?.token || (tokenResult as any)?.accessToken || null;
-            if (token) {
-              methodUsed = "getAccessToken (without body)";
-            }
-          } catch (e2: any) {
-            console.warn("[getToken] getAccessToken (without body) failed:", {
-              message: e2?.message,
-              body: e2?.body,
-              stack: e2?.stack,
-            });
-          }
-        }
+        console.warn("[getToken] auth.api.getToken failed:", { message: e?.message, body: e?.body });
       }
-      
+
       // Fallback: call the token endpoint directly via auth handler
       if (!token && requestUrl) {
         try {

@@ -205,9 +205,9 @@ export async function loader({ params }: Route.LoaderArgs) {
   }
 }
 
-export default function BlogPost({ data }: Route.ComponentProps) {
+export default function BlogPost() {
   const loaderData = useLoaderData() as { post: BlogPost } | undefined;
-  const post = (loaderData?.post || data?.post) as BlogPost | undefined;
+  const post = loaderData?.post;
   const posterUrl = post ? `/api/blog-og/${post.slug}?v=3` : undefined;
 
   if (!post) {
@@ -280,7 +280,7 @@ export default function BlogPost({ data }: Route.ComponentProps) {
             alt={post.title}
             className="h-full w-full object-cover object-center"
             loading="eager"
-            fetchpriority="high"
+            fetchPriority="high"
             width="1200"
             height="630"
           />

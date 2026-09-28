@@ -303,8 +303,10 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps = { onFirst
           const serverOrderId = orderRes.order_id;
           console.log("Server order ID:", serverOrderId);
           
-          if (!serverOrderId) {
-            console.error("No order_id in server response:", orderRes);
+          // Checkout needs all three. amount and key_id are optional on the
+          // response type, and a missing one used to reach Razorpay as undefined.
+          if (!serverOrderId || !orderRes.key_id || orderRes.amount == null) {
+            console.error("Incomplete payment order from server:", orderRes);
             updateMessage(paymentMsgId, {
               content: "Failed to create payment order. Please try again.",
               status: "error",
@@ -327,8 +329,11 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps = { onFirst
               
               // Check if this is a valid payment response
               // Use server-created order_id since Razorpay may not return it
-              const paymentId = response?.razorpay_payment_id || response?.payment_id || response?.razorpayPaymentId;
-              const signature = response?.razorpay_signature || response?.signature || response?.razorpaySignature;
+              // Razorpay's handler receives exactly razorpay_payment_id,
+              // razorpay_order_id and razorpay_signature; the other spellings
+              // this used to try do not exist.
+              const paymentId = response?.razorpay_payment_id;
+              const signature = response?.razorpay_signature;
               
               // Use the order_id from server response
               const orderId = serverOrderId;
@@ -368,8 +373,10 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps = { onFirst
                 );
                 
                 // Track purchase event
-                const session = authClient.getSession();
-                const amountInRupees = orderRes.amount / 100; // Convert paise to rupees
+                // getSession() is async; reading .user off the Promise sent
+                // every Purchase event with no user_id.
+                const { data: session } = await authClient.getSession();
+                const amountInRupees = (orderRes.amount ?? 0) / 100; // Convert paise to rupees
                 trackEvent("Purchase", {
                   user_id: session?.user?.id,
                   transaction_id: paymentId,
@@ -394,6 +401,7 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps = { onFirst
                 if (httpStatus === 200 && res.result != null) {
                   setJob({
                     job_id: res.job_id,
+                    type: "assignment-gen",
                     status: res.status,
                     created_at: res.created_at,
                     updated_at: res.created_at,

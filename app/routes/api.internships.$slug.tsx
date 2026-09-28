@@ -8,7 +8,7 @@ import { internshipApplications } from "../../auth-schema";
 // GET /api/internships/:slug - Get single internship by slug or UUID
 export async function loader({ params, request }: Route.LoaderArgs) {
   try {
-    const idOrSlug = params.slug ?? params.id;
+    const idOrSlug = params.slug;
     if (!idOrSlug) {
       console.error("[api.internships.$slug] No id/slug parameter provided", { params });
       throw new Response("Internship ID or slug required", { status: 400 });

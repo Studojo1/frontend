@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { Link } from "react-router";
 import { FiTarget, FiTrendingUp, FiCalendar, FiArrowRight, FiZap } from "react-icons/fi";
 import { Header, Footer } from "~/components";
@@ -219,12 +219,12 @@ const QUOTES = [
 // and any full-page capture (social preview, screenshot) got an empty page. They
 // now start VISIBLE and animate from a small offset: the page reads with no JS,
 // and the motion is a bonus rather than a gate.
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 1 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 1, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };

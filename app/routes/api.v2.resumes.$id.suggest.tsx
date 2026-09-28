@@ -3,6 +3,7 @@ import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { resumeDrafts } from "../../auth-schema";
 import { convertSectionsToLegacyResume } from "~/lib/resume-draft";
+import type { ResumeSection } from "~/lib/resume-draft";
 import type { Route } from "./+types/api.v2.resumes.$id.suggest";
 
 // POST /api/v2/resumes/:id/suggest - Get inline suggestions for draft
@@ -31,7 +32,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   const { job_title, job_description, section_id, section_type, section_content } = body;
 
   // Convert sections to legacy format for backend compatibility
-  const legacyResume = convertSectionsToLegacyResume(draft.sections, draft.templateId);
+  const legacyResume = convertSectionsToLegacyResume(draft.sections as ResumeSection[], draft.templateId);
 
   // Call resume service suggest endpoint
   const resumeServiceUrl = process.env.RESUME_SERVICE_URL || "http://resume-service:8086";

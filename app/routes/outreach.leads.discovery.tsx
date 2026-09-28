@@ -263,7 +263,7 @@ export default function DiscoveryPage() {
   const [matchOff, setMatchOff] = useState(0);
 
   const allDoneRef = useRef(false);
-  const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const scanCounter = useRef(0);
 
   // Per-user scan total: deterministic from candidateId, 2.1M–3.4M. Stable on

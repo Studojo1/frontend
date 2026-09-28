@@ -5,12 +5,12 @@ const ALG = "AES-GCM";
 const KEY_LEN = 256;
 const IV_LEN = 12; // 96 bits recommended for GCM
 
-function getKeyMaterial(): Uint8Array {
+function getKeyMaterial(): Uint8Array<ArrayBuffer> {
   const hex = process.env.LI_AT_ENCRYPTION_KEY;
   if (!hex || hex.length < 64) {
     throw new Error("LI_AT_ENCRYPTION_KEY must be a 32-byte hex string (64 hex chars)");
   }
-  const bytes = new Uint8Array(32);
+  const bytes = new Uint8Array(new ArrayBuffer(32));
   for (let i = 0; i < 32; i++) {
     bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
   }
