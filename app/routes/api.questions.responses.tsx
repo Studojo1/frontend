@@ -1,7 +1,7 @@
 import { eq, inArray, and } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
-import { userQuestionResponses, internshipQuestions, questionTags, questionTagMappings } from "../../auth-schema";
+import { userQuestionResponses, internshipQuestions, questionTagMappings } from "../../auth-schema";
 import type { Route } from "./+types/api.questions.responses";
 
 // GET /api/questions/responses - Fetch user's previous responses for matching questions

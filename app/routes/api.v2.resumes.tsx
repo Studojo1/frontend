@@ -1,7 +1,7 @@
 import { eq, desc, and, count } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
-import { resumeDrafts, resumeVersions } from "../../auth-schema";
+import { resumeDrafts } from "../../auth-schema";
 import type { Route } from "./+types/api.v2.resumes";
 
 // GET /api/v2/resumes - List drafts

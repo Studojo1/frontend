@@ -147,7 +147,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
       body: JSON.stringify({ id: draft.id, allowLookup: true }),
     })
       .then((r) => r.json())
-      .then((d) => { if (!cancelled && d?.status) setReach((prev) => ({ ...(prev ?? {}), ...d })); })
+      .then((d) => { if (!cancelled && d?.status) setReach((prev) => ({ ...prev, ...d })); })
       .catch(() => {})
       // Always clears, so a failed check can never leave a spinner forever.
       .finally(() => { if (!cancelled) setSearching(false); });

@@ -2,7 +2,7 @@
 // Token-based LinkedIn connect page — no Studojo login required.
 // Sent via email link (Gojiberry-style).
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "redis";
 import type { Route } from "./+types/connect-linkedin";
 
@@ -40,10 +40,6 @@ export function meta() {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type Step = "form" | "logging_in" | "awaiting_otp" | "awaiting_app_push" | "success" | "error";
-
-function nowStr() {
-  return new Date().toLocaleTimeString("en-GB", { hour12: false });
-}
 
 // ── Component ────────────────────────────────────────────────────────────────
 

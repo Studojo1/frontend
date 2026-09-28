@@ -642,7 +642,6 @@ export default function PhonePartnersDashboard() {
   const [error, setError] = useState<string | null>(null);
   // Read from localStorage once on mount — stable, never triggers re-runs
   const [authed] = useState(() => !!getStoredUser());
-  const storedUser = getStoredUser();
 
   const fetchMe = useCallback(async () => {
     try {

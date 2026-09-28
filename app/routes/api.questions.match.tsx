@@ -1,7 +1,6 @@
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { internshipQuestions } from "../../auth-schema";
-import { sql } from "drizzle-orm";
 import type { Route } from "./+types/api.questions.match";
 
 // Simple Levenshtein distance calculation for text similarity

@@ -42,11 +42,7 @@ function initCharts() {
   const BLUE = "#3b82f6";
   const BLUE2 = "#60a5fa";
   const BLUE3 = "#93c5fd";
-  const GREEN = "#10b981";
-  const RED = "#ef4444";
-  const AMBER = "#f59e0b";
   const MUTED = "#737373";
-  const INK = "#171717";
   const grid = { color: "#f0f0ee", lineWidth: 1 };
 
   function make(id: string, config: any) {

@@ -124,7 +124,7 @@ function detailFromPosting(description?: string | null): string | null {
     // so convert BOTH sides of the conjunction or neither.
     const pair = rest.match(/^\s+and\s+([a-z]+)\b(.*)$/i);
     const ing = (v: string) =>
-      /e$/.test(v) && !/ee$/.test(v) ? v.slice(0, -1) + "ing" : v + "ing";
+      v.endsWith("e") && !v.endsWith("ee") ? v.slice(0, -1) + "ing" : v + "ing";
     if (pair) {
       best = `${ing(verb)} and ${ing(pair[1].toLowerCase())}${pair[2]}`;
     } else {

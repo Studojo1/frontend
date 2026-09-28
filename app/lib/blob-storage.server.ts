@@ -308,19 +308,16 @@ export async function uploadExamplePreview(
   
   // For LocalStack, try to create container if it doesn't exist
   // The bucket should exist from localstack-init, but Azure SDK might not see it
-  let containerExists = false;
   try {
     // First, try to get properties to check if container exists
     await containerClient.getProperties();
-    containerExists = true;
-  } catch (error: any) {
+  } catch {
     // Container doesn't exist or we can't access it
     // Try to create it
     try {
       await containerClient.create({
         access: "blob",
       });
-      containerExists = true;
     } catch (createError: any) {
       const createErrorMsg = createError.message || String(createError);
       // If it's an "already exists" error, that's fine
@@ -328,7 +325,6 @@ export async function uploadExamplePreview(
           createErrorMsg.includes("409") ||
           createErrorMsg.includes("bucket exists") ||
           createErrorMsg.includes("BucketAlreadyOwnedByYou")) {
-        containerExists = true;
       } else if (createErrorMsg.includes("bucket does not exist") || createErrorMsg.includes("NoSuchBucket")) {
         // For LocalStack, the bucket should exist from init script
         // This might be an Azure SDK limitation with LocalStack S3 emulation

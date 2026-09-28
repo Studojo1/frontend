@@ -15,7 +15,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   // Decode URL-encoded path (e.g., blog-images%2Ffilename.png -> blog-images/filename.png)
   try {
     path = decodeURIComponent(path);
-  } catch (e) {
+  } catch {
     // If decoding fails, use original path
     console.warn("Failed to decode image path:", path);
   }

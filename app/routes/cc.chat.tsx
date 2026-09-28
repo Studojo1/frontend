@@ -19,7 +19,7 @@ const SESSION_TOKEN_KEY = "studojo_cc_session_token";
 // X-CC-Session on every coach call so the coach can verify the caller owns the
 // student_id in the URL (closes the IDOR). Stored next to the student_id.
 function ccHeaders(extra?: Record<string, string>): Record<string, string> {
-  const h: Record<string, string> = { ...(extra || {}) };
+  const h: Record<string, string> = { ...extra };
   try {
     const t = localStorage.getItem(SESSION_TOKEN_KEY);
     if (t) h["X-CC-Session"] = t;
@@ -707,11 +707,10 @@ export default function CcChat() {
   // Rotating "thinking" status shown during the (LLM-bound) wait so the ~10s
   // pause feels purposeful instead of dead. Advances while `waiting` is true.
   const [thinkingMsg, setThinkingMsg] = useState<string | null>(null);
-  const [hookVisible, setHookVisible] = useState(false);
-  const [hookDismissing, setHookDismissing] = useState(false);
-  const [statIdx, setStatIdx] = useState(0);
-  const [statOpacity, setStatOpacity] = useState(1);
-  const [tickerIdx, setTickerIdx] = useState(0);
+  const [hookVisible] = useState(false);
+  const [, setStatIdx] = useState(0);
+  const [, setStatOpacity] = useState(1);
+  const [, setTickerIdx] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
 
   const studentIdRef = useRef<string | null>(null);
@@ -1152,15 +1151,6 @@ export default function CcChat() {
       await appendAgentBubbles(gd.reply || gd.message || "Hey, what's going on? What are you trying to figure out?", undefined, state);
       armIdleTimer();
     }, 500);
-  }
-
-  function dismissHook(level: string) {
-    if (hookDismissedRef.current) return;
-    hookDismissedRef.current = true;
-    localStorage.setItem("studojo_commitment", level);
-    setHookDismissing(true);
-    setTimeout(() => setHookVisible(false), 450);
-    if (pendingGreetingRef.current) showGreeting(pendingGreetingRef.current);
   }
 
   function ctaForState(state: string, o: any): CtaKind | undefined {
@@ -2289,7 +2279,6 @@ export default function CcChat() {
     );
   }
 
-  const stat = HOOK_STATS[statIdx];
   const ctaCopy: Record<CtaKind, { title: string; sub: string }> = {
     analysis: { title: "Your Career Analysis is ready", sub: "See how you compare to top performers" },
     roadmap: { title: "Your Roadmap is ready", sub: "The steps that move your readiness fastest" },

@@ -7,7 +7,7 @@ import { fetchWithRetry } from "./fetch-with-retry.ts";
 
 let pass = 0, fail = 0;
 const check = (name, cond, detail = "") => {
-  cond ? pass++ : fail++;
+  if (cond) pass++; else fail++;
   console[cond ? "log" : "error"](`${cond ? "PASS" : "FAIL"} ${name}${detail ? ` -- ${detail}` : ""}`);
 };
 
@@ -53,7 +53,7 @@ for (const code of [500, 502, 503, 504]) {
   check(`#27 ${code} twice then 200 -> retried to success`, res.status === 200 && hits[`/status?code=${code}&fail=2`] === 3, `status ${res.status}, ${hits[`/status?code=${code}&fail=2`]} attempts`);
 }
 {
-  const res = await fetchWithRetry(`${base}/status?code=500&fail=9`, { maxRetries: 3, timeout: 2000 }).catch((e) => e);
+  await fetchWithRetry(`${base}/status?code=500&fail=9`, { maxRetries: 3, timeout: 2000 }).catch((e) => e);
   check("#27 persistent 500 gives up after maxRetries", hits["/status?code=500&fail=9"] === 3, `${hits["/status?code=500&fail=9"]} attempts`);
 }
 for (const code of [400, 401, 404]) {

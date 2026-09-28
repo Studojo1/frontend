@@ -2,7 +2,6 @@
 //
 // api.extension.apply.tsx has returned `crmUrl: "/crm"` since the extension
 // shipped, and until now that link 404ed. This is the page it meant.
-import { useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import { Footer, Header } from "~/components";
 import { getSessionFromRequest } from "~/lib/onboarding.server";

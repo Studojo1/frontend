@@ -1,4 +1,4 @@
-import { FiBookOpen, FiTarget } from "react-icons/fi";
+import { FiTarget } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { LuUsersRound } from "react-icons/lu";
 import { Link } from "react-router";

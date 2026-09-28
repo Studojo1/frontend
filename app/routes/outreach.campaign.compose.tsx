@@ -11,7 +11,6 @@ export default function ComposePage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
   const {
-    candidateId,
     profileData,
     selectedTemplate,
     setSelectedTemplate,

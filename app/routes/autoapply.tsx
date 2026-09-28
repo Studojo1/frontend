@@ -4,9 +4,8 @@ import { Header, Footer } from "~/components";
 import {
   FiUpload, FiArrowRight, FiCheckCircle, FiZap, FiMapPin,
   FiBriefcase, FiGlobe, FiTarget, FiPause, FiPlay,
-  FiRefreshCw, FiClock, FiTrendingUp, FiAlertTriangle,
-  FiLink, FiShield, FiX, FiPlus, FiMessageSquare,
-  FiUserPlus, FiMail, FiBarChart2, FiSettings,
+  FiRefreshCw, FiClock, FiAlertTriangle,
+  FiShield, FiX, FiPlus, FiUserPlus, FiBarChart2,
 } from "react-icons/fi";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/autoapply";
@@ -68,7 +67,6 @@ const toggle = (arr: string[], val: string) =>
   arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val];
 
 export default function AutoApply({ loaderData }: Route.ComponentProps) {
-  const { user } = loaderData;
 
   const [view, setView] = useState<"setup" | "dashboard">("setup");
   const [activeTab, setActiveTab] = useState<Tab>("applications");

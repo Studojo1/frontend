@@ -24,7 +24,6 @@ type Content = { content: { type: "text"; text: string }[]; isError?: boolean };
 const ok = (obj: unknown): Content => ({
   content: [{ type: "text", text: typeof obj === "string" ? obj : JSON.stringify(obj, null, 2) }],
 });
-const err = (message: string): Content => ({ content: [{ type: "text", text: message }], isError: true });
 
 /** A coded failure: the customer gets a generic message + a ref; the true reason is
  *  recorded internally against that ref (and alerts ops when our side is unhealthy). */
