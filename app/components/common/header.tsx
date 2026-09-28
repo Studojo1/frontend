@@ -10,7 +10,6 @@ import { SmoothLink } from "./smooth-link";
 
 const NAV_LINKS = [
   { to: "/", label: "Home", active: true },
-  { to: "/cc", label: "Career Coach" },
   { to: "/outreach", label: "Outreach" },
   { to: "/about", label: "About" },
 ] as const;
@@ -53,19 +52,6 @@ export function Header() {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   const { data: session, isPending } = authClient.useSession();
-
-  // Subtle nav cue: dot on "Career Coach" for a logged-in student who already
-  // has a Career DNA (so returning users are nudged back without any banner).
-  const [coachHasProgress, setCoachHasProgress] = useState(false);
-  useEffect(() => {
-    if (!session?.user) { setCoachHasProgress(false); return; }
-    let cancelled = false;
-    fetch("/api/career-coach/summary")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (!cancelled) setCoachHasProgress(!!(d?.found && d?.has_analysis)); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [session?.user]);
 
   // Listen for session update events and refetch session
   useEffect(() => {
@@ -144,11 +130,8 @@ export function Header() {
               <LinkComponent
                 key={link.label}
                 to={link.to}
-                title={link.to === "/cc" && coachHasProgress ? "Continue with your Career Coach" : undefined}
                 className={`font-['Satoshi'] text-base leading-6 ${
-                  link.to === "/cc" && coachHasProgress
-                    ? "font-bold text-violet-600 hover:text-violet-700"
-                    : "active" in link && link.active
+                  "active" in link && link.active
                     ? "font-black text-neutral-700"
                     : "font-normal text-neutral-700"
                 }`}
@@ -338,12 +321,6 @@ export function Header() {
             ) : (
               <>
                 <Link
-                  to={authUrl("signin", location.pathname + location.search)}
-                  className="hidden font-['Satoshi'] text-base font-medium leading-6 text-neutral-700 sm:block"
-                >
-                  Sign In
-                </Link>
-                <Link
                   to={authUrl("signup", location.pathname + location.search)}
                   className={`flex h-12 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-sm font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] px-4 max-w-[120px] flex-shrink-0 md:w-32 md:text-base md:max-w-none ${
                     isHomePage ? "hidden md:flex" : ""
@@ -388,11 +365,7 @@ export function Header() {
                   <LinkComponent
                     to={to}
                     onClick={() => setMobileOpen(false)}
-                    className={`block rounded-lg py-2 font-['Satoshi'] hover:bg-neutral-50 ${
-                      to === "/cc" && coachHasProgress
-                        ? "font-bold text-violet-600"
-                        : "text-neutral-700"
-                    }`}
+                    className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                   >
                     {label}
                   </LinkComponent>
@@ -400,37 +373,20 @@ export function Header() {
               );
             })}
             <li>
-              {/* The chat used to be a bubble floating over the page, where it
-                  covered form fields and submit buttons on small screens. On
-                  mobile it lives here instead; the desktop launcher is unchanged. */}
+              {/* Resources live in the footer; take them there. Pages without
+                  the site footer fall back to the home page's. */}
               <button
                 type="button"
                 onClick={() => {
                   setMobileOpen(false);
-                  window.dispatchEvent(new CustomEvent("studojo:open-chat"));
+                  const footer = document.getElementById("resources");
+                  if (footer) footer.scrollIntoView({ behavior: "smooth" });
+                  else window.location.assign("/#resources");
                 }}
                 className="block w-full rounded-lg min-h-11 py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
               >
-                Help &amp; support
+                Resources
               </button>
-            </li>
-            <li>
-              <Link
-                to="/blog"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
-              >
-                Blog
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/reports"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
-              >
-                Reports
-              </Link>
             </li>
             {!isPending &&
               (session ? (
@@ -486,15 +442,6 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <li>
-                    <Link
-                      to={authUrl("signin", location.pathname + location.search)}
-                      onClick={() => setMobileOpen(false)}
-                      className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
-                    >
-                      Sign In
-                    </Link>
-                  </li>
                   <li>
                     <Link
                       to={authUrl("signup", location.pathname + location.search)}
