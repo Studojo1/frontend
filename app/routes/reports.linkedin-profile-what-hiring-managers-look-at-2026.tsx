@@ -454,7 +454,7 @@ export default function Report_LinkedinProfileWhatHiringManagersLookAt2026() {
               <h3>Turn your profile into interview-ready proof</h3>
               <p>Studojo helps you tighten headlines, bulletproof experience lines, and keep your story consistent across resume and LinkedIn before you reach out.</p>
             </div>
-            <Link to="/dojos/careers" className="rpt-cta-btn">
+            <Link to="/resume-maker" className="rpt-cta-btn">
               Build Your Career Story →
             </Link>
           </div>

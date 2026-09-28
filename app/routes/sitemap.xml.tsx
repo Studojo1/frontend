@@ -68,7 +68,7 @@ export async function loader() {
     { loc: "/reports/apple-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
     // Product + other
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
-    { loc: "/dojos/careers", priority: "0.7", changefreq: "monthly" },
+    { loc: "/resume-maker", priority: "0.7", changefreq: "monthly" },
     { loc: "/about", priority: "0.6", changefreq: "monthly" },
     { loc: "/contact", priority: "0.5", changefreq: "yearly" },
     { loc: "/auth?mode=signup", priority: "0.5", changefreq: "monthly" },

@@ -989,7 +989,7 @@ export default function Reports() {
               Browse Internships
             </Link>
             <Link
-              to="/dojos/careers"
+              to="/resume-maker"
               className="flex h-12 items-center justify-center rounded-2xl border-2 border-white/40 bg-white/10 px-8 font-['Satoshi'] text-sm font-bold text-white transition hover:bg-white/20"
             >
               Build Your Resume Free
