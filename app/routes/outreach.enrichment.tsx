@@ -228,9 +228,20 @@ export default function EnrichmentPage() {
   if (isInIframe) return <DodoReturnFrame />;
 
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useOutreachAuth();
+  const { user, loading: authLoading, recovering } = useOutreachAuth();
   const { candidateId, selectedTier, setSelectedTier, orderId } = useOutreachStore();
   const { createOrder, updateOrder } = useOrder();
+
+  // No candidate: send them to upload, but only once the active order has had
+  // its chance to supply one, and from an effect. Navigating during render
+  // re-fired on every render while the upload chunk loaded and froze the tab
+  // (React #185) for anyone arriving without saved funnel state, e.g. from an
+  // email or the extension's needs-credits link.
+  useEffect(() => {
+    if (!authLoading && !recovering && !candidateId) {
+      navigate("/outreach/onboarding/upload", { replace: true });
+    }
+  }, [authLoading, recovering, candidateId, navigate]);
 
   // Ensure an order record exists — create one if this is a fresh user
   useEffect(() => {
@@ -680,7 +691,7 @@ export default function EnrichmentPage() {
     onPaymentSuccess(undefined, false, credits.available_credits);
   };
 
-  if (authLoading) {
+  if (authLoading || (recovering && !candidateId)) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
@@ -691,10 +702,7 @@ export default function EnrichmentPage() {
     );
   }
 
-  if (!candidateId) {
-    navigate("/outreach/onboarding/upload");
-    return null;
-  }
+  if (!candidateId) return null; // the effect above redirects
 
   const currSymbol = currency === "INR" ? "₹" : "$";
 
