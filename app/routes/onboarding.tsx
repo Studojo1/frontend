@@ -132,7 +132,7 @@ export default function Onboarding({ loaderData }: Route.ComponentProps) {
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [profileCreated, setProfileCreated] = useState(false);
+  const [, setProfileCreated] = useState(false);
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
 
   useEffect(() => {

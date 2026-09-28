@@ -9,13 +9,12 @@ import {
   autoapplyConfigs,
   jobQueue,
   outreachContacts,
-  userLinkedinSessions,
 } from "../../auth-schema";
 import { discoverJobsForUser } from "./job-discovery";
 import { applyToJob } from "./apply-worker";
 import { runOutreachStep, withdrawStaleInvitations } from "./outreach-worker";
 import { runExtensionOutreach } from "./extension-outreach";
-import { checkFleetHealth, incrementWarmupDay, logEvent } from "./safety-manager";
+import { checkFleetHealth, logEvent } from "./safety-manager";
 import { pollAllUsers } from "./acceptance-poller";
 import {
   outreachQueue,

@@ -137,8 +137,6 @@ export function PhoneInput({
     onChange(number);
   };
 
-  const fullPhoneNumber = selectedCountry.dialCode + (value || "");
-
   return (
     <div className="relative">
       <div className="flex gap-2">

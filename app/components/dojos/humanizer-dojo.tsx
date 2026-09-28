@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { FiUpload, FiDownload, FiFile, FiX, FiShield, FiCheckCircle, FiZap } from "react-icons/fi";
-import { LuUsersRound } from "react-icons/lu";
 import { toast } from "sonner";
 import {
   submitHumanizerJobWithURL,
@@ -14,7 +13,6 @@ import {
   openRazorpayCheckout,
   verifyPayment,
 } from "~/lib/payments";
-import { authClient } from "~/lib/auth-client";
 import { FloatingCardA, FloatingCardB } from "./floating-cards";
 
 type ViewState = "upload" | "processing" | "completed" | "error";

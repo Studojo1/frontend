@@ -1,7 +1,7 @@
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { reportRequests } from "../../auth-schema";
-import { desc, eq } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import type { Route } from "./+types/api.report-requests";
 
 const ADMIN_EMAILS = ["admin@studojo.com", "jeremy@studojo.com", "jeremyabraham1411@gmail.com"];

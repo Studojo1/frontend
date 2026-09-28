@@ -20,7 +20,7 @@
 // }
 
 import { getSessionFromRequest } from "~/lib/onboarding.server";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import db from "~/lib/db";
 import { outreachContacts, outreachCampaigns } from "../../auth-schema";
 import { outreachQueue } from "~/lib/queues.server";

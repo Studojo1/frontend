@@ -1,7 +1,7 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
-import { resumeDrafts, resumeVersions } from "../../auth-schema";
+import { resumeDrafts } from "../../auth-schema";
 import type { Route } from "./+types/api.v2.resumes.$id";
 
 // GET /api/v2/resumes/:id - Get draft
@@ -94,7 +94,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   const body = await request.json();
-  const { name, sections, templateId, changeSummary } = body;
+  const { name, sections, templateId } = body;
 
   // Update draft
   const updateData: {

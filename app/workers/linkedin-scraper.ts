@@ -11,7 +11,6 @@
 import { eq } from "drizzle-orm";
 import db from "~/lib/db";
 import { userLinkedinSessions } from "../../auth-schema";
-import { buildProxy } from "~/lib/proxy.server";
 
 // ── Public types ──────────────────────────────────────────────────────────────
 

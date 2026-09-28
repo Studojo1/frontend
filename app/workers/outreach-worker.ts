@@ -1,9 +1,9 @@
 // Outreach automation - LinkedIn connection requests + drip message sequences
 // Day 0: connect, Day 3: message, Day 7: follow-up, Day 14: done
 
-import { eq, and, lt, sql, gte } from "drizzle-orm";
+import { eq, and, sql, gte } from "drizzle-orm";
 import db from "~/lib/db";
-import { outreachContacts, userLinkedinSessions, outreachCampaigns, autoapplyConfigs, user as userTable } from "../../auth-schema";
+import { outreachContacts, userLinkedinSessions, autoapplyConfigs, user as userTable } from "../../auth-schema";
 import { decrypt } from "~/lib/encrypt.server";
 import { buildProxy } from "~/lib/proxy.server";
 import { pauseOutreach, logEvent, getWarmupLimit, checkAcceptanceRate } from "./safety-manager";
@@ -521,11 +521,3 @@ function getMsUntilMidnight(): number {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-async function findButton(page: any, labels: string[]): Promise<any> {
-  for (const label of labels) {
-    const btn = await page.$(`button:has-text("${label}")`).catch(() => null);
-    if (btn) return btn;
-  }
-  return null;
-}

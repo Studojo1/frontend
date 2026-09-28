@@ -43,9 +43,7 @@ function initCharts() {
   const EMERALD2 = "#34d399";
   const EMERALD3 = "#6ee7b7";
   const GREEN = "#10b981";
-  const GREEN2 = "#34d399";
   const RED = "#ef4444";
-  const ORANGE = "#f97316";
   const MUTED = "#737373";
   const INK = "#171717";
   const grid = { color: "#f0f0ee", lineWidth: 1 };

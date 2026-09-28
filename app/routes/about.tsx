@@ -1,6 +1,6 @@
 import { motion, type Variants } from "framer-motion";
 import { Link } from "react-router";
-import { FiBookOpen, FiZap, FiTarget, FiUsers, FiArrowRight, FiGlobe } from "react-icons/fi";
+import { FiTarget, FiArrowRight, FiGlobe } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
