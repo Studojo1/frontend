@@ -5,7 +5,7 @@ import { FiUpload, FiFileText, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
-import { useOutreachAuth, useNextStep, isPaidNotLaunched, nextStepLabel } from "~/lib/outreach/hooks";
+import { useOutreachAuth, useNextStep, isPaidNotLaunched, nextStepLabel, nextStepSummary } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { logFunnelStep } from "~/lib/funnel";
 import { getToken, ControlPlaneError } from "~/lib/control-plane";
@@ -148,11 +148,11 @@ export default function UploadPage() {
       <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
         {launchInstead && (
           <div className="mb-6 rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg shadow-brutal p-6">
-            <p className="font-clash text-lg font-bold text-studojo-ink">You've already paid. Your campaign is waiting.</p>
+            <p className="font-clash text-lg font-bold text-studojo-ink">
+              {launchInstead.has_launched ? "You have credits ready for another campaign." : "You've already paid. Your campaign is waiting."}
+            </p>
             <p className="mt-1 text-sm text-studojo-muted font-satoshi">
-              {launchInstead.state === "launch_draft"
-                ? "Your campaign is set up but hasn't started, so nothing has been sent yet."
-                : `${launchInstead.available_credits} email credits are ready and nothing has been sent yet.`}{" "}
+              {nextStepSummary(launchInstead)}{" "}
               Uploading a new resume starts over; it won't launch anything.
             </p>
             <button
