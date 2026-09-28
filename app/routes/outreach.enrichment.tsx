@@ -292,7 +292,7 @@ export default function EnrichmentPage() {
   const [couponError, setCouponError] = useState("");
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
-  const [, setRazorpayLoaded] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [dodoCheckoutUrl, setDodoCheckoutUrl] = useState<string | null>(null);
   const dodoSessionRef = useRef<string>("");
   const dodoTierRef = useRef<number>(0);
