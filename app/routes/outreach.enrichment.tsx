@@ -171,27 +171,77 @@ function DreamChip({ name, domain }: { name: string; domain: string | null }) {
   );
 }
 
+type CreditsInfo = {
+  total_credits: number;
+  used_credits: number;
+  available_credits: number;
+  emails_delivered?: number;
+  emails_scheduled?: number;
+  reserved_credits?: number;
+  has_active_campaign?: boolean;
+  campaign_status?: "running" | "paused" | null;
+};
+
+// A campaign needs at least this many credits (credits.MIN_CAMPAIGN_CREDITS).
+const MIN_CAMPAIGN_CREDITS = 50;
+
+// Dodo sends the checkout iframe back here when it is done. This used to say
+// "Payment Complete" whatever had happened. It now reports Dodo's own status
+// to the page, which confirms with the server; nothing here grants anything.
+function DodoReturnFrame() {
+  const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const status = (params?.get("status") || "").toLowerCase();
+  const failed = ["failed", "cancelled", "canceled", "expired"].includes(status);
+  useEffect(() => {
+    try {
+      window.parent.postMessage(
+        { type: "dodo_return", status, payment_id: params?.get("payment_id") || null },
+        window.location.origin,
+      );
+    } catch {
+      // The page keeps polling the server either way.
+    }
+  }, []);
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-white">
+      <div className="text-center p-8">
+        {failed ? (
+          <>
+            <h2 className="text-lg font-bold text-gray-900 mb-1">Payment did not go through</h2>
+            <p className="text-sm text-gray-500">Nothing was charged. Close this window to try again.</p>
+          </>
+        ) : (
+          <>
+            <div className="w-8 h-8 border-2 border-studojo-purple border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <h2 className="text-lg font-bold text-gray-900 mb-1">Confirming your payment…</h2>
+            <p className="text-sm text-gray-500">This takes a few seconds. Please keep this window open.</p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function EnrichmentPage() {
   // If rendered inside the Dodo modal iframe after payment redirect, show minimal UI
   const isInIframe = typeof window !== "undefined" && window.self !== window.top;
-  if (isInIframe) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <div className="text-center p-8">
-          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-          </div>
-          <h2 className="text-lg font-bold text-gray-900 mb-1">Payment Complete</h2>
-          <p className="text-sm text-gray-500">This window will close automatically...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isInIframe) return <DodoReturnFrame />;
 
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useOutreachAuth();
+  const { user, loading: authLoading, recovering } = useOutreachAuth();
   const { candidateId, selectedTier, setSelectedTier, orderId } = useOutreachStore();
   const { createOrder, updateOrder } = useOrder();
+
+  // No candidate: send them to upload, but only once the active order has had
+  // its chance to supply one, and from an effect. Navigating during render
+  // re-fired on every render while the upload chunk loaded and froze the tab
+  // (React #185) for anyone arriving without saved funnel state, e.g. from an
+  // email or the extension's needs-credits link.
+  useEffect(() => {
+    if (!authLoading && !recovering && !candidateId) {
+      navigate("/outreach/onboarding/upload", { replace: true });
+    }
+  }, [authLoading, recovering, candidateId, navigate]);
 
   // Ensure an order record exists — create one if this is a fresh user
   useEffect(() => {
@@ -231,9 +281,10 @@ export default function EnrichmentPage() {
   }, [authLoading, user]);
 
   const [pricing, setPricing] = useState<TierPricing[]>([]);
+  const [pricingState, setPricingState] = useState<"loading" | "ready" | "failed">("loading");
   const [currency, setCurrency] = useState("USD");
-  const [credits, setCredits] = useState<{ total_credits: number; used_credits: number; available_credits: number;
-    emails_delivered?: number; emails_scheduled?: number; has_active_campaign?: boolean } | null>(null);
+  const [credits, setCredits] = useState<CreditsInfo | null>(null);
+  const [leadCount, setLeadCount] = useState<number | null>(null);
   const [dreamCompanies, setDreamCompanies] = useState<Array<{ name: string; domain: string | null }>>([]);
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
@@ -241,7 +292,7 @@ export default function EnrichmentPage() {
   const [couponError, setCouponError] = useState("");
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
-  const [, setRazorpayLoaded] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [dodoCheckoutUrl, setDodoCheckoutUrl] = useState<string | null>(null);
   const dodoSessionRef = useRef<string>("");
   const dodoTierRef = useRef<number>(0);
@@ -267,7 +318,7 @@ export default function EnrichmentPage() {
   // It becomes the Meta event id, so if this same sale is also confirmed by
   // payment-success.tsx, or later by a server-side copy from job-outreach-svc,
   // Meta collapses them into one Purchase instead of reporting the revenue twice.
-  const onPaymentSuccess = async (paymentRef?: string, moneyMoved = true) => {
+  const onPaymentSuccess = async (paymentRef?: string, moneyMoved = true, tier: number = selectedTier) => {
     // New email flow: cancel any pending cc marketing sequences for this user
     // now that the user has paid. event.cc.paid is cancel-only (no email).
     if (user?.id) {
@@ -277,14 +328,14 @@ export default function EnrichmentPage() {
     }
     // The outreach flow goes straight to Gmail connect (never payment-success.tsx),
     // so fire payment_confirmed here or the funnel's "Paid" step misses these.
-    const amountCents = pricing.find((p) => p.tier === selectedTier)?.amount_cents;
+    const amountCents = pricing.find((p) => p.tier === tier)?.amount_cents;
     // The admin funnel counts every one of these as "Paid", which is correct:
     // the user got the product. Meta must NOT, unless money actually moved.
     // Credit-covered and coupon-free orders reach this same handler, and sending
     // a Purchase for them would invent revenue and corrupt ROAS.
     track(
       "payment_confirmed",
-      { tier: selectedTier, currency, amount_cents: amountCents, money_moved: moneyMoved },
+      { tier, currency, amount_cents: amountCents, money_moved: moneyMoved },
       moneyMoved
         ? {
             // Meta wants major units; the pricing API speaks cents.
@@ -302,8 +353,8 @@ export default function EnrichmentPage() {
       // Credit-covered clicks land here too; logging each as a payment made one
       // order read "Payment completed" six times for a single purchase.
       log_entry: moneyMoved
-        ? `Payment completed for ${selectedTier} credits (JIT enrichment)`
-        : `Continued with existing credits (${selectedTier} tier, no new payment)`,
+        ? `Payment completed for ${tier} credits (JIT enrichment)`
+        : `Continued with existing credits (${tier} tier, no new payment)`,
     });
     // Debrief BEFORE the Gmail gate. It used to sit after it, and only 151 of
     // 4,791 orders ever reached gmail_connected, so the two answers it collects
@@ -327,7 +378,7 @@ export default function EnrichmentPage() {
         setPaying(false);
         // Real payment. The Dodo session id is also what payment-success.tsx
         // sees, so both routes emit the same Meta event id for one sale.
-        onPaymentSuccess(dodoSessionRef.current);
+        onPaymentSuccess(dodoSessionRef.current, true, dodoTierRef.current);
         return;
       }
       if (res.status === "failed") {
@@ -336,15 +387,51 @@ export default function EnrichmentPage() {
         setPaying(false);
         return;
       }
-      if (attempt < 60 && dodoPollingRef.current) {
-        setTimeout(() => pollDodoVerify(attempt + 1), 3000);
+      // No attempt cap while the modal is open: a card challenge or a slow
+      // bank can take longer than the old ~3 minutes, and giving up then left
+      // a paid user on the pricing page. Closing the modal stops the loop.
+      if (dodoPollingRef.current) {
+        setTimeout(() => pollDodoVerify(attempt + 1), attempt < 60 ? 3000 : 10000);
       }
     } catch {
-      if (attempt < 60 && dodoPollingRef.current) {
-        setTimeout(() => pollDodoVerify(attempt + 1), 5000);
+      if (dodoPollingRef.current) {
+        setTimeout(() => pollDodoVerify(attempt + 1), attempt < 60 ? 5000 : 15000);
       }
     }
   };
+
+  // The checkout iframe lands back on this page when Dodo is done and posts
+  // what it was told. Check with the server at once rather than waiting for
+  // the next poll; the server's answer is the only one trusted.
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin || e.data?.type !== "dodo_return") return;
+      if (dodoPollingRef.current) void pollDodoVerify(0);
+    };
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+
+  // A phone that locked or switched apps mid-checkout loses the page's poll.
+  // The session id survives in localStorage, so settle it on the next visit.
+  useEffect(() => {
+    if (authLoading || !user) return;
+    let sessionId = "";
+    try { sessionId = localStorage.getItem("dodo_session_id") || ""; } catch { return; }
+    if (!sessionId) return;
+    outreachFetch<{ status: string; tier?: number }>("/payment/verify-dodo", {
+      method: "POST",
+      body: JSON.stringify({ session_id: sessionId }),
+    }).then((res) => {
+      if (res.status === "paid") {
+        try { localStorage.removeItem("dodo_session_id"); localStorage.removeItem("dodo_pending_job_type"); } catch {}
+        onPaymentSuccess(sessionId, true, res.tier ?? selectedTier);
+      } else if (res.status === "failed") {
+        try { localStorage.removeItem("dodo_session_id"); localStorage.removeItem("dodo_pending_job_type"); } catch {}
+      }
+    }).catch(() => { /* leave the breadcrumb for the next visit */ });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user]);
 
   // Load Razorpay script
   useEffect(() => {
@@ -352,11 +439,28 @@ export default function EnrichmentPage() {
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.onload = () => setRazorpayLoaded(true);
+      script.onerror = () => checkoutDiag("script_error", { error: "checkout.js failed to load" });
       document.body.appendChild(script);
     } else {
       setRazorpayLoaded(true);
     }
   }, []);
+
+  // Orders stuck at 'created' are either real abandonment or a modal that
+  // never opened. These breadcrumbs (CHECKOUT-DIAG in the API logs) tell the
+  // two apart. Fire and forget.
+  const checkoutDiag = (stage: string, extra: Record<string, unknown> = {}) => {
+    outreachFetch("/payment/checkout-diag", {
+      method: "POST",
+      maxRetries: 1,
+      body: JSON.stringify({
+        stage,
+        razorpay_loaded: typeof window !== "undefined" && !!window.Razorpay,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+        ...extra,
+      }),
+    }).catch(() => {});
+  };
 
   // A returning user can still have the retired Rs 499 tier persisted in their
   // store from before it was withdrawn. Nothing renders it any more and checkout
@@ -365,26 +469,34 @@ export default function EnrichmentPage() {
     if ((selectedTier as number) === 50) setSelectedTier(200);
   }, [selectedTier, setSelectedTier]);
 
+  // Prices and credits load separately: credits needs a session and can fail
+  // on its own, and it used to take prices that loaded fine down with it.
+  // There are no made-up backup prices. Until the real ones arrive the page
+  // says so and checkout waits, because the currency decides the processor.
+  const loadPricing = async () => {
+    setPricingState("loading");
+    try {
+      const pricingData = await outreachFetch<{ tiers: TierPricing[]; currency: string }>("/payment/pricing");
+      if (!pricingData.tiers?.length) throw new Error("no tiers");
+      setPricing(pricingData.tiers);
+      if (pricingData.currency) setCurrency(pricingData.currency);
+      setPricingState("ready");
+    } catch {
+      setPricingState("failed");
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [pricingData, creditsData] = await Promise.all([
-          outreachFetch<{ tiers: TierPricing[]; currency: string }>("/payment/pricing"),
-          outreachFetch<{ total_credits: number; used_credits: number; available_credits: number;
-            emails_delivered?: number; emails_scheduled?: number; has_active_campaign?: boolean }>("/payment/credits"),
-        ]);
-        setPricing(pricingData.tiers || []);
-        if (pricingData.currency) setCurrency(pricingData.currency);
+    void loadPricing();
+    outreachFetch<CreditsInfo>("/payment/credits")
+      .then((creditsData) => {
         setCredits(creditsData);
         const available = creditsData.available_credits;
         if (available > 0 && available < selectedTier) {
           if (available >= 200) setSelectedTier(200);
         }
-      } catch {
-        // fallback tiers
-      }
-    };
-    loadData();
+      })
+      .catch(() => { /* no credits banner; pricing still works */ });
   }, []);
 
   // Fetch dream companies for the "in the mix" bar (no Apollo — reads stored data).
@@ -407,6 +519,11 @@ export default function EnrichmentPage() {
       const leadArr: any[] = Array.isArray(leadsResp)
         ? leadsResp
         : (leadsResp?.leads ?? []);
+      // null when the call failed: never block checkout on a network blip.
+      // Extension users who ran out of credits arrive with ?for=crm; they buy
+      // for one-off sends and may never have run discovery.
+      const forCrm = new URLSearchParams(window.location.search).get("for") === "crm";
+      if (leadsResp && !forCrm) setLeadCount(leadArr.length);
       const domainByCompany = new Map<string, string>();
       for (const l of leadArr) {
         const co = (l?.company || "").trim().toLowerCase();
@@ -446,6 +563,8 @@ export default function EnrichmentPage() {
 
   const handlePayAndContinue = async (tierValue: number = selectedTier) => {
     if (!candidateId) return;
+    if (leadCount === 0) return; // nothing to send to (UC-Q24)
+    if (pricingState !== "ready" && !(credits && credits.available_credits >= tierValue)) return;
 
     const coveredByCredits = !!(credits && credits.available_credits >= tierValue);
     track("pay_now_clicked", { tier: tierValue, covered_by_credits: coveredByCredits });
@@ -454,7 +573,7 @@ export default function EnrichmentPage() {
     // tierValue is passed explicitly from the button to avoid stale closure
     // (setSelectedTier is async; reading selectedTier here would get the old value).
     if (coveredByCredits) {
-      onPaymentSuccess(undefined, false); // paid from existing credits, no new revenue
+      onPaymentSuccess(undefined, false, tierValue); // paid from existing credits, no new revenue
       return;
     }
 
@@ -472,13 +591,13 @@ export default function EnrichmentPage() {
           : { total_credits: orderData.credits_granted, used_credits: 0, available_credits: orderData.credits_granted }
         );
         setPaying(false);
-        onPaymentSuccess(undefined, false); // free order, no revenue
+        onPaymentSuccess(undefined, false, tierValue); // free order, no revenue
         return;
       }
 
       if (orderData.checkout_url) {
         dodoSessionRef.current = orderData.session_id;
-        dodoTierRef.current = selectedTier;
+        dodoTierRef.current = tierValue;
         dodoPollingRef.current = true;
         // The verification below lives in page state, so a phone that locks or
         // switches apps during checkout loses it and the order never advances
@@ -498,12 +617,27 @@ export default function EnrichmentPage() {
         return;
       }
 
+      if (!orderData.order_id || !orderData.key_id) {
+        checkoutDiag("missing_order", { plan_id: `email_${tierValue}`, error: "no order_id or key_id" });
+        setError("We could not start the payment. Please try again in a moment.");
+        setPaying(false);
+        return;
+      }
+      if (typeof window === "undefined" || !window.Razorpay) {
+        checkoutDiag("not_loaded", { order_id: orderData.order_id, amount: orderData.amount, plan_id: `email_${tierValue}` });
+        setError(razorpayLoaded
+          ? "Payment is still loading, try again in a second."
+          : "The payment window could not load. Check your connection, or turn off any ad blocker, and try again.");
+        setPaying(false);
+        return;
+      }
+
       const options = {
         key: orderData.key_id,
         amount: orderData.amount,
         currency: orderData.currency,
         name: "Outreach",
-        description: `Contact ${selectedTier} Hiring Managers`,
+        description: `Contact ${tierValue} Hiring Managers`,
         order_id: orderData.order_id,
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           try {
@@ -516,7 +650,7 @@ export default function EnrichmentPage() {
               }),
             });
             setPaying(false);
-            onPaymentSuccess(response.razorpay_order_id);
+            onPaymentSuccess(response.razorpay_order_id, true, tierValue);
           } catch (err: any) {
             setError(describeError(err, "Payment verification failed"));
             setPaying(false);
@@ -527,7 +661,15 @@ export default function EnrichmentPage() {
         modal: { ondismiss: () => { capturePostHog("checkout_abandoned", { tier: tierValue, provider: "razorpay" }); setPaying(false); } },
       };
 
-      const rzp = new window.Razorpay(options);
+      let rzp: any;
+      try {
+        rzp = new window.Razorpay(options);
+      } catch (e: any) {
+        checkoutDiag("open_failed", { order_id: orderData.order_id, amount: orderData.amount, plan_id: `email_${tierValue}`, error: String(e?.message || e) });
+        setError("The payment window could not open. Please try again.");
+        setPaying(false);
+        return;
+      }
       rzp.on("payment.failed", (response: any) => {
         capturePostHog("payment_failed", { tier: tierValue, provider: "razorpay", reason: response.error?.description });
         setError(response.error?.description || "Payment failed");
@@ -541,7 +683,15 @@ export default function EnrichmentPage() {
     }
   };
 
-  if (authLoading) {
+  // 50-199 credits: start a campaign with what they have. The server caps the
+  // campaign at the available balance (routes_campaign create).
+  const startWithRemainingCredits = () => {
+    if (!credits || leadCount === 0) return;
+    track("pay_now_clicked", { tier: credits.available_credits, covered_by_credits: true, partial: true });
+    onPaymentSuccess(undefined, false, credits.available_credits);
+  };
+
+  if (authLoading || (recovering && !candidateId)) {
     return (
       <div className="min-h-screen bg-white">
         <Header />
@@ -552,10 +702,7 @@ export default function EnrichmentPage() {
     );
   }
 
-  if (!candidateId) {
-    navigate("/outreach/onboarding/upload");
-    return null;
-  }
+  if (!candidateId) return null; // the effect above redirects
 
   const currSymbol = currency === "INR" ? "₹" : "$";
 
@@ -574,23 +721,20 @@ export default function EnrichmentPage() {
     {
       value: 200 as const,
       name: "Growth",
-      tagline: "200 decision makers. Cast a wide net.",
-      fallbackPrice: "$20",
+      tagline: "200 decision makers. The best place to start.",
+      recommended: true,
       features: SHARED_FEATURES(200),
     },
     {
       value: 350 as const,
       name: "Pro",
-      tagline: "350 contacts. The most popular choice.",
-      fallbackPrice: "$27",
-      recommended: true,
+      tagline: "350 contacts. More companies, more shots.",
       features: SHARED_FEATURES(350),
     },
     {
       value: 500 as const,
       name: "Scale",
       tagline: "500 contacts. Maximum coverage.",
-      fallbackPrice: "$40",
       features: SHARED_FEATURES(500),
     },
   ];
@@ -607,11 +751,10 @@ export default function EnrichmentPage() {
         discountPct: match.discount_pct ?? null,
       };
     }
-    const fallback = TIERS.find((t) => t.value === tierValue)?.fallbackPrice ?? "";
-    return { display: fallback, discounted: null, anchor: null, discountPct: null };
+    return { display: pricingState === "failed" ? "—" : "…", discounted: null, anchor: null, discountPct: null };
   };
 
-  const selectedTierObj = TIERS.find((t) => t.value === selectedTier) ?? TIERS[TIERS.length - 2];
+  const selectedTierObj = TIERS.find((t) => t.value === selectedTier) ?? TIERS[0];
   const selectedPrice = getTierPrice(selectedTier);
   const hasCreditsForSelected = credits ? credits.available_credits >= selectedTier : false;
 
@@ -632,7 +775,7 @@ export default function EnrichmentPage() {
           </button>
         </div>
         <h1 className="font-clash text-3xl md:text-4xl font-bold text-studojo-ink text-center mb-3">Contact Hiring Managers Directly</h1>
-        <p className="text-base text-studojo-muted text-center max-w-xl mx-auto font-satoshi">
+        <p className="text-base text-studojo-muted text-center max-w-xl mx-auto font-satoshi mb-8">
           Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
         </p>
 
@@ -647,29 +790,81 @@ export default function EnrichmentPage() {
         )}
 
         {/* Credits banner */}
-        {credits && credits.total_credits > 0 && (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg/30 px-5 py-3 mb-6 flex items-center justify-between max-w-md mx-auto shadow-brutal">
-            <span className="text-sm font-bold font-satoshi text-studojo-ink flex items-center gap-2">
-              <span className="w-7 h-7 rounded-lg bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-green text-sm font-bold">{currSymbol}</span>
-              {/* Credits are reserved up front when a campaign starts, so a live
-                  campaign leaves available at 0. Saying "you have 0 credits" to
-                  someone whose emails are going out reads as money vanishing. */}
-              {credits.available_credits > 0
-                ? `You have ${credits.available_credits} credits`
-                : (credits.emails_delivered || 0) + (credits.emails_scheduled || 0) > 0
-                  ? `${credits.emails_delivered || 0} emails sent, ${credits.emails_scheduled || 0} scheduled`
-                  : `You have ${credits.available_credits} credits`}
-            </span>
-            <span className="px-3 py-0.5 rounded-full text-xs font-satoshi font-bold bg-studojo-green-bg text-studojo-green border-2 border-studojo-ink">
-              {credits.available_credits > 0
-                ? "available"
-                : (credits.emails_delivered || 0) + (credits.emails_scheduled || 0) > 0
-                  ? "campaign running"
-                  : "available"}
-            </span>
+        {credits && credits.total_credits > 0 && (() => {
+          const available = credits.available_credits;
+          const sent = credits.emails_delivered || 0;
+          const scheduled = credits.emails_scheduled || 0;
+          const status = credits.campaign_status ?? null;
+          // Credits are reserved up front when a campaign starts, so a live
+          // campaign leaves available at 0. Saying "you have 0 credits" to
+          // someone whose emails are going out reads as money vanishing.
+          const label = available > 0
+            ? `You have ${available} credits`
+            : sent + scheduled > 0
+              ? `${sent} emails sent, ${scheduled} ${status === "paused" ? "on hold" : "scheduled"}`
+              : `You have ${available} credits`;
+          const pill = available > 0
+            ? "available"
+            : status === "running"
+              ? "campaign running"
+              : status === "paused"
+                ? `paused · ${credits.reserved_credits ?? scheduled} reserved`
+                : sent + scheduled > 0 ? "campaign finished" : "available";
+          const canUseRemaining = available >= MIN_CAMPAIGN_CREDITS && available < 200 && leadCount !== 0;
+          return (
+            <div className="max-w-md mx-auto mb-6">
+              <div className="rounded-2xl border-2 border-studojo-ink bg-studojo-green-bg/30 px-5 py-3 flex items-center justify-between gap-3 shadow-brutal">
+                <span className="text-sm font-bold font-satoshi text-studojo-ink flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-lg bg-studojo-green-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-green text-sm font-bold">{currSymbol}</span>
+                  {label}
+                </span>
+                <span className="px-3 py-0.5 rounded-full text-xs font-satoshi font-bold bg-studojo-green-bg text-studojo-green border-2 border-studojo-ink whitespace-nowrap">
+                  {pill}
+                </span>
+              </div>
+              {canUseRemaining && (
+                <button
+                  onClick={startWithRemainingCredits}
+                  className="mt-3 w-full h-11 rounded-xl bg-white text-studojo-ink font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center justify-center gap-1.5"
+                >
+                  Use my {available} credits <FiArrowRight className="w-4 h-4" />
+                </button>
+              )}
+              {available > 0 && available < MIN_CAMPAIGN_CREDITS && (
+                <p className="mt-2 text-xs text-studojo-muted font-satoshi text-center">
+                  A campaign needs at least {MIN_CAMPAIGN_CREDITS} credits, so these stay on your balance.
+                </p>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* No leads: nothing to buy yet (UC-Q24) */}
+        {leadCount === 0 && (
+          <div className="max-w-md mx-auto mb-6 rounded-2xl border-2 border-studojo-ink bg-white px-5 py-4 shadow-brutal text-center">
+            <p className="font-satoshi text-sm font-bold text-studojo-ink mb-1">We have not found hiring managers for you yet</p>
+            <p className="font-satoshi text-sm text-studojo-muted mb-3">There is nothing to send to, so there is nothing to buy. Go back and run the search again.</p>
+            <button
+              onClick={() => navigate("/outreach/leads/results")}
+              className="h-10 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-bold border-2 border-studojo-ink shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+            >
+              Back to your search
+            </button>
           </div>
         )}
 
+        {/* Prices did not load: say so rather than guess (UC-Q39) */}
+        {pricingState === "failed" && (
+          <div className="max-w-md mx-auto mb-6 rounded-2xl border-2 border-red-500 bg-red-50 px-5 py-3 flex items-center justify-between gap-3">
+            <p className="font-satoshi text-sm font-medium text-red-700">Prices did not load.</p>
+            <button
+              onClick={() => void loadPricing()}
+              className="h-9 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-bold border-2 border-studojo-ink"
+            >
+              Try again
+            </button>
+          </div>
+        )}
 
         {/* Tier cards */}
         <div className={`grid grid-cols-1 ${TIERS.length === 4 ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-3"} gap-4 mb-8 items-stretch`}>
@@ -689,10 +884,8 @@ export default function EnrichmentPage() {
                 key={tier.value}
                 onClick={() => { capturePostHog("tier_selected", { tier: tier.value }); setSelectedTier(tier.value); setCouponError(""); if (couponCode.trim()) { void validateCoupon(tier.value); } else { setCouponResult(null); } }}
                 className={`relative rounded-2xl border-2 p-5 cursor-pointer transition-all flex flex-col ${
-                  tier.recommended
+                  isSelected
                     ? "border-studojo-purple bg-studojo-purple-bg/20 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)]"
-                    : isSelected
-                    ? "border-studojo-ink bg-white shadow-brutal"
                     : "border-studojo-ink/20 bg-white hover:border-studojo-ink/50"
                 }`}
               >
@@ -707,7 +900,7 @@ export default function EnrichmentPage() {
                 {tier.recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="px-2.5 py-0.5 rounded-full bg-studojo-purple text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
-                      Most Popular
+                      Recommended
                     </span>
                   </div>
                 )}
@@ -759,9 +952,9 @@ export default function EnrichmentPage() {
                     setSelectedTier(tier.value);
                     handlePayAndContinue(tier.value);
                   }}
-                  disabled={paying && isSelected}
+                  disabled={(paying && isSelected) || leadCount === 0 || (pricingState !== "ready" && !hasCredits)}
                   className={`w-full h-10 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-1.5 ${
-                    tier.recommended
+                    isSelected
                       ? "bg-studojo-purple text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                       : "bg-white text-studojo-ink shadow-[2px_2px_0px_0px_rgba(25,26,35,0.7)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                   } disabled:opacity-50 disabled:pointer-events-none`}
@@ -863,7 +1056,7 @@ export default function EnrichmentPage() {
           </div>
           <button
             onClick={() => handlePayAndContinue(selectedTier)}
-            disabled={paying}
+            disabled={paying || leadCount === 0 || (pricingState !== "ready" && !hasCreditsForSelected)}
             className="h-11 px-6 rounded-xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none whitespace-nowrap flex-shrink-0 inline-flex items-center gap-1.5 disabled:opacity-50 disabled:pointer-events-none"
           >
             {paying ? "Processing..." : <>{hasCreditsForSelected ? "Use Credits" : "Get Started"} <FiArrowRight className="w-4 h-4" /></>}
