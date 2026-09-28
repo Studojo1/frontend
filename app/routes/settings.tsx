@@ -551,7 +551,7 @@ export default function Settings() {
   };
 
   const handleDisable2FA = () => {
-    if (!session) return;
+    if (!session || !twoFactorPassword) return;
 
     showConfirmModal({
       title: "Disable Two-Factor Authentication",
@@ -565,11 +565,14 @@ export default function Settings() {
         setTwoFactorSuccess(null);
 
         try {
-          const result = await authClient.twoFactor.disable();
+          // better-auth requires the password here. It was called with no
+          // arguments, so disabling 2FA always failed with a 400.
+          const result = await authClient.twoFactor.disable({ password: twoFactorPassword });
 
           if (result.error) {
             setTwoFactorError(result.error.message ?? "Failed to disable 2FA");
           } else {
+            setTwoFactorPassword("");
             setTwoFactorSuccess("Two-factor authentication disabled successfully.");
             setTwoFactorEnabled(false);
             setBackupCodes([]);
@@ -587,13 +590,14 @@ export default function Settings() {
   };
 
   const handleGenerateBackupCodes = async () => {
-    if (!session) return;
+    if (!session || !twoFactorPassword) return;
 
     setGeneratingBackupCodes(true);
     setTwoFactorError(null);
 
     try {
-      const result = await authClient.twoFactor.generateBackupCodes();
+      // Requires the password, same as disable: it failed with a 400 without one.
+      const result = await authClient.twoFactor.generateBackupCodes({ password: twoFactorPassword });
 
       if (result.error) {
         setTwoFactorError(result.error.message ?? "Failed to generate backup codes");
@@ -1020,11 +1024,26 @@ export default function Settings() {
                       </div>
                     )}
 
+                    <div>
+                      <label htmlFor="twofa-manage-password" className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900">
+                        Confirm your password to change 2FA
+                      </label>
+                      <input
+                        type="password"
+                        id="twofa-manage-password"
+                        value={twoFactorPassword}
+                        onChange={(e) => setTwoFactorPassword(e.target.value)}
+                        autoComplete="current-password"
+                        className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                        placeholder="••••••••"
+                      />
+                    </div>
+
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <button
                         type="button"
                         onClick={handleGenerateBackupCodes}
-                        disabled={generatingBackupCodes}
+                        disabled={generatingBackupCodes || !twoFactorPassword}
                         className="rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                       >
                         {generatingBackupCodes ? "Generating…" : "Generate New Backup Codes"}
@@ -1032,7 +1051,7 @@ export default function Settings() {
                       <button
                         type="button"
                         onClick={handleDisable2FA}
-                        disabled={disabling2FA}
+                        disabled={disabling2FA || !twoFactorPassword}
                         className="rounded-2xl border-2 border-red-500 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-red-600 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(220,38,38,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                       >
                         {disabling2FA ? "Disabling…" : "Disable 2FA"}
@@ -1198,7 +1217,7 @@ export default function Settings() {
                     </button>
                     <button
                       type="submit"
-                      disabled={changingPassword || !newPassword || !confirmNewPassword || (hasPasswordAccount && !currentPassword)}
+                      disabled={changingPassword || !newPassword || !confirmNewPassword || (!!hasPasswordAccount && !currentPassword)}
                       className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
                     >
                       {changingPassword ? "Changing..." : "Change Password"}

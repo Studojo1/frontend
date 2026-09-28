@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
+import { motion, type TargetAndTransition } from "framer-motion";
 
-const floatA = {
+const floatA: TargetAndTransition = {
   y: [0, -16, 0],
   x: [0, 24, 0],
   transition: {
@@ -10,7 +10,7 @@ const floatA = {
   },
 };
 
-const floatB = {
+const floatB: TargetAndTransition = {
   y: [0, 14, 0],
   x: [0, -24, 0],
   transition: {

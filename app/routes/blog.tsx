@@ -94,11 +94,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 }
 
-export default function Blog({ data }: Route.ComponentProps) {
+export default function Blog() {
   const loaderData = useLoaderData() as
     | { posts: BlogPost[]; totalPages: number; page: number; search: string }
     | undefined;
-  const initial = loaderData || (data as typeof loaderData) || {
+  const initial = loaderData || {
     posts: [],
     totalPages: 1,
     page: 1,
