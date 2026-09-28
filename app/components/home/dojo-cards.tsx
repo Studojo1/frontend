@@ -32,7 +32,7 @@ function CheckIcon({ className }: { className?: string }) {
 
 export function FeaturedProductCard() {
   return (
-    <section className="border-b border-neutral-900 bg-white px-4 pt-8 pb-8 md:px-8 md:pt-24 md:pb-16">
+    <section className="border-b border-neutral-900 bg-white px-4 py-6 md:px-8 md:pt-24 md:pb-16">
       <div className="mx-auto max-w-[var(--section-max-width)]">
         <div className="mb-6 text-center md:mb-14">
           <h2 className="font-['Clash_Display'] text-3xl font-medium leading-8 text-neutral-900 md:text-4xl lg:text-5xl">
@@ -41,13 +41,13 @@ export function FeaturedProductCard() {
               interview room
             </span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl font-['Satoshi'] text-base font-normal leading-6 text-neutral-700 md:text-xl md:leading-7">
+          <p className="mx-auto mt-2 max-w-2xl font-['Satoshi'] text-base font-normal leading-6 text-neutral-700 md:mt-4 md:text-xl md:leading-7">
             One tool. One goal. Get you in front of the right people.
           </p>
         </div>
 
-        <article className="flex flex-col gap-6 rounded-[28px] border-2 border-neutral-900 bg-violet-500 p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:p-10 lg:p-12">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <article className="flex flex-col gap-4 rounded-[28px] border-2 border-neutral-900 bg-violet-500 p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:p-10 lg:p-12">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
             {/* Left: icon, title, description, checklist */}
             <div className="flex flex-col gap-4 md:max-w-lg md:gap-5">
               <div className="flex items-center gap-3">
