@@ -433,7 +433,7 @@ export default function GermanyInternshipsReport() {
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that clears German ATS filters</div>
                 <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>German companies use ATS systems that are strict about formatting. The Studojo resume builder outputs a clean, ATS-safe PDF in 5 minutes.</div>
               </div>
-              <Link to="/dojos/careers" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
             </div>
           </div>
 
@@ -600,7 +600,7 @@ export default function GermanyInternshipsReport() {
             <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find paid internships in Germany, Europe, and beyond. Build an ATS-ready resume in 5 minutes. Free.</p>
             <div className="rpt-final-cta-btns">
               <Link to="/dojos/internships" className="rpt-btn-white">Find Internships</Link>
-              <Link to="/dojos/careers" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

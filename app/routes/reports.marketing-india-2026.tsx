@@ -399,7 +399,7 @@ export default function MarketingIndiaReport() {
                 <div className="rpt-inline-cta-title">Build a resume that actually reflects your marketing skills</div>
                 <div className="rpt-inline-cta-sub">ATS-optimised, free, takes 5 minutes. Used by 5,000+ students.</div>
               </div>
-              <Link to="/dojos/careers" className="rpt-btn-primary rpt-btn-green">Build Resume Free</Link>
+              <Link to="/resume-maker" className="rpt-btn-primary rpt-btn-green">Build Resume Free</Link>
             </div>
           </div>
 
@@ -583,7 +583,7 @@ export default function MarketingIndiaReport() {
             <p className="rpt-final-cta-sub">Use Studojo to find niche marketing internships before everyone else does. Build an ATS-optimised resume that reflects real skills. Apply to the roles worth applying to.</p>
             <div className="rpt-final-cta-btns">
               <Link to="/dojos/internships" className="rpt-btn-white">Find Marketing Internships</Link>
-              <Link to="/dojos/careers" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>

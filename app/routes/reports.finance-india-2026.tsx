@@ -397,7 +397,7 @@ export default function FinanceIndiaReport() {
                 <div className="rpt-inline-cta-title" style={{ color: "#fff" }}>Build the resume that gets you into a finance role</div>
                 <div className="rpt-inline-cta-sub" style={{ color: "#a3a3a3" }}>ATS-optimised, free, takes 5 minutes. Used by 5,000+ students.</div>
               </div>
-              <Link to="/dojos/careers" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
             </div>
           </div>
 
@@ -508,7 +508,7 @@ export default function FinanceIndiaReport() {
                   <div className="rpt-inline-cta-sub">The Careers Dojo builds ATS-optimised finance resumes. Free. Takes 5 minutes.</div>
                 </div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link to="/dojos/careers" className="rpt-btn-primary">Build Resume</Link>
+                  <Link to="/resume-maker" className="rpt-btn-primary">Build Resume</Link>
                   <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-secondary">Join Community</Link>
                 </div>
               </div>
@@ -595,7 +595,7 @@ export default function FinanceIndiaReport() {
             <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the finance roles this report is talking about: FP&A, analytics, fintech, and investment research openings across India, curated weekly.</p>
             <div className="rpt-final-cta-btns">
               <Link to="/outreach" className="rpt-btn-white">Browse Finance Internships</Link>
-              <Link to="/dojos/careers" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>
