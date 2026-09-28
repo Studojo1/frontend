@@ -47,7 +47,7 @@ export function FeaturedProductCard() {
         </div>
 
         <article className="flex flex-col gap-6 rounded-[32px] border-2 border-neutral-900 bg-violet-500 p-6 shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:p-10 lg:p-12">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             {/* Left: icon, title, description, checklist */}
             <div className="flex flex-col gap-5 md:max-w-lg">
               <div className="flex items-center gap-3">
