@@ -505,7 +505,6 @@ const STUDOJO_LINK_BUTTONS: { re: RegExp; label: string; icon: string; href: str
   { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/dojos\/internships[^\s)]*/gi, label: "Browse Internship Dojo", icon: "", href: "https://studojo.com/dojos/internships" },
   { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/outreach[^\s)]*/gi, label: "Open Outreach Dojo", icon: "✉️", href: "https://studojo.com/outreach" },
   { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/reports[^\s)]*/gi, label: "Browse Reports", icon: "📊", href: "https://studojo.com/reports" },
-  { re: /(?:https?:\/\/)?(?:www\.)?studojo\.com\/dojos\/ai-risk[^\s)]*/gi, label: "Open AI Risk Dojo", icon: "🤖", href: "https://studojo.com/dojos/ai-risk" },
 ];
 
 // Render a plain-text bubble:
@@ -1048,7 +1047,7 @@ export default function CcChat() {
         pendingGreetingRef.current = await gRes.json();
         if (hookDismissedRef.current) showGreeting(pendingGreetingRef.current);
 
-        // Entry seed: arrived from another Studojo tool (e.g. AI Risk Dojo).
+        // Entry seed: arrived from another Studojo tool.
         // Pre-fill the first message with the role they just analysed so the
         // coach starts on-topic. The student still presses send (stays in control).
         try {
@@ -1056,11 +1055,7 @@ export default function CcChat() {
           const seedRole = sp.get("seed_role");
           const src = sp.get("src");
           if (seedRole && inputRef.current && !inputRef.current.value) {
-            const risk = sp.get("risk");
-            inputRef.current.value =
-              src === "ai-risk"
-                ? `I just checked and my target role "${seedRole}" is ${risk ?? "highly"}% at risk from AI. Help me build a future-proof plan.`
-                : `I want to work towards becoming a ${seedRole}.`;
+            inputRef.current.value = `I want to work towards becoming a ${seedRole}.`;
             inputRef.current.style.height = "auto";
             inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 140) + "px";
             setInputEmpty(false);
@@ -1071,9 +1066,9 @@ export default function CcChat() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  event_type: src === "ai-risk" ? "acq_from_ai_risk" : "acq_from_tool",
+                  event_type: "acq_from_tool",
                   student_id: sd.student_id,
-                  event_data: { src, seed_role: seedRole, risk: sp.get("risk") },
+                  event_data: { src, seed_role: seedRole },
                 }),
               }).catch(() => {});
             }

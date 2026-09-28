@@ -8,7 +8,7 @@
 
 import type { Route } from "./+types/api.outreach.email-chat";
 
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama.staging.svc.cluster.local:11434";
+const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama:11434";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 // ── Core framework ────────────────────────────────────────────────────

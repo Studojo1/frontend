@@ -269,26 +269,6 @@ export const INTENTS: Intent[] = [
     ],
   },
 
-  // -- AI Risk Dojo --
-  {
-    id: "ai_risk",
-    keywords: ["ai risk", "humanizer", "ai detection", "turnitin", "detector", "humanize", "ai checker", "detection score", "flagged", "ai writing"],
-    patterns: [
-      "ai detection",
-      "will my assignment get flagged",
-      "ai risk check",
-      "humanize my text",
-      "turnitin detection",
-      "check for ai",
-      "will turnitin catch it",
-      "lower ai score",
-      "ai content checker",
-      "ai writing detection",
-    ],
-    response: "AI Risk Dojo scans your text and shows which sections might get flagged by AI detectors. Rephrase the high-risk parts in your own words, rerun, done. It's a checker, not a bypass.",
-    links: [{ label: "Try AI Risk checker", url: "/dojos/ai-risk" }],
-  },
-
   // -- General pricing --
   {
     id: "pricing",
@@ -681,10 +661,6 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 **Assignment Dojo** — AI assignment help
 - AI-generated assignments, plagiarism-safe, formatted, referenced
 - Pay per assignment, no subscription
-
-**AI Risk Dojo** (studojo.com/dojos/ai-risk) — AI detection risk checker
-- Scans text, shows risk score by section, shows where to rephrase
-- A checker, NOT a bypass tool
 
 **Revision Dojo** — Coming soon (study notes, flashcards, practice questions, mind maps)
 
