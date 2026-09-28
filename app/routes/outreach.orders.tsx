@@ -19,6 +19,8 @@ interface Order {
   action_log: Array<{ ts: string; msg: string }>;
   created_at: string | null;
   updated_at: string | null;
+  /** The order's live campaign (job-outreach-svc /orders/list). */
+  campaign?: { id: number; status: string; pause_reason: string | null; sent: number } | null;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -33,6 +35,30 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   campaign_running: { label: "Campaign Running", color: "bg-studojo-green-bg text-studojo-green border-studojo-green/30" },
   completed: { label: "Completed", color: "bg-studojo-green-bg text-studojo-green border-studojo-green/30" },
 };
+
+// Drawn from the live campaign, not order.status, which stayed
+// "campaign_running" through pause and completion: 60 of 69 paying users saw a
+// green "Campaign Running" for a campaign that was paused or finished (audit P23).
+const CAMPAIGN_STATUS: Record<string, { label: string; color: string; icon: string }> = {
+  running: { label: "Campaign Running", color: "bg-studojo-green-bg text-studojo-green border-studojo-green/30", icon: "campaign_running" },
+  paused: { label: "Paused", color: "bg-amber-50 text-amber-700 border-amber-200", icon: "paused" },
+  completed: { label: "Completed", color: "bg-studojo-purple-bg text-studojo-purple border-studojo-purple/30", icon: "completed" },
+  cancelled: { label: "Cancelled", color: "bg-studojo-surface-muted text-studojo-muted border-studojo-ink/20", icon: "cancelled" },
+  draft: { label: "Not launched", color: "bg-studojo-surface-muted text-studojo-muted border-studojo-ink/20", icon: "draft" },
+};
+
+function badgeFor(order: Order) {
+  const c = order.campaign;
+  if (c && CAMPAIGN_STATUS[c.status]) {
+    const base = CAMPAIGN_STATUS[c.status];
+    if (c.status === "paused" && c.pause_reason === "gmail_auth") {
+      return { ...base, label: "Paused: reconnect Gmail", color: "bg-red-50 text-red-700 border-red-200" };
+    }
+    return base;
+  }
+  const cfg = STATUS_CONFIG[order.status] || { label: order.status, color: "bg-studojo-surface-muted text-studojo-muted border-studojo-ink/20" };
+  return { ...cfg, icon: order.status };
+}
 
 function StatusIcon({ status }: { status: string }) {
   if (status === "completed") return <FiCheckCircle className="w-5 h-5 text-studojo-green" />;
@@ -133,7 +159,7 @@ export default function OrdersPage() {
           ) : (
             <div className="space-y-4">
               {orders.map((order) => {
-                const cfg = STATUS_CONFIG[order.status] || { label: order.status, color: "bg-studojo-surface-muted text-studojo-muted border-studojo-ink/20" };
+                const cfg = badgeFor(order);
                 const isActive = order.status !== "completed";
                 return (
                   <div
@@ -143,7 +169,7 @@ export default function OrdersPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-4 flex-1 min-w-0">
                         <div className="w-10 h-10 rounded-xl bg-studojo-surface-muted border-2 border-studojo-ink flex items-center justify-center flex-shrink-0">
-                          <StatusIcon status={order.status} />
+                          <StatusIcon status={cfg.icon} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-3 flex-wrap">
