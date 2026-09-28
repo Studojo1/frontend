@@ -9,7 +9,7 @@ for (const q of ["delete my account", "please delete my account", "how do I clos
   const { intent } = matchIntent(q);
   assert.equal(intent?.id, "privacy", `"${q}" went to ${intent?.id}`);
   assert.doesNotMatch(intent.response, /password/i);
-  assert.match(intent.response, /delete my account/i);
+  assert.ok(intent.links?.some((l) => l.url === "/account/delete"), `"${q}" has no deletion link`);
 }
 
 for (const q of ["i want a refund", "refund policy", "refund my credits"]) {
