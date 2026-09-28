@@ -34,7 +34,7 @@ export function FeaturedProductCard() {
   return (
     <section className="border-b border-neutral-900 bg-white px-4 pt-8 pb-8 md:px-8 md:pt-24 md:pb-16">
       <div className="mx-auto max-w-[var(--section-max-width)]">
-        <div className="mb-8 text-center md:mb-14">
+        <div className="mb-6 text-center md:mb-14">
           <h2 className="font-['Clash_Display'] text-3xl font-medium leading-8 text-neutral-900 md:text-4xl lg:text-5xl">
             Your path to the{" "}
             <span className="inline-flex items-center rounded-2xl border-2 border-neutral-900 bg-violet-300 px-3 py-0.5 align-middle font-['Clash_Display'] text-3xl font-medium leading-none text-neutral-900 md:text-4xl lg:text-5xl">
@@ -46,12 +46,12 @@ export function FeaturedProductCard() {
           </p>
         </div>
 
-        <article className="flex flex-col gap-6 rounded-[32px] border-2 border-neutral-900 bg-violet-500 p-6 shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:p-10 lg:p-12">
+        <article className="flex flex-col gap-6 rounded-[28px] border-2 border-neutral-900 bg-violet-500 p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:p-10 lg:p-12">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             {/* Left: icon, title, description, checklist */}
-            <div className="flex flex-col gap-5 md:max-w-lg">
+            <div className="flex flex-col gap-4 md:max-w-lg md:gap-5">
               <div className="flex items-center gap-3">
-                <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white" aria-hidden>
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white md:h-16 md:w-16" aria-hidden>
                   <FiSend className="h-7 w-7 text-violet-500" />
                 </div>
                 <span className="inline-flex items-center rounded-full border-2 border-white/40 bg-white/20 px-3 py-1 font-['Satoshi'] text-xs font-bold text-white">
@@ -76,7 +76,7 @@ export function FeaturedProductCard() {
             </div>
 
             {/* Right: CTA */}
-            <div className="flex shrink-0 flex-col items-start gap-4 rounded-[24px] border-2 border-white/30 bg-white/15 p-6 backdrop-blur-sm md:min-w-[220px] md:items-center md:text-center">
+            <div className="flex shrink-0 flex-col items-start gap-3 rounded-[24px] border-2 border-white/30 bg-white/15 p-4 backdrop-blur-sm md:gap-4 md:p-6 md:min-w-[220px] md:items-center md:text-center">
               <p className="font-['Satoshi'] text-sm text-white/80 md:text-base">
                 Ready to skip the queue and email hiring managers directly?
               </p>

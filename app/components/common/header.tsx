@@ -109,9 +109,6 @@ export function Header() {
   return (
     <motion.header
       className="sticky top-0 z-50 w-full border-b border-neutral-900 bg-white"
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
     >
       <div className="mx-auto flex h-16 max-w-[var(--section-max-width)] items-center justify-between px-4 pt-4 pb-px md:h-24 md:px-8 md:pt-0 md:pb-0">
         <Link
