@@ -3,12 +3,11 @@
  *
  * AI cold email assistant for student job seekers.
  * Intent-classified, locked-anchor editing.
- * OpenAI gpt-4o-mini primary, Ollama llama3.2:1b fallback.
+ * OpenAI gpt-4o-mini. No local-model fallback.
  */
 
 import type { Route } from "./+types/api.outreach.email-chat";
 
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama:11434";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 // ── Core framework ────────────────────────────────────────────────────
@@ -337,39 +336,6 @@ async function callOpenAI(userPrompt: string): Promise<any | null> {
   }
 }
 
-async function callOllama(userPrompt: string): Promise<any | null> {
-  try {
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 40000);
-    const res = await fetch(`${OLLAMA_URL}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      signal: ctrl.signal,
-      body: JSON.stringify({
-        model: "llama3.2:1b",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a cold email expert for student job seekers. Return valid JSON only.",
-          },
-          { role: "user", content: userPrompt },
-        ],
-        stream: false,
-        options: { temperature: 0.55, num_predict: 900 },
-      }),
-    });
-    clearTimeout(tid);
-    if (!res.ok) return null;
-    const data = await res.json();
-    const raw: string = (data?.message?.content || data?.response || "").trim();
-    const match = raw.match(/\{[\s\S]*\}/);
-    return match ? JSON.parse(match[0]) : null;
-  } catch {
-    return null;
-  }
-}
-
 // ── Route ─────────────────────────────────────────────────────────────
 
 export async function action({ request }: Route.ActionArgs) {
@@ -408,7 +374,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (!is_initial && !emailBody && !subject && !prompt.trim())
     return Response.json({ error: "prompt is required" }, { status: 400 });
 
-  const parsed = (await callOpenAI(userPrompt)) ?? (await callOllama(userPrompt));
+  const parsed = await callOpenAI(userPrompt);
 
   if (!parsed?.body && !parsed?.subject)
     return Response.json({ error: "AI unavailable. Please try again." }, { status: 503 });

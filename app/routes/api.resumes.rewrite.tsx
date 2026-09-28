@@ -2,7 +2,6 @@ import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/api.resumes.rewrite";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama:11434";
 
 const CONTENT_RULES =
   "STRICT RULES: Only use information present in the provided text. Do not add new tools, technologies, skills, metrics, or achievements that are not explicitly mentioned. Do not invent or guess any details. Never use em dashes. Return only the rewritten text, no explanations.";
@@ -33,7 +32,6 @@ export async function action({ request }: Route.ActionArgs) {
 
   const systemPrompt = PROMPTS[rewriteAction] || PROMPTS.polish;
 
-  // Try OpenAI first
   if (OPENAI_API_KEY) {
     try {
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -63,29 +61,6 @@ export async function action({ request }: Route.ActionArgs) {
     } catch (e) {
       console.error("[rewrite] OpenAI error:", e);
     }
-  }
-
-  // Fallback: Ollama
-  try {
-    const response = await fetch(`${OLLAMA_URL}/api/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "llama3.2:1b",
-        prompt: `${systemPrompt}\n\n${text.trim()}`,
-        stream: false,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      const result = data.response?.trim();
-      if (result) {
-        return Response.json({ result });
-      }
-    }
-  } catch (e) {
-    console.error("[rewrite] Ollama error:", e);
   }
 
   return Response.json({ error: "Rewrite service unavailable" }, { status: 503 });
