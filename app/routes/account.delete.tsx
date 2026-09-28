@@ -1,0 +1,139 @@
+// Self-serve account deletion (B2C open item NEW-04).
+//
+// Its own page rather than a section of /settings: /settings requires a
+// finished onboarding profile, which students who signed up by email through
+// Outreach never see, so they could not have reached a button there.
+import { useState } from "react";
+import { redirect, useNavigate } from "react-router";
+import { Header } from "~/components";
+import { authClient } from "~/lib/auth-client";
+import { clearTokenCache } from "~/lib/control-plane";
+import { getSessionFromRequest } from "~/lib/onboarding.server";
+import { outreachFetch } from "~/lib/outreach/api";
+import { useOutreachStore } from "~/lib/outreach/store";
+import { resetPostHog } from "~/lib/posthog";
+import type { Route } from "./+types/account.delete";
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSessionFromRequest(request);
+  if (!session) throw redirect("/auth?redirect=/account/delete");
+  return { email: session.user.email };
+}
+
+export function meta({}: Route.MetaArgs) {
+  return [{ title: "Delete your account | Studojo" }, { name: "robots", content: "noindex" }];
+}
+
+export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
+  const navigate = useNavigate();
+  const [confirm, setConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+
+  const handleDelete = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (confirm !== "DELETE") return;
+    setDeleting(true);
+    setError(null);
+    try {
+      // No retries: once the first call succeeds the session is gone, and a
+      // retry would 401 and bounce to sign-in.
+      await outreachFetch("/account/delete", {
+        method: "POST",
+        body: JSON.stringify({ confirm }),
+        maxRetries: 0,
+        timeout: 60_000,
+      });
+    } catch (err: any) {
+      setError(err?.message || "Something went wrong. Nothing was deleted. Please try again.");
+      setDeleting(false);
+      return;
+    }
+    // The server already removed every session; this clears the browser's copy.
+    useOutreachStore.getState().resetFunnel();
+    clearTokenCache();
+    resetPostHog();
+    authClient.signOut().catch(() => {});
+    setDone(true);
+  };
+
+  const card =
+    "rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8";
+
+  return (
+    <>
+      <Header />
+      <main className="min-h-screen bg-purple-50">
+        <div className="mx-auto max-w-2xl px-4 py-12 md:px-8 md:py-20">
+          {done ? (
+            <div className={card} role="status">
+              <h1 className="mb-4 font-['Clash_Display'] text-3xl font-medium text-neutral-900">
+                Your account is deleted
+              </h1>
+              <p className="mb-6 font-['Satoshi'] text-base leading-6 text-neutral-700">
+                Your data is gone and Studojo can no longer use your Gmail. You can sign up again with the same
+                email any time.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+              >
+                Go to the homepage
+              </button>
+            </div>
+          ) : (
+            <div className={card}>
+              <h1 className="mb-4 font-['Clash_Display'] text-3xl font-medium text-neutral-900">
+                Delete your account
+              </h1>
+              <p className="mb-4 font-['Satoshi'] text-base leading-6 text-neutral-700">
+                This permanently deletes the account <strong>{loaderData.email}</strong>. It cannot be undone.
+              </p>
+              <ul className="mb-4 list-disc space-y-1 pl-5 font-['Satoshi'] text-base leading-6 text-neutral-700">
+                <li>Your resumes, profile, leads and campaigns are deleted. Any campaign still sending stops.</li>
+                <li>Every email sent from your Gmail, and every reply, is deleted from Studojo.</li>
+                <li>Studojo's access to your Gmail is revoked with Google.</li>
+                <li>Unused credits are lost. If you want a refund, raise a ticket before you delete.</li>
+              </ul>
+              <p className="mb-6 font-['Satoshi'] text-sm leading-5 text-neutral-500">
+                We keep a record of your payments, with no name or email attached, because the law requires it.
+              </p>
+
+              {error && (
+                <div
+                  className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium text-red-700"
+                  role="alert"
+                >
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleDelete} className="space-y-4">
+                <label htmlFor="confirm-delete" className="block font-['Satoshi'] text-sm font-medium text-neutral-900">
+                  Type DELETE to confirm
+                </label>
+                <input
+                  id="confirm-delete"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base text-neutral-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                />
+                <button
+                  type="submit"
+                  disabled={confirm !== "DELETE" || deleting}
+                  className="w-full rounded-2xl border-2 border-neutral-900 bg-red-600 px-6 py-4 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] disabled:pointer-events-none disabled:opacity-50"
+                >
+                  {deleting ? "Deleting…" : "Delete my account"}
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      </main>
+    </>
+  );
+}

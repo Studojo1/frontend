@@ -1060,6 +1060,22 @@ export default function Settings() {
                   </div>
                 )}
               </div>
+
+              {/* Delete account */}
+              <div className="rounded-2xl border-2 border-red-500 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] md:p-8">
+                <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
+                  Delete account
+                </h2>
+                <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
+                  Permanently delete your account and everything in it, and revoke Studojo's access to your Gmail.
+                </p>
+                <a
+                  href="/account/delete"
+                  className="inline-block rounded-2xl border-2 border-red-500 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-red-600 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(220,38,38,1)]"
+                >
+                  Delete my account
+                </a>
+              </div>
             </div>
           </motion.div>
         </div>
