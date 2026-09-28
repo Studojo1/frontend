@@ -31,6 +31,10 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
+  // Not a link to /settings: that page sends anyone without a finished
+  // profile to onboarding, and they are who this page exists for.
+  const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate("/"));
+
   const handleDelete = async (e: React.FormEvent) => {
     e.preventDefault();
     if (confirm !== "DELETE") return;
@@ -61,77 +65,108 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
 
   const card =
     "rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8";
+  const secondaryBtn =
+    "inline-flex items-center justify-center rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none";
 
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-purple-50">
-        <div className="mx-auto max-w-2xl px-4 py-12 md:px-8 md:py-20">
+      <main className="relative min-h-screen overflow-hidden bg-purple-50">
+        <div className="relative mx-auto max-w-4xl px-4 py-12 md:px-8 md:py-20">
           {done ? (
-            <div className={card} role="status">
-              <h1 className="mb-4 font-['Clash_Display'] text-3xl font-medium text-neutral-900">
-                Your account is deleted
+            <>
+              <h1 className="mb-8 font-['Clash_Display'] text-4xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl">
+                Account deleted
               </h1>
-              <p className="mb-6 font-['Satoshi'] text-base leading-6 text-neutral-700">
-                Your data is gone and Studojo can no longer use your Gmail. You can sign up again with the same
-                email any time.
-              </p>
+              <div className={card} role="status">
+                <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
+                  Your account is deleted
+                </h2>
+                <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
+                  Your data is gone and Studojo can no longer use your Gmail. You can sign up again with the same
+                  email any time.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/")}
+                  className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                >
+                  Go to the homepage
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
               <button
                 type="button"
-                onClick={() => navigate("/")}
-                className="rounded-2xl border-2 border-neutral-900 bg-purple-500 px-6 py-3 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+                onClick={goBack}
+                className="mb-4 inline-block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-600 hover:text-neutral-900"
               >
-                Go to the homepage
+                &larr; Back
               </button>
-            </div>
-          ) : (
-            <div className={card}>
-              <h1 className="mb-4 font-['Clash_Display'] text-3xl font-medium text-neutral-900">
+              <h1 className="mb-8 font-['Clash_Display'] text-4xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl">
                 Delete your account
               </h1>
-              <p className="mb-4 font-['Satoshi'] text-base leading-6 text-neutral-700">
-                This permanently deletes the account <strong>{loaderData.email}</strong>. It cannot be undone.
-              </p>
-              <ul className="mb-4 list-disc space-y-1 pl-5 font-['Satoshi'] text-base leading-6 text-neutral-700">
-                <li>Your resumes, profile, leads and campaigns are deleted. Any campaign still sending stops.</li>
-                <li>Every email sent from your Gmail, and every reply, is deleted from Studojo.</li>
-                <li>Studojo's access to your Gmail is revoked with Google.</li>
-                <li>Unused credits are lost. If you want a refund, raise a ticket before you delete.</li>
-              </ul>
-              <p className="mb-6 font-['Satoshi'] text-sm leading-5 text-neutral-500">
-                We keep a record of your payments, with no name or email attached, because the law requires it.
-              </p>
+              <div className="rounded-2xl border-2 border-red-500 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] md:p-8">
+                <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
+                  This cannot be undone
+                </h2>
+                <p className="mb-4 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
+                  You are deleting the account <strong className="break-all font-medium text-neutral-900">{loaderData.email}</strong>.
+                </p>
+                <ul className="mb-4 list-disc space-y-2 pl-5 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
+                  <li>Your resumes, profile, leads and campaigns are deleted. Any campaign still sending stops.</li>
+                  <li>Every email sent from your Gmail, and every reply, is deleted from Studojo.</li>
+                  <li>Studojo&apos;s access to your Gmail is revoked with Google.</li>
+                  <li>Unused credits are lost. If you want a refund, raise a ticket before you delete.</li>
+                </ul>
+                <p className="mb-6 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
+                  We keep a record of your payments, with no name or email attached, because the law requires it.
+                </p>
 
-              {error && (
-                <div
-                  className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium text-red-700"
-                  role="alert"
-                >
-                  {error}
-                </div>
-              )}
+                {error && (
+                  <div
+                    className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-red-700"
+                    role="alert"
+                  >
+                    {error}
+                  </div>
+                )}
 
-              <form onSubmit={handleDelete} className="space-y-4">
-                <label htmlFor="confirm-delete" className="block font-['Satoshi'] text-sm font-medium text-neutral-900">
-                  Type DELETE to confirm
-                </label>
-                <input
-                  id="confirm-delete"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base text-neutral-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                />
-                <button
-                  type="submit"
-                  disabled={confirm !== "DELETE" || deleting}
-                  className="w-full rounded-2xl border-2 border-neutral-900 bg-red-600 px-6 py-4 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] disabled:pointer-events-none disabled:opacity-50"
-                >
-                  {deleting ? "Deleting…" : "Delete my account"}
-                </button>
-              </form>
-            </div>
+                <form onSubmit={handleDelete} className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="confirm-delete"
+                      className="mb-2 block font-['Satoshi'] text-sm font-medium leading-5 text-neutral-900"
+                    >
+                      Type DELETE to confirm
+                    </label>
+                    <input
+                      id="confirm-delete"
+                      value={confirm}
+                      onChange={(e) => setConfirm(e.target.value)}
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      placeholder="DELETE"
+                      className="w-full rounded-xl border-2 border-neutral-900 bg-white px-4 py-3 font-['Satoshi'] text-base font-normal leading-6 text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    />
+                  </div>
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button type="button" onClick={goBack} className={secondaryBtn}>
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={confirm !== "DELETE" || deleting}
+                      className="rounded-2xl border-2 border-neutral-900 bg-red-600 px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:pointer-events-none disabled:opacity-60"
+                    >
+                      {deleting ? "Deleting…" : "Delete my account"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </>
           )}
         </div>
       </main>
