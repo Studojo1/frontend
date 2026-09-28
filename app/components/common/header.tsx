@@ -321,12 +321,6 @@ export function Header() {
             ) : (
               <>
                 <Link
-                  to={authUrl("signin", location.pathname + location.search)}
-                  className="hidden font-['Satoshi'] text-base font-medium leading-6 text-neutral-700 sm:block"
-                >
-                  Sign In
-                </Link>
-                <Link
                   to={authUrl("signup", location.pathname + location.search)}
                   className={`flex h-12 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-sm font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] px-4 max-w-[120px] flex-shrink-0 md:w-32 md:text-base md:max-w-none ${
                     isHomePage ? "hidden md:flex" : ""
@@ -379,37 +373,20 @@ export function Header() {
               );
             })}
             <li>
-              {/* The chat used to be a bubble floating over the page, where it
-                  covered form fields and submit buttons on small screens. On
-                  mobile it lives here instead; the desktop launcher is unchanged. */}
+              {/* Resources live in the footer; take them there. Pages without
+                  the site footer fall back to the home page's. */}
               <button
                 type="button"
                 onClick={() => {
                   setMobileOpen(false);
-                  window.dispatchEvent(new CustomEvent("studojo:open-chat"));
+                  const footer = document.getElementById("resources");
+                  if (footer) footer.scrollIntoView({ behavior: "smooth" });
+                  else window.location.assign("/#resources");
                 }}
                 className="block w-full rounded-lg min-h-11 py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
               >
-                Help &amp; support
+                Resources
               </button>
-            </li>
-            <li>
-              <Link
-                to="/blog"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
-              >
-                Blog
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/reports"
-                onClick={() => setMobileOpen(false)}
-                className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
-              >
-                Reports
-              </Link>
             </li>
             {!isPending &&
               (session ? (
@@ -465,15 +442,6 @@ export function Header() {
                 </>
               ) : (
                 <>
-                  <li>
-                    <Link
-                      to={authUrl("signin", location.pathname + location.search)}
-                      onClick={() => setMobileOpen(false)}
-                      className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
-                    >
-                      Sign In
-                    </Link>
-                  </li>
                   <li>
                     <Link
                       to={authUrl("signup", location.pathname + location.search)}

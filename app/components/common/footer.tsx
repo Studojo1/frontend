@@ -6,8 +6,6 @@ import { FiUsers } from "react-icons/fi";
 type FooterLink = {
   to: string;
   label: string;
-  // Muted suffix, e.g. "Limited Use" after "Google API".
-  note?: string;
   icon?: ReactNode;
   external?: boolean;
 };
@@ -31,7 +29,6 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
       { to: "/outreach", label: "Outreach" },
       { to: "/dojos/internships", label: "Internship Dojo" },
       { to: "/resume-maker", label: "Resume Maker" },
-      { to: "/dojos/ai-risk", label: "AI Risk Dojo" },
       { to: "/reports", label: "Reports" },
     ],
   },
@@ -45,33 +42,23 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
     ],
   },
   {
-    // Only what our own policies commit to. No certifications we don't hold.
-    heading: "Compliance",
+    heading: "Legal",
     links: [
-      { to: "/privacy", label: "Google API", note: "Limited Use" },
-      { to: "/refund-policy", label: "Consumer Protection", note: "Act 2019" },
-      { to: "/refund-policy#s1", label: "Payments", note: "via Razorpay" },
+      { to: "/privacy", label: "Privacy Policy" },
+      { to: "/terms", label: "Terms of Service" },
+      { to: "/refund-policy", label: "Refund Policy" },
     ],
   },
-];
-
-const LEGAL_LINKS = [
-  { to: "/privacy", label: "Privacy Policy" },
-  { to: "/terms", label: "Terms of Service" },
-  { to: "/refund-policy", label: "Refund Policy" },
 ];
 
 const LINK_CLASS =
   "inline-flex min-h-11 items-center gap-2 font-['Satoshi'] text-sm leading-5 text-neutral-900 hover:text-violet-600 md:min-h-0 md:text-base md:leading-6";
 
-function FooterItem({ to, label, note, icon, external }: FooterLink) {
+function FooterItem({ to, label, icon, external }: FooterLink) {
   const content = (
     <>
       {icon && <span className="text-lg text-neutral-700" aria-hidden>{icon}</span>}
-      <span>
-        {label}
-        {note && <span className="text-neutral-500"> {note}</span>}
-      </span>
+      <span>{label}</span>
     </>
   );
   return external ? (
@@ -130,23 +117,11 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col items-center gap-2 border-t border-neutral-200 py-6 md:mt-16 md:flex-row md:justify-between">
-          <p className="text-center font-['Satoshi'] text-xs leading-4 text-neutral-500 md:hidden">
-            © {new Date().getFullYear()} Studojo Labs Private Limited. Crafted with ❤️ by students.
-          </p>
-          <span className="hidden md:block" />
-          <div className="flex flex-wrap justify-center gap-x-6 md:gap-x-10">
-            {LEGAL_LINKS.map(({ to, label }) => (
-              <Link
-                key={label}
-                to={to}
-                className="inline-flex min-h-11 items-center font-['Satoshi'] text-xs text-neutral-700 hover:text-violet-600 md:min-h-0 md:text-base md:text-neutral-900"
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-        </div>
+        {/* On desktop the copyright sits in the brand column. */}
+        <p className="mt-10 border-t border-neutral-200 py-6 text-center font-['Satoshi'] text-xs leading-4 text-neutral-500 md:hidden">
+          © {new Date().getFullYear()} Studojo Labs Private Limited. Crafted with ❤️ by students.
+        </p>
+        <div className="hidden md:block md:h-16" />
       </div>
 
       {/* Massive studojo text at bottom */}
