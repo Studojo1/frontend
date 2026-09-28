@@ -1,0 +1,37 @@
+# Runs on every pull request and every push to main/staging. Required to pass
+# before merging (branch protection). Exists because fixes were merging with
+# no test run at all, and a regression was found weeks later by an audit.
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+
+jobs:
+  test:
+    name: tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: authtest
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Throwaway database for the sign-up atomicity test. Never a real one.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/authtest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Create auth tables
+        run: npx drizzle-kit push --force
+      - run: npm test
+      - run: npm run build

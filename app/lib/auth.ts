@@ -15,6 +15,7 @@ import db from "./db";
 import { sendOtpSms, getVerificationSid, clearVerificationSid } from "./sms";
 import { verifyOtpCode } from "./verify";
 import { sendTemplateEmail } from "./events";
+import { welcomeAfterCommit } from "./welcome-after-commit";
 
 // Helper to generate IDs similar to better-auth (base64url encoded random bytes)
 // Browser-compatible implementation that works in both server and client
@@ -73,10 +74,37 @@ const adminUserIds = process.env.ADMIN_USER_IDS
   ? process.env.ADMIN_USER_IDS.split(",").map((id) => id.trim()).filter(Boolean)
   : [];
 
+// Welcome only once the sign-up has committed a login (see welcome-after-commit).
+async function userHasLoginAccount(userId: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: schema.account.id })
+    .from(schema.account)
+    .where(eq(schema.account.userId, userId))
+    .limit(1);
+  return rows.length > 0;
+}
+
+async function publishWelcome(payload: { user_id: string; email: string; name?: string | null }) {
+  const { publishEmailEvent } = await import("./events");
+  // ONLY the new flow welcome fires on signup. The old transactional
+  // event.user.signup ("welcome" template) is retired — it produced a
+  // duplicate second welcome. cc-welcome-new-user is the single welcome and
+  // also starts the Outreach not-used gate/chase.
+  await publishEmailEvent("event.cc.welcome_new_user", payload);
+}
+
 export const auth = betterAuth({
   appName: "Studojo",
   database: drizzleAdapter(db, {
     provider: "pg",
+    // Sign-up writes the user row and the credential (password) row separately.
+    // better-auth wraps them in runWithTransaction, but the Drizzle adapter
+    // ignores that unless this is on, so a failure between the two writes
+    // left a user row with no way to log in: the email was "taken" and there
+    // was no password to sign in with. 7 real students were locked out that way
+    // (signup audit Q06/Q21). With this on, both rows commit or neither does.
+    // Google sign-up (createOAuthUser) is covered by the same wrapper.
+    transaction: true,
     schema: {
       user: schema.user,
       session: schema.session,
@@ -395,22 +423,16 @@ export const auth = betterAuth({
       create: {
         after: async (user) => {
           // Fire for ALL signup methods (email/password, Google OAuth, etc.)
-          try {
-            const { publishEmailEvent } = await import("./events");
-            // ONLY the new flow welcome fires on signup. The old transactional
-            // event.user.signup ("welcome" template) is retired — it produced a
-            // duplicate second welcome. The new flow's cc-welcome-new-user is the
-            // single welcome and also starts the Outreach not-used gate/chase.
-            publishEmailEvent("event.cc.welcome_new_user", {
-              user_id: user.id,
-              email: user.email,
-              name: user.name,
-            }).catch((err) => {
-              console.error("[auth] Failed to publish cc welcome_new_user event:", err);
-            });
-          } catch (err) {
-            console.error("[auth] Error in user.create databaseHook:", err);
-          }
+          //
+          // This hook runs INSIDE the sign-up transaction (see `transaction:
+          // true` above), before the credential row is written and before
+          // commit. Publishing here would welcome a user whose sign-up can
+          // still roll back. So the welcome is sent only once the user AND a
+          // login account are visible outside the transaction.
+          void welcomeAfterCommit(user, {
+            isCommitted: userHasLoginAccount,
+            publish: publishWelcome,
+          });
         },
       },
     },
