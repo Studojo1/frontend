@@ -39,7 +39,7 @@ function rowsOf(r: any): any[] {
 
 // Bounded concurrency map that preserves input order in the output.
 async function pool<T, R>(items: T[], n: number, fn: (t: T, i: number) => Promise<R>): Promise<R[]> {
-  const out: R[] = new Array(items.length);
+  const out: R[] = Array.from({ length: items.length });
   let idx = 0;
   const worker = async () => {
     while (idx < items.length) {

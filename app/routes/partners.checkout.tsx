@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { partnersPost, PartnersApiError, getStoredUser, clearToken } from "~/lib/partners/api";
+import { partnersPost, getStoredUser, clearToken } from "~/lib/partners/api";
 import type { Route } from "./+types/partners.checkout";
 
 export function meta({}: Route.MetaArgs) {

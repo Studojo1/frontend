@@ -44,7 +44,7 @@ export async function action({ request }: Route.ActionArgs) {
     let metadata: any;
     try {
       metadata = JSON.parse(metadataJson);
-    } catch (error) {
+    } catch {
       return Response.json(
         { error: "Invalid metadata JSON" },
         { status: 400 }

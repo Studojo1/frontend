@@ -29,13 +29,6 @@ interface CouponResult {
   distributor: string | null;
 }
 
-// ── Trust / value copy ─────────────────────────────────────────────────────
-const TRUST_PTS = [
-  "Verified emails, not guesses",
-  "Sent from your own Gmail",
-  "One-time, no subscription",
-  "Your data stays private",
-];
 const FAQ_ITEMS: [string, string][] = [
   ["Is this spam?", "No. Each email is personalised to the person and their company, sent one at a time from your own Gmail on an inbox-safe schedule."],
   ["Whose email does it come from?", "Your own Gmail, signed by you, so replies come straight back to your inbox."],
@@ -248,7 +241,7 @@ export default function EnrichmentPage() {
   const [couponError, setCouponError] = useState("");
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [, setRazorpayLoaded] = useState(false);
   const [dodoCheckoutUrl, setDodoCheckoutUrl] = useState<string | null>(null);
   const dodoSessionRef = useRef<string>("");
   const dodoTierRef = useRef<number>(0);

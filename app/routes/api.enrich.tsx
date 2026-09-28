@@ -92,7 +92,7 @@ export async function action({ request }: Route.ActionArgs) {
       cached: !!result.cached,
     });
     return json(result, 200, g.headers);
-  } catch (e) {
+  } catch {
     await log("error", 500, { target: tlabel });
     return json({ error: "internal_error", message: "Enrichment failed, try again." }, 500, g.headers);
   }

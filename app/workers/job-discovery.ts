@@ -3,7 +3,7 @@
 
 import { eq, and } from "drizzle-orm";
 import db from "~/lib/db";
-import { autoapplyConfigs, userLinkedinSessions, jobQueue } from "../../auth-schema";
+import { autoapplyConfigs, jobQueue } from "../../auth-schema";
 import { prescreenJob } from "./prescreen";
 import { scrapeLinkedInJobs, type JobResult } from "./linkedin-scraper";
 

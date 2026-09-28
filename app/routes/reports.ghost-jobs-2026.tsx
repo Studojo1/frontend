@@ -38,13 +38,11 @@ function initCharts() {
   Chart.defaults.font.family = "Satoshi, sans-serif";
   Chart.defaults.color = "#171717";
 
-  const VIOLET = "#8B5CF6";
   const VIOLET2 = "#a78bfa";
   const VIOLET3 = "#c4b5fd";
   const ORANGE = "#f59e0b";
   const RED = "#ef4444";
   const GREEN = "#10b981";
-  const GREY = "#e5e5e5";
   const MUTED = "#737373";
   const INK = "#171717";
   const gridOpts = { color: "#f0f0ee", lineWidth: 1 };

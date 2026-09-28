@@ -116,7 +116,6 @@ export default function ChatPage() {
     const restorable =
       !alreadyDone &&
       chatCandidateId === candidateId &&
-      chatHistory.length > 0 &&
       chatHistory.some((m) => m.role === "user");
 
     if (restorable) {

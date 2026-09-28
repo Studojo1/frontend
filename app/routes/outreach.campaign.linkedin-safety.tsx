@@ -22,7 +22,7 @@ interface LinkedInCampaignSettings {
 export default function LinkedInSafetyPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
-  const { linkedInCampaignId, orderId } = useOutreachStore();
+  const { linkedInCampaignId } = useOutreachStore();
 
   const [settings, setSettings] = useState<LinkedInCampaignSettings | null>(null);
   const [loadError, setLoadError] = useState("");

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 import {
-  FiLinkedin, FiZap, FiShield, FiCheckCircle, FiArrowRight,
+  FiLinkedin, FiCheckCircle, FiArrowRight,
   FiUploadCloud, FiUsers, FiSend,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";

@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { verifyDodoPayment } from "~/lib/payments";
 import { outreachFetch } from "~/lib/outreach/api";
-import { capturePostHog } from "~/lib/posthog";
 import { track } from "~/lib/analytics";
 // Inline SVG replacements for lucide-react icons (not installed)
 const Loader2 = ({ className }: { className?: string }) => (

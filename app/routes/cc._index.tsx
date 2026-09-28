@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { Link } from "react-router";
-import { FiTarget, FiTrendingUp, FiCalendar, FiArrowRight, FiZap } from "react-icons/fi";
+import { FiTarget, FiTrendingUp, FiCalendar, FiArrowRight } from "react-icons/fi";
 import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
 import { authClient } from "~/lib/auth-client";

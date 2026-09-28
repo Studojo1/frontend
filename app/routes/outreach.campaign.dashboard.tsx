@@ -7,7 +7,7 @@ import {
   FiArrowRight, FiThumbsUp, FiThumbsDown, FiMinus,
   FiPlus, FiTrash2, FiMail, FiRefreshCw, FiGlobe,
   FiChevronRight, FiChevronDown, FiCornerDownRight, FiLinkedin,
-  FiExternalLink, FiPercent,
+  FiPercent,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
@@ -459,7 +459,7 @@ export default function DashboardPage() {
         { method: "POST" },
       );
       fetchLinkedIn();
-    } catch (e) {
+    } catch {
       setLiError(`Couldn't ${action} the campaign. Try again in a moment.`);
     }
   };
