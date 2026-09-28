@@ -64,7 +64,7 @@ const DOJOS = [
     iconColor: "text-amber-500",
     ctaColor: "text-amber-600",
     icon: <IoBriefcaseOutline />,
-    href: "/dojos/careers",
+    href: "/resume-maker",
     cta: "Build resume",
     comingSoon: false,
   },

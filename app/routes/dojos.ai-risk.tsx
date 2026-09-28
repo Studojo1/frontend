@@ -808,7 +808,7 @@ export default function AIRiskPage() {
                   </div>
                 )}
                 <Link
-                  to="/dojos/careers"
+                  to="/resume-maker"
                   className="mt-2 flex items-center justify-center gap-2 w-full h-10 rounded-xl border-2 border-studojo-ink bg-studojo-surface-muted text-studojo-ink font-satoshi font-semibold text-sm shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
                 >
                   <FiFileText className="w-4 h-4" />
@@ -850,7 +850,7 @@ export default function AIRiskPage() {
                     <p className="font-clash text-sm font-bold text-studojo-ink">ATS resume for your pivot</p>
                     <p className="text-xs font-satoshi text-studojo-muted mt-0.5">Free builder. Optimised for {displayPivots?.[0]?.role || "your next role"}.</p>
                   </div>
-                  <Link to="/dojos/careers" className="flex items-center gap-1.5 text-xs font-satoshi font-semibold text-emerald-600 hover:underline mt-auto">
+                  <Link to="/resume-maker" className="flex items-center gap-1.5 text-xs font-satoshi font-semibold text-emerald-600 hover:underline mt-auto">
                     Build free <FiArrowRight className="w-3 h-3" />
                   </Link>
                 </div>

@@ -338,7 +338,7 @@ export default function Report_FirstJobIndia2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Turn bands into conversations</h4>
                 <p>When you know your target CTC band, Studojo Outreach helps you reach the campus recruiter or hiring manager who can confirm real numbers for your cohort, not forum screenshots.</p>
-                <Link to="/dojos/careers" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <Link to="/resume-maker" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
               </div>
             </div>
 
@@ -409,7 +409,7 @@ export default function Report_FirstJobIndia2026() {
               <div className="rpt-cta-mid-inner">
                 <h4>Send the message that gets forwarded</h4>
                 <p>Studojo Outreach helps you reach campus recruiters and hiring managers with a tight brief and one flagship link, the pattern Indian entry-level teams actually forward.</p>
-                <Link to="/dojos/careers" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
+                <Link to="/resume-maker" className="rpt-cta-mid-btn">Try Studojo Outreach →</Link>
               </div>
             </div>
 
@@ -492,7 +492,7 @@ export default function Report_FirstJobIndia2026() {
               <h3>Reach hiring managers for your first role in India, directly.</h3>
               <p>Studojo Outreach finds the people behind real entry-level pipelines and helps you land in their inbox with a personalised, credible intro. No resume builder rabbit hole.</p>
             </div>
-            <Link to="/dojos/careers" className="rpt-cta-btn">
+            <Link to="/resume-maker" className="rpt-cta-btn">
               Explore Studojo Careers →
             </Link>
           </div>

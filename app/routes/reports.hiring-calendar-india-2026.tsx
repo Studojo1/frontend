@@ -386,7 +386,7 @@ export default function HiringCalendarReport() {
                 <div className="rpt-inline-cta-title">Don't wait for the window - prepare before it opens</div>
                 <div className="rpt-inline-cta-sub">Use Studojo's ATS resume builder to have your application ready before each deadline hits.</div>
               </div>
-              <Link to="/dojos/careers" className="rpt-btn-primary rpt-btn-orange">Build Your Resume Free</Link>
+              <Link to="/resume-maker" className="rpt-btn-primary rpt-btn-orange">Build Your Resume Free</Link>
             </div>
           </div>
 
@@ -1075,7 +1075,7 @@ export default function HiringCalendarReport() {
             </p>
             <div className="rpt-final-cta-btns">
               <Link to="/outreach" className="rpt-btn-white">Start Outreach Free</Link>
-              <Link to="/dojos/careers" className="rpt-btn-outline">Build Your Resume</Link>
+              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume</Link>
             </div>
           </div>
 
