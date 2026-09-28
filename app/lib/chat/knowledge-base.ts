@@ -343,14 +343,14 @@ export const INTENTS: Intent[] = [
       "dispute a charge",
       "refund request",
     ],
-    response: "Credits are refundable within 7 days if no leads were processed. Assignments are refundable within 24 hours if not downloaded. Tap 'Raise a ticket' above with your order ID and the team will process it.",
+    response: "If your campaign stalled or you paid and got nothing, you are covered. We fix it first, and if the fix does not work in the time the policy sets, the money is owed. A failed payment, a double charge, or a payment where credits never arrived is refunded straight away. See the refund policy, then tap 'Raise a ticket' above with your order ID.",
     links: [{ label: "Refund policy", url: "/refund-policy" }],
   },
 
   // -- Account / Login --
   {
     id: "account",
-    keywords: ["account", "password", "login", "sign in", "sign up", "register", "forgot", "reset", "locked", "cant login", "verification", "delete account"],
+    keywords: ["account", "password", "login", "sign in", "sign up", "register", "forgot", "reset", "locked", "cant login", "verification"],
     patterns: [
       "how do i reset my password",
       "forgot my password",
@@ -358,7 +358,6 @@ export const INTENTS: Intent[] = [
       "create an account",
       "how to sign up",
       "change my password",
-      "delete my account",
       "account settings",
       "login not working",
       "not receiving email",
@@ -579,8 +578,11 @@ export const INTENTS: Intent[] = [
   // -- Privacy / Data --
   {
     id: "privacy",
-    keywords: ["privacy", "data", "gdpr", "personal", "secure", "security", "delete data", "my data", "data protection", "stored", "sold"],
+    keywords: ["privacy", "data", "gdpr", "personal", "secure", "security", "delete data", "my data", "data protection", "stored", "sold", "delete account", "remove account", "close account"],
     patterns: [
+      "delete my account",
+      "remove my account",
+      "close my account",
       "how is my data used",
       "is my data safe",
       "privacy policy",
@@ -591,7 +593,7 @@ export const INTENTS: Intent[] = [
       "is it secure",
       "personal information",
     ],
-    response: "Your data is encrypted and never sold. We only use it to run the services you signed up for. To delete your data, tap 'Raise a ticket' above with 'Data Deletion Request' in the description.",
+    response: "Your data is encrypted and never sold. We only use it to run the services you signed up for. To delete your account and data, tap 'Raise a ticket' above with 'Delete my account' in the description and the team will do it for you.",
     links: [{ label: "Privacy policy", url: "/privacy" }],
   },
 
@@ -694,10 +696,13 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 - Assignment Dojo: pay per assignment, no subscription
 - Payments via Razorpay (UPI, cards, net banking)
 
-## Refunds
-- Unused outreach credits: refundable within 7 days if no process started
-- Assignment: refundable within 24 hours if not downloaded
-- Used/delivered services: non-refundable
+## Refunds (policy v2.0, studojo.com/refund-policy)
+- Failed payment, double charge, payment captured with no credits granted, or a charge the user did not authorise: refunded in money straight away, no fix first
+- A campaign that stopped after delivering 10% or less of its reserved emails: money straight away if the user asks
+- Anything else that went wrong with a campaign: we fix it first (restart, release stuck credits, rebuild the list, reconnect the mailbox). The fix is capped: one attempt per problem, two per campaign, 14 days in total. If it still is not working, the money for what was not delivered is owed. The user can also decline the fix and ask for money
+- Assignment: full refund if cancelled before the document is generated; after delivery, two free fix attempts, then money
+- We do not refund outcomes (who replies), but never tell a user a paid service is non-refundable
+- Never quote a 7-day or 24-hour refund window: those were in the old policy
 - Contact: raise a ticket from this chat with the order ID
 
 ## Contact
