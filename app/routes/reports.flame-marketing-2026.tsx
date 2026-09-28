@@ -393,7 +393,7 @@ export default function FlameMarketingReport() {
             <p className="rpt-cta-sub">Brand, GTM, content, and performance roles at D2C brands, B2B SaaS startups, and agencies. Updated weekly. No ₹3k agency listings.</p>
             <div className="rpt-cta-btns">
               <Link to="/dojos/internships" className="rpt-btn rpt-btn-purple">Browse marketing internships</Link>
-              <Link to="/dojos/careers" className="rpt-btn rpt-btn-out-purple">Build your resume free</Link>
+              <Link to="/resume-maker" className="rpt-btn rpt-btn-out-purple">Build your resume free</Link>
             </div>
           </div>
 

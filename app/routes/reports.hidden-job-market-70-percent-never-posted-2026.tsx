@@ -428,7 +428,7 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
               <h3>Find roles worth showing proof for.</h3>
               <p>Studojo connects students and early-career candidates with internships and career paths where context is clearer, so you can aim outreach and applications at real needs, not ghost listings alone.</p>
             </div>
-            <Link to="/dojos/careers" className="rpt-cta-btn">
+            <Link to="/resume-maker" className="rpt-cta-btn">
               Explore Career Paths →
             </Link>
           </div>

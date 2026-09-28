@@ -241,7 +241,7 @@ export const INTENTS: Intent[] = [
       "upload cv as a student",
     ],
     response: "Completely free — no card, no trial. Build an ATS-optimised resume from scratch or import a PDF, then download instantly. Takes about 10 minutes.",
-    links: [{ label: "Build your resume free", url: "/dojos/careers" }],
+    links: [{ label: "Build your resume free", url: "/resume-maker" }],
   },
 
   // -- "Which tool should I use" / recommendation --
@@ -265,7 +265,7 @@ export const INTENTS: Intent[] = [
     response: "If you're job or internship hunting, start with the Outreach Tool — it finds hiring managers and sends cold emails from your Gmail. Build your resume free first if you need one (takes 10 min). Assignment Dojo is for academic work.",
     links: [
       { label: "Outreach Tool", url: "/outreach" },
-      { label: "Resume builder (free)", url: "/dojos/careers" },
+      { label: "Resume builder (free)", url: "/resume-maker" },
     ],
   },
 
@@ -672,7 +672,7 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 - Credit-based: credits used for lead discovery, enrichment, and campaign sending
 - Students have gotten interview callbacks within 48 hours
 
-**Careers Dojo** (studojo.com/dojos/careers) — Free ATS resume builder
+**Careers Dojo** (studojo.com/resume-maker) — Free ATS resume builder
 - Completely free, no credit card, unlimited resumes and edits
 - ATS-optimised templates, PDF download, import from existing PDF
 

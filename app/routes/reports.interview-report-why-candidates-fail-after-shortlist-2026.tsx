@@ -408,7 +408,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               <div className="rpt-cta-mid-inner">
                 <h4>{"Sharpen the stories they will ask about"}</h4>
                 <p>{"Studojo Careers helps you turn project and internship bullets into outcome-led lines that survive follow-up questions in manager rounds."}</p>
-                <Link to="/dojos/careers" className="rpt-cta-mid-btn">{"Build your resume →"}</Link>
+                <Link to="/resume-maker" className="rpt-cta-mid-btn">{"Build your resume →"}</Link>
               </div>
             </div>
             <p>{"After each interview, send a short thank-you within twenty-four hours with one specific reference to the conversation. Not a novel. One paragraph. It rarely saves a bad interview, but it helps close ties."}</p>
@@ -492,7 +492,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               <h3>{"Turn shortlists into offers with proof that survives follow-ups."}</h3>
               <p>{"Studojo Careers helps you build outcome-led resume lines and project stories that hold up when a hiring manager pushes past the surface."}</p>
             </div>
-            <Link to="/dojos/careers" className="rpt-cta-btn">
+            <Link to="/resume-maker" className="rpt-cta-btn">
               {"Build your resume →"}
             </Link>
           </div>

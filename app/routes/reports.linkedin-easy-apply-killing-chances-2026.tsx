@@ -428,7 +428,7 @@ export default function Report_LinkedinEasyApplyKillingChances2026() {
               <h3>Apply where your proof fits the role.</h3>
               <p>Studojo helps you find internships and career paths with clearer role context, so Easy Apply becomes a last step, not a substitute for strategy.</p>
             </div>
-            <Link to="/dojos/careers" className="rpt-cta-btn">
+            <Link to="/resume-maker" className="rpt-cta-btn">
               Explore Career Paths →
             </Link>
           </div>

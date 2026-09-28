@@ -40,7 +40,7 @@ const FAQ_ITEMS = [
   {
     question: "Is the resume builder really free?",
     answer: "Yes. The Careers Dojo resume builder is completely free | no hidden charges, no credit card required. Build as many resumes as you need.",
-    link: { to: "/dojos/careers", label: "Try it now" },
+    link: { to: "/resume-maker", label: "Try it now" },
   },
   {
     question: "How is my data handled?",

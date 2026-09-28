@@ -332,7 +332,7 @@ export default function CSIndiaReport() {
                 <div className="rpt-inline-cta-title">Build the resume that gets you into a product company</div>
                 <div className="rpt-inline-cta-sub">ATS-optimised, free, takes 5 minutes. Used by 5,000+ students.</div>
               </div>
-              <Link to="/dojos/careers" className="rpt-btn-primary">Build Resume Free</Link>
+              <Link to="/resume-maker" className="rpt-btn-primary">Build Resume Free</Link>
             </div>
           </div>
 
@@ -627,7 +627,7 @@ export default function CSIndiaReport() {
             <p className="rpt-final-cta-sub">Use the Studojo Outreach tool to find SWE, AI/ML, and product company roles across India. Build a resume that shows real skills, not just a degree.</p>
             <div className="rpt-final-cta-btns">
               <Link to="/outreach" className="rpt-btn-white">Find CS Roles</Link>
-              <Link to="/dojos/careers" className="rpt-btn-outline">Build Your Resume Free</Link>
+              <Link to="/resume-maker" className="rpt-btn-outline">Build Your Resume Free</Link>
               <Link to="https://chat.whatsapp.com/CUV8DSjQWqB82yXKRE66ol" target="_blank" rel="noopener noreferrer" className="rpt-btn-outline">Join the Student Community</Link>
             </div>
           </div>
