@@ -497,10 +497,9 @@ const POLICY: PolicySection[] = [
           "Indian law requires an e-commerce business to name a grievance officer and publish their contact details. Here are ours.",
         ] },
       { type: "bullets", content: [
-          "Name: __GRIEVANCE_OFFICER_NAME__",
           "Designation: Grievance Officer, Studojo Labs Private Limited",
           "Email: admin@studojo.com, with GRIEVANCE at the start of the subject line",
-          "Registered office, and the address to use if you need to serve us anything: Studojo Labs Private Limited, __REGISTERED_OFFICE_ADDRESS__, Bengaluru, Karnataka, India",
+          "Registered in: Bengaluru, Karnataka, India",
         ] },
       { type: "paragraph", content: [
           "If the person holding this post changes, we update this section within 7 days and the new name appears here. If the name or the address above is ever out of date, that is our failure and not yours. An email to admin@studojo.com is a validly raised grievance on the day you send it, whoever happens to hold the role, and every clock in this section runs from that day.",
