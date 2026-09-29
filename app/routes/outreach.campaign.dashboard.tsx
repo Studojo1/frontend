@@ -1182,6 +1182,15 @@ export default function DashboardPage() {
                     <FiPlay className="w-4 h-4 mr-2" /> Resume
                   </button>
                 )}
+                {metrics.status === "cancelled" && (
+                  <button
+                    onClick={() => handleTransition("running")}
+                    className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
+                    title="Restarts the emails this campaign had not sent, using your free credits"
+                  >
+                    <FiPlay className="w-4 h-4 mr-2" /> Restart campaign
+                  </button>
+                )}
                 {["running", "paused", "draft"].includes(metrics.status) && (
                   <button
                     onClick={handleCancel}
@@ -1223,7 +1232,12 @@ export default function DashboardPage() {
             {/* What a finished campaign actually did (audit P20). A bare
                 "Completed" pill hid a campaign that delivered 1 email of 503. */}
             {["completed", "cancelled"].includes(metrics.status) && (metrics.first_touch_total ?? 0) > 0 && (
-              <div className="rounded-2xl border-2 border-studojo-ink/20 bg-studojo-surface-muted p-4">
+              <div className={`rounded-2xl border-2 p-4 ${metrics.outcome === "degraded" ? "border-red-300 bg-red-50" : "border-studojo-ink/20 bg-studojo-surface-muted"}`}>
+                {metrics.outcome === "degraded" && (
+                  <p className="text-sm font-bold font-satoshi text-red-700 mb-1">
+                    Most of this campaign didn't go out. Unused credits have been returned, and we've been alerted.
+                  </p>
+                )}
                 <p className="text-sm font-satoshi text-studojo-ink">
                   <span className="font-bold">
                     {metrics.first_touch_delivered} of {metrics.first_touch_total} emails delivered
@@ -1258,6 +1272,15 @@ export default function DashboardPage() {
                   </p>
                 )}
               </div>
+            )}
+
+            {/* Unreachable contacts and replacements (audit P33). */}
+            {(metrics.emails_skipped_no_email ?? 0) > 0 && (
+              <p className="text-xs font-satoshi text-studojo-muted">
+                {metrics.emails_skipped_no_email} of your contacts had no email address we could find
+                {(metrics.replacements_added ?? 0) > 0 ? `; we replaced ${metrics.replacements_added} of them with new contacts` : ""}.
+                You aren't charged for contacts we couldn't reach.
+              </p>
             )}
 
             {/* Credits held by this campaign (audit P39). The wallet reads 0
