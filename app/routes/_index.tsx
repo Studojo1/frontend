@@ -1,5 +1,5 @@
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
   BackedBySection,
@@ -15,9 +15,19 @@ import {
 } from "~/components";
 import { useLoaderData } from "react-router";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
-import BobPage from "./bob";
-import DashboardPage from "./dashboard";
 import type { Route } from "./+types/_index";
+
+// HP-N10: static imports made every studojo.com homepage modulepreload the
+// Sensei workspace (bob, ~26 KB br) and the manager dashboard, which only the
+// app.* and dashboard.* hosts render. Load them on demand instead. SSR still
+// works: the streaming renderer waits for a lazy component inside Suspense,
+// and hydration keeps the server HTML until the chunk arrives.
+const BobPage = lazy(() => import("./bob"));
+const DashboardPage = lazy(() => import("./dashboard"));
+
+// Blank white page, the same as those apps' own first paint, so there is no
+// flash of marketing content on the Sensei hosts.
+const senseiFallback = <div className="min-h-screen bg-white" />;
 
 // app.studojo.* is the Sensei workspace and dashboard.studojo.* is the org
 // manager portal: each host's root IS that app, independent of the studojo.com
@@ -195,8 +205,9 @@ function InternshipPopup() {
 
 export default function Home() {
   const { bobApp, dashboardApp } = useLoaderData<typeof loader>();
-  if (dashboardApp) return <DashboardPage />;  // dashboard.studojo.* -> manager portal
-  if (bobApp) return <BobPage />;       // app.studojo.* -> Bob workspace at root
+  // dashboard.studojo.* -> manager portal; app.studojo.* -> Bob workspace at root
+  if (dashboardApp) return <Suspense fallback={senseiFallback}><DashboardPage /></Suspense>;
+  if (bobApp) return <Suspense fallback={senseiFallback}><BobPage /></Suspense>;
   return (
     <>
       <AnnouncementBar />
