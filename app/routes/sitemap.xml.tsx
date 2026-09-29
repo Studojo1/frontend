@@ -34,14 +34,12 @@ export async function loader() {
     { loc: "/reports/job-search-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/unpaid-internship-trap-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/tier-2-college-to-top-company-conversion-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/why-80-percent-applications-get-no-response-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/hidden-job-market-70-percent-never-posted-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/linkedin-easy-apply-killing-chances-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/dubai-hiring-whos-hiring-and-pay-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/product-management-internships-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/cold-outreach-what-gets-reply-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/internships-singapore-what-gets-you-hired-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/linkedin-profile-what-hiring-managers-look-at-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/mba-internship-market-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/referrals-vs-applications-how-people-get-hired-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/rejection-report-what-happens-after-you-apply-2026", priority: "0.9", changefreq: "monthly" },
@@ -61,18 +59,21 @@ export async function loader() {
     { loc: "/reports/first-1-lakh-month-report-fastest-paths-students-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/cold-email-subject-lines-best-practices-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/how-to-get-a-high-school-internship-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/high-school-internships-how-to-get-one-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/internship-vs-externship-coop-practicum-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/cybersecurity-internship-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/google-internship-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/apple-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
-    // Product + other
+    // Product + other. Only URLs that return 200 and robots.txt allows
+    // (no /auth, no /careers, which 301s to /).
+    { loc: "/outreach", priority: "0.9", changefreq: "weekly" },
     { loc: "/dojos/internships", priority: "0.8", changefreq: "weekly" },
+    { loc: "/cc", priority: "0.7", changefreq: "monthly" },
+    { loc: "/campus-ambassador", priority: "0.6", changefreq: "monthly" },
+    { loc: "/webinar", priority: "0.5", changefreq: "weekly" },
+    { loc: "/sensei", priority: "0.6", changefreq: "monthly" },
     { loc: "/resume-maker", priority: "0.7", changefreq: "monthly" },
     { loc: "/about", priority: "0.6", changefreq: "monthly" },
     { loc: "/contact", priority: "0.5", changefreq: "yearly" },
-    { loc: "/auth?mode=signup", priority: "0.5", changefreq: "monthly" },
-    { loc: "/careers", priority: "0.5", changefreq: "monthly" },
     { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
     { loc: "/terms", priority: "0.3", changefreq: "yearly" },
     { loc: "/refund-policy", priority: "0.3", changefreq: "yearly" },
@@ -89,7 +90,21 @@ export async function loader() {
     console.error("[sitemap.xml] Failed to fetch blog posts:", error);
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  // Published internship pages, with their real last-edit date.
+  let internships: Array<{ slug: string; updated_at: string }> = [];
+  try {
+    const result = await db.execute(
+      sql`SELECT slug, updated_at FROM internships WHERE status = 'published' ORDER BY updated_at DESC`
+    );
+    internships = result.rows as typeof internships;
+  } catch (error) {
+    console.error("[sitemap.xml] Failed to fetch internships:", error);
+  }
+
+  const day = (v: string | null | undefined) => (v ? new Date(v).toISOString().split("T")[0] : null);
+  // lastmod is only sent when we know the real date. Stamping "today" on
+  // every static page told crawlers everything changed daily (audit HP-N15).
+  const lastmodTag = (d: string | null | undefined) => (d ? `\n    <lastmod>${d}</lastmod>` : "");
 
   // Report pages: accurate publish dates so Google sees correct lastmod
   const reportLastmod: Record<string, string> = {
@@ -117,14 +132,12 @@ export async function loader() {
     "/reports/job-search-2026": "2026-04-22",
     "/reports/unpaid-internship-trap-2026": "2026-05-05",
     "/reports/tier-2-college-to-top-company-conversion-2026": "2026-05-07",
-    "/reports/why-80-percent-applications-get-no-response-2026": "2026-05-07",
     "/reports/hidden-job-market-70-percent-never-posted-2026": "2026-05-07",
     "/reports/linkedin-easy-apply-killing-chances-2026": "2026-05-07",
     "/reports/dubai-hiring-whos-hiring-and-pay-2026": "2026-05-08",
     "/reports/product-management-internships-india-2026": "2026-05-10",
     "/reports/cold-outreach-what-gets-reply-2026": "2026-05-12",
     "/reports/internships-singapore-what-gets-you-hired-2026": "2026-05-12",
-    "/reports/linkedin-profile-what-hiring-managers-look-at-2026": "2026-05-18",
     "/reports/mba-internship-market-india-2026": "2026-05-19",
     "/reports/referrals-vs-applications-how-people-get-hired-2026": "2026-05-20",
     "/reports/rejection-report-what-happens-after-you-apply-2026": "2026-05-20",
@@ -144,7 +157,6 @@ export async function loader() {
     "/reports/first-1-lakh-month-report-fastest-paths-students-2026": "2026-06-12",
     "/reports/cold-email-subject-lines-best-practices-2026": "2026-06-16",
     "/reports/how-to-get-a-high-school-internship-2026": "2026-09-27",
-    "/reports/high-school-internships-how-to-get-one-2026": "2026-09-26",
     "/reports/internship-vs-externship-coop-practicum-2026": "2026-09-27",
     "/reports/cybersecurity-internship-report-2026": "2026-09-27",
     "/reports/google-internship-report-2026": "2026-09-27",
@@ -155,26 +167,27 @@ export async function loader() {
     ...staticPages.map(
       (page) => `
   <url>
-    <loc>${baseUrl}${page.loc}</loc>
-    <lastmod>${reportLastmod[page.loc] ?? today}</lastmod>
+    <loc>${baseUrl}${page.loc}</loc>${lastmodTag(reportLastmod[page.loc])}
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>`
     ),
-    ...blogPosts.map((post) => {
-      const lastmod = post.updated_at
-        ? new Date(post.updated_at).toISOString().split("T")[0]
-        : post.published_at
-          ? new Date(post.published_at).toISOString().split("T")[0]
-          : today;
-      return `
+    ...blogPosts.map(
+      (post) => `
   <url>
-    <loc>${baseUrl}/blog/${encodeURIComponent(post.slug)}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <loc>${baseUrl}/blog/${encodeURIComponent(post.slug)}</loc>${lastmodTag(day(post.updated_at) ?? day(post.published_at))}
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-  </url>`;
-    }),
+  </url>`
+    ),
+    ...internships.map(
+      (job) => `
+  <url>
+    <loc>${baseUrl}/internships/${encodeURIComponent(job.slug)}</loc>${lastmodTag(day(job.updated_at))}
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`
+    ),
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

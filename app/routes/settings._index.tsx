@@ -7,7 +7,7 @@ import { authClient } from "~/lib/auth-client";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { changePassword } from "~/lib/emailer";
 import { toast } from "sonner";
-import type { Route } from "./+types/settings";
+import type { Route } from "./+types/settings._index";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);

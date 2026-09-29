@@ -12,6 +12,16 @@ import { Outlet } from "react-router";
  * `outreach._index.tsx`, which renders inside this Outlet at exactly
  * `/outreach`. All deeper routes render their own Header/Footer.
  */
+// Fallback for every /outreach/* step that sets no meta of its own, so none
+// shows an empty tab title (audit HP-N07). The app steps are behind login, so
+// they stay out of search.
+export function meta() {
+  return [
+    { title: "Studojo Outreach" },
+    { name: "robots", content: "noindex" },
+  ];
+}
+
 export default function OutreachLayout() {
   return <Outlet />;
 }

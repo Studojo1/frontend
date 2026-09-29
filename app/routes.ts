@@ -16,6 +16,7 @@ export default [
       "**/robots.txt.tsx",
       "**/reports.*.tsx",
       "**/connect-linkedin.tsx",
+      "**/legacy-redirects.tsx",
     ],
   })),
 
@@ -43,6 +44,24 @@ export default [
   // there is one page to maintain.
   route("no-one-is-hiring", "routes/webinar.tsx", { id: "no-one-is-hiring" }),
 
+  // ── Permanent redirects (app/routes/legacy-redirects.tsx) ──────────────
+  // Typed URLs, old playbook links, /support from old emails, and reports
+  // merged into their stronger duplicate. One module, one id per path.
+  route("signup", "routes/legacy-redirects.tsx", { id: "redirect-signup" }),
+  route("register", "routes/legacy-redirects.tsx", { id: "redirect-register" }),
+  route("login", "routes/legacy-redirects.tsx", { id: "redirect-login" }),
+  route("signin", "routes/legacy-redirects.tsx", { id: "redirect-signin" }),
+  route("sign-in", "routes/legacy-redirects.tsx", { id: "redirect-sign-in" }),
+  route("pricing", "routes/legacy-redirects.tsx", { id: "redirect-pricing" }),
+  route("dojos", "routes/legacy-redirects.tsx", { id: "redirect-dojos" }),
+  route("dojos/careers", "routes/legacy-redirects.tsx", { id: "redirect-dojos-careers" }),
+  route("dojos/outreach", "routes/legacy-redirects.tsx", { id: "redirect-dojos-outreach" }),
+  route("internships", "routes/legacy-redirects.tsx", { id: "redirect-internships" }),
+  route("support", "routes/legacy-redirects.tsx", { id: "redirect-support" }),
+  route("reports/why-80-percent-applications-get-no-response-2026", "routes/legacy-redirects.tsx", { id: "redirect-reports-why-80-percent-applications-get-no-response-2026" }),
+  route("reports/linkedin-profile-what-hiring-managers-look-at-2026", "routes/legacy-redirects.tsx", { id: "redirect-reports-linkedin-profile-what-hiring-managers-look-at-2026" }),
+  route("reports/high-school-internships-how-to-get-one-2026", "routes/legacy-redirects.tsx", { id: "redirect-reports-high-school-internships-how-to-get-one-2026" }),
+
   // ── Reports (explicit to avoid nesting under reports.tsx layout) ───────
   route("reports/ops-india-2026", "routes/reports.ops-india-2026.tsx"),
   route("reports/internships-ai-india-2026", "routes/reports.internships-ai-india-2026.tsx"),
@@ -68,14 +87,12 @@ export default [
   route("reports/degree-vs-skills-2026", "routes/reports.degree-vs-skills-2026.tsx"),
   route("reports/unpaid-internship-trap-2026", "routes/reports.unpaid-internship-trap-2026.tsx"),
   route("reports/tier-2-college-to-top-company-conversion-2026", "routes/reports.tier-2-college-to-top-company-conversion-2026.tsx"),
-  route("reports/why-80-percent-applications-get-no-response-2026", "routes/reports.why-80-percent-applications-get-no-response-2026.tsx"),
   route("reports/hidden-job-market-70-percent-never-posted-2026", "routes/reports.hidden-job-market-70-percent-never-posted-2026.tsx"),
   route("reports/linkedin-easy-apply-killing-chances-2026", "routes/reports.linkedin-easy-apply-killing-chances-2026.tsx"),
   route("reports/dubai-hiring-whos-hiring-and-pay-2026", "routes/reports.dubai-hiring-whos-hiring-and-pay-2026.tsx"),
   route("reports/product-management-internships-india-2026", "routes/reports.product-management-internships-india-2026.tsx"),
   route("reports/cold-outreach-what-gets-reply-2026", "routes/reports.cold-outreach-what-gets-reply-2026.tsx"),
   route("reports/internships-singapore-what-gets-you-hired-2026", "routes/reports.internships-singapore-what-gets-you-hired-2026.tsx"),
-  route("reports/linkedin-profile-what-hiring-managers-look-at-2026", "routes/reports.linkedin-profile-what-hiring-managers-look-at-2026.tsx"),
   route("reports/mba-internship-market-india-2026", "routes/reports.mba-internship-market-india-2026.tsx"),
   route("reports/referrals-vs-applications-how-people-get-hired-2026", "routes/reports.referrals-vs-applications-how-people-get-hired-2026.tsx"),
   route("reports/rejection-report-what-happens-after-you-apply-2026", "routes/reports.rejection-report-what-happens-after-you-apply-2026.tsx"),
@@ -95,7 +112,6 @@ export default [
   route("reports/first-1-lakh-month-report-fastest-paths-students-2026", "routes/reports.first-1-lakh-month-report-fastest-paths-students-2026.tsx"),
   route("reports/cold-email-subject-lines-best-practices-2026", "routes/reports.cold-email-subject-lines-best-practices-2026.tsx"),
   route("reports/how-to-get-a-high-school-internship-2026", "routes/reports.how-to-get-a-high-school-internship-2026.tsx"),
-  route("reports/high-school-internships-how-to-get-one-2026", "routes/reports.high-school-internships-how-to-get-one-2026.tsx"),
   route("reports/internship-vs-externship-coop-practicum-2026", "routes/reports.internship-vs-externship-coop-practicum-2026.tsx"),
   route("reports/cybersecurity-internship-report-2026", "routes/reports.cybersecurity-internship-report-2026.tsx"),
   route("reports/google-internship-report-2026", "routes/reports.google-internship-report-2026.tsx"),
