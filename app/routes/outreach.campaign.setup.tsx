@@ -295,7 +295,7 @@ export default function CampaignSetupPage() {
             <select
               value={userTimezone}
               onChange={(e) => setUserTimezone(e.target.value)}
-              className="w-full h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-sm font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple bg-white"
+              className="w-full h-10 px-4 rounded-xl border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple bg-white"
             >
               {TIMEZONES.some((tz) => tz.value === userTimezone) ? null : (
                 <option value={userTimezone}>{userTimezone} (detected)</option>

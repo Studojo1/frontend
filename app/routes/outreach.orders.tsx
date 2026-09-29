@@ -125,16 +125,17 @@ export default function OrdersPage() {
 
       <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-8 md:px-8">
         <div className="space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
               <h1 className="font-clash text-2xl font-bold text-studojo-ink">My Orders</h1>
               <p className="text-sm text-studojo-muted font-satoshi mt-1">Track your outreach campaigns</p>
             </div>
             <button
               onClick={() => navigate("/outreach/onboarding/upload")}
-              className="h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              className="h-10 px-4 sm:px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none whitespace-nowrap flex-shrink-0"
             >
-              New Campaign
+              <span className="sm:hidden">New</span>
+              <span className="hidden sm:inline">New Campaign</span>
             </button>
           </div>
 
@@ -182,18 +183,18 @@ export default function OrdersPage() {
                             {order.created_at && (
                               <span>Created {new Date(order.created_at).toLocaleDateString()}</span>
                             )}
-                            {order.leads_collected != null && (
+                            {/* leads_collected is 0 on almost every order (PH-25),
+                                so a zero says nothing true. */}
+                            {!!order.leads_collected && (
                               <span>{order.leads_collected} leads</span>
                             )}
                             {order.campaign_id && (
                               <span>Campaign #{order.campaign_id}</span>
                             )}
                           </div>
-                          {order.action_log && order.action_log.length > 0 && (
-                            <p className="text-xs text-studojo-muted font-satoshi mt-2 truncate">
-                              Latest: {order.action_log[order.action_log.length - 1].msg}
-                            </p>
-                          )}
+                          {/* The raw action_log line ("Order backfilled from
+                              orphan candidate", replacement leads' names) is for
+                              admins, not customers (NEW-10). */}
                         </div>
                       </div>
                       {isActive && (
