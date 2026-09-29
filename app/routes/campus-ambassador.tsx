@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 import { checkEmail } from "~/lib/email-validate";
 
@@ -390,6 +391,27 @@ export default function CampusAmbassador() {
             </button>
           </form>
         )}
+
+        {/* Shown under both the form and the success card: most people who land
+            here are job hunting, and this is the product that helps them. */}
+        <div className="mt-12 bg-violet-500 border-2 border-neutral-900 rounded-[32px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-8 text-center">
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-white text-violet-700 border-2 border-neutral-900 font-['Satoshi']">
+            NOT THE ROLE YOU WANTED?
+          </span>
+          <h2 className="mt-4 text-2xl md:text-3xl font-bold text-white font-['Clash_Display']">
+            Skip the application queue entirely
+          </h2>
+          <p className="mt-3 text-violet-50 font-['Satoshi'] max-w-xl mx-auto">
+            Use the Outreach tool to email hiring managers directly, from your
+            inbox to theirs. No portals, no ghosting, no waiting.
+          </p>
+          <Link
+            to="/outreach"
+            className="mt-6 inline-block bg-white text-neutral-900 text-lg font-bold px-8 py-4 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all font-['Clash_Display']"
+          >
+            Reach hiring managers directly →
+          </Link>
+        </div>
       </div>
       <Footer />
     </div>
