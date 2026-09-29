@@ -338,6 +338,14 @@ export default function DashboardPage() {
   // UI state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // Errors from an action (resume, restart, cancel) show inline above the
+  // dashboard; they used to replace the whole page (audit PS-N18).
+  const [actionError, setActionError] = useState("");
+  // Spare credits, for "Launch a new campaign" on a finished one (PS-N06).
+  const [spareCredits, setSpareCredits] = useState(0);
+  useEffect(() => {
+    fetchNextStep().then((step) => setSpareCredits(step?.available_credits ?? 0)).catch(() => {});
+  }, [campaignId]);
   const [selectedEmail, setSelectedEmail] = useState<CampaignEmail | null>(null);
   const [expandedThreads, setExpandedThreads] = useState<Set<number>>(new Set());
   // PH-27: the Inbox page sends email-plan students here with ?filter=replied,
@@ -603,6 +611,7 @@ export default function DashboardPage() {
 
   const handleTransition = async (status: string) => {
     if (!campaignId) return;
+    setActionError("");
     try {
       await outreachFetch(`/campaign/${campaignId}/transition`, {
         method: "POST",
@@ -610,7 +619,7 @@ export default function DashboardPage() {
       });
       fetchCampaignData();
     } catch (err: any) {
-      setError(describeError(err, "Failed to update campaign"));
+      setActionError(describeError(err, "Failed to update campaign"));
     }
   };
 
@@ -624,7 +633,7 @@ export default function DashboardPage() {
       setConfirmCancel(false);
       await fetchCampaignData();
     } catch (err: any) {
-      setError(describeError(err, "Could not cancel the campaign"));
+      setActionError(describeError(err, "Could not cancel the campaign"));
     } finally {
       setCancelling(false);
     }
@@ -1245,6 +1254,14 @@ export default function DashboardPage() {
           </div>
         ) : metrics ? (
           <div className="space-y-8 animate-fade-in">
+            {actionError && (
+              <div role="alert" className="flex items-start justify-between gap-3 rounded-2xl border-2 border-red-300 bg-red-50 p-4">
+                <p className="text-sm font-satoshi text-red-700">{actionError}</p>
+                <button onClick={() => setActionError("")} className="text-sm font-satoshi font-semibold text-red-700 underline">
+                  Dismiss
+                </button>
+              </div>
+            )}
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
@@ -1340,8 +1357,16 @@ export default function DashboardPage() {
                     {metrics.first_touch_delivered} of {metrics.first_touch_total} emails delivered
                   </span>
                   {(metrics.emails_skipped_no_email ?? 0) > 0 && <> · {metrics.emails_skipped_no_email} skipped because no email address exists</>}
-                  {(metrics.credits_released ?? 0) > 0 && <> · {metrics.credits_released} unused credits returned to you</>}
+                  {(metrics.credits_released ?? 0) > 0 && <> · {metrics.credits_released} unused credits returned to your balance</>}
                 </p>
+                {spareCredits >= 50 && (
+                  <button
+                    onClick={() => navigate("/outreach/campaign/setup")}
+                    className="mt-3 h-10 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-bold border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                  >
+                    Launch a new campaign with your {spareCredits} credits
+                  </button>
+                )}
               </div>
             )}
 
@@ -1387,7 +1412,7 @@ export default function DashboardPage() {
                 This campaign holds {metrics.credits_reserved - (metrics.credits_released ?? 0)} of your credits
                 ({metrics.first_touch_delivered ?? 0} delivered so far
                 {(metrics.credits_released ?? 0) > 0 ? `, ${metrics.credits_released} already returned` : ""}).
-                Credits for emails that can't be sent come back to you automatically.
+                Credits for emails that can't be sent go back to your balance and are added to your next campaign.
               </p>
             )}
 
