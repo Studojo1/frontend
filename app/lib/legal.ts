@@ -24,13 +24,6 @@ export const EFFECTIVE_DATE = TO_FILL;
 // Facts the policies state that nobody has confirmed yet. Each one renders
 // as "[to be confirmed]" until it is set.
 export const PENDING = {
-  // Privacy §11: where these providers process data
-  dodoLocation: TO_FILL,
-  evomiLocation: TO_FILL,
-  ipLookupLocation: TO_FILL,
-  contactProvidersLocation: TO_FILL,
-  // Privacy §15: Azure Postgres backup retention, in days
-  backupRetentionDays: TO_FILL,
   // Terms §4: URL of the Partner Terms, once written
   partnerTermsUrl: TO_FILL,
 };
