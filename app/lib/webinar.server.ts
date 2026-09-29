@@ -90,10 +90,14 @@ async function ensureTable() {
 }
 
 // The active webinar is the one marked 'upcoming' (most recently created if
-// more than one). New signups are tagged with this. Returns null if none.
+// more than one) whose date has not passed in India. New signups are tagged
+// with this. Returns null if none, so a row nobody flipped to 'conducted'
+// cannot keep collecting registrations after the event (audit HP-N02).
 async function getActiveWebinarId(): Promise<number | null> {
   const result = await db.execute(sql`
-    SELECT id FROM webinars WHERE status = 'upcoming'
+    SELECT id FROM webinars
+    WHERE status = 'upcoming'
+      AND (webinar_date IS NULL OR webinar_date >= (now() AT TIME ZONE 'Asia/Kolkata')::date)
     ORDER BY created_at DESC, id DESC
     LIMIT 1
   `);

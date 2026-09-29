@@ -25,3 +25,17 @@ export const WEBINAR = {
   /** Machine-readable date, matching the `webinars` row for this event. */
   isoDate: "2026-09-26",
 } as const;
+
+/** Today's date in India (YYYY-MM-DD). The webinar runs on IST. */
+function todayInIndia(now: Date): string {
+  return new Date(now.getTime() + 330 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+/**
+ * True from the day after WEBINAR.isoDate (IST). Once it has ended the page
+ * stops selling seats and the register API refuses payment, so nobody pays
+ * for an event that already happened (audit HP-N02).
+ */
+export function webinarHasEnded(now: Date = new Date()): boolean {
+  return todayInIndia(now) > WEBINAR.isoDate;
+}
