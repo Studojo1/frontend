@@ -11,6 +11,9 @@ interface FlashCardProps {
   // Names what a click actually does. The destination is a plan-wide step, not
   // a per-person action, so the card must not promise "Contact them".
   actionLabel: string;
+  // UC-Q22: true while this lead's AI note may still arrive (it is in the
+  // justified top 100 and the page is still polling).
+  notePending?: boolean;
 }
 
 const COLORS = ["bg-studojo-purple", "bg-studojo-pink", "bg-studojo-green", "bg-studojo-orange", "bg-studojo-teal", "bg-indigo-500", "bg-rose-500", "bg-amber-500"];
@@ -21,16 +24,12 @@ const cleanCo = (c: string) => (c || "").replace(/\s+(Pvt\.?\s*Ltd\.?|Private Li
 const STAGE: Record<string, string> = { "early-stage": "Early-stage", growth: "Growth", scale: "Scale-up", mature: "Established" };
 const SIGNAL: Record<string, string> = { high: "Strong match", medium: "Good match" };
 
-// Fallback "why" when a lead has no LLM justification yet.
-function buildContactReason(lead: Lead): string {
-  const tl = (lead.title || "").toLowerCase();
-  if (/\b(founder|co-founder|ceo|cto|cfo|coo|chief)\b/.test(tl)) return `As ${lead.company ? `${cleanCo(lead.company)}'s` : "a"} founder or C-suite exec, they own key hires personally.`;
-  if (/\bvp\b|vice president/.test(tl)) return "VPs carry direct budget and headcount authority. No committee needed.";
-  if (/\bdirector\b/.test(tl)) return "Directors own their team's roadmap and can approve talent without going up the chain.";
-  if (/\bhead of\b/.test(tl)) return "Heads of departments set their own priorities and hire directly into their teams.";
-  if (/\bmanager\b/.test(tl)) return "Managers are closest to the work. They know exactly what their team is missing and can act fast.";
-  return "Their position puts them close to the decision-making on new hires.";
-}
+// UC-Q22: a lead with no AI note used to get one of six canned sentences
+// picked from title words, so every lead past the top 100 read the same and
+// looked personalised when it was not. Say plainly that there is no note; the
+// card already shows their title and company.
+const NO_NOTE = "No AI note for this one. Their title and company are above.";
+const NOTE_PENDING = "Our AI is still writing a note for this one.";
 
 // Company logo via our own /api/company-logo (see that route for why it is not
 // fetched from a third party directly), falling back to a coloured letter tile.
@@ -75,7 +74,7 @@ function CompanyLogo({ domain, name, size = 48 }: { domain: string | null; name:
   );
 }
 
-export function FlashCard({ lead, onSelect, actionLabel }: FlashCardProps) {
+export function FlashCard({ lead, onSelect, actionLabel, notePending = false }: FlashCardProps) {
   const company = cleanCo(lead.company);
 
   // LinkedIn profile (the "id"), show it on the card and make it clickable.
@@ -85,7 +84,7 @@ export function FlashCard({ lead, onSelect, actionLabel }: FlashCardProps) {
     : "";
 
   // The "why": the LLM's per-lead headline first, then the older fit_reason
-  // schema, then a reason generated from the title. The first bullet is a
+  // schema, then an honest "no note" line (UC-Q22). The first bullet is a
   // company snapshot, not a reason, so it goes in the "about" line instead.
   const j = lead.score?.justification;
   const bullets = j?.bullets ?? [];
@@ -98,7 +97,8 @@ export function FlashCard({ lead, onSelect, actionLabel }: FlashCardProps) {
     const label = m ? STAGE[(m[1] || "").trim().toLowerCase()] : undefined;
     if (m && label) { stage = label; about = about.slice(0, m.index).trim(); }
   }
-  const desc = j?.headline || j?.fit_reason || (bullets.length ? "" : buildContactReason(lead));
+  const desc = j?.headline || j?.fit_reason || "";
+  const noNote = !desc && !bullets.length && !j?.talk_track;
   const fit = bullets.length ? bullets.slice(1, 3) : j?.talk_track ? [j.talk_track] : [];
   const signal = SIGNAL[j?.signal_strength ?? ""] ?? "";
 
@@ -163,6 +163,7 @@ export function FlashCard({ lead, onSelect, actionLabel }: FlashCardProps) {
           )}
         </div>
         {desc && <p className="text-[13px] text-studojo-ink leading-snug mb-1.5 font-satoshi line-clamp-3">{desc}</p>}
+        {noNote && <p className="text-[12px] text-studojo-muted leading-snug font-satoshi">{notePending ? NOTE_PENDING : NO_NOTE}</p>}
         {fit.length > 0 && (
           <ul className="space-y-1">
             {fit.map((b, i) => (

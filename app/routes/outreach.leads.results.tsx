@@ -1,6 +1,6 @@
 import { describeError } from "~/lib/error-detail";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { capturePostHog } from "~/lib/posthog";
 import { FiArrowRight, FiArrowLeft, FiSearch, FiSend, FiRefreshCw } from "react-icons/fi";
 import { LuArrowUpDown } from "react-icons/lu";
@@ -16,7 +16,7 @@ import type { Lead } from "~/lib/outreach/types";
 const PAGE_SIZE = 20;
 // Every lead is listed and paged. Only the top 100 get AI justifications (the
 // backend's JUSTIFY_TOP_K=100), so this is what polling waits on; the rest
-// show the title-based reason instead.
+// say plainly that they have no AI note (UC-Q22).
 const JUSTIFIED_LIMIT = 100;
 const POLL_MS = 15_000;
 const MAX_POLLS = 12;
@@ -107,6 +107,13 @@ export default function ResultsPage() {
   const viewedMarkedRef = useRef(false);
   // Lets the "couldn't refresh" banner retry right away without wiping the grid.
   const refreshNowRef = useRef<() => void>(() => {});
+  // UC-Q14: the upload page sends a re-uploaded, identical resume here with
+  // ?existing=1. Say why they skipped the quiz, until they dismiss it.
+  const [searchParams] = useSearchParams();
+  const [existingNote, setExistingNote] = useState(searchParams.get("existing") === "1");
+  // UC-Q25: the candidate ids this page already switched away from, so an
+  // active_candidate_id that points back (or keeps changing) cannot loop.
+  const switchedFromRef = useRef<Set<number>>(new Set());
 
   // No candidate in the browser, even after recovering the active order: ask
   // the server for the user's most recent candidate before giving up, so a
@@ -141,6 +148,9 @@ export default function ResultsPage() {
     setPage(1);
 
     let cancelled = false;
+    // Set when this load hands over to another candidate (UC-Q25): keep the
+    // spinner up instead of flashing "no matches" before the next load starts.
+    let switching = false;
     let pollTimer: ReturnType<typeof setTimeout> | undefined;
     const controller = new AbortController();
 
@@ -153,7 +163,7 @@ export default function ResultsPage() {
       const path = isInitial
         ? `/candidate/${candidateId}/leads`
         : `/candidate/${candidateId}/leads?fields=justification`;
-      outreachFetch<{ leads: Lead[]; total?: number } | Lead[]>(path, {
+      outreachFetch<{ leads: Lead[]; total?: number; active_candidate_id?: number | null } | Lead[]>(path, {
         signal: controller.signal,
         // A poll is its own retry 15s later; stacking three more on top of it
         // only multiplies the work on a server that is already struggling.
@@ -162,6 +172,21 @@ export default function ResultsPage() {
         .then((data) => {
           if (cancelled) return;
           const rows = Array.isArray(data) ? data : data.leads || [];
+          // UC-Q25: the stored candidate can be a newer upload with no leads
+          // while an older one holds the student's list. The API names that
+          // one; switch to it once instead of saying "no matches". The effect
+          // re-runs on the new candidateId and loads its leads.
+          const active = Array.isArray(data) ? null : data.active_candidate_id;
+          if (
+            isInitial && rows.length === 0 && typeof active === "number" && active !== candidateId &&
+            !switchedFromRef.current.has(candidateId) && !switchedFromRef.current.has(active)
+          ) {
+            switchedFromRef.current.add(candidateId);
+            switching = true;
+            capturePostHog("leads_switched_to_active_candidate", { from: candidateId, to: active });
+            setCandidateId(active);
+            return;
+          }
           let list: Lead[];
           if (isInitial) {
             list = rows;
@@ -215,7 +240,7 @@ export default function ResultsPage() {
           if (pollCount < MAX_POLLS) schedule(pollCount + 1, lastWithBullets);
           else setPolling(false);
         })
-        .finally(() => { if (isInitial && !cancelled) setLoading(false); });
+        .finally(() => { if (isInitial && !cancelled && !switching) setLoading(false); });
     };
 
     const schedule = (pollCount: number, withBullets: number) => {
@@ -236,11 +261,14 @@ export default function ResultsPage() {
       controller.abort();
       clearTimeout(pollTimer);
     };
-  }, [ready, candidateId, reloadKey]);
+  }, [ready, candidateId, reloadKey, setCandidateId]);
 
   const shown = leads;
   const byId = useMemo(() => new Map(shown.map((l) => [l.id, l])), [shown]);
   const liveOrder = useMemo(() => rank(shown, sortBy), [shown, sortBy]);
+  // UC-Q22: the leads whose AI note may still arrive, so their cards can say
+  // it is on the way instead of claiming there is none.
+  const justifiedIds = useMemo(() => new Set(pickJustified(shown).map((l) => l.id)), [shown]);
 
   // Freeze on first data; afterwards only append ids the frozen order lacks.
   useEffect(() => {
@@ -322,7 +350,10 @@ export default function ResultsPage() {
       : (broaderCount > 0
           ? `${strongCount.toLocaleString("en-US")} strong matches for your target roles and ${broaderCount.toLocaleString("en-US")} broader matches, across ${companies.toLocaleString("en-US")} companies. `
           : `${leads.length.toLocaleString("en-US")} matches across ${companies.toLocaleString("en-US")} companies. `) +
-        `${leads.length > JUSTIFIED_LIMIT ? `The top ${JUSTIFIED_LIMIT} come` : "They come"} with AI notes on why to contact them. Tap any card to reach out.`;
+        // UC-Q22: do not promise notes that have not arrived yet.
+        (polling
+          ? `AI notes on why to contact ${leads.length > JUSTIFIED_LIMIT ? `the top ${JUSTIFIED_LIMIT}` : "them"} are still being written. Tap any card to reach out.`
+          : `${leads.length > JUSTIFIED_LIMIT ? `The top ${JUSTIFIED_LIMIT} come` : "They come"} with AI notes on why to contact them. Tap any card to reach out.`);
 
   return (
     <div className="min-h-screen bg-white pb-24">
@@ -411,6 +442,12 @@ export default function ResultsPage() {
           </div>
         ) : (
           <>
+            {existingNote && (
+              <div className="mb-4 rounded-xl border-2 border-studojo-purple/30 bg-studojo-purple-bg px-4 py-3 flex flex-wrap items-center justify-between gap-2 font-satoshi text-sm text-studojo-ink" role="status">
+                <span>That's the same resume you uploaded before, so here are the hiring managers we already found for it.</span>
+                <button onClick={() => setExistingNote(false)} className="font-semibold text-studojo-purple-strong underline">Got it</button>
+              </div>
+            )}
             {refreshFailed && (
               <div className="mb-4 rounded-xl border-2 border-studojo-orange/40 bg-studojo-orange-bg px-4 py-3 flex flex-wrap items-center justify-between gap-2 font-satoshi text-sm text-studojo-ink" role="status">
                 <span>We couldn't refresh your matches just now. You're seeing the latest we have.</span>
@@ -450,7 +487,7 @@ export default function ResultsPage() {
                         </p>
                       </div>
                     )}
-                    <FlashCard lead={lead} actionLabel={cardActionLabel} onSelect={() => onCta("card")} />
+                    <FlashCard lead={lead} actionLabel={cardActionLabel} onSelect={() => onCta("card")} notePending={polling && justifiedIds.has(lead.id)} />
                   </Fragment>
                 ))}
               </div>
