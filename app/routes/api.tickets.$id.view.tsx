@@ -1,4 +1,4 @@
-// POST /api/tickets/:id/view — mark the thread as read for this user.
+// POST /api/tickets/:id/view: mark the thread as read for this user.
 // Called by the chat widget when the user opens a thread, so the unread
 // admin-reply badge clears.
 import type { Route } from "./+types/api.tickets.$id.view";

@@ -273,7 +273,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               <div className="sc-source">{"Studojo city hiring index, 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"~15–25%"}</div>
+              <div className="sc-num">{"~15-25%"}</div>
               <div className="sc-label">{"Typical gross pay gap vs Bangalore for the same job title at the same employer, before cost-of-living adjustment (wide variance by sector)"}</div>
               <div className="sc-source">{"Employer pay band surveys and Studojo compensation synthesis, 2026"}</div>
             </div>
@@ -388,7 +388,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Illustrative annual CTC ranges (2026, early-career, varies by employer):</strong><br />GCC / IT services engineer (0 to 2y): tier 2 often ₹6–12 LPA, Bangalore often ₹8–14 LPA.<br />Data and analytics (1 to 3y): tier 2 often ₹8–14 LPA, Bangalore often ₹10–18 LPA.<br />Inside sales / SDR: tier 2 often ₹5–9 LPA fixed + variable, metros slightly higher base."}</div>
+            <div className="callout-green">{"<strong>Illustrative annual CTC ranges (2026, early-career, varies by employer):</strong><br />GCC / IT services engineer (0 to 2y): tier 2 often ₹6-12 LPA, Bangalore often ₹8-14 LPA.<br />Data and analytics (1 to 3y): tier 2 often ₹8-14 LPA, Bangalore often ₹10-18 LPA.<br />Inside sales / SDR: tier 2 often ₹5-9 LPA fixed + variable, metros slightly higher base."}</div>
           </div>
 
           <div className="rpt-section">
@@ -510,7 +510,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               </div>
               <div className="blist-item" key="Compare savings, not CTC">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>{"Compare savings, not CTC"}.</strong> {"Tier 2 pay can be 15–25% lower on paper but net monthly cash often competes after rent and commute."}</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Compare savings, not CTC"}.</strong> {"Tier 2 pay can be 15-25% lower on paper but net monthly cash often competes after rent and commute."}</span>
               </div>
               <div className="blist-item" key="Hunt with city in the query">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />

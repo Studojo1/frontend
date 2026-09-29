@@ -2,7 +2,7 @@
 //
 // The note used to be a field on the panel BEFORE applying, which made the
 // card read as a form to fill in. It is now offered on the success screen, so
-// the student commits first and adds context second — and most will skip it,
+// the student commits first and adds context second, and most will skip it,
 // which is the right default.
 import { outreachQueue } from "~/lib/queues.server";
 import {
@@ -36,7 +36,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   const job = await outreachQueue.getJob(body.outreachJobId);
   if (!job) {
-    // The job already ran. The draft is written, so a note cannot change it —
+    // The job already ran. The draft is written, so a note cannot change it:
     // say so plainly rather than pretending it was saved.
     return extJson(request, { ok: false, tooLate: true,
       message: "That email has already been drafted." }, 409);

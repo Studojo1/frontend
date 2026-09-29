@@ -24,7 +24,7 @@ export default function GmailConnectPage() {
   const showPermissionError = (msg: string | null) => {
     if (msg === "missing_permissions" || msg === "missing_send_permission") {
       setError(
-        'Google didn\'t grant all required permissions. On the Google sign-in screen, please TICK BOTH boxes — "Send email on your behalf" AND "Read your email" — before clicking Allow. We need read access to detect replies from leads.'
+        'Google didn\'t grant all required permissions. On the Google sign-in screen, please TICK BOTH boxes ("Send email on your behalf" AND "Read your email") before clicking Allow. We need read access to detect replies from leads.'
       );
     } else {
       setError(msg || "Gmail connection failed. Please try again.");
@@ -132,8 +132,8 @@ export default function GmailConnectPage() {
     // job with one email waiting for review. Continuing into campaign setup
     // would abandon it, so hand control back to where they started.
     //
-    // Additive: when the key is absent — every student who came through the
-    // outreach funnel — the original navigation below is unchanged. The OAuth
+    // Additive: when the key is absent (every student who came through the
+    // outreach funnel), the original navigation below is unchanged. The OAuth
     // callback URL is hardcoded server-side (job-outreach-svc
     // api/routes_gmail.py:52), so this page is the only place the handoff can
     // happen.
@@ -145,7 +145,7 @@ export default function GmailConnectPage() {
         return;
       }
     } catch {
-      /* private mode — fall through to the normal funnel */
+      /* private mode: fall through to the normal funnel */
     }
 
     // 'both' plans chain into LinkedIn connect before campaign setup

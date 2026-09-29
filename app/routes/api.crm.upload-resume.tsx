@@ -1,7 +1,7 @@
 // Server-side proxy for the resume upload.
 //
 // The browser cannot mint the bearer token this endpoint needs without
-// importing ~/lib/control-plane, which dynamically imports ~/lib/auth — a
+// importing ~/lib/control-plane, which dynamically imports ~/lib/auth, a
 // server-only module carrying better-auth, drizzle and the database client.
 // Pulling that into a route's client bundle is what took /crm/setup down with
 // "Oops!"; the page died on load, before anyone chose a file.

@@ -14,7 +14,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const captureUrl = `${apiBase}/api/autoapply/session-capture`;
 
   const script = `#!/usr/bin/env python3
-"""Studojo LinkedIn session capture — runs on your machine, not our server."""
+"""Studojo LinkedIn session capture. Runs on your machine, not our server."""
 import sys, subprocess, json
 
 # Install playwright silently if not present

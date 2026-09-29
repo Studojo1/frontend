@@ -389,7 +389,7 @@ export default function InboxPage() {
                     </div>
                   ) : thread && thread.messages.length === 0 ? (
                     <p className="text-center text-sm text-studojo-muted font-satoshi py-8">
-                      No messages yet — say hi.
+                      No messages yet. Say hi.
                     </p>
                   ) : (
                     thread?.messages.map((m, i) => (

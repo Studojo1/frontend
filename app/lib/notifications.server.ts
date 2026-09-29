@@ -11,7 +11,7 @@ export async function sendLinkedInConnectEmail({
 }) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
-    console.warn("RESEND_API_KEY not set — skipping LinkedIn connect email");
+    console.warn("RESEND_API_KEY not set, skipping LinkedIn connect email");
     return;
   }
 
@@ -122,7 +122,7 @@ export async function sendInternshipApplicationNotification(
 ): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
-    console.warn("RESEND_API_KEY not set — skipping internship application notification");
+    console.warn("RESEND_API_KEY not set, skipping internship application notification");
     return;
   }
 

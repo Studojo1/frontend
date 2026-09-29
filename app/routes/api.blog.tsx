@@ -14,7 +14,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     const offset = (page - 1) * limit;
 
-    // Parameterized WHERE built from `sql` fragments — every user value
+    // Parameterized WHERE built from `sql` fragments: every user value
     // (category/tag/search) is bound, not interpolated, so no SQL injection.
     let whereClause = sql`status = 'published'`;
 

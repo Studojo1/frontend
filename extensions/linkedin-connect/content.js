@@ -1,14 +1,14 @@
 /**
- * Studojo LinkedIn Connector — Content Script
+ * Studojo LinkedIn Connector: Content Script
  *
  * Bridges two protocols so a single extension serves both features:
  *
- *  1. AutoApply (legacy) — uses window.postMessage with type STUDOJO_*
- *  2. Outreach panel (new) — uses CustomEvent("STUDOJO_REQUEST_LI_COOKIES" etc.)
+ *  1. AutoApply (legacy): uses window.postMessage with type STUDOJO_*
+ *  2. Outreach panel (new): uses CustomEvent("STUDOJO_REQUEST_LI_COOKIES" etc.)
  *
  * The outreach LinkedInConnectPanel listens for an EXT_READY CustomEvent on
  * load and requests cookies on demand. We capture cookies via the background
- * script and dispatch them back as a CustomEvent — the page then POSTs them
+ * script and dispatch them back as a CustomEvent. The page then POSTs them
  * to the outreach backend itself (we don't POST from the extension for the
  * outreach flow, because the page owns the auth + endpoint URL).
  */

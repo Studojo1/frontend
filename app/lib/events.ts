@@ -2,7 +2,7 @@
  * Base URL of the EMAILER service (NOT the control plane). Events must go to the
  * emailer's /v1/email/events, which is a different service than getEmailerServiceUrl()
  * (that returns the control plane, whose /v1/email/events expects a different
- * shape and 400s our payload — the original silent bug). Override with
+ * shape and 400s our payload, the original silent bug). Override with
  * EMAILER_SERVICE_URL; defaults to the public emailer host.
  */
 function emailerBaseUrl(): string {

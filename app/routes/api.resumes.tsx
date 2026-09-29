@@ -49,7 +49,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   // originalFile is set on the PDF-import path so the ops dashboard can serve
   // the original file later. Validate shape; ignore if malformed rather than
-  // failing the create — a resume row without it just falls back to snapshot.
+  // failing the create; a resume row without it just falls back to snapshot.
   let resolvedOriginal: { url: string; contentType: string; name: string } | null = null;
   if (originalFile && typeof originalFile === "object") {
     const { url, contentType, name: fileName } = originalFile as Record<string, unknown>;
@@ -82,13 +82,13 @@ export async function action({ request }: Route.ActionArgs) {
     createdBy: session.user.id,
   });
 
-  // Creating a resume IS using Resume Maker — fire the used signal so the
+  // Creating a resume IS using Resume Maker: fire the used signal so the
   // emailer routes engagement (stops not-used chases across tools). Non-blocking.
   //
   // Distinguish HOW they got here: originalFile is set only on the PDF-import
   // path (they uploaded an EXISTING resume), absent when they built from
-  // scratch. An existing resume means they don't need the maker — they need
-  // direction — so route them to Career Coach. Building from scratch is genuine
+  // scratch. An existing resume means they don't need the maker, they need
+  // direction, so route them to Career Coach. Building from scratch is genuine
   // Resume Maker usage.
   try {
     const { publishEmailEvent } = await import("~/lib/events");

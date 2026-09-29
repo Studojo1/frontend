@@ -36,7 +36,7 @@ while IFS= read -r line; do [ -n "$line" ] && DIFF+=("$line"); done \
   < <(git diff --name-only origin/main origin/staging -- "${PATHS[@]}")
 
 if [ ${#DIFF[@]} -eq 0 ]; then
-  echo "  (none — prod is already in sync for these paths)"
+  echo "  (none: prod is already in sync for these paths)"
   exit 0
 fi
 printf '  %s\n' "${DIFF[@]}"

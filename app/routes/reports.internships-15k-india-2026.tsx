@@ -28,7 +28,7 @@ export function meta() {
   ];
 }
 
-// bracket: "top" = ₹40k+  "high" = ₹20k–40k  "mid" = ₹10k–20k  "low" = below ₹10k
+// bracket: "top" = ₹40k+  "high" = ₹20k-40k  "mid" = ₹10k-20k  "low" = below ₹10k
 const MATRIX: {
   domain: string;
   roles: { title: string; range: string; bracket: "top" | "high" | "mid" | "low"; note?: string }[];
@@ -36,54 +36,54 @@ const MATRIX: {
   {
     domain: "AI / ML",
     roles: [
-      { title: "ML Engineering Intern", range: "₹50k–100k", bracket: "top", note: "Highest paying category" },
-      { title: "AI Research Intern", range: "₹30k–80k", bracket: "top" },
-      { title: "Data Science Intern", range: "₹25k–65k", bracket: "top" },
-      { title: "Prompt Engineering Intern", range: "₹30k–60k", bracket: "top", note: "Fast-growing" },
+      { title: "ML Engineering Intern", range: "₹50k-100k", bracket: "top", note: "Highest paying category" },
+      { title: "AI Research Intern", range: "₹30k-80k", bracket: "top" },
+      { title: "Data Science Intern", range: "₹25k-65k", bracket: "top" },
+      { title: "Prompt Engineering Intern", range: "₹30k-60k", bracket: "top", note: "Fast-growing" },
     ],
   },
   {
     domain: "Software Eng.",
     roles: [
-      { title: "SWE Intern (MNC)", range: "₹60k–100k", bracket: "top", note: "Google, Microsoft, etc." },
-      { title: "Backend Intern (Startup)", range: "₹20k–50k", bracket: "high" },
-      { title: "Full-Stack Intern", range: "₹18k–35k", bracket: "high" },
-      { title: "DevOps / Cloud Intern", range: "₹20k–35k", bracket: "high" },
+      { title: "SWE Intern (MNC)", range: "₹60k-100k", bracket: "top", note: "Google, Microsoft, etc." },
+      { title: "Backend Intern (Startup)", range: "₹20k-50k", bracket: "high" },
+      { title: "Full-Stack Intern", range: "₹18k-35k", bracket: "high" },
+      { title: "DevOps / Cloud Intern", range: "₹20k-35k", bracket: "high" },
     ],
   },
   {
     domain: "Finance / Quant",
     roles: [
-      { title: "Quant Trading Intern", range: "₹80k–150k", bracket: "top", note: "Jane Street, Graviton" },
-      { title: "Investment Banking Intern", range: "₹30k–60k", bracket: "top", note: "Bulge bracket" },
-      { title: "Strategy Consulting Intern", range: "₹50k–100k", bracket: "top", note: "MBB / Big 4" },
-      { title: "Financial Modelling Intern", range: "₹15k–25k", bracket: "mid" },
+      { title: "Quant Trading Intern", range: "₹80k-150k", bracket: "top", note: "Jane Street, Graviton" },
+      { title: "Investment Banking Intern", range: "₹30k-60k", bracket: "top", note: "Bulge bracket" },
+      { title: "Strategy Consulting Intern", range: "₹50k-100k", bracket: "top", note: "MBB / Big 4" },
+      { title: "Financial Modelling Intern", range: "₹15k-25k", bracket: "mid" },
     ],
   },
   {
     domain: "Product",
     roles: [
-      { title: "Product Management Intern", range: "₹30k–80k", bracket: "top", note: "B2B SaaS pays best" },
-      { title: "Growth Product Intern", range: "₹20k–35k", bracket: "high" },
-      { title: "UX Research Intern", range: "₹15k–25k", bracket: "mid" },
-      { title: "UI / UX Design Intern", range: "₹15k–25k", bracket: "mid" },
+      { title: "Product Management Intern", range: "₹30k-80k", bracket: "top", note: "B2B SaaS pays best" },
+      { title: "Growth Product Intern", range: "₹20k-35k", bracket: "high" },
+      { title: "UX Research Intern", range: "₹15k-25k", bracket: "mid" },
+      { title: "UI / UX Design Intern", range: "₹15k-25k", bracket: "mid" },
     ],
   },
   {
     domain: "Marketing / Ops",
     roles: [
-      { title: "Growth Marketing Intern", range: "₹15k–25k", bracket: "mid", note: "Funded startups only" },
-      { title: "Performance Marketing Intern", range: "₹15k–20k", bracket: "mid" },
-      { title: "BPO / Ops Intern", range: "₹5k–12k", bracket: "low", note: "Contracting category" },
-      { title: "Data Entry Intern", range: "₹5k–10k", bracket: "low", note: "Being automated" },
+      { title: "Growth Marketing Intern", range: "₹15k-25k", bracket: "mid", note: "Funded startups only" },
+      { title: "Performance Marketing Intern", range: "₹15k-20k", bracket: "mid" },
+      { title: "BPO / Ops Intern", range: "₹5k-12k", bracket: "low", note: "Contracting category" },
+      { title: "Data Entry Intern", range: "₹5k-10k", bracket: "low", note: "Being automated" },
     ],
   },
 ];
 
 const BRACKET = {
   top:  { bg: "#fef3c6", border: "#f59e0b", text: "#92400e", dot: "#f59e0b", label: "₹30k+" },
-  high: { bg: "#ede9fe", border: "#8b5cf6", text: "#4c1d95", dot: "#8b5cf6", label: "₹15k–30k" },
-  mid:  { bg: "#f5f5f5", border: "#e5e5e5", text: "#525252", dot: "#a3a3a3", label: "₹10k–15k" },
+  high: { bg: "#ede9fe", border: "#8b5cf6", text: "#4c1d95", dot: "#8b5cf6", label: "₹15k-30k" },
+  mid:  { bg: "#f5f5f5", border: "#e5e5e5", text: "#525252", dot: "#a3a3a3", label: "₹10k-15k" },
   low:  { bg: "#fff1f2", border: "#fecdd3", text: "#9f1239", dot: "#f43f5e", label: "Below ₹10k" },
 };
 
@@ -131,7 +131,7 @@ export default function Internships15kReport() {
           <div className="r15-finding">
             <span className="r15-fnum">The Role Map</span>
             <h2 className="r15-h2">20 roles. 5 domains. One map showing exactly where the money is.</h2>
-            <p className="r15-lead">Every cell is a real role category. Color shows typical stipend bracket based on Glassdoor India, Internshala, Unstop, and LinkedIn live listings (Q1–Q2 2026). Ranges reflect what a credible applicant realistically lands: not the advertised ceiling.</p>
+            <p className="r15-lead">Every cell is a real role category. Color shows typical stipend bracket based on Glassdoor India, Internshala, Unstop, and LinkedIn live listings (Q1-Q2 2026). Ranges reflect what a credible applicant realistically lands, not the advertised ceiling.</p>
 
             {/* Legend */}
             <div className="r15-legend">
@@ -176,7 +176,7 @@ export default function Internships15kReport() {
               ))}
             </div>
 
-            <p className="r15-map-note">Data note: Ranges are based on live listing analysis and reflect the realistic range for a credible applicant at a relevant company, not the stated maximum. Quant and MNC SWE ranges are verified against known offers (Graviton, Jane Street India, Google, Microsoft). All other ranges are cross-referenced across Internshala, Unstop, Glassdoor India (Q1–Q2 2026).</p>
+            <p className="r15-map-note">Data note: Ranges are based on live listing analysis and reflect the realistic range for a credible applicant at a relevant company, not the stated maximum. Quant and MNC SWE ranges are verified against known offers (Graviton, Jane Street India, Google, Microsoft). All other ranges are cross-referenced across Internshala, Unstop, Glassdoor India (Q1-Q2 2026).</p>
           </div>
 
           {/* Inline CTA */}
@@ -193,22 +193,22 @@ export default function Internships15kReport() {
           {/* Finding 1 */}
           <div className="r15-finding">
             <span className="r15-fnum">Finding 01</span>
-            <h2 className="r15-h2">Three domains own the ₹40k+ bracket. Everything else is competing for ₹15k–25k at best.</h2>
-            <p className="r15-lead">AI/ML, Quant Finance, and Software Engineering at MNCs are the only domains where ₹40k+ is a realistic outcome. Strategy Consulting at MBB joins them at the top. Across every other domain, ₹15k–25k is where strong applicants land, and that ceiling is structural, not about effort.</p>
+            <h2 className="r15-h2">Three domains own the ₹40k+ bracket. Everything else is competing for ₹15k-25k at best.</h2>
+            <p className="r15-lead">AI/ML, Quant Finance, and Software Engineering at MNCs are the only domains where ₹40k+ is a realistic outcome. Strategy Consulting at MBB joins them at the top. Across every other domain, ₹15k-25k is where strong applicants land, and that ceiling is structural, not about effort.</p>
 
             <div className="r15-stat-row r15-c3">
               <div className="r15-stat">
-                <div className="r15-val r15-vo">₹80k–150k</div>
+                <div className="r15-val r15-vo">₹80k-150k</div>
                 <div className="r15-lbl">Quant trading intern range (Jane Street, Graviton, WorldQuant India)</div>
-                <span className="r15-src">Verified offer data, 2025–2026</span>
+                <span className="r15-src">Verified offer data, 2025-2026</span>
               </div>
               <div className="r15-stat">
-                <div className="r15-val r15-vo">₹60k–100k</div>
+                <div className="r15-val r15-vo">₹60k-100k</div>
                 <div className="r15-lbl">SWE intern at top MNCs (Google, Microsoft, Amazon India)</div>
                 <span className="r15-src">Glassdoor India / Levels.fyi 2026</span>
               </div>
               <div className="r15-stat">
-                <div className="r15-val r15-vo">₹50k–100k</div>
+                <div className="r15-val r15-vo">₹50k-100k</div>
                 <div className="r15-lbl">Strategy consulting intern at MBB and Big 4 India</div>
                 <span className="r15-src">Glassdoor India verified listings</span>
               </div>
@@ -224,7 +224,7 @@ export default function Internships15kReport() {
           <div className="r15-finding">
             <span className="r15-fnum">Finding 02</span>
             <h2 className="r15-h2">Company stage beats company name. A Series B startup often pays more than a brand-name MNC in a non-core role.</h2>
-            <p className="r15-lead">The assumption that big names pay the best is wrong at intern level in India. Large MNCs in non-core roles routinely pay ₹8k–15k. Series A and B funded startups in product, data, and growth pay ₹20k–40k to compete for the same candidates. The name is not the signal. The funding stage and role category are.</p>
+            <p className="r15-lead">The assumption that big names pay the best is wrong at intern level in India. Large MNCs in non-core roles routinely pay ₹8k-15k. Series A and B funded startups in product, data, and growth pay ₹20k-40k to compete for the same candidates. The name is not the signal. The funding stage and role category are.</p>
 
             <div className="r15-two-col">
               <div>
@@ -232,7 +232,7 @@ export default function Internships15kReport() {
                 <div className="r15-card">
                   {[
                     ["Funding stage", "Series A+ startups pay to compete. Pre-seed rarely can afford to.", "#f59e0b"],
-                    ["Role category", "Tech and quant roles pay 2–3x non-tech at the same company.", "#f59e0b"],
+                    ["Role category", "Tech and quant roles pay 2-3x non-tech at the same company.", "#f59e0b"],
                     ["Skill scarcity", "ML, Quant, DevOps: supply is far below demand in India.", "#8b5cf6"],
                     ["Company type", "Product-led companies pay more than service-led. B2B SaaS beats agencies.", "#8b5cf6"],
                   ].map(([label, desc, color]) => (
@@ -248,7 +248,7 @@ export default function Internships15kReport() {
                 <div className="r15-card">
                   {[
                     ["College brand alone", "IIT vs NIT matters less than portfolio at intern level."],
-                    ["Company name alone", "Fortune 500 in India often pays ₹10k–15k for non-core roles."],
+                    ["Company name alone", "Fortune 500 in India often pays ₹10k-15k for non-core roles."],
                     ["CGPA above 7", "The threshold matters. Beyond that, it rarely moves stipend."],
                     ["Certifications", "A Coursera certificate does not move stipend. Projects do."],
                   ].map(([label, desc]) => (
@@ -270,10 +270,10 @@ export default function Internships15kReport() {
 
             <div className="r15-skills-grid">
               {[
-                { skill: "Python + data fluency", impact: "+₹8k–15k vs baseline", desc: "Pandas, basic SQL, able to clean and analyse a real dataset. Appears in 61% of ₹15k+ JDs.", color: "#f59e0b" },
-                { skill: "AI tool proficiency", impact: "+₹5k–12k vs baseline", desc: "Not just ChatGPT. Cursor, LLM API calls, prompt structuring. Companies now test this directly.", color: "#f59e0b" },
-                { skill: "Financial modelling (Excel)", impact: "+₹8k–20k in finance roles", desc: "3-statement model, DCF, scenario analysis. 95% of finance JDs above ₹15k require this at working level.", color: "#8b5cf6" },
-                { skill: "Product thinking", impact: "+₹5k–10k in product roles", desc: "Can you identify a user problem, frame a metric, and propose a test? This is what PM interviews test.", color: "#8b5cf6" },
+                { skill: "Python + data fluency", impact: "+₹8k-15k vs baseline", desc: "Pandas, basic SQL, able to clean and analyse a real dataset. Appears in 61% of ₹15k+ JDs.", color: "#f59e0b" },
+                { skill: "AI tool proficiency", impact: "+₹5k-12k vs baseline", desc: "Not just ChatGPT. Cursor, LLM API calls, prompt structuring. Companies now test this directly.", color: "#f59e0b" },
+                { skill: "Financial modelling (Excel)", impact: "+₹8k-20k in finance roles", desc: "3-statement model, DCF, scenario analysis. 95% of finance JDs above ₹15k require this at working level.", color: "#8b5cf6" },
+                { skill: "Product thinking", impact: "+₹5k-10k in product roles", desc: "Can you identify a user problem, frame a metric, and propose a test? This is what PM interviews test.", color: "#8b5cf6" },
                 { skill: "A real portfolio project", impact: "Most multiplied signal", desc: "One deployed project or live analysis with results. Matters more than all certifications combined.", color: "#10b981" },
               ].map((item) => (
                 <div key={item.skill} className="r15-skill-card" style={{ borderTopColor: item.color }}>

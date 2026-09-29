@@ -35,7 +35,7 @@ const SYSTEM_PROMPT = `You are Studojo's resume coach. You help a student fill i
 VOICE
 - Direct, warm, like a smart friend. No corporate talk.
 - One or two short sentences. One question per turn.
-- Never use em dashes (—). Use commas instead.
+- Never use em dashes (\u2014). Use commas instead.
 
 HOW IT WORKS
 - The user's current resume is below as CURRENT_RESUME (compact JSON, may omit empty fields).
@@ -44,7 +44,7 @@ HOW IT WORKS
 - Never invent facts. If the user said "skip" or "next", just move on with no ops.
 - Don't ask about info already on the resume.
 
-OPS SCHEMA — emit only these shapes:
+OPS SCHEMA (emit only these shapes):
   { "op":"set", "path":"basics.name", "value":"Aanya Sharma" }
   { "op":"set", "path":"basics.title|email|phone|location|website|linkedin", "value":"..." }
   { "op":"set", "path":"summary", "value":"..." }
@@ -55,7 +55,7 @@ OPS SCHEMA — emit only these shapes:
 OUTPUT
 Return strict JSON only:
 {
-  "reply": "your short message to the user (REQUIRED, never empty, even when only adding data — e.g. 'Got it, added Blip Store. What did you build there?')",
+  "reply": "your short message to the user (REQUIRED, never empty, even when only adding data, e.g. 'Got it, added Blip Store. What did you build there?')",
   "ops": [ ... ops here, [] if nothing changed ... ]
 }
 
@@ -87,7 +87,7 @@ export async function action({ request }: Route.ActionArgs) {
     return Response.json({ error: "Resume data is required" }, { status: 400 });
   }
 
-  // Keep prompt size bounded — 8 turns is plenty for context.
+  // Keep prompt size bounded: 8 turns is plenty for context.
   const trimmed = messages.slice(-8).map((m) => ({
     role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
     content: String(m.content || "").slice(0, 1500),
@@ -180,10 +180,10 @@ export async function action({ request }: Route.ActionArgs) {
 
     // Em/en dash cleanup.
     const cleanReply = finalReply
-      .replace(/ — /g, ", ")
-      .replace(/ – /g, ", ")
-      .replace(/—/g, ",")
-      .replace(/–/g, ",");
+      .replace(/ \u2014 /g, ", ")
+      .replace(/ \u2013 /g, ", ")
+      .replace(/\u2014/g, ",")
+      .replace(/\u2013/g, ",");
 
     return Response.json({ reply: cleanReply, ops: rawOps, data: next });
   } catch (error: any) {

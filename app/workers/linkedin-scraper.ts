@@ -1,4 +1,4 @@
-// LinkedIn scraper — Voyager API (authenticated JSON) + public API fallback
+// LinkedIn scraper: Voyager API (authenticated JSON) + public API fallback
 //
 // Ban prevention layers:
 //   1. Residential proxy via Bright Data (routes through real home IPs)
@@ -6,7 +6,7 @@
 //   3. Full cookie jar (li_at + JSESSIONID + bcookie + lidc)
 //   4. Matching User-Agent from the session that created li_at
 //   5. Jitter delays between requests
-//   6. Rate-limit detection — throws LINKEDIN_RATE_LIMIT on 429/999
+//   6. Rate-limit detection: throws LINKEDIN_RATE_LIMIT on 429/999
 
 import { eq } from "drizzle-orm";
 import db from "~/lib/db";
@@ -45,7 +45,7 @@ interface LinkedInSession {
   proxyCountry: string;
   proxyCity: string;
   userId: string;
-  hasRealCsrf: boolean; // false = fallback JSESSIONID — Voyager will 400
+  hasRealCsrf: boolean; // false = fallback JSESSIONID, Voyager will 400
 }
 
 async function getLinkedInSession(userId: string): Promise<LinkedInSession | null> {
@@ -74,12 +74,12 @@ async function getLinkedInSession(userId: string): Promise<LinkedInSession | nul
   }
 
   // Extract real JSESSIONID from the cookie jar if available
-  // JSESSIONID value IS the CSRF token — format: "ajax:XXXXXXXXXXXXXXXXXX"
+  // JSESSIONID value IS the CSRF token. Format: "ajax:XXXXXXXXXXXXXXXXXX"
   const jsessionMatch = fullCookies.match(/JSESSIONID="?(ajax:[^";,\s]+)"?/i);
   const hasRealCsrf = !!jsessionMatch;
   const jsessionId = jsessionMatch?.[1] ?? generateFallbackJsessionId();
 
-  // Build a clean cookie string — include all known LinkedIn session cookies
+  // Build a clean cookie string: include all known LinkedIn session cookies
   const cookieJar = fullCookies
     ? normalizeCookieJar(fullCookies, liAt, jsessionId)
     : buildMinimalCookieJar(liAt, jsessionId);
@@ -105,7 +105,7 @@ function buildMinimalCookieJar(liAt: string, jsessionId: string): string {
   return [
     `li_at=${liAt}`,
     `JSESSIONID="${jsessionId}"`,
-    `bcookie="v=2&${crypto.randomUUID()}"`,   // browser fingerprint — random but present
+    `bcookie="v=2&${crypto.randomUUID()}"`,   // browser fingerprint, random but present
     `bscookie="v=1&${Date.now().toString(36)}"`,
     `li_gc=MTsxOzE3MDA0NTYwMDA7MjsM`,        // consent cookie (static value is fine)
   ].join("; ");
@@ -169,7 +169,7 @@ function voyagerHeaders(session: LinkedInSession): Record<string, string> {
 }
 
 // ── Direct fetch for Voyager API calls ───────────────────────────────────────
-// Voyager calls are authenticated with li_at + CSRF — LinkedIn already knows
+// Voyager calls are authenticated with li_at + CSRF, so LinkedIn already knows
 // who's calling, so datacenter IP adds no meaningful detection risk for reads.
 // Residential proxy is critical for BROWSER automation (Patchright) but
 // Bun's fetch() proxy auth (407) doesn't reliably work with Decodo.
@@ -182,7 +182,7 @@ async function proxyFetch(
   return fetch(url, options);
 }
 
-// Jitter delay — human-like gaps between requests
+// Jitter delay: human-like gaps between requests
 const jitter = (min = 800, max = 2500) =>
   new Promise<void>((r) => setTimeout(r, min + Math.random() * (max - min)));
 
@@ -202,7 +202,7 @@ async function searchJobsVoyager(
     `&q=search`,
     `&keywords=${encodeURIComponent(role)}`,
     `&locationFallback=${encodeURIComponent(location)}`,
-    `&filters=List(timePostedRange-r604800)`,   // no easyApply-only — too restrictive for India
+    `&filters=List(timePostedRange-r604800)`,   // no easyApply-only, too restrictive for India
   ].join("");
 
   const res = await proxyFetch(url, {
@@ -222,8 +222,8 @@ async function searchJobsVoyager(
   try {
     data = await res.json();
   } catch {
-    // LinkedIn returned non-JSON (e.g. redirect to login page) — session likely expired
-    console.warn(`[linkedin] Voyager returned non-JSON for "${role}" / "${location}" — li_at may be expired`);
+    // LinkedIn returned non-JSON (e.g. redirect to login page), session likely expired
+    console.warn(`[linkedin] Voyager returned non-JSON for "${role}" / "${location}", li_at may be expired`);
     throw new Error("LINKEDIN_AUTH_FAILED:session_expired");
   }
 
@@ -280,7 +280,7 @@ async function searchJobsPublic(
     "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search",
     `?keywords=${encodeURIComponent(role)}`,
     `&location=${encodeURIComponent(location)}`,
-    `&f_TPR=r604800`,   // past week (no Easy Apply filter — too restrictive for India)
+    `&f_TPR=r604800`,   // past week (no Easy Apply filter, too restrictive for India)
     `&start=0`,
   ].join("");
 
@@ -338,7 +338,7 @@ async function searchJobsPublic(
 }
 
 // ── Job detail: fetch full description ────────────────────────────────────────
-// Accepts an optional Playwright page — if provided, uses in-page fetch()
+// Accepts an optional Playwright page. If provided, uses in-page fetch()
 // which inherits the full browser fingerprint (TLS, cookies, UA) automatically.
 
 export async function getJobDescription(userId: string, jobId: string, page?: any): Promise<string> {
@@ -385,11 +385,11 @@ export async function scrapeLinkedInJobs(
         usedAuth = true;
         console.log(`[linkedin] Voyager: ${results.length} jobs for "${role}" / "${location}"`);
       } catch (err: any) {
-        console.warn(`[linkedin] Voyager error (${err.message}) — falling back to public API`);
+        console.warn(`[linkedin] Voyager error (${err.message}), falling back to public API`);
         if (err.message?.startsWith("LINKEDIN_RATE_LIMIT") || err.message?.startsWith("LINKEDIN_AUTH_FAILED")) throw err;
       }
     } else if (session && !session.hasRealCsrf) {
-      console.log(`[linkedin] No real JSESSIONID for ${userId} — using public API`);
+      console.log(`[linkedin] No real JSESSIONID for ${userId}, using public API`);
     }
   }
 

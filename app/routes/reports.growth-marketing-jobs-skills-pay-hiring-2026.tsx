@@ -263,7 +263,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">~$58K–$78K</div>
+              <div className="sc-num">~$58K-$78K</div>
               <div className="sc-label">Typical US base salary range for entry-level growth or performance marketing roles (0 to 2 years, major metros, employer surveys aggregate)</div>
               <div className="sc-source">Glassdoor and Levels.fyi marketing cohorts, synthesised May 2026</div>
             </div>
@@ -390,7 +390,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
               </div>
             </div>
 
-            <div className="callout-green"><strong>India and remote note:</strong> Many US companies hire growth contractors or associates in India at INR bands roughly ₹6–15 LPA for early roles and higher for proven performance, highly employer-dependent. Remote US roles often geo-adjust base. Read the location line before you celebrate the headline number.</div>
+            <div className="callout-green"><strong>India and remote note:</strong> Many US companies hire growth contractors or associates in India at INR bands roughly ₹6-15 LPA for early roles and higher for proven performance, highly employer-dependent. Remote US roles often geo-adjust base. Read the location line before you celebrate the headline number.</div>
           </div>
 
           <div className="rpt-section">
@@ -512,7 +512,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
               </div>
               <div className="blist-item" key="Know the pay band for your level">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Know the pay band for your level.</strong> US entry bases often cluster roughly $55K–$75K in major metros; interns hourly lower. Compare stage and city, not logos alone.</span>
+                <span style={{ color: "#3b0764" }}><strong>Know the pay band for your level.</strong> US entry bases often cluster roughly $55K-$75K in major metros; interns hourly lower. Compare stage and city, not logos alone.</span>
               </div>
               <div className="blist-item" key="Hunt where growth teams live">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />

@@ -1,6 +1,6 @@
 // AutoApply worker entry point
 // Run with: bun app/workers/index.ts
-// This process handles all BullMQ queues — runs in autoapply-worker pod
+// This process handles all BullMQ queues, runs in autoapply-worker pod
 
 import { Queue, Worker } from "bullmq";
 import { eq, and, lt, sql } from "drizzle-orm";
@@ -24,7 +24,7 @@ import {
 } from "~/lib/queues.server";
 import { runLinkedinLogin } from "./linkedin-login-worker";
 
-// ── Redis connection (worker-only — for maintenanceQueue + Workers) ───────────
+// ── Redis connection (worker-only, for maintenanceQueue + Workers) ───────────
 
 const REDIS_URL = process.env.REDIS_URL ?? "redis://redis.studojo.svc.cluster.local:6379";
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? "";
@@ -170,7 +170,7 @@ async function setupSchedules() {
     { repeat: { pattern: "0 */4 * * *" }, jobId: "schedule_outreach" }
   );
 
-  // Acceptance poller every 2 hours — checks Voyager API for new connections
+  // Acceptance poller every 2 hours: checks Voyager API for new connections
   await maintenanceQueue.add(
     "poll_acceptances",
     { task: "poll_acceptances" },
@@ -209,7 +209,7 @@ async function scheduleOutreachSteps() {
   const threeDaysAgo = new Date(Date.now() - 3 * 86_400_000);
   const sevenDaysAgo = new Date(Date.now() - 7 * 86_400_000);
 
-  // Step 1 (message) — accepted connections from 3+ days ago, not yet messaged
+  // Step 1 (message): accepted connections from 3+ days ago, not yet messaged
   const toMessage = await db
     .select({ id: outreachContacts.id })
     .from(outreachContacts)
@@ -220,7 +220,7 @@ async function scheduleOutreachSteps() {
     ))
     .limit(50);
 
-  // Step 2 (follow-up) — messaged 7+ days ago, no reply
+  // Step 2 (follow-up): messaged 7+ days ago, no reply
   const toFollowUp = await db
     .select({ id: outreachContacts.id })
     .from(outreachContacts)
@@ -273,7 +273,7 @@ async function main() {
   // Immediate first-run discovery
   await scheduleAllActiveUsers();
 
-  console.log("[worker] Ready — listening for jobs");
+  console.log("[worker] Ready, listening for jobs");
 }
 
 main().catch((err) => {

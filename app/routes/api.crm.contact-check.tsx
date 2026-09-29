@@ -1,8 +1,8 @@
 // Can we actually reach the person this draft is addressed to?
 //
 // Asked while the student is still editing, because `no_contact_email` is the
-// most likely failure of the whole flow — Apollo returns only verified
-// addresses and rejects guessed ones — and finding out at Send, after writing
+// most likely failure of the whole flow (Apollo returns only verified
+// addresses and rejects guessed ones), and finding out at Send, after writing
 // the email, is the worst possible moment to learn it.
 import { and, eq } from "drizzle-orm";
 import db from "~/lib/db";
@@ -70,7 +70,7 @@ export async function action({ request }: Route.ActionArgs) {
     // PERSIST the person we found, and rewrite the email with their name.
     //
     // The page said "we found Aaron Santhosh" while the draft body still
-    // opened "Hi there," — Pranav: "still says hi there what is going on". The
+    // opened "Hi there," (Pranav: "still says hi there what is going on"). The
     // answer was returned to the browser and never written down, so the email
     // the student would actually SEND still addressed nobody.
     //
@@ -109,7 +109,7 @@ export async function action({ request }: Route.ActionArgs) {
       contactName: res.contact_name ?? null,
       contactTitle: res.contact_title ?? null,
       foundBySearch: Boolean(res.found_by_search),
-      // Only present when this company is unreachable. Advisory — the student
+      // Only present when this company is unreachable. Advisory: the student
       // chooses; nothing is drafted or redirected for them.
       //
       // MAPPED to camelCase. Passing the service's snake_case straight through

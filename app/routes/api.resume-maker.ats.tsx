@@ -1,7 +1,8 @@
-// JRS ATS analysis — scores a resume against a job description.
+// JRS ATS analysis: scores a resume against a job description.
 // Primary: OpenAI gpt-4o-mini. Fallback: local keyword-overlap so the
 // feature still works if the API key is missing or the call fails.
 import type { Route } from "./+types/api.resume-maker.ats";
+import { stripDashesDeep } from "~/lib/strip-dashes";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -31,7 +32,7 @@ function tokens(text: string): string[] {
     .filter((w) => w.length > 2 && !STOP.has(w));
 }
 
-/** Pure-JS keyword-overlap analysis — no LLM. */
+/** Pure-JS keyword-overlap analysis, no LLM. */
 function localAnalysis(resumeText: string, jd: string): AtsResult {
   const resumeSet = new Set(tokens(resumeText));
   const jdTokens = tokens(jd);
@@ -56,7 +57,7 @@ function localAnalysis(resumeText: string, jd: string): AtsResult {
     );
   if (score < 60)
     suggestions.push("Mirror the job description's wording in your experience bullets.");
-  suggestions.push("Quantify outcomes — numbers survive ATS keyword and recruiter scans.");
+  suggestions.push("Quantify outcomes: numbers survive ATS keyword and recruiter scans.");
 
   return { score, matched, missing, suggestions, source: "local" };
 }
@@ -102,7 +103,7 @@ async function aiAnalysis(resumeText: string, jd: string): Promise<AtsResult | n
     const data = await res.json();
     const raw = data?.choices?.[0]?.message?.content?.trim();
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
+    const parsed = stripDashesDeep(JSON.parse(raw));
     return {
       score: Math.max(0, Math.min(100, Number(parsed.score) || 0)),
       matched: Array.isArray(parsed.matched) ? parsed.matched.slice(0, 30).map(String) : [],

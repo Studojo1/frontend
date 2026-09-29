@@ -425,7 +425,7 @@ export async function uploadTicketScreenshot(
 
 /**
  * Upload the original resume file submitted alongside an internship application.
- * The resumes container is private — the returned URL is only retrievable by
+ * The resumes container is private: the returned URL is only retrievable by
  * services that hold the storage account key (e.g. Maverick), never directly
  * by browsers.
  *
@@ -441,7 +441,7 @@ export async function uploadApplicationResume(
   const containerClient = client.getContainerClient(containerName);
 
   // Container is expected to exist (created by infra / earlier resume code). We
-  // do not set public access here — application resumes contain PII and must
+  // do not set public access here: application resumes contain PII and must
   // only be served through authenticated dashboards.
   try {
     if (!useLocalStack) {

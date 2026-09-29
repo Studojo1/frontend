@@ -1,4 +1,4 @@
-// POST /api/mcp — the hosted Sensei MCP server (JSON-RPC 2.0 over Streamable HTTP).
+// POST /api/mcp: the hosted Sensei MCP server (JSON-RPC 2.0 over Streamable HTTP).
 // Auth: Authorization: Bearer sk_live_… (the same keys as /api/enrich). Each key is
 // bound to the Sensei workspace its owner already belongs to (see lib/mcp/keyorg.server.ts),
 // so an agent sees the same searches, tables and shared credits as the browser. Tools:
@@ -45,7 +45,7 @@ const TOOLS = [
   {
     name: "sensei_search",
     description:
-      "Start a Sensei hiring search from a plain-English brief (role/function, location, company type, pay, seniority). Returns a run_id immediately; the search runs for a few minutes. Poll sensei_status, then read sensei_results. If the brief is missing something load-bearing (pay band, company type, location), Sensei may pause and ask ONE clarifying question — sensei_status then returns status 'waiting_user' with the question; answer it with sensei_reply. Example: 'business analyst roles at funded startups in Bangalore, 0-2 years'.",
+      "Start a Sensei hiring search from a plain-English brief (role/function, location, company type, pay, seniority). Returns a run_id immediately; the search runs for a few minutes. Poll sensei_status, then read sensei_results. If the brief is missing something load-bearing (pay band, company type, location), Sensei may pause and ask ONE clarifying question, and sensei_status then returns status 'waiting_user' with the question; answer it with sensei_reply. Example: 'business analyst roles at funded startups in Bangalore, 0-2 years'.",
     inputSchema: {
       type: "object",
       properties: { query: { type: "string", description: "The full hiring brief in plain English." } },
@@ -55,7 +55,7 @@ const TOOLS = [
   {
     name: "sensei_status",
     description:
-      "Check a Sensei search's progress by run_id. Returns status (running | waiting_user | done | error) and a short progress summary. Poll every ~20-30s. IMPORTANT: if status is 'waiting_user', Sensei is BLOCKED on a clarifying question — the response carries `question`, `options` and `chat_id`; answer it with sensei_reply (ask the user first if you cannot infer it) or the search will never finish. When status is 'done', call sensei_results.",
+      "Check a Sensei search's progress by run_id. Returns status (running | waiting_user | done | error) and a short progress summary. Poll every ~20-30s. IMPORTANT: if status is 'waiting_user', Sensei is BLOCKED on a clarifying question: the response carries `question`, `options` and `chat_id`; answer it with sensei_reply (ask the user first if you cannot infer it) or the search will never finish. When status is 'done', call sensei_results.",
     inputSchema: {
       type: "object",
       properties: { run_id: { type: "integer", description: "The run_id from sensei_search." } },
@@ -65,7 +65,7 @@ const TOOLS = [
   {
     name: "sensei_reply",
     description:
-      "Answer Sensei's clarifying question (when sensei_status returned 'waiting_user'), or send a follow-up instruction to refine an existing search ('make it Pune instead', 'only funded startups'). Returns a NEW run_id — poll that one with sensei_status. Pass the chat_id (or the run_id) from the search you are answering.",
+      "Answer Sensei's clarifying question (when sensei_status returned 'waiting_user'), or send a follow-up instruction to refine an existing search ('make it Pune instead', 'only funded startups'). Returns a NEW run_id. Poll that one with sensei_status. Pass the chat_id (or the run_id) from the search you are answering.",
     inputSchema: {
       type: "object",
       properties: {
@@ -99,7 +99,7 @@ const TOOLS = [
   {
     name: "sensei_reveal_contacts",
     description:
-      "Reveal the hiring-side contact (name, title, email, direct phone) for Sensei search results. Results come back WITHOUT contacts by default — each row's contact.status is 'pending' until revealed. Pass table_id to reveal every unresolved row in one go (recommended, batched, already-revealed rows are skipped so it never double-charges), or row_id for a single company. Spends the workspace's reveal credits, exactly like the Enrich button in the app. Runs in the background: call sensei_results again in ~30-60s and the contacts will have filled in.",
+      "Reveal the hiring-side contact (name, title, email, direct phone) for Sensei search results. Results come back WITHOUT contacts by default: each row's contact.status is 'pending' until revealed. Pass table_id to reveal every unresolved row in one go (recommended, batched, already-revealed rows are skipped so it never double-charges), or row_id for a single company. Spends the workspace's reveal credits, exactly like the Enrich button in the app. Runs in the background: call sensei_results again in ~30-60s and the contacts will have filled in.",
     inputSchema: {
       type: "object",
       properties: {
@@ -252,7 +252,7 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
     case "sensei_search": {
       if (!bobConfigured()) return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "gateway secret unset" });
       const query = String(args.query || "").trim();
-      if (!query) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide a 'query' — the hiring brief in plain English." });
+      if (!query) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide a 'query': the hiring brief in plain English." });
       const org = await resolveOrg(caller);
       if (!org.ok) return failed(org.error.includes("not linked") ? CODE.WORKSPACE_NOT_LINKED : CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: org.error });
       const chat = await createChat(org.orgId);
@@ -293,14 +293,14 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
         base.chat_id = d.chat_id ?? null;
         base.options = await questionOptions(org.orgId, d.chat_id);
         base.next =
-          "Sensei is waiting on this answer and will not continue until it gets one. Reply with sensei_reply({ chat_id, answer }) — that starts a NEW run_id to poll.";
+          "Sensei is waiting on this answer and will not continue until it gets one. Reply with sensei_reply({ chat_id, answer }), which starts a NEW run_id to poll.";
       }
       return ok(base);
     }
     case "sensei_reply": {
       if (!bobConfigured()) return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "gateway secret unset" });
       const answer = String(args.answer || "").trim();
-      if (!answer) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide an 'answer' — what to tell Sensei." });
+      if (!answer) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide an 'answer': what to tell Sensei." });
       const org = await resolveOrg(caller);
       if (!org.ok) return failed(org.error.includes("not linked") ? CODE.WORKSPACE_NOT_LINKED : CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: org.error });
       let chatId = Number(args.chat_id);
@@ -366,7 +366,7 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       const d = r.data || {};
       const companies = mapRows(d.tables || []);
       // Don't let an empty table read as "nothing found" when Sensei is actually blocked
-      // on a clarifying question — say so and hand over what's needed to unblock it.
+      // on a clarifying question; say so and hand over what's needed to unblock it.
       if (d.status === "waiting_user" && !companies.length) {
         return ok({
           run_id: runId,
@@ -377,11 +377,11 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
           options: await questionOptions(org.orgId, d.chat_id),
           count: 0,
           companies: [],
-          next: "Answer with sensei_reply({ chat_id, answer }) — the search has not run yet.",
+          next: "Answer with sensei_reply({ chat_id, answer }). The search has not run yet.",
         });
       }
       // Contacts are revealed on demand (and charged), so a fresh result set has them
-      // blank. Say so explicitly — otherwise an agent reports "no contact found" when
+      // blank. Say so explicitly; otherwise an agent reports "no contact found" when
       // the truth is "not revealed yet", and never calls the tool that would fill them.
       const pending = companies.filter((c) => !c.contact.email && !c.contact.phone).length;
       const tables = (d.tables || []).map((t: any) => ({ table_id: t.id, name: t.name, rows: (t.rows || []).length }));
@@ -434,7 +434,7 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       if (!enginesConfigured())
         return failed(CODE.SERVICE_UNAVAILABLE, { tool: name, caller, detail: "enrichment providers not configured" });
       const items = Array.isArray(args.items) ? args.items : [];
-      if (!items.length) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide 'items' — an array of contacts to enrich." });
+      if (!items.length) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: "Provide 'items': an array of contacts to enrich." });
       if (items.length > BULK_MAX) return failed(CODE.INVALID_INPUT, { tool: name, caller, hint: `Too many items (max ${BULK_MAX}).` });
       const q = await quotaStatus(caller.id, caller.monthlyQuota);
       if (!q.ok) return failed(CODE.OUT_OF_CREDITS, { tool: name, caller, detail: `monthly quota ${q.used}/${q.quota}` });
@@ -456,7 +456,7 @@ async function dispatch(name: string, args: any, caller: Caller): Promise<Conten
       if (!people)
         return failed(CODE.INVALID_INPUT, {
           tool: name, caller,
-          hint: "Provide 'people' — LinkedIn profile links, or rows with a name and company.",
+          hint: "Provide 'people': LinkedIn profile links, or rows with a name and company.",
         });
       const org = await resolveOrg(caller);
       if (!org.ok)

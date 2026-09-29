@@ -64,8 +64,8 @@ const LOCATIONS = [
 ];
 
 const COMPANY_SIZES = [
-  "1–10 (pre-seed/seed)", "11–50 (early stage)",
-  "51–200 (Series A/B)", "201–1000 (growth)", "1000+ (enterprise)",
+  "1\u201310 (pre-seed/seed)", "11\u201350 (early stage)",
+  "51\u2013200 (Series A/B)", "201\u20131000 (growth)", "1000+ (enterprise)",
 ];
 
 const ROLE_SUGGESTIONS = [
@@ -73,7 +73,7 @@ const ROLE_SUGGESTIONS = [
   "Product Manager", "CTO", "HR Manager", "Chief of Staff",
 ];
 
-const NOTE_PLACEHOLDER = `Hi {{name}}, came across your work at {{company}} — really interesting what you're building. Would love to connect!`;
+const NOTE_PLACEHOLDER = `Hi {{name}}, came across your work at {{company}}. Really interesting what you're building. Would love to connect!`;
 const FOLLOWUP_PLACEHOLDER = `Hey {{name}}, thanks for connecting! I'm a student interested in {{role}} at {{company}}. Would love to chat for 15 min if you have time.`;
 
 const STATUS_STYLE: Record<string, string> = {
@@ -272,7 +272,7 @@ export default function LkotPage() {
   useEffect(() => {
     const onReady = () => setExtInstalled(true);
     window.addEventListener("STUDOJO_EXT_READY", onReady);
-    // Ping the extension — it may have already fired STUDOJO_EXT_READY before this effect mounted
+    // Ping the extension: it may have already fired STUDOJO_EXT_READY before this effect mounted
     window.dispatchEvent(new CustomEvent("STUDOJO_PING"));
     const t = setTimeout(() => window.removeEventListener("STUDOJO_EXT_READY", onReady), 1500);
     return () => { clearTimeout(t); window.removeEventListener("STUDOJO_EXT_READY", onReady); };
@@ -365,7 +365,7 @@ export default function LkotPage() {
 
     if (campaignId && activeCampaign && ["auth_failed", "paused"].includes(activeCampaign.status)) {
       await outreachFetch(`/linkedin/automation/campaigns/${campaignId}/resume`, { method: "POST" });
-      // Do NOT pass checkAuth here — Voyager calls from the server always fail
+      // Do NOT pass checkAuth here: Voyager calls from the server always fail
       // on datacenter IPs, causing a false auth_failed loop.
       await fetchDashboard(campaignId);
       setStep(6); saveWizard(6, quiz, campaignId);
@@ -491,7 +491,7 @@ export default function LkotPage() {
     if (!campaignId) return;
     setSendingOne(true); setSendOneResult("");
     try {
-      // Server-side Playwright send — runs a real Chromium browser on the
+      // Server-side Playwright send: runs a real Chromium browser on the
       // residential proxy IP. No extension needed. User's laptop can be off.
       const res = await outreachFetch<{ ok: boolean; result: string; lead_name: string }>(
         `/linkedin/automation/campaigns/${campaignId}/send-one`,
@@ -614,7 +614,7 @@ export default function LkotPage() {
                         : "border-studojo-ink bg-white hover:bg-neutral-50"
                     }`}
                   >
-                    {size}
+                    {size.replace(/\u2013/g, "-")}
                   </button>
                 ))}
               </div>
@@ -623,7 +623,7 @@ export default function LkotPage() {
               <label className="font-satoshi text-sm font-semibold block mb-1.5 text-studojo-ink">Campaign name</label>
               <input type="text" value={quiz.campaign_name}
                 onChange={e => setQuiz(q => ({ ...q, campaign_name: e.target.value }))}
-                placeholder={`${quiz.target_role || "Founder"} outreach — ${new Date().toLocaleDateString("en", { month: "short", year: "numeric" })}`}
+                placeholder={`${quiz.target_role || "Founder"} outreach (${new Date().toLocaleDateString("en", { month: "short", year: "numeric" })})`}
                 className="w-full border-2 border-studojo-ink rounded-xl px-4 py-3 font-satoshi text-base focus:outline-none focus:ring-2 focus:ring-violet-400 bg-white"
               />
             </div>
@@ -677,7 +677,7 @@ export default function LkotPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <p className="font-satoshi font-semibold text-sm text-studojo-ink mb-0.5">Studojo LinkedIn Connector</p>
-                          <p className="font-satoshi text-xs text-studojo-muted">Reads your LinkedIn session automatically — no copy-pasting needed.</p>
+                          <p className="font-satoshi text-xs text-studojo-muted">Reads your LinkedIn session automatically. No copy-pasting needed.</p>
                         </div>
                         <a
                           href="/studojo-linkedin-connector.zip"
@@ -720,7 +720,7 @@ export default function LkotPage() {
                         <button type="button"
                           onClick={() => { window.dispatchEvent(new CustomEvent("STUDOJO_REQUEST_LI_COOKIES")); setTimeout(() => window.location.reload(), 300); }}
                           className="font-satoshi text-xs font-semibold text-studojo-purple hover:underline">
-                          I installed it — refresh to detect
+                          I installed it. Refresh to detect
                         </button>
                       </div>
                     )}
@@ -857,7 +857,7 @@ export default function LkotPage() {
                   <button type="button"
                     onClick={() => { setChallengeRequired(false); setLoginTab("extension"); setPin(""); setConnectError(""); }}
                     className="font-satoshi text-sm font-semibold text-studojo-purple hover:underline">
-                    Try another way — use the extension instead
+                    Try another way: use the extension instead
                   </button>
                 </div>
               </div>
@@ -949,7 +949,7 @@ export default function LkotPage() {
                   className="w-full font-satoshi text-base border-2 border-studojo-ink rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 bg-neutral-50" />
                 <p className="font-satoshi text-xs text-studojo-muted mt-1.5">
                   Use <code className="bg-neutral-100 px-1 rounded border border-neutral-200">{"{{name}}"}</code> and{" "}
-                  <code className="bg-neutral-100 px-1 rounded border border-neutral-200">{"{{company}}"}</code> — AI personalises per lead
+                  <code className="bg-neutral-100 px-1 rounded border border-neutral-200">{"{{company}}"}</code>. AI personalises per lead
                 </p>
               </div>
 
@@ -970,7 +970,7 @@ export default function LkotPage() {
                   <span className="font-satoshi text-sm font-bold text-studojo-purple">{dailyLimit}/day</span>
                 </div>
                 <input type="range" min={5} max={40} value={dailyLimit} onChange={e => setDailyLimit(Number(e.target.value))} className="w-full" />
-                <p className="font-satoshi text-xs text-studojo-muted mt-1">Recommended: 15–25/day</p>
+                <p className="font-satoshi text-xs text-studojo-muted mt-1">Recommended: 15-25/day</p>
               </div>
             </div>
 
@@ -1038,7 +1038,7 @@ export default function LkotPage() {
                 <FiAlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="font-satoshi text-sm font-semibold text-amber-800">LinkedIn session expired</p>
-                  <p className="font-satoshi text-xs text-amber-700 mt-0.5">Campaign paused — reconnect to resume sending.</p>
+                  <p className="font-satoshi text-xs text-amber-700 mt-0.5">Campaign paused. Reconnect to resume sending.</p>
                 </div>
                 <button type="button" onClick={() => goTo(4)}
                   className="font-satoshi text-xs font-semibold text-amber-800 underline hover:no-underline flex-shrink-0">

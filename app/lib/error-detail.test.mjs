@@ -1,4 +1,4 @@
-// Every error shape a service can hand us — including the ones I did not
+// Every error shape a service can hand us, including the ones I did not
 // think of the first time.
 //
 // The bug this guards: I wrote a handler for `detail` as a string, tested the
@@ -6,7 +6,7 @@
 // an ARRAY printed "[object Object]" to a student and hid the real cause.
 //
 // So the rule for this file: every case must assert the output contains real
-// words. "It didn't throw" is not a pass — [object Object] doesn't throw
+// words. "It didn't throw" is not a pass: [object Object] doesn't throw
 // either. That is exactly how the bug survived.
 import { describeError } from "./error-detail.ts";
 
@@ -30,7 +30,7 @@ check("our own HTTPException (a string)",
   "needs_gmail");
 
 // THE ONE THAT BROKE. Pydantic returns a list, one entry per bad field.
-check("pydantic validation (an array) — the actual bug",
+check("pydantic validation (an array): the actual bug",
   { body: { detail: [{ type: "string_too_short", loc: ["body", "contact_name"],
                        msg: "String should have at least 1 character" }] } },
   "contact_name");
@@ -48,7 +48,7 @@ check("detail is an array of plain strings", { body: { detail: ["Rate limited", 
 check("loc has only one segment", { body: { detail: [{ loc: ["body"], msg: "Invalid payload" }] } }, "Invalid payload");
 check("detail present but empty array", { body: { detail: [] } });
 check("detail present but empty string", { body: { detail: "" }, message: "Network unreachable" }, "Network");
-check("no body at all — a thrown Error", new Error("fetch failed"), "fetch failed");
+check("no body at all: a thrown Error", new Error("fetch failed"), "fetch failed");
 check("a bare string thrown", "something broke", "something broke");
 check("detail is a number", { body: { detail: 502 } }, "502");
 check("detail is null, message present", { body: { detail: null }, message: "Timed out" }, "Timed out");

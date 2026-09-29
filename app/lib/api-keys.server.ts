@@ -21,8 +21,8 @@ const KEY_PREFIX = "sk_live_";
 const DEFAULT_ALLOW = [
   "mvijiabraham@gmail.com",
   "jeremy.zac@gmail.com",
-  "nitin.sanatan@boardinfinity.com", // Board Infinity — enabled 2026-08-04
-  "admin@studojo.com", // Studojo admin API space — enabled 2026-08-04
+  "nitin.sanatan@boardinfinity.com", // Board Infinity, enabled 2026-08-04
+  "admin@studojo.com", // Studojo admin API space, enabled 2026-08-04
 ];
 
 export const RATE_PER_MIN = 60;
@@ -90,7 +90,7 @@ async function ensureTables(): Promise<void> {
 }
 
 // HMAC with a server pepper when configured, else plain sha256. Keys created
-// before a pepper is set must be recreated after — there are none in prod yet.
+// before a pepper is set must be recreated after (there are none in prod yet).
 function hashKey(plaintext: string): string {
   const pepper = process.env.API_KEY_PEPPER || "";
   return pepper

@@ -186,10 +186,10 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
 
           <Sec id="overview" title="Overview">
             <p className="text-neutral-600 leading-relaxed mb-5">
-              The Studojo Phone API is a hiring intelligence engine that delivers direct phone numbers and verified emails for hiring managers — plus personalised AI-generated outreach context for each one.
+              The Studojo Phone API is a hiring intelligence engine that delivers direct phone numbers and verified emails for hiring managers, plus personalised AI-generated outreach context for each one.
             </p>
             <p className="text-neutral-600 leading-relaxed mb-6">
-              Submit a candidate profile. Get back 25 ranked hiring authorities with phone numbers, emails, career match analysis, and ready-to-use outreach intel — in under 5 minutes.
+              Submit a candidate profile. Get back 25 ranked hiring authorities with phone numbers, emails, career match analysis, and ready-to-use outreach intel, in under 5 minutes.
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {[
@@ -218,7 +218,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
                   <span className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-violet-100 flex items-center justify-center">
                     <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
                   </span>
-                  <div><span className="font-semibold text-neutral-900">{title}</span><span className="text-neutral-500"> — {desc}</span></div>
+                  <div><span className="font-semibold text-neutral-900">{title}</span><span className="text-neutral-500">: {desc}</span></div>
                 </li>
               ))}
             </ul>
@@ -226,10 +226,10 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
 
           <Sec id="concepts" title="Core Concepts">
             {[
-              ["The Candidate Profile", "A structured input describing the candidate's professional specialisation, target roles, location, company preferences, and a signature project. The richer the profile — particularly subdomain and flex_notes — the more precisely the API identifies compatible hiring authorities."],
+              ["The Candidate Profile", "A structured input describing the candidate's professional specialisation, target roles, location, company preferences, and a signature project. The richer the profile (particularly subdomain and flex_notes), the more precisely the API identifies compatible hiring authorities."],
               ["Career Path Graph", "Each lead's title is mapped to a career category (founder, coo, chief_of_staff, strategy_ops, tech_domain_leader, etc.) with a base hiring probability. This drives both scoring and the match_scores output."],
-              ["Hiring Authority Relevance", "The API identifies specific individuals with the authority and organisational context to act on a candidate's profile. This requires reasoning about company size, stage, and decision-making structure — not just title matching."],
-              ["Outreach Intelligence", "Each lead comes with five structured fields of pre-researched context synthesised from live company research — not static profile scraping. Funding events, product direction, team signals, and hiring indicators are used."],
+              ["Hiring Authority Relevance", "The API identifies specific individuals with the authority and organisational context to act on a candidate's profile. This requires reasoning about company size, stage, and decision-making structure, not just title matching."],
+              ["Outreach Intelligence", "Each lead comes with five structured fields of pre-researched context synthesised from live company research, not static profile scraping. Funding events, product direction, team signals, and hiring indicators are used."],
               ["Async Processing", "Jobs complete asynchronously in ~3 minutes. The API returns a job_id immediately. Poll the status endpoint or configure a webhook to receive results."],
             ].map(([title, desc]) => (
               <div key={title as string} className="mb-5 rounded-xl border-2 border-neutral-200 p-5">
@@ -241,7 +241,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
 
           <Sec id="auth" title="Authentication">
             <p className="text-neutral-600 mb-4">
-              All job requests require your API key in the <InlineCode>X-Phone-API-Key</InlineCode> header. Keys are account-scoped — credits are deducted from your account balance.
+              All job requests require your API key in the <InlineCode>X-Phone-API-Key</InlineCode> header. Keys are account-scoped: credits are deducted from your account balance.
             </p>
             <CB lang="http" code={`X-Phone-API-Key: ${K}`} />
             <Note color="amber">Never include API keys in client-side code, URLs, or public repositories. Rotate immediately via the Dashboard if compromised.</Note>
@@ -283,7 +283,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
             <div className="flex gap-3 mb-4">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-xs font-bold text-white">2</span>
               <div className="flex-1">
-                <div className="font-semibold text-neutral-900 mb-1">Poll for completion (every 15–30s)</div>
+                <div className="font-semibold text-neutral-900 mb-1">Poll for completion (every 15-30s)</div>
                 <CB lang="bash" code={`curl https://${BASE}/api/v1/phone-jobs/phjob_a1b2c3... \\
   -H "X-Phone-API-Key: ${K}"`} />
                 <CB lang="json" code={`{ "job_id": "phjob_a1b2c3...", "status": "completed", "lead_count": 25, "completed_at": "2026-06-17T10:23:41Z" }`} />
@@ -314,7 +314,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
               { name: "queued", type: "string", desc: "Job accepted, waiting for a worker slot. Typically under 10 seconds." },
               { name: "running", type: "string", desc: "Lead discovery, scoring, web research, and enrichment in progress." },
               { name: "completed", type: "string", desc: "All 25 leads ready. Fetch results from the /results endpoint." },
-              { name: "failed", type: "string", desc: "Job failed — check error_message on the status response." },
+              { name: "failed", type: "string", desc: "Job failed. Check error_message on the status response." },
             ]} />
           </Sec>
 
@@ -347,7 +347,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
               <Badge method="GET" />
               <code className="text-sm text-neutral-700">/api/v1/phone-jobs/{"{job_id}"}</code>
             </div>
-            <p className="text-neutral-600 mb-4">Returns the current status of a job. Poll every 15–30 seconds.</p>
+            <p className="text-neutral-600 mb-4">Returns the current status of a job. Poll every 15-30 seconds.</p>
             <CB lang="bash" code={`curl https://${BASE}/api/v1/phone-jobs/phjob_a1b2c3... \\
   -H "X-Phone-API-Key: ${K}"`} />
             <CB lang="json" code={`{
@@ -402,7 +402,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
           </Sec>
 
           <Sec id="credits" title="Credits">
-            <p className="text-neutral-600 mb-4">Each job submission deducts 1 credit from your account. Credits are checked at submission time — if your balance is 0 the request returns <InlineCode>402 Payment Required</InlineCode>.</p>
+            <p className="text-neutral-600 mb-4">Each job submission deducts 1 credit from your account. Credits are checked at submission time. If your balance is 0 the request returns <InlineCode>402 Payment Required</InlineCode>.</p>
             <SchemaTable rows={[
               { name: "phone_credits_total", type: "integer", desc: "Total credits ever purchased." },
               { name: "phone_credits_used", type: "integer", desc: "Credits consumed by completed jobs." },
@@ -425,8 +425,8 @@ curl https://${BASE}/api/v1/phone/partners/me \\
             ]} />
             <H3>resume_profile object</H3>
             <SchemaTable rows={[
-              { name: "subdomain", type: "string", required: true, desc: "1–2 sentence professional specialisation. The most important field for quality targeting." },
-              { name: "top_skills", type: "string[]", required: true, desc: "3–8 key skills." },
+              { name: "subdomain", type: "string", required: true, desc: "1-2 sentence professional specialisation. The most important field for quality targeting." },
+              { name: "top_skills", type: "string[]", required: true, desc: "3-8 key skills." },
               { name: "seniority_signal", type: "string", desc: '"junior", "mid", "senior", "lead".' },
               { name: "experience_years", type: "integer", desc: "Total years of professional experience." },
               { name: "tech_stack", type: "string[]", desc: "Technologies if relevant." },
@@ -450,7 +450,7 @@ curl https://${BASE}/api/v1/phone/partners/me \\
               { name: "email", type: "string | null", desc: "Verified work email address." },
               { name: "linkedin_url", type: "string | null", desc: "LinkedIn profile URL." },
               { name: "location", type: "string | null", desc: "Location string returned by the enrichment provider." },
-              { name: "overall_score", type: "float", desc: "Composite heuristic relevance score (0–100)." },
+              { name: "overall_score", type: "float", desc: "Composite heuristic relevance score (0-100)." },
               { name: "match_scores", type: "object", desc: "Sub-score breakdown. See Match Scores section." },
               { name: "outreach_intel", type: "object", desc: "5-field AI-generated outreach intelligence. See Intel Fields section." },
             ]} />
@@ -461,9 +461,9 @@ curl https://${BASE}/api/v1/phone/partners/me \\
               The <InlineCode>match_scores</InlineCode> object provides per-dimension scoring for each lead. Use these to filter, sort, or explain matches to your end users.
             </p>
             <SchemaTable rows={[
-              { name: "career_match", type: "integer", desc: "0–100. Title relevance to the candidate's preferred roles." },
-              { name: "authority_match", type: "integer", desc: "0–100. Seniority and decision-making authority score." },
-              { name: "hiring_probability", type: "integer", desc: "0–100. Estimated probability this person would act on a strong candidate. Blends a heuristic Career Path score with an LLM adjustment (±10)." },
+              { name: "career_match", type: "integer", desc: "0-100. Title relevance to the candidate's preferred roles." },
+              { name: "authority_match", type: "integer", desc: "0-100. Seniority and decision-making authority score." },
+              { name: "hiring_probability", type: "integer", desc: "0-100. Estimated probability this person would act on a strong candidate. Blends a heuristic Career Path score with an LLM adjustment (±10)." },
               { name: "career_category", type: "string", desc: '"founder", "coo", "chief_of_staff", "strategy_ops", "tech_domain_leader", "function_mismatch", or "other". Maps to the Career Path Graph.' },
             ]} />
             <Note color="violet">
@@ -478,7 +478,7 @@ curl https://${BASE}/api/v1/phone/partners/me \\
             <SchemaTable rows={[
               { name: "connection_point", type: "string", desc: "Why this specific lead and this specific candidate belong in a conversation." },
               { name: "outreach_angle", type: "string", desc: "The strategic angle for the cold call or email." },
-              { name: "why_now", type: "string", desc: "What makes this timing specifically right — based on company signals." },
+              { name: "why_now", type: "string", desc: "What makes this timing specifically right, based on company signals." },
               { name: "suggested_opening", type: "string", desc: "A first-person opening sentence ready to paste into a call script or email." },
               { name: "signal_rationale", type: "string", desc: "Plain-language evidence behind the lead's relevance score." },
               { name: "hiring_probability_rationale", type: "string", desc: "LLM explanation for why the hiring_probability score was adjusted up or down from the heuristic base." },
@@ -531,7 +531,7 @@ wh.verify(raw_body_bytes, {"webhook-signature": request.headers["webhook-signatu
               ["Include flex_notes", "The best_project field is used verbatim in per-lead outreach intel. A concrete example with a quantified outcome dramatically improves output quality."],
               ["Use archetype: founder_office for non-technical roles", "Chief of Staff, Strategy & Ops, and BizDev roles targeting early-stage companies should always use archetype: founder_office to activate the Career Path Graph correctly."],
               ["Use company_type_avoid for clean results", "Pass [\"agency\", \"education\", \"consulting\"] if your candidate does not want those environments. These are hard-excluded, not just down-ranked."],
-              ["Poll with 15–30s intervals", "Jobs typically complete in 2–4 minutes. Polling more frequently is wasted — use webhooks for production workloads."],
+              ["Poll with 15-30s intervals", "Jobs typically complete in 2-4 minutes. Polling more frequently is wasted. Use webhooks for production workloads."],
               ["Handle null phone gracefully", "Phone numbers are enriched from our data providers. A small percentage of leads may return phone: null, so always check before dialing."],
             ].map(([title, desc]) => (
               <div key={title as string} className="mb-4 flex gap-3 rounded-xl border-2 border-neutral-100 px-5 py-4">
@@ -540,7 +540,7 @@ wh.verify(raw_body_bytes, {"webhook-signature": request.headers["webhook-signatu
                 </span>
                 <div>
                   <span className="font-semibold text-neutral-900">{title}</span>
-                  <span className="text-neutral-500"> — {desc}</span>
+                  <span className="text-neutral-500">: {desc}</span>
                 </div>
               </div>
             ))}
@@ -609,7 +609,7 @@ leads.forEach(l => console.log(l.name, l.phone, l.match_scores.hiring_probabilit
               ["How is the Phone API different from the Email API?", "The Phone API delivers 25 leads per run (vs 215) with direct phone numbers per lead. It runs in ~3 minutes (vs ~10 minutes). Price is ₹3,000/run (₹120/lead vs ₹7/lead for email). Phone is designed for high-touch outreach; email is designed for volume campaigns."],
               ["Are phone numbers always available?", "We enrich phone numbers from our data providers. The vast majority of leads will include a phone number. A small fraction may return phone: null if enrichment could not resolve a direct number, so always handle this case."],
               ["Can I run multiple jobs simultaneously?", "Yes, up to your concurrent_job_cap (default 5). Contact support to increase this limit."],
-              ["When is a credit consumed?", "At job submission, before the job runs. A failed job does not refund the credit automatically — contact support if you experience repeated failures."],
+              ["When is a credit consumed?", "At job submission, before the job runs. A failed job does not refund the credit automatically. Contact support if you experience repeated failures."],
               ["Can I filter by company type?", "Yes. Pass company_type_avoid: [\"agency\", \"education\"] in preferences. These companies are hard-excluded from results."],
               ["What is the archetype field?", "founder_office activates the Career Path Graph, which scores title categories (founder, coo, chief_of_staff, etc.) by hiring probability. Use it for any non-technical, founder-adjacent role targeting early-stage startups."],
             ].map(([q, a]) => (
@@ -640,7 +640,7 @@ export default function PhonePartnersDashboard() {
   const [revoking, setRevoking] = useState<string | null>(null);
   const [keyLabel, setKeyLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
-  // Read from localStorage once on mount — stable, never triggers re-runs
+  // Read from localStorage once on mount (stable, never triggers re-runs)
   const [authed] = useState(() => !!getStoredUser());
 
   const fetchMe = useCallback(async () => {
@@ -782,7 +782,7 @@ export default function PhonePartnersDashboard() {
           {/* New key reveal */}
           {newKey && (
             <div className="mb-8 rounded-2xl border-2 border-green-400 bg-green-50 p-5">
-              <div className="mb-1 font-['Clash_Display'] text-base font-bold text-green-800">API key created — save it now.</div>
+              <div className="mb-1 font-['Clash_Display'] text-base font-bold text-green-800">API key created. Save it now.</div>
               <p className="mb-3 text-sm text-green-700">This is the only time this key will be shown. Copy it to a secure location immediately.</p>
               <div className="space-y-2">
                 <div>
@@ -798,7 +798,7 @@ export default function PhonePartnersDashboard() {
                 onClick={() => setNewKey(null)}
                 className="mt-4 text-xs font-semibold text-green-700 underline"
               >
-                I've saved it — dismiss
+                I've saved it, dismiss
               </button>
             </div>
           )}

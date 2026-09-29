@@ -1,4 +1,4 @@
-// /api/sensei/mcp-key — MCP key self-service for a Sensei workspace ADMIN.
+// /api/sensei/mcp-key: MCP key self-service for a Sensei workspace ADMIN.
 //
 // Bridges the two account systems. A Sensei customer signs in with their Sensei
 // account (bob_users, app.studojo.com); API keys live in the platform's api_keys
@@ -7,7 +7,7 @@
 // SESSION token, bob-svc verifies it, and we mint a key on their behalf.
 //
 // The minted key is mapped to their EXISTING workspace, so their agent sees the same
-// searches, contacts and shared credit pool as the browser — instead of the MCP's
+// searches, contacts and shared credit pool as the browser, instead of the MCP's
 // default behaviour of provisioning a fresh empty workspace per key.
 import type { Route } from "./+types/api.sensei.mcp-key";
 import { json } from "~/lib/api-guard.server";
@@ -98,7 +98,7 @@ export async function action({ request }: Route.ActionArgs) {
         409,
       );
     }
-    const { id, plaintext, lastFour } = await createKey(email, null, `${KEY_LABEL} — ${org.name}`);
+    const { id, plaintext, lastFour } = await createKey(email, null, `${KEY_LABEL} (${org.name})`);
     // Point it at THIS workspace before it is ever used.
     await mapKeyToOrg(id, email, org.id);
     return json({

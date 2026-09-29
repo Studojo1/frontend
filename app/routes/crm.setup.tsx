@@ -9,18 +9,18 @@
 //
 // It asks four things, and only four, because that is what the cold-email
 // framework actually consumes from the sender (see buildStyleContext in
-// api.outreach.email-chat.tsx — every field is optional and read through
+// api.outreach.email-chat.tsx; every field is optional and read through
 // `if (p.x)`):
 //
-//   1. career stage    — the same first question the main quiz asks
+//   1. career stage    - the same first question the main quiz asks
 //   2. university       → the BRIDGE
 //   3. best credential  → the BRIDGE. The framework calls this out explicitly
 //                         as "evidence not a claim"; it is the single
 //                         highest-leverage answer.
 //   4. tone             → maps to the existing `tone` field
 //
-// Everything else a cold email needs — the company, the role, the contact and
-// their title — the extension already read off the page. The main quiz's extra
+// Everything else a cold email needs (the company, the role, the contact and
+// their title) the extension already read off the page. The main quiz's extra
 // questions produce lead SCORING signals, which this path does not use: the
 // student already chose the lead by opening the job.
 import { useEffect, useState } from "react";
@@ -37,7 +37,7 @@ export function meta() {
 export async function loader({ request }: Route.LoaderArgs) {
   // GUARDED. getSessionFromRequest calls better-auth's getSession with no
   // try/catch of its own, so a database blip or a malformed cookie throws
-  // straight out of this loader — and React Router renders "Oops! An
+  // straight out of this loader, and React Router renders "Oops! An
   // unexpected error occurred", which tells a student nothing and loses the
   // page. The other CRM routes already guard their reads for exactly this
   // reason; this one did not.
@@ -55,7 +55,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 // A last-resort boundary. If anything else in this route throws, a student
-// should see what to do next rather than a question mark — they arrived here
+// should see what to do next rather than a question mark: they arrived here
 // from a job page and the whole point is momentum.
 export function ErrorBoundary() {
   return (
@@ -68,7 +68,7 @@ export function ErrorBoundary() {
           </h1>
           <p className="mb-6 font-['Satoshi'] text-studojo-muted">
             Your drafts are safe. You can write and send emails without
-            finishing setup &mdash; this step only makes them more specific.
+            finishing setup. This step only makes them more specific.
           </p>
           <div className="flex flex-wrap gap-3">
             <a
@@ -147,7 +147,7 @@ export default function CrmSetup() {
       // Posted to OUR server, which holds the token and forwards the file.
       //
       // Calling the service directly from here meant importing getToken from
-      // ~/lib/control-plane, which dynamically imports ~/lib/auth — better-auth,
+      // ~/lib/control-plane, which dynamically imports ~/lib/auth: better-auth,
       // drizzle and the database client, none of which belong in a browser
       // bundle. That is what took this page down with "Oops!" on load, before
       // anyone had chosen a file.
@@ -158,7 +158,7 @@ export default function CrmSetup() {
       const data = await res.json();
       if (!res.ok) throw new Error(describeError(data, "Upload failed"));
       // KEEP the parse. The service already extracted name, education, skills
-      // and years of experience — asking the student to retype any of it is
+      // and years of experience; asking the student to retype any of it is
       // asking for something we just read off the page they uploaded.
       const p = data?.preview ?? {};
       setParsed({
@@ -220,7 +220,7 @@ export default function CrmSetup() {
             <div>
               <p className="mb-4 font-['Satoshi'] text-studojo-muted">
                 We read it once to find your strongest credential. Your emails go out
-                from your own Gmail — the resume is not attached to them.
+                from your own Gmail. The resume is not attached to them.
               </p>
               <input
                 type="file"
@@ -242,7 +242,7 @@ export default function CrmSetup() {
                 onClick={() => navigate("/crm")}
                 className="mt-6 font-['Satoshi'] text-sm text-studojo-muted underline"
               >
-                Skip — I'll write the emails myself
+                Skip, I'll write the emails myself
               </button>
             </div>
           ) : null}
@@ -288,7 +288,7 @@ export default function CrmSetup() {
               title="What's the single best thing you've done?"
               hint={
                 parsed?.skills?.length
-                  ? `We saw ${parsed.skills.slice(0, 3).join(", ")} on your resume. Give us the one achievement you'd lead with — you can swap it per application later.`
+                  ? `We saw ${parsed.skills.slice(0, 3).join(", ")} on your resume. Give us the one achievement you'd lead with. You can swap it per application later.`
                   : "One specific, real thing. “Built a fintech newsletter with 2,000 readers” beats “strong communication skills”."
               }
             >

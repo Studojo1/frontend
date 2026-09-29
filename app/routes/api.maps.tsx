@@ -285,7 +285,7 @@ function geocodeLocation(location: string): [number, number] | null {
 
   // Skip truly unlocatable strings
   if (SKIP_PATTERNS.some((p) => lower === p || lower.startsWith(p + " ") || lower.endsWith(" " + p))) {
-    // Exception: "Remote, US" or "Remote (EU)" — still has a region
+    // Exception: "Remote, US" or "Remote (EU)" still has a region
     if (!lower.includes(",") && !lower.includes("(") && lower.length < 25) return null;
   }
 

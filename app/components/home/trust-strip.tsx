@@ -42,7 +42,7 @@ export function TrustStrip() {
       <p className="font-['Satoshi'] text-xs font-bold uppercase tracking-widest text-studojo-muted text-center mb-4">
         Positive replies from
       </p>
-      {/* Names are whitespace-nowrap, so they never wrap — but the container edge
+      {/* Names are whitespace-nowrap, so they never wrap, but the container edge
           still guillotines whichever one is passing through it, which reads as a
           broken logo strip ("an Sachs", "Pho") rather than a moving one. Fade the
           two edges so a name on its way out looks intentional. */}

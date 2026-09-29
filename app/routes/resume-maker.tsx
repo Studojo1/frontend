@@ -1,4 +1,4 @@
-// JRS — Studojo resume maker. Self-contained tool at /jrs.
+// JRS: Studojo resume maker. Self-contained tool at /jrs.
 // Editor + live preview + 5 templates + native print-to-PDF + ATS match.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -59,7 +59,7 @@ import {
 type Phase = "welcome" | "template" | "editor";
 
 export const meta: MetaFunction = () => [
-  { title: "Resume Maker — Studojo" },
+  { title: "Resume Maker | Studojo" },
   { name: "description", content: "Build an ATS-ready resume with a live preview, 5 templates, and job-match scoring. Free." },
 ];
 
@@ -108,7 +108,7 @@ function PreviewPane({
     return () => ro.disconnect();
   }, []);
 
-  // Multiply density and user-set font scale together — both ride the same
+  // Multiply density and user-set font scale together: both ride the same
   // `zoom` so the page stays A4-wide while everything inside scales.
   const totalZoom = density * formatting.fontScale;
 
@@ -151,7 +151,7 @@ export default function JrsRoute() {
   const [messages, setMessages] = useState<JrsChatMsg[]>([]);
   const [sending, setSending] = useState(false);
   // Scripted-coach state. When non-null, the user's next message is treated
-  // as an answer to a known basic field — no LLM call needed.
+  // as an answer to a known basic field, no LLM call needed.
   const [scriptStep, setScriptStep] = useState<ScriptedStep>(null);
   const [scriptHandled, setScriptHandled] = useState<string[]>([]);
   // True once the user has opened the Chat tab; we drop the opener message
@@ -397,7 +397,7 @@ export default function JrsRoute() {
     );
   }
 
-  // Phase 1 — welcome / continue.
+  // Phase 1: welcome / continue.
   if (phase === "welcome") {
     return (
       <>
@@ -408,7 +408,7 @@ export default function JrsRoute() {
           savedTemplate={hasSaved ? templateId : undefined}
           onCreate={() => {
             // Set state to the starter sample but DO NOT persist it. We only
-            // save once the user actually edits something — that way the
+            // save once the user actually edits something; that way the
             // "Welcome back" card won't show until there's real content.
             setData(starterResume());
             setHasSaved(false);
@@ -428,7 +428,7 @@ export default function JrsRoute() {
     );
   }
 
-  // Phase 2 — Canva-style template gallery.
+  // Phase 2: Canva-style template gallery.
   if (phase === "template") {
     return (
       <>
@@ -449,10 +449,10 @@ export default function JrsRoute() {
     <div className="flex h-screen flex-col bg-white font-['Satoshi']">
       <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
 
-      {/* Global studojo header — same as the rest of the site */}
+      {/* Global studojo header, same as the rest of the site */}
       <Header />
 
-      {/* JRS workspace subheader — sits under the global studojo Header.
+      {/* JRS workspace subheader: sits under the global studojo Header.
           Branding lives in the Header; this row is just the resume tools. */}
       <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-neutral-900 bg-neutral-50 px-4 py-2">
         {/* Crumb + template chip */}
@@ -542,7 +542,7 @@ export default function JrsRoute() {
       {/* Body: edit / chat / ats (left) + preview (right) */}
       <div className="flex flex-1 overflow-hidden bg-neutral-100">
         <div className="flex w-full max-w-[460px] flex-col border-r-2 border-neutral-900 bg-white">
-          {/* Segmented tab control — single bordered shell with internal segments */}
+          {/* Segmented tab control: single bordered shell with internal segments */}
           <div className="border-b-2 border-neutral-900 bg-neutral-50 px-3 py-2.5">
             <div
               className="inline-flex w-full items-center rounded-xl border-2 border-neutral-900 bg-white p-0.5 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
@@ -667,7 +667,7 @@ export default function JrsRoute() {
         </div>
       </div>
 
-      {/* Skills injected by Career Coach — dismissible confirmation banner */}
+      {/* Skills injected by Career Coach: dismissible confirmation banner */}
       {injectedSkills.length > 0 && !skillsBannerDismissed && (
         <div className="fixed bottom-6 left-1/2 z-50 w-[min(480px,92vw)] -translate-x-1/2 rounded-2xl border-2 border-violet-600 bg-white p-4 shadow-[5px_5px_0px_0px_rgba(109,40,217,0.3)]">
           <div className="mb-2 flex items-start justify-between gap-3">
@@ -700,7 +700,7 @@ export default function JrsRoute() {
         </div>
       )}
 
-      {/* Print-only copy — portaled to <body> so print CSS can isolate it. */}
+      {/* Print-only copy, portaled to <body> so print CSS can isolate it. */}
       {createPortal(
         <div className="jrs-print-portal">
           <style>{formattingCSS(FORMAT_SCOPE_CLASS, typography)}</style>

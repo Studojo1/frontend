@@ -235,23 +235,23 @@ function FailureNote({ email }: { email: { status: string; failure_reason?: stri
 }
 
 const TIMEZONES = [
-  { value: "America/Los_Angeles", label: "PST / PDT — US West Coast" },
-  { value: "America/Denver", label: "MST / MDT — US Mountain" },
-  { value: "America/Chicago", label: "CST / CDT — US Central" },
-  { value: "America/New_York", label: "EST / EDT — US East Coast" },
-  { value: "America/Toronto", label: "EST / EDT — Canada East" },
-  { value: "America/Vancouver", label: "PST / PDT — Canada West" },
-  { value: "Europe/London", label: "GMT / BST — United Kingdom" },
-  { value: "Europe/Dublin", label: "GMT / IST — Ireland" },
-  { value: "Europe/Paris", label: "CET / CEST — France" },
-  { value: "Europe/Berlin", label: "CET / CEST — Germany" },
-  { value: "Asia/Dubai", label: "GST — UAE" },
-  { value: "Asia/Kolkata", label: "IST — India" },
-  { value: "Asia/Singapore", label: "SGT — Singapore" },
-  { value: "Asia/Tokyo", label: "JST — Japan" },
-  { value: "Asia/Seoul", label: "KST — South Korea" },
-  { value: "Australia/Sydney", label: "AEST / AEDT — Australia East" },
-  { value: "Pacific/Auckland", label: "NZST / NZDT — New Zealand" },
+  { value: "America/Los_Angeles", label: "PST / PDT: US West Coast" },
+  { value: "America/Denver", label: "MST / MDT: US Mountain" },
+  { value: "America/Chicago", label: "CST / CDT: US Central" },
+  { value: "America/New_York", label: "EST / EDT: US East Coast" },
+  { value: "America/Toronto", label: "EST / EDT: Canada East" },
+  { value: "America/Vancouver", label: "PST / PDT: Canada West" },
+  { value: "Europe/London", label: "GMT / BST: United Kingdom" },
+  { value: "Europe/Dublin", label: "GMT / IST: Ireland" },
+  { value: "Europe/Paris", label: "CET / CEST: France" },
+  { value: "Europe/Berlin", label: "CET / CEST: Germany" },
+  { value: "Asia/Dubai", label: "GST: UAE" },
+  { value: "Asia/Kolkata", label: "IST: India" },
+  { value: "Asia/Singapore", label: "SGT: Singapore" },
+  { value: "Asia/Tokyo", label: "JST: Japan" },
+  { value: "Asia/Seoul", label: "KST: South Korea" },
+  { value: "Australia/Sydney", label: "AEST / AEDT: Australia East" },
+  { value: "Pacific/Auckland", label: "NZST / NZDT: New Zealand" },
 ];
 
 export default function DashboardPage() {
@@ -361,7 +361,7 @@ export default function DashboardPage() {
         sessionStorage.removeItem("test_job_id");
         sessionStorage.removeItem("test_started_at");
       }
-    } catch { /* network blip — keep polling */ }
+    } catch { /* network blip, keep polling */ }
   }, [testJobId]);
 
   useEffect(() => {
@@ -373,7 +373,7 @@ export default function DashboardPage() {
 
   // Removed: a fetch of /api/crm/drafts on every dashboard load, to compute a
   // badge that no longer renders. It matched on campaignId, which Send stopped
-  // writing when it moved to /extension/send-one — so this ran on every visit
+  // writing when it moved to /extension/send-one, so this ran on every visit
   // to every campaign and could never produce a true result.
 
   const fetchCampaignData = useCallback(async () => {
@@ -410,7 +410,7 @@ export default function DashboardPage() {
     ).then((data) => {
       const valid = data?.token_valid ?? true;
       setGmailTokenValid(valid);
-      // Always show the banner when token is invalid (critical — don't respect dismiss)
+      // Always show the banner when token is invalid (critical: don't respect dismiss)
       // Only respect dismiss for the informational "reply tracking available" banner
       if (!valid) {
         setShowReauthBanner(true);
@@ -451,7 +451,7 @@ export default function DashboardPage() {
     if (!linkedInCampaignId) return;
     // Use the dedicated pause/resume endpoints. PUT /campaigns/{id} expects
     // a full CreateCampaignRequest body and doesn't accept a status field at
-    // all — sending {status: ...} there is silently ignored.
+    // all: sending {status: ...} there is silently ignored.
     const action = targetStatus === "running" ? "resume" : "pause";
     try {
       await outreachFetch(
@@ -469,7 +469,7 @@ export default function DashboardPage() {
     setLiSendingOne(true);
     setLiSendResult(null);
     try {
-      // send-one drives a real Playwright nav through the Evomi proxy — easily
+      // send-one drives a real Playwright nav through the Evomi proxy, easily
       // 60-120s end-to-end. Default 30s × 3 retries cascades into the same
       // failure pattern as the login endpoint (multiple parallel browser
       // sessions, duplicate sends, "Request timeout after 30s" banner).
@@ -874,7 +874,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-white">
       <Header />
       <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-8 md:px-8">
-        {/* Channel tabs — only shown for 'both' plans */}
+        {/* Channel tabs: only shown for 'both' plans */}
         {hasLinkedIn && planType === "both" && (
           <div className="flex gap-2 rounded-2xl border-2 border-studojo-ink/20 p-1 bg-studojo-surface-muted mb-6">
             <button
@@ -1114,7 +1114,7 @@ export default function DashboardPage() {
                                   <div className="font-bold text-studojo-ink">{req.name}</div>
                                   {req.headline && <div className="text-xs text-studojo-muted">{req.headline}</div>}
                                 </td>
-                                <td className="py-3 px-2 text-studojo-muted hidden md:table-cell">{req.company || "—"}</td>
+                                <td className="py-3 px-2 text-studojo-muted hidden md:table-cell">{req.company || "-"}</td>
                                 <td className="py-3 px-2">
                                   <LiStatusBadge status={req.status} />
                                   {req.status === "accepted" && req.accepted_at && (
@@ -1125,7 +1125,7 @@ export default function DashboardPage() {
                                   )}
                                 </td>
                                 <td className="py-3 px-2 text-xs text-studojo-muted hidden lg:table-cell max-w-[240px]">
-                                  <span className="line-clamp-2">{req.match_reason || "—"}</span>
+                                  <span className="line-clamp-2">{req.match_reason || "-"}</span>
                                 </td>
                               </tr>
                             ))}
@@ -1158,7 +1158,7 @@ export default function DashboardPage() {
                     {metrics.status.charAt(0).toUpperCase() + metrics.status.slice(1)}
                   </span>
                   {/* No "via extension" badge here any more. It matched a
-                      draft's campaignId against this campaign — and since Send
+                      draft's campaignId against this campaign, and since Send
                       moved to /extension/send-one, which addresses ONE person
                       and creates no campaign, campaignId is never written. The
                       badge could not appear under any circumstances.
@@ -1212,7 +1212,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Ticket banner — shown when the user has an open ticket or a
+            {/* Ticket banner: shown when the user has an open ticket or a
                 recently-resolved one. Resolved version overrides the open one. */}
             <TicketBanner />
 
@@ -1271,25 +1271,25 @@ export default function DashboardPage() {
               </p>
             )}
 
-            {/* Cadence info banner — shown while campaign is running and not yet complete */}
+            {/* Cadence info banner: shown while campaign is running and not yet complete */}
             {metrics.status === "running" && campaignToSend + campaignPendingEnrichment > 0 && (
               <div className="rounded-2xl border-2 border-studojo-ink/20 bg-amber-50 p-4 flex items-start gap-3">
                 <span className="text-lg mt-0.5">📬</span>
                 <div className="flex-1">
                   <p className="text-sm font-satoshi text-studojo-ink">
-                    <span className="font-bold">Your emails go out gradually</span> (about {metrics.daily_limit ?? 20} per day) to protect your Gmail reputation. Check back tomorrow. Most replies come within 3–5 days.
+                    <span className="font-bold">Your emails go out gradually</span> (about {metrics.daily_limit ?? 20} per day) to protect your Gmail reputation. Check back tomorrow. Most replies come within 3-5 days.
                   </p>
                   {metrics.user_timezone && (
                     <p className="text-xs text-studojo-muted font-satoshi mt-1 flex items-center gap-1">
                       <FiGlobe className="w-3 h-3" />
-                      Sending 9am–5pm {metrics.user_timezone}
+                      Sending 9am-5pm {metrics.user_timezone}
                     </p>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Paused — show timezone change option */}
+            {/* Paused: show timezone change option */}
             {metrics.status === "paused" && (
               <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-4">
                 <div className="flex items-center justify-between gap-3">
@@ -1299,7 +1299,7 @@ export default function DashboardPage() {
                       <p className="text-sm font-bold font-satoshi text-studojo-ink">
                         Sending timezone: {metrics.user_timezone || "Asia/Kolkata"}
                       </p>
-                      <p className="text-xs text-studojo-muted font-satoshi">Emails go out 9am–5pm in this timezone</p>
+                      <p className="text-xs text-studojo-muted font-satoshi">Emails go out 9am-5pm in this timezone</p>
                     </div>
                   </div>
                   <button
@@ -1380,7 +1380,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Summary Stats — 6 cards */}
+            {/* Summary Stats: 6 cards */}
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <MetricCard
                 label={metrics.status === "running" ? "To Send" : "On hold"}
@@ -1658,7 +1658,7 @@ export default function DashboardPage() {
                                     <div className="flex items-center gap-2 text-studojo-muted">
                                       <FiCornerDownRight className="w-3.5 h-3.5" />
                                       <span className="text-xs font-bold">{touchLabel}</span>
-                                      <span className="text-xs">— follow-up</span>
+                                      <span className="text-xs">(follow-up)</span>
                                     </div>
                                   </td>
                                   <td className="py-2 px-2 text-studojo-muted text-xs truncate max-w-[200px]">{fu.to_email}</td>

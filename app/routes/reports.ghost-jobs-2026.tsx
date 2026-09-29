@@ -68,7 +68,7 @@ function initCharts() {
           "Govt grant compliance",
         ],
         datasets: [{
-          label: "Prevalence score (1–5)",
+          label: "Prevalence score (1-5)",
           data: [5, 5, 4, 4, 4, 4, 5, 3, 3, 2, 2],
           backgroundColor: [RED, RED, ORANGE, ORANGE, ORANGE, ORANGE, RED, ORANGE, ORANGE, VIOLET3, VIOLET3],
           borderRadius: 6,
@@ -130,7 +130,7 @@ function initCharts() {
     new Chart(ageEl, {
       type: "bar",
       data: {
-        labels: ["0–7 days", "8–14 days", "15–21 days", "22–30 days", "31–45 days", "45+ days"],
+        labels: ["0-7 days", "8-14 days", "15-21 days", "22-30 days", "31-45 days", "45+ days"],
         datasets: [
           {
             label: "Estimated callback rate (%)",
@@ -329,7 +329,7 @@ export default function GhostJobsReport() {
               <div className="sec-num" style={{ background: "#171717" }}>≡</div>
               <div>
                 <div className="sec-title">All 11 Reasons: Prevalence Overview</div>
-                <div className="sec-sub">How common each reason is across companies, scored 1–5</div>
+                <div className="sec-sub">How common each reason is across companies, scored 1-5</div>
               </div>
             </div>
             <div className="chart-wrap">
@@ -471,7 +471,7 @@ export default function GhostJobsReport() {
               <div className="blist-item"><div className="blist-dot" /><span><strong>Competitive talent sourcing:</strong> Posting a "Senior Engineer" role at a competitive salary gets applications from people currently at your competitors. Even if you don't hire now, you know who's open to leaving.</span></div>
             </div>
             <div className="callout">
-              <strong>The asymmetry:</strong> A candidate spends 2–4 hours on a tailored application. The company spends 0 hours reviewing it if the role wasn't real. This asymmetry is the core ethical problem with pipeline-building postings. The cost is entirely externalized to applicants.
+              <strong>The asymmetry:</strong> A candidate spends 2-4 hours on a tailored application. The company spends 0 hours reviewing it if the role wasn't real. This asymmetry is the core ethical problem with pipeline-building postings. The cost is entirely externalized to applicants.
             </div>
           </div>
 
@@ -553,7 +553,7 @@ export default function GhostJobsReport() {
             </div>
           </div>
 
-          {/* Section 9–11 combined */}
+          {/* Section 9-11 combined */}
           <div className="rpt-section">
             <div className="sec-header">
               <div className="sec-num">9</div>
@@ -630,7 +630,7 @@ export default function GhostJobsReport() {
             <div className="blist">
               {[
                 ["Direct outreach to hiring managers outperforms applications", "It bypasses the ATS entirely and reaches the person with actual authority. Ghost jobs can't intercept you at this layer."],
-                ["Recency matters more than you think", "A job posted in the last 3–7 days is far more likely to represent an active search than one posted 30+ days ago. Filter aggressively on recency."],
+                ["Recency matters more than you think", "A job posted in the last 3-7 days is far more likely to represent an active search than one posted 30+ days ago. Filter aggressively on recency."],
                 ["Founder-posted listings on LinkedIn are the most reliable signal of real intent", "A founder writing 'we're hiring' with their own words is about as genuine as a job listing gets."],
                 ["A low response rate is structural, not personal", "You are not being rejected. You are often being ignored by a system that was never designed to process your application."],
               ].map(([title, detail]) => (

@@ -1,4 +1,4 @@
-// JRS AI writing help — small, fast assists for the editor.
+// JRS AI writing help: small, fast assists for the editor.
 // One endpoint, switched on `task`. OpenAI gpt-4o-mini.
 // Never invents facts: rewrites keep the user's content; suggestions are
 // clearly fill-in-the-blank templates or skill names to choose from.
@@ -49,7 +49,7 @@ function clean(s: string): string {
   return s
     .replace(/^["'`\s•\-*]+/, "")
     .replace(/["'`\s]+$/, "")
-    .replace(/—/g, ",")
+    .replace(/\u2014/g, ",")
     .trim();
 }
 
@@ -162,7 +162,7 @@ export async function action({ request }: Route.ActionArgs) {
         {
           role: "system",
           content:
-            "Suggest 4 resume bullet TEMPLATES for the given role. Each must be a fill-in-the-blank starter with [SQUARE BRACKET] placeholders the user replaces with their real facts — never a fabricated achievement. Each starts with a strong action verb, one line. Return JSON: {\"items\": [\"...\", ...]}.",
+            "Suggest 4 resume bullet TEMPLATES for the given role. Each must be a fill-in-the-blank starter with [SQUARE BRACKET] placeholders the user replaces with their real facts, never a fabricated achievement. Each starts with a strong action verb, one line. Return JSON: {\"items\": [\"...\", ...]}.",
         },
         { role: "user", content: `Role: ${role}` },
       ],
@@ -194,7 +194,7 @@ export async function action({ request }: Route.ActionArgs) {
         {
           role: "system",
           content:
-            "Given a person's role titles, suggest concrete, widely-recognised skills they might list (tools, methods, platforms). Suggest ONLY skill names — the user picks the ones they actually have. Exclude skills they already listed. Return JSON: {\"items\": [\"...\", ...]} with up to 12 short skill names.",
+            "Given a person's role titles, suggest concrete, widely-recognised skills they might list (tools, methods, platforms). Suggest ONLY skill names. The user picks the ones they actually have. Exclude skills they already listed. Return JSON: {\"items\": [\"...\", ...]} with up to 12 short skill names.",
         },
         {
           role: "user",

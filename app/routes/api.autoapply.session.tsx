@@ -4,7 +4,7 @@ import db from "~/lib/db";
 import { userLinkedinSessions } from "../../auth-schema";
 import type { Route } from "./+types/api.autoapply.session";
 
-// POST /api/autoapply/session — store or refresh li_at + fingerprint
+// POST /api/autoapply/session: store or refresh li_at + fingerprint
 // Called by extension on connect + every 7 days auto-refresh
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") return Response.json({ error: "Method not allowed" }, { status: 405 });
@@ -15,7 +15,7 @@ export async function action({ request }: Route.ActionArgs) {
   const body = await request.json();
   const { liAt, cookies, userAgent, locale, timezone } = body as {
     liAt?: string;
-    cookies?: string;   // full cookie string from DevTools — strongly recommended
+    cookies?: string;   // full cookie string from DevTools, strongly recommended
     userAgent?: string;
     locale?: string;
     timezone?: string;
@@ -67,7 +67,7 @@ export async function action({ request }: Route.ActionArgs) {
   return Response.json({ ok: true });
 }
 
-// GET /api/autoapply/session — return session metadata (never the raw li_at)
+// GET /api/autoapply/session: return session metadata (never the raw li_at)
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
   if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });

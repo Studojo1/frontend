@@ -9,7 +9,7 @@ export async function loader() {
     { loc: "/", priority: "1.0", changefreq: "weekly" },
     { loc: "/blog", priority: "0.8", changefreq: "daily" },
     { loc: "/reports", priority: "0.9", changefreq: "weekly" },
-    // Reports — all 17
+    // Reports: all 17
     { loc: "/reports/ops-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/internships-ai-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/cs-india-2026", priority: "0.9", changefreq: "monthly" },
@@ -91,7 +91,7 @@ export async function loader() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Report pages — accurate publish dates so Google sees correct lastmod
+  // Report pages: accurate publish dates so Google sees correct lastmod
   const reportLastmod: Record<string, string> = {
     "/reports/ops-india-2026": "2026-04-12",
     "/reports/internships-ai-india-2026": "2026-04-08",

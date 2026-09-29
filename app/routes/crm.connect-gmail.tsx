@@ -3,14 +3,14 @@
 // Why this exists rather than reusing /outreach/connect/gmail:
 //
 // That page belongs to the outreach tool's funnel. On success it navigates to
-// /outreach/campaign/setup or /outreach/connect/linkedin — the next step of
+// /outreach/campaign/setup or /outreach/connect/linkedin, the next step of
 // CAMPAIGN SETUP. A student who came from a LinkedIn job has one email waiting
 // for review; dropping them into campaign setup abandons the thing they were
 // doing. Its destination is also chosen from `planType` in a client-side
 // store, which someone arriving via the extension has never populated.
 //
 // We cannot change that page: it is live for students who came in the normal
-// way. And we cannot ask the OAuth service to return somewhere else — the
+// way. And we cannot ask the OAuth service to return somewhere else: the
 // callback URL is hardcoded server-side to FRONTEND_URL/connect/gmail and
 // `state` carries the user id, not a return path (job-outreach-svc
 // api/routes_gmail.py:52,62).
@@ -58,7 +58,7 @@ export default function CrmConnectGmail() {
       try {
         sessionStorage.setItem(RETURN_KEY, back);
       } catch {
-        /* private mode — the outreach page falls back to /crm */
+        /* private mode: the outreach page falls back to /crm */
       }
 
       try {
@@ -72,7 +72,7 @@ export default function CrmConnectGmail() {
         setStarting(false);
         setError(
           e?.body?.detail ??
-            "We couldn't start the Gmail connection. Your draft is saved — try again in a moment.",
+            "We couldn't start the Gmail connection. Your draft is saved. Try again in a moment.",
         );
       }
     })();
@@ -90,7 +90,7 @@ export default function CrmConnectGmail() {
           {starting ? (
             <p className="mt-3 font-['Satoshi'] text-studojo-muted">
               You&rsquo;ll be asked to allow Studojo to send email as you. Tick
-              both boxes — we need read access to spot replies.
+              both boxes: we need read access to spot replies.
             </p>
           ) : (
             <>

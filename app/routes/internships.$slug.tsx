@@ -203,7 +203,7 @@ export default function InternshipDetail() {
           </div>
         </div>
 
-        {/* Apply button — grey when applied */}
+        {/* Apply button: grey when applied */}
         <button
           onClick={handleApplyClick}
           disabled={hasApplied || isDeadlinePassed}
@@ -247,7 +247,7 @@ export default function InternshipDetail() {
           </div>
         )}
 
-        {/* Bottom outreach CTA — only when not yet applied */}
+        {/* Bottom outreach CTA: only when not yet applied */}
         {!hasApplied && (
           <a
             href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}

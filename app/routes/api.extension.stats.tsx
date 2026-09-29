@@ -2,7 +2,7 @@
 //
 // Reply-rate figures for the extension panel.
 //
-// HONESTY RULES — read before changing this file.
+// HONESTY RULES: read before changing this file.
 //
 // 1. `outreachPct` is only ever reported as "measured" when it comes from real
 //    per-email outcomes in job-outreach-svc AND the sample clears MIN_SAMPLE.
@@ -14,7 +14,7 @@
 //    estimate. We do NOT compute per-company rates: warm-up
 //    caps sends at 5-20/user/day, so per-employer samples land at n≈1. The
 //    panel must never render a company name beside this number.
-// 3. `jobBoardPct` is ALWAYS an estimate. Nothing can measure it — replies to
+// 3. `jobBoardPct` is ALWAYS an estimate. Nothing can measure it: replies to
 //    job-board applications never reach Studojo.
 import { createClient } from "redis";
 import { outreachServerFetch } from "~/lib/outreach/server-api";
@@ -28,31 +28,31 @@ import type { Route } from "./+types/api.extension.stats";
 const REDIS_URL = process.env.REDIS_URL ?? "redis://redis.studojo.svc.cluster.local:6379";
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? "";
 const CACHE_KEY = "ext_stats:global";
-const CACHE_TTL = 60 * 60 * 6; // 6h — this number moves slowly
+const CACHE_TTL = 60 * 60 * 6; // 6h, this number moves slowly
 
 /** Below this many sent emails we do not claim a measured rate. */
 const MIN_SAMPLE = 50;
 
 /* Estimates used until our own volume exists. These are INDUSTRY figures with
-   named sources, not numbers someone liked the look of — Pranav asked for the
+   named sources, not numbers someone liked the look of. Pranav asked for the
    static case to be grounded in industry data, and an unsourced statistic in
    front of a student is indefensible if anyone asks where it came from.
 
-   jobBoardPct — 5%
+   jobBoardPct: 5%
      Application-to-response rate for online job-board applications. Jobvite's
      Recruiter Nation and Talent Board's CandE research have both put
      application-to-interview in the low single digits for large-volume
      postings; 5% is the upper end of that range, so the comparison is
      conservative in our own disfavour rather than flattering.
 
-   outreachPct — 35%
+   outreachPct: 35%
      Reply rate for personalised cold outreach to a named individual.
      Backlinko's 12M-email study and Woodpecker's cold-email benchmarks both
      land personalised, single-recipient outreach in the 25-45% band; 35% is
      mid-range, not the ceiling.
 
    Both are ESTIMATES about outreach in general, never about the company on
-   screen. The panel labels them "Typical reply rates across students — not
+   screen. The panel labels them "Typical reply rates across students, not
    specific to this employer" for exactly that reason.
 
    `source` and `basis` travel with the numbers so the UI can say where they
@@ -61,8 +61,8 @@ const TYPICAL = {
   jobBoardPct: 5,
   outreachPct: 35,
   basis: "industry" as const,
-  jobBoardSource: "Jobvite / Talent Board — application-to-response on high-volume postings",
-  outreachSource: "Backlinko (12M emails) / Woodpecker — personalised 1:1 cold outreach",
+  jobBoardSource: "Jobvite / Talent Board: application-to-response on high-volume postings",
+  outreachSource: "Backlinko (12M emails) / Woodpecker: personalised 1:1 cold outreach",
 };
 
 let _redis: ReturnType<typeof createClient> | null = null;
@@ -81,7 +81,7 @@ interface Metrics {
 
 /**
  * Aggregate sent/replied across the user's campaigns.
- * Returns null when the service is unreachable — caller falls back to estimates.
+ * Returns null when the service is unreachable; caller falls back to estimates.
  */
 async function measure(): Promise<{ sent: number; replied: number } | null> {
   try {
@@ -133,12 +133,12 @@ export async function action({ request }: Route.ActionArgs) {
     real && real.sent >= MIN_SAMPLE
       ? {
           ok: true,
-          jobBoardPct: TYPICAL.jobBoardPct, // never measurable — stays an estimate
+          jobBoardPct: TYPICAL.jobBoardPct, // never measurable, stays an estimate
           outreachPct: Math.round((real.replied / real.sent) * 100),
           sampleSize: real.sent,
           source: "measured" as const,
           // `/campaign/user/latest` returns THIS user's campaigns, so the
-          // measurement is theirs — not everyone's. Labelling it "global"
+          // measurement is theirs, not everyone's. Labelling it "global"
           // would put one student's numbers in front of every student as if
           // they were the platform average.
           scope: "you" as const,

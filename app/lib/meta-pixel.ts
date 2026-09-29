@@ -1,4 +1,4 @@
-// Meta (Facebook) Pixel — browser-side conversion events for the Outreach Dojo ad campaigns.
+// Meta (Facebook) Pixel: browser-side conversion events for the Outreach Dojo ad campaigns.
 //
 // Every track call mints an eventId and returns it. When the Conversions API is added
 // server-side, the same eventId must be sent with the server copy so Meta deduplicates
@@ -78,7 +78,7 @@ export function initMetaPixel() {
     q("init", PIXEL_ID);
     isInitialized = true;
   } catch {
-    // Silently fail — analytics must never break the app
+    // Silently fail: analytics must never break the app
   }
 }
 

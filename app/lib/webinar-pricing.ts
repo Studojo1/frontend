@@ -1,5 +1,5 @@
 /**
- * Webinar ticket pricing — the single source of truth, shared by the page (to
+ * Webinar ticket pricing: the single source of truth, shared by the page (to
  * display) and the order endpoint (to charge).
  *
  * Amounts are in paise, the unit Razorpay charges in. Keeping them as integers

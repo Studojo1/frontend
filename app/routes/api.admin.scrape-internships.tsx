@@ -17,9 +17,9 @@ function makeSlug(company: string, title: string, sourceId: string) {
   return `${slugify(company)}-${slugify(title)}-${tail}`.slice(0, 100);
 }
 
-// Safe SQL string literal — escape single quotes, truncate to 5000 chars
+// Safe SQL string literal: escape single quotes, truncate to 5000 chars
 // Length-cap a value for insertion. Escaping is handled by parameter binding
-// (the `sql` tagged template), so this only truncates — it never builds SQL.
+// (the `sql` tagged template), so this only truncates; it never builds SQL.
 function cap(str: unknown, maxLen = 5000): string {
   return String(str ?? "").slice(0, maxLen);
 }
@@ -43,7 +43,7 @@ interface ScrapedJob {
   source_url: string;
 }
 
-// ─── Remotive — free JSON API, remote roles worldwide ─────────────────────────
+// ─── Remotive: free JSON API, remote roles worldwide ──────────────────────────
 
 async function fromRemotive(): Promise<ScrapedJob[]> {
   const cats = ["marketing", "software-dev", "data", "design", "product", "finance"];
@@ -77,7 +77,7 @@ async function fromRemotive(): Promise<ScrapedJob[]> {
   return out;
 }
 
-// ─── Arbeitnow — free JSON API, EU + global ───────────────────────────────────
+// ─── Arbeitnow: free JSON API, EU + global ────────────────────────────────────
 
 async function fromArbeitnow(): Promise<ScrapedJob[]> {
   const out: ScrapedJob[] = [];
@@ -107,7 +107,7 @@ async function fromArbeitnow(): Promise<ScrapedJob[]> {
   return out;
 }
 
-// ─── Jobicy — free JSON API, remote jobs ──────────────────────────────────────
+// ─── Jobicy: free JSON API, remote jobs ───────────────────────────────────────
 
 async function fromJobicy(): Promise<ScrapedJob[]> {
   const out: ScrapedJob[] = [];
@@ -121,7 +121,7 @@ async function fromJobicy(): Promise<ScrapedJob[]> {
       if (!j.jobTitle || !j.companyName) continue;
       const pay =
         j.annualSalaryMin && j.annualSalaryMax
-          ? `$${Math.round(j.annualSalaryMin / 1000)}k–$${Math.round(j.annualSalaryMax / 1000)}k/yr`
+          ? `$${Math.round(j.annualSalaryMin / 1000)}k-$${Math.round(j.annualSalaryMax / 1000)}k/yr`
           : "Competitive";
       out.push({
         title: j.jobTitle,
@@ -140,7 +140,7 @@ async function fromJobicy(): Promise<ScrapedJob[]> {
   return out;
 }
 
-// ─── The Muse — free API, internship filter ───────────────────────────────────
+// ─── The Muse: free API, internship filter ────────────────────────────────────
 
 async function fromMuse(): Promise<ScrapedJob[]> {
   const out: ScrapedJob[] = [];
@@ -173,7 +173,7 @@ async function fromMuse(): Promise<ScrapedJob[]> {
   return out;
 }
 
-// ─── Internshala — India focus, HTML scrape ───────────────────────────────────
+// ─── Internshala: India focus, HTML scrape ────────────────────────────────────
 
 async function fromInternshala(): Promise<ScrapedJob[]> {
   const out: ScrapedJob[] = [];
@@ -286,7 +286,7 @@ export async function action({ request }: Route.ActionArgs) {
     }
   }
 
-  // DELETE ?cleanup=1 — removes all scraper-inserted rows from the DB
+  // DELETE ?cleanup=1: removes all scraper-inserted rows from the DB
   const url = new URL(request.url);
   if (url.searchParams.get("cleanup") === "1") {
     const result = await db.execute(sql.raw(`
@@ -334,7 +334,7 @@ export async function action({ request }: Route.ActionArgs) {
       const slug = makeSlug(job.company_name, job.title, job.source_id);
       const description = job.description || job.title;
       const requirements = job.requirements || "See full listing.";
-      // Bind the deadline as a real value (Date or null) — Postgres casts it.
+      // Bind the deadline as a real value (Date or null); Postgres casts it.
       const deadline = job.deadline ? new Date(job.deadline) : null;
 
       const result = await db.execute(sql`

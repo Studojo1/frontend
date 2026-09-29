@@ -86,7 +86,7 @@ export function ChatInterface({ messages, children, loading, quizProgress, quest
               >
                 {parts.map((part, j) => (
                   <p key={j} className={`text-[14px] leading-relaxed font-satoshi ${j > 0 ? "mt-2" : ""}`}>
-                    {part.trim().replace(/—/g, "-")}
+                    {part.trim().replace(/\u2014/g, "-")}
                   </p>
                 ))}
               </div>

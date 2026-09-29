@@ -170,7 +170,7 @@ export async function runLinkedinLogin(jobId: string, userId: string, email: str
         }
 
         if (!approved) {
-          await setState(jobId, { status: "failed", error: "App push timed out — request was not approved on the LinkedIn mobile app." });
+          await setState(jobId, { status: "failed", error: "App push timed out. The request was not approved on the LinkedIn mobile app." });
           await closeBrowser();
           return;
         }
@@ -180,7 +180,7 @@ export async function runLinkedinLogin(jobId: string, userId: string, email: str
 
         const otp = await waitForOtp(jobId, 300_000);
         if (!otp) {
-          await setState(jobId, { status: "failed", error: "OTP timed out — code was not entered in time." });
+          await setState(jobId, { status: "failed", error: "OTP timed out. The code was not entered in time." });
           await closeBrowser();
           return;
         }

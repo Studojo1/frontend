@@ -1,10 +1,10 @@
-// JRS import — turns an uploaded resume PDF or LinkedIn screenshots into
+// JRS import: turns an uploaded resume PDF or LinkedIn screenshots into
 // structured ResumeData. PDF text is extracted with pdf-parse; images are
 // read by gpt-4o-mini vision. The model only extracts what is present.
 import type { Route } from "./+types/api.resume-maker.import";
 import type { ResumeData } from "~/lib/jrs/types";
 import { uid } from "~/lib/jrs/types";
-// @ts-ignore — pdf-parse has type defs via @types/pdf-parse
+// @ts-ignore: pdf-parse has type defs via @types/pdf-parse
 import pdfParse from "pdf-parse";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;

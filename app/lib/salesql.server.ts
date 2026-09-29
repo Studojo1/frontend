@@ -1,4 +1,4 @@
-// SalesQL client — enrich a person by LinkedIn URL OR by name + company.
+// SalesQL client: enrich a person by LinkedIn URL OR by name + company.
 //   GET https://api-public.salesql.com/v1/persons/enrich?api_key=..&<selector>
 // Selectors: linkedin_url, OR first_name+last_name+organization_name/domain.
 // Returns emails (type Work/Direct/Personal + status) and phones (type + country).

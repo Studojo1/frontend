@@ -1,4 +1,4 @@
-// JRS start flow — welcome screen + Canva-style template gallery.
+// JRS start flow: welcome screen + Canva-style template gallery.
 // Shown before the editor so users choose a look first instead of being
 // dropped into a form.
 import { useRef, useState } from "react";
@@ -143,14 +143,14 @@ export function WelcomeScreen({
               </li>
             </ul>
 
-            {/* Decorative template trio — centered under the hero */}
+            {/* Decorative template trio, centered under the hero */}
             <div className="mt-10 flex justify-center">
               <TemplatePeek />
             </div>
           </>
         )}
 
-        {/* Saved resume card — Canva-style "your design". Left-aligned even
+        {/* Saved resume card: Canva-style "your design". Left-aligned even
             though the hero above is centered. */}
         {hasSaved && savedData && savedTemplate && (
           <div className="mt-10 w-full text-left">
@@ -203,7 +203,7 @@ export function WelcomeScreen({
 }
 
 
-// ─── Template peek — three centered, slightly rotated template thumbnails
+// ─── Template peek: three centered, slightly rotated template thumbnails
 //     showing variety without forcing a click through.
 function TemplatePeek() {
   const sample = starterResume();
