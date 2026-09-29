@@ -200,10 +200,14 @@ export default function EnrichmentPage() {
   const [strongCount, setStrongCount] = useState<number | null>(null);
   const [dreamCompanies, setDreamCompanies] = useState<Array<{ name: string; domain: string | null }>>([]);
   const [couponCode, setCouponCode] = useState("");
-  // Links in coupon and checkout-recovery emails carry ?coupon=CODE.
+  // Links in coupon and checkout-recovery emails carry ?coupon=CODE, either
+  // straight here or via /outreach, which keeps it for this page (NEW-07).
   useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get("coupon");
-    if (fromUrl) setCouponCode(fromUrl.trim().toUpperCase());
+    let code = new URLSearchParams(window.location.search).get("coupon");
+    if (!code) {
+      try { code = sessionStorage.getItem("outreach_coupon"); } catch { /* storage blocked */ }
+    }
+    if (code) setCouponCode(code.trim().toUpperCase());
   }, []);
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
@@ -820,11 +824,6 @@ export default function EnrichmentPage() {
             const isSelected = selectedTier === tier.value;
             const hasCredits = credits ? credits.available_credits >= tier.value : false;
             const isStarter = "durationDays" in tier && !!tier.durationDays;
-            const perContact = (() => {
-              const m = (price.discounted || price.display || "").match(/[\d.]+/);
-              if (!m) return null;
-              return `${currSymbol}${(parseFloat(m[0]) / tier.value).toFixed(2)} per hiring manager`;
-            })();
 
             return (
               <div
@@ -867,7 +866,6 @@ export default function EnrichmentPage() {
                   )}
                 </div>
 
-                {perContact && <p className="text-xs text-studojo-muted font-satoshi mt-1">just {perContact}</p>}
                 <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{tier.tagline}</p>
                 {strongCount !== null && !!leadCount && Math.min(tier.value, leadCount) > strongCount && (
                   <p className="-mt-2 mb-4 text-xs font-satoshi font-medium text-amber-700">
