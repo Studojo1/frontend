@@ -406,7 +406,23 @@ export const auth = betterAuth({
     }),
   },
 
+  // Privacy Policy §16: OAuth tokens from Google sign-in are encrypted at rest
+  // with the auth secret. Existing plaintext tokens were cleared by migration
+  // 0036, which is what keeps better-auth's decrypt from throwing on old rows.
+  account: {
+    encryptOAuthTokens: true,
+  },
   databaseHooks: {
+    // encryptOAuthTokens covers access and refresh tokens but not the ID token,
+    // and nothing needs the ID token after sign-in, so it is never stored.
+    account: {
+      create: {
+        before: async (account) => ({ data: { ...account, idToken: null } }),
+      },
+      update: {
+        before: async (account) => ("idToken" in account ? { data: { ...account, idToken: null } } : undefined),
+      },
+    },
     user: {
       create: {
         after: async (user) => {
