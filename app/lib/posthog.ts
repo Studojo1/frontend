@@ -32,6 +32,22 @@ function isProductionHost(): boolean {
   return h === "studojo.com" || h.endsWith(".studojo.com");
 }
 
+// One-time Gmail OAuth codes ride in the URL of /outreach/connect/gmail (and,
+// when the visitor is bounced to sign in, inside /auth's redirect param).
+// Strip them from every property before an event leaves the browser (PS-N15).
+const SECRET_PARAM = /([?&]|%3F|%26)(gmail_code|gmail_state)(=|%3D)[^&#%]*(%[0-9A-F]{2}[^&#%]*)*/gi;
+
+export function scrubSecrets<T>(value: T): T {
+  if (typeof value === "string") return value.replace(SECRET_PARAM, "$1$2$3[redacted]") as T;
+  if (Array.isArray(value)) return value.map(scrubSecrets) as T;
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) out[k] = scrubSecrets(v);
+    return out as T;
+  }
+  return value;
+}
+
 export function initPostHog() {
   if (typeof window === "undefined") return;
   if (!POSTHOG_KEY) return;
@@ -45,6 +61,7 @@ export function initPostHog() {
         api_host: POSTHOG_HOST,
         capture_pageview: false, // we fire manually on route change
         capture_pageleave: true,
+        before_send: (event) => (event ? { ...event, properties: scrubSecrets(event.properties) } : event),
         // Replays mask every piece of on-screen text, not only inputs: they
         // were recording resume details, outreach email bodies and hiring
         // managers' replies (audit ST-N05).

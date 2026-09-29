@@ -70,30 +70,43 @@ export default function UploadPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromCoach]);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    const f = e.dataTransfer.files[0];
+  // Read the picked file into memory straight away. On Android a file picked
+  // from Drive or WhatsApp is a content:// handle that can stop being readable
+  // by the time Upload is tapped, which surfaced as "Failed to fetch" for about
+  // 1 in 10 Android uploads (audit OP-N01). Reading now either works, or fails
+  // here with advice the student can act on.
+  const acceptFile = useCallback(async (f: File | undefined) => {
     if (!f || !isResumeFile(f)) {
       setError("Please upload a PDF or DOCX file");
-    } else if (f.size > MAX_RESUME_BYTES) {
+      return;
+    }
+    if (f.size > MAX_RESUME_BYTES) {
       setError(TOO_BIG);
-    } else {
-      setFile(f);
+      return;
+    }
+    try {
+      const buf = await f.arrayBuffer();
+      setFile(new File([buf], f.name, { type: f.type }));
       setError("");
+    } catch (err) {
+      capturePostHog("resume_file_read_failed", {
+        file_type: f.type || "unknown",
+        file_size: f.size,
+        err_name: err instanceof Error ? err.name : "unknown",
+      });
+      setError("We could not open that file from your phone. Download it to your phone first, then pick it from Files.");
     }
   }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    void acceptFile(e.dataTransfer.files[0]);
+  }, [acceptFile]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (!isResumeFile(f)) {
-      setError("Please upload a PDF or DOCX file");
-    } else if (f.size > MAX_RESUME_BYTES) {
-      setError(TOO_BIG);
-    } else {
-      setFile(f);
-      setError("");
-    }
+    void acceptFile(f);
   };
 
   const handleUpload = async () => {
@@ -176,7 +189,12 @@ export default function UploadPage() {
         }).catch(() => {});
       }
     } catch (err: any) {
-      capturePostHog("resume_upload_failed", { file_type: file?.type || "unknown", reason: describeError(err, "unknown") });
+      capturePostHog("resume_upload_failed", {
+        file_type: file?.type || "unknown",
+        file_size: file?.size ?? null,
+        err_name: err?.name || null,
+        reason: describeError(err, "unknown"),
+      });
       const msg = String(err?.message || "");
       if (/timeout|timed out|aborted/i.test(msg)) {
         setError("Your resume is still being read. This can take a few minutes for scanned files. Refresh this page in a minute to continue.");

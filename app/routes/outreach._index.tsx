@@ -114,7 +114,11 @@ export default function OutreachLanding() {
       }
     : nextStep?.state === "campaign_active"
       ? { label: "Go to my campaign", to: "/outreach/campaign/dashboard" }
-      : { label: "Find My Hiring Managers", to: "/outreach/onboarding/upload" };
+      : nextStep?.state === "not_paid" && nextStep.path
+        // Unpaid but already has leads: show them, do not restart upload,
+        // which hid those leads behind a new resume (audit OP-N03).
+        ? { label: "See my hiring managers", to: `/outreach${nextStep.path}` }
+        : { label: "Find My Hiring Managers", to: "/outreach/onboarding/upload" };
 
   // Ad traffic lands here. This is the audience the retargeting campaigns are
   // built from, so it needs its own event rather than a bare PageView.
