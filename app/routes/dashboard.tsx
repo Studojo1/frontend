@@ -5,7 +5,7 @@ import {
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// dashboard.studojo.com — the org manager (super-admin) portal for a Sensei
+// dashboard.studojo.com: the org manager (super-admin) portal for a Sensei
 // workspace. The BD-team managers live here: they watch team activity, the
 // shared credit pool, who's spending reveals, and manage members. A button
 // takes them into Sensei itself (app.studojo.com) to do the work.
@@ -14,7 +14,7 @@ import {
 
 export function meta() {
   return [
-    { title: "Sensei Dashboard — Studojo" },
+    { title: "Sensei Dashboard | Studojo" },
     { name: "robots", content: "noindex, nofollow" },
   ];
 }
@@ -95,7 +95,7 @@ export default function DashboardPage() {
         window.history.replaceState({}, "", window.location.pathname + (p.toString() ? `?${p}` : ""));
       }
     } catch { /* ignore */ }
-    // Session handoff from Sensei (?s=token) — adopt it (overriding any stale
+    // Session handoff from Sensei (?s=token): adopt it (overriding any stale
     // session on this subdomain), then clean the URL.
     try {
       const params = new URLSearchParams(window.location.search);
@@ -283,7 +283,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const card = "bg-white border-2 border-neutral-900 rounded-2xl shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
   const str = (v: any) => (v == null || v === "" ? "" : String(v));
 
-  // Non-admin members don't get the manager dashboard — send them to Sensei.
+  // Non-admin members don't get the manager dashboard; send them to Sensei.
   if (me && me.role !== "admin") {
     return (
       <div className="min-h-screen bg-[#faf7f2] font-['Satoshi'] flex items-center justify-center p-6 text-neutral-900">
@@ -460,7 +460,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
             </>
           )}
 
-          {/* CREDIT USAGE — per-member spend + full enrichment log */}
+          {/* CREDIT USAGE: per-member spend + full enrichment log */}
           {tab === "credits" && (
             <>
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -499,8 +499,8 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
                         <div className="font-medium truncate">{str(r.contact_name) || "-"}</div>
                         {r.contact_title && <div className="text-[11px] text-neutral-400 truncate">{str(r.contact_title)}</div>}
                       </div>
-                      <div className="truncate text-neutral-700">{str(r.contact_phone) ? <a href={`tel:${str(r.contact_phone)}`} className="hover:text-violet-700 flex items-center gap-1"><FiPhone size={11} />{str(r.contact_phone)}</a> : <span className="text-neutral-300">—</span>}</div>
-                      <div className="truncate text-neutral-700">{str(r.contact_email) ? <a href={`mailto:${str(r.contact_email)}`} className="hover:text-violet-700 flex items-center gap-1 truncate"><FiMail size={11} className="shrink-0" /><span className="truncate">{str(r.contact_email)}</span></a> : <span className="text-neutral-300">—</span>}</div>
+                      <div className="truncate text-neutral-700">{str(r.contact_phone) ? <a href={`tel:${str(r.contact_phone)}`} className="hover:text-violet-700 flex items-center gap-1"><FiPhone size={11} />{str(r.contact_phone)}</a> : <span className="text-neutral-300">-</span>}</div>
+                      <div className="truncate text-neutral-700">{str(r.contact_email) ? <a href={`mailto:${str(r.contact_email)}`} className="hover:text-violet-700 flex items-center gap-1 truncate"><FiMail size={11} className="shrink-0" /><span className="truncate">{str(r.contact_email)}</span></a> : <span className="text-neutral-300">-</span>}</div>
                     </div>
                   ))}
                   {log.length === 0 && <div className="px-5 py-10 text-center text-neutral-400 text-sm">No reveals yet. When your team enriches a contact, every one shows up here with who did it.</div>}
@@ -651,7 +651,7 @@ function AgentPanel({ card, orgName }: { card: string; orgName: string }) {
 
       {fresh && (
         <div className="mb-5 bg-violet-50 border-2 border-violet-500 rounded-2xl p-4">
-          <div className="text-xs font-bold uppercase tracking-wide text-violet-700 mb-2">Your new key — copy it now</div>
+          <div className="text-xs font-bold uppercase tracking-wide text-violet-700 mb-2">Your new key: copy it now</div>
           <div className="flex items-center gap-2">
             <code className="flex-1 min-w-0 truncate bg-white border-2 border-neutral-900 rounded-lg px-3 py-2 text-[13px]">{fresh}</code>
             <CopyBtn text={fresh} what="key" />
@@ -701,7 +701,7 @@ function AgentPanel({ card, orgName }: { card: string; orgName: string }) {
   );
 }
 
-// Read-only chat viewer for managers — the full conversation + the results the
+// Read-only chat viewer for managers: the full conversation + the results the
 // team built (companies, contacts). Managers can review any chat in their org.
 function ChatViewer({ chatId, title, onClose }: { chatId: number; title: string; onClose: () => void }) {
   const [data, setData] = useState<ChatDetail | null>(null);
@@ -754,7 +754,7 @@ function ChatViewer({ chatId, title, onClose }: { chatId: number; title: string;
                 {t.rows.slice(0, 50).map((r) => (
                   <div key={r.id} className="flex items-center justify-between gap-3 px-4 py-2 border-b border-neutral-100 text-sm">
                     <div className="min-w-0">
-                      <div className="font-semibold truncate">{str(r.cells.company) || "—"}</div>
+                      <div className="font-semibold truncate">{str(r.cells.company) || "-"}</div>
                       <div className="text-xs text-neutral-400 truncate">{str(r.cells.role_title) || str(r.cells.contact_name)}</div>
                     </div>
                     <div className="text-xs text-neutral-500 truncate max-w-[45%] text-right">
@@ -762,7 +762,7 @@ function ChatViewer({ chatId, title, onClose }: { chatId: number; title: string;
                     </div>
                   </div>
                 ))}
-                {t.rows.length > 50 && <div className="px-4 py-2 text-xs text-neutral-400">+ {t.rows.length - 50} more — open in Sensei to see all.</div>}
+                {t.rows.length > 50 && <div className="px-4 py-2 text-xs text-neutral-400">+ {t.rows.length - 50} more. Open in Sensei to see all.</div>}
               </div>
             </div>
           ))}

@@ -2,7 +2,7 @@
 //
 // The alternatives used to be a LIST OF NAMES. Pranav: "it is not interactive
 // it is not usefull what do you think theyll go search for it and if they find
-// an open role theyll come apply agaim?" — correct. A student who cannot reach
+// an open role theyll come apply agaim?" Correct. A student who cannot reach
 // Novo is not helped by being told Zolve exists; they are helped by an email
 // to a named human at Zolve, already written.
 //

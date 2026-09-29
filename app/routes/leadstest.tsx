@@ -1,5 +1,5 @@
 /**
- * Internal experiment page — not linked from any public nav.
+ * Internal experiment page, not linked from any public nav.
  * Requires auth (session cookie). Path: /leadstest
  */
 
@@ -219,7 +219,7 @@ function ResumeComparator() {
   const newFields = result?.delta_summary?.new_fields ?? [];
 
   return (
-    <Section title="TOOL 1 — Resume Analysis Comparator">
+    <Section title="TOOL 1: Resume Analysis Comparator">
       <div style={{ display: "flex", gap: 12, alignItems: "flex-end", marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 11, color: "#6b7280", fontFamily: "monospace", textTransform: "uppercase", marginBottom: 4 }}>
@@ -270,7 +270,7 @@ function ResumeComparator() {
                   <div key={k} style={{ display: "flex", gap: 8, padding: "5px 10px", borderBottom: "1px solid #f3f4f6", fontFamily: "monospace" }}>
                     <span style={{ fontSize: 11, color: "#9ca3af", width: 140, flexShrink: 0 }}>{k}</span>
                     <span style={{ fontSize: 12, color: "#111827", wordBreak: "break-all" }}>
-                      {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v ?? "—")}
+                      {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v ?? "-")}
                     </span>
                   </div>
                 ))}
@@ -299,7 +299,7 @@ function ResumeComparator() {
                       {k} {newFields.includes(k) && "🆕"}
                     </span>
                     <span style={{ fontSize: 12, color: "#111827", wordBreak: "break-all" }}>
-                      {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v ?? "—")}
+                      {Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v ?? "-")}
                     </span>
                   </div>
                 ))}
@@ -336,7 +336,7 @@ function LeadIntelligence() {
   }
 
   return (
-    <Section title="TOOL 2 — Lead Intelligence (Free: DuckDuckGo + Google News RSS)">
+    <Section title="TOOL 2: Lead Intelligence (Free: DuckDuckGo + Google News RSS)">
       <p style={{ fontFamily: "monospace", fontSize: 12, color: "#6b7280", marginTop: 0 }}>
         Given a name and company, finds their LinkedIn, company domain, recent funding news, and open roles. No API keys, no credits.
       </p>
@@ -384,7 +384,7 @@ function LeadIntelligence() {
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {result.funding_news.map((item: any, i: number) => (
                   <div key={i} style={{ border: "1px solid #e5e7eb", borderRadius: 4, padding: "6px 10px", fontFamily: "monospace", fontSize: 11, display: "flex", gap: 10, alignItems: "baseline" }}>
-                    <span style={{ color: "#9ca3af", flexShrink: 0, minWidth: 90 }}>{item.published_at ? item.published_at.slice(0, 16) : "—"}</span>
+                    <span style={{ color: "#9ca3af", flexShrink: 0, minWidth: 90 }}>{item.published_at ? item.published_at.slice(0, 16) : "-"}</span>
                     <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ color: "#111827", textDecoration: "none", flex: 1 }}>
                       {item.headline}
                     </a>
@@ -399,7 +399,7 @@ function LeadIntelligence() {
           {result.careers && (
             <div>
               <div style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, color: "#0369a1", marginBottom: 6 }}>
-                CAREER PAGE — <StatusBadge status={result.careers.status} />
+                CAREER PAGE: <StatusBadge status={result.careers.status} />
                 {result.careers.careers_url && (
                   <a href={result.careers.careers_url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 8, color: "#4f46e5", fontWeight: 400 }}>
                     {result.careers.careers_url}
@@ -411,7 +411,7 @@ function LeadIntelligence() {
               </div>
               {result.careers.status === "js_rendered" && (
                 <div style={{ background: "#fefce8", border: "1px solid #fde68a", borderRadius: 6, padding: 8, fontSize: 11, color: "#78350f", marginBottom: 8 }}>
-                  JS-rendered page — static scraper got empty shell. Company uses React/Next.js career site.
+                  JS-rendered page: static scraper got empty shell. Company uses React/Next.js career site.
                 </div>
               )}
               {result.careers.open_roles?.length > 0 && (
@@ -428,7 +428,7 @@ function LeadIntelligence() {
             </div>
           )}
 
-          {/* Search results used — for debugging */}
+          {/* Search results used (for debugging) */}
           <details style={{ fontFamily: "monospace", fontSize: 11 }}>
             <summary style={{ cursor: "pointer", color: "#6b7280" }}>Raw search results (debug)</summary>
             <div style={{ marginTop: 8 }}>
@@ -471,9 +471,9 @@ function CareerPageTester() {
   }
 
   return (
-    <Section title="TOOL 3 — Career Page Scraper">
+    <Section title="TOOL 3: Career Page Scraper">
       <p style={{ fontFamily: "monospace", fontSize: 12, color: "#6b7280", marginTop: 0 }}>
-        Finds and parses a company's career page. Note: JS-rendered pages (React/Next.js) will return limited data — this test helps gauge coverage.
+        Finds and parses a company's career page. Note: JS-rendered pages (React/Next.js) will return limited data. This test helps gauge coverage.
       </p>
       <div style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: 12 }}>
         <Input label="Company Domain" value={domain} onChange={setDomain} placeholder="razorpay.com" />
@@ -497,7 +497,7 @@ function CareerPageTester() {
 
           {result.status === "js_rendered" && (
             <div style={{ background: "#fefce8", border: "1px solid #fde68a", borderRadius: 6, padding: 10, fontSize: 12, color: "#78350f", marginBottom: 12 }}>
-              ⚠ JS-rendered page detected — static scraper received an empty shell. This company's career site uses React/Angular. A Playwright-based scraper would be needed for full data.
+              ⚠ JS-rendered page detected: static scraper received an empty shell. This company's career site uses React/Angular. A Playwright-based scraper would be needed for full data.
             </div>
           )}
 
@@ -544,7 +544,7 @@ function LinkedInEnricher() {
   }
 
   return (
-    <Section title="TOOL 4 — LinkedIn Enrichment via Proxycurl (Paid ~$0.05/call)">
+    <Section title="TOOL 4: LinkedIn Enrichment via Proxycurl (Paid ~$0.05/call)">
       <p style={{ fontFamily: "monospace", fontSize: 12, color: "#6b7280", marginTop: 0 }}>
         Fetches data standard enrichment doesn't provide: post activity, follower count, skills. Requires the provider key to be set in the backend environment.
       </p>
@@ -589,7 +589,7 @@ export default function LeadsTest() {
           Studojo Leadstest
         </h1>
         <p style={{ fontSize: 13, color: "#6b7280", margin: 0 }}>
-          Internal experiment page — not linked from any public nav.
+          Internal experiment page, not linked from any public nav.
           Tests resume analysis improvements and lead data enrichment.
         </p>
       </div>

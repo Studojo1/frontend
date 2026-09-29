@@ -1,4 +1,4 @@
-// JRS resume editor — left panel. Controlled component over ResumeData.
+// JRS resume editor: left panel. Controlled component over ResumeData.
 import { useState } from "react";
 import {
   type ResumeData,
@@ -254,7 +254,7 @@ export function Editor({
           value={data.summary}
           onChange={(e) => patch({ summary: e.target.value })}
           rows={4}
-          placeholder="A 2-3 line pitch — who you are, what you're looking for."
+          placeholder="A 2-3 line pitch: who you are, what you're looking for."
           className={inputCls}
         />
       </Section>

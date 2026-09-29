@@ -3,7 +3,7 @@ import db from "~/lib/db";
 import { systemEvents } from "../../auth-schema";
 import type { Route } from "./+types/api.funnel-event";
 
-/** POST /api/funnel-event — server-side record of the signup funnel steps.
+/** POST /api/funnel-event: server-side record of the signup funnel steps.
  *
  * Between "session created" and "resume uploaded" nothing was written, so a
  * student who stalled there left no trace. These rows make that stretch

@@ -1,4 +1,4 @@
-// POST /api/autoapply/leads — inject pre-approved leads into an outreach campaign
+// POST /api/autoapply/leads: inject pre-approved leads into an outreach campaign
 //
 // Accepts a payload of LinkedIn profiles (from Apollo, manual list, or any source).
 // Inserts them into outreach_contacts and immediately queues step-0 (connection request)
@@ -9,7 +9,7 @@
 //   campaignId: string,           // must belong to the authenticated user
 //   leads: [
 //     {
-//       linkedinUrl: string,       // required — full LinkedIn profile URL
+//       linkedinUrl: string,       // required, full LinkedIn profile URL
 //       name?: string,
 //       title?: string,
 //       company?: string,
@@ -68,7 +68,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (!campaign) return Response.json({ error: "Campaign not found" }, { status: 404 });
   if (campaign.status === "paused") {
-    return Response.json({ error: "Campaign is paused — resume it before adding leads" }, { status: 409 });
+    return Response.json({ error: "Campaign is paused. Resume it before adding leads" }, { status: 409 });
   }
 
   // Normalise and deduplicate LinkedIn URLs
@@ -118,7 +118,7 @@ export async function action({ request }: Route.ActionArgs) {
     .returning({ id: outreachContacts.id });
 
   // Immediately enqueue step-0 (connection request) with warmup-aware stagger
-  // Spread requests across the day — each job gets a random delay up to 8 hours
+  // Spread requests across the day: each job gets a random delay up to 8 hours
   // so they don't all fire at once.
   let enqueued = 0;
   for (const { id } of inserted) {
@@ -149,7 +149,7 @@ function normaliseLinkedInUrl(raw: string): string {
     const path = url.pathname.replace(/\/$/, "");
     return `https://www.linkedin.com${path}`;
   } catch {
-    // Not a valid URL — return trimmed as-is
+    // Not a valid URL, return trimmed as-is
     return raw.trim();
   }
 }

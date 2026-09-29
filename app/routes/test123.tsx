@@ -413,12 +413,12 @@ export default function AutoApplyBeta({ loaderData }: Route.ComponentProps) {
               </div>
               <div className="space-y-3">
                 {[
-                  { label: "Roles", value: config.roles.join(", ") || "—", icon: <FiBriefcase className="h-4 w-4 text-violet-500" /> },
-                  { label: "Markets", value: config.locations.join(", ") || "—", icon: <FiMapPin className="h-4 w-4 text-emerald-500" /> },
+                  { label: "Roles", value: config.roles.join(", ") || "-", icon: <FiBriefcase className="h-4 w-4 text-violet-500" /> },
+                  { label: "Markets", value: config.locations.join(", ") || "-", icon: <FiMapPin className="h-4 w-4 text-emerald-500" /> },
                   { label: "Work type", value: config.workType, icon: <FiGlobe className="h-4 w-4 text-blue-500" /> },
-                  { label: "Platforms", value: PLATFORMS.filter((p) => config.platforms.includes(p.id)).map((p) => p.label).join(", ") || "—", icon: <FiTarget className="h-4 w-4 text-orange-500" /> },
+                  { label: "Platforms", value: PLATFORMS.filter((p) => config.platforms.includes(p.id)).map((p) => p.label).join(", ") || "-", icon: <FiTarget className="h-4 w-4 text-orange-500" /> },
                   { label: "Daily limit", value: `${config.dailyLimit} applications/day`, icon: <FiTrendingUp className="h-4 w-4 text-neutral-500" /> },
-                  ...(linkedInSession?.connected ? [{ label: "LinkedIn", value: `Connected · Proxy: ${linkedInSession.proxyCity ?? "—"}, ${linkedInSession.proxyCountry ?? "—"}`, icon: <FiLink className="h-4 w-4 text-blue-500" /> }] : []),
+                  ...(linkedInSession?.connected ? [{ label: "LinkedIn", value: `Connected · Proxy: ${linkedInSession.proxyCity ?? "-"}, ${linkedInSession.proxyCountry ?? "-"}`, icon: <FiLink className="h-4 w-4 text-blue-500" /> }] : []),
                 ].map((row) => (
                   <div key={row.label} className="flex items-start gap-3 border-b border-neutral-100 pb-3 last:border-0 last:pb-0">
                     <div className="mt-0.5">{row.icon}</div>

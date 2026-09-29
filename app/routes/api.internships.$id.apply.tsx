@@ -50,7 +50,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   // /api/internships/applications/upload (which recorded a row in
   // application_resume_uploads), or picked a previously-used resume from
   // /api/user/resume-uploads. Either way the URL must exist as one of THIS
-  // user's recorded uploads — that's both ownership verification and the
+  // user's recorded uploads; that's both ownership verification and the
   // source of truth for content type and filename.
   const submittedUrl =
     original_file && typeof original_file === "object" && typeof original_file.url === "string"
@@ -261,7 +261,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       timestamp: newApplication.createdAt.toISOString(),
     });
 
-    // Applying to an internship IS using Internship Dojo — fire the used signal
+    // Applying to an internship IS using Internship Dojo, so fire the used signal
     // on every apply (earliest usage moment), so the emailer routes engagement
     // and stops not-used chases. Idempotent on the emailer side.
     await publishEmailEvent("event.cc.internship_used", {

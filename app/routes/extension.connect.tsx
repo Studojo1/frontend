@@ -18,7 +18,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!session) {
     // Two bugs lived in the line this replaces.
     //
-    // It redirected to /login, which DOES NOT EXIST — the sign-in page is
+    // It redirected to /login, which DOES NOT EXIST: the sign-in page is
     // /auth (app/routes/auth.tsx). A student clicking Sign in was sent to a
     // 404, which is why the handover appeared to do nothing.
     //
@@ -42,7 +42,7 @@ export default function ExtensionConnect({ loaderData }: Route.ComponentProps) {
         const { token } = await res.json();
 
         // Chrome / Edge. `ext_id` comes from the extension when it opens this
-        // page — externally_connectable is a permission, not an address, so
+        // page; externally_connectable is a permission, not an address, so
         // without an id there is nowhere to send the token. This page used to
         // say "Extension connected" while silently sending it nowhere.
         const w = window as any;
@@ -57,7 +57,7 @@ export default function ExtensionConnect({ loaderData }: Route.ComponentProps) {
           );
         }
 
-        // Firefox / fallback — the content script on this URL listens for it.
+        // Firefox / fallback: the content script on this URL listens for it.
         window.dispatchEvent(new CustomEvent("STUDOJO_EXT_TOKEN", { detail: { token } }));
 
         setState("done");
@@ -85,7 +85,7 @@ export default function ExtensionConnect({ loaderData }: Route.ComponentProps) {
         <>
           <h1 className="text-xl font-semibold">Extension connected</h1>
           <p className="mt-2 text-sm text-gray-500">
-            Signed in as {loaderData.email}. Your job is being saved — nothing has
+            Signed in as {loaderData.email}. Your job is being saved. Nothing has
             been sent.
           </p>
           {/* Two useful exits. Telling someone to "go back and click Apply
@@ -98,7 +98,7 @@ export default function ExtensionConnect({ loaderData }: Route.ComponentProps) {
             Review my emails
           </a>
           <p className="mt-3 text-xs text-gray-400">
-            Or just switch back to the job tab — the extension already knows.
+            Or just switch back to the job tab. The extension already knows.
           </p>
         </>
       )}

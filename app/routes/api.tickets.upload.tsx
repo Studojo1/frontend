@@ -1,4 +1,4 @@
-// POST /api/tickets/upload — upload a screenshot for a (not-yet-created)
+// POST /api/tickets/upload: upload a screenshot for a (not-yet-created)
 // ticket. Returns the public URL the client then attaches to the
 // /api/tickets POST payload. Decoupling the upload from creation makes
 // the modal flow simple: pick file → upload → preview → submit.

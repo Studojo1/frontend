@@ -253,11 +253,11 @@ export default function FlameMarketingReport() {
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-purple">Finding 02</span>
               <h2 className="rpt-h2">Average CTC dropped from ₹11 LPA in 2024 to ₹9.63 LPA in 2025. The highest offer also fell: from ₹25 LPA to ₹15.25 LPA.</h2>
-              <p className="rpt-lead">Three years of published placement data shows a consistent average in the ₹9–11 LPA range, with meaningful year-on-year variation. The 2025 batch saw a dip from the 2024 peak. This is consistent with the broader Indian MBA placement market, which saw compression in 2024-25 across most non-IIM schools.</p>
+              <p className="rpt-lead">Three years of published placement data shows a consistent average in the ₹9-11 LPA range, with meaningful year-on-year variation. The 2025 batch saw a dip from the 2024 peak. This is consistent with the broader Indian MBA placement market, which saw compression in 2024-25 across most non-IIM schools.</p>
             </div>
 
             <div className="rpt-card">
-              <div className="rpt-card-label">Flame MBA placement CTC: average and highest, 2023–2025 (LPA)</div>
+              <div className="rpt-card-label">Flame MBA placement CTC: average and highest, 2023-2025 (LPA)</div>
               <div className="rpt-chart-wrap" style={{ height: 260 }}><canvas id="ctcTrendChart"></canvas></div>
             </div>
 
@@ -271,7 +271,7 @@ export default function FlameMarketingReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">BBA data caveat</div>
-              <p>Flame does not publish BBA-specific placement statistics in their official reports. Third-party aggregator sites (Shiksha, Careers360) cite figures but these cannot be verified against Flame's own data. One Careers360 review from a BA Economics graduate mentioned 2.5–3 LPA offers from Infosys, TCS, and Wipro, which is consistent with what tier-2 and tier-3 colleges see from IT services campus drives, not what BBA Business or Comms students targeting marketing roles would expect. If you are a Flame BBA student, treat all third-party salary figures for your programme as unverified.</p>
+              <p>Flame does not publish BBA-specific placement statistics in their official reports. Third-party aggregator sites (Shiksha, Careers360) cite figures but these cannot be verified against Flame's own data. One Careers360 review from a BA Economics graduate mentioned 2.5-3 LPA offers from Infosys, TCS, and Wipro, which is consistent with what tier-2 and tier-3 colleges see from IT services campus drives, not what BBA Business or Comms students targeting marketing roles would expect. If you are a Flame BBA student, treat all third-party salary figures for your programme as unverified.</p>
             </div>
             <p className="rpt-source">Source: flame.edu.in/career-services/placement-report (2023, 2024, 2025, interim 2025-26)</p>
           </div>
@@ -280,8 +280,8 @@ export default function FlameMarketingReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num rpt-finding-num-purple">Finding 03</span>
-              <h2 className="rpt-h2">The general market for marketing freshers in India pays ₹1.8–6 LPA. Flame's MBA average sits well above this: because the placements are not in marketing.</h2>
-              <p className="rpt-lead">Understanding the difference between Flame's placement average and the general marketing fresher market is essential. The ₹9.63 LPA average includes BFSI and consulting roles, which pay more than most marketing roles. A Flame MBA student who specifically targets brand or content marketing is entering a market where the general range is ₹2.5–6 LPA at most companies.</p>
+              <h2 className="rpt-h2">The general market for marketing freshers in India pays ₹1.8-6 LPA. Flame's MBA average sits well above this because the placements are not in marketing.</h2>
+              <p className="rpt-lead">Understanding the difference between Flame's placement average and the general marketing fresher market is essential. The ₹9.63 LPA average includes BFSI and consulting roles, which pay more than most marketing roles. A Flame MBA student who specifically targets brand or content marketing is entering a market where the general range is ₹2.5-6 LPA at most companies.</p>
             </div>
 
             <div className="rpt-card">
@@ -289,11 +289,11 @@ export default function FlameMarketingReport() {
               <div className="rpt-chart-wrap" style={{ height: 280 }}><canvas id="marketSalaryChart"></canvas></div>
             </div>
 
-            <p className="rpt-prose">These ranges are from Glassdoor India, AmbitionBox, and published salary reports (accessed via secondary sources: both platforms require login for direct data). Treat as directional, not precise. Social media and content executive roles pay ₹1.8–3.3 LPA at most companies. Digital marketing executives earn ₹2.5–4.5 LPA. Brand and marketing executive roles in metro cities run ₹3–6 LPA. The outlier is product marketing at B2B SaaS companies, which can reach ₹9 LPA for strong candidates at funded startups. <strong>A Flame MBA student who insists on a marketing title and targets agencies or mid-size consumer brands is likely to receive offers below the campus placement average.</strong> The students who maintain the CTC average are those who accept BFSI or consulting roles, or are exceptional candidates who land the rare high-paying startup marketing role.</p>
+            <p className="rpt-prose">These ranges are from Glassdoor India, AmbitionBox, and published salary reports (accessed via secondary sources: both platforms require login for direct data). Treat as directional, not precise. Social media and content executive roles pay ₹1.8-3.3 LPA at most companies. Digital marketing executives earn ₹2.5-4.5 LPA. Brand and marketing executive roles in metro cities run ₹3-6 LPA. The outlier is product marketing at B2B SaaS companies, which can reach ₹9 LPA for strong candidates at funded startups. <strong>A Flame MBA student who insists on a marketing title and targets agencies or mid-size consumer brands is likely to receive offers below the campus placement average.</strong> The students who maintain the CTC average are those who accept BFSI or consulting roles, or are exceptional candidates who land the rare high-paying startup marketing role.</p>
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The B2B SaaS exception</div>
-              <p>Product marketing roles at funded B2B SaaS companies (Zoho, Freshworks, CleverTap, Chargebee, LeadSquared, Icertis, and funded Series A–B startups) are the highest-paying pure marketing roles accessible to fresh MBA graduates. The work involves launch coordination, competitive positioning, and sales enablement: all areas where strong writing and structured thinking matter more than technical skills. These companies rarely do campus placements. They hire off-cycle, mostly through LinkedIn and referrals. The Flame profile is genuinely competitive for these roles: the gap is visibility, not qualification.</p>
+              <p>Product marketing roles at funded B2B SaaS companies (Zoho, Freshworks, CleverTap, Chargebee, LeadSquared, Icertis, and funded Series A-B startups) are the highest-paying pure marketing roles accessible to fresh MBA graduates. The work involves launch coordination, competitive positioning, and sales enablement: all areas where strong writing and structured thinking matter more than technical skills. These companies rarely do campus placements. They hire off-cycle, mostly through LinkedIn and referrals. The Flame profile is genuinely competitive for these roles: the gap is visibility, not qualification.</p>
             </div>
             <p className="rpt-source">Source: Glassdoor India, AmbitionBox, digitalvidya.com salary reports, thedmschool.com India salary survey 2025</p>
           </div>
@@ -323,7 +323,7 @@ export default function FlameMarketingReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The fastest thing you can do</div>
-              <p>Google Analytics certification on Google Skillshop is free and takes 4–6 hours. It gives you something concrete to list under Tools on your resume and something real to talk about in every digital marketing interview. Set up a free GA4 property on any website after completing it. Take a screenshot of the dashboard. That's your portfolio proof. This takes one weekend and moves you past a large share of competing applicants who list "good communication skills" but nothing tool-specific.</p>
+              <p>Google Analytics certification on Google Skillshop is free and takes 4-6 hours. It gives you something concrete to list under Tools on your resume and something real to talk about in every digital marketing interview. Set up a free GA4 property on any website after completing it. Take a screenshot of the dashboard. That's your portfolio proof. This takes one weekend and moves you past a large share of competing applicants who list "good communication skills" but nothing tool-specific.</p>
             </div>
             <p className="rpt-source">Source: internshala.com/internships/marketing-internship/, in.indeed.com, naukri.com, linkedin.com/jobs: April 2026</p>
           </div>
@@ -337,13 +337,13 @@ export default function FlameMarketingReport() {
             </div>
 
             <div className="rpt-stat-row rpt-c4">
-              <div className="rpt-stat"><div className="rpt-val rpt-b">₹3k–5k</div><div className="rpt-lbl">Entry stipend range: small agencies, early-stage startups, NGOs</div></div>
-              <div className="rpt-stat"><div className="rpt-val">₹7k–15k</div><div className="rpt-lbl">Standard range: mid-size companies, growth-stage startups</div></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-b">₹18k–30k</div><div className="rpt-lbl">Quality range: funded Series A–B startups taking marketing seriously</div></div>
-              <div className="rpt-stat"><div className="rpt-val">₹35k–80k</div><div className="rpt-lbl">Premium: large D2C brands, sales-heavy or MBA-level roles</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-b">₹3k-5k</div><div className="rpt-lbl">Entry stipend range: small agencies, early-stage startups, NGOs</div></div>
+              <div className="rpt-stat"><div className="rpt-val">₹7k-15k</div><div className="rpt-lbl">Standard range: mid-size companies, growth-stage startups</div></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-b">₹18k-30k</div><div className="rpt-lbl">Quality range: funded Series A-B startups taking marketing seriously</div></div>
+              <div className="rpt-stat"><div className="rpt-val">₹35k-80k</div><div className="rpt-lbl">Premium: large D2C brands, sales-heavy or MBA-level roles</div></div>
             </div>
 
-            <p className="rpt-prose">For a Flame MBA student, targeting the ₹18k–30k+ bracket is the right calibration. These are roles at companies that treat interns as pre-hires: the conversion rate to full-time is high, the work is real, and the brand name adds to your profile. Companies paying ₹3k–5k are either early-stage with no budget or are treating interns as cheap execution labour. The quality of work and the learning curve are different. The stipend is a proxy, not a perfect filter, but it is a useful first screen. <strong>A Flame MBA student taking a ₹5k/month marketing internship at an agency when they could target a ₹25k/month role at a funded startup is leaving money, learning, and future optionality on the table.</strong></p>
+            <p className="rpt-prose">For a Flame MBA student, targeting the ₹18k-30k+ bracket is the right calibration. These are roles at companies that treat interns as pre-hires: the conversion rate to full-time is high, the work is real, and the brand name adds to your profile. Companies paying ₹3k-5k are either early-stage with no budget or are treating interns as cheap execution labour. The quality of work and the learning curve are different. The stipend is a proxy, not a perfect filter, but it is a useful first screen. <strong>A Flame MBA student taking a ₹5k/month marketing internship at an agency when they could target a ₹25k/month role at a funded startup is leaving money, learning, and future optionality on the table.</strong></p>
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">Where to find the ₹18k+ marketing internships</div>
@@ -364,7 +364,7 @@ export default function FlameMarketingReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">Turn your coursework into a portfolio this week</div>
-              <p>Pick two Flame projects. Remove the academic formatting. Add a one-page executive summary at the top: what was the question, what did you find, what would you recommend. Export as PDF. Post on LinkedIn as a document post with a two-sentence context. This takes 3–4 hours and creates a searchable, shareable artifact that hiring managers can read in 5 minutes. Most of your competition doesn't have this.</p>
+              <p>Pick two Flame projects. Remove the academic formatting. Add a one-page executive summary at the top: what was the question, what did you find, what would you recommend. Export as PDF. Post on LinkedIn as a document post with a two-sentence context. This takes 3-4 hours and creates a searchable, shareable artifact that hiring managers can read in 5 minutes. Most of your competition doesn't have this.</p>
             </div>
             <p className="rpt-source">Source: Studojo editorial analysis; LinkedIn India marketing JD review, April 2026</p>
           </div>
@@ -381,7 +381,7 @@ export default function FlameMarketingReport() {
 
             <div className="rpt-callout rpt-cp">
               <div className="rpt-cl">The off-campus stack that works</div>
-              <p>LinkedIn profile with a clear headline (not just 'MBA student at Flame'), 2–3 portfolio pieces visible, and 5–10 connection requests per week to marketing managers at target companies. Wellfound for funded startup roles. Internshala for explicit intern-to-hire roles. Direct email to founders who post about their company on LinkedIn: one specific, well-researched email is worth 50 generic applications. Studojo's Internship Dojo for a curated weekly list. This stack, run consistently for two months during final year, generates more quality marketing interviews than most Flame students get through campus placement.</p>
+              <p>LinkedIn profile with a clear headline (not just 'MBA student at Flame'), 2-3 portfolio pieces visible, and 5-10 connection requests per week to marketing managers at target companies. Wellfound for funded startup roles. Internshala for explicit intern-to-hire roles. Direct email to founders who post about their company on LinkedIn: one specific, well-researched email is worth 50 generic applications. Studojo's Internship Dojo for a curated weekly list. This stack, run consistently for two months during final year, generates more quality marketing interviews than most Flame students get through campus placement.</p>
             </div>
             <p className="rpt-source">Source: Studojo editorial; flame.edu.in placement reports; LinkedIn India</p>
           </div>

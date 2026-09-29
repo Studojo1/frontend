@@ -19,7 +19,7 @@ export const INTENTS: Intent[] = [
     response: "Hey! Ask me about our tools, pricing, or your account and I'll point you in the right direction.",
   },
 
-  // -- Outreach Tool (LEAD RECOMMENDATION — always recommend this first) --
+  // -- Outreach Tool (LEAD RECOMMENDATION: always recommend this first) --
   {
     id: "outreach_tool",
     keywords: [
@@ -91,7 +91,7 @@ export const INTENTS: Intent[] = [
       "i want internships",
       "want internships",
     ],
-    response: "The Outreach Tool finds hiring managers at companies matching your target roles and sends personalised cold emails from your own Gmail. Upload your resume, pick your roles and location, and it handles the rest — you approve everything before it sends. Students have gotten callbacks within 48 hours.",
+    response: "The Outreach Tool finds hiring managers at companies matching your target roles and sends personalised cold emails from your own Gmail. Upload your resume, pick your roles and location, and it handles the rest. You approve everything before it sends. Students have gotten callbacks within 48 hours.",
     links: [{ label: "Try the Outreach Tool", url: "/outreach" }],
   },
 
@@ -118,7 +118,7 @@ export const INTENTS: Intent[] = [
       "is outreach free",
       "do i get a free trial",
     ],
-    response: "The Outreach Tool is credit-based — you buy credits and spend them on finding leads, getting contact info, and sending campaigns. No subscription, no monthly charge. Check exact pricing on the Outreach Tool page.",
+    response: "The Outreach Tool is credit-based: you buy credits and spend them on finding leads, getting contact info, and sending campaigns. No subscription, no monthly charge. Check exact pricing on the Outreach Tool page.",
     links: [{ label: "View outreach pricing", url: "/outreach" }],
   },
 
@@ -240,7 +240,7 @@ export const INTENTS: Intent[] = [
       "how do i upload my cv",
       "upload cv as a student",
     ],
-    response: "Completely free — no card, no trial. Build an ATS-optimised resume from scratch or import a PDF, then download instantly. Takes about 10 minutes.",
+    response: "Completely free. No card, no trial. Build an ATS-optimised resume from scratch or import a PDF, then download instantly. Takes about 10 minutes.",
     links: [{ label: "Build your resume free", url: "/resume-maker" }],
   },
 
@@ -262,7 +262,7 @@ export const INTENTS: Intent[] = [
       "help me choose",
       "what can studojo do for me",
     ],
-    response: "If you're job or internship hunting, start with the Outreach Tool — it finds hiring managers and sends cold emails from your Gmail. Build your resume free first if you need one (takes 10 min). Assignment Dojo is for academic work.",
+    response: "If you're job or internship hunting, start with the Outreach Tool. It finds hiring managers and sends cold emails from your Gmail. Build your resume free first if you need one (takes 10 min). Assignment Dojo is for academic work.",
     links: [
       { label: "Outreach Tool", url: "/outreach" },
       { label: "Resume builder (free)", url: "/resume-maker" },
@@ -319,7 +319,7 @@ export const INTENTS: Intent[] = [
       "free one",
       "free version",
     ],
-    response: "Resume builder is free. Outreach Tool is credit-based — buy as you go, no subscription. Assignment Dojo is pay-per-assignment. All payments via Razorpay — UPI, cards, and net banking work.",
+    response: "Resume builder is free. Outreach Tool is credit-based: buy as you go, no subscription. Assignment Dojo is pay-per-assignment. All payments go through Razorpay: UPI, cards, and net banking all work.",
     links: [{ label: "Outreach Tool pricing", url: "/outreach" }],
   },
 
@@ -553,7 +553,7 @@ export const INTENTS: Intent[] = [
       "brief about studojo",
       "tell me about how studojo",
     ],
-    response: "Studojo is a student career platform based in Bangalore — we help students work on things that matter. Tools: Outreach Tool (cold email to hiring managers), free resume builder, internship listings, assignment help, and an AI detection checker. 10,000+ students helped across India, UK, US, UAE, and Singapore.",
+    response: "Studojo is a student career platform based in Bangalore. We help students work on things that matter. Tools: Outreach Tool (cold email to hiring managers), free resume builder, internship listings, assignment help, and an AI detection checker. 10,000+ students helped across India, UK, US, UAE, and Singapore.",
     links: [{ label: "About us", url: "/about" }],
   },
 
@@ -572,7 +572,7 @@ export const INTENTS: Intent[] = [
       "revision tool",
       "when is revision dojo",
     ],
-    response: "Revision Dojo is coming soon — study notes, flashcards, practice questions, and mind maps. Tap 'Raise a ticket' above to get notified when it launches.",
+    response: "Revision Dojo is coming soon: study notes, flashcards, practice questions, and mind maps. Tap 'Raise a ticket' above to get notified when it launches.",
   },
 
   // -- Privacy / Data --
@@ -640,7 +640,7 @@ export const INTENTS: Intent[] = [
       "book a meeting",
       "schedule a meeting",
     ],
-    response: "DM us on Instagram and we'll set something up — @studojo.",
+    response: "DM us on Instagram (@studojo) and we'll set something up.",
     links: [{ label: "@studojo on Instagram", url: "https://instagram.com/studojo" }],
   },
 
@@ -665,30 +665,30 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 
 ## Products (ALWAYS lead with Outreach Tool for anyone looking for jobs/internships)
 
-**Outreach Tool** (studojo.com/outreach) — PRIMARY RECOMMENDATION for job/internship seekers
+**Outreach Tool** (studojo.com/outreach): PRIMARY RECOMMENDATION for job/internship seekers
 - AI finds hiring managers at companies matching the student's target roles
 - Writes personalised cold emails and sends them from the student's own Gmail
 - Student uploads resume, sets role preferences, reviews leads and approves before sending
 - Credit-based: credits used for lead discovery, enrichment, and campaign sending
 - Students have gotten interview callbacks within 48 hours
 
-**Careers Dojo** (studojo.com/resume-maker) — Free ATS resume builder
+**Careers Dojo** (studojo.com/resume-maker): Free ATS resume builder
 - Completely free, no credit card, unlimited resumes and edits
 - ATS-optimised templates, PDF download, import from existing PDF
 
-**Internship Dojo** (studojo.com/dojos/internships) — Internship discovery/listings
+**Internship Dojo** (studojo.com/dojos/internships): Internship discovery/listings
 - Browse internship opportunities globally with an interactive map
 - Works well combined with the Outreach Tool
 
-**Assignment Dojo** — AI assignment help
+**Assignment Dojo**: AI assignment help
 - AI-generated assignments, plagiarism-safe, formatted, referenced
 - Pay per assignment, no subscription
 
-**AI Risk Dojo** (studojo.com/dojos/ai-risk) — AI detection risk checker
+**AI Risk Dojo** (studojo.com/dojos/ai-risk): AI detection risk checker
 - Scans text, shows risk score by section, shows where to rephrase
 - A checker, NOT a bypass tool
 
-**Revision Dojo** — Coming soon (study notes, flashcards, practice questions, mind maps)
+**Revision Dojo**: Coming soon (study notes, flashcards, practice questions, mind maps)
 
 ## Pricing
 - Resume builder: free, no limits
@@ -706,16 +706,16 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 - Contact: raise a ticket from this chat with the order ID
 
 ## Contact
-- Primary support channel: tap "Raise a ticket" in this chat — team responds within 48 hours.
+- Primary support channel: tap "Raise a ticket" in this chat. The team responds within 48 hours.
 - DO NOT direct users to admin@studojo.com or studojo.com/contact for support. Tickets are the only escalation path from chat.
-- Instagram: @studojo — DM to book a call with the team
+- Instagram: @studojo (DM to book a call with the team)
 
-## HARD RULES — these are absolute, never break them:
+## HARD RULES (these are absolute, never break them):
 - Studojo is a career PLATFORM with tools. It is NOT an internship provider and does NOT post internship listings itself.
-- NEVER say "Studojo doesn't offer unpaid internships" — Studojo provides tools to find and apply for internships, not the internships themselves.
+- NEVER say "Studojo doesn't offer unpaid internships". Studojo provides tools to find and apply for internships, not the internships themselves.
 - NEVER suggest LinkedIn, Glassdoor, Indeed, or any competitor platform as an alternative.
-- NEVER say users must be over 18 or any age requirement — there is no stated age requirement.
+- NEVER say users must be over 18 or any age requirement. There is no stated age requirement.
 - NEVER invent product names (e.g. "Design Dojo" does not exist).
 - NEVER say the site is down or having technical issues unless the user says so first.
-- NEVER give advice about internships themselves (how competitive they are, cover letters, etc.) — stick to what Studojo's tools do.
-- If asked about a specific internship in a specific city/company — say that's not something you have info on, and point them to the Outreach Tool to contact hiring managers directly.`;
+- NEVER give advice about internships themselves (how competitive they are, cover letters, etc.). Stick to what Studojo's tools do.
+- If asked about a specific internship in a specific city/company, say that's not something you have info on, and point them to the Outreach Tool to contact hiring managers directly.`;

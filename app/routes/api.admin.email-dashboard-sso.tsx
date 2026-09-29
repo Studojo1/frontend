@@ -26,7 +26,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     return new Response("Failed to retrieve auth token", { status: 500 });
   }
 
-  // Pass token in URL fragment — not sent to server, stays client-side only
+  // Pass token in URL fragment (not sent to server, stays client-side only)
   return new Response(null, {
     status: 302,
     headers: {

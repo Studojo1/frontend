@@ -149,8 +149,8 @@ assert.ok(withVisual.includes("is planned"), "present visual is reported");
 assert.ok(!withVisual.includes("NOT planned"), "no contradiction");
 
 /* ---- the AI tells the playbook bans are stripped from output ---- */
-assert.equal(cleanTells("a — b"), "a, b", "em dash becomes a comma");
-assert.equal(cleanTells("a – b"), "a, b", "en dash too");
+assert.equal(cleanTells("a \u2014 b"), "a, b", "em dash becomes a comma");
+assert.equal(cleanTells("a \u2013 b"), "a, b", "en dash too");
 assert.equal(cleanTells("‘x’"), "'x'", "curly singles straightened");
 assert.equal(cleanTells("“x”"), '"x"', "curly doubles straightened");
 assert.equal(cleanTells("plain text"), "plain text", "clean text is untouched");

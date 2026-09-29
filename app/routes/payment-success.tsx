@@ -78,7 +78,7 @@ export default function PaymentSuccess() {
           return;
         }
 
-        // Still pending — retry up to 30 times (90 seconds)
+        // Still pending: retry up to 30 times (90 seconds)
         if (attempts < 30) {
           setTimeout(() => pollPayment(attempts + 1), 3000);
         } else {

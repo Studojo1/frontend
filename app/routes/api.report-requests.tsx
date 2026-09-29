@@ -6,8 +6,8 @@ import type { Route } from "./+types/api.report-requests";
 
 const ADMIN_EMAILS = ["admin@studojo.com", "jeremy@studojo.com", "jeremyabraham1411@gmail.com"];
 
-// POST /api/report-requests — submit a request (public)
-// GET  /api/report-requests — list all requests (admin only)
+// POST /api/report-requests: submit a request (public)
+// GET  /api/report-requests: list all requests (admin only)
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });

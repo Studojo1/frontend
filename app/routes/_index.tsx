@@ -20,7 +20,7 @@ import DashboardPage from "./dashboard";
 import type { Route } from "./+types/_index";
 
 // app.studojo.* is the Sensei workspace and dashboard.studojo.* is the org
-// manager portal — each host's root IS that app, independent of the studojo.com
+// manager portal: each host's root IS that app, independent of the studojo.com
 // marketing site. (The Studojo super-admin panel lives in the separate
 // admin-panel app at admin.studojo.com.)
 function senseiHostApp(request: Request): "bob" | "dashboard" | null {
@@ -46,10 +46,10 @@ export async function loader({ request }: Route.LoaderArgs) {
 export function meta({ data }: Route.MetaArgs) {
   const d = data as { bobApp?: boolean; dashboardApp?: boolean } | undefined;
   if (d?.dashboardApp) {
-    return [{ title: "Sensei Dashboard — Studojo" }, { name: "robots", content: "noindex" }];
+    return [{ title: "Sensei Dashboard | Studojo" }, { name: "robots", content: "noindex" }];
   }
   if (d?.bobApp) {
-    return [{ title: "Bob — Studojo" }, { name: "robots", content: "noindex" }];
+    return [{ title: "Bob | Studojo" }, { name: "robots", content: "noindex" }];
   }
   const BASE_URL = "https://studojo.com";
   return [

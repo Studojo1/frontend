@@ -9,7 +9,7 @@ import type { Route } from "./+types/api.internships.applications.upload";
 //
 // Uploads the candidate's resume PDF to blob storage and returns a reference
 // that the apply endpoint will persist on the new internship_applications row.
-// This is a tiny purpose-built helper for the application flow — it does not
+// This is a tiny purpose-built helper for the application flow; it does not
 // parse, render, or otherwise touch the file. The companion /api/resumes/parse
 // endpoint still exists for the resume builder and the autoapply tool.
 export async function action({ request }: Route.ActionArgs) {
@@ -55,7 +55,7 @@ export async function action({ request }: Route.ActionArgs) {
     // Record this upload so the user sees it in their "previous resumes" list
     // next time they hit Apply, and so /api/internships/:id/apply can confirm
     // ownership when the URL gets sent back. Same (user, url) re-upload just
-    // bumps last_used_at — no duplicate rows.
+    // bumps last_used_at, so no duplicate rows.
     await db
       .insert(applicationResumeUploads)
       .values({

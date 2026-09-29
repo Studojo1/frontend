@@ -36,7 +36,7 @@ export function Hero() {
 
         </div>
 
-        {/* Right: app simulation cards — stacked, gentle float only on y-axis */}
+        {/* Right: app simulation cards (stacked, gentle float only on y-axis) */}
         <div className="hidden shrink-0 flex-col gap-4 md:flex md:w-[320px] lg:w-[360px]">
           {/* Card 1: Contact Found */}
           <motion.div

@@ -113,7 +113,7 @@ export async function quickRegister(params: {
   const email = params.email.trim().toLowerCase();
   const fullName = (params.fullName || "").trim();
 
-  // Standing subscriber (upsert — keep the latest known name).
+  // Standing subscriber (upsert, keep the latest known name).
   await db.execute(sql`
     INSERT INTO webinar_standing_subscribers (email, full_name)
     VALUES (${email}, ${fullName})
@@ -283,7 +283,7 @@ export async function markRegistrationPaid(params: {
   return row ?? null;
 }
 
-/** Whether a registration has been paid for — drives the confirmation page. */
+/** Whether a registration has been paid for. Drives the confirmation page. */
 export async function getRegistrationPaymentStatus(
   orderId: string
 ): Promise<{ paid: boolean; fullName: string } | null> {

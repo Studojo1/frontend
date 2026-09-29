@@ -27,7 +27,7 @@ const strip = (t) => t.replace(/^\s*\/\/.*$/gm, "");
 const OFFENDERS = [
   {
     re: /user-scalable\s*=\s*(no|0)/i,
-    why: "user-scalable=no blocks pinch zoom — a WCAG 1.4.4 failure, and the thing people do when text is too small to read",
+    why: "user-scalable=no blocks pinch zoom: a WCAG 1.4.4 failure, and the thing people do when text is too small to read",
   },
   {
     // maximum-scale=1 is the same lockout wearing a different hat: iOS Safari
@@ -46,7 +46,7 @@ const OFFENDERS = [
 // type attribute defaults to text, so it counts too.
 const INPUT_RE = /<(?:textarea|select)\b[^>]*?\btext-(?:xs|sm)\b[^>]*>|<input\b(?![^>]*type=["'](?:checkbox|radio|hidden|submit|button|range|color|file)["'])[^>]*?\btext-(?:xs|sm)\b[^>]*>/gs;
 const INPUT_WHY =
-  "text field under 16px — iOS Safari force-zooms on focus and never zooms back";
+  "text field under 16px: iOS Safari force-zooms on focus and never zooms back";
 
 let bad = 0, scanned = 0;
 for (const f of files) {
@@ -72,7 +72,7 @@ for (const f of files) {
 const root = readFileSync(join(ROOT, "root.tsx"), "utf8");
 const meta = root.match(/<meta\s+name="viewport"\s+content="([^"]*)"/);
 if (!meta) {
-  console.log("  FAIL app/root.tsx\n       no viewport meta at all — every page renders at desktop width on a phone");
+  console.log("  FAIL app/root.tsx\n       no viewport meta at all: every page renders at desktop width on a phone");
   bad++;
 } else if (!/width=device-width/.test(meta[1])) {
   console.log(`  FAIL app/root.tsx\n       viewport is "${meta[1]}"\n       without width=device-width the page renders at 980px and is scaled down`);
@@ -84,4 +84,4 @@ if (bad) {
   console.log(`${bad} occurrence(s). See the mobile audit: zoom and the 16px input floor are load-bearing.`);
   process.exit(1);
 }
-console.log("mobile foundations intact — zoom enabled, viewport correct, no sub-16px inputs");
+console.log("mobile foundations intact: zoom enabled, viewport correct, no sub-16px inputs");

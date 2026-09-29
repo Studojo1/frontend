@@ -45,13 +45,13 @@ type WallCard =
 const WALL: WallCard[] = [
   { type: "tweet", n: "Priya Nair", h: "@priyabuilds", d: "May 24", v: false, q: "40 applications on job boards = total silence. one week on studojo = 3 replies from actual founders. the math isn't close", re: 5, rt: 6, lk: 41 },
   { type: "imsg", in: "a founder just replied to my message directly", out: "the studojo one?? told you to set it up", t: "11:47 PM" },
-  { type: "linkedin", n: "Karthik Menon", role: "Talent Lead · Seed-stage SaaS", deg: "2nd", q: "Got a note from a student via Studojo — tight, specific, clearly not a mass blast. Replied within the hour. More of this, please." },
+  { type: "linkedin", n: "Karthik Menon", role: "Talent Lead · Seed-stage SaaS", deg: "2nd", q: "Got a note from a student via Studojo: tight, specific, clearly not a mass blast. Replied within the hour. More of this, please." },
   { type: "tweet", n: "Devansh Rao", h: "@devansh_rao", d: "6d", v: true, q: "the outreach actually sounds like me, not a bot. recruiter wrote back that my note 'stood out'. still not over it", re: 2, rt: 4, lk: 33 },
   { type: "whatsapp", q: "ok studojo is lowkey unfair. two interview calls this week and I never touched a single job portal", t: "8:21 PM" },
   { type: "tweet", n: "Sara Qureshi", h: "@sara_q", d: "May 31", v: false, q: "months of getting ghosted, then one weekend on studojo and my inbox finally has real humans in it", re: 3, rt: 5, lk: 29 },
   { type: "imsg", in: "update: internship locked", out: "the role studojo dug up?? lets gooo", t: "4:02 PM" },
   { type: "whatsapp", q: "the follow-ups run on their own so I don't have to chase. woke up to a reply I never had to send twice", t: "7:58 AM" },
-  { type: "linkedin", n: "Hannah Lim", role: "CS @ NUS", deg: "2nd", q: "Four intro calls in my first week, all for roles I'd never have surfaced on a job board. Quietly impressed — sending this to my whole cohort." },
+  { type: "linkedin", n: "Hannah Lim", role: "CS @ NUS", deg: "2nd", q: "Four intro calls in my first week, all for roles I'd never have surfaced on a job board. Quietly impressed. Sending this to my whole cohort." },
   { type: "tweet", n: "Rohit Bansal", h: "@rohitships", d: "Jun 5", v: false, q: "done firing résumés into the void. studojo drops me straight into the right person's inbox. genuinely a different game", re: 4, rt: 7, lk: 38 },
 ];
 const WCOLORS = ["bg-studojo-purple", "bg-studojo-pink", "bg-studojo-green", "bg-studojo-orange", "bg-indigo-500", "bg-rose-500", "bg-teal-500"];
@@ -137,11 +137,11 @@ function WallOfLove() {
   );
 }
 
-// Dream-company chip — logo from a guessed domain, graceful fallback to name only.
+// Dream-company chip: logo from a guessed domain, graceful fallback to name only.
 function DreamChip({ name, domain }: { name: string; domain: string | null }) {
   // Same logo waterfall as FlashCard: Clearbit (crisp brand mark) → Google
   // favicon → hide. We ONLY guess "{name}.com" when no real domain is known
-  // from the user's actual leads — and even then we prefer to hide than show
+  // from the user's actual leads, and even then we prefer to hide than show
   // the wrong brand (e.g. swish.com is the Swedish payment app, not the
   // Indian food-delivery startup the user wants).
   const realDomain = domain || null;
@@ -243,7 +243,7 @@ export default function EnrichmentPage() {
     }
   }, [authLoading, recovering, candidateId, navigate]);
 
-  // Ensure an order record exists — create one if this is a fresh user
+  // Ensure an order record exists; create one if this is a fresh user
   useEffect(() => {
     if (!orderId && candidateId) {
       createOrder(candidateId);
@@ -499,9 +499,9 @@ export default function EnrichmentPage() {
       .catch(() => { /* no credits banner; pricing still works */ });
   }, []);
 
-  // Fetch dream companies for the "in the mix" bar (no Apollo — reads stored data).
+  // Fetch dream companies for the "in the mix" bar (no Apollo, reads stored data).
   // We also pull the user's actual leads so we can resolve each dream company's
-  // REAL domain (Apollo-verified) instead of guessing "{name}.com" — that guess
+  // REAL domain (Apollo-verified) instead of guessing "{name}.com"; that guess
   // grabs the wrong site for ambiguous names ("swish.com" is a Swedish payment
   // app, not the Indian food-delivery startup the candidate targeted).
   useEffect(() => {
@@ -751,7 +751,7 @@ export default function EnrichmentPage() {
         discountPct: match.discount_pct ?? null,
       };
     }
-    return { display: pricingState === "failed" ? "—" : "…", discounted: null, anchor: null, discountPct: null };
+    return { display: pricingState === "failed" ? "-" : "…", discounted: null, anchor: null, discountPct: null };
   };
 
   const selectedTierObj = TIERS.find((t) => t.value === selectedTier) ?? TIERS[0];
@@ -764,7 +764,7 @@ export default function EnrichmentPage() {
 
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-8">
 
-        {/* Header — back button gets its own row above the centered title so
+        {/* Header: back button gets its own row above the centered title so
             it reads as a distinct action, not as title-adjacent floating text. */}
         <div className="mb-5">
           <button
@@ -779,7 +779,7 @@ export default function EnrichmentPage() {
           Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
         </p>
 
-        {/* Dream companies — single-row horizontal scroll */}
+        {/* Dream companies: single-row horizontal scroll */}
         {dreamCompanies.length > 0 && (
           <div className="max-w-3xl mx-auto mb-8 rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-brutal">
             <p className="text-[11px] font-bold uppercase tracking-widest text-studojo-muted mb-3 text-center">Your dream companies are in the mix</p>

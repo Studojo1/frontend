@@ -97,7 +97,7 @@ export default function PartnersCheckout() {
 
   return (
     <div className="min-h-screen bg-neutral-50 font-['Satoshi']">
-      {/* Nav — consistent with dashboard */}
+      {/* Nav (consistent with dashboard) */}
       <nav className="border-b-2 border-neutral-900 bg-white px-6 py-4 flex items-center justify-between">
         <Link to="/partners" className="font-['Clash_Display'] text-xl font-bold text-neutral-900">
           Studojo Partners

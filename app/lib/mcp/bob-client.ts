@@ -60,7 +60,7 @@ export function stopRun(orgId: number, runId: number): Promise<BobResp<any>> {
 }
 
 /** Legacy: provision an ISOLATED org for a key with no Sensei account. No longer the
- *  default path — keys now bind to their owner's real workspace via resolveUser. */
+ *  default path: keys now bind to their owner's real workspace via resolveUser. */
 export function provisionOrg(
   keyRef: string,
   enrichmentCredits = 50,
@@ -112,7 +112,7 @@ export function enrichTable(orgId: number, tableId: number): Promise<BobResp<any
 /** Resolve a Sensei (app.studojo.com) session to its user + org + role. Used by the
  *  manager dashboard so a workspace admin can mint an MCP key for their OWN workspace
  *  without needing a separate studojo.com platform account. Authenticated by the
- *  caller's session token, NOT the gateway secret — bob-svc verifies it. */
+ *  caller's session token, NOT the gateway secret; bob-svc verifies it. */
 /** Bulk contact enrichment for a sourcing workspace. bob-svc enforces the
  *  capability, so a key whose org lacks it gets a 403 rather than a silent no-op. */
 export function sourcingEnrich(

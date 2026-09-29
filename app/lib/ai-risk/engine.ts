@@ -2374,7 +2374,7 @@ function inferFromKeywords(input: string): AnalysisResult {
   else if (/financ|accounting|audit|tax|bookkeep|payroll|actuar/.test(s)) { risk_pct = 65; timeline_years = 5; cluster = "finance"; }
   else if (/manag|direct|lead|vp|chief|head|president|founder|entrepreneur/.test(s)) { risk_pct = 32; timeline_years = 8; cluster = "leadership"; }
   else if (/trade|plumb|electric|construct|mechanic|hvac|weld|carpenter/.test(s)) { risk_pct = 14; timeline_years = 14; cluster = "trades"; }
-  // Extended fallback clusters — used when LLM is unavailable
+  // Extended fallback clusters, used when LLM is unavailable
   else if (/police|officer|detective|law enforce|security guard|bodyguard|sheriff|constable|patrol/.test(s)) { risk_pct = 22; timeline_years = 12; cluster = "trades"; }
   else if (/chef|cook|culinary|bartend|waiter|waitress|barista|restaurant|baker|pastry|hospitality|catering/.test(s)) { risk_pct = 20; timeline_years = 12; cluster = "trades"; }
   else if (/actor|actress|performer|musician|singer|dancer|comedian|entertainer|model|streamer|podcaster/.test(s)) { risk_pct = 28; timeline_years = 10; cluster = "creative"; }

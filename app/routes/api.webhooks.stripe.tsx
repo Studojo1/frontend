@@ -1,4 +1,4 @@
-// Stripe webhook — activates AutoApply on payment
+// Stripe webhook: activates AutoApply on payment
 // POST /api/webhooks/stripe
 
 import { eq } from "drizzle-orm";
@@ -84,7 +84,7 @@ async function handlePaymentSuccess(event: StripeEvent) {
   }
   // If no session row yet, it will be created when user submits li_at
 
-  console.log(`[stripe] Payment success — activated user ${userId} (${country}/${city})`);
+  console.log(`[stripe] Payment success: activated user ${userId} (${country}/${city})`);
 }
 
 async function handlePaymentFailed(event: StripeEvent) {
@@ -93,7 +93,7 @@ async function handlePaymentFailed(event: StripeEvent) {
   if (!userId) return;
 
   await db.update(autoapplyConfigs).set({ status: "paused" }).where(eq(autoapplyConfigs.userId, userId));
-  console.log(`[stripe] Payment failed — paused user ${userId}`);
+  console.log(`[stripe] Payment failed: paused user ${userId}`);
 }
 
 function parseLocation(location: string): { country: string; city: string } {

@@ -6,7 +6,7 @@ import { outreachFetch } from "./api";
 
 /**
  * Auth hook for outreach pages.
- * Uses the centralized BetterAuth session — no custom JWT exchange needed.
+ * Uses the centralized BetterAuth session, no custom JWT exchange needed.
  * Redirects to /auth (returning to the current page) if not authenticated.
  */
 export function useOutreachAuth(requireAuth = true) {
@@ -62,7 +62,7 @@ export function useOutreachAuth(requireAuth = true) {
         }
       })
       .catch(() => {
-        // No active order — fine
+        // No active order, fine
       })
       // Marked done only once the answer is in, so pages can wait for a
       // recovered candidateId instead of bouncing the user to upload.

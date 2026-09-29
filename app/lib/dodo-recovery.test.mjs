@@ -78,4 +78,4 @@ if (bad) {
   console.log(`\n${bad} broken link(s) in the Dodo recovery path.`);
   process.exit(1);
 }
-console.log("\ndodo recovery contract intact — an interrupted checkout can be picked up");
+console.log("\ndodo recovery contract intact: an interrupted checkout can be picked up");

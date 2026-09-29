@@ -22,23 +22,23 @@ interface TestEmail {
 }
 
 const TIMEZONES = [
-  { value: "America/Los_Angeles", label: "PST / PDT — US West Coast" },
-  { value: "America/Denver", label: "MST / MDT — US Mountain" },
-  { value: "America/Chicago", label: "CST / CDT — US Central" },
-  { value: "America/New_York", label: "EST / EDT — US East Coast" },
-  { value: "America/Toronto", label: "EST / EDT — Canada East" },
-  { value: "America/Vancouver", label: "PST / PDT — Canada West" },
-  { value: "Europe/London", label: "GMT / BST — United Kingdom" },
-  { value: "Europe/Dublin", label: "GMT / IST — Ireland" },
-  { value: "Europe/Paris", label: "CET / CEST — France" },
-  { value: "Europe/Berlin", label: "CET / CEST — Germany" },
-  { value: "Asia/Dubai", label: "GST — UAE" },
-  { value: "Asia/Kolkata", label: "IST — India" },
-  { value: "Asia/Singapore", label: "SGT — Singapore" },
-  { value: "Asia/Tokyo", label: "JST — Japan" },
-  { value: "Asia/Seoul", label: "KST — South Korea" },
-  { value: "Australia/Sydney", label: "AEST / AEDT — Australia East" },
-  { value: "Pacific/Auckland", label: "NZST / NZDT — New Zealand" },
+  { value: "America/Los_Angeles", label: "PST / PDT: US West Coast" },
+  { value: "America/Denver", label: "MST / MDT: US Mountain" },
+  { value: "America/Chicago", label: "CST / CDT: US Central" },
+  { value: "America/New_York", label: "EST / EDT: US East Coast" },
+  { value: "America/Toronto", label: "EST / EDT: Canada East" },
+  { value: "America/Vancouver", label: "PST / PDT: Canada West" },
+  { value: "Europe/London", label: "GMT / BST: United Kingdom" },
+  { value: "Europe/Dublin", label: "GMT / IST: Ireland" },
+  { value: "Europe/Paris", label: "CET / CEST: France" },
+  { value: "Europe/Berlin", label: "CET / CEST: Germany" },
+  { value: "Asia/Dubai", label: "GST: UAE" },
+  { value: "Asia/Kolkata", label: "IST: India" },
+  { value: "Asia/Singapore", label: "SGT: Singapore" },
+  { value: "Asia/Tokyo", label: "JST: Japan" },
+  { value: "Asia/Seoul", label: "KST: South Korea" },
+  { value: "Australia/Sydney", label: "AEST / AEDT: Australia East" },
+  { value: "Pacific/Auckland", label: "NZST / NZDT: New Zealand" },
 ];
 
 function getDefaultTimezone(): string {
@@ -75,7 +75,7 @@ export default function CampaignSetupPage() {
     { icon: <FiShield className="w-4 h-4" />, label: "First email", value: "Within 3 minutes of launch" },
   ];
 
-  // candidateId recovery is handled by useOutreachAuth hook — no duplicate needed here
+  // candidateId recovery is handled by useOutreachAuth hook, no duplicate needed here
 
   useEffect(() => {
     if (!candidateId) return;
@@ -290,7 +290,7 @@ export default function CampaignSetupPage() {
               <h3 className="font-clash text-lg font-bold text-studojo-ink">Sending Timezone</h3>
             </div>
             <p className="text-sm text-studojo-muted font-satoshi mb-4">
-              Emails go out 9am–5pm in this timezone. Set it to match where your recipients are located.
+              Emails go out 9am-5pm in this timezone. Set it to match where your recipients are located.
             </p>
             <select
               value={userTimezone}

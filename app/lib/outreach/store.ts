@@ -9,7 +9,7 @@ interface OutreachState {
   candidateId: number | null;
   setCandidateId: (id: number | null) => void;
 
-  // Profile data — cached from loading page so profile page renders instantly
+  // Profile data: cached from loading page so profile page renders instantly
   profileData: any | null;
   setProfileData: (data: any | null) => void;
 

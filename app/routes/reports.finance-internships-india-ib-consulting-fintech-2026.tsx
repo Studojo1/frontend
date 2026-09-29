@@ -236,7 +236,7 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
               <div className="sc-source">Studojo sector-weighting synthesis, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">Jan–Mar</div>
+              <div className="sc-num">Jan-Mar</div>
               <div className="sc-label">Peak offer window for most structured summer finance internships aligned with penultimate-year campus calendars at leading Indian universities</div>
               <div className="sc-source">Studojo hiring-calendar synthesis, 2026</div>
             </div>

@@ -10,7 +10,7 @@ import {
 } from "react-icons/fi";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Bob — placement intelligence workspace.
+// Bob: placement intelligence workspace.
 // Chat left, results right. Results default to company CARDS (a dossier per
 // company); a dense table view is one toggle away. Rows stream in live.
 // Backend: /api/v1/outreach/bob/*
@@ -162,7 +162,7 @@ export default function BobPage() {
 
   useEffect(() => {
     setMounted(true);
-    // Password-reset link (?reset=token) — show the set-new-password screen.
+    // Password-reset link (?reset=token): show the set-new-password screen.
     try {
       const p = new URLSearchParams(window.location.search);
       const rt = p.get("reset");
@@ -600,14 +600,14 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       let copied = false;
       try { await navigator.clipboard.writeText(link); copied = true; } catch { /* clipboard blocked (non-secure ctx / denied) */ }
       setNotice(copied
-        ? "Share link copied — send it to a teammate and it opens this chat in their workspace."
+        ? "Share link copied. Send it to a teammate and it opens this chat in their workspace."
         : `Share link: ${link}`);
     } catch (e) { handleError(e); }
   }, [handleError]);
 
   // Track whether the current chat is a throwaway (no messages, no tables) so we
   // can drop it the moment the user navigates away. An empty "New chat" is never
-  // worth persisting — this keeps the sidebar clean of blank entries.
+  // worth persisting: this keeps the sidebar clean of blank entries.
   const emptyRef = useRef<{ id: number | null; empty: boolean }>({ id: null, empty: true });
   useEffect(() => {
     emptyRef.current = { id: activeChat, empty: messages.length === 0 && tables.length === 0 };
@@ -673,7 +673,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             setTables(chat.tables || []);
           }
           loadChats();
-          loadCredits();          // a finished run charges AI credits — refresh
+          loadCredits();          // a finished run charges AI credits, so refresh
         }
       } catch (e) {
         handleError(e);
@@ -704,7 +704,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   }, []);
 
   const newChat = async () => {
-    // Don't create a server chat yet — an empty one is throwaway. Reset to the
+    // Don't create a server chat yet: an empty one is throwaway. Reset to the
     // empty state; the first message (or file) creates the chat lazily.
     await dropCurrentIfEmpty();
     setMessages([]);
@@ -796,7 +796,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       if (e instanceof BobError && e.status === 409) {
         alert("Sensei is still working on this chat. Wait for the current run to finish.");
       } else if (e instanceof BobError && e.status === 402) {
-        setNotice(e.message || "Out of AI credits. Buy enrichments to refill — each one includes a full search.");
+        setNotice(e.message || "Out of AI credits. Buy enrichments to refill. Each one includes a full search.");
         setMessages((m) => m.filter((x) => x.created_at !== "" || x.content !== content));
       } else {
         handleError(e);
@@ -844,7 +844,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   };
 
   // A tiered workspace has separate pools, so "enrich this" is not a default to
-  // assume — it is a question. These buttons used to post with no tier and the
+  // assume: it is a question. These buttons used to post with no tier and the
   // backend fell through to whatever the default was, which could drain a pool
   // the user never chose. Nothing is spent until they pick.
   const [pendingEnrich, setPendingEnrich] = useState<
@@ -906,7 +906,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   // exists), so the live-progress banner + provisional rows can show immediately.
   // A run is only SEARCHING once it has actually opened a table. Keying the
   // research UI off `running` alone made every run flash the split view, the
-  // neural-net panel and "about 10 min left" for a few seconds — including runs
+  // neural-net panel and "about 10 min left" for a few seconds, including runs
   // that were only going to come back with one clarifying question. create_table
   // is the first thing a real search does, so it is the honest signal.
   const searching = running && hasTables;
@@ -1018,7 +1018,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         .bob-dark .bg-\\[\\#faf7f2\\] { background:#131316 !important; }
         .bob-dark .bg-\\[\\#f4f0e8\\] { background:#161619 !important; }
         .bob-dark .text-neutral-900 { color:#e7e7ea !important; }
-        /* 700/800 are body/content text (table cells, chips) — keep them BRIGHT so
+        /* 700/800 are body/content text (table cells, chips): keep them BRIGHT so
            they don't camouflage on the dark surface (they were previously unmapped). */
         .bob-dark .text-neutral-800, .bob-dark .text-neutral-700 { color:#d4d4d8 !important; }
         .bob-dark .text-neutral-600, .bob-dark .text-neutral-500, .bob-dark .text-neutral-400, .bob-dark .text-neutral-300 { color:#9a9aa2 !important; }
@@ -1358,7 +1358,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             </div>
           )}
 
-          {/* Results — full-width Work view reuses the SAME rich table as the split view
+          {/* Results: full-width Work view reuses the SAME rich table as the split view
               (DenseTable = every column: fit score, city, hiring evidence, why now, what
               they do, ...), with its detail drawer, cards toggle and reduce-to-split. The
               old bespoke WorkGrid only showed company/contact/phone/email, so the Work
@@ -1421,7 +1421,7 @@ function groupMessages(msgs: any[]): MsgGroup[] {
 // One surface language for the whole workspace, so chat and results agree.
 // ── Brutalist design tokens (LOCKED, owner directive) ──────────────────────────────────────────
 // The Sensei look is a HARD black outline + solid offset shadow, never soft/thin. Do NOT flatten
-// these to shadow-sm / thin neutral-200 borders — that "calm design system" pass was reverted.
+// these to shadow-sm / thin neutral-200 borders: that "calm design system" pass was reverted.
 const BRUT = "border-2 border-neutral-900";
 const SHADOW = "shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]";
 const PRESS = "transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
@@ -1431,7 +1431,7 @@ const CARD = `bg-white ${BRUT} rounded-2xl ${SHADOW}`;
 // harvested/extracted/verified counts, "rejected at shortlist ... x673", pool caps, stage names)
 // must NEVER reach a user, so it is stripped HERE as well as at the source. Belt and braces: the
 // backend resume path used to answer with that raw report verbatim, and those messages are already
-// stored in chat history — this keeps them out of the UI even when re-read from the DB.
+// stored in chat history: this keeps them out of the UI even when re-read from the DB.
 const _INTERNAL_LINE =
   /^\s*(?:search|pipeline)\s+REPORT\b|^\s*harvested items:|^\s*opportunities:\s*extracted|^\s*rejected at\b|^\s*stopped:|^\s*stage\s|^\s*=== /i;
 
@@ -1543,7 +1543,7 @@ function CreditPill({ kind, value }: { kind: "enrichment" | "ai"; value: number 
   );
 }
 
-// Context.dev Logo Link — a real company logo for a domain, drawn from a free
+// Context.dev Logo Link: a real company logo for a domain, drawn from a free
 // CDN (a separate 10k/mo quota that does NOT touch our search credits) that
 // returns a generated monogram fallback when a domain has no logo. The
 // publicClientId is frontend-safe (locked to our allowlisted domains) and set
@@ -1956,7 +1956,7 @@ function EmptyChat() {
 
 // The pipeline stages, in order, with a friendly name and a rough share of the
 // total time (used to draw the progress bar). Sensei's raw logs say things like
-// "harvest(ring 0): done" — users shouldn't have to read that.
+// "harvest(ring 0): done"; users shouldn't have to read that.
 const RUN_STAGES = [
   { key: "plan", label: "Planning the search", weight: 0.05 },
   { key: "search", label: "Searching boards & LinkedIn", weight: 0.30 },
@@ -2128,7 +2128,7 @@ function FitChip({ fit }: { fit: number }) {
 }
 
 // The companies Sensei has already found this run (provisional opportunities, before
-// assemble writes the final rows), streamed in best-first — the live proof-of-work.
+// assemble writes the final rows), streamed in best-first: the live proof-of-work.
 function LiveCompanies({ run }: { run: Run }) {
   const reduce = useReducedMotion();
   const opp = run.opportunities;
@@ -2141,7 +2141,7 @@ function LiveCompanies({ run }: { run: Run }) {
         return {
           id: o.id,
           // Show the real company name, NOT company_norm (that's the lowercased, punctuation-stripped
-          // dedup KEY — "accentureinindia", "bnpparibas", "tvsd" — never a display name).
+          // dedup KEY, e.g. "accentureinindia", "bnpparibas", "tvsd", never a display name).
           name: str(o.cells.company) || o.company_norm || "Company",
           city: str(o.cells.city),
           website: str(o.cells.website),
@@ -2224,7 +2224,7 @@ function RunProgress({ run }: { run: Run }) {
   );
 }
 
-// A small stage badge for provisional rows — replaces the CRM status <select> and the
+// A small stage badge for provisional rows: replaces the CRM status <select> and the
 // Enrich button (which must never fire on a not-yet-shipped opportunity).
 function ProvChip({ status }: { status: string }) {
   const label = status === "contacted" ? "Shortlisting…"
@@ -2255,7 +2255,7 @@ function MissionControl({ run }: { run: Run }) {
   const lastEv = events[events.length - 1];
 
   // Progress theater (owner directive): ONLY the raw-harvest number is faked. The real raw harvest
-  // arrives in one ~5-min burst, reading as a dead 0 then a jump — so drive "Sourced" (+ the source
+  // arrives in one ~5-min burst, reading as a dead 0 then a jump, so drive "Sourced" (+ the source
   // chips) off a deterministic, per-run, ease-out ramp tuned to real magnitudes (~4.8-6.3k by ~5 min).
   // SHORTLISTED and KEPT stay REAL from the backend counters so they always match the rows actually
   // delivered in the table below (a faked kept would contradict the real output).
@@ -2297,7 +2297,7 @@ function MissionControl({ run }: { run: Run }) {
               </div>
               <p className="text-[13px] text-neutral-700 font-semibold mt-2">{lastEv ? humanizeEvent(lastEv) : RUN_STAGES[stageIdx].label}</p>
             </div>
-            {/* Only the time LEFT, bold — the elapsed timer had no value. It re-predicts as stages
+            {/* Only the time LEFT, bold: the elapsed timer had no value. It re-predicts as stages
                 complete (adaptive, capped, only counts down). */}
             <div className="text-right shrink-0 leading-none">
               {last ? (
@@ -2355,7 +2355,7 @@ function MissionControl({ run }: { run: Run }) {
           </div>
         </div>
 
-        {/* companies as they're found — the centerpiece */}
+        {/* companies as they're found: the centerpiece */}
         <div className={`${CARD} p-4 min-h-[128px]`}>
           {liveCount > 0 ? <LiveCompanies run={run} /> : (
             <div className="flex flex-col items-center justify-center text-center py-7 gap-2">
@@ -2374,7 +2374,7 @@ function MissionControl({ run }: { run: Run }) {
   );
 }
 
-// Live animated pipeline graph — a neural-network visual on the right panel while
+// Live animated pipeline graph: a neural-network visual on the right panel while
 // a run works and no rows have landed yet, so the user sees Sensei "thinking".
 const NN_LAYERS = [3, 5, 5, 4, 2];
 const NN_W = 320, NN_H = 200, NN_PADX = 26, NN_PADY = 22;
@@ -2479,7 +2479,7 @@ function ResultSummaryCard({ coach, onLever }: { coach: Coach; onLever: (message
   const sub = zero
     ? (binding ? `The tightest constraint was ${binding.label}. Loosen one to open it up:` : "This mandate was very tight. Try loosening one constraint:")
     : tight
-      ? (binding ? `A tight slice — ${binding.label} cost the most. One tap to get more:` : "A tight slice. One tap to get more:")
+      ? (binding ? `A tight slice: ${binding.label} cost the most. One tap to get more:` : "A tight slice. One tap to get more:")
       : (d.widened_to ? `Extended the posting window to ${d.widened_to} days to reach the count.` : "");
 
   return (
@@ -2555,7 +2555,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
   const view: ResultsView = viewPref ?? (displayRows.length > 5 ? "table" : "cards");
 
   // Provisional rows (negative id) must never trigger a PATCH/enrich/delete on a
-  // non-existent bob_row — guard every row action at the boundary.
+  // non-existent bob_row, so guard every row action at the boundary.
   const rowStatusG = (id: number, s: string) => { if (id >= 0) onRowStatus(id, s); };
   const enrichRowG = (id: number) => { if (id >= 0) onEnrichRow(id); };
   const deleteRowG = (id: number) => { if (id >= 0) onDeleteRow(id); };
@@ -2680,7 +2680,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
       {!run && coach && <ResultSummaryCard coach={coach} onLever={onLever} />}
 
       {/* Body */}
-      {/* While a run is ACTIVE, MissionControl owns the pane the whole time — companies stream into
+      {/* While a run is ACTIVE, MissionControl owns the pane the whole time: companies stream into
           its own live list, not a half-baked "In review…" provisional table. The real table only
           takes over once the run is DONE (run is null here). */}
       {run && (MISSION_CONTROL ? <MissionControl run={run} /> : <RunGraph run={run} />)}
@@ -2758,21 +2758,21 @@ function EnrichButton({ cells, onEnrich, size = "sm" }: {
     );
   if (status === "found")
     return (
-      <button onClick={(e) => { stop(e); onEnrich(); }} title="Contact found — click to re-run"
+      <button onClick={(e) => { stop(e); onEnrich(); }} title="Contact found. Click to re-run"
         className={`inline-flex items-center font-bold rounded-lg bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 ${pad}`}>
         <FiCheck size={10} /> Contact
       </button>
     );
   if (status === "not_found")
     return (
-      <button onClick={(e) => { stop(e); onEnrich(); }} title={str(cells._contact_note) || "No reachable contact found — click to retry"}
+      <button onClick={(e) => { stop(e); onEnrich(); }} title={str(cells._contact_note) || "No reachable contact found. Click to retry"}
         className={`inline-flex items-center font-bold rounded-lg bg-neutral-100 text-neutral-500 border border-neutral-300 hover:border-neutral-400 ${pad}`}>
         <FiSlash size={10} /> No contact
       </button>
     );
   if (status === "error")
     return (
-      <button onClick={(e) => { stop(e); onEnrich(); }} title={str(cells._contact_note) || "Enrichment failed — retry"}
+      <button onClick={(e) => { stop(e); onEnrich(); }} title={str(cells._contact_note) || "Enrichment failed. Retry"}
         className={`inline-flex items-center font-bold rounded-lg bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100 ${pad}`}>
         Retry
       </button>
@@ -2817,7 +2817,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
   const company = str(c.company) || `Company ${index + 1}`;
   const website = str(c.website);
   const domain = website ? domainOf(website) : "";
-  // LinkedIn/job-board URLs in the website field are not a real company site —
+  // LinkedIn/job-board URLs in the website field are not a real company site:
   // never use them for the favicon or a "website" chip.
   const websiteIsReal = !!domain && !NON_SITE_DOMAINS.test(domain);
   const meta = [str(c.city), str(c.size_band) !== "unknown" ? str(c.size_band) : ""].filter(Boolean).join(" · ");
@@ -3054,7 +3054,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
               </td>
               <td className="px-3 py-2.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                 {prov ? (
-                  <span className="text-neutral-300">—</span>
+                  <span className="text-neutral-300">-</span>
                 ) : str(r.cells.contact_name) ? (
                   <div className="min-w-0">
                     <div className="text-[12px] font-bold truncate max-w-[180px]">{str(r.cells.contact_name)}</div>

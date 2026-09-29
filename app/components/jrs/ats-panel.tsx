@@ -1,4 +1,4 @@
-// JRS ATS panel — paste a job description, score the resume against it.
+// JRS ATS panel: paste a job description, score the resume against it.
 import { useState } from "react";
 import { type ResumeData, resumeToText } from "~/lib/jrs/types";
 
@@ -83,7 +83,7 @@ export function AtsPanel({
       <div>
         <h3 className="font-bold text-neutral-900">ATS &amp; job-match check</h3>
         <p className="text-xs text-neutral-500 mt-0.5">
-          Paste a job description — we'll score how well your resume matches and show the gaps.
+          Paste a job description. We'll score how well your resume matches and show the gaps.
         </p>
       </div>
 
@@ -117,7 +117,7 @@ export function AtsPanel({
 
       {tailored && (
         <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-          Resume tailored to this job. Check the preview — every fact was kept,
+          Resume tailored to this job. Check the preview: every fact was kept,
           only the wording changed. Re-run "Analyse match" to see the new score.
         </p>
       )}
@@ -143,8 +143,8 @@ export function AtsPanel({
                 {result.score >= 75
                   ? "Strong match"
                   : result.score >= 50
-                    ? "Decent match — tighten it up"
-                    : "Weak match — needs work"}
+                    ? "Decent match, tighten it up"
+                    : "Weak match, needs work"}
               </p>
               <p className="text-xs text-neutral-500">
                 {result.matched.length} matched / {result.missing.length} missing keywords

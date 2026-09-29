@@ -327,13 +327,13 @@ export default function AIRiskPage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
 
       if (res.confidence === "high" || res.confidence === "medium") {
-        // Engine knows this role — its curated pivots are better than a small LLM's guess.
+        // Engine knows this role: its curated pivots are better than a small LLM's guess.
         // Use engine pivots immediately; no LLM call needed.
         if (res.pivots && res.pivots.length > 0) {
           setEnhancedPivots(enginePivotsToEnhanced(res.pivots, res.risk_pct));
           setPivotsLoading(false);
         } else {
-          // Engine matched but has no pivots (shouldn't happen) — fall to LLM
+          // Engine matched but has no pivots (shouldn't happen), fall to LLM
           fetchLLMPivots(res);
         }
       } else if (suggested_pivots && suggested_pivots.length > 0) {
@@ -341,7 +341,7 @@ export default function AIRiskPage() {
         setEnhancedPivots(suggested_pivots);
         setPivotsLoading(false);
       } else {
-        // Unknown role, no pre-generated pivots — ask LLM
+        // Unknown role, no pre-generated pivots: ask LLM
         fetchLLMPivots(res);
       }
     } catch {

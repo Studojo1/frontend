@@ -202,7 +202,7 @@ export default function Webinar() {
         return;
       }
 
-      // Already registered and paid for this webinar — nothing to charge.
+      // Already registered and paid for this webinar: nothing to charge.
       if (data.alreadyPaid) {
         setAlreadyPaid(true);
         setDone(true);

@@ -1,4 +1,4 @@
-// POST /api/tickets/:id/messages — user follow-up on their own ticket.
+// POST /api/tickets/:id/messages: user follow-up on their own ticket.
 // Refuses if the ticket is resolved/wont_fix or belongs to someone else.
 import type { Route } from "./+types/api.tickets.$id.messages";
 import { sql } from "drizzle-orm";

@@ -1,7 +1,7 @@
 // Reading, editing and sending an extension-created draft.
 //
 // Send is the only place a campaign is created. Until a student presses it,
-// no email exists anywhere in job-outreach-svc — which is the whole point of
+// no email exists anywhere in job-outreach-svc, which is the whole point of
 // the draft step.
 import { and, desc, eq } from "drizzle-orm";
 import db from "~/lib/db";
@@ -15,7 +15,7 @@ import type { Route } from "./+types/api.crm.drafts";
 
 const json = (data: unknown, status = 200) => Response.json(data, { status });
 
-// describeError lives in ~/lib/error-detail — shared, so every caller that
+// describeError lives in ~/lib/error-detail, shared so every caller that
 // renders an API error inherits the same handling.
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -72,7 +72,7 @@ export async function action({ request }: Route.ActionArgs) {
   // better than accepting the edit and silently doing nothing with it.
   //
   // "sending" is the exception. Every failure path sets the row back to
-  // "draft", but a process that dies mid-send cannot run its own catch — and
+  // "draft", but a process that dies mid-send cannot run its own catch, and
   // the row would then sit in "sending" forever, telling the student their
   // email "has already been sent" when it never left. That is both false and
   // unrecoverable, so a stale one is reclaimed.
@@ -159,7 +159,7 @@ export async function action({ request }: Route.ActionArgs) {
     // This used to call /campaign/create, which could do neither of those
     // things: it picks recipients with `Lead.candidate_id == candidate_id`
     // ordered by score (campaign_service.py:104), so lead_limit=1 emailed the
-    // student's top-scored EXISTING lead — a stranger — and it always
+    // student's top-scored EXISTING lead (a stranger), and it always
     // AI-generates, because blank selected_styles defaults to two styles
     // (routes_campaign.py:258-260), so the edited text was discarded.
     //
@@ -179,7 +179,7 @@ export async function action({ request }: Route.ActionArgs) {
       body: {
         // null, not "". The service now treats a missing name as "find me
         // someone at this company who hires for this role" rather than
-        // rejecting the request — a job page that names nobody is a property
+        // rejecting the request: a job page that names nobody is a property
         // of the job board, not a reason the student cannot reach the team.
         contact_name: draft.contactName || null,
         company: draft.company ?? "",
@@ -220,7 +220,7 @@ export async function action({ request }: Route.ActionArgs) {
     // Put it back to draft: a failed send must leave something to retry.
     // FastAPI returns `detail` as a STRING for our own HTTPExceptions but as
     // an ARRAY OF OBJECTS for request-validation failures. String() on the
-    // array produced "[object Object]" — which told the student nothing and
+    // array produced "[object Object]", which told the student nothing and
     // told me nothing either, hiding the actual cause for a full round trip.
     const raw = describeError(e).slice(0, 500);
     const status = Number(e?.status) || 0;
@@ -252,7 +252,7 @@ export async function action({ request }: Route.ActionArgs) {
       no_contact_found: { message: detail },
       // The service-side kill switch. Not an error the student caused, so it
       // says so plainly rather than blaming their draft.
-      send_paused: { message: "Sending is paused right now. Your draft is saved — try again shortly." },
+      send_paused: { message: "Sending is paused right now. Your draft is saved. Try again shortly." },
       lookup_unavailable: { message: detail },
       lookup_failed: { message: detail },
       send_failed: { message: detail },
@@ -266,7 +266,7 @@ export async function action({ request }: Route.ActionArgs) {
       {
         error: "send_failed",
         status,
-        message: raw ? `Couldn't send: ${raw}` : "Couldn't send just now — try again.",
+        message: raw ? `Couldn't send: ${raw}` : "Couldn't send just now. Try again.",
       },
       502,
     );

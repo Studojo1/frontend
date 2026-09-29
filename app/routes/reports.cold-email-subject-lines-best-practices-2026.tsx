@@ -236,12 +236,12 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
               <div className="sc-source">{"Boomerang email behaviour survey, synthesised in Studojo framework, 2025"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"2–3×"}</div>
+              <div className="sc-num">{"2-3×"}</div>
               <div className="sc-label">{"Typical open-rate lift when the subject contains a specific, accurate detail about the recipient versus a generic opener"}</div>
               <div className="sc-source">{"Studojo outreach signal synthesis, 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"4–7"}</div>
+              <div className="sc-num">{"4-7"}</div>
               <div className="sc-label">{"Word count sweet spot for first-touch subjects: specific enough to signal intent, short enough to display fully on mobile"}</div>
               <div className="sc-source">{"Studojo subject line playbook, 2026"}</div>
             </div>

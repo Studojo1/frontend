@@ -68,7 +68,7 @@ export type OrgResult = { ok: true; orgId: number } | { ok: false; error: string
 /** The Sensei workspace this key acts on. Resolution order:
  *   1. an explicit mapping (set when the key was generated from the manager dashboard);
  *   2. otherwise the workspace the key's OWNER EMAIL already belongs to, which is then
- *      remembered — so a key issued anywhere still lands in the right place.
+ *      remembered, so a key issued anywhere still lands in the right place.
  *  It deliberately NO LONGER creates a workspace. Inventing one gave the agent an empty
  *  world with its own credit pool that never matched the app; a key with no Sensei
  *  account is an error the caller can act on instead. */

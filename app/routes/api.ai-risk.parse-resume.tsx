@@ -1,7 +1,7 @@
 /**
  * POST /api/ai-risk/parse-resume
  *
- * Public (no auth required) — extracts job title from an uploaded resume PDF.
+ * Public (no auth required): extracts job title from an uploaded resume PDF.
  * Used by the AI Risk page so unauthenticated users can upload their resume.
  *
  * Flow:
@@ -11,7 +11,7 @@
  */
 
 import type { Route } from "./+types/api.ai-risk.parse-resume";
-// @ts-ignore — pdf-parse has type defs via @types/pdf-parse
+// @ts-ignore - pdf-parse has type defs via @types/pdf-parse
 import pdfParse from "pdf-parse";
 
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://ollama.staging.svc.cluster.local:11434";
@@ -125,7 +125,7 @@ export async function action({ request }: Route.ActionArgs) {
     return Response.json({ error: "File too large. Max 10MB." }, { status: 400 });
   }
 
-  // Accept PDF and Word docs — for non-PDF, we can only do basic text
+  // Accept PDF and Word docs; for non-PDF, we can only do basic text
   const isPDF =
     file.type === "application/pdf" ||
     file.name.toLowerCase().endsWith(".pdf");

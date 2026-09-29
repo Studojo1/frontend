@@ -47,14 +47,14 @@ const CSS = `
 .cc-root #cc-float-logo,.cc-root .hook-logo,.cc-root .chat-setup-header-title,
 .cc-root .scard h3,.cc-root .xp-hero-role,.cc-root .xp-dash-name,
 .cc-root .commit-q,.cc-root .hook-stat,.cc-root #cc-ready-pop .rp-title{font-family:"Clash Display",ui-sans-serif,system-ui,sans-serif;}
-/* Light-only theme — matches the rest of studojo (Satoshi body, brand violet,
+/* Light-only theme: matches the rest of studojo (Satoshi body, brand violet,
    brutalist border + shadow). Dark mode has been removed; the chat now reads
    as part of the main app, not a separate product. */
 .cc-root{--bg-primary:#FAFAF7;--bg-secondary:#F2F1ED;--bg-white:#FFFFFF;--bg-raised:#F6F5F1;--text-primary:#0E0E12;--text-secondary:#52525B;--text-muted:#9CA3AF;--border:#E5E5EA;--border-light:rgba(0,0,0,0.08);--shadow-c:rgba(25,26,35,1);--accent-purple:#7C3AED;--accent-purple-muted:#6D28D9;--accent-lavender:#7C3AED;--accent-glow:rgba(124,58,237,0.30);--accent-light:#F1ECFE;--success:#10B981;--warning:#F59E0B;--gradient-primary:#7C3AED;--gradient-soft:linear-gradient(135deg,rgba(124,58,237,0.10) 0%,rgba(196,181,253,0.04) 100%);--sidebar-w:580px;height:calc(100dvh - 64px);font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;display:flex;flex-direction:column;}
 @media (min-width: 768px) { .cc-root { height: calc(100dvh - 96px); } }
 /* Main app Header provides the studojo logo and avatar dropdown above
    the chat surface. The floating logo / floating avatar inside the chat
-   are hidden — they were duplicates from when this was a standalone page. */
+   are hidden (they were duplicates from when this was a standalone page). */
 #cc-float-logo{display:none;}
 #cc-user-wrap{display:none;}
 .cc-dot{display:none;}
@@ -114,7 +114,7 @@ const CSS = `
 .msg-time{font-size:10px;color:var(--text-muted);margin-top:4px;}
 .report-link-btn{align-self:flex-start;margin-top:5px;background:none;border:none;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.7rem;font-weight:600;color:var(--text-muted);cursor:pointer;text-decoration:underline;padding:0;}
 .report-link-btn:hover{color:var(--accent-purple);}
-/* Inline Resume Maker upload button — hides the raw URL */
+/* Inline Resume Maker upload button: hides the raw URL */
 .rm-upload-btn{display:flex;align-items:center;gap:11px;margin-top:10px;padding:11px 14px;background:var(--accent-light);border:2px solid var(--accent-purple);border-radius:14px;text-decoration:none;color:var(--text-primary);box-shadow:3px 3px 0 var(--shadow-c);transition:all 0.15s;}
 .rm-upload-btn:hover{transform:translateY(-1px);box-shadow:5px 5px 0 var(--shadow-c);}
 .rm-upload-icon{font-size:1.2rem;flex-shrink:0;}
@@ -142,7 +142,7 @@ const CSS = `
 #cc-pending-resume .pr-remove{background:none;border:none;color:var(--text-secondary);font-size:1rem;cursor:pointer;padding:0 4px;line-height:1;font-family:inherit;}
 #cc-pending-resume .pr-remove:hover{color:var(--text-primary);}
 #cc-pending-resume .pr-remove:disabled{opacity:0.4;cursor:not-allowed;}
-/* Profiling progress strip — sits above the input during PROFILING */
+/* Profiling progress strip: sits above the input during PROFILING */
 #cc-profile-progress{flex-shrink:0;margin:0 22px 4px;padding:10px 14px;background:var(--accent-light);border:2px solid var(--accent-purple);border-radius:12px;box-shadow:3px 3px 0 var(--shadow-c);}
 #cc-profile-progress .pf-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;}
 #cc-profile-progress .pf-msg{font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.82rem;font-weight:700;color:var(--text-primary);line-height:1.35;}
@@ -152,7 +152,7 @@ const CSS = `
 #cc-profile-progress .pf-idle{margin-top:7px;font-size:0.74rem;color:var(--text-secondary);line-height:1.4;}
 #cc-profile-progress .pf-skip{margin-top:8px;background:none;border:none;padding:0;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;font-size:0.76rem;font-weight:700;color:var(--accent-purple);}
 #cc-profile-progress .pf-skip:hover{text-decoration:underline;}
-/* PREMIUM INPUT AREA — translucent surface, soft border, integrated attach
+/* PREMIUM INPUT AREA: translucent surface, soft border, integrated attach
    + send, suggestion chips floating above, glow-on-focus halo. */
 #cc-input-area{flex-shrink:0;background:transparent;border-top:none;padding:10px 22px 18px;display:flex;flex-direction:column;gap:10px;}
 /* placeholder for the cycling ghost-text suggestion in the textarea */
@@ -244,7 +244,7 @@ const CSS = `
 .stat-box:nth-child(4){background:#EFF6FF;border-color:#93C5FD;}
 .stat-box .sb-num{font-size:1.5rem;font-weight:800;line-height:1;}
 .stat-box .sb-label{font-size:0.68rem;color:var(--text-secondary);margin-top:4px;font-weight:600;}
-/* interactive roadmap step — expands on hover */
+/* interactive roadmap step: expands on hover */
 .rm-step{border:2px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:10px;background:var(--bg-raised);box-shadow:3px 3px 0 var(--shadow-c);cursor:pointer;transition:all 0.18s ease;}
 .rm-step:hover{box-shadow:5px 5px 0 var(--accent-purple);transform:translateY(-1px);}
 .rm-step-head{display:flex;gap:11px;align-items:flex-start;}
@@ -283,7 +283,7 @@ const CSS = `
 #cc-ready-pop .rp-btns{display:flex;gap:8px;}
 #cc-ready-pop .rp-open{flex:1;background:var(--gradient-primary);color:white;border:2px solid var(--border);border-radius:999px;padding:7px 12px;font-weight:700;font-size:0.76rem;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
 #cc-ready-pop .rp-later{background:var(--bg-secondary);color:var(--text-primary);border:2px solid var(--border);border-radius:999px;padding:7px 12px;font-weight:700;font-size:0.76rem;cursor:pointer;font-family:"Satoshi",ui-sans-serif,system-ui,sans-serif;}
-/* skills-unlocked banner — appears at bottom of screen after weekly check-in */
+/* skills-unlocked banner: appears at bottom of screen after weekly check-in */
 #cc-skills-unlocked{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(160px);z-index:500;background:var(--bg-raised);border:2px solid var(--accent-purple);border-radius:18px;box-shadow:6px 6px 0 rgba(139,92,246,0.35);padding:18px 20px;width:min(420px,92vw);opacity:0;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease;}
 #cc-skills-unlocked.show{transform:translateX(-50%) translateY(0);opacity:1;}
 #cc-skills-unlocked .su-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
@@ -459,7 +459,7 @@ const CSS = `
   #cc-chat-col{padding:8px;}
   .xp-grid2{grid-template-columns:1fr;}
   .xp-statrow{grid-template-columns:1fr 1fr;}
-  /* hide the floating "Hide panel" pill on mobile — it overlaps the panel's
+  /* hide the floating "Hide panel" pill on mobile: it overlaps the panel's
      own tab pills. The in-panel "Close" button replaces it. */
   #cc-float-toggle{display:none;}
   .side-tab .tab-full{display:none;}
@@ -498,7 +498,7 @@ type CtaKind = "analysis" | "roadmap" | "dashboard" | "history";
 // optional www, trailing slash or path tail.
 const RESUME_MAKER_RE = /(?:https?:\/\/)?(?:www\.)?studojo\.com\/resume-maker[^\s)]*/gi;
 
-// Known studojo tool/dojo links the agent mentions — rendered as a button
+// Known studojo tool/dojo links the agent mentions, rendered as a button
 // instead of a raw URL. Each entry: a matcher regex, the button label, an icon,
 // and the canonical href.
 const STUDOJO_LINK_BUTTONS: { re: RegExp; label: string; icon: string; href: string }[] = [
@@ -523,7 +523,7 @@ function renderBubbleText(text: string) {
   const hasResumeUrl = RESUME_MAKER_RE.test(t);
   RESUME_MAKER_RE.lastIndex = 0;
   if (hasResumeUrl) {
-    t = t.replace(/[\s:,\-—.]*(here\s*[:\-]?\s*)?(?:https?:\/\/)?(?:www\.)?studojo\.com\/resume-maker[^\s)]*/gi, "").trim();
+    t = t.replace(/[\s:,\-\u2014.]*(here\s*[:\-]?\s*)?(?:https?:\/\/)?(?:www\.)?studojo\.com\/resume-maker[^\s)]*/gi, "").trim();
     t = t.replace(/\s{2,}/g, " ").replace(/[\s,;.]+$/, "");
   }
 
@@ -619,7 +619,7 @@ export default function CcChat() {
     }
   }, [sessionPending, session]);
 
-  // theme toggle — persisted per authenticated user, falls back to a shared key
+  // theme toggle: persisted per authenticated user, falls back to a shared key
   // for unauthenticated sessions. Default is dark to match the existing look.
   const themeStorageKey = session?.user?.email
     ? `studojo_cc_theme:${session.user.email}`
@@ -677,7 +677,7 @@ export default function CcChat() {
 
   // Profiling auto-open: when profiling starts we auto-open the analysis panel
   // so the student watches their Career Analysis build live. If they close it,
-  // we re-open it on their next answer — up to 5 times — then stop forcing it
+  // we re-open it on their next answer (up to 5 times), then stop forcing it
   // and instead make the "Show panel" button pulse to draw attention.
   const profileAutoOpenCountRef = useRef(0);
   const [pulseShowPanel, setPulseShowPanel] = useState(false);
@@ -687,7 +687,7 @@ export default function CcChat() {
   const analysisAnnouncedRef = useRef(false);
 
   // Live profiling progress (drives the progress strip above the input that
-  // tells students how close they are to their Career DNA — reduces drop-off).
+  // tells students how close they are to their Career DNA; reduces drop-off).
   const [profileProgress, setProfileProgress] = useState<{
     pct: number; areas: Record<string, any>; dnaReady: boolean; canSkip: boolean;
   } | null>(null);
@@ -762,7 +762,7 @@ export default function CcChat() {
   // copy is state-aware: analysis/roadmap turns do heavier work, so say so.
   useEffect(() => {
     // Only while genuinely awaiting the first reply (last bubble is the user's).
-    // appendAgentBubbles toggles `waiting` between split bubbles — don't flash
+    // appendAgentBubbles toggles `waiting` between split bubbles, so don't flash
     // the status text during those short inter-bubble pauses.
     const lastIsUser = messages.length > 0 && messages[messages.length - 1].role === "user";
     if (!waiting || resumeUploading || resumeStatusMsg || !lastIsUser) { setThinkingMsg(null); return; }
@@ -864,7 +864,7 @@ export default function CcChat() {
     const sid = studentIdRef.current;
     if (!sid || !convId) return;
     if (convId === conversationIdRef.current) {
-      // Already viewing this thread — just close the panel
+      // Already viewing this thread: just close the panel
       setSidebarOpen(false);
       return;
     }
@@ -932,13 +932,13 @@ export default function CcChat() {
   }
 
   // During PROFILING, keep the live Career Analysis in front of the student.
-  // Refresh its data each turn; auto-open it to "analysis" if it's closed —
-  // up to 5 times total — then stop forcing it and pulse the Show-panel button.
+  // Refresh its data each turn; auto-open it to "analysis" if it's closed
+  // (up to 5 times total), then stop forcing it and pulse the Show-panel button.
   function maybeAutoOpenAnalysis(state: string) {
     if (state !== "PROFILING") return;
     refreshSidebar();
     if (sidebarOpenRef.current) {
-      // It's open — make sure it's showing the analysis panel.
+      // It's open: make sure it's showing the analysis panel.
       if (panel !== "analysis") setPanel("analysis");
       return;
     }
@@ -947,7 +947,7 @@ export default function CcChat() {
       setPanel("analysis");
       toggleSidebar(true);
     } else {
-      // Stop forcing — nudge them with a pulsing button instead.
+      // Stop forcing: nudge them with a pulsing button instead.
       setPulseShowPanel(true);
     }
   }
@@ -961,13 +961,13 @@ export default function CcChat() {
 
   // ---- session init ----
   // Wait until the auth check has resolved AND the student is logged in before
-  // starting a coach session — login is required to use the tool.
+  // starting a coach session; login is required to use the tool.
   useEffect(() => {
     if (initDone.current) return;
     if (sessionPending || !session) return;
     initDone.current = true;
 
-    // Skip the hook overlay — go straight to chat.
+    // Skip the hook overlay, go straight to chat.
     hookDismissedRef.current = true;
     const existingId = localStorage.getItem(STORAGE_KEY);
 
@@ -986,7 +986,7 @@ export default function CcChat() {
         localStorage.setItem(STORAGE_KEY, sd.student_id);
         if (sd.session_token) { try { localStorage.setItem(SESSION_TOKEN_KEY, sd.session_token); } catch { /* ignore */ } }
 
-        // "Get my Career DNA" CTAs pass ?new=1 — start a FRESH chat thread
+        // "Get my Career DNA" CTAs pass ?new=1: start a FRESH chat thread
         // instead of resuming history. The prior conversation stays in history.
         const wantsNew = new URLSearchParams(window.location.search).get("new") === "1";
         if (wantsNew) {
@@ -1015,7 +1015,7 @@ export default function CcChat() {
         }
 
         if (sd.returning && sd.history?.length > 0) {
-          // Hook stays visible — student dismisses it themselves. We just
+          // Hook stays visible; student dismisses it themselves. We just
           // load the history in the background so it is ready when they enter.
           setHeaderHidden(true);
           setReturning(true);
@@ -1189,7 +1189,7 @@ export default function CcChat() {
 
     if (!content && !resumeFile) return;
 
-    // Show the user bubble immediately — never block on upload before rendering
+    // Show the user bubble immediately; never block on upload before rendering
     const displayContent = resumeFileName
       ? `📎 ${resumeFileName}${content ? `\n\n${content}` : ""}`
       : content;
@@ -1224,7 +1224,7 @@ export default function CcChat() {
       };
       try {
         let upRes = await uploadOnce();
-        // Retry once on a transient (5xx / network) — but NOT on a 4xx, which is
+        // Retry once on a transient (5xx / network), but NOT on a 4xx, which is
         // a real "this file can't be read" answer we should show the student.
         if (!upRes.ok && upRes.status >= 500) {
           await new Promise(r => setTimeout(r, 1500));
@@ -1234,7 +1234,7 @@ export default function CcChat() {
           const upData = await upRes.json().catch(() => ({}));
           resumeWasParsed = Array.isArray(upData?.fields_extracted) && upData.fields_extracted.length > 0;
         } else if (upRes.status >= 400 && upRes.status < 500) {
-          // e.g. scanned image / not a resume — surface the backend's message.
+          // e.g. scanned image / not a resume: surface the backend's message.
           const errData = await upRes.json().catch(() => ({}));
           uploadReason = errData?.detail || "I couldn't read that file. You can keep answering in the chat instead.";
         }
@@ -1244,7 +1244,7 @@ export default function CcChat() {
       clearInterval(msgInterval);
       setResumeStatusMsg(null);
       setResumeUploading(false);
-      // If the file couldn't be parsed, tell the student plainly and stop here —
+      // If the file couldn't be parsed, tell the student plainly and stop here;
       // don't send a misleading "I uploaded my resume" turn the agent can't honour.
       if (uploadReason && !content) {
         setWaiting(false);
@@ -1270,7 +1270,7 @@ export default function CcChat() {
       // Send the chat with resilient retries. Transient failures (a pod
       // restart during a deploy, a brief DB hiccup, or the backend still
       // committing a freshly-parsed resume) resolve within a few seconds, so we
-      // retry the SAME conversation with backoff before ever giving up — the
+      // retry the SAME conversation with backoff before ever giving up. The
       // student should never hit a dead end for a passing blip.
       const postChat = () => fetch(`${CC_API}/api/chat`, {
         method: "POST",
@@ -1290,7 +1290,7 @@ export default function CcChat() {
         data = res.ok ? await res.json().catch(() => null) : null;
       }
       if (!res.ok || !data) throw new Error("HTTP " + res.status);
-      // If still a technical error with no message_id, the session is stale —
+      // If still a technical error with no message_id, the session is stale:
       // fall through to the catch for full session recovery.
       if (data.reply === "i'm having a small technical issue, give me a moment and try again" && !data.message_id) {
         throw new Error("stale session detected");
@@ -1326,7 +1326,7 @@ export default function CcChat() {
         analysisAnnouncedRef.current = false;
       }
       if (["DNA_REVIEW", "ROADMAP", "ONGOING_SUPPORT", "DNA_CORRECTION"].includes(state)) {
-        // Fire the DNA_REVIEW notification immediately — before awaiting the sidebar fetch.
+        // Fire the DNA_REVIEW notification immediately, before awaiting the sidebar fetch.
         if (state === "DNA_REVIEW" && !analysisAnnouncedRef.current) {
           analysisAnnouncedRef.current = true;
           if (sidebarOpenRef.current) openSidebarTo("analysis");
@@ -1404,7 +1404,7 @@ export default function CcChat() {
         }
         setMessages(prev => [...prev, {
           role: "agent",
-          content: "I couldn't get that through just now — give it a couple of seconds and tap send again. Your message is still in the box.",
+          content: "I couldn't get that through just now. Give it a couple of seconds and tap send again. Your message is still in the box.",
           time: now12h(),
         }]);
       }
@@ -1464,7 +1464,7 @@ export default function CcChat() {
   const pp = sidebarData?.primary_path;
   const dnaReady = !!(pp && pp.dna_id);
 
-  // "X% better than people in your industry" — primary source is the new
+  // "X% better than people in your industry": primary source is the new
   // industry_percentile_score column. Falls back to the benchmark's stored
   // percentile, then to the legacy readiness number (multiplied) so old
   // DNAs still render something.
@@ -1477,7 +1477,7 @@ export default function CcChat() {
     const r = pp?.readiness_score || 0;
     return Math.min(95, Math.max(5, Math.round(r * 0.9)));
   }
-  // Level info — what bar the student is currently working toward.
+  // Level info: what bar the student is currently working toward.
   function currentLevel(): { num: number; name: string } {
     const n = (pp?.level as number) || 1;
     const name = n === 1 ? "Industry-Ready" : n === 2 ? "Well-Rounded" : "Standout";
@@ -1503,7 +1503,7 @@ export default function CcChat() {
     const directionPct = typeof d.direction_confidence_pct === "number" ? d.direction_confidence_pct : 0;
     // Skeleton + live-fill: always render the full Career Analysis layout. Each
     // tile shows its real value once detected, or a greyed "skeleton" placeholder
-    // while the coach is still learning it — so the student sees the SHAPE of what
+    // while the coach is still learning it, so the student sees the SHAPE of what
     // they're building and watches it fill in as they answer.
     const wrapClass = expanded ? "xp ds-wrap" : "ds-wrap";
     const Tile = ({ label, body, wide, hint, chips, chipClass }: {
@@ -1558,14 +1558,14 @@ export default function CcChat() {
 
         <div className="ds-footer">
           <span className="ds-pulse" />
-          {d.has_resume ? "Resume parsed. Career DNA generates after a few more exchanges." : "Career DNA generates after a few more exchanges — or upload your resume to fast-track it."}
+          {d.has_resume ? "Resume parsed. Career DNA generates after a few more exchanges." : "Career DNA generates after a few more exchanges, or upload your resume to fast-track it."}
         </div>
       </div>
     );
   }
 
   function renderAnalysis(expanded: boolean) {
-    // Fresh "explore a new direction" chat — old analysis is intentionally not
+    // Fresh "explore a new direction" chat: old analysis is intentionally not
     // carried over. Show a clean prompt instead of the previous path's DNA.
     if (sidebarData?.fresh_explore) {
       return (
@@ -1575,7 +1575,7 @@ export default function CcChat() {
             {sidebarData.message || "Tell the coach the new direction you want to explore and a fresh Career Analysis will build here."}
           </div>
           <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 14 }}>
-            Your previous analysis is safe — switch back anytime from Chat History.
+            Your previous analysis is safe. Switch back anytime from Chat History.
           </div>
         </div>
       );
@@ -2052,7 +2052,7 @@ export default function CcChat() {
     }));
     const milestonesDone = milestones.filter((m: any) => m.done).length;
 
-    // PROGRESS TRACKER — the core of the dashboard. Bars and milestones, not boxes.
+    // PROGRESS TRACKER: the core of the dashboard. Bars and milestones, not boxes.
     const tracker = (
       <>
         <div className={expanded ? "xp-card" : "scard"}>
@@ -2326,7 +2326,7 @@ export default function CcChat() {
           </button>
         )}
 
-        {/* PROFILE MENU — only shown when authenticated. Mirrors the main
+        {/* PROFILE MENU: only shown when authenticated. Mirrors the main
             platform header pattern so the dropdown layout matches. */}
         {session && !sidebarExpanded && (
           <div id="cc-user-wrap" ref={userMenuRef}>
@@ -2506,8 +2506,8 @@ export default function CcChat() {
                   {toolNudge && (() => {
                     const nudgeConfig: Record<string, { icon: string; title: string; sub: string; href: string; cta: string }> = {
                       resume_maker: { icon: "📄", title: "Build your resume first", sub: "Your Career DNA shows gaps that a strong resume can cover. Use the free Resume Maker to get a recruiter-ready resume.", href: "https://studojo.com/resume-maker", cta: "Open Resume Maker →" },
-                      internship_dojo: { icon: "🎯", title: "Find your first internship", sub: "Browse live internship listings curated for Indian students — no login, no spam.", href: "https://studojo.com/dojos/internships?page=1", cta: "Browse Internship Dojo →" },
-                      outreach_dojo: { icon: "📬", title: "Reach out to hiring managers directly", sub: "Job boards get 2% reply rates. Personalised outreach gets 10-15%. Your DNA is ready — let's put it to work.", href: "https://studojo.com/outreach", cta: "See Outreach Dojo →" },
+                      internship_dojo: { icon: "🎯", title: "Find your first internship", sub: "Browse live internship listings curated for Indian students. No login, no spam.", href: "https://studojo.com/dojos/internships?page=1", cta: "Browse Internship Dojo →" },
+                      outreach_dojo: { icon: "📬", title: "Reach out to hiring managers directly", sub: "Job boards get 2% reply rates. Personalised outreach gets 10-15%. Your DNA is ready. Let's put it to work.", href: "https://studojo.com/outreach", cta: "See Outreach Dojo →" },
                       skill_building: { icon: "🛠️", title: "Close your skill gaps first", sub: "Your roadmap has the exact skills to build. Check your analysis for the fastest path.", href: "#", cta: "View your roadmap →" },
                     };
                     const cfg = nudgeConfig[toolNudge] || nudgeConfig["skill_building"];
@@ -2540,9 +2540,9 @@ export default function CcChat() {
                     || (pct >= 100 ? 0 : Math.max(1, Math.round((100 - pct) / 17)));
                   let msg: string;
                   if (profileProgress.dnaReady) msg = "Building your Career DNA now…";
-                  else if (pct < 25) msg = "Just getting started — tell me your degree and the role you're aiming for.";
+                  else if (pct < 25) msg = "Just getting started. Tell me your degree and the role you're aiming for.";
                   else if (pct < 55) msg = "Good progress. A few more answers and I can build your Career DNA.";
-                  else if (pct < 85) msg = `Almost there — ${left} quick thing${left === 1 ? "" : "s"} left and your Career DNA is ready.`;
+                  else if (pct < 85) msg = `Almost there: ${left} quick thing${left === 1 ? "" : "s"} left and your Career DNA is ready.`;
                   else msg = "One more answer and your full Career Analysis unlocks.";
                   return (
                     <div id="cc-profile-progress">
@@ -2552,7 +2552,7 @@ export default function CcChat() {
                       </div>
                       <div className="pf-bar-track"><div className="pf-bar-fill" style={{ width: `${pct}%` }} /></div>
                       {idleHint && !profileProgress.dnaReady && (
-                        <div className="pf-idle">You're {pct}% of the way to your Career DNA — just keep going, this is quick.</div>
+                        <div className="pf-idle">You're {pct}% of the way to your Career DNA. Just keep going, this is quick.</div>
                       )}
                       {profileProgress.canSkip && !profileProgress.dnaReady && (
                         <button className="pf-skip" onClick={() => sendMsg("I'm ready, show my analysis")}>
@@ -2580,7 +2580,7 @@ export default function CcChat() {
                       placeholder={
                         pendingResume
                           ? "Add a note about your resume, or just hit send..."
-                          : (chips[ghostIdx] ? `e.g. ${chips[ghostIdx]} — Tab to use` : "Ask about internships, resumes, outreach...")
+                          : (chips[ghostIdx] ? `e.g. ${chips[ghostIdx]} (Tab to use)` : "Ask about internships, resumes, outreach...")
                       }
                       rows={1}
                       onKeyDown={(e: any) => {
@@ -2659,7 +2659,7 @@ export default function CcChat() {
           </aside>
         </div>
 
-        {/* ANALYSIS-READY POPUP — only when panel is collapsed */}
+        {/* ANALYSIS-READY POPUP: only when panel is collapsed */}
         <div id="cc-ready-pop" className={readyPopVisible && !sidebarOpen ? "show" : ""}>
           <div className="rp-title">Your Career Analysis is ready</div>
           <div className="rp-sub">See how you compare to top performers and what to do next.</div>
@@ -2701,7 +2701,7 @@ export default function CcChat() {
                   setSkillsUnlocked(null);
                   setMessages(prev => [...prev, {
                     role: "agent",
-                    content: `You don't have a resume on file yet. Head to the Resume Maker and build one — or upload your existing PDF — and I'll be able to push your new skills straight into it after your next weekly check-in.`,
+                    content: `You don't have a resume on file yet. Head to the Resume Maker and build one (or upload your existing PDF) and I'll be able to push your new skills straight into it after your next weekly check-in.`,
                     time: now12h(),
                   }]);
                   window.open("https://studojo.com/resume-maker", "_blank");

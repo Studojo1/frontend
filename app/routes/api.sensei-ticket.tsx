@@ -1,4 +1,4 @@
-// POST /api/sensei-ticket — support ticket from a Sensei workspace user.
+// POST /api/sensei-ticket: support ticket from a Sensei workspace user.
 //
 // Sensei users authenticate through bob-svc (email + opaque session), NOT
 // through better-auth, so they can't use /api/tickets (which requires a
@@ -62,7 +62,7 @@ export async function action({ request }: Route.ActionArgs) {
         ? body.context.page_url
         : null,
   };
-  // Sensei has no studojo user_id — use a stable synthetic id so the ticket's
+  // Sensei has no studojo user_id; use a stable synthetic id so the ticket's
   // per-user history still groups correctly.
   const userId = `sensei:${email}`;
   const userName = org || email;

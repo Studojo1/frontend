@@ -42,7 +42,7 @@ export async function mintExtensionToken(userId: string): Promise<string> {
 /** Distinguishes "no valid token" from "we could not check".
  *
  *  Both used to return null, so an unreachable Redis was reported to the
- *  student as "sign in" — they signed in, it failed again, and nothing
+ *  student as "sign in": they signed in, it failed again, and nothing
  *  explained why. Never authorise on an error; just say which error it is. */
 export type TokenResult =
   | { userId: string }
@@ -72,7 +72,7 @@ export async function resolveExtensionTokenDetailed(
     await redis.expire(KEY(token), TOKEN_TTL);
     return { userId };
   } catch (e) {
-    // Redis down. NOT authorised — but not "signed out" either. Telling a
+    // Redis down. NOT authorised, but not "signed out" either. Telling a
     // student to sign in when they already are sends them round a loop that
     // cannot succeed.
     console.error("[extension-auth] token store unreachable:", e);
@@ -93,7 +93,7 @@ export async function revokeExtensionToken(token: string): Promise<void> {
 /* ------------------------------------------------------------------ CORS */
 /**
  * The extension's origin is `chrome-extension://<id>`, and on Firefox
- * `moz-extension://<uuid>` where the UUID is generated PER INSTALL — so it
+ * `moz-extension://<uuid>` where the UUID is generated PER INSTALL, so it
  * cannot be allowlisted. We therefore accept any extension-scheme origin and
  * rely on the bearer token as the real authentication.
  */

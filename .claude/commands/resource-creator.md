@@ -1,10 +1,10 @@
-# Resource Creator — Studojo Market Report Skill
+# Resource Creator: Studojo Market Report Skill
 
 Use this skill to build a new Studojo market report from scratch. It covers research, writing, data, charts, code, and deployment.
 
 ---
 
-## Step 1 — Research the market
+## Step 1: Research the market
 
 Before writing any code, research the topic thoroughly. Use WebSearch to gather:
 
@@ -23,23 +23,23 @@ Target: 8 findings, each backed by at least one named, dateable source.
 
 ---
 
-## Step 2 — Plan the 8 findings
+## Step 2: Plan the 8 findings
 
 Structure findings in this order:
-1. **Market size + geography** — total openings, city distribution, YoY growth
-2. **Salary gap** — range by sector (not average), why the same job title pays very differently
-3. **Role growth** — which sub-roles are growing vs shrinking (YoY %)
-4. **Who's hiring** — two dominant pipelines (e.g. FMCG vs SaaS), what each tests
-5. **Skill gap** — what JDs ask for vs what freshers arrive knowing; the one fixable gap
-6. **Employability / readiness** — % job-ready, top interview failure reasons
-7. **Variable pay** — base + variable at target across sectors; questions to ask before accepting
-8. **Career trajectories** — two paths, side-by-side year 0 to year 5
+1. **Market size + geography**: total openings, city distribution, YoY growth
+2. **Salary gap**: range by sector (not average), why the same job title pays very differently
+3. **Role growth**: which sub-roles are growing vs shrinking (YoY %)
+4. **Who's hiring**: two dominant pipelines (e.g. FMCG vs SaaS), what each tests
+5. **Skill gap**: what JDs ask for vs what freshers arrive knowing; the one fixable gap
+6. **Employability / readiness**: % job-ready, top interview failure reasons
+7. **Variable pay**: base + variable at target across sectors; questions to ask before accepting
+8. **Career trajectories**: two paths, side-by-side year 0 to year 5
 
 Each finding needs: a stat row, at least one chart or bar list, prose, a callout, and a source line.
 
 ---
 
-## Step 3 — Create the route file
+## Step 3: Create the route file
 
 File: `app/routes/reports.[topic]-[country]-[year].tsx`
 Example: `app/routes/reports.sales-india-2026.tsx`
@@ -92,7 +92,7 @@ function initCharts() {
     new Chart(el, config);
   }
 
-  // Charts go here — see chart patterns below
+  // Charts go here (see chart patterns below)
 }
 
 export default function [Topic][Country]Report() {
@@ -110,7 +110,7 @@ export default function [Topic][Country]Report() {
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
       <main>
-        {/* Hero, findings, CTAs — see structure below */}
+        {/* Hero, findings, CTAs: see structure below */}
       </main>
       <Footer />
     </>
@@ -210,7 +210,7 @@ if (el && !el.dataset.rendered) {
 }
 ```
 
-### HTML structure — one finding
+### HTML structure: one finding
 
 ```tsx
 <div className="rpt-finding">
@@ -307,7 +307,7 @@ if (el && !el.dataset.rendered) {
 
 ---
 
-## Step 4 — Register the route
+## Step 4: Register the route
 
 In `app/routes.ts`, add inside the route list:
 
@@ -319,7 +319,7 @@ Place it directly after the other reports lines.
 
 ---
 
-## Step 5 — Add the card to the reports listing
+## Step 5: Add the card to the reports listing
 
 In `app/routes/reports.tsx`, add to the `REPORTS` array (new reports go first):
 
@@ -339,7 +339,7 @@ In `app/routes/reports.tsx`, add to the `REPORTS` array (new reports go first):
 
 ---
 
-## Step 6 — Writing rules
+## Step 6: Writing rules
 
 - No em dashes anywhere. Use `:` `,` `.` or `(parentheses)` instead.
 - All CTAs point to `/outreach` (not `/dojos/internships`).
@@ -352,7 +352,7 @@ In `app/routes/reports.tsx`, add to the `REPORTS` array (new reports go first):
 
 ---
 
-## Step 7 — Deploy
+## Step 7: Deploy
 
 ```bash
 # Always staging first
@@ -367,7 +367,7 @@ git push origin staging
 
 ## Full CSS block
 
-Copy this into the `rptCSS` constant at the bottom of the route file. Do not modify it — it is the shared design system for all reports.
+Copy this into the `rptCSS` constant at the bottom of the route file. Do not modify it. It is the shared design system for all reports.
 
 ```css
 .rpt-hero { background:#171717; color:#fff; padding:56px 24px 48px; }

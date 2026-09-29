@@ -1,4 +1,4 @@
-// POST /api/enrich/bulk — submit up to 500 LinkedIn profiles, get a job_id.
+// POST /api/enrich/bulk: submit up to 500 LinkedIn profiles, get a job_id.
 import type { Route } from "./+types/api.enrich.bulk";
 import { guard, json } from "~/lib/api-guard.server";
 import { enginesConfigured } from "~/lib/enrich.server";

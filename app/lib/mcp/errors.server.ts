@@ -44,7 +44,7 @@ const MESSAGE: Record<Code, string> = {
   [CODE.INTERNAL_ERROR]: "Something went wrong on our side. Please retry shortly.",
 };
 
-/** Codes that mean OUR side is unhealthy — these page ops. The rest are ordinary
+/** Codes that mean OUR side is unhealthy: these page ops. The rest are ordinary
  *  client-side outcomes (bad input, not found, out of credits) and are only logged. */
 const ALERTABLE = new Set<Code>([
   CODE.SERVICE_UNAVAILABLE,

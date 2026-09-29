@@ -1,8 +1,8 @@
 // Outreach campaign CRUD
-// GET /api/autoapply/campaigns — list campaigns
-// POST /api/autoapply/campaigns — create campaign
-// PATCH /api/autoapply/campaigns — update status (pause/resume)
-// DELETE /api/autoapply/campaigns — delete campaign
+// GET /api/autoapply/campaigns: list campaigns
+// POST /api/autoapply/campaigns: create campaign
+// PATCH /api/autoapply/campaigns: update status (pause/resume)
+// DELETE /api/autoapply/campaigns: delete campaign
 
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { eq, and } from "drizzle-orm";

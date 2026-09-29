@@ -1,5 +1,5 @@
 // GET /api/autoapply/session/status
-// Lightweight poll endpoint — returns whether a LinkedIn session is saved for the
+// Lightweight poll endpoint: returns whether a LinkedIn session is saved for the
 // current user. Used by the LKOT page to detect when the extension has fired.
 
 import { getSessionFromRequest } from "~/lib/onboarding.server";

@@ -213,7 +213,7 @@ export function HumanizerDojoPage() {
       // Create payment order - pass job_type for humanizer to ensure proper pricing
       const orderRes = await createPaymentOrder(price, "humanizer");
 
-      // ── Dodo Payments (international) — redirect to checkout ──
+      // ── Dodo Payments (international): redirect to checkout ──
       if (orderRes.provider === "dodo" && orderRes.checkout_url) {
         // Store context so payment-success page can resume
         localStorage.setItem("dodo_pending_job_type", "humanizer");
@@ -223,7 +223,7 @@ export function HumanizerDojoPage() {
         return;
       }
 
-      // ── Razorpay (India) — modal checkout ──
+      // ── Razorpay (India): modal checkout ──
       await openRazorpayCheckout({
         key: orderRes.key_id!,
         amount: orderRes.amount!,
@@ -304,10 +304,10 @@ export function HumanizerDojoPage() {
 
   return (
     <div className="w-full bg-white">
-      {/* Hero – full width, below header, rounded corners, floating cards */}
+      {/* Hero: full width, below header, rounded corners, floating cards */}
       <section className="w-full">
         <div className="relative flex min-h-[420px] w-full flex-col items-center justify-center gap-6 rounded-b-2xl bg-amber-500 px-4 py-16 md:min-h-[400px] md:gap-8 md:py-20">
-          {/* Floating cards – left & right, animate across, opacity 0.2 */}
+          {/* Floating cards: left & right, animate across, opacity 0.2 */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-between overflow-visible px-4 md:px-12 lg:px-16">
             <div className="hidden opacity-20 md:block">
               <FloatingCardA />

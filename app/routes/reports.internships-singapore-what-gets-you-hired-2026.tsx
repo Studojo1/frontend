@@ -236,7 +236,7 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
               <div className="sc-source">Studojo sector-weighting synthesis, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">10–12 wk</div>
+              <div className="sc-num">10-12 wk</div>
               <div className="sc-label">Typical duration for formal summer or term-break programmes at large employers; boutique teams may run shorter but higher-touch stints</div>
               <div className="sc-source">Studojo programme-length synthesis, 2026</div>
             </div>

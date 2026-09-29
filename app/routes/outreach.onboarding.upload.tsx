@@ -108,7 +108,7 @@ export default function UploadPage() {
       // Custom event, kept alongside the mapped Lead: it is the activation-rate
       // numerator in Meta's UI. Never optimise against it.
       trackMeta("ResumeUploaded");
-      // Uploading a resume IS using Outreach — fire the used signal now (the
+      // Uploading a resume IS using Outreach: fire the used signal now (the
       // earliest "they're using the tool" moment), not only at quiz completion.
       if (user?.id) {
         import("~/lib/events").then(({ publishEmailEventFromClient }) => {

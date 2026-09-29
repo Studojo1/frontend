@@ -4,7 +4,7 @@
  * Consumes the "extension-outreach" job that api.extension.apply.tsx enqueues
  * when a student clicks "Apply through Studojo" on a job board.
  *
- * THE EFFICIENCY POINT — why this exists separately from runOutreachStep:
+ * THE EFFICIENCY POINT: why this exists separately from runOutreachStep:
  * when the extension already read a named contact off the page the student was
  * looking at, we must NOT pay to discover that person again. runOutreachStep
  * launches headless Chromium through a residential proxy and loads the
@@ -45,7 +45,7 @@ export interface ExtensionOutreachJob {
 
 export interface ExtensionOutreachResult {
   status:
-    | "queued_prefilled"    // contact came from the page — no lookup needed
+    | "queued_prefilled"    // contact came from the page, no lookup needed
     | "queued_discovered"   // we searched and found someone
     | "no_contact_found"
     | "duplicate"
@@ -136,8 +136,8 @@ export async function runExtensionOutreach(
   // This used to call scrapePeopleAtCompany, which drives LinkedIn's private
   // Voyager API through a proxy using the student's own session cookie. It was
   // the ONLY caller of that function outside the LinkedIn-automation subsystem
-  // — the real outreach tool never used it, sourcing leads server-side through
-  // /campaign/create instead.
+  // (the real outreach tool never used it, sourcing leads server-side through
+  // /campaign/create instead).
   //
   // Running a second, riskier lead-discovery system for this one path is not
   // worth the account-restriction exposure, so it is gone. A job page with no

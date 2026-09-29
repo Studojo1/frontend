@@ -136,7 +136,7 @@ export async function runOutreachStep(contactId: string): Promise<{ status: stri
     await browser.close();
 
     if (result.status === "replied") {
-      // Person replied — mark done, cancel follow-up
+      // Person replied: mark done, cancel follow-up
       await db.update(outreachContacts).set({
         replied: true,
         status: "replied",
@@ -166,7 +166,7 @@ async function sendConnectionRequest(page: any, contact: any, session: any, rate
   try {
     await page.goto(contact.linkedinUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
 
-    // Wait for LinkedIn SPA to render — domcontentloaded fires before h1/buttons appear
+    // Wait for LinkedIn SPA to render: domcontentloaded fires before h1/buttons appear
     await page.waitForSelector("h1, .pv-text-details__left-panel, .artdeco-card", { timeout: 10_000 }).catch(() => {});
     await page.waitForTimeout(1500);
 
@@ -183,13 +183,13 @@ async function sendConnectionRequest(page: any, contact: any, session: any, rate
     const [senderRow] = await db.select({ name: userTable.name }).from(userTable).where(eq(userTable.id, contact.userId)).limit(1);
     const senderName = senderRow?.name ?? "Job seeker";
 
-    // Try to click Connect — handles standard profile, 2nd-degree, and Creator Mode
+    // Try to click Connect: handles standard profile, 2nd-degree, and Creator Mode
     const connectClicked = await clickConnectButton(page);
     if (!connectClicked) return { status: "skipped", error: "no_connect_button" };
 
     await page.waitForTimeout(1500);
 
-    // "Add a note" modal — optionally attach personalized note
+    // "Add a note" modal: optionally attach personalized note
     const addNoteBtn = await page.$('button[aria-label*="Add a note"]');
     if (addNoteBtn) {
       await addNoteBtn.click();
@@ -235,7 +235,7 @@ async function sendConnectionRequest(page: any, contact: any, session: any, rate
   }
 }
 
-// Click the Connect button — handles standard profiles AND Creator Mode (More → Connect)
+// Click the Connect button: handles standard profiles AND Creator Mode (More → Connect)
 async function clickConnectButton(page: any): Promise<boolean> {
   // Strategy 1: aria-label with "Invite" + "connect"
   const inviteBtn = await page.$('button[aria-label*="Invite"][aria-label*="connect"]').catch(() => null);
@@ -256,7 +256,7 @@ async function clickConnectButton(page: any): Promise<boolean> {
   });
   if (directClicked) return true;
 
-  // Strategy 3: Creator Mode — click "More" then "Connect" in dropdown
+  // Strategy 3: Creator Mode, click "More" then "Connect" in dropdown
   const moreClicked = await page.evaluate(() => {
     const btns = [...document.querySelectorAll("button")].slice(0, 20);
     const more = btns.find((b) => b.textContent?.trim() === "More");
@@ -297,7 +297,7 @@ async function sendIntroMessage(page: any, contact: any, rateLimited: boolean): 
 async function sendFollowUp(page: any, contact: any, rateLimited: boolean): Promise<{ status: string; error?: string }> {
   if (rateLimited) return { status: "skipped", error: "rate_limited" };
 
-  // Check for a reply before sending follow-up — skip if they already replied
+  // Check for a reply before sending follow-up, skip if they already replied
   const hasReplied = await checkForReply(page, contact);
   if (hasReplied) return { status: "replied" };
 
@@ -366,7 +366,7 @@ async function sendLinkedInMessage(page: any, contact: any, message: string): Pr
     if (!msgBox) return { status: "skipped", error: "not_connected_yet" };
 
     await msgBox.click({ force: true });
-    // type() with per-character delay — triggers LinkedIn's input events + looks human
+    // type() with per-character delay: triggers LinkedIn's input events + looks human
     await page.keyboard.type(message, { delay: 40 + Math.random() * 80 });
     await jitterMs(600, 1200);
 
@@ -469,7 +469,7 @@ async function checkForReply(page: any, contact: any): Promise<boolean> {
       await item.click({ force: true });
       await page.waitForTimeout(1500);
 
-      // Get all messages in the thread — check if any are from the other person
+      // Get all messages in the thread, check if any are from the other person
       // LinkedIn marks sent messages with .msg-s-message-list__event--sent
       // and received messages without that class
       const hasReply = await page.evaluate(() => {

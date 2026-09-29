@@ -62,7 +62,7 @@ export function ApplicationFlow({
       setPreviousResumes(uploads);
       // On first open, pre-select the most recently used resume so the
       // candidate can submit immediately. On post-upload refreshes we leave
-      // the current selection alone — the upload handler already set it.
+      // the current selection alone: the upload handler already set it.
       if (preselect && uploads.length > 0) {
         const latest = uploads[0];
         setResume({

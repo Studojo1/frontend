@@ -26,7 +26,7 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
   const selectedOpts = selected.map((label) => options.find((o) => o.label === label)).filter(Boolean) as MCQOption[];
   const hasVagueSelected = selectedOpts.some(requiresDetail);
 
-  // Only show the text box when a vague/other option is selected — not for every selection
+  // Only show the text box when a vague/other option is selected, not for every selection
   const showExtraInput = hasVagueSelected;
 
   useEffect(() => {
@@ -49,9 +49,9 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
   const handleSubmit = () => {
     if (selected.length === 0) return;
 
-    // Build answers as separate array entries — never concatenate with " — ".
-    // Concatenation produced compound strings like "Bengaluru — Remote internationally"
-    // and "Software Engineer — AI Engineer" that broke downstream classifiers.
+    // Build answers as separate array entries; never concatenate with an em dash (" \u2014 ").
+    // Concatenation produced compound strings like "Bengaluru \u2014 Remote internationally"
+    // and "Software Engineer \u2014 AI Engineer" that broke downstream classifiers.
     const answers: string[] = [];
     selected.forEach((label) => {
       const opt = options.find((o) => o.label === label);
@@ -60,7 +60,7 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
         return;
       }
       if (requiresDetail(opt) && extraText.trim()) {
-        // Vague option (e.g., "Other") — replace label with typed text. Two
+        // Vague option (e.g., "Other"): replace label with typed text. Two
         // vague options share the one box, so push the text only once, or the
         // student's answer arrives as "their text, their text".
         if (!answers.includes(extraText.trim())) answers.push(extraText.trim());
@@ -122,7 +122,7 @@ export function MCQSelector({ question, options, allowMultiple, onSubmit, loadin
         })}
       </div>
 
-      {/* Text box appears for every selection — required for vague options, optional otherwise */}
+      {/* Text box appears for every selection: required for vague options, optional otherwise */}
       {showExtraInput && (
         <div className="animate-in fade-in slide-in-from-top-1 duration-150">
           <input

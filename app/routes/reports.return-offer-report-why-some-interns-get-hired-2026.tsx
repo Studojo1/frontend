@@ -268,7 +268,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               <div className="sc-source">{"NACE intern conversion surveys and employer cohort data, synthesised 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"Week 4–5"}</div>
+              <div className="sc-num">{"Week 4-5"}</div>
               <div className="sc-label">{"When many managers form a preliminary keep-or-pass view, before the final presentation most interns optimize for"}</div>
               <div className="sc-source">{"Studojo hiring-manager interview synthesis, 2025 to 2026"}</div>
             </div>
@@ -482,7 +482,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
                 <div className="sec-sub">{"Control the controllables, hedge the rest"}</div>
               </div>
             </div>
-            <p>{"Week 1: clarify conversion process, success metrics, and communication norms. Set a recurring Friday update. Week 2: deliver a small visible win. Week 3: request specific feedback. Week 4: mid-internship check-in with manager on return-offer criteria. Weeks 5–6: cross-functional visibility and documented impact. Week 7: parallel job or internship pipeline active regardless of vibes. Week 8: final demo focused on decisions enabled, not activity logged."}</p>
+            <p>{"Week 1: clarify conversion process, success metrics, and communication norms. Set a recurring Friday update. Week 2: deliver a small visible win. Week 3: request specific feedback. Week 4: mid-internship check-in with manager on return-offer criteria. Weeks 5-6: cross-functional visibility and documented impact. Week 7: parallel job or internship pipeline active regardless of vibes. Week 8: final demo focused on decisions enabled, not activity logged."}</p>
             <p>{"Throughout: keep a brag doc with metrics, quotes, and artifacts. If you get a return offer, negotiate role scope and start date. If you do not, ask what would have changed the outcome and request a referral to adjacent teams. Exit with relationships intact."}</p>
 
             <div className="highlight">{"<strong>Summary insight:</strong> Win return offers by combining strong work, low-friction management, visible impact, and parallel options when headcount is not yours to command."}</div>

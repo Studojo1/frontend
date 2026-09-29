@@ -3,7 +3,7 @@ import db from "~/lib/db";
 import { sql } from "drizzle-orm";
 import type { Route } from "./+types/api.attribution";
 
-/** POST /api/attribution — record where the signed-in user originally came from.
+/** POST /api/attribution: record where the signed-in user originally came from.
  *
  * Written once per user, on first touch. A second call is ignored rather than
  * overwriting, so a later organic visit cannot take credit from the ad click

@@ -7,7 +7,7 @@ export function meta({}: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "The Studojo B2B API delivers 200 verified hiring manager contacts per candidate run — complete with personalised outreach intel. Build hiring intelligence into your product.",
+        "The Studojo B2B API delivers 200 verified hiring manager contacts per candidate run, complete with personalised outreach intel. Build hiring intelligence into your product.",
     },
   ];
 }
@@ -15,7 +15,7 @@ export function meta({}: Route.MetaArgs) {
 const FEATURES = [
   {
     title: "200 leads per run",
-    desc: "Every run returns exactly 200 verified hiring managers — scored, ranked, and ready to use.",
+    desc: "Every run returns exactly 200 verified hiring managers: scored, ranked, and ready to use.",
   },
   {
     title: "Verified emails",
@@ -23,15 +23,15 @@ const FEATURES = [
   },
   {
     title: "Personalised outreach intel",
-    desc: "Each lead comes with a connection point, outreach angle, suggested opening, and timing rationale — written by AI for the specific candidate.",
+    desc: "Each lead comes with a connection point, outreach angle, suggested opening, and timing rationale, all written by AI for the specific candidate.",
   },
   {
     title: "Webhook delivery",
-    desc: "Get notified the moment a job completes. Or poll the status endpoint — your call.",
+    desc: "Get notified the moment a job completes. Or poll the status endpoint. Your call.",
   },
   {
-    title: "10–15 min per run",
-    desc: "Full discovery, scoring, web research, and email enrichment — delivered in under 15 minutes.",
+    title: "10-15 min per run",
+    desc: "Full discovery, scoring, web research, and email enrichment. Delivered in under 15 minutes.",
   },
   {
     title: "₹7.5 per lead",
@@ -82,7 +82,7 @@ export default function PartnersLanding() {
           into your product.
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-600">
-          The Studojo API delivers 200 verified hiring manager contacts per candidate run — complete with
+          The Studojo API delivers 200 verified hiring manager contacts per candidate run, complete with
           personalised outreach intel. Drop it into your platform and let your users start reaching decision-makers
           in minutes.
         </p>
@@ -151,7 +151,7 @@ export default function PartnersLanding() {
             Five intel fields. Per lead.
           </h2>
           <p className="mb-10 text-neutral-500">
-            Every lead includes structured outreach intelligence — not just contact data.
+            Every lead includes structured outreach intelligence, not just contact data.
           </p>
           <div className="space-y-3">
             {INTEL_FIELDS.map((item, i) => (

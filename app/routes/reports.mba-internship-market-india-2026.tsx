@@ -236,7 +236,7 @@ export default function Report_MbaInternshipMarketIndia2026() {
               <div className="sc-source">Studojo sector-weighting synthesis, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">Jan–Apr</div>
+              <div className="sc-num">Jan-Apr</div>
               <div className="sc-label">Peak offer window for most structured MBA summer internships aligned with first-year MBA calendars at leading Indian business schools</div>
               <div className="sc-source">Studojo hiring-calendar synthesis, 2026</div>
             </div>

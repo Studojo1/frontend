@@ -29,7 +29,7 @@ const STEPS = [
   },
 ];
 
-// Wall of Love — mixed authentic "screenshots": X, iMessage, WhatsApp, LinkedIn.
+// Wall of Love - mixed authentic "screenshots": X, iMessage, WhatsApp, LinkedIn.
 type WallItem =
   | { type: "tweet"; n: string; h: string; d: string; v: boolean; q: string; re: number; rt: number; lk: number }
   | { type: "imsg"; in: string; out: string; t: string }
@@ -38,13 +38,13 @@ type WallItem =
 const WALL: WallItem[] = [
   { type: "tweet", n: "Priya Nair", h: "@priyabuilds", d: "May 24", v: false, q: "40 applications on job boards = total silence. one week on studojo = 3 replies from actual founders 💀 the math isn't close", re: 5, rt: 6, lk: 41 },
   { type: "imsg", in: "a founder just replied to my message directly 😭", out: "the studojo one?? told you to set it up", t: "11:47 PM" },
-  { type: "linkedin", n: "Karthik Menon", role: "Talent Lead · Seed-stage SaaS", deg: "2nd", q: "Got a note from a student via Studojo — tight, specific, clearly not a mass blast. Replied within the hour. More of this, please." },
+  { type: "linkedin", n: "Karthik Menon", role: "Talent Lead · Seed-stage SaaS", deg: "2nd", q: "Got a note from a student via Studojo: tight, specific, clearly not a mass blast. Replied within the hour. More of this, please." },
   { type: "tweet", n: "Devansh Rao", h: "@devansh_rao", d: "6d", v: true, q: "the outreach actually sounds like me, not a bot. recruiter wrote back that my note 'stood out' :D still not over it", re: 2, rt: 4, lk: 33 },
   { type: "whatsapp", q: "ok studojo is lowkey unfair. two interview calls this week and I never touched a single job portal", t: "8:21 PM" },
   { type: "tweet", n: "Sara Qureshi", h: "@sara_q", d: "May 31", v: false, q: "months of getting ghosted, then one weekend on studojo and my inbox finally has real humans in it", re: 3, rt: 5, lk: 29 },
   { type: "imsg", in: "wait the internship is locked?? 🔒", out: "the role studojo dug up?? lets gooo", t: "4:02 PM" },
   { type: "whatsapp", q: "the follow-ups run on their own so I don't have to chase. woke up to a reply I never had to send twice <3", t: "7:58 AM" },
-  { type: "linkedin", n: "Hannah Lim", role: "CS @ NUS", deg: "2nd", q: "Four intro calls in my first week, all for roles I'd never have surfaced on a job board. Quietly impressed — sending this to my whole cohort." },
+  { type: "linkedin", n: "Hannah Lim", role: "CS @ NUS", deg: "2nd", q: "Four intro calls in my first week, all for roles I'd never have surfaced on a job board. Quietly impressed. Sending this to my whole cohort." },
   { type: "tweet", n: "Rohit Bansal", h: "@rohitships", d: "Jun 5", v: false, q: "done firing résumés into the void. studojo drops me straight into the right person's inbox 🙌 genuinely a different game", re: 4, rt: 7, lk: 38 },
 ];
 const WALL_ROW_A = WALL.slice(0, Math.ceil(WALL.length / 2));
@@ -335,7 +335,7 @@ export default function OutreachLanding() {
         </div>
       </section>
 
-      {/* Wall of Love — dynamic marquee */}
+      {/* Wall of Love: dynamic marquee */}
       <section className="border-b-2 border-studojo-ink bg-studojo-surface-muted overflow-hidden">
         <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-16 md:px-8 md:py-24">
           <div className="text-center mb-10">

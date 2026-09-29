@@ -4,7 +4,7 @@ import { Header, Footer } from "~/components";
 const BASE_URL = "https://studojo.com";
 
 // Every playbook we've published. To add another for a future webinar, just add
-// one entry here and drop its PDF into /public — the page handles the rest.
+// one entry here and drop its PDF into /public; the page handles the rest.
 const PLAYBOOKS = [
   {
     id: "career-clarity",
@@ -39,7 +39,7 @@ const PLAYBOOKS = [
 export function meta() {
   return [
     { title: "The Studojo Playbooks | Studojo" },
-    { name: "description", content: "The Studojo playbooks — step-by-step guides to using your toolkit to land interviews and internships." },
+    { name: "description", content: "The Studojo playbooks: step-by-step guides to using your toolkit to land interviews and internships." },
     { name: "robots", content: "noindex, follow" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/playbook` },
     { property: "og:type", content: "website" },
