@@ -18,7 +18,7 @@ import {
   verifyPayment,
   PaymentError,
 } from "~/lib/payments";
-import { trackEvent } from "~/lib/mixpanel";
+import { capturePostHog } from "~/lib/posthog";
 import { authClient } from "~/lib/auth-client";
 
 type Phase = "idle" | "questions" | "generating_outline" | "outline_ready" | "editing_outline" | "ready_for_payment" | "processing_payment" | "generating" | "polling" | "success" | "error";
@@ -377,7 +377,7 @@ export function ChatInterface({ onFirstMessage }: ChatInterfaceProps = { onFirst
                 // every Purchase event with no user_id.
                 const { data: session } = await authClient.getSession();
                 const amountInRupees = (orderRes.amount ?? 0) / 100; // Convert paise to rupees
-                trackEvent("Purchase", {
+                capturePostHog("dojo_purchase", {
                   user_id: session?.user?.id,
                   transaction_id: paymentId,
                   revenue: amountInRupees,

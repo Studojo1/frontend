@@ -1,6 +1,7 @@
 import type { Route } from "./+types/api.meta-event";
 import { auth } from "~/lib/auth";
 import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured } from "~/lib/meta-capi.server";
+import { checkRateLimit } from "~/lib/ratelimit.server";
 
 /**
  * Server-side mirror for browser pixel events (Meta Conversions API).
@@ -28,6 +29,9 @@ const ALLOWED_EVENTS = new Set([
   "InitiateCheckout",
   "AddPaymentInfo",
 ]);
+
+// Only real when someone is signed in.
+const SESSION_EVENTS = new Set(["CompleteRegistration", "Lead"]);
 
 // Purchase is deliberately absent. It is the only event carrying a monetary
 // value, so accepting it here would let anyone POST fabricated revenue into the
@@ -62,20 +66,29 @@ export async function action({ request }: Route.ActionArgs) {
   const { eventName, eventId } = body;
   if (!eventName || !eventId || !ALLOWED_EVENTS.has(eventName)) return ok();
 
+  // Per-IP cap, silent like everything else here (audit ST-N12).
+  const limit = await checkRateLimit(request);
+  if (limit && !limit.allowed) return ok();
+
   const user = metaUserDataFromRequest(request);
 
   // Logged-in users get email and a stable id, which is what lifts Event Match
   // Quality above the threshold where optimisation actually works. Anonymous
   // landing-page hits still send cookies, IP and user agent.
+  let signedIn = false;
   try {
     const session = await auth.api.getSession({ headers: request.headers });
     if (session?.user) {
+      signedIn = true;
       user.email = session.user.email ?? null;
       user.externalId = session.user.id ?? null;
     }
   } catch {
     // Not signed in, or auth unavailable. Send what we have.
   }
+  // A registration or lead with no account behind it is not one; anyone could
+  // POST these to inflate the conversions the ads optimise for (ST-N12).
+  if (!signedIn && SESSION_EVENTS.has(eventName)) return ok();
 
   await sendMetaEvent({
     eventName,

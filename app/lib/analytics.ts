@@ -48,6 +48,12 @@ const META_EVENT: Record<string, string | null> = {
 };
 
 export type TrackOptions = {
+  /**
+   * false: PostHog only, never Meta. For events where no money can move
+   * (credit-covered or 100%-off orders), which Meta would otherwise count as
+   * a value-less Purchase / AddPaymentInfo (audit ST-N02).
+   */
+  meta?: boolean;
   /** Revenue. Required on Purchase, or ROAS and value-based lookalikes are impossible later. */
   value?: number;
   /** ISO code, e.g. "INR". Meaningless to Meta without it. */
@@ -76,6 +82,7 @@ export function track(
     // PostHog failing must not stop the Meta copy
   }
 
+  if (opts?.meta === false) return;
   const metaEvent = META_EVENT[event];
   if (!metaEvent) return;
 

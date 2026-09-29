@@ -256,7 +256,7 @@ export default function EnrichmentPage() {
             currency,
             eventId: paymentRef,
           }
-        : undefined
+        : { meta: false }
     );
     try {
       setCredits(await outreachFetch("/payment/credits"));
@@ -483,7 +483,14 @@ export default function EnrichmentPage() {
     if (pricingState !== "ready" && !(credits && credits.available_credits >= tierValue)) return;
 
     const coveredByCredits = !!(credits && credits.available_credits >= tierValue);
-    track("pay_now_clicked", { tier: tierValue, covered_by_credits: coveredByCredits });
+    // Meta's AddPaymentInfo only when money can move: not for credit-covered
+    // orders, nor when a coupon makes the order free (audit ST-N02).
+    const freeWithCoupon = !!(couponResult?.valid && selectedTier === tierValue && couponResult.discounted_amount === 0);
+    track(
+      "pay_now_clicked",
+      { tier: tierValue, covered_by_credits: coveredByCredits },
+      coveredByCredits || freeWithCoupon ? { meta: false } : undefined,
+    );
 
     // If user already has enough credits for this specific tier, skip payment.
     // tierValue is passed explicitly from the button to avoid stale closure
@@ -603,7 +610,7 @@ export default function EnrichmentPage() {
   // campaign at the available balance (routes_campaign create).
   const startWithRemainingCredits = () => {
     if (!credits || leadCount === 0) return;
-    track("pay_now_clicked", { tier: credits.available_credits, covered_by_credits: true, partial: true });
+    track("pay_now_clicked", { tier: credits.available_credits, covered_by_credits: true, partial: true }, { meta: false });
     onPaymentSuccess(undefined, false, credits.available_credits);
   };
 
