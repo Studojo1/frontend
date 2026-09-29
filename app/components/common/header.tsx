@@ -297,7 +297,7 @@ export function Header() {
                 </div>
                 <Link
                   to="/profile"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-500 border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] sm:hidden"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-500 border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] sm:hidden"
                   aria-label="My Profile"
                 >
                   <span className="font-['Clash_Display'] text-xs font-bold text-white select-none">
@@ -438,7 +438,7 @@ export function Header() {
                     <Link
                       to={authUrl("signup", location.pathname + location.search)}
                       onClick={() => setMobileOpen(false)}
-                      className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                      className="mt-2 flex min-h-12 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 px-4 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
                     >
                       Get Started
                     </Link>

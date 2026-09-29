@@ -294,12 +294,6 @@ export default function UploadPage() {
                     <p className="text-base mt-1 font-satoshi text-studojo-ink">{preview.experience_years} years</p>
                   </div>
                 )}
-                {preview.char_count != null && (
-                  <div>
-                    <span className="text-xs font-bold text-studojo-muted uppercase font-satoshi">Resume Length</span>
-                    <p className="text-base mt-1 font-satoshi text-studojo-ink">{preview.char_count.toLocaleString()} characters</p>
-                  </div>
-                )}
               </div>
 
               {preview.skills && preview.skills.length > 0 && (
