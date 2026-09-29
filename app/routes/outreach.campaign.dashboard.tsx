@@ -993,7 +993,7 @@ export default function DashboardPage() {
                     >
                       <FiMessageCircle className="w-4 h-4 mr-2" /> Inbox
                       {(liStats.total_replied ?? 0) > 0 && (
-                        <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full bg-studojo-purple text-white text-[10px] font-bold">
+                        <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full bg-studojo-purple text-white text-xs font-bold">
                           {liStats.total_replied}
                         </span>
                       )}
