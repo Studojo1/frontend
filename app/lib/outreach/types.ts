@@ -94,6 +94,8 @@ export interface Lead {
   company_size: string | null;
   status: string;
   score: LeadScore | null;
+  // Title shares no word with the student's target roles (UC-Q09).
+  broader?: boolean;
 }
 
 // ── Campaign ─────────────────────────────────────────────────────────
