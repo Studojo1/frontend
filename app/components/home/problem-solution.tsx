@@ -11,8 +11,8 @@ const BAD_ITEMS = [
 const GOOD_ITEMS = [
   "Email the actual hiring manager",
   "Personal message, not a form",
-  "Reply in days, not months",
-  "First reply typically within a week",
+  "Replies land in your own inbox",
+  "About 4 in 10 hear back in week one",
 ];
 
 function XIcon() {

@@ -33,13 +33,6 @@ const HOOK_STATS = [
   { main: "The average student who books an interview has a readiness score of 74.", emphasis: "Most students start at 40 to 50.", hook: "Let's find your number and close the gap." },
   { main: "Sending 30 targeted cold emails gets replies in 1 to 2 weeks on average.", emphasis: "The same 30 applications on Naukri gets close to zero.", hook: "Let's build your outreach strategy, specific to your profile." },
 ];
-const SOCIAL_PROOF = [
-  "A B.Tech CSE student from Hyderabad improved their readiness from 38 to 71 in 3 weeks.",
-  "A BCom student from Mumbai got a reply from a hiring manager at Deloitte using cold outreach.",
-  "12 students in the Finance stream got internship replies this week.",
-  "A BMS student targeting product roles went from 0 applications to 3 interview calls in 10 days.",
-  "A student from a Tier-2 college landed a Data Analyst role by skipping job boards entirely.",
-];
 
 const CSS = `
 .cc-root *,.cc-root *::before,.cc-root *::after{box-sizing:border-box;margin:0;padding:0;}
@@ -710,7 +703,6 @@ export default function CcChat() {
   const [hookVisible] = useState(false);
   const [, setStatIdx] = useState(0);
   const [, setStatOpacity] = useState(1);
-  const [, setTickerIdx] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
 
   const studentIdRef = useRef<string | null>(null);
@@ -742,11 +734,6 @@ export default function CcChat() {
     return () => clearInterval(t);
   }, [hookVisible]);
 
-  useEffect(() => {
-    if (!hookVisible) return;
-    const t = setInterval(() => setTickerIdx(i => (i + 1) % SOCIAL_PROOF.length), 4000);
-    return () => clearInterval(t);
-  }, [hookVisible]);
 
   // Cycle ghost-text suggestions only when the input is empty; when the
   // student types we stop rotating so the suggestion they see is what Tab

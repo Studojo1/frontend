@@ -1,7 +1,9 @@
 import {
   saveWebinarRegistration,
   attachOrderToRegistration,
+  quickRegister,
 } from "~/lib/webinar.server";
+import { webinarHasEnded } from "~/lib/webinar-event";
 import { lookupAmbassadorByRefCode } from "~/lib/campus-ambassador.server";
 import { checkEmail } from "~/lib/email-validate";
 import { webinarPricePaise } from "~/lib/webinar-pricing";
@@ -26,6 +28,24 @@ export async function action({ request }: Route.ActionArgs) {
     body = await request.json();
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  // After the event: never take money. The page offers "tell me about the next
+  // one", which only records the email as a standing subscriber.
+  if (webinarHasEnded()) {
+    if (body?.notifyOnly) {
+      const email = clamp(body.email).toLowerCase();
+      const emailCheck = checkEmail(email);
+      if (!emailCheck.ok) {
+        return Response.json({ error: emailCheck.error, suggestion: emailCheck.suggestion }, { status: 400 });
+      }
+      await quickRegister({ email, fullName: clamp(body.fullName) });
+      return Response.json({ ok: true, notified: true });
+    }
+    return Response.json(
+      { error: "This webinar has already happened, so seats are no longer on sale.", ended: true },
+      { status: 410 }
+    );
   }
 
   const fullName = clamp(body.fullName);

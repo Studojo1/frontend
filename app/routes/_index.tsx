@@ -57,12 +57,12 @@ export function meta({ data }: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "Skip the job portal queue. Studojo's AI finds the hiring manager, writes a personalised email, and sends it from your Gmail. 500+ students placed. TCS, Goldman, Figma. $20 for 200 outreaches.",
+        "Skip the job portal queue. Studojo's AI finds the hiring manager, writes a personalised email, and sends it from your Gmail. 8,500+ students signed up. $20 for 200 outreaches.",
     },
     { tagName: "link", rel: "canonical", href: BASE_URL },
     { property: "og:type", content: "website" },
     { property: "og:title", content: "Studojo | Land Your Next Internship or Job" },
-    { property: "og:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview. 500+ students placed." },
+    { property: "og:description", content: "AI finds the hiring manager. AI writes the email. It goes out from your own Gmail. 8,500+ students signed up." },
     { property: "og:url", content: BASE_URL },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
@@ -164,7 +164,7 @@ function InternshipPopup() {
                   Email hiring managers directly
                 </h2>
                 <p className="font-['Satoshi'] text-base text-neutral-600">
-                  Upload your resume. We find who can hire you and write the emails. Most students get a reply within a week.
+                  Upload your resume. We find who can hire you and write the emails. About 4 in 10 students hear back in their first week.
                 </p>
               </div>
               <Link
