@@ -44,6 +44,7 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<ResumePreview | null>(null);
   const [error, setError] = useState("");
+  const [paidOrderOnOldResume, setPaidOrderOnOldResume] = useState(false);
   const userId = user?.id;
   useEffect(() => {
     if (userId) logFunnelStep("upload_view");
@@ -121,7 +122,24 @@ export default function UploadPage() {
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Upload failed");
 
+      // UC-Q14: the same resume as a run that already has leads. The server
+      // hands back that candidate and creates nothing, so there is no new quiz
+      // to take and no new discovery to wait for: go straight to the leads the
+      // student already has. Its quiz is done, so keep its transcript and
+      // quiz_completed flag, and skip the resume_uploaded conversion (no new
+      // resume was saved).
+      if (data?.existing_results) {
+        capturePostHog("resume_upload_existing_results", { candidate_id: data.candidate_id });
+        setCandidateId(data.candidate_id);
+        navigate("/outreach/leads/results?existing=1");
+        return;
+      }
+
       setPreview(data.preview);
+      // UC-Q28: a paid order keeps its leads on the earlier resume; this upload
+      // starts a separate search. Tell the student so the two lists do not
+      // look like one campaign that changed under them.
+      setPaidOrderOnOldResume(typeof data.order_candidate_id === "number");
       // A new resume starts a new quiz. Upload can hand back the SAME candidate
       // id (it reuses a row whose quiz never finished), and the quiz page
       // restores any transcript stamped with that id, so without this the old
@@ -274,6 +292,15 @@ export default function UploadPage() {
                 <FiCheckCircle className="w-6 h-6 text-studojo-green" />
                 <h2 className="font-clash text-2xl font-bold text-studojo-ink">Resume Analyzed</h2>
               </div>
+
+              {paidOrderOnOldResume && (
+                <div className="mb-6 rounded-xl border-2 border-studojo-ink bg-studojo-purple-bg p-4" role="status">
+                  <p className="text-sm font-satoshi font-semibold text-studojo-ink">Your paid campaign is unchanged.</p>
+                  <p className="mt-1 text-sm font-satoshi text-studojo-muted">
+                    It keeps using the hiring managers found from your earlier resume. This new resume starts a fresh search.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {preview.name && (

@@ -9,10 +9,17 @@ import { resetPostHog } from "~/lib/posthog";
 import { SmoothLink } from "./smooth-link";
 
 const NAV_LINKS = [
-  { to: "/", label: "Home", active: true },
+  { to: "/", label: "Home" },
   { to: "/outreach", label: "Outreach" },
   { to: "/about", label: "About" },
 ] as const;
+
+// HP-N09: Home was hard-coded active on every page. Mark the item the visitor
+// is actually in: Home only on "/", the others on their path and below it.
+function isActivePath(pathname: string, to: string): boolean {
+  if (to === "/") return pathname === "/";
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
 
 const RESOURCES_LINKS = [
   {
@@ -37,6 +44,8 @@ const RESOURCES_LINKS = [
   },
 ];
 
+const isResourcesPath = (pathname: string) => RESOURCES_LINKS.some((r) => isActivePath(pathname, r.to));
+
 export function Header() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -46,6 +55,13 @@ export function Header() {
   const resourcesRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+  // HP-N09: /auth is already the sign-in/sign-up form with its own toggle, so
+  // both header links are redundant there. Sign in would also drop the page's
+  // ?redirect (authUrl never returns to /auth) and the form does not follow a
+  // mode change in the URL.
+  const onAuthPage = location.pathname === "/auth" || location.pathname.startsWith("/auth/");
+  const returnTo = location.pathname + location.search;
+  const resourcesActive = isResourcesPath(location.pathname);
   const { data: session, isPending } = authClient.useSession();
 
   // Listen for session update events and refetch session
@@ -118,14 +134,14 @@ export function Header() {
             return !link.to.startsWith("#") || isHomePage;
           }).map((link) => {
             const LinkComponent = link.to.startsWith("#") ? SmoothLink : Link;
+            const active = isActivePath(location.pathname, link.to);
             return (
               <LinkComponent
                 key={link.label}
                 to={link.to}
+                aria-current={active ? "page" : undefined}
                 className={`font-['Satoshi'] text-base leading-6 ${
-                  "active" in link && link.active
-                    ? "font-black text-neutral-700"
-                    : "font-normal text-neutral-700"
+                  active ? "font-black text-neutral-700" : "font-normal text-neutral-700"
                 }`}
               >
                 {link.label}
@@ -138,7 +154,9 @@ export function Header() {
             <button
               type="button"
               onClick={() => setResourcesOpen((o) => !o)}
-              className="flex items-center gap-1 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700 hover:text-neutral-900"
+              className={`flex items-center gap-1 font-['Satoshi'] text-base leading-6 text-neutral-700 hover:text-neutral-900 ${
+                resourcesActive ? "font-black" : "font-normal"
+              }`}
             >
               Resources
               <svg
@@ -311,9 +329,19 @@ export function Header() {
                 </Link>
               </>
             ) : (
+              !onAuthPage && (
               <>
+                {/* HP-N09: returning students had no way in from the header
+                    and landed on "Create your account". Desktop only here;
+                    the phone menu has its own Sign in row. */}
                 <Link
-                  to={authUrl("signup", location.pathname + location.search)}
+                  to={authUrl("signin", returnTo)}
+                  className="hidden font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 underline-offset-4 hover:underline md:inline"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to={authUrl("signup", returnTo)}
                   className={`flex h-12 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-sm font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] px-4 max-w-[120px] flex-shrink-0 md:w-32 md:text-base md:max-w-none ${
                     isHomePage ? "hidden md:flex" : ""
                   }`}
@@ -321,6 +349,7 @@ export function Header() {
                   Get Started
                 </Link>
               </>
+              )
             ))}
           <button
             type="button"
@@ -352,12 +381,14 @@ export function Header() {
               return !link.to.startsWith("#") || isHomePage;
             }).map(({ to, label }) => {
               const LinkComponent = to.startsWith("#") ? SmoothLink : Link;
+              const active = isActivePath(location.pathname, to);
               return (
                 <li key={label}>
                   <LinkComponent
                     to={to}
                     onClick={() => setMobileOpen(false)}
-                    className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                    aria-current={active ? "page" : undefined}
+                    className={`block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50 ${active ? "font-black" : ""}`}
                   >
                     {label}
                   </LinkComponent>
@@ -375,7 +406,7 @@ export function Header() {
                   if (footer) footer.scrollIntoView({ behavior: "smooth" });
                   else window.location.assign("/#resources");
                 }}
-                className="block w-full rounded-lg min-h-11 py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                className={`block w-full rounded-lg min-h-11 py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50 ${resourcesActive ? "font-black" : ""}`}
               >
                 Resources
               </button>
@@ -433,10 +464,21 @@ export function Header() {
                   </li>
                 </>
               ) : (
+                !onAuthPage && (
                 <>
+                  {/* HP-N09: a Sign in row for returning students. */}
                   <li>
                     <Link
-                      to={authUrl("signup", location.pathname + location.search)}
+                      to={authUrl("signin", returnTo)}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex min-h-11 items-center rounded-lg py-2 font-['Satoshi'] font-medium text-neutral-900 hover:bg-neutral-50"
+                    >
+                      Sign in
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to={authUrl("signup", returnTo)}
                       onClick={() => setMobileOpen(false)}
                       className="mt-2 flex min-h-12 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 px-4 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
                     >
@@ -444,6 +486,7 @@ export function Header() {
                     </Link>
                   </li>
                 </>
+                )
               ))}
           </ul>
         </nav>
