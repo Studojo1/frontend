@@ -11,7 +11,7 @@ import { outreachFetch } from "~/lib/outreach/api";
 export default function GmailConnectPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { loading: authLoading } = useOutreachAuth();
+  const { loading: authLoading, user } = useOutreachAuth();
   const { emailAccountId, setEmailAccountId, planType } = useOutreachStore();
   const { updateOrder } = useOrder();
   const [connected, setConnected] = useState(false);
@@ -37,6 +37,10 @@ export default function GmailConnectPage() {
   // user who started the flow.
   useEffect(() => {
     if (handled || authLoading) return;
+    // Signed out: leave the code in the URL. useOutreachAuth sends the user to
+    // sign in with the full path and query, and the code is used when they are
+    // back. Consuming it now 401'd and burned the one-time code (PS-N15).
+    if (!user) return;
     const code = searchParams.get("gmail_code");
     const state = searchParams.get("gmail_state");
     if (!code || !state) return;
@@ -61,7 +65,7 @@ export default function GmailConnectPage() {
       })
       .finally(() => setConnecting(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, handled, authLoading]);
+  }, [searchParams, handled, authLoading, user]);
 
   useEffect(() => {
     if (handled) return;
