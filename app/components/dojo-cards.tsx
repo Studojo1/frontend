@@ -51,11 +51,11 @@ const DOJOS: DojoCard[] = [
   {
     id: "humanizer",
     title: "Humanizer Dojo",
-    description: "Humanize AI-generated content while preserving structure. Untrackable and AI-busting.",
+    description: "Humanize AI-generated content while preserving structure. Natural, readable rewrites.",
     descriptionClass: "text-amber-100",
     checklist: [
       "Structure-preserving",
-      "AI detection proof",
+      "Natural voice",
       "Verified output",
     ],
     accent: "amber",

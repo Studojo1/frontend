@@ -205,7 +205,7 @@ export default function Auth() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   // EX-06: set after hydration, since the user agent is browser only.
   const [inApp, setInApp] = useState<InAppBrowser>(null);
   const [inAppDismissed, setInAppDismissed] = useState(false);
@@ -386,8 +386,8 @@ export default function Auth() {
         setSubmitting(false);
         return;
       }
-      if (!termsAccepted || !privacyAccepted) {
-        setError("Please accept the Terms & Conditions and Privacy Policy to continue");
+      if (!ageConfirmed || !termsAccepted) {
+        setError("Please confirm you are 18 or older and accept the Terms of Service and Privacy Policy to continue");
         setSubmitting(false);
         return;
       }
@@ -619,8 +619,8 @@ export default function Auth() {
                     Continue with Google
                   </button>
                   <p className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
-                    By continuing, you agree to our{" "}
-                    <a href="/terms" target="_blank" rel="noopener" className="underline">Terms &amp; Conditions</a> and{" "}
+                    By continuing, you confirm you are 18 or older and agree to our{" "}
+                    <a href="/terms" target="_blank" rel="noopener" className="underline">Terms of Service</a> and{" "}
                     <a href="/privacy" target="_blank" rel="noopener" className="underline">Privacy Policy</a>.
                   </p>
                   {mode === "signin" && (
@@ -714,6 +714,18 @@ export default function Auth() {
                     <label className="flex min-h-11 items-start py-2">
                       <input
                         type="checkbox"
+                        checked={ageConfirmed}
+                        onChange={(e) => setAgeConfirmed(e.target.checked)}
+                        className="mt-1 h-4 w-4 shrink-0 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
+                        required
+                      />
+                      <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
+                        I am 18 or older.
+                      </span>
+                    </label>
+                    <label className="flex min-h-11 items-start py-2">
+                      <input
+                        type="checkbox"
                         checked={termsAccepted}
                         onChange={(e) => setTermsAccepted(e.target.checked)}
                         className="mt-1 h-4 w-4 shrink-0 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
@@ -722,23 +734,13 @@ export default function Auth() {
                       <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
                         I agree to the{" "}
                         <a href="/terms" target="_blank" rel="noopener" className="font-medium text-purple-500 hover:text-purple-600 underline">
-                          Terms & Conditions
-                        </a>
-                      </span>
-                    </label>
-                    <label className="flex min-h-11 items-start py-2">
-                      <input
-                        type="checkbox"
-                        checked={privacyAccepted}
-                        onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                        className="mt-1 h-4 w-4 shrink-0 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
-                        required
-                      />
-                      <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
-                        I agree to the{" "}
+                          Terms of Service
+                        </a>{" "}
+                        and{" "}
                         <a href="/privacy" target="_blank" rel="noopener" className="font-medium text-purple-500 hover:text-purple-600 underline">
                           Privacy Policy
                         </a>
+                        .
                       </span>
                     </label>
                   </div>

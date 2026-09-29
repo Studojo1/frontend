@@ -6,6 +6,8 @@ import { Header } from "~/components";
 import { authClient } from "~/lib/auth-client";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
 import { changePassword } from "~/lib/emailer";
+import { describeError } from "~/lib/error-detail";
+import { outreachFetch } from "~/lib/outreach/api";
 import { toast } from "sonner";
 import type { Route } from "./+types/settings._index";
 
@@ -37,6 +39,11 @@ type Passkey = {
   name: string | null;
   createdAt: string | null;
   deviceType: string;
+};
+
+type Connections = {
+  gmail: { connected: boolean; email: string | null };
+  linkedin: { connected: boolean; method: "extension" | "password" | null };
 };
 
 type TwoFactorSetup = {
@@ -93,6 +100,17 @@ export default function Settings() {
   const [hasPasswordAccount, setHasPasswordAccount] = useState<boolean | null>(null);
   const [loadingPasswordCheck, setLoadingPasswordCheck] = useState(true);
   
+  // Connected accounts (job-outreach-svc holds the Gmail and LinkedIn grants)
+  const [connections, setConnections] = useState<Connections | null>(null);
+  const [connectionsError, setConnectionsError] = useState<string | null>(null);
+  const [disconnecting, setDisconnecting] = useState<"gmail" | "linkedin" | null>(null);
+  const [gmailNotice, setGmailNotice] = useState<string | null>(null);
+  const [linkedinNotice, setLinkedinNotice] = useState<string | null>(null);
+
+  // Download my data
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState<{
@@ -214,6 +232,88 @@ export default function Settings() {
     loadProfile();
     checkPasswordAccount();
   }, [session]);
+
+  // Load connected accounts
+  useEffect(() => {
+    if (!session) return;
+    loadConnections();
+  }, [session]);
+
+  const loadConnections = async () => {
+    setConnectionsError(null);
+    try {
+      setConnections(await outreachFetch<Connections>("/account/connections", { maxRetries: 2, timeout: 15_000 }));
+    } catch (err) {
+      setConnectionsError(describeError(err, "We couldn't check your connected accounts."));
+    }
+  };
+
+  const handleDisconnect = (which: "gmail" | "linkedin") => {
+    const isGmail = which === "gmail";
+    showConfirmModal({
+      title: isGmail ? "Disconnect Gmail" : "Disconnect LinkedIn",
+      message: isGmail
+        ? "Studojo will lose access to your Gmail. Any running campaign is paused until you reconnect."
+        : "Studojo will delete your LinkedIn session. Any running LinkedIn campaign is paused until you reconnect.",
+      confirmText: "Disconnect",
+      cancelText: "Cancel",
+      destructive: true,
+      onConfirm: async () => {
+        setDisconnecting(which);
+        setConnectionsError(null);
+        try {
+          // One attempt: a disconnect is idempotent, but a retry after a slow
+          // success would only repeat the Google revoke for nothing.
+          const res = await outreachFetch<{ disconnected: boolean; campaigns_paused?: number }>(
+            `/${which}/disconnect`,
+            { method: "POST", maxRetries: 1, timeout: 30_000 },
+          );
+          if (isGmail) {
+            const n = res?.campaigns_paused ?? 0;
+            setGmailNotice(`Disconnected. ${n} ${n === 1 ? "campaign" : "campaigns"} paused.`);
+          } else {
+            setLinkedinNotice("Disconnected. Your LinkedIn session was deleted.");
+          }
+          await loadConnections();
+        } catch (err) {
+          setConnectionsError(describeError(err, `We couldn't disconnect ${isGmail ? "Gmail" : "LinkedIn"}. Please try again.`));
+        } finally {
+          setDisconnecting(null);
+        }
+      },
+    });
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    setExportError(null);
+    try {
+      const res = await fetch("/api/account/export", { credentials: "include" });
+      if (!res.ok) {
+        let body: unknown = null;
+        try {
+          body = await res.json();
+        } catch {}
+        throw new Error(describeError(body, "We couldn't prepare your data. Please try again."));
+      }
+      const disposition = res.headers.get("Content-Disposition") || "";
+      const filename = /filename="([^"]+)"/.exec(disposition)?.[1] || "studojo-data.json";
+      // A blob link, not a plain <a href>: an error then shows here instead of
+      // downloading an error page as the student's data.
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      setExportError(describeError(err, "We couldn't prepare your data. Please try again."));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const loadProfile = async () => {
     if (!session?.user?.id) return;
@@ -749,6 +849,55 @@ export default function Settings() {
                 ) : null}
               </div>
 
+              {/* Connections Section */}
+              <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+                <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
+                  Connections
+                </h2>
+
+                {connectionsError && (
+                  <div
+                    className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-red-700"
+                    role="alert"
+                  >
+                    {connectionsError}
+                  </div>
+                )}
+
+                {!connections && !connectionsError ? (
+                  <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">Checking your connections…</p>
+                ) : connections ? (
+                  <div className="space-y-3">
+                    <ConnectionRow
+                      name="Gmail"
+                      connected={connections.gmail.connected}
+                      detail={connections.gmail.email}
+                      description="Sends your outreach and reads replies in campaign threads"
+                      notice={gmailNotice}
+                      reconnectHref={gmailNotice && !connections.gmail.connected ? "/crm/connect-gmail?back=/settings" : null}
+                      busy={disconnecting === "gmail"}
+                      onDisconnect={() => handleDisconnect("gmail")}
+                    />
+                    <ConnectionRow
+                      name="LinkedIn"
+                      connected={connections.linkedin.connected}
+                      detail={null}
+                      description={
+                        connections.linkedin.method === "extension"
+                          ? "Connected with the LinkedIn Connector"
+                          : connections.linkedin.method === "password"
+                            ? "Connected with your LinkedIn login"
+                            : null
+                      }
+                      notice={linkedinNotice}
+                      reconnectHref={null}
+                      busy={disconnecting === "linkedin"}
+                      onDisconnect={() => handleDisconnect("linkedin")}
+                    />
+                  </div>
+                ) : null}
+              </div>
+
               {/* Passkeys Section */}
               <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
                 <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
@@ -1061,13 +1210,41 @@ export default function Settings() {
                 )}
               </div>
 
+              {/* Your data */}
+              <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
+                <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
+                  Your data
+                </h2>
+                <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
+                  Download a file with your profile, resumes, campaigns, outreach records, payments and credit history.
+                </p>
+
+                {exportError && (
+                  <div
+                    className="mb-4 rounded-xl border-2 border-red-500 bg-red-50 px-4 py-3 font-['Satoshi'] text-sm font-medium leading-5 text-red-700"
+                    role="alert"
+                  >
+                    {exportError}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  disabled={exporting}
+                  className="rounded-2xl border-2 border-neutral-900 bg-white px-6 py-3 font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-60 disabled:pointer-events-none"
+                >
+                  {exporting ? "Preparing…" : "Download my data"}
+                </button>
+              </div>
+
               {/* Delete account */}
               <div className="rounded-2xl border-2 border-red-500 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(220,38,38,1)] md:p-8">
                 <h2 className="mb-4 font-['Clash_Display'] text-2xl font-medium leading-tight tracking-tight text-neutral-900">
                   Delete account
                 </h2>
                 <p className="mb-6 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
-                  Permanently delete your account and everything in it, and revoke Studojo's access to your Gmail.
+                  Permanently delete your account and everything in it, and revoke Studojo's access to your Gmail and LinkedIn.
                 </p>
                 <a
                   href="/account/delete"
@@ -1246,5 +1423,69 @@ export default function Settings() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+function ConnectionRow({
+  name,
+  connected,
+  detail,
+  description,
+  notice,
+  reconnectHref,
+  busy,
+  onDisconnect,
+}: {
+  name: string;
+  connected: boolean;
+  detail: string | null;
+  description: string | null;
+  notice: string | null;
+  reconnectHref: string | null;
+  busy: boolean;
+  onDisconnect: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border-2 border-neutral-200 bg-neutral-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="font-['Satoshi'] text-base font-medium leading-6 text-neutral-900">{name}</p>
+          <span
+            className={`rounded-full border px-2.5 py-0.5 font-['Satoshi'] text-xs font-medium leading-5 ${
+              connected ? "border-green-500 bg-green-50 text-green-700" : "border-neutral-300 bg-white text-neutral-600"
+            }`}
+          >
+            {connected ? "Connected" : "Not connected"}
+          </span>
+        </div>
+        {connected && detail && (
+          <p className="break-all font-['Satoshi'] text-sm font-medium leading-5 text-neutral-700">{detail}</p>
+        )}
+        {connected && description && (
+          <p className="font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">{description}</p>
+        )}
+        {notice && (
+          <p className="mt-1 font-['Satoshi'] text-sm font-medium leading-5 text-green-700" role="status">
+            {notice}{" "}
+            {reconnectHref && (
+              <a href={reconnectHref} className="text-purple-600 underline hover:text-purple-700">
+                Reconnect
+              </a>
+            )}
+          </p>
+        )}
+      </div>
+      {connected && (
+        <button
+          type="button"
+          onClick={onDisconnect}
+          disabled={busy}
+          className="rounded-lg border-2 border-red-500 bg-white px-4 py-2 font-['Satoshi'] text-sm font-medium leading-5 text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 disabled:pointer-events-none sm:ml-4"
+          aria-label={`Disconnect ${name}`}
+        >
+          {busy ? "Disconnecting…" : "Disconnect"}
+        </button>
+      )}
+    </div>
   );
 }

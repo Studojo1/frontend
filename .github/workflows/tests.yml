@@ -40,3 +40,8 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
+      # Legal pages can't reach studojo.com with an unfilled field. Staging is
+      # exempt so drafts with open fields can still be reviewed on studojo.pro.
+      - name: Legal pages have no unfilled fields
+        if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+        run: node scripts/check-legal.mjs

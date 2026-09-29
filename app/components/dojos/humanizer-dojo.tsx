@@ -333,7 +333,7 @@ export function HumanizerDojoPage() {
             {/* Description */}
             <p className="max-w-2xl font-['Satoshi'] text-sm font-normal leading-6 text-white/90 md:text-base md:leading-7">
               Transform AI-generated documents into human-like content. Preserves headings, tables, 
-              figures, and formatting while humanizing paragraph content. AI detection proof.
+              figures, and formatting while humanizing paragraph content.
             </p>
           </div>
         </div>
@@ -374,10 +374,10 @@ export function HumanizerDojoPage() {
                   <FiZap className="h-6 w-6 text-amber-600" />
                 </div>
                 <h3 className="mb-2 font-['Clash_Display'] text-xl font-medium text-neutral-900">
-                  AI Detection Proof
+                  Natural, readable rewrites
                 </h3>
                 <p className="font-['Satoshi'] text-sm text-neutral-600">
-                  Humanized content passes all AI detection tools. Untrackable and undetectable.
+                  Rewrites stiff AI drafts in a natural voice you can edit and make your own. Detection tools disagree with each other, so we don't promise any score. Check your institution's rules before you submit.
                 </p>
               </div>
             </div>
