@@ -951,9 +951,9 @@ export default function EnrichmentPage() {
 
                 {perContact && <p className="text-xs text-studojo-muted font-satoshi mt-1">just {perContact}</p>}
                 <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{tier.tagline}</p>
-                {strongCount !== null && tier.value > strongCount && (
+                {strongCount !== null && !!leadCount && Math.min(tier.value, leadCount) > strongCount && (
                   <p className="-mt-2 mb-4 text-xs font-satoshi font-medium text-amber-700">
-                    Includes about {(tier.value - strongCount).toLocaleString("en-US")} broader matches.
+                    Includes about {(Math.min(tier.value, leadCount) - strongCount).toLocaleString("en-US")} broader matches.
                   </p>
                 )}
 
