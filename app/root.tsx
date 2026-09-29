@@ -341,7 +341,7 @@ export default function App() {
   const { data: attributionSession } = authClient.useSession();
   const attributionUserId = (attributionSession as any)?.user?.id as string | undefined;
   useEffect(() => {
-    if (attributionUserId) flushAttribution();
+    if (attributionUserId) flushAttribution(attributionUserId);
   }, [attributionUserId]);
 
   const { isSenseiHost } = useLoaderData<typeof loader>();

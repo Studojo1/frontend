@@ -3,8 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Header } from "~/components";
 import { PasswordInput } from "~/components/password-input";
+import { heldTrackingParams } from "~/lib/attribution";
 import { authClient } from "~/lib/auth-client";
 import { logFunnelStep } from "~/lib/funnel";
+import { chromeIntentUrl, detectInAppBrowser, isAndroid, type InAppBrowser } from "~/lib/in-app-browser";
 import { identifyUser, trackEvent } from "~/lib/mixpanel";
 import type { Route } from "./+types/auth";
 
@@ -92,6 +94,100 @@ export function meta({ location }: Route.MetaArgs) {
 // Read and cleared by root.tsx once a session exists
 const CONSENT_PENDING_KEY = "sj_consent_pending";
 
+const IN_APP_DISMISSED_KEY = "sj_in_app_prompt_dismissed";
+
+// Read at call time: the user agent only exists in the browser.
+const inAppNow = (): InAppBrowser =>
+  typeof navigator === "undefined" ? null : detectInAppBrowser(navigator.userAgent);
+
+/** EX-06: the Instagram and Facebook in-app browsers convert far worse on
+ * signup. Google works there, so nothing is blocked: this only offers a way
+ * out to the phone's own browser, carrying the ad click with it. */
+function InAppBrowserPrompt({ app, onDismiss }: { app: "instagram" | "facebook"; onDismiss: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const android = typeof navigator !== "undefined" && isAndroid(navigator.userAgent);
+  const appName = app === "instagram" ? "Instagram" : "Facebook";
+
+  // The page URL plus the held fbclid/utm, so the new browser (which has none
+  // of this tab's storage) still credits the ad that brought the user here.
+  const shareUrl = (): string => {
+    const u = new URL(window.location.href);
+    u.searchParams.delete("error");
+    heldTrackingParams().forEach((v, k) => {
+      if (!u.searchParams.has(k)) u.searchParams.set(k, v);
+    });
+    return u.toString();
+  };
+
+  const copyLink = async () => {
+    const href = shareUrl();
+    try {
+      await navigator.clipboard.writeText(href);
+    } catch {
+      // Some in-app browsers withhold the clipboard API; fall back to a
+      // selected textarea, which they do allow.
+      const ta = document.createElement("textarea");
+      ta.value = href;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+    setCopied(true);
+    logFunnelStep("auth_in_app_copy_link", { in_app: app });
+  };
+
+  return (
+    <div
+      className="mb-6 rounded-2xl border-2 border-neutral-900 bg-yellow-100 p-4 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+      role="region"
+      aria-label="Open in your browser"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <p className="font-['Satoshi'] text-sm font-bold leading-5 text-neutral-900">
+          Open in your browser for the smoothest sign up
+        </p>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="-mr-2 -mt-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-neutral-700 hover:bg-yellow-200"
+          aria-label="Dismiss"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <p className="mt-1 font-['Satoshi'] text-sm leading-5 text-neutral-700">
+        You are in {appName}&apos;s built in browser. Tap the menu (three dots, top right), then{" "}
+        <span className="font-medium">{android ? "Open in Chrome" : "Open in external browser"}</span>.
+        Or copy the link and paste it into {android ? "Chrome" : "Safari"}. Continue with Google also works here.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={copyLink}
+          className="inline-flex min-h-11 items-center rounded-xl border-2 border-neutral-900 bg-white px-4 font-['Satoshi'] text-sm font-medium text-neutral-900"
+        >
+          {copied ? "Link copied" : "Copy link"}
+        </button>
+        {android && (
+          <a
+            href={typeof window === "undefined" ? "#" : chromeIntentUrl(shareUrl())}
+            onClick={() => logFunnelStep("auth_in_app_open_chrome", { in_app: app })}
+            className="inline-flex min-h-11 items-center rounded-xl border-2 border-neutral-900 bg-neutral-900 px-4 font-['Satoshi'] text-sm font-medium text-white"
+          >
+            Open in Chrome
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -110,6 +206,25 @@ export default function Auth() {
   const [submitting, setSubmitting] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
+  // EX-06: set after hydration, since the user agent is browser only.
+  const [inApp, setInApp] = useState<InAppBrowser>(null);
+  const [inAppDismissed, setInAppDismissed] = useState(false);
+  useEffect(() => {
+    setInApp(inAppNow());
+    try {
+      setInAppDismissed(!!sessionStorage.getItem(IN_APP_DISMISSED_KEY));
+    } catch {
+      // Storage blocked: the prompt just shows again next load.
+    }
+  }, []);
+  const dismissInApp = () => {
+    setInAppDismissed(true);
+    try {
+      sessionStorage.setItem(IN_APP_DISMISSED_KEY, "1");
+    } catch {
+      // See above.
+    }
+  };
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -118,7 +233,13 @@ export default function Auth() {
   const isLastGoogle = authClient.isLastUsedLoginMethod("google");
   const isLastEmail = authClient.isLastUsedLoginMethod("email");
 
-  useEffect(() => logFunnelStep("auth_view"), []);
+  useEffect(() => logFunnelStep("auth_view", { in_app: inAppNow() }), []);
+
+  // A link to /auth from /auth (the header's Get Started) changes only the
+  // query, so the page does not remount; follow the URL's mode when it does.
+  useEffect(() => {
+    if (modeParam === "signin" || modeParam === "signup") setMode(modeParam);
+  }, [modeParam]);
 
   // The last-used method is only readable in the browser, so this runs after
   // hydration rather than in the initial state.
@@ -175,6 +296,7 @@ export default function Auth() {
   useEffect(() => {
     const code = searchParams.get("error");
     if (!code) return;
+    logFunnelStep("auth_oauth_error", { in_app: inAppNow(), info: code });
     const messages: Record<string, string> = {
       state_mismatch:
         "Your sign-in took too long or your browser blocked a cookie. Please try again.",
@@ -247,6 +369,7 @@ export default function Auth() {
     const passwordValue = password || (formData.get("password") as string);
     const confirmPasswordValue = confirmPassword || (formData.get("confirmPassword") as string | null);
     const remember = (form.querySelector<HTMLInputElement>("input[name=remember]")?.checked) ?? true;
+    logFunnelStep("auth_email_submit", { in_app: inAppNow(), info: mode });
 
     if (mode === "signup") {
       if (passwordValue !== confirmPasswordValue) {
@@ -346,6 +469,7 @@ export default function Auth() {
 
   const handleGoogleSignIn = () => {
     setError(null);
+    logFunnelStep("auth_google_click", { in_app: inAppNow(), info: mode });
     // Track Google sign in attempt
     trackEvent("Sign In", {
       login_method: "google",
@@ -422,6 +546,8 @@ export default function Auth() {
                 studojo
               </h2>
             </div>
+
+            {inApp && !inAppDismissed && <InAppBrowserPrompt app={inApp} onDismiss={dismissInApp} />}
 
             {/* Toggle Tabs */}
             <div className="mb-8 flex gap-2 rounded-2xl border-2 border-neutral-900 bg-white p-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
