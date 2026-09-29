@@ -46,10 +46,15 @@ function pickJustified(leads: Lead[]): Lead[] {
 // India-focused searches Apollo data is sparse and the LLM marks most leads
 // "low" even when they're legitimate targets.
 function rank(shown: Lead[], sortBy: SortBy): number[] {
+  // An unscored lead ranks at the median, not 0, which sank it to the last
+  // page (B2C UC-Q35). The API orders them the same way.
+  const scores = shown.map((l) => l.score?.overall).filter((v): v is number => typeof v === "number").sort((x, y) => x - y);
+  const median = scores.length ? scores[Math.floor(scores.length / 2)] : 0;
+  const scoreOf = (l: Lead) => (typeof l.score?.overall === "number" ? l.score.overall : median);
   return [...shown]
     .sort((a, b) => {
       if (sortBy === "name") return (a.name || "").localeCompare(b.name || "") || a.id - b.id;
-      return signalRank(b) - signalRank(a) || (b.score?.overall || 0) - (a.score?.overall || 0) || a.id - b.id;
+      return signalRank(b) - signalRank(a) || scoreOf(b) - scoreOf(a) || a.id - b.id;
     })
     .map((l) => l.id);
 }
