@@ -1,6 +1,6 @@
 import { describeError } from "~/lib/error-detail";
 import { useEffect, useState, useCallback, useRef, Fragment } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import {
   FiSend, FiAlertCircle, FiBarChart2, FiPause, FiPlay, FiUsers,
   FiCheckCircle, FiXCircle, FiClock, FiMessageCircle, FiX,
@@ -301,7 +301,12 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [selectedEmail, setSelectedEmail] = useState<CampaignEmail | null>(null);
   const [expandedThreads, setExpandedThreads] = useState<Set<number>>(new Set());
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  // PH-27: the Inbox page sends email-plan students here with ?filter=replied,
+  // since their replies live in this table.
+  const [searchParams] = useSearchParams();
+  const [statusFilter, setStatusFilter] = useState<string>(
+    () => (searchParams.get("filter") === "replied" ? "replied" : "all"),
+  );
   const [showTestModal, setShowTestModal] = useState(false);
   const [testRecipients, setTestRecipients] = useState<TestRecipient[]>([{ first_name: "", company: "", email: "" }]);
   const [sendingTest, setSendingTest] = useState(false);
@@ -389,7 +394,9 @@ export default function DashboardPage() {
     try {
       const [metricsData, emailsData] = await Promise.all([
         outreachFetch<CampaignMetrics>(`/campaign/${campaignId}/metrics`),
-        outreachFetch<{ emails: CampaignEmail[] }>(`/campaign/${campaignId}/emails`),
+        // NEW-06: summary rows omit body and reply_text; the detail modal
+        // loads those per email. Older backends ignore the param.
+        outreachFetch<{ emails: CampaignEmail[] }>(`/campaign/${campaignId}/emails?fields=summary`),
       ]);
       setMetrics(metricsData);
       setEmails(emailsData.emails || []);
@@ -402,12 +409,49 @@ export default function DashboardPage() {
     }
   }, [campaignId, testJobId]);
 
+  // NEW-06: /emails returns every row with its full body, so polling it every
+  // 10s cost ~1.5 MB a minute on mobile data, even for paused or finished
+  // campaigns. Load once, then poll every 60s only while the campaign is
+  // running and the tab is visible; refresh once when the tab comes back.
+  const campaignStatus = metrics?.status;
   useEffect(() => {
     if (!campaignId || testJobId) return;
     fetchCampaignData();
-    const interval = setInterval(fetchCampaignData, 10000);
-    return () => clearInterval(interval);
   }, [campaignId, testJobId, fetchCampaignData]);
+
+  useEffect(() => {
+    if (!campaignId || testJobId || campaignStatus !== "running") return;
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchCampaignData();
+    }, 60000);
+    const onVisible = () => {
+      if (!document.hidden) fetchCampaignData();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [campaignId, testJobId, campaignStatus, fetchCampaignData]);
+
+  // NEW-06: fetch the full email (body, reply_text) when its modal opens. On
+  // failure (or a backend without this endpoint) keep the row's own fields.
+  const selectedEmailId = selectedEmail?.id;
+  useEffect(() => {
+    if (!campaignId || selectedEmailId == null) return;
+    let cancelled = false;
+    outreachFetch<CampaignEmail | { email?: CampaignEmail }>(
+      `/campaign/${campaignId}/emails/${selectedEmailId}`,
+      { maxRetries: 0 },
+    )
+      .then((data) => {
+        const full = data && "email" in data && data.email ? data.email : (data as CampaignEmail);
+        if (cancelled || !full || full.id !== selectedEmailId) return;
+        setSelectedEmail((cur) => (cur && cur.id === selectedEmailId ? { ...cur, ...full } : cur));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [campaignId, selectedEmailId]);
 
   // Check if Gmail re-auth is needed (for reply tracking scope)
   useEffect(() => {
@@ -970,7 +1014,7 @@ export default function DashboardPage() {
                     >
                       <FiMessageCircle className="w-4 h-4 mr-2" /> Inbox
                       {(liStats.total_replied ?? 0) > 0 && (
-                        <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full bg-studojo-purple text-white text-[10px] font-bold">
+                        <span className="ml-2 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full bg-studojo-purple text-white text-xs font-bold">
                           {liStats.total_replied}
                         </span>
                       )}

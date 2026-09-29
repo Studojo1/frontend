@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MetaFunction } from "react-router";
 import { useSearchParams } from "react-router";
+import { toast } from "sonner";
 import {
   type ResumeData,
   type SkillGroup,
@@ -137,6 +138,14 @@ function PreviewPane({
   );
 }
 
+// VS-V11: Instagram / Facebook in-app browsers and Android WebViews ignore
+// window.print(), so a tap on Download PDF silently did nothing. Detect them
+// and tell the student to open the page in their real browser instead.
+function isInAppBrowser(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /FBAN|FBAV|Instagram|; wv\)/i.test(navigator.userAgent);
+}
+
 export default function JrsRoute() {
   const [searchParams] = useSearchParams();
   const [mounted, setMounted] = useState(false);
@@ -160,6 +169,31 @@ export default function JrsRoute() {
   // Skills injected from Career Coach via ?inject_skills=skill1,skill2,...
   const [injectedSkills, setInjectedSkills] = useState<string[]>([]);
   const [skillsBannerDismissed, setSkillsBannerDismissed] = useState(false);
+  const [printing, setPrinting] = useState(false);
+  const [inAppHint, setInAppHint] = useState(false);
+
+  const downloadPdf = useCallback(() => {
+    if (isInAppBrowser() || typeof window.print !== "function") {
+      setInAppHint(true);
+      return;
+    }
+    setPrinting(true);
+    toast.info("Opening the print dialog. Choose Save as PDF as the destination.");
+    // print() blocks on most desktops but returns at once on some phones, so
+    // clear the busy state on a short timer as well as after printing.
+    window.setTimeout(() => {
+      window.print();
+      window.setTimeout(() => setPrinting(false), 1500);
+    }, 50);
+  }, []);
+
+  const copyPageLink = useCallback(() => {
+    const url = window.location.href;
+    navigator.clipboard?.writeText(url).then(
+      () => toast.success("Link copied. Paste it into Chrome or Safari."),
+      () => toast.error("Could not copy. Use the menu to open in your browser."),
+    );
+  }, []);
 
   const pushBot = useCallback(
     (content: string, current: JrsChatMsg[]): JrsChatMsg[] => {
@@ -528,16 +562,46 @@ export default function JrsRoute() {
           </button>
           <button
             type="button"
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-amber-300 px-4 py-1.5 text-sm font-bold text-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)]"
+            onClick={downloadPdf}
+            disabled={printing}
+            className="flex items-center gap-1.5 rounded-lg border-2 border-neutral-900 bg-amber-300 px-4 py-1.5 text-sm font-bold text-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] disabled:opacity-60"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" />
             </svg>
-            Download PDF
+            {printing ? "Opening..." : "Download PDF"}
           </button>
         </div>
       </header>
+
+      {inAppHint && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center gap-3 border-b-2 border-neutral-900 bg-amber-100 px-4 py-3 text-sm text-neutral-900"
+        >
+          <p className="min-w-[200px] flex-1">
+            <span className="font-bold">This app's browser can't save PDFs.</span>{" "}
+            Tap the menu (three dots) and choose Open in browser, or copy the link into
+            Chrome or Safari. Edits made here stay in this app, so you may need to re-enter
+            them there before downloading.
+          </p>
+          <button
+            type="button"
+            onClick={copyPageLink}
+            className="rounded-lg border-2 border-neutral-900 bg-white px-3 py-1.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+          >
+            Copy link
+          </button>
+          <button
+            type="button"
+            onClick={() => setInAppHint(false)}
+            aria-label="Dismiss"
+            className="px-2 py-1 text-xs font-bold text-neutral-600"
+          >
+            Close
+          </button>
+        </div>
+      )}
 
       {/* Body: edit / chat / ats (left) + preview (right) */}
       <div className="flex flex-1 overflow-hidden bg-neutral-100">

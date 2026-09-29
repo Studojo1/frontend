@@ -65,6 +65,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   }
 }
 
+const RICH_TEXT =
+  "font-['Satoshi'] text-gray-700 break-words [&_p]:mb-3 [&_p:empty]:hidden [&_ul]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mb-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1.5 [&_li>p]:mb-0 [&_strong]:text-neutral-900";
+// Older plain-text listings rely on their line breaks, so keep pre-wrap there.
+const richTextClass = (html: string) =>
+  /<[a-z][^>]*>/i.test(html) ? RICH_TEXT : `${RICH_TEXT} whitespace-pre-wrap`;
+
 export default function InternshipDetail() {
   const loaderData = useLoaderData() as { internship: Internship } | undefined;
   const internship = loaderData?.internship;
@@ -125,7 +131,7 @@ export default function InternshipDetail() {
       <div className="border-b-2 border-neutral-900 bg-amber-400 px-4 py-3">
         <a
           href={`/outreach`}
-          className="mx-auto flex max-w-4xl items-center justify-between gap-4"
+          className="mx-auto flex max-w-4xl flex-col items-start gap-3 min-[400px]:flex-row min-[400px]:items-center min-[400px]:justify-between min-[400px]:gap-4"
         >
           <div className="flex items-center gap-3">
             <FiZap className="h-5 w-5 shrink-0 text-neutral-900" />
@@ -142,7 +148,7 @@ export default function InternshipDetail() {
 
       <article className="mx-auto max-w-4xl px-4 py-12 md:px-8">
         <header className="mb-8">
-          <div className="mb-4 flex items-center gap-4">
+          <div className="mb-4 flex flex-wrap items-center gap-3 sm:gap-4">
             <button
               onClick={() => navigate("/dojos/internships")}
               className="flex items-center gap-2 rounded-lg border-2 border-neutral-900 bg-white px-4 py-2 font-['Satoshi'] text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-100"
@@ -155,11 +161,11 @@ export default function InternshipDetail() {
             </span>
           </div>
 
-          <h1 className="mb-6 font-['Clash_Display'] text-4xl font-bold text-neutral-900 md:text-5xl leading-tight">
+          <h1 className="mb-6 font-['Clash_Display'] text-3xl font-bold text-neutral-900 break-words sm:text-4xl md:text-5xl leading-tight">
             {internship.title}
           </h1>
 
-          <div className="mb-6 flex flex-wrap items-center gap-6 text-sm font-['Satoshi'] text-gray-500">
+          <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-['Satoshi'] text-gray-500">
             <span className="flex items-center gap-2">
               <FiMapPin className="w-4 h-4" />
               {internship.location}
@@ -181,13 +187,15 @@ export default function InternshipDetail() {
           </div>
         </header>
 
-        <div className="mb-8 rounded-lg border-2 border-neutral-900 bg-violet-50 p-6">
+        <div className="mb-8 rounded-lg border-2 border-neutral-900 bg-violet-50 p-4 sm:p-6">
           <div className="mb-4">
             <h2 className="mb-2 font-['Clash_Display'] text-2xl font-bold text-neutral-900">
               About the Role
             </h2>
+            {/* PH-09: listings are stored as HTML with <ul>/<li>, but Tailwind's
+                reset strips list markers, so bullets rendered as a wall of text. */}
             <div
-              className="font-['Satoshi'] text-gray-700 whitespace-pre-wrap"
+              className={richTextClass(internship.description)}
               dangerouslySetInnerHTML={{ __html: internship.description }}
             />
           </div>
@@ -197,7 +205,7 @@ export default function InternshipDetail() {
               Requirements
             </h2>
             <div
-              className="font-['Satoshi'] text-gray-700 whitespace-pre-wrap"
+              className={richTextClass(internship.requirements || "")}
               dangerouslySetInnerHTML={{ __html: internship.requirements }}
             />
           </div>
@@ -251,13 +259,15 @@ export default function InternshipDetail() {
         {!hasApplied && (
           <a
             href={`/outreach?company=${encodeURIComponent(internship.company_name)}&role=${encodeURIComponent(internship.title)}`}
-            className="mt-4 flex w-full items-center justify-between rounded-lg border-2 border-neutral-900 bg-violet-600 px-6 py-5 text-white transition-colors hover:bg-violet-700"
+            className="mt-4 flex w-full flex-col items-start gap-4 rounded-lg border-2 border-neutral-900 bg-violet-600 px-4 py-5 text-white transition-colors hover:bg-violet-700 min-[400px]:flex-row min-[400px]:items-center min-[400px]:justify-between sm:px-6"
           >
+            {/* PH-09: stacked below 400px; side by side, the nowrap button left
+                the text one word per line on 360px phones. */}
             <div className="flex items-center gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
                 <FiMail className="h-5 w-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="font-['Clash_Display'] text-lg font-bold leading-tight">
                   Email the hiring team directly
                 </div>
@@ -266,7 +276,7 @@ export default function InternshipDetail() {
                 </div>
               </div>
             </div>
-            <div className="ml-4 shrink-0 rounded-md border-2 border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-bold whitespace-nowrap">
+            <div className="shrink-0 rounded-md border-2 border-white/40 bg-white/10 px-4 py-2 font-['Satoshi'] text-sm font-bold whitespace-nowrap min-[400px]:ml-4">
               Use Outreach →
             </div>
           </a>

@@ -215,7 +215,7 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">Who we'll be looking for</h3>
-                    <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Your ideal hiring manager profile</p>
+                    <p className="text-xs text-studojo-muted font-satoshi mt-0.5">Your ideal hiring manager profile</p>
                   </div>
                 </div>
               </div>
@@ -223,7 +223,7 @@ export default function ProfilePage() {
               <div className="p-5 space-y-4">
                 {/* Manager titles */}
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">Manager titles</p>
+                  <p className="text-xs uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">Manager titles</p>
                   <div className="flex flex-wrap gap-1.5">
                     {managerTitles.map((t) => (
                       <span key={t} className="px-2.5 py-1 rounded-lg text-xs font-satoshi font-semibold bg-studojo-purple/10 text-studojo-purple border border-studojo-purple/20">
@@ -232,7 +232,7 @@ export default function ProfilePage() {
                     ))}
                   </div>
                   {targetRole && (
-                    <p className="text-[11px] text-studojo-muted font-satoshi mt-2">
+                    <p className="text-xs text-studojo-muted font-satoshi mt-2">
                       Plus managers who came up through your role (e.g. were once a {targetRole.toLowerCase()}).
                     </p>
                   )}
@@ -241,7 +241,7 @@ export default function ProfilePage() {
                 {/* Where */}
                 {locations.length > 0 && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">Where</p>
+                    <p className="text-xs uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">Where</p>
                     <div className="flex flex-wrap gap-1.5">
                       {locations.map((loc) => (
                         <span key={loc} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi font-medium text-studojo-ink border border-studojo-ink/10">
@@ -261,7 +261,7 @@ export default function ProfilePage() {
 
                 {/* Company kind */}
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">At companies that look like</p>
+                  <p className="text-xs uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-1.5">At companies that look like</p>
                   <div className="flex flex-wrap gap-1.5">
                     {sizeBands.length > 0 && sizeBands[0] && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-studojo-surface-muted text-xs font-satoshi text-studojo-ink border border-studojo-ink/10">
@@ -292,17 +292,17 @@ export default function ProfilePage() {
                 {/* Dream company callout */}
                 {dreamCompanies.length > 0 && (
                   <div className="rounded-xl bg-studojo-pink/5 border border-studojo-pink/20 p-3">
-                    <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-pink mb-1">Plus your dream list</p>
+                    <p className="text-xs uppercase tracking-wide font-satoshi font-bold text-studojo-pink mb-1">Plus your dream list</p>
                     <p className="text-xs font-satoshi text-studojo-ink">
                       {dreamCompanies.slice(0, 8).join(" · ")}
                     </p>
-                    <p className="text-[10px] text-studojo-muted font-satoshi mt-1">
+                    <p className="text-xs text-studojo-muted font-satoshi mt-1">
                       Searched separately so they always show up regardless of other filters.
                     </p>
                   </div>
                 )}
 
-                <p className="text-[11px] text-studojo-muted font-satoshi italic pt-1">
+                <p className="text-xs text-studojo-muted font-satoshi italic pt-1">
                   We'll fall back gracefully if a filter cuts volume too low. Never below 500 leads if we can help it.
                 </p>
               </div>
@@ -317,7 +317,7 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">What we know about you</h3>
-                    <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">From your resume + the quiz</p>
+                    <p className="text-xs text-studojo-muted font-satoshi mt-0.5">From your resume + the quiz</p>
                   </div>
                 </div>
               </div>
@@ -325,47 +325,47 @@ export default function ProfilePage() {
               <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm font-satoshi">
                 {targetRole && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiTarget className="w-3 h-3" /> Target role</p>
+                    <p className="text-xs uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiTarget className="w-3 h-3" /> Target role</p>
                     <p className="text-studojo-ink">{targetRole}{seniority ? ` · ${seniority}` : ""}</p>
                   </div>
                 )}
                 {locations.length > 0 && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiMapPin className="w-3 h-3" /> Location</p>
+                    <p className="text-xs uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiMapPin className="w-3 h-3" /> Location</p>
                     <p className="text-studojo-ink">{locations.join(", ")}</p>
                   </div>
                 )}
                 {workMode && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiHome className="w-3 h-3" /> Work mode</p>
+                    <p className="text-xs uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiHome className="w-3 h-3" /> Work mode</p>
                     <p className="text-studojo-ink capitalize">{workMode}</p>
                   </div>
                 )}
                 {companySize && companySize !== "any" && (
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><BsBuilding className="w-3 h-3" /> Company size</p>
+                    <p className="text-xs uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><BsBuilding className="w-3 h-3" /> Company size</p>
                     <p className="text-studojo-ink">{formatSizeBand(companySize)} employees</p>
                   </div>
                 )}
                 {nicheKeywords.length > 0 && (
                   <div className="sm:col-span-2">
-                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiTrendingUp className="w-3 h-3" /> Niches</p>
+                    <p className="text-xs uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiTrendingUp className="w-3 h-3" /> Niches</p>
                     <p className="text-studojo-ink">{nicheKeywords.join(", ")}</p>
                   </div>
                 )}
                 {techStack.length > 0 && (
                   <div className="sm:col-span-2">
-                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiTool className="w-3 h-3" /> Tech stack</p>
+                    <p className="text-xs uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiTool className="w-3 h-3" /> Tech stack</p>
                     <div className="flex flex-wrap gap-1">
                       {techStack.map((t) => (
-                        <span key={t} className="px-2 py-0.5 rounded-md text-[11px] bg-studojo-surface-muted text-studojo-ink/80 border border-studojo-ink/10">{t}</span>
+                        <span key={t} className="px-2 py-0.5 rounded-md text-xs bg-studojo-surface-muted text-studojo-ink/80 border border-studojo-ink/10">{t}</span>
                       ))}
                     </div>
                   </div>
                 )}
                 {dreamCompanies.length > 0 && (
                   <div className="sm:col-span-2">
-                    <p className="text-[11px] uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiAward className="w-3 h-3" /> Dream companies</p>
+                    <p className="text-xs uppercase tracking-wide font-bold text-studojo-muted mb-0.5 flex items-center gap-1.5"><FiAward className="w-3 h-3" /> Dream companies</p>
                     <p className="text-studojo-ink">{dreamCompanies.join(", ")}</p>
                   </div>
                 )}
@@ -382,7 +382,7 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <h3 className="font-clash text-base font-bold text-studojo-ink leading-none">Roles That Fit You</h3>
-                      <p className="text-[11px] text-studojo-muted font-satoshi mt-0.5">Matched from your resume, skills and career goals</p>
+                      <p className="text-xs text-studojo-muted font-satoshi mt-0.5">Matched from your resume, skills and career goals</p>
                     </div>
                   </div>
                 </div>
@@ -409,18 +409,18 @@ export default function ProfilePage() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-clash text-sm font-bold text-studojo-ink">{role.title}</p>
                               {isBest && (
-                                <span className="px-1.5 py-0.5 rounded-md bg-studojo-green text-white text-[10px] font-satoshi font-bold uppercase tracking-wide flex-shrink-0">
+                                <span className="px-1.5 py-0.5 rounded-md bg-studojo-green text-white text-xs font-satoshi font-bold uppercase tracking-wide flex-shrink-0">
                                   Best match
                                 </span>
                               )}
                               {role.seniority && (
-                                <span className="px-1.5 py-0.5 rounded-md bg-studojo-surface-muted text-studojo-muted text-[10px] font-satoshi capitalize flex-shrink-0">
+                                <span className="px-1.5 py-0.5 rounded-md bg-studojo-surface-muted text-studojo-muted text-xs font-satoshi capitalize flex-shrink-0">
                                   {role.seniority}
                                 </span>
                               )}
                             </div>
                             {role.reasoning && (
-                              <p className="text-[11px] text-studojo-muted font-satoshi mt-1 leading-relaxed">{role.reasoning}</p>
+                              <p className="text-xs text-studojo-muted font-satoshi mt-1 leading-relaxed">{role.reasoning}</p>
                             )}
                           </div>
 
@@ -439,11 +439,11 @@ export default function ProfilePage() {
                                   className="transition-all duration-700"
                                 />
                               </svg>
-                              <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-clash font-bold ${scoreColor}`}>
+                              <span className={`absolute inset-0 flex items-center justify-center text-xs font-clash font-bold ${scoreColor}`}>
                                 {score}
                               </span>
                             </div>
-                            <span className="text-[9px] text-studojo-muted font-satoshi">fit</span>
+                            <span className="text-xs text-studojo-muted font-satoshi">fit</span>
                           </div>
                         </div>
 
@@ -452,7 +452,7 @@ export default function ProfilePage() {
                             {matchingSkills.map((skill: string) => (
                               <span
                                 key={skill}
-                                className={`px-2 py-0.5 rounded-md text-[10px] font-satoshi font-medium ${
+                                className={`px-2 py-0.5 rounded-md text-xs font-satoshi font-medium ${
                                   isBest
                                     ? "bg-studojo-green/12 text-studojo-green border border-studojo-green/20"
                                     : "bg-studojo-purple/8 text-studojo-purple border border-studojo-purple/15"
@@ -498,7 +498,7 @@ export default function ProfilePage() {
                     </span>
                   ))}
                 </div>
-                <p className="text-[11px] text-studojo-muted/60 font-satoshi mt-2">Top skills highlighted in purple</p>
+                <p className="text-xs text-studojo-muted/60 font-satoshi mt-2">Top skills highlighted in purple</p>
               </div>
             )}
 

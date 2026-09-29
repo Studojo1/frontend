@@ -79,7 +79,7 @@ function initials(name: string): string {
 export default function InboxPage() {
   const navigate = useNavigate();
   const { loading: authLoading } = useOutreachAuth();
-  const { linkedInCampaignId } = useOutreachStore();
+  const { linkedInCampaignId, campaignId, planType } = useOutreachStore();
 
   const [conversations, setConversations] = useState<InboxConversation[]>([]);
   const [activeRequestId, setActiveRequestId] = useState<number | null>(null);
@@ -187,6 +187,40 @@ export default function InboxPage() {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // PH-27: email-plan students landed here and were told to connect LinkedIn,
+  // a product they did not buy. Their replies live on the email dashboard, so
+  // point them there instead.
+  if (!linkedInCampaignId && (planType === "email" || campaignId)) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="mx-auto max-w-3xl px-4 py-12 text-center">
+          <FiMessageCircle className="w-12 h-12 text-studojo-muted mx-auto mb-4" />
+          <h1 className="font-clash text-2xl font-bold mb-2">Your email replies are on your dashboard</h1>
+          <p className="text-sm text-studojo-muted font-satoshi mb-6">
+            When a hiring manager replies to one of your emails, it shows up in your campaign
+            table marked Replied, and in your Gmail inbox. This page is for LinkedIn conversations.
+          </p>
+          <button
+            onClick={() => navigate("/outreach/campaign/dashboard?filter=replied")}
+            className="h-11 px-6 rounded-2xl bg-studojo-purple text-white font-satoshi font-bold border-2 border-studojo-ink shadow-brutal"
+          >
+            See email replies
+          </button>
+          {planType === "both" && (
+            <button
+              onClick={() => navigate("/outreach/connect/linkedin")}
+              className="mt-4 block mx-auto text-sm font-satoshi font-bold text-studojo-purple underline"
+            >
+              Connect LinkedIn for LinkedIn conversations
+            </button>
+          )}
+        </div>
+        <Footer />
       </div>
     );
   }
