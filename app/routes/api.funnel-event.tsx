@@ -1,6 +1,7 @@
 import { auth } from "~/lib/auth";
 import db from "~/lib/db";
 import { systemEvents } from "../../auth-schema";
+import { checkRateLimit } from "~/lib/ratelimit.server";
 import type { Route } from "./+types/api.funnel-event";
 
 /** POST /api/funnel-event: server-side record of the signup funnel steps.
@@ -36,6 +37,11 @@ export async function action({ request }: Route.ActionArgs) {
   };
   if (!body.event || !EVENTS.has(body.event)) {
     return Response.json({ error: "Unknown event" }, { status: 400 });
+  }
+  // Anonymous and one row per call, so cap it per IP (audit ST-N12).
+  const limit = await checkRateLimit(request);
+  if (limit && !limit.allowed) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 
   const session = await auth.api.getSession({ headers: request.headers }).catch(() => null);

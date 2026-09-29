@@ -20,10 +20,6 @@ const tree = JSON.parse(
   }),
 );
 
-// auth.tsx is renamed in a follow-up PR (it collides with an open signup PR);
-// until then /auth/2fa still renders /auth. Remove this entry with that PR.
-const KNOWN = new Set(["routes/auth.tsx"]);
-
 const bad = [];
 (function walk(routes) {
   for (const r of routes) {
@@ -31,7 +27,7 @@ const bad = [];
       const src = readFileSync(APP + r.file, "utf8");
       // Resource routes (no default export) have no UI, so nesting is harmless.
       const isPage = /export default/.test(src);
-      if (isPage && !KNOWN.has(r.file) && !/\bOutlet\b/.test(src)) bad.push(`${r.file} (children: ${r.children.map((c) => c.path).join(", ")})`);
+      if (isPage && !/\bOutlet\b/.test(src)) bad.push(`${r.file} (children: ${r.children.map((c) => c.path).join(", ")})`);
     }
     if (r.children) walk(r.children);
   }

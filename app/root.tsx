@@ -13,7 +13,6 @@ import { useEffect } from "react";
 
 import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
-import { identifyUser, initMixpanel, trackEvent } from "./lib/mixpanel";
 import { capturePostHog, identifyPostHogUser, initPostHog, registerPostHogProps } from "./lib/posthog";
 import { clearTokenCache } from "./lib/control-plane";
 import { initMetaPixel, trackMetaPageView } from "./lib/meta-pixel";
@@ -134,12 +133,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function MixpanelInit() {
+function AnalyticsInit() {
   const { data: session } = authClient.useSession();
   const location = useLocation();
 
   useEffect(() => {
-    initMixpanel();
     initPostHog();
     initMetaPixel();
   }, []);
@@ -188,10 +186,6 @@ function MixpanelInit() {
   // Identify user when session is available
   useEffect(() => {
     if (session?.user) {
-      identifyUser(session.user.id, {
-        email: session.user.email,
-        name: session.user.name,
-      });
       identifyPostHogUser(session.user.id, {
         email: session.user.email,
         name: session.user.name,
@@ -233,28 +227,22 @@ function MixpanelInit() {
     }
   }, [session]);
 
-  // Track page views (with delay to ensure Mixpanel is initialized)
+  // One page view per route change. Keyed on the path only: keying on the
+  // session too re-fired it when the session resolved or the user signed in,
+  // double-counting ~10% of signed-in sessions (audit ST-N10).
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Small delay to ensure Mixpanel initialization completes
-      const timeoutId = setTimeout(() => {
-      trackEvent("Page View", {
-        page_url: window.location.href,
+    if (typeof window === "undefined") return;
+    const timeoutId = setTimeout(() => {
+      capturePostHog("$pageview", {
+        $current_url: window.location.href,
         page_title: document.title,
-        user_id: session?.user?.id,
       });
-        capturePostHog("$pageview", {
-          $current_url: window.location.href,
-          page_title: document.title,
-        });
-        // Client-side navigation does not reload the document, so the pixel's own
-        // PageView would only ever fire on the first hard load.
-        trackMetaPageView();
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [location.pathname, session?.user?.id]);
+      // Client-side navigation does not reload the document, so the pixel's own
+      // PageView would only ever fire on the first hard load.
+      trackMetaPageView();
+    }, 100);
+    return () => clearTimeout(timeoutId);
+  }, [location.pathname]);
 
   return null;
 }
@@ -368,7 +356,7 @@ export default function App() {
 
   return (
     <>
-      <MixpanelInit />
+      <AnalyticsInit />
       <Outlet />
       {!hideGlobalChat && <ChatWidget />}
       {!onSensei && <CookieNotice />}
@@ -379,28 +367,19 @@ export default function App() {
 
 function ErrorTracker({ errorType, errorMessage, errorCode }: { errorType: string; errorMessage: string; errorCode?: string }) {
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // getSession() is async; reading .user off the Promise sent every
-      // Error event with no user_id.
-      const send = (userId?: string) =>
-        trackEvent("Error", {
-          error_type: errorType,
-          error_message: errorMessage,
-          error_code: errorCode,
-          page_url: window.location.href,
-          user_id: userId,
-        });
-      // A failed session lookup must not swallow the error event itself.
-      authClient.getSession().then(
-        ({ data: session }) => send(session?.user?.id),
-        () => send(undefined),
-      );
-    }
-    // PostHog, not only Mixpanel, so broken inbound links show up in the
-    // admin funnel (audit HP-N16).
+    if (typeof window === "undefined") return;
+    // PostHog, so errors and broken inbound links show up in the admin funnel
+    // (audit HP-N16; Mixpanel, which nobody read, is gone).
+    initPostHog();
     if (errorCode === "404") {
-      initPostHog();
       capturePostHog("page_not_found", { path: window.location.pathname, referrer: document.referrer || null });
+    } else {
+      capturePostHog("app_error", {
+        error_type: errorType,
+        error_message: errorMessage,
+        error_code: errorCode,
+        path: window.location.pathname,
+      });
     }
   }, [errorType, errorMessage, errorCode]);
   return null;
