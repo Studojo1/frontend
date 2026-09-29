@@ -87,7 +87,7 @@ export function HydrateFallback() {
 export default function ResultsPage() {
   const navigate = useNavigate();
   const { loading: authLoading, recovering } = useOutreachAuth();
-  const { candidateId, setCandidateId, planType } = useOutreachStore();
+  const { candidateId, setCandidateId } = useOutreachStore();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -300,20 +300,13 @@ export default function ResultsPage() {
   const firstBroader = sortBy === "best" && !q ? filtered.findIndex((l) => l.broader) : -1;
   const pageStart = (currentPage - 1) * PAGE_SIZE;
 
-  // The CTA follows the plan the user chose, not the shape of the data. Leads
-  // have no email before payment, so guessing from the data sent nearly every
-  // email-plan buyer to LinkedIn pricing.
-  const isLinkedInPlan = planType === "linkedin";
-  const ctaLabel = isLinkedInPlan ? "Start LinkedIn automation" : "Get Their Emails";
-  const cardActionLabel = isLinkedInPlan ? "Send an invite" : "Unlock contacts";
+  // LinkedIn plans are retired (audit NEW-09), so every student goes to the
+  // email pricing page.
+  const ctaLabel = "Get Their Emails";
+  const cardActionLabel = "Unlock contacts";
   const onCta = (source: string) => {
-    if (isLinkedInPlan) {
-      capturePostHog("start_linkedin_automation_clicked", { source });
-      navigate("/linkedin/pricing");
-    } else {
-      capturePostHog("get_emails_clicked", { source });
-      navigate("/outreach/enrichment");
-    }
+    capturePostHog("get_emails_clicked", { source });
+    navigate("/outreach/enrichment");
   };
 
   const loaded = !loading && !error && !authExpired;

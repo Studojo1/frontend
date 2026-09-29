@@ -195,7 +195,7 @@ export default function LinkedInLeads() {
               </button>
             )}
             <button
-              onClick={() => navigate("/linkedin/pricing")}
+              onClick={() => navigate("/outreach/enrichment")}
               className="h-9 px-4 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"
             >
               <FiSend className="w-4 h-4 mr-1.5" /> Send invites
@@ -260,7 +260,7 @@ export default function LinkedInLeads() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {paginated.map((lead) => (
-                <FlashCard key={lead.id} lead={lead} actionLabel="Send an invite" onSelect={() => navigate("/linkedin/pricing")} />
+                <FlashCard key={lead.id} lead={lead} actionLabel="Send an invite" onSelect={() => navigate("/outreach/enrichment")} />
               ))}
             </div>
             {totalPages > 1 && (
@@ -290,7 +290,7 @@ export default function LinkedInLeads() {
       {!loading && sorted.length > 0 && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10">
           <button
-            onClick={() => navigate("/linkedin/pricing")}
+            onClick={() => navigate("/outreach/enrichment")}
             className="h-12 px-7 rounded-2xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center gap-2 whitespace-nowrap"
           >
             <FiSend className="w-4 h-4" /> Send invites to these {sorted.length} <FiArrowRight className="w-4 h-4" />

@@ -12,6 +12,7 @@ import { capturePostHog } from "~/lib/posthog";
 import { track } from "~/lib/analytics";
 import { metaBrowserIds } from "~/lib/attribution";
 import type { TierPricing } from "~/lib/outreach/types";
+import { RealNumbers } from "~/components/outreach/RealNumbers";
 
 declare global {
   interface Window {
@@ -37,103 +38,12 @@ const FAQ_ITEMS: [string, string][] = [
   ["Is my data safe?", "Yes. Your resume and contacts stay private and are never sold or shared. Payments are handled by Razorpay, so we never see your card details."],
 ];
 
-// ── Wall of Love (authentic-style screenshots, anonymised) ─────────────────
-type WallCard =
-  | { type: "tweet"; n: string; h: string; d: string; v: boolean; q: string; re: number; rt: number; lk: number }
-  | { type: "imsg"; in: string; out: string; t: string }
-  | { type: "whatsapp"; q: string; t: string }
-  | { type: "linkedin"; n: string; role: string; deg: string; q: string };
-const WALL: WallCard[] = [
-  { type: "tweet", n: "Priya Nair", h: "@priyabuilds", d: "May 24", v: false, q: "40 applications on job boards = total silence. one week on studojo = 3 replies from actual founders. the math isn't close", re: 5, rt: 6, lk: 41 },
-  { type: "imsg", in: "a founder just replied to my message directly", out: "the studojo one?? told you to set it up", t: "11:47 PM" },
-  { type: "linkedin", n: "Karthik Menon", role: "Talent Lead · Seed-stage SaaS", deg: "2nd", q: "Got a note from a student via Studojo: tight, specific, clearly not a mass blast. Replied within the hour. More of this, please." },
-  { type: "tweet", n: "Devansh Rao", h: "@devansh_rao", d: "6d", v: true, q: "the outreach actually sounds like me, not a bot. recruiter wrote back that my note 'stood out'. still not over it", re: 2, rt: 4, lk: 33 },
-  { type: "whatsapp", q: "ok studojo is lowkey unfair. two interview calls this week and I never touched a single job portal", t: "8:21 PM" },
-  { type: "tweet", n: "Sara Qureshi", h: "@sara_q", d: "May 31", v: false, q: "months of getting ghosted, then one weekend on studojo and my inbox finally has real humans in it", re: 3, rt: 5, lk: 29 },
-  { type: "imsg", in: "update: internship locked", out: "the role studojo dug up?? lets gooo", t: "4:02 PM" },
-  { type: "whatsapp", q: "the follow-ups run on their own so I don't have to chase. woke up to a reply I never had to send twice", t: "7:58 AM" },
-  { type: "linkedin", n: "Hannah Lim", role: "CS @ NUS", deg: "2nd", q: "Four intro calls in my first week, all for roles I'd never have surfaced on a job board. Quietly impressed. Sending this to my whole cohort." },
-  { type: "tweet", n: "Rohit Bansal", h: "@rohitships", d: "Jun 5", v: false, q: "done firing résumés into the void. studojo drops me straight into the right person's inbox. genuinely a different game", re: 4, rt: 7, lk: 38 },
-];
-const WCOLORS = ["bg-studojo-purple", "bg-studojo-pink", "bg-studojo-green", "bg-studojo-orange", "bg-indigo-500", "bg-rose-500", "bg-teal-500"];
-const initials = (n: string) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-const wcolor = (n: string) => WCOLORS[n.charCodeAt(0) % WCOLORS.length];
-
-function ReviewCard({ v }: { v: WallCard }) {
-  const shell = "w-[290px] h-[160px] flex-shrink-0 rounded-2xl border-2 border-studojo-ink shadow-brutal flex flex-col";
-  if (v.type === "tweet") {
-    return (
-      <div className={`${shell} bg-white p-4`}>
-        <div className="flex items-center gap-2.5">
-          <div className={`w-9 h-9 rounded-full ${wcolor(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 sd-pii`}>{initials(v.n)}</div>
-          <div className="min-w-0 flex-1 leading-tight">
-            <div className="flex items-center gap-1">
-              <span className="text-[13px] font-bold truncate sd-pii">{v.n}</span>
-              {v.v && <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#1d9bf0] items-center justify-center flex-shrink-0"><svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-white"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" /></svg></span>}
-            </div>
-            <div className="text-[12px] text-studojo-muted truncate"><span className="sd-pii">{v.h}</span> · {v.d}</div>
-          </div>
-          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-studojo-muted flex-shrink-0"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-        </div>
-        <p className="text-[13px] leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
-        <div className="flex items-center gap-7 pt-2 text-studojo-muted text-[11px]">
-          <span>↩ {v.re}</span><span>⇄ {v.rt}</span><span>♥ {v.lk}</span>
-        </div>
-      </div>
-    );
-  }
-  if (v.type === "imsg") {
-    return (
-      <div className={`${shell} bg-[#1c1c1e] p-3.5 justify-center`}>
-        <div className="flex flex-col gap-2">
-          <div className="self-start max-w-[88%] bg-[#3a3a3c] text-white text-[13px] leading-snug rounded-2xl rounded-bl-md px-3 py-2">{v.in}</div>
-          <div className="self-end max-w-[88%] bg-[#0a84ff] text-white text-[13px] leading-snug rounded-2xl rounded-br-md px-3 py-2">{v.out}</div>
-        </div>
-        <p className="text-[10px] text-white/40 text-center mt-2.5">{v.t}</p>
-      </div>
-    );
-  }
-  if (v.type === "whatsapp") {
-    return (
-      <div className={`${shell} bg-[#0b141a] p-3.5 justify-center`}>
-        <div className="self-end max-w-[94%] bg-[#005c4b] text-white text-[13.5px] leading-snug rounded-2xl rounded-br-md px-3 py-2">
-          {v.q}
-          <span className="flex items-center justify-end gap-1 mt-1 text-[10px] text-white/55">{v.t} ✓✓</span>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className={`${shell} bg-white p-4`}>
-      <div className="flex items-center gap-2.5">
-        <div className={`w-9 h-9 rounded-full ${wcolor(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 sd-pii`}>{initials(v.n)}</div>
-        <div className="min-w-0 flex-1 leading-tight">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[13px] font-bold truncate sd-pii">{v.n}</span>
-            <span className="text-[10px] text-studojo-muted whitespace-nowrap">· {v.deg}</span>
-            <span className="inline-flex w-3.5 h-3.5 rounded-[3px] bg-[#0a66c2] text-white items-center justify-center text-[8px] font-bold flex-shrink-0">in</span>
-          </div>
-          <div className="text-[12px] font-medium text-studojo-ink/75 truncate">{v.role}</div>
-        </div>
-      </div>
-      <p className="text-[13px] leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
-      <div className="flex items-center gap-3 pt-2 text-[11px] font-semibold text-studojo-muted"><span>Like</span><span>· Reply</span></div>
-    </div>
-  );
-}
-
+// Outcome figures from our own records. These replaced an invented "Wall of
+// Love" of testimonials (audit OP-N02).
 function WallOfLove() {
-  const half = Math.ceil(WALL.length / 2);
-  const rowA = WALL.slice(0, half);
-  const rowB = WALL.slice(half);
   return (
     <div className="mb-14">
-      <h2 className="font-clash text-2xl md:text-3xl font-bold text-center text-studojo-ink mb-1">Students are already getting in</h2>
-      <p className="text-center text-sm text-studojo-muted mb-6">Real messages from students using Studojo.</p>
-      <div className="sd-wall-mask space-y-3 overflow-hidden">
-        <div className="sd-marquee flex gap-3 w-max">{[...rowA, ...rowA].map((v, i) => <ReviewCard key={i} v={v} />)}</div>
-        <div className="sd-marquee-rev flex gap-3 w-max">{[...rowB, ...rowB].map((v, i) => <ReviewCard key={i} v={v} />)}</div>
-      </div>
+      <RealNumbers title="Students are already getting in" />
     </div>
   );
 }
@@ -754,11 +664,11 @@ export default function EnrichmentPage() {
       return {
         display: match.display_price || `${currSymbol}${(raw / 100).toFixed(0)}`,
         discounted: discounted ? `${currSymbol}${(discounted / 100).toFixed(0)}` : null,
-        anchor: match.anchor_display ?? null,
-        discountPct: match.discount_pct ?? null,
       };
     }
-    return { display: pricingState === "failed" ? "-" : "…", discounted: null, anchor: null, discountPct: null };
+    // No crossed-out "original" price: those amounts were never charged, so
+    // showing them is a false reference price (audit OP-N04).
+    return { display: pricingState === "failed" ? "-" : "…", discounted: null };
   };
 
   const selectedTierObj = TIERS.find((t) => t.value === selectedTier) ?? TIERS[0];
@@ -929,9 +839,6 @@ export default function EnrichmentPage() {
 
                 {/* Price */}
                 <div className="flex items-baseline gap-2 flex-wrap mb-1">
-                  {price.anchor && !price.discounted && (
-                    <span className="text-sm line-through text-studojo-muted font-satoshi">{price.anchor}</span>
-                  )}
                   <span className="font-clash text-3xl font-black text-studojo-ink leading-none">
                     {price.discounted || price.display}
                   </span>
@@ -939,13 +846,6 @@ export default function EnrichmentPage() {
                     <span className="text-sm line-through text-studojo-muted font-satoshi">{price.display}</span>
                   )}
                 </div>
-
-                {/* Discount pill */}
-                {price.discountPct != null && price.discountPct > 0 && !price.discounted && (
-                  <span className="inline-flex items-center mb-1 px-2 py-0.5 rounded-full text-[11px] font-satoshi font-bold bg-studojo-green/15 text-studojo-green border border-studojo-green/40 w-fit">
-                    Save {price.discountPct}%
-                  </span>
-                )}
 
                 {perContact && <p className="text-xs text-studojo-muted font-satoshi mt-1">just {perContact}</p>}
                 <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{tier.tagline}</p>
@@ -1058,7 +958,7 @@ export default function EnrichmentPage() {
         </div>
 
         <p className="text-xs text-studojo-muted font-satoshi text-center">
-          Emails sent gradually over several days. Most students get their first reply within a week.
+          Emails sent gradually over several days. About 4 in 10 students hear back in their first week.
         </p>
       </div>
       <Footer />
@@ -1071,7 +971,6 @@ export default function EnrichmentPage() {
               {selectedTierObj?.name} · {selectedTier} contacts
             </p>
             <p className="text-[11px] text-studojo-muted font-satoshi">
-              {selectedPrice.anchor && <span className="line-through">{selectedPrice.anchor} </span>}
               {selectedPrice.discounted || selectedPrice.display}
               {hasCreditsForSelected ? " · covered by your credits" : ""}
             </p>

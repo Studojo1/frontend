@@ -6,6 +6,7 @@ import { FiUpload, FiSearch, FiMail, FiArrowRight, FiClipboard, FiChevronDown, F
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TrustStrip } from "~/components";
+import { RealNumbers } from "~/components/outreach/RealNumbers";
 import { useNextStep, isPaidNotLaunched, nextStepLabel, nextStepSummary } from "~/lib/outreach/hooks";
 
 const STEPS = [
@@ -29,115 +30,6 @@ const STEPS = [
   },
 ];
 
-// Wall of Love - mixed authentic "screenshots": X, iMessage, WhatsApp, LinkedIn.
-type WallItem =
-  | { type: "tweet"; n: string; h: string; d: string; v: boolean; q: string; re: number; rt: number; lk: number }
-  | { type: "imsg"; in: string; out: string; t: string }
-  | { type: "whatsapp"; q: string; t: string }
-  | { type: "linkedin"; n: string; role: string; deg: string; q: string };
-const WALL: WallItem[] = [
-  { type: "tweet", n: "Priya Nair", h: "@priyabuilds", d: "May 24", v: false, q: "40 applications on job boards = total silence. one week on studojo = 3 replies from actual founders 💀 the math isn't close", re: 5, rt: 6, lk: 41 },
-  { type: "imsg", in: "a founder just replied to my message directly 😭", out: "the studojo one?? told you to set it up", t: "11:47 PM" },
-  { type: "linkedin", n: "Karthik Menon", role: "Talent Lead · Seed-stage SaaS", deg: "2nd", q: "Got a note from a student via Studojo: tight, specific, clearly not a mass blast. Replied within the hour. More of this, please." },
-  { type: "tweet", n: "Devansh Rao", h: "@devansh_rao", d: "6d", v: true, q: "the outreach actually sounds like me, not a bot. recruiter wrote back that my note 'stood out' :D still not over it", re: 2, rt: 4, lk: 33 },
-  { type: "whatsapp", q: "ok studojo is lowkey unfair. two interview calls this week and I never touched a single job portal", t: "8:21 PM" },
-  { type: "tweet", n: "Sara Qureshi", h: "@sara_q", d: "May 31", v: false, q: "months of getting ghosted, then one weekend on studojo and my inbox finally has real humans in it", re: 3, rt: 5, lk: 29 },
-  { type: "imsg", in: "wait the internship is locked?? 🔒", out: "the role studojo dug up?? lets gooo", t: "4:02 PM" },
-  { type: "whatsapp", q: "the follow-ups run on their own so I don't have to chase. woke up to a reply I never had to send twice <3", t: "7:58 AM" },
-  { type: "linkedin", n: "Hannah Lim", role: "CS @ NUS", deg: "2nd", q: "Four intro calls in my first week, all for roles I'd never have surfaced on a job board. Quietly impressed. Sending this to my whole cohort." },
-  { type: "tweet", n: "Rohit Bansal", h: "@rohitships", d: "Jun 5", v: false, q: "done firing résumés into the void. studojo drops me straight into the right person's inbox 🙌 genuinely a different game", re: 4, rt: 7, lk: 38 },
-];
-const WALL_ROW_A = WALL.slice(0, Math.ceil(WALL.length / 2));
-const WALL_ROW_B = WALL.slice(Math.ceil(WALL.length / 2));
-
-const WALL_COLORS = ["bg-studojo-purple", "bg-studojo-pink", "bg-studojo-green", "bg-studojo-orange", "bg-studojo-teal", "bg-indigo-500", "bg-rose-500", "bg-amber-500"];
-const wallInit = (n: string) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-const wallCol = (n: string) => WALL_COLORS[n.charCodeAt(0) % WALL_COLORS.length];
-
-const WallVerified = () => (
-  <span className="inline-flex w-3.5 h-3.5 rounded-full bg-[#1d9bf0] items-center justify-center flex-shrink-0">
-    <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-white"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" /></svg>
-  </span>
-);
-const WallXLogo = () => (
-  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-studojo-ink/60 flex-shrink-0"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-);
-const WallTicks = () => (
-  <svg viewBox="0 0 18 12" className="w-3.5 h-3 inline-block">
-    <path d="M1 6.5 4 9.5 9.5 2.5" fill="none" stroke="#53bdeb" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M6 6.5 9 9.5 14.5 2.5" fill="none" stroke="#53bdeb" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-const wallTweetAction = (path: string, n: number) => (
-  <span className="flex items-center gap-1 text-studojo-muted text-[11px]">
-    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current"><path d={path} /></svg>
-    {n > 0 && <span className="tabular-nums">{n}</span>}
-  </span>
-);
-const WALL_P_REPLY = "M1.75 11C1.75 5.9 5.9 1.75 11 1.75h2c5.1 0 9.25 4.15 9.25 9.25S18.1 20.25 13 20.25h-1.4l-4.6 3.1V20.1C4 18.6 1.75 15.1 1.75 11z";
-const WALL_P_RT = "M4.5 3.9 1 7.4l3.5 3.5V8.4h11v3l4-4-4-4v3h-9V3.9zm15 13.2L16 13.6v2.5h-11v-3l-4 4 4 4v-3h13z";
-const WALL_P_LIKE = "M12 21s-7.5-4.9-10-9.3C.4 8.6 1.8 5 5.2 5c2 0 3.4 1.2 4.3 2.6h1C11.4 6.2 12.8 5 14.8 5c3.4 0 4.8 3.6 3.2 6.7C19.5 16.1 12 21 12 21z";
-
-const WALL_CARD = "w-[300px] h-[168px] flex-shrink-0 rounded-2xl shadow-sm flex flex-col";
-function WallCard({ v }: { v: WallItem }) {
-  if (v.type === "tweet") {
-    return (
-      <div className={`${WALL_CARD} border border-studojo-ink/10 bg-white p-4`}>
-        <div className="flex items-center gap-2.5">
-          <div className={`w-9 h-9 rounded-full ${wallCol(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>{wallInit(v.n)}</div>
-          <div className="min-w-0 flex-1 leading-tight">
-            <div className="flex items-center gap-1">
-              <span className="text-[13px] font-bold text-studojo-ink truncate">{v.n}</span>{v.v && <WallVerified />}
-            </div>
-            <div className="text-[12px] text-studojo-muted truncate">{v.h} · {v.d}</div>
-          </div>
-          <WallXLogo />
-        </div>
-        <p className="text-[13px] text-studojo-ink leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
-        <div className="flex items-center gap-7 pt-2">{wallTweetAction(WALL_P_REPLY, v.re)}{wallTweetAction(WALL_P_RT, v.rt)}{wallTweetAction(WALL_P_LIKE, v.lk)}</div>
-      </div>
-    );
-  }
-  if (v.type === "imsg") {
-    return (
-      <div className={`${WALL_CARD} bg-[#1c1c1e] p-3.5 justify-center`}>
-        <div className="flex flex-col gap-2">
-          <div className="self-start max-w-[88%] bg-[#3a3a3c] text-white text-[13px] leading-snug rounded-2xl rounded-bl-md px-3 py-2">{v.in}</div>
-          <div className="self-end max-w-[88%] bg-[#0a84ff] text-white text-[13px] leading-snug rounded-2xl rounded-br-md px-3 py-2">{v.out}</div>
-        </div>
-        <p className="text-[10px] text-white/40 text-center mt-2.5">{v.t}</p>
-      </div>
-    );
-  }
-  if (v.type === "whatsapp") {
-    return (
-      <div className={`${WALL_CARD} bg-[#0b141a] p-3.5 justify-center`}>
-        <div className="self-end max-w-[94%] bg-[#005c4b] text-white text-[13.5px] leading-snug rounded-2xl rounded-br-md px-3 py-2">
-          {v.q}
-          <span className="flex items-center justify-end gap-1 mt-1 text-[10px] text-white/55">{v.t} <WallTicks /></span>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className={`${WALL_CARD} border border-studojo-ink/10 bg-white p-4`}>
-      <div className="flex items-center gap-2.5">
-        <div className={`w-9 h-9 rounded-full ${wallCol(v.n)} text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>{wallInit(v.n)}</div>
-        <div className="min-w-0 flex-1 leading-tight">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[13px] font-bold text-studojo-ink truncate">{v.n}</span>
-            <span className="text-[10px] text-studojo-muted whitespace-nowrap">· {v.deg}</span>
-            <span className="inline-flex w-3.5 h-3.5 rounded-[3px] bg-[#0a66c2] text-white items-center justify-center text-[8px] font-bold flex-shrink-0">in</span>
-          </div>
-          <div className="text-[12px] font-medium text-studojo-ink/75 truncate">{v.role}</div>
-        </div>
-      </div>
-      <p className="text-[13px] text-studojo-ink leading-snug mt-2.5 flex-1 overflow-hidden">{v.q}</p>
-      <div className="flex items-center gap-3 pt-2 text-[11px] font-semibold text-studojo-muted"><span>Like</span><span>· Reply</span></div>
-    </div>
-  );
-}
-
 const FAQS = [
   {
     q: "Is this spam? Will my Gmail get flagged?",
@@ -153,7 +45,7 @@ const FAQS = [
   },
   {
     q: "What happens after I pay?",
-    a: "You connect your Gmail, confirm your target companies and roles, and we handle the rest. Most students see their first reply within a week. You can track everything from your dashboard.",
+    a: "You connect your Gmail, confirm your target companies and roles, and we handle the rest. About 4 in 10 students hear back in their first week. You can track everything from your dashboard.",
   },
 ];
 
@@ -223,7 +115,7 @@ export default function OutreachLanding() {
               Skip the job board queue. Email hiring managers directly.
             </h1>
             <p className="max-w-xl font-satoshi text-sm font-normal leading-6 text-white/90 md:text-base md:leading-7">
-              Upload your resume. We find who can actually hire you, write a personal email, and send it from your Gmail. Most students get their first reply within a week.
+              Upload your resume. We find who can actually hire you, write a personal email, and send it from your Gmail. About 4 in 10 students hear back in their first week.
             </p>
             {paidNotLaunched && (
               <p className="max-w-xl font-satoshi text-sm font-semibold text-white">
@@ -335,21 +227,10 @@ export default function OutreachLanding() {
         </div>
       </section>
 
-      {/* Wall of Love: dynamic marquee */}
-      <section className="border-b-2 border-studojo-ink bg-studojo-surface-muted overflow-hidden">
+      {/* Outcome figures from our own records (these replaced invented testimonials). */}
+      <section className="border-b-2 border-studojo-ink bg-studojo-surface-muted">
         <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-16 md:px-8 md:py-24">
-          <div className="text-center mb-10">
-            <h2 className="font-clash text-3xl font-bold text-studojo-ink md:text-4xl">Students are already getting in</h2>
-            <p className="font-satoshi text-base text-studojo-muted mt-3">Don't take it from us. Real messages from students using Studojo.</p>
-          </div>
-          <div className="sd-wall-mask space-y-3 overflow-hidden">
-            <div className="sd-marquee flex gap-3 w-max">
-              {[...WALL_ROW_A, ...WALL_ROW_A].map((v, i) => <WallCard key={i} v={v} />)}
-            </div>
-            <div className="sd-marquee-rev flex gap-3 w-max">
-              {[...WALL_ROW_B, ...WALL_ROW_B].map((v, i) => <WallCard key={i} v={v} />)}
-            </div>
-          </div>
+          <RealNumbers title="Students are already getting in" />
         </div>
       </section>
 
@@ -372,7 +253,7 @@ export default function OutreachLanding() {
         <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-16 md:px-8 md:py-24 text-center">
           <h2 className="font-clash text-3xl font-bold text-white mb-4 md:text-4xl">Your resume is worth more than a job board application.</h2>
           <p className="font-satoshi text-base text-white/80 mb-10 max-w-lg mx-auto">
-            Takes 2 minutes to set up. Most students get their first reply within a week.
+            Takes 2 minutes to set up. About 4 in 10 students hear back in their first week.
           </p>
           <button
             onClick={() => navigate(primaryCta.to)}
