@@ -4,7 +4,7 @@
 // server-side, the same eventId must be sent with the server copy so Meta deduplicates
 // the pair into a single event instead of counting it twice.
 
-const PIXEL_ID = import.meta.env.VITE_PUBLIC_META_PIXEL_ID as string | undefined;
+const PIXEL_ID = import.meta.env?.VITE_PUBLIC_META_PIXEL_ID as string | undefined;
 
 // Staging builds from the same Dockerfile and so carries the same pixel id. Without
 // this gate, QA and smoke runs on studojo.pro would fire real conversions into the

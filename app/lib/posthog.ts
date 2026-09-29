@@ -19,14 +19,23 @@ function withPostHog(fn: (ph: PostHog) => void) {
   }
 }
 
-const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_KEY as string | undefined;
+const POSTHOG_KEY = import.meta.env?.VITE_PUBLIC_POSTHOG_KEY as string | undefined;
 const POSTHOG_HOST = "https://eu.i.posthog.com";
 
 let isInitialized = false;
 
+// Production hosts only. Staging (studojo.pro) and local builds carry the
+// same project key, so their test traffic landed in the production funnel
+// (audit ST-N03).
+function isProductionHost(): boolean {
+  const h = window.location.hostname;
+  return h === "studojo.com" || h.endsWith(".studojo.com");
+}
+
 export function initPostHog() {
   if (typeof window === "undefined") return;
   if (!POSTHOG_KEY) return;
+  if (!isProductionHost()) return;
   if (isInitialized) return;
 
   isInitialized = true;
@@ -36,8 +45,12 @@ export function initPostHog() {
         api_host: POSTHOG_HOST,
         capture_pageview: false, // we fire manually on route change
         capture_pageleave: true,
+        // Replays mask every piece of on-screen text, not only inputs: they
+        // were recording resume details, outreach email bodies and hiring
+        // managers' replies (audit ST-N05).
         session_recording: {
           maskAllInputs: true,
+          maskTextSelector: "*",
           blockSelector: ".ph-no-capture",
         },
       });

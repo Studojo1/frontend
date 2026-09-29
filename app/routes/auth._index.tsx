@@ -7,8 +7,8 @@ import { heldTrackingParams } from "~/lib/attribution";
 import { authClient } from "~/lib/auth-client";
 import { logFunnelStep } from "~/lib/funnel";
 import { chromeIntentUrl, detectInAppBrowser, isAndroid, type InAppBrowser } from "~/lib/in-app-browser";
-import { identifyUser, trackEvent } from "~/lib/mixpanel";
-import type { Route } from "./+types/auth";
+import { capturePostHog } from "~/lib/posthog";
+import type { Route } from "./+types/auth._index";
 
 const floatY = [0, -24, -12, -30, 0];
 const floatX = [0, 12, -18, 8, 0];
@@ -229,9 +229,16 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const { data: session, isPending } = authClient.useSession();
-  const lastMethod = authClient.getLastUsedLoginMethod();
-  const isLastGoogle = authClient.isLastUsedLoginMethod("google");
-  const isLastEmail = authClient.isLastUsedLoginMethod("email");
+  // The last-used method lives in a cookie the server render never reads, so
+  // reading it during render made the first client render differ from the
+  // server HTML (React #418 for every returning visitor, audit ST-N14). Read
+  // it after mount instead.
+  const [lastMethod, setLastMethod] = useState<string | null>(null);
+  useEffect(() => {
+    setLastMethod(authClient.getLastUsedLoginMethod() ?? null);
+  }, []);
+  const isLastGoogle = lastMethod === "google";
+  const isLastEmail = lastMethod === "email";
 
   useEffect(() => logFunnelStep("auth_view", { in_app: inAppNow() }), []);
 
@@ -304,6 +311,8 @@ export default function Auth() {
       internal_server_error:
         "Something went wrong on our end while signing you in. Please try again, and contact support if it keeps happening.",
       access_denied: "You cancelled the sign-in. Please try again when ready.",
+      please_restart_the_process:
+        "That sign-in link expired or was opened in a different browser. Please try again.",
     };
     setError(messages[code] ?? "Sign-in failed. Please try again.");
     // Clear the param so a refresh does not re-show a stale error.
@@ -407,27 +416,20 @@ export default function Auth() {
         if (code?.startsWith("USER_ALREADY_EXISTS")) handleModeToggle("signin");
         setError(msg);
         // Track failed sign up
-        trackEvent("Sign Up", {
+        capturePostHog("auth_sign_up", {
           user_id: undefined,
-          email: email,
           signup_method: "email",
           success: false,
         });
       } else if (data?.user) {
         // Track successful sign up
         const urlParams = new URLSearchParams(window.location.search);
-        trackEvent("Sign Up", {
+        capturePostHog("auth_sign_up", {
           user_id: data.user.id,
-          email: data.user.email,
           signup_method: "email",
           utm_source: urlParams.get("utm_source") || undefined,
           utm_medium: urlParams.get("utm_medium") || undefined,
           utm_campaign: urlParams.get("utm_campaign") || undefined,
-        });
-        // Identify user
-        identifyUser(data.user.id, {
-          email: data.user.email,
-          name: data.user.name,
         });
       }
     } else {
@@ -444,22 +446,17 @@ export default function Auth() {
       if (err) {
         setError(err.message ?? "Sign in failed");
         // Track failed sign in
-        trackEvent("Sign In", {
+        capturePostHog("auth_sign_in", {
           user_id: undefined,
           login_method: "email",
           success: false,
         });
       } else if (data?.user) {
         // Track successful sign in
-        trackEvent("Sign In", {
+        capturePostHog("auth_sign_in", {
           user_id: data.user.id,
           login_method: "email",
           success: true,
-        });
-        // Identify user
-        identifyUser(data.user.id, {
-          email: data.user.email,
-          name: data.user.name,
         });
       }
     }
@@ -471,7 +468,7 @@ export default function Auth() {
     setError(null);
     logFunnelStep("auth_google_click", { in_app: inAppNow(), info: mode });
     // Track Google sign in attempt
-    trackEvent("Sign In", {
+    capturePostHog("auth_sign_in", {
       login_method: "google",
       success: undefined, // Will be updated on success/failure
     });
@@ -502,15 +499,10 @@ export default function Auth() {
       } else if (result.data) {
         // Track successful passkey sign in
         if (result.data.user) {
-          trackEvent("Sign In", {
+          capturePostHog("auth_sign_in", {
             user_id: result.data.user.id,
             login_method: "passkey",
             success: true,
-          });
-          // Identify user
-          identifyUser(result.data.user.id, {
-            email: result.data.user.email,
-            name: result.data.user.name,
           });
         }
         // Success - navigate will happen via onSuccess callback if provided

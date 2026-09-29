@@ -136,14 +136,11 @@ jobs:
 
       - name: Configure Meta Conversions API
         run: |
-          # Server-side half of the Meta Pixel (app/lib/meta-capi.server.ts).
-          # Recovers the 20-40%% of conversions that ad blockers and iOS delete
-          # from the browser pixel. Unset secret = CAPI stays disabled and only
-          # the browser copy is sent (fail-open on function, closed on data).
-          if [ -n "${{ secrets.META_CAPI_TOKEN }}" ]; then
-            kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
-              META_CAPI_TOKEN="${{ secrets.META_CAPI_TOKEN }}"
-          fi
+          # Meta Conversions API is OFF on staging: the token is the live one,
+          # so staging events were landing in the production ad dataset and
+          # anyone could POST studojo.pro/api/meta-event into it (audit ST-N07).
+          # Remove it if an earlier deploy set it.
+          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} META_CAPI_TOKEN- || true
 
       - name: Apply schema migrations
         env:

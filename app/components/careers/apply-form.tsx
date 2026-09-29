@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { PhoneInput } from "~/components/phone-input";
 import { createPaymentOrder, openRazorpayCheckout, verifyPayment } from "~/lib/payments";
-import { trackEvent } from "~/lib/mixpanel";
+import { capturePostHog } from "~/lib/posthog";
 import { authClient } from "~/lib/auth-client";
 
 interface CareersApplyFormData {
@@ -145,7 +145,7 @@ export function CareersApplyForm() {
               // every Purchase event with no user_id.
               const { data: session } = await authClient.getSession();
               const amountInRupees = amount / 100; // Convert paise to rupees
-              trackEvent("Purchase", {
+              capturePostHog("careers_purchase", {
                 user_id: session?.user?.id,
                 transaction_id: response.razorpay_payment_id,
                 revenue: amountInRupees,
