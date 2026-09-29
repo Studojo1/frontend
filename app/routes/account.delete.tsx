@@ -115,13 +115,14 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
                   You are deleting the account <strong className="break-all font-medium text-neutral-900">{loaderData.email}</strong>.
                 </p>
                 <ul className="mb-4 list-disc space-y-2 pl-5 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
-                  <li>Your resumes, profile, leads and campaigns are deleted. Any campaign still sending stops.</li>
+                  <li>Your resumes and resume files, profile, leads and campaigns are deleted. Any campaign still sending stops.</li>
                   <li>Every email sent from your Gmail, and every reply, is deleted from Studojo.</li>
-                  <li>Studojo&apos;s access to your Gmail is revoked with Google.</li>
-                  <li>Unused credits are lost. If you want a refund, raise a ticket before you delete.</li>
+                  <li>Studojo&apos;s access to your Gmail is revoked with Google, and your LinkedIn connection is deleted.</li>
+                  <li>Your support chat history is deleted, and so is your record in PostHog, our product analytics.</li>
+                  <li>Unused credits and plan time are forfeited and can&apos;t be refunded (<a href="/refund-policy" className="underline">Refund Policy</a>). If you think a refund is owed, raise a ticket before you delete.</li>
                 </ul>
                 <p className="mb-6 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
-                  We keep a record of your payments, with no name or email attached, because the law requires it.
+                  We keep payment records, with no name or email attached, because tax law requires it. We also keep a record of who your outreach went to and when, as scrambled addresses with no content, for 3 years so we can handle complaints.
                 </p>
 
                 {error && (

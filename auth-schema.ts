@@ -27,6 +27,11 @@ export const user = pgTable("user", {
   // Terms & Privacy acceptance
   termsAcceptedAt: timestamp("terms_accepted_at"),
   privacyAcceptedAt: timestamp("privacy_accepted_at"),
+  // Policy versions accepted (app/lib/legal.ts) and the 18+ confirmation
+  termsVersion: text("terms_version"),
+  privacyVersion: text("privacy_version"),
+  refundVersion: text("refund_version"),
+  ageConfirmedAt: timestamp("age_confirmed_at"),
 });
 
 export const session = pgTable(

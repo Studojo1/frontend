@@ -9,6 +9,8 @@ import { sql } from "drizzle-orm";
 import db from "~/lib/db";
 import { enrichProfile, parseTarget, buildResult, type Target } from "~/lib/enrich.server";
 import { chargeUsage, type Caller } from "~/lib/api-keys.server";
+import { withoutSuppressedMany } from "~/lib/suppression.server";
+
 
 export const BULK_MAX = 500;
 const POOL = 6; // concurrent per-entry cascades
@@ -135,7 +137,8 @@ export async function getJob(email: string, id: string): Promise<any | null> {
       status: "completed",
       total: row.total,
       processed: row.processed,
-      results: row.results,
+      // Results stored before someone opted out still hold their details.
+      results: await withoutSuppressedMany(row.results),
     };
   }
   const stale = row.updated_at && Date.now() - new Date(row.updated_at).getTime() > STALE_MS;

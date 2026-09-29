@@ -12,6 +12,7 @@ import * as leadsforge from "~/lib/leadsforge.server";
 import * as salesql from "~/lib/salesql.server";
 import * as apollo from "~/lib/apollo.server";
 import { classifyPhone } from "~/lib/phone-verify.server";
+import { withoutSuppressed } from "~/lib/suppression.server";
 
 const CACHE_TTL_DAYS = 30;
 const APOLLO_POLL_MS = 7000;
@@ -232,7 +233,8 @@ export async function enrichProfile(
 ): Promise<EnrichResult> {
   const cacheKey = cacheKeyFor(target);
   const cached = await getCached(cacheKey);
-  if (cached) return cached;
+  // Someone may have opted out since this was cached (Privacy Policy §5).
+  if (cached) return withoutSuppressed(cached);
 
   const wantEmail = fields.includes("email");
   const wantPhone = fields.includes("phone");
@@ -319,7 +321,8 @@ export async function enrichProfile(
     }
   }
 
-  const result = buildResult(url, parts, fields, trace);
+  // Never return, cache or bill contact details of someone who opted out.
+  const result = await withoutSuppressed(buildResult(url, parts, fields, trace));
   await putCache(cacheKey, result); // caches ok and not_found (negative cache)
   return result;
 }

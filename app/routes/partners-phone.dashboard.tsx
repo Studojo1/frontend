@@ -606,10 +606,10 @@ leads.forEach(l => console.log(l.name, l.phone, l.match_scores.hiring_probabilit
 
           <Sec id="faq" title="FAQ">
             {[
-              ["How is the Phone API different from the Email API?", "The Phone API delivers 25 leads per run (vs 215) with direct phone numbers per lead. It runs in ~3 minutes (vs ~10 minutes). Price is ₹3,000/run (₹120/lead vs ₹7/lead for email). Phone is designed for high-touch outreach; email is designed for volume campaigns."],
+              ["How is the Phone API different from the Email API?", "The Phone API delivers 25 leads per run (vs 215) with direct phone numbers per lead. It runs in ~3 minutes (vs ~10 minutes). Price is 1 credit (₹1,500) per run, about ₹60 per lead (vs ₹7/lead for email). Phone is designed for high-touch outreach; email is designed for volume campaigns."],
               ["Are phone numbers always available?", "We enrich phone numbers from our data providers. The vast majority of leads will include a phone number. A small fraction may return phone: null if enrichment could not resolve a direct number, so always handle this case."],
               ["Can I run multiple jobs simultaneously?", "Yes, up to your concurrent_job_cap (default 5). Contact support to increase this limit."],
-              ["When is a credit consumed?", "At job submission, before the job runs. A failed job does not refund the credit automatically. Contact support if you experience repeated failures."],
+              ["When is a credit consumed?", "At job submission, before the job runs. If a job fails on our side and returns no leads, contact support and we put the credit back on your balance."],
               ["Can I filter by company type?", "Yes. Pass company_type_avoid: [\"agency\", \"education\"] in preferences. These companies are hard-excluded from results."],
               ["What is the archetype field?", "founder_office activates the Career Path Graph, which scores title categories (founder, coo, chief_of_staff, etc.) by hiring probability. Use it for any non-technical, founder-adjacent role targeting early-stage startups."],
             ].map(([q, a]) => (
