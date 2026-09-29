@@ -711,7 +711,8 @@ export default function EnrichmentPage() {
 
   const SHARED_FEATURES = (count: number) => [
     `${count} verified hiring managers`,
-    "Tailored to your role & industry",
+    // Leads carry no industry data, so this said more than it could (UC-Q03).
+    "Found from your target roles and location",
     "AI-personalised email per contact",
     "Inbox-safe drip schedule",
     "Live reply tracking dashboard",

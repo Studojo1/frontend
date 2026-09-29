@@ -1,5 +1,5 @@
 import { describeError } from "~/lib/error-detail";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -9,108 +9,11 @@ import { outreachFetch } from "~/lib/outreach/api";
 import { capturePostHog } from "~/lib/posthog";
 
 const POLL_INTERVAL_MS = 5000;
-// The counter + bar ramp over this window, then HOLD until results are actually
-// ready (allDone), so the user never sees a "finished" screen with nothing happening.
-const RAMP_MS = 95000;
-const BAR_CAP = 96; // bar holds here until allDone, then jumps to 100
-
-// Named, recognizable sources: concrete names make "scouring the web" credible.
-const SOURCES = [
-  "Company career pages", "LinkedIn", "Naukri", "Wellfound", "Crunchbase",
-  "Y Combinator", "Product Hunt", "AngelList", "Indeed", "Glassdoor",
-  "Internshala", "Instahyre", "Cutshort", "Foundit", "Hirect",
-  "Hacker News (Who's hiring)", "TechCrunch", "Funding & news feeds", "Twitter / X",
-];
-
-// Rotating headline: ~50% conversion lines (c: true), interleaved with status.
-const HEADLINES: { t: string; c?: boolean }[] = [
-  { t: "Scouring the internet for your people…" },
-  { t: "The average student lands 3 interview calls in week one.", c: true },
-  { t: "Mapping your niche across the market…" },
-  { t: "One warm intro beats 100 cold applications.", c: true },
-  { t: "Identifying decision-makers everywhere…" },
-  { t: "95% of students say this beat cold-applying.", c: true },
-  { t: "Filtering for the highest-signal matches…" },
-  { t: "Your personalised pitches are being written right now.", c: true },
-  { t: "Cross-referencing who's hiring this week…" },
-  { t: "Students who finish setup get 3× more replies.", c: true },
-];
-
-// Matches keyed by market: NO company names, location-aware.
-type Person = { i: string; n: string; t: string; c: string; m: number };
-const PEOPLE_BY_MARKET: Record<string, Person[]> = {
-  India: [
-    { i: "AR", n: "Arjun R.", t: "Engineering Manager", c: "Bangalore", m: 96 },
-    { i: "PT", n: "Priya T.", t: "Founding Engineer", c: "Bangalore", m: 94 },
-    { i: "KV", n: "Karthik V.", t: "Product Director", c: "Bangalore", m: 95 },
-    { i: "RS", n: "Rohan S.", t: "VP Engineering", c: "Hyderabad", m: 92 },
-    { i: "SM", n: "Sneha M.", t: "Growth Lead", c: "Mumbai", m: 91 },
-    { i: "AD", n: "Ananya D.", t: "Marketing Head", c: "Delhi", m: 90 },
-    { i: "VN", n: "Vikram N.", t: "Head of Design", c: "Bangalore", m: 93 },
-    { i: "AS", n: "Aditya S.", t: "Co-founder", c: "Bangalore", m: 95 },
-    { i: "NK", n: "Neha K.", t: "Product Manager", c: "Gurgaon", m: 88 },
-    { i: "SC", n: "Sanjay C.", t: "CTO", c: "Chennai", m: 91 },
-    { i: "RP", n: "Riya P.", t: "Brand Lead", c: "Mumbai", m: 90 },
-    { i: "IR", n: "Isha R.", t: "Talent Partner", c: "Pune", m: 89 },
-  ],
-  US: [
-    { i: "DL", n: "David L.", t: "Head of Product", c: "San Francisco", m: 95 },
-    { i: "MC", n: "Maya C.", t: "VP Engineering", c: "New York", m: 93 },
-    { i: "JB", n: "Jordan B.", t: "Growth Director", c: "San Francisco", m: 91 },
-    { i: "EK", n: "Emily K.", t: "Talent Lead", c: "New York", m: 90 },
-    { i: "CP", n: "Chris P.", t: "Founding Engineer", c: "Austin", m: 92 },
-    { i: "SW", n: "Sarah W.", t: "Marketing Director", c: "Seattle", m: 89 },
-    { i: "MR", n: "Mike R.", t: "Head of Design", c: "San Francisco", m: 90 },
-    { i: "LT", n: "Laura T.", t: "Product Manager", c: "Boston", m: 88 },
-  ],
-  UK: [
-    { i: "LN", n: "Lena N.", t: "Principal Engineer", c: "London", m: 95 },
-    { i: "OH", n: "Oliver H.", t: "Product Lead", c: "London", m: 92 },
-    { i: "SM", n: "Sophie M.", t: "Marketing Director", c: "Manchester", m: 90 },
-    { i: "JC", n: "James C.", t: "Head of Growth", c: "London", m: 91 },
-    { i: "AR", n: "Amelia R.", t: "Talent Partner", c: "London", m: 89 },
-    { i: "HB", n: "Harry B.", t: "Founding Engineer", c: "Bristol", m: 90 },
-  ],
-  UAE: [
-    { i: "OH", n: "Omar H.", t: "Marketing Director", c: "Dubai", m: 94 },
-    { i: "LA", n: "Layla A.", t: "Head of Growth", c: "Dubai", m: 92 },
-    { i: "RK", n: "Rashid K.", t: "Product Manager", c: "Dubai", m: 90 },
-    { i: "FZ", n: "Fatima Z.", t: "Brand Lead", c: "Abu Dhabi", m: 89 },
-    { i: "YM", n: "Yusuf M.", t: "Engineering Manager", c: "Dubai", m: 91 },
-    { i: "NS", n: "Noor S.", t: "Talent Lead", c: "Dubai", m: 88 },
-  ],
-  Singapore: [
-    { i: "WZ", n: "Wei Z.", t: "Head of Growth", c: "Singapore", m: 94 },
-    { i: "ML", n: "Mei L.", t: "Engineering Manager", c: "Singapore", m: 92 },
-    { i: "DT", n: "Daniel T.", t: "Product Director", c: "Singapore", m: 91 },
-    { i: "AR", n: "Aisha R.", t: "Marketing Lead", c: "Singapore", m: 90 },
-    { i: "JH", n: "Jun H.", t: "Founding Engineer", c: "Singapore", m: 89 },
-    { i: "PN", n: "Priya N.", t: "Talent Partner", c: "Singapore", m: 88 },
-  ],
-  Global: [
-    { i: "DL", n: "David L.", t: "Head of Product", c: "San Francisco", m: 95 },
-    { i: "AR", n: "Arjun R.", t: "Engineering Manager", c: "Bangalore", m: 96 },
-    { i: "LN", n: "Lena N.", t: "Principal Engineer", c: "London", m: 94 },
-    { i: "OH", n: "Omar H.", t: "Marketing Director", c: "Dubai", m: 92 },
-    { i: "WZ", n: "Wei Z.", t: "Head of Growth", c: "Singapore", m: 93 },
-    { i: "MC", n: "Maya C.", t: "VP Engineering", c: "New York", m: 91 },
-    { i: "PT", n: "Priya T.", t: "Founding Engineer", c: "Bangalore", m: 90 },
-    { i: "SW", n: "Sarah W.", t: "Marketing Director", c: "Seattle", m: 89 },
-  ],
-};
-
-const MARKET_CITIES: Record<string, string[]> = {
-  India: ["india", "bangalore", "bengaluru", "mumbai", "delhi", "hyderabad", "pune", "chennai", "gurgaon", "noida", "kolkata"],
-  US: ["united states", "usa", "san francisco", "new york", "austin", "seattle", "boston", "los angeles"],
-  UK: ["united kingdom", " uk", "london", "manchester", "bristol", "england"],
-  UAE: ["uae", "united arab", "dubai", "abu dhabi"],
-  Singapore: ["singapore"],
-};
-function detectMarket(locations: string[]): string {
-  const hay = (" " + locations.join(" ") + " ").toLowerCase();
-  for (const [m, keys] of Object.entries(MARKET_CITIES)) if (keys.some((k) => hay.includes(k))) return m;
-  return "Global";
-}
+// Everything on this screen is real server state (B2C UC-Q08). It used to show
+// a made-up 2.1M-3.4M "profiles scanned" counter, ticks for 19 sources that are
+// never queried (only Apollo is searched), random "profiles indexed" and "/sec"
+// numbers, invented people under "Matches forming" and unverified stats.
+const SEARCH_RAMP_MS = 60000; // the search itself typically takes 30-50s
 
 // Wall of Love: mixed authentic "screenshots": X, iMessage, WhatsApp, LinkedIn.
 type Card =
@@ -133,31 +36,9 @@ const WALL: Card[] = [
 
 const COLORS = ["bg-studojo-purple", "bg-studojo-pink", "bg-studojo-green", "bg-studojo-orange", "bg-studojo-teal", "bg-indigo-500", "bg-rose-500", "bg-amber-500"];
 const fmt = (n: number) => Math.max(0, Math.round(n)).toLocaleString("en-US");
+type Preview = { title: string; company: string };
 const initOf = (n: string) => n.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 const colOf = (n: string) => COLORS[n.charCodeAt(0) % COLORS.length];
-
-// ── Odometer: each digit rolls to its value ──
-function Odometer({ value }: { value: number }) {
-  const s = fmt(value);
-  return (
-    <span className="sd-odo">
-      {[...s].map((ch, i) =>
-        /\d/.test(ch) ? (
-          <span className="sd-reel" key={i}>
-            <span className="sd-col" style={{ transform: `translateY(-${(+ch) * 10}%)` }}>
-              {"0123456789".split("").map((d) => (
-                <span key={d}>{d}</span>
-              ))}
-            </span>
-          </span>
-        ) : (
-          <span className="sd-sep" key={i}>{ch}</span>
-        )
-      )}
-      {value > 0 && <span className="sd-sep">+</span>}
-    </span>
-  );
-}
 
 // ── Wall of Love icons ──
 const Verified = () => (
@@ -247,39 +128,20 @@ function ReviewCard({ v }: { v: Card }) {
 export default function DiscoveryPage() {
   const navigate = useNavigate();
   const { loading: authLoading, recovering } = useOutreachAuth();
-  const { candidateId, profileData } = useOutreachStore();
+  const { candidateId } = useOutreachStore();
 
   const [error, setError] = useState("");
   const [allDone, setAllDone] = useState(false);
-  const [countVal, setCountVal] = useState(0);
-  const [barPct, setBarPct] = useState(0);
-  const [headIdx, setHeadIdx] = useState(0);
-  // Bumped when the tab becomes visible again, to re-arm the paused animation
-  // timers below. animStartRef keeps the elapsed time across those re-arms.
-  const [tick, setTick] = useState(0);
+  // Real progress: how many leads the search stored, then scoring counts.
+  const [found, setFound] = useState<number | null>(null);
+  const [stats, setStats] = useState<{ total: number; scored: number; with_bullets: number } | null>(null);
+  const [preview, setPreview] = useState<Preview[]>([]);
+  const [elapsed, setElapsed] = useState(0);
+  // Kept across effect re-runs so the bar never snaps back to zero.
   const animStartRef = useRef<number | null>(null);
-  const [scanChecked, setScanChecked] = useState(0);
-  const [scanRows, setScanRows] = useState<{ src: string; n: number; key: number }[]>([]);
-  const [matchOff, setMatchOff] = useState(0);
 
   const allDoneRef = useRef(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-  const scanCounter = useRef(0);
-
-  // Per-user scan total: deterministic from candidateId, 2.1M-3.4M. Stable on
-  // refresh, different across users.
-  const TARGET = useMemo(() => {
-    const seed = String(candidateId ?? "studojo").split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-    const r = ((seed * 9301 + 49297) % 233280) / 233280;
-    return Math.round((2_100_000 + r * (3_400_000 - 2_100_000)) / 1000) * 1000;
-  }, [candidateId]);
-
-  // Location-aware matches from the candidate's quiz preferences.
-  const locations: string[] = profileData?.parsed_json?.preferences?.locations || [];
-  const market = useMemo(() => detectMarket(locations), [locations.join(",")]);
-  const pool = PEOPLE_BY_MARKET[market] || PEOPLE_BY_MARKET.Global;
-  const marketLabel = locations[0] || (market === "Global" ? "across markets" : market);
-  const visibleMatches = Array.from({ length: 6 }, (_, k) => pool[(matchOff + k) % pool.length]);
 
   useEffect(() => { allDoneRef.current = allDone; }, [allDone]);
 
@@ -350,6 +212,18 @@ export default function DiscoveryPage() {
       })
       .then((res) => {
         if (cancelled) return;
+        setFound(res?.leads_collected ?? 0);
+        if (res?.leads_collected) {
+          // A few real matches to look at while they are ranked.
+          outreachFetch<{ leads: { title?: string; company?: string }[] }>(`/candidate/${candidateId}/leads?limit=6`)
+            .then((d) => {
+              if (!cancelled) {
+                setPreview((d?.leads || []).filter((l) => l.title && l.company).slice(0, 6)
+                  .map((l) => ({ title: l.title as string, company: l.company as string })));
+              }
+            })
+            .catch(() => {});
+        }
         // Nothing was found, so nothing will ever be scored. Waiting on the
         // scoring poll here held the user at 96% for the full six minutes.
         if (res?.leads_collected === 0) {
@@ -374,6 +248,9 @@ export default function DiscoveryPage() {
           }
           try {
             const data = await outreachFetch<any>(`/discovery/scoring-ready/${candidateId}`, { method: "GET" });
+            if (data && typeof data.total === "number") {
+              setStats({ total: data.total, scored: data.scored ?? 0, with_bullets: data.with_bullets ?? 0 });
+            }
             if (data?.ready) {
               clearInterval(pollRef.current);
               finish("ready", data);
@@ -397,66 +274,40 @@ export default function DiscoveryPage() {
     };
   }, [candidateId, authLoading, navigate]);
 
-  // ── Visual animation loop ──
+  // One clock for the search-phase bar. Paused while the tab is hidden.
   useEffect(() => {
     if (!candidateId || authLoading) return;
-    // Held in a ref, not a local: this effect re-runs when the tab comes back to
-    // re-arm the timers, and a fresh Date.now() would snap the progress bar back
-    // to zero in front of someone who has been waiting.
     if (animStartRef.current === null) animStartRef.current = Date.now();
     const start = animStartRef.current;
-
-    const step = setInterval(() => {
-      const t = Date.now() - start;
-      const done = allDoneRef.current;
-      setBarPct(done ? 100 : Math.min(BAR_CAP, Math.round((t / RAMP_MS) * BAR_CAP)));
-      setScanChecked(done ? SOURCES.length : Math.min(SOURCES.length, Math.floor((t / RAMP_MS) * (SOURCES.length + 1)) + 1));
-      setCountVal((v) => {
-        const g = done ? TARGET : Math.pow(Math.min(t / RAMP_MS, 1), 0.8) * TARGET;
-        return Math.abs(g - v) < 1 ? g : v + (g - v) * 0.34;
-      });
-    }, 450);
-
-    const head = setInterval(() => setHeadIdx((i) => (i + 1) % HEADLINES.length), 14000);
-
-    const scan = setInterval(() => {
-      const src = SOURCES[scanCounter.current % SOURCES.length];
-      const n = Math.floor(8000 + Math.random() * 240000);
-      scanCounter.current += 1;
-      setScanRows((rows) => [...rows, { src, n, key: scanCounter.current }].slice(-5));
-    }, 1200);
-
-    const match = setInterval(() => setMatchOff((o) => o + 1), 1900);
-
-    // These four are decoration for a wait that runs up to five minutes: the
-    // fastest sets four pieces of state every 450ms, so a full run is roughly
-    // 2,600 re-renders. Nobody is watching a progress bar in a backgrounded tab,
-    // but the phone still pays for it, so stop them while the page is hidden and
-    // start them again on return. The scoring poll above is deliberately left
-    // running -- that one is the actual work.
-    const timers = [step, head, scan, match];
-    let paused = false;
-    const onVisibility = () => {
-      if (document.hidden && !paused) {
-        paused = true;
-        timers.forEach(clearInterval);
-      } else if (!document.hidden && paused) {
-        paused = false;
-        // Re-arm by remounting the effect; cheaper than duplicating each timer.
-        setTick((t) => t + 1);
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibility);
-      timers.forEach(clearInterval);
-    };
-  }, [candidateId, authLoading, TARGET, tick]);
+    const id = setInterval(() => { if (!document.hidden) setElapsed(Date.now() - start); }, 1000);
+    return () => clearInterval(id);
+  }, [candidateId, authLoading]);
 
   if (!candidateId) return null;
 
-  const headline = HEADLINES[headIdx];
+  // Bar: the search is 5-45% (time-based, it cannot report progress), ranking
+  // is 45-95% from real scored/total, then 100 when results open.
+  const searching = found === null;
+  const barPct = allDone
+    ? 100
+    : searching
+      ? Math.min(45, 5 + Math.round((elapsed / SEARCH_RAMP_MS) * 40))
+      : stats && stats.total > 0
+        ? 45 + Math.round((Math.min(stats.scored, stats.total) / stats.total) * 50)
+        : 45;
+  const steps: { label: string; state: "done" | "active" | "todo" }[] = [
+    { label: "Reading your profile and targets", state: "done" },
+    {
+      label: searching ? "Searching for hiring managers who match your targets" : `Found ${fmt(found ?? 0)} hiring managers`,
+      state: searching ? "active" : "done",
+    },
+    {
+      label: stats && stats.total > 0
+        ? `Ranking them by fit to you: ${fmt(Math.min(stats.scored, stats.total))} of ${fmt(stats.total)}`
+        : "Ranking them by fit to you",
+      state: allDone ? "done" : searching ? "todo" : "active",
+    },
+  ];
   const rowA = WALL.slice(0, Math.ceil(WALL.length / 2));
   const rowB = WALL.slice(Math.ceil(WALL.length / 2));
 
@@ -483,37 +334,16 @@ export default function DiscoveryPage() {
         ) : (
           <>
             <main className="max-w-3xl mx-auto px-4 py-10 text-center">
-              {/* rotating headline */}
-              <div className="min-h-[2.25rem] mb-1">
-                <h2 key={headIdx} className={`sd-fade-up font-clash text-2xl sm:text-3xl font-bold ${headline.c ? "text-studojo-purple" : "text-studojo-ink"}`}>
-                  {headline.t}
-                </h2>
-              </div>
-              <p className="text-sm text-studojo-muted font-satoshi mb-7">We're searching the entire web to find the right people for you.</p>
+              <h2 className="font-clash text-2xl sm:text-3xl font-bold text-studojo-ink mb-1">
+                {allDone ? "Opening your matches" : searching ? "Finding your hiring managers" : "Ranking your matches"}
+              </h2>
+              <p className="text-sm text-studojo-muted font-satoshi mb-8">This usually takes one to two minutes. You can keep this tab open in the background.</p>
 
-              {/* hero counter */}
-              <div className="font-clash text-4xl sm:text-6xl md:text-7xl font-bold text-studojo-purple tabular-nums leading-none">
-                <Odometer value={countVal} />
-              </div>
-              <p className="text-sm font-satoshi text-studojo-muted mt-2.5">profiles scanned to find <span className="font-semibold text-studojo-ink">your best few</span></p>
-
-              {/* source chips */}
-              <div className="flex flex-wrap justify-center gap-1.5 mt-4 max-w-xl mx-auto">
-                {SOURCES.map((s, idx) => {
-                  const ok = idx < scanChecked;
-                  return (
-                    <span key={s} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-satoshi border ${ok ? "bg-studojo-green-bg border-studojo-green/30 text-studojo-green" : "bg-studojo-surface-muted border-studojo-ink/10 text-studojo-muted"}`}>
-                      {ok ? "✓" : <span className="w-1.5 h-1.5 rounded-full bg-studojo-purple animate-pulse inline-block" />} {s}
-                    </span>
-                  );
-                })}
-              </div>
-
-              {/* single progress bar */}
-              <div className="w-full max-w-lg mx-auto mt-8 mb-9">
+              {/* progress bar, driven by the steps below */}
+              <div className="w-full max-w-lg mx-auto mb-8">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-satoshi text-studojo-muted">
-                    {allDone ? "Done. Opening your matches…" : barPct >= BAR_CAP ? "Finalising your matches…" : "Finding your matches"}
+                    {allDone ? "Done. Opening your matches…" : searching ? "Searching" : "Ranking"}
                   </span>
                   <span className={`text-sm font-satoshi font-bold tabular-nums ${allDone ? "text-studojo-green" : "text-studojo-purple"}`}>{barPct}%</span>
                 </div>
@@ -522,54 +352,47 @@ export default function DiscoveryPage() {
                     className={`relative h-full rounded-full overflow-hidden ${allDone ? "" : "sd-shimmer"}`}
                     style={{ width: `${barPct}%`, background: allDone ? "#10b981" : "linear-gradient(90deg,#8b5cf6,#ec4899)", transition: "width .6s cubic-bezier(.2,.8,.2,1)" }}
                   />
-                  <div
-                    className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 ${allDone ? "" : "sd-glow"}`}
-                    style={{ left: `calc(${barPct}% - 8px)`, borderColor: allDone ? "#10b981" : "#8b5cf6", transition: "left .6s cubic-bezier(.2,.8,.2,1)" }}
-                  />
                 </div>
               </div>
 
-              {/* live scan + matches */}
               <div className="grid sm:grid-cols-2 gap-3 text-left items-start">
-                {/* live scan */}
-                <div className="rounded-2xl border border-studojo-ink/10 bg-gradient-to-b from-studojo-purple-bg to-white p-4 overflow-hidden">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-studojo-green animate-pulse" /> Live scan
-                    </p>
-                    <span className="text-[10px] font-satoshi text-studojo-muted tabular-nums">{fmt(countVal * 0.013)} /sec</span>
-                  </div>
-                  <div className="space-y-2">
-                    {scanRows.map((r) => (
-                      <div key={r.key} className="sd-feed-in flex items-center gap-2.5 rounded-xl bg-white/70 border border-studojo-ink/8 px-2.5 py-2">
-                        <span className="w-6 h-6 rounded-md bg-studojo-purple/10 flex items-center justify-center text-[10px] font-bold text-studojo-purple flex-shrink-0">{r.src[0]}</span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[12px] font-satoshi font-medium text-studojo-ink truncate">{r.src}</p>
-                          <p className="text-[10px] font-satoshi text-studojo-muted tabular-nums">{fmt(r.n)} profiles indexed</p>
-                        </div>
-                        <span className="text-studojo-green text-sm">✓</span>
-                      </div>
+                {/* what is actually happening */}
+                <div className="rounded-2xl border-2 border-studojo-ink bg-white p-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
+                  <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-3">What is happening</p>
+                  <ol className="space-y-3">
+                    {steps.map((st) => (
+                      <li key={st.label} className="flex items-start gap-2.5">
+                        <span className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold ${
+                          st.state === "done" ? "bg-studojo-green text-white" : st.state === "active" ? "border-2 border-studojo-purple" : "border-2 border-studojo-ink/15"
+                        }`}>
+                          {st.state === "done" ? "✓" : st.state === "active" ? <span className="w-1.5 h-1.5 rounded-full bg-studojo-purple animate-pulse" /> : null}
+                        </span>
+                        <span className={`text-sm font-satoshi leading-snug ${st.state === "todo" ? "text-studojo-muted" : "text-studojo-ink"}`}>{st.label}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ol>
                 </div>
-                {/* matches forming */}
-                <div className="rounded-2xl border border-studojo-ink/10 bg-white p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted">Matches forming</p>
-                    <span className="text-[10px] font-satoshi font-semibold text-studojo-purple bg-studojo-purple/10 px-2 py-0.5 rounded-md">{marketLabel}</span>
-                  </div>
-                  <div className="space-y-2">
-                    {visibleMatches.map((p, k) => (
-                      <div key={`${matchOff}-${k}`} className="flex items-center gap-2.5 sd-fade-up">
-                        <div className={`w-8 h-8 rounded-full ${colOf(p.i)} flex items-center justify-center flex-shrink-0`}><span className="text-white text-xs font-bold">{p.i}</span></div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-satoshi font-semibold text-studojo-ink truncate">{p.n}</p>
-                          <p className="text-[11px] font-satoshi text-studojo-muted truncate">{p.t} · {p.c}</p>
-                        </div>
-                        <span className="text-[10px] font-satoshi font-bold text-studojo-green bg-studojo-green-bg px-1.5 py-0.5 rounded-md">{p.m}%</span>
-                      </div>
-                    ))}
-                  </div>
+
+                {/* the first real matches, once the search has returned */}
+                <div className="rounded-2xl border-2 border-studojo-ink bg-white p-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
+                  <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-3">First matches</p>
+                  {preview.length > 0 ? (
+                    <ul className="space-y-2.5">
+                      {preview.map((m, k) => (
+                        <li key={k} className="sd-fade-up flex items-center gap-2.5">
+                          <div className={`w-8 h-8 rounded-full ${colOf(m.company)} flex items-center justify-center flex-shrink-0`}>
+                            <span className="text-white text-xs font-bold">{initOf(m.company)}</span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-satoshi font-semibold text-studojo-ink truncate">{m.title}</p>
+                            <p className="text-[11px] font-satoshi text-studojo-muted truncate">{m.company}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm font-satoshi text-studojo-muted">Your first matches appear here as soon as the search returns.</p>
+                  )}
                 </div>
               </div>
             </main>
