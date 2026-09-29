@@ -100,12 +100,22 @@ export default function OutreachLanding() {
   // it only once we know there is a session to go back to. isPending keeps it
   // hidden through the first render rather than letting it flash in and out.
   const { data: session, isPending } = authClient.useSession();
-  const showMyCampaigns = !isPending && !!session;
+  const nextStep = useNextStep();
+  // A coupon from an email link survives the hop to the leads and pricing
+  // pages (audit NEW-07).
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("coupon");
+    if (!code) return;
+    try { sessionStorage.setItem("outreach_coupon", code); } catch { /* storage blocked */ }
+  }, []);
+  // Only for someone who has something to go back to: an order or a launched
+  // campaign, not every signed-in visitor (audit VS-V05).
+  const showMyCampaigns = !isPending && !!session &&
+    !!(nextStep?.order_id || nextStep?.has_launched || nextStep?.state === "campaign_active");
 
   // A signed-in user who has paid and not launched must never be sent back to
   // resume upload from here. One who paid Rs 3,465 followed "Find My Hiring
   // Managers" and re-uploaded her resume three times without reaching Launch.
-  const nextStep = useNextStep();
   const paidNotLaunched = isPaidNotLaunched(nextStep) ? nextStep : null;
   const primaryCta = paidNotLaunched
     ? {
@@ -128,7 +138,7 @@ export default function OutreachLanding() {
 
   return (
     <div className="w-full bg-white">
-      <Header />
+      <Header landing />
 
       {/* Hero */}
       <section className="border-b-2 border-studojo-ink bg-gradient-to-br from-violet-700 via-purple-700 to-violet-800">
