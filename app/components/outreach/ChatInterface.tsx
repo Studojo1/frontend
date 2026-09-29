@@ -41,14 +41,21 @@ export function ChatInterface({ messages, children, loading, quizProgress, quest
       {/* Quiz progress bar */}
       {quizProgress != null && quizProgress > 0 && (
         <div className="flex-shrink-0">
-          {questionsAsked && questionsTotal ? (
+          {/* Question 1 is served client-side before the server has said how
+              long this student's quiz is, so it shows no total rather than a
+              guess that changes on question 2 (PH-17: it showed nothing). */}
+          {questionsAsked ? (
             <div className="flex items-center justify-between px-4 pt-3 pb-2">
               <span className="text-xs font-satoshi text-studojo-muted">
-                Question {Math.min(questionsAsked, questionsTotal)} of {questionsTotal}
+                {questionsTotal
+                  ? `Question ${Math.min(questionsAsked, questionsTotal)} of ${questionsTotal}`
+                  : `Question ${questionsAsked}`}
               </span>
-              <span className="text-xs font-satoshi text-studojo-muted">
-                {Math.max(questionsTotal - questionsAsked, 0)} left
-              </span>
+              {questionsTotal ? (
+                <span className="text-xs font-satoshi text-studojo-muted">
+                  {Math.max(questionsTotal - questionsAsked, 0)} left
+                </span>
+              ) : null}
             </div>
           ) : null}
           <div className="h-1 bg-studojo-surface-muted">
