@@ -467,7 +467,7 @@ export default function ResultsPage() {
                 type="search"
                 value={query}
                 onChange={(e) => { setQuery(e.target.value); setPage(1); }}
-                placeholder="Search by name, title, company or city"
+                placeholder="Search by name, title or company"
                 aria-label="Search your matches"
                 className="w-full text-base sm:text-sm border-2 border-studojo-ink/20 rounded-xl pl-9 pr-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-studojo-purple font-satoshi"
               />
