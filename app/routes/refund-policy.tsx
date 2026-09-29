@@ -1,5 +1,5 @@
 // The Refund Policy text is generated from the approved draft
-// (Studojo/legal-rewrite/refund.html) with legal-rewrite/tools/html2jsx.py.
+// (Studojo/legal-rewrite/refund.html) with legal-rewrite/tools/build_pages.py.
 // Edit the draft and regenerate rather than hand-editing this markup, so the
 // approved wording and this page stay identical.
 import { LegalPage } from "~/components/legal/legal-page";

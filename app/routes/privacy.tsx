@@ -1,9 +1,9 @@
 // The Privacy Policy text is generated from the approved draft
-// (Studojo/legal-rewrite/privacy.html) with legal-rewrite/tools/html2jsx.py.
+// (Studojo/legal-rewrite/privacy.html) with legal-rewrite/tools/build_pages.py.
 // Edit the draft and regenerate rather than hand-editing this markup, so the
 // approved wording and this page stay identical.
 import { LegalPage } from "~/components/legal/legal-page";
-import { EFFECTIVE_DATE, LEGAL_ENTITY, PENDING, POLICY_VERSIONS, fill } from "~/lib/legal";
+import { EFFECTIVE_DATE, LEGAL_ENTITY, POLICY_VERSIONS, fill } from "~/lib/legal";
 import type { Route } from "./+types/privacy";
 
 export function meta({}: Route.MetaArgs) {
@@ -160,9 +160,10 @@ export default function Privacy() {
       <h2 id="transfer">10. Where your data is stored</h2>
       <p>Our main database, file storage and servers are on Microsoft Azure in Central India (Pune). Some providers process data outside India:</p>
       <ul>
-        <li><b>United States:</b> OpenAI, Azure OpenAI, Mixpanel, Twilio, Resend, Meta and the contact data providers.</li>
-        <li><b>Sweden:</b> Azure OpenAI.</li>
-        <li><b>European Union:</b> PostHog.</li>
+        <li><b>United States:</b> OpenAI, Azure OpenAI, Mixpanel, Twilio, Resend, Meta, Apollo.io, IPinfo and Dodo Payments.</li>
+        <li><b>European Union:</b> Azure OpenAI (Sweden), PostHog, SalesQL (Spain), LeadsForge (Estonia) and ip-api (Romania).</li>
+        <li><b>United Kingdom:</b> SalesQL and Dodo Payments have UK entities.</li>
+        <li><b>Switzerland:</b> Evomi.</li>
       </ul>
       <p>We transfer data only to countries the Indian government has not restricted. Where the GDPR applies, we rely on the European Commission&apos;s standard contractual clauses in each provider&apos;s data processing agreement.</p>
       <h2 id="providers">11. Our service providers</h2>
@@ -173,16 +174,16 @@ export default function Privacy() {
           <tr><td>OpenAI</td><td>AI writing and analysis, support chatbot</td><td>US</td></tr>
           <tr><td>Google</td><td>Sign-in, Gmail sending and reading</td><td>US</td></tr>
           <tr><td>Razorpay</td><td>Payments in rupees</td><td>India</td></tr>
-          <tr><td>Dodo Payments</td><td>International payments</td><td>{fill(PENDING.dodoLocation)}</td></tr>
+          <tr><td>Dodo Payments</td><td>International payments</td><td>US, UK; operated from India</td></tr>
           <tr><td>Twilio</td><td>SMS verification codes</td><td>US</td></tr>
           <tr><td>Resend</td><td>Account and product emails</td><td>US</td></tr>
           <tr><td>PostHog</td><td>Product analytics, session recording</td><td>EU</td></tr>
           <tr><td>Mixpanel</td><td>Product analytics, session recording</td><td>US</td></tr>
           <tr><td>Meta</td><td>Advertising measurement and targeting</td><td>US</td></tr>
-          <tr><td>Apollo.io, SalesQL, LeadsForge</td><td>Professional contact data</td><td>US {fill(PENDING.contactProvidersLocation)}</td></tr>
-          <tr><td>Evomi</td><td>Proxy network for LinkedIn automation</td><td>{fill(PENDING.evomiLocation)}</td></tr>
+          <tr><td>Apollo.io, SalesQL, LeadsForge</td><td>Professional contact data</td><td>US (Apollo.io), UK and Spain (SalesQL), Estonia (LeadsForge)</td></tr>
+          <tr><td>Evomi</td><td>Proxy network for LinkedIn automation</td><td>Switzerland</td></tr>
           <tr><td>RapidAPI (JSearch)</td><td>Job listings</td><td>US</td></tr>
-          <tr><td>ip-api, ipinfo</td><td>Approximate location from IP address</td><td>{fill(PENDING.ipLookupLocation)}</td></tr>
+          <tr><td>ip-api, IPinfo</td><td>Approximate location from IP address</td><td>Romania (ip-api), US (IPinfo)</td></tr>
         </tbody>
       </table></div>
       <p>We update this list when we change providers.</p>
@@ -236,7 +237,7 @@ export default function Privacy() {
         <li>your Gmail and LinkedIn access, which we also revoke;</li>
         <li>your chatbot history.</li>
       </ul>
-      <p>Backups are overwritten within {fill(PENDING.backupRetentionDays)} days. We also ask our analytics providers to delete your data.</p>
+      <p>Backups are overwritten within 7 days. We also ask our analytics providers to delete your data.</p>
       <h2 id="security">16. Security</h2>
       <ul>
         <li>All connections use HTTPS/TLS.</li>
