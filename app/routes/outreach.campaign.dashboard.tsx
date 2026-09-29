@@ -402,12 +402,30 @@ export default function DashboardPage() {
     }
   }, [campaignId, testJobId]);
 
+  // NEW-06: /emails returns every row with its full body, so polling it every
+  // 10s cost ~1.5 MB a minute on mobile data, even for paused or finished
+  // campaigns. Load once, then poll every 60s only while the campaign is
+  // running and the tab is visible; refresh once when the tab comes back.
+  const campaignStatus = metrics?.status;
   useEffect(() => {
     if (!campaignId || testJobId) return;
     fetchCampaignData();
-    const interval = setInterval(fetchCampaignData, 10000);
-    return () => clearInterval(interval);
   }, [campaignId, testJobId, fetchCampaignData]);
+
+  useEffect(() => {
+    if (!campaignId || testJobId || campaignStatus !== "running") return;
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchCampaignData();
+    }, 60000);
+    const onVisible = () => {
+      if (!document.hidden) fetchCampaignData();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [campaignId, testJobId, campaignStatus, fetchCampaignData]);
 
   // Check if Gmail re-auth is needed (for reply tracking scope)
   useEffect(() => {
