@@ -1,6 +1,6 @@
 import { describeError } from "~/lib/error-detail";
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { redirect, useNavigate, useSearchParams } from "react-router";
 import { FiUpload, FiFileText, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
@@ -14,6 +14,27 @@ import { capturePostHog } from "~/lib/posthog";
 import { trackMeta } from "~/lib/meta-pixel";
 import { track } from "~/lib/analytics";
 import type { ResumePreview } from "~/lib/outreach/types";
+import { getSessionFromRequest } from "~/lib/onboarding.server";
+import type { Route } from "./+types/outreach.onboarding.upload";
+
+// Meta ads land here. Logged-out visitors used to load the whole page and
+// then get bounced to /auth in the browser: the signup form showed after
+// 3.5s on an iPhone against 0.7s for /auth directly (PH-04). Redirect on the
+// server instead, keeping the query string so UTM and fbclid survive.
+export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSessionFromRequest(request);
+  if (!session) {
+    const url = new URL(request.url);
+    const back = url.pathname + url.search;
+    throw redirect(`/auth?mode=signup&redirect=${encodeURIComponent(back)}${url.search ? "&" + url.search.slice(1) : ""}`);
+  }
+  return null;
+}
+
+// The page says "up to 10MB" and the API now enforces it (413).
+const MAX_RESUME_BYTES = 10 * 1024 * 1024;
+const TOO_BIG = "That file is over 10MB. Please upload a smaller PDF or DOCX, or export your resume again with smaller images.";
+const isResumeFile = (f: File) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf") || f.name.toLowerCase().endsWith(".docx");
 
 export default function UploadPage() {
   const navigate = useNavigate();
@@ -48,17 +69,24 @@ export default function UploadPage() {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
-    if (f && (f.type === "application/pdf" || f.name.endsWith(".docx"))) {
+    if (!f || !isResumeFile(f)) {
+      setError("Please upload a PDF or DOCX file");
+    } else if (f.size > MAX_RESUME_BYTES) {
+      setError(TOO_BIG);
+    } else {
       setFile(f);
       setError("");
-    } else {
-      setError("Please upload a PDF or DOCX file");
     }
   }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f) {
+    if (!f) return;
+    if (!isResumeFile(f)) {
+      setError("Please upload a PDF or DOCX file");
+    } else if (f.size > MAX_RESUME_BYTES) {
+      setError(TOO_BIG);
+    } else {
       setFile(f);
       setError("");
     }
@@ -80,11 +108,17 @@ export default function UploadPage() {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
-        maxRetries: 3,
-        timeout: 60_000,
+        // One attempt (maxRetries counts attempts). A retry re-ran the OCR on a
+        // resume the server had usually already saved, and after three 60s
+        // timeouts the student was told to check their connection (UC-Q15).
+        maxRetries: 1,
+        timeout: 180_000,
       });
 
-      const data = await res.json();
+      // A too-big body can be refused by the ingress with an HTML page, so
+      // check the status before parsing.
+      if (res.status === 413) throw Object.assign(new Error("File too large"), { status: 413 });
+      const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.detail || "Upload failed");
 
       setPreview(data.preview);
@@ -121,7 +155,14 @@ export default function UploadPage() {
       }
     } catch (err: any) {
       capturePostHog("resume_upload_failed", { file_type: file?.type || "unknown", reason: describeError(err, "unknown") });
-      setError(describeError(err, "Upload failed. Please try again."));
+      const msg = String(err?.message || "");
+      if (/timeout|timed out|aborted/i.test(msg)) {
+        setError("Your resume is still being read. This can take a few minutes for scanned files. Refresh this page in a minute to continue.");
+      } else if (err?.status === 413 || /413|too large/i.test(msg)) {
+        setError(TOO_BIG);
+      } else {
+        setError(describeError(err, "Upload failed. Please try again."));
+      }
     } finally {
       setUploading(false);
     }

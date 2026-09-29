@@ -290,7 +290,7 @@ function StyleProfileSetup({
         {/* Step 0: Name, university, tone */}
         {step === 0 && (
           <div className="space-y-5">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold text-studojo-muted font-satoshi uppercase block mb-1.5">
                   Your name
@@ -320,7 +320,7 @@ function StyleProfileSetup({
               <label className="text-xs font-bold text-studojo-muted font-satoshi uppercase block mb-2">
                 How do you prefer to write?
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {TONES.map((t) => (
                   <OptionCard
                     key={t.id}

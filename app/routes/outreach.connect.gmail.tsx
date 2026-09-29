@@ -161,7 +161,7 @@ export default function GmailConnectPage() {
 
   const permissions = [
     { icon: <FiSend className="w-5 h-5" />, label: "Send Emails", desc: "Send your outreach emails from your Gmail" },
-    { icon: <FiEye className="w-5 h-5" />, label: "Read Replies", desc: "Know when a hiring manager replies" },
+    { icon: <FiEye className="w-5 h-5" />, label: "Spot Replies", desc: "Check new inbox messages for replies and bounces to emails Studojo sent" },
     { icon: <FiShield className="w-5 h-5" />, label: "Your Email Address", desc: "Link your Gmail account" },
   ];
 
@@ -211,17 +211,33 @@ export default function GmailConnectPage() {
             </button>
           </div>
         ) : (
-          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-8">
-            <div className="text-center mb-10">
-              <div className="w-16 h-16 rounded-full bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center mx-auto text-studojo-purple mb-6">
-                <FiMail className="w-8 h-8" />
+          <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-6 md:p-8">
+            {/* The button used to sit ~900px down, on a phone's second screen,
+                under the permissions list (PH-20). It now comes first. */}
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center mx-auto text-studojo-purple mb-4">
+                <FiMail className="w-7 h-7" />
               </div>
               <h1 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Connect Your Gmail</h1>
-              <p className="text-sm text-studojo-muted font-satoshi">We need Gmail access to send outreach emails from your account.</p>
+              <p className="text-sm text-studojo-muted font-satoshi">Your outreach goes out from your own Gmail, so replies come straight to you.</p>
             </div>
 
-            <div className="space-y-3 mb-8">
-              <h3 className="font-clash text-lg font-bold text-studojo-ink">Permissions Required</h3>
+            {error && (
+              <div className="bg-red-50 rounded-xl border-2 border-red-200 p-4 mb-4">
+                <p className="text-sm text-red-700 font-satoshi font-bold mb-1">Connection failed</p>
+                <p className="text-sm text-red-600 font-satoshi">{error}</p>
+              </div>
+            )}
+
+            <button
+              onClick={handleConnect}
+              className="w-full h-12 px-8 mb-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+            >
+              Connect Gmail Account
+            </button>
+
+            <div className="space-y-3 mb-6">
+              <h3 className="font-clash text-lg font-bold text-studojo-ink">What Studojo can do</h3>
               {permissions.map((p, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 bg-studojo-surface-muted rounded-xl border-2 border-studojo-ink/20">
                   <div className="w-10 h-10 rounded-xl bg-studojo-purple-bg border-2 border-studojo-ink flex items-center justify-center text-studojo-purple flex-shrink-0">
@@ -235,29 +251,17 @@ export default function GmailConnectPage() {
               ))}
             </div>
 
-            <div className="bg-studojo-green-bg rounded-xl border-2 border-studojo-ink/20 p-4 mb-8">
+            {/* This said "we never read your inbox" right under a "Read Replies"
+                permission (PH-21). Say what actually happens. */}
+            <div className="bg-studojo-green-bg rounded-xl border-2 border-studojo-ink/20 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <FiShield className="w-4 h-4 text-studojo-green" />
-                <span className="text-sm font-bold text-studojo-green font-satoshi">Your data is safe</span>
+                <span className="text-sm font-bold text-studojo-green font-satoshi">What we keep</span>
               </div>
               <p className="text-sm text-studojo-muted font-satoshi">
-                We never store your emails or read your inbox. We only send outreach you've set up. Nothing else. You can disconnect anytime from Gmail settings.
+                We look at new inbox messages only to find replies and bounces to the emails Studojo sent for you, and we save just those so you can see them. Nothing else is stored. You can disconnect any time in your Google account settings.
               </p>
             </div>
-
-            {error && (
-              <div className="bg-red-50 rounded-xl border-2 border-red-200 p-4 mb-8">
-                <p className="text-sm text-red-700 font-satoshi font-bold mb-1">Connection failed</p>
-                <p className="text-sm text-red-600 font-satoshi">{error}</p>
-              </div>
-            )}
-
-            <button
-              onClick={handleConnect}
-              className="w-full h-12 px-8 rounded-2xl bg-studojo-purple text-white font-satoshi font-medium text-base border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-            >
-              Connect Gmail Account
-            </button>
           </div>
         )}
       </div>

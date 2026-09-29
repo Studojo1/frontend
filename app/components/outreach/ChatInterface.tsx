@@ -17,11 +17,22 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ messages, children, loading, quizProgress, questionsAsked, questionsTotal }: ChatInterfaceProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const answerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container) {
       container.scrollTop = container.scrollHeight;
+    }
+    // On phones the page scrolls, not the transcript, so the line above does
+    // nothing there and each new question and its answers started below the
+    // screen (PH-02). Bring the answer area into view when it is off-screen.
+    const answers = answerRef.current;
+    if (answers && !loading) {
+      const r = answers.getBoundingClientRect();
+      if (r.bottom > window.innerHeight || r.top < 0) {
+        answers.scrollIntoView({ block: "end", behavior: "smooth" });
+      }
     }
   }, [messages, loading]);
 
@@ -117,7 +128,7 @@ export function ChatInterface({ messages, children, loading, quizProgress, quest
       </div>
 
       {children && (
-        <div className="border-t-2 border-studojo-ink bg-studojo-surface-muted px-4 py-3 flex-shrink-0">
+        <div ref={answerRef} className="border-t-2 border-studojo-ink bg-studojo-surface-muted px-4 py-3 flex-shrink-0">
           {children}
         </div>
       )}
