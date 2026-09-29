@@ -200,6 +200,11 @@ export default function EnrichmentPage() {
   const [strongCount, setStrongCount] = useState<number | null>(null);
   const [dreamCompanies, setDreamCompanies] = useState<Array<{ name: string; domain: string | null }>>([]);
   const [couponCode, setCouponCode] = useState("");
+  // Links in coupon and checkout-recovery emails carry ?coupon=CODE.
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("coupon");
+    if (fromUrl) setCouponCode(fromUrl.trim().toUpperCase());
+  }, []);
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
@@ -559,7 +564,8 @@ export default function EnrichmentPage() {
         key: orderData.key_id,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "Outreach",
+        name: "Studojo",
+        image: "https://studojo.com/logo.png",
         description: `Contact ${tierValue} Hiring Managers`,
         order_id: orderData.order_id,
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
@@ -579,7 +585,11 @@ export default function EnrichmentPage() {
             setPaying(false);
           }
         },
-        prefill: { email: user?.email || "", name: user?.name || "" },
+        prefill: {
+          email: user?.email || "",
+          name: user?.name || "",
+          contact: (user as { phoneNumber?: string | null } | null)?.phoneNumber || "",
+        },
         theme: { color: "#7C3AED" },
         modal: { ondismiss: () => { capturePostHog("checkout_abandoned", { tier: tierValue, provider: "razorpay" }); setPaying(false); } },
       };
@@ -903,35 +913,8 @@ export default function EnrichmentPage() {
 
         {error && <p className="text-red-600 text-sm text-center mb-6 font-satoshi">{error}</p>}
 
-        {/* Wall of Love */}
-        <WallOfLove />
-
-        {/* Founder note */}
-        <div className="max-w-2xl mx-auto mb-14 rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg/40 p-5 md:p-6 shadow-brutal">
-          <p className="text-sm md:text-[15px] text-studojo-ink leading-6 font-satoshi">
-            "Job boards are dead. You upload a resume, an algorithm buries it, and weeks later you've heard nothing. We built Studojo so you skip the queue and land straight in the inbox of the person who can actually hire you. And if your list goes quiet, we keep working it until someone replies."
-          </p>
-          <div className="flex items-center gap-2.5 mt-3">
-            <div className="h-8 w-8 rounded-full border-2 border-studojo-ink bg-studojo-purple flex items-center justify-center font-clash font-bold text-white text-xs">S</div>
-            <p className="text-xs text-studojo-muted font-satoshi"><strong className="text-studojo-ink">The Studojo team</strong> · we read every reply you forward us</p>
-          </div>
-        </div>
-
-        {/* FAQ */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <h2 className="font-clash text-2xl md:text-3xl font-bold text-center text-studojo-ink mb-6">Questions, answered</h2>
-          <div className="flex flex-col gap-3">
-            {FAQ_ITEMS.map(([q, a]) => (
-              <div key={q} className="rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
-                <p className="font-bold text-[15px] mb-1.5 font-satoshi text-studojo-ink">{q}</p>
-                <p className="text-sm text-studojo-muted leading-6 font-satoshi">{a}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Coupon */}
-        <div className="rounded-2xl border-2 border-studojo-ink/20 bg-white p-5 mb-8 max-w-md mx-auto">
+        {/* Coupon: right under the plans, not below the FAQ (audit OP-N12) */}
+        <div id="coupon" className="rounded-2xl border-2 border-studojo-ink/20 bg-white p-5 mb-8 max-w-md mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <FiTag className="w-4 h-4 text-studojo-purple" />
             <p className="font-satoshi text-sm font-bold text-studojo-ink">Have a coupon?</p>
@@ -964,6 +947,34 @@ export default function EnrichmentPage() {
           )}
         </div>
 
+        {/* Wall of Love */}
+        <WallOfLove />
+
+        {/* Founder note */}
+        <div className="max-w-2xl mx-auto mb-14 rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg/40 p-5 md:p-6 shadow-brutal">
+          <p className="text-sm md:text-[15px] text-studojo-ink leading-6 font-satoshi">
+            "Job boards are dead. You upload a resume, an algorithm buries it, and weeks later you've heard nothing. We built Studojo so you skip the queue and land straight in the inbox of the person who can actually hire you. And if a campaign stops because of us, we fix it or refund it, as our Refund Policy sets out."
+          </p>
+          <div className="flex items-center gap-2.5 mt-3">
+            <div className="h-8 w-8 rounded-full border-2 border-studojo-ink bg-studojo-purple flex items-center justify-center font-clash font-bold text-white text-xs">S</div>
+            <p className="text-xs text-studojo-muted font-satoshi"><strong className="text-studojo-ink">The Studojo team</strong> · we read every reply you forward us</p>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <h2 className="font-clash text-2xl md:text-3xl font-bold text-center text-studojo-ink mb-6">Questions, answered</h2>
+          <div className="flex flex-col gap-3">
+            {FAQ_ITEMS.map(([q, a]) => (
+              <div key={q} className="rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+                <p className="font-bold text-[15px] mb-1.5 font-satoshi text-studojo-ink">{q}</p>
+                <p className="text-sm text-studojo-muted leading-6 font-satoshi">{a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+
         <p className="text-xs text-studojo-muted font-satoshi text-center">
           Emails sent gradually over several days. About 4 in 10 students hear back in their first week.
         </p>
@@ -980,6 +991,18 @@ export default function EnrichmentPage() {
             <p className="text-[11px] text-studojo-muted font-satoshi">
               {selectedPrice.discounted || selectedPrice.display}
               {hasCreditsForSelected ? " · covered by your credits" : ""}
+              {!hasCreditsForSelected && !couponResult?.valid && (
+                <>
+                  {" · "}
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById("coupon")?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                    className="underline font-semibold text-studojo-purple"
+                  >
+                    Have a coupon?
+                  </button>
+                </>
+              )}
             </p>
           </div>
           <button

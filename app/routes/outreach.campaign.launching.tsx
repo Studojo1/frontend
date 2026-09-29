@@ -74,6 +74,12 @@ export default function CampaignLaunchingPage() {
           return;
         }
 
+        // Size the campaign to the credits the server says are available, not
+        // the tier in this browser's localStorage: a 350 or 500 buyer who
+        // launched from another device got a 200-email campaign (audit PS-N05).
+        // The server still caps it at the lead count.
+        const leadLimit = (step?.available_credits || 0) > 0 ? step!.available_credits : selectedTier || undefined;
+
         const createData = await outreachFetch<{ campaign_id: number; queued_messages: number }>("/campaign/create", {
           method: "POST",
           body: JSON.stringify({
@@ -82,7 +88,7 @@ export default function CampaignLaunchingPage() {
             name: campaignName || "My Outreach Campaign",
             user_timezone: userTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata",
             selected_styles: selectedStyles?.length > 0 ? selectedStyles : ["value_prop"],
-            lead_limit: selectedTier || undefined,
+            lead_limit: leadLimit,
             // Create and start in one request, so closing the tab can no
             // longer strand the credits on a draft (audit P27).
             launch: true,
@@ -100,7 +106,7 @@ export default function CampaignLaunchingPage() {
           campaign_id: newCampaignId,
           queued_messages: createData.queued_messages ?? 0,
           styles: selectedStyles,
-          lead_limit: selectedTier ?? null,
+          lead_limit: leadLimit ?? null,
         });
 
         if (createData.queued_messages === 0) {
