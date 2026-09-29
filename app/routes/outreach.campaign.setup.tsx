@@ -60,7 +60,6 @@ export default function CampaignSetupPage() {
   const [userTimezone, setUserTimezone] = useState(() => getDefaultTimezone());
   const [launching, setLaunching] = useState(false);
   const [error, setError] = useState("");
-  const [gmailRequired, setGmailRequired] = useState(false);
 
   // Test launch state
   const [testEmails, setTestEmails] = useState<TestEmail[]>([]);
@@ -399,18 +398,7 @@ export default function CampaignSetupPage() {
             )}
           </div>
 
-          {gmailRequired ? (
-            <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-4 text-center">
-              <p className="text-sm font-bold text-red-700 font-satoshi mb-2">Gmail not connected</p>
-              <p className="text-sm text-red-600 font-satoshi mb-3">You need to connect your Gmail account before launching.</p>
-              <button
-                onClick={() => navigate("/outreach/connect/gmail")}
-                className="h-9 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-              >
-                Connect Gmail →
-              </button>
-            </div>
-          ) : error ? (
+          {error ? (
             <p className="text-red-600 text-sm text-center font-satoshi">{error}</p>
           ) : null}
         </div>
@@ -419,7 +407,7 @@ export default function CampaignSetupPage() {
 
       {/* Floating Launch Campaign button, with any error right above it */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex w-[min(92vw,28rem)] flex-col items-center gap-2">
-        {error && !gmailRequired && (
+        {error && (
           <p role="alert" className="w-full rounded-xl border-2 border-red-300 bg-red-50 px-3 py-2 text-center text-sm font-satoshi text-red-700 shadow-brutal">
             {error}
             {!candidateId && (
