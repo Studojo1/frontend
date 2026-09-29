@@ -253,18 +253,20 @@ export default function CcIndex() {
           }}
         >
           <div className="hero-aspect relative w-full" style={{ paddingBottom: "177.78%" }}>
-            <img
-              src="/cc-hero-mobile.png"
-              alt="Bobie the career coach in front of the Studojo dojo gate"
-              className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
-              loading="eager"
-            />
-            <img
-              src="/cc-hero.png"
-              alt="Bobie the career coach in front of the Studojo dojo gate"
-              className="absolute inset-0 hidden h-full w-full object-cover object-center md:block"
-              loading="eager"
-            />
+            {/* One image per device, ~50-75 KB WebP. Two eager PNGs (5.5 MB) both
+                downloaded on every device; the hero took 27s on slow 4G (HP-N11). */}
+            <picture>
+              <source media="(min-width: 768px)" srcSet="/cc-hero.webp" type="image/webp" width={1400} height={787} />
+              <img
+                src="/cc-hero-mobile.webp"
+                width={800}
+                height={1066}
+                alt="Bobie the career coach in front of the Studojo dojo gate"
+                className="absolute inset-0 h-full w-full object-cover object-center"
+                loading="eager"
+                fetchPriority="high"
+              />
+            </picture>
 
             <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/50 to-transparent" />
