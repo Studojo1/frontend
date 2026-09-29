@@ -4,7 +4,7 @@
 // draft and regenerate rather than hand-editing this markup.
 import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
-import { EFFECTIVE_DATE, LEGAL_ENTITY, POLICY_VERSIONS, fill } from "~/lib/legal";
+import { EFFECTIVE_DATE, POLICY_VERSIONS, fill } from "~/lib/legal";
 import type { Route } from "./+types/privacy";
 
 export function meta({}: Route.MetaArgs) {
@@ -46,7 +46,7 @@ export default function Privacy() {
             <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5"><p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">Studojo Labs Private Limited (&quot;Studojo&quot;, &quot;we&quot;) decides how your personal data is used. That makes us the &quot;data fiduciary&quot; under India&apos;s Digital Personal Data Protection Act 2023, and the &quot;controller&quot; under the GDPR.</p></div>
             <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5"><p className="mb-2 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">This policy covers:</p><ul className="list-disc space-y-1 pl-5 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base"><li>studojo.com, app.studojo.com and studojo.pro;</li><li>our browser extensions: Studojo Job Assistant, Studojo Outreach and the Studojo LinkedIn Connector;</li><li>emails we send;</li><li>our partner API, the Contact Enrichment API and the Sensei MCP.</li></ul></div>
             <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5"><p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">Section 5 covers people who are not our users, but whose professional details we process.</p></div>
-            <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5"><p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">Registered office: {fill(LEGAL_ENTITY.registeredOffice)}, Bengaluru, Karnataka, India. Contact: admin@studojo.com. Our grievance officer is named in section 19.</p></div>
+            <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5"><p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">Studojo Labs Private Limited is registered in Bengaluru, Karnataka, India. Contact: admin@studojo.com. Section 19 explains how to reach our grievance officer.</p></div>
             </div>
             </div>
             
@@ -208,7 +208,7 @@ export default function Privacy() {
             <div id="grievance" className="scroll-mt-24 rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
             <h2 className="mb-6 font-['Clash_Display'] text-2xl font-medium text-neutral-900 md:text-3xl">19. Grievance officer and contact</h2>
             <div className="space-y-3">
-            <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5"><ul className="list-disc space-y-1 pl-5 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base"><li>Grievance officer: {fill(LEGAL_ENTITY.grievanceOfficer)}</li><li>Email: admin@studojo.com, with &quot;PRIVACY&quot; at the start of the subject line</li><li>Phone: {fill(LEGAL_ENTITY.phone)}</li><li>Post: Studojo Labs Private Limited, {fill(LEGAL_ENTITY.registeredOffice)}, Bengaluru, Karnataka, India</li></ul></div>
+            <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5"><ul className="list-disc space-y-1 pl-5 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base"><li>Grievance Officer, Studojo Labs Private Limited</li><li>Email: admin@studojo.com, with &quot;PRIVACY&quot; at the start of the subject line</li><li>Studojo Labs Private Limited, Bengaluru, Karnataka, India</li></ul></div>
             <div className="rounded-2xl border border-gray-200 bg-purple-50 p-4 md:p-5"><p className="font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">We acknowledge privacy complaints within 48 hours and resolve them within 30 days.</p></div>
             </div>
             </div>
