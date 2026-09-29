@@ -1,5 +1,5 @@
 import { describeError } from "~/lib/error-detail";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { capturePostHog } from "~/lib/posthog";
 import { FiArrowRight, FiArrowLeft, FiSearch, FiSend, FiRefreshCw } from "react-icons/fi";
@@ -54,7 +54,8 @@ function rank(shown: Lead[], sortBy: SortBy): number[] {
   return [...shown]
     .sort((a, b) => {
       if (sortBy === "name") return (a.name || "").localeCompare(b.name || "") || a.id - b.id;
-      return signalRank(b) - signalRank(a) || scoreOf(b) - scoreOf(a) || a.id - b.id;
+      // Strong matches first; broader ones follow under their own heading.
+      return Number(!!a.broader) - Number(!!b.broader) || signalRank(b) - signalRank(a) || scoreOf(b) - scoreOf(a) || a.id - b.id;
     })
     .map((l) => l.id);
 }
@@ -265,6 +266,11 @@ export default function ResultsPage() {
   const currentPage = Math.min(page, totalPages);
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const companies = useMemo(() => new Set(leads.map((l) => (l.company || "").toLowerCase()).filter(Boolean)).size, [leads]);
+  const broaderCount = useMemo(() => leads.filter((l) => l.broader).length, [leads]);
+  const strongCount = leads.length - broaderCount;
+  // Where the broader matches start in the list being shown, if they are grouped.
+  const firstBroader = sortBy === "best" && !q ? filtered.findIndex((l) => l.broader) : -1;
+  const pageStart = (currentPage - 1) * PAGE_SIZE;
 
   // The CTA follows the plan the user chose, not the shape of the data. Leads
   // have no email before payment, so guessing from the data sent nearly every
@@ -313,7 +319,9 @@ export default function ResultsPage() {
       : ""
     : leads.length === 0
       ? "No matches yet."
-      : `${leads.length.toLocaleString("en-US")} matches across ${companies.toLocaleString("en-US")} companies. ` +
+      : (broaderCount > 0
+          ? `${strongCount.toLocaleString("en-US")} strong matches for your target roles and ${broaderCount.toLocaleString("en-US")} broader matches, across ${companies.toLocaleString("en-US")} companies. `
+          : `${leads.length.toLocaleString("en-US")} matches across ${companies.toLocaleString("en-US")} companies. `) +
         `${leads.length > JUSTIFIED_LIMIT ? `The top ${JUSTIFIED_LIMIT} come` : "They come"} with AI notes on why to contact them. Tap any card to reach out.`;
 
   return (
@@ -432,8 +440,18 @@ export default function ResultsPage() {
               <p className="text-sm text-studojo-muted font-satoshi py-10 text-center">No matches for "{query}".</p>
             ) : (
               <div className="ph-no-capture grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {paginated.map((lead) => (
-                  <FlashCard key={lead.id} lead={lead} actionLabel={cardActionLabel} onSelect={() => onCta("card")} />
+                {paginated.map((lead, i) => (
+                  <Fragment key={lead.id}>
+                    {pageStart + i === firstBroader && (
+                      <div className="col-span-full mt-4 border-t-2 border-studojo-ink/10 pt-5">
+                        <h2 className="font-clash text-lg font-bold text-studojo-ink">Broader matches</h2>
+                        <p className="text-sm text-studojo-muted font-satoshi mt-0.5">
+                          Their job titles do not match your target roles. They are still decision-makers at companies in your search, so a message can be worth it, with lower odds than the matches above.
+                        </p>
+                      </div>
+                    )}
+                    <FlashCard lead={lead} actionLabel={cardActionLabel} onSelect={() => onCta("card")} />
+                  </Fragment>
                 ))}
               </div>
             )}
