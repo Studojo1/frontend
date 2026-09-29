@@ -3,6 +3,7 @@ import { useLoaderData, useNavigate, useLocation } from "react-router";
 import { Header, Footer } from "~/components";
 import { FiMapPin, FiClock, FiCalendar, FiArrowLeft, FiMail, FiZap } from "react-icons/fi";
 import { authClient } from "~/lib/auth-client";
+import { plainText } from "~/lib/plain-text";
 import type { Route } from "./+types/internships.$slug";
 import { ApplicationFlow } from "~/components/internship/application-flow";
 
@@ -16,6 +17,7 @@ interface Internship {
   duration: string;
   stipend: string;
   application_deadline: string | null;
+  created_at?: string | null;
   slug: string;
   view_count: number;
   application_count: number;
@@ -29,14 +31,32 @@ export function meta({ data }: Route.MetaArgs) {
   }
 
   const internship = data.internship;
+  // Plain text, a canonical and JobPosting data (audit HP-N15): the raw HTML
+  // description showed as "&lt;p&gt;..." in search results.
+  const url = `https://studojo.com/internships/${internship.slug}`;
+  const title = `${internship.title} at ${internship.company_name} | Studojo`;
+  const description = plainText(internship.description, 160);
+  const posting: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: internship.title,
+    description: plainText(internship.description),
+    employmentType: "INTERN",
+    hiringOrganization: { "@type": "Organization", name: internship.company_name },
+    jobLocation: { "@type": "Place", address: internship.location },
+    url,
+  };
+  if (internship.created_at) posting.datePosted = String(internship.created_at).slice(0, 10);
+  if (internship.application_deadline) posting.validThrough = internship.application_deadline;
   return [
-    {
-      title: `${internship.title} at ${internship.company_name} | Studojo`,
-    },
-    {
-      name: "description",
-      content: internship.description.substring(0, 160),
-    },
+    { title },
+    { name: "description", content: description },
+    { tagName: "link", rel: "canonical", href: url },
+    { property: "og:type", content: "website" },
+    { property: "og:title", content: title },
+    { property: "og:description", content: description },
+    { property: "og:url", content: url },
+    { "script:ld+json": posting },
   ];
 }
 

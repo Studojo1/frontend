@@ -46,7 +46,12 @@ const RESOURCES_LINKS = [
 
 const isResourcesPath = (pathname: string) => RESOURCES_LINKS.some((r) => isActivePath(pathname, r.to));
 
-export function Header() {
+/**
+ * landing: ad and marketing landing pages (/outreach, /start). No nav links
+ * and no header Get Started, so the page's own CTA is the one thing to tap
+ * (audit VS-V05: /outreach had 34 competing targets). Sign in stays.
+ */
+export function Header({ landing = false }: { landing?: boolean } = {}) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -131,7 +136,7 @@ export function Header() {
 
         <nav className="hidden items-center gap-8 md:flex" aria-label="Main">
           {NAV_LINKS.filter((link) => {
-            return !link.to.startsWith("#") || isHomePage;
+            return !landing && (!link.to.startsWith("#") || isHomePage);
           }).map((link) => {
             const LinkComponent = link.to.startsWith("#") ? SmoothLink : Link;
             const active = isActivePath(location.pathname, link.to);
@@ -340,14 +345,14 @@ export function Header() {
                 >
                   Sign in
                 </Link>
-                <Link
+                {!landing && <Link
                   to={authUrl("signup", returnTo)}
                   className={`flex h-12 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-sm font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] px-4 max-w-[120px] flex-shrink-0 md:w-32 md:text-base md:max-w-none ${
                     isHomePage ? "hidden md:flex" : ""
                   }`}
                 >
                   Get Started
-                </Link>
+                </Link>}
               </>
               )
             ))}
@@ -378,7 +383,7 @@ export function Header() {
         >
           <ul className="flex flex-col gap-2">
             {NAV_LINKS.filter((link) => {
-              return !link.to.startsWith("#") || isHomePage;
+              return !landing && (!link.to.startsWith("#") || isHomePage);
             }).map(({ to, label }) => {
               const LinkComponent = to.startsWith("#") ? SmoothLink : Link;
               const active = isActivePath(location.pathname, to);
@@ -476,7 +481,7 @@ export function Header() {
                       Sign in
                     </Link>
                   </li>
-                  <li>
+                  {!landing && <li>
                     <Link
                       to={authUrl("signup", returnTo)}
                       onClick={() => setMobileOpen(false)}
@@ -484,7 +489,7 @@ export function Header() {
                     >
                       Get Started
                     </Link>
-                  </li>
+                  </li>}
                 </>
                 )
               ))}
