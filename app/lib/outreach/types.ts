@@ -137,6 +137,8 @@ export interface CampaignMetrics {
   pause_reason?: string | null;
   credits_reserved?: number | null;
   credits_released?: number;
+  replacements_added?: number;
+  outcome?: string | null;
 }
 
 // ── Pricing / Tiers ──────────────────────────────────────────────────
