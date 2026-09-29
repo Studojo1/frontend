@@ -11,9 +11,9 @@ export function Hero() {
         {/* Left: copy */}
         <div className="flex flex-col gap-5 md:max-w-lg md:gap-7 lg:max-w-xl">
           {/* H1 */}
-          <h1 className="font-['Clash_Display'] text-4xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl lg:text-6xl">
+          <h1 className="font-['Clash_Display'] text-[2rem] min-[380px]:text-4xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl lg:text-6xl">
             Job boards are dead.{" "}
-            <span className="inline-flex items-center rounded-2xl border-2 border-neutral-900 bg-purple-300 px-3 py-0.5 align-middle font-['Clash_Display'] text-4xl font-medium leading-none text-neutral-900 md:text-5xl lg:text-6xl">
+            <span className="inline-flex items-center rounded-2xl border-2 border-neutral-900 bg-purple-300 px-3 py-0.5 align-middle font-['Clash_Display'] text-[2rem] min-[380px]:text-4xl font-medium leading-none text-neutral-900 md:text-5xl lg:text-6xl">
               We get you replies.
             </span>
           </h1>
