@@ -1,4 +1,4 @@
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
@@ -81,29 +81,6 @@ export function meta({ data }: Route.MetaArgs) {
   ];
 }
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const sectionVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-    },
-  },
-};
-
 function AnnouncementBar() {
   return (
     <div className="border-b border-neutral-900 bg-violet-500 px-4 py-2.5 text-center">
@@ -125,6 +102,9 @@ function InternshipPopup() {
 
   useEffect(() => {
     if (sessionStorage.getItem("outreach-popup-dismissed")) return;
+    // Not on phones: it opened mid-scroll and swallowed the tap meant for
+    // whatever button was under the user's finger.
+    if (window.matchMedia("(max-width: 767px)").matches) return;
     let fired = false;
     function onScroll() {
       if (fired) return;
@@ -213,39 +193,19 @@ export default function Home() {
       <AnnouncementBar />
       <Header />
       <InternshipPopup />
-      <motion.main
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div variants={sectionVariants}>
-          <Hero />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <CollegesBanner />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <StepsSection />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <ProblemSolution />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <TrustStrip />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <FeaturedProductCard />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <BackedBySection />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <CTABanner />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <Footer />
-        </motion.div>
-      </motion.main>
+      {/* Content renders visible on the server, so the page is readable and
+          links work before JS loads (and even if hydration fails). */}
+      <main>
+        <Hero />
+        <CollegesBanner />
+        <StepsSection />
+        <ProblemSolution />
+        <TrustStrip />
+        <FeaturedProductCard />
+        <BackedBySection />
+        <CTABanner />
+        <Footer />
+      </main>
     </>
   );
 }
