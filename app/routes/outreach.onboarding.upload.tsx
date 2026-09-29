@@ -45,6 +45,9 @@ export default function UploadPage() {
   const [preview, setPreview] = useState<ResumePreview | null>(null);
   const [error, setError] = useState("");
   const [paidOrderOnOldResume, setPaidOrderOnOldResume] = useState(false);
+  // OP-N07: the server flags files that read like an invoice or a letter.
+  // The upload is kept; the student decides.
+  const [notAResume, setNotAResume] = useState(false);
   const userId = user?.id;
   useEffect(() => {
     if (userId) logFunnelStep("upload_view");
@@ -136,6 +139,7 @@ export default function UploadPage() {
       }
 
       setPreview(data.preview);
+      setNotAResume(data?.looks_like_resume === false);
       // UC-Q28: a paid order keeps its leads on the earlier resume; this upload
       // starts a separate search. Tell the student so the two lists do not
       // look like one campaign that changed under them.
@@ -346,6 +350,20 @@ export default function UploadPage() {
                       </span>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {notAResume && (
+                <div className="mt-6 rounded-xl border-2 border-amber-500 bg-amber-50 px-4 py-3" role="alert">
+                  <p className="font-satoshi text-sm font-bold text-amber-900">This does not look like a resume. Upload a different file?</p>
+                  <p className="font-satoshi text-sm text-amber-800 mt-1">We could not find sections like education, experience or skills. Hiring managers are matched from your resume, so the right file matters.</p>
+                  <button
+                    type="button"
+                    onClick={() => { setPreview(null); setFile(null); setNotAResume(false); }}
+                    className="mt-3 h-10 px-4 rounded-xl bg-white text-studojo-ink text-sm font-satoshi font-bold border-2 border-studojo-ink"
+                  >
+                    Upload a different file
+                  </button>
                 </div>
               )}
 
