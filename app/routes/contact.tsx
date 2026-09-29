@@ -29,7 +29,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "How do refunds work?",
-    answer: "Unused credits may be eligible for a refund within 7 days of purchase. Once a service has been initiated, credits are non-refundable. See our full refund policy for details.",
+    answer: "All purchases are final. We refund payment errors (failed, duplicate or unauthorised charges), anything you paid for that we never delivered, and campaigns that stopped completely because of a fault on our side. Unused credits don't expire, so you can use them any time. Raise a ticket from the support chat with your payment ID.",
     link: { to: "/refund-policy", label: "View Refund Policy" },
   },
   {

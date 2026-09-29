@@ -32,8 +32,8 @@ interface CouponResult {
 const FAQ_ITEMS: [string, string][] = [
   ["Is this spam?", "No. Each email is personalised to the person and their company, sent one at a time from your own Gmail on an inbox-safe schedule."],
   ["Whose email does it come from?", "Your own Gmail, signed by you, so replies come straight back to your inbox."],
-  ["Can they tell it's written by AI?", "No. Each email references real details about them and your background, so it reads like a human wrote it, because the substance is yours."],
-  ["Is my data safe?", "Yes. Your resume and contacts stay private and are never sold or shared. Payments are handled by Razorpay, so we never see your card details."],
+  ["Can they tell it's written by AI?", "Each email is written by AI from real details about them and your background, then sent from your Gmail. It reads personally because the details are real."],
+  ["Is my data safe?", "Yes. Your resume and contacts are never sold. Payments are handled by Razorpay in India and Dodo Payments elsewhere, so we never see your card details."],
 ];
 
 // ── Wall of Love (authentic-style screenshots, anonymised) ─────────────────
@@ -289,6 +289,8 @@ export default function EnrichmentPage() {
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
+  // Required before paying: 18+ and the Refund Policy (Terms §2, Refund Policy).
+  const [refundAgreed, setRefundAgreed] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
@@ -567,6 +569,7 @@ export default function EnrichmentPage() {
     if (pricingState !== "ready" && !(credits && credits.available_credits >= tierValue)) return;
 
     const coveredByCredits = !!(credits && credits.available_credits >= tierValue);
+    if (!coveredByCredits && !refundAgreed) return;
     track("pay_now_clicked", { tier: tierValue, covered_by_credits: coveredByCredits });
 
     // If user already has enough credits for this specific tier, skip payment.
@@ -952,7 +955,7 @@ export default function EnrichmentPage() {
                     setSelectedTier(tier.value);
                     handlePayAndContinue(tier.value);
                   }}
-                  disabled={(paying && isSelected) || leadCount === 0 || (pricingState !== "ready" && !hasCredits)}
+                  disabled={(paying && isSelected) || leadCount === 0 || (pricingState !== "ready" && !hasCredits) || (!hasCredits && !refundAgreed)}
                   className={`w-full h-10 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-1.5 ${
                     isSelected
                       ? "bg-studojo-purple text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
@@ -968,8 +971,24 @@ export default function EnrichmentPage() {
           })}
         </div>
 
+        <label className="mb-4 flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-studojo-ink bg-white px-4 py-3 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+          <input
+            type="checkbox"
+            checked={refundAgreed}
+            onChange={(e) => setRefundAgreed(e.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 accent-[#6d28d9]"
+          />
+          <span className="font-satoshi text-sm leading-5 text-studojo-ink">
+            I am 18 or older and agree to the{" "}
+            <a href="/refund-policy" target="_blank" rel="noopener" className="font-medium text-studojo-purple-strong underline">
+              Refund Policy
+            </a>
+            .
+          </span>
+        </label>
         <p className="text-center text-sm text-studojo-muted font-satoshi mb-14">
-          One-time payment · No subscription, no auto-renew
+          One-time payment · No subscription, no auto-renew ·{" "}
+          <a href="/refund-policy" target="_blank" rel="noopener" className="underline">Refund Policy</a>
         </p>
 
         {error && <p className="text-red-600 text-sm text-center mb-6 font-satoshi">{error}</p>}
@@ -980,7 +999,7 @@ export default function EnrichmentPage() {
         {/* Founder note */}
         <div className="max-w-2xl mx-auto mb-14 rounded-2xl border-2 border-studojo-ink bg-studojo-purple-bg/40 p-5 md:p-6 shadow-brutal">
           <p className="text-sm md:text-[15px] text-studojo-ink leading-6 font-satoshi">
-            "Job boards are dead. You upload a resume, an algorithm buries it, and weeks later you've heard nothing. We built Studojo so you skip the queue and land straight in the inbox of the person who can actually hire you. And if your list goes quiet, we keep working it until someone replies."
+            "Job boards are dead. You upload a resume, an algorithm buries it, and weeks later you've heard nothing. We built Studojo so you skip the queue and land straight in the inbox of the person who can actually hire you. And if a campaign stops because of us, we fix it or refund it, as our Refund Policy sets out."
           </p>
           <div className="flex items-center gap-2.5 mt-3">
             <div className="h-8 w-8 rounded-full border-2 border-studojo-ink bg-studojo-purple flex items-center justify-center font-clash font-bold text-white text-xs">S</div>
