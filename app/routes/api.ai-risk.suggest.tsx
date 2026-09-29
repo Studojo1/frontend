@@ -49,11 +49,11 @@ function parsePivots(raw: string): any[] | null {
     return parsed.pivots
       .filter((p: any) => p.role && p.why && Array.isArray(p.skills))
       .map((p: any) => ({
-        role: String(p.role).replace(/[–—]/g, "-"),
+        role: String(p.role).replace(/[\u2013\u2014]/g, "-"),
         risk_pct: Math.max(5, Math.min(70, Number(p.risk_pct) || 20)),
-        why: String(p.why).replace(/[–—]/g, ","),
-        skills: (p.skills as any[]).slice(0, 4).map((s: any) => String(s).replace(/[–—]/g, "-")),
-        timeline: String(p.timeline || "3-6 months").replace(/[–—]/g, "-"),
+        why: String(p.why).replace(/[\u2013\u2014]/g, ","),
+        skills: (p.skills as any[]).slice(0, 4).map((s: any) => String(s).replace(/[\u2013\u2014]/g, "-")),
+        timeline: String(p.timeline || "3-6 months").replace(/[\u2013\u2014]/g, "-"),
         difficulty: ([1, 2, 3].includes(Number(p.difficulty)) ? Number(p.difficulty) : 2) as 1 | 2 | 3,
       }))
       .slice(0, 4);
@@ -129,7 +129,7 @@ export async function action({ request }: Route.ActionArgs) {
 
     return Response.json({ pivots, source: "llm" });
   } catch (err: any) {
-    // Timeout or network error — client falls back to engine data
+    // Timeout or network error: client falls back to engine data
     console.warn("[ai-risk/suggest] LLM failed:", err?.message);
     return Response.json({ pivots: null, source: "fallback" });
   }

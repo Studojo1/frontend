@@ -19,7 +19,7 @@ const ESTIMATED_TOTAL = 10;
 
 
 /**
- * Q1 is served client-side immediately — zero network latency.
+ * Q1 is served client-side immediately (zero network latency).
  * Options must match question_engine.py _Q1_CAREER_STAGE exactly.
  */
 const Q1_STATIC: AgentResponse = {
@@ -339,8 +339,8 @@ export default function ChatPage() {
           // whole check.
           // The completion guard covers the write too, not just the analytics
           // below it. Any route back into this branch for a quiz that has
-          // already finished — a resubmit, a re-render, browser-back onto a
-          // replay — used to rebuild and rewrite the whole payload, outside the
+          // already finished (a resubmit, a re-render, browser-back onto a
+          // replay) used to rebuild and rewrite the whole payload, outside the
           // guard that exists precisely to make completion happen once.
           const completedKey = `quiz_completed_${candidateId}`;
           let alreadyCompleted = false;
@@ -377,7 +377,7 @@ export default function ChatPage() {
 
           // Fire completion side-effects ONCE per candidate. Without this guard,
           // profile_quiz_completed (and the outreach_used email) re-fired on
-          // resubmits, re-renders, and browser-back revisits — logging far more
+          // resubmits, re-renders, and browser-back revisits, logging far more
           // "completions" than there were quiz starts. completedKey and
           // alreadyCompleted are read above, where they now also guard the
           // payload write.
@@ -677,7 +677,7 @@ export default function ChatPage() {
       <Header />
 
       <div className="flex-1 flex">
-        {/* Desktop sidebar — vertical progress timeline */}
+        {/* Desktop sidebar: vertical progress timeline */}
         <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center justify-center flex-shrink-0">
           <div className="flex flex-col" style={{ alignItems: "flex-start" }}>
             {STEPS.map((step, i) => {

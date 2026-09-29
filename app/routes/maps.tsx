@@ -123,8 +123,8 @@ export function links() {
 
 export function meta() {
   return [
-    { title: "Internship Map – Studojo" },
-    { name: "description", content: "Find internships globally on an interactive map. India, US, UK, UAE, Singapore — browse by location." },
+    { title: "Internship Map | Studojo" },
+    { name: "description", content: "Find internships globally on an interactive map. India, US, UK, UAE, Singapore: browse by location." },
   ];
 }
 
@@ -609,7 +609,7 @@ export default function MapsPage() {
                         </div>
                         <p className="text-xs text-white/40 mt-0.5 flex items-center gap-1">
                           <FiMapPin size={10} />
-                          {company.city || company.country || company.market || "—"}
+                          {company.city || company.country || company.market || "-"}
                         </p>
                         {company.internships?.[0] && (
                           <p className="text-xs text-white/30 truncate mt-0.5">{company.internships[0].title}</p>

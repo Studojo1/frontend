@@ -13,7 +13,7 @@ import {
 } from "~/lib/api-keys.server";
 
 export function meta(_: Route.MetaArgs) {
-  return [{ title: "API Dashboard — Studojo" }];
+  return [{ title: "API Dashboard | Studojo" }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -124,12 +124,12 @@ function RequestLog({ activity }: { activity: ActivityRow[] }) {
                   <tr key={i} className="align-top hover:bg-neutral-50">
                     <td className="p-3 whitespace-nowrap text-studojo-muted">{new Date(a.created_at).toLocaleString()}</td>
                     <td className="p-3 font-mono text-[12px] whitespace-nowrap">{a.endpoint}</td>
-                    <td className="p-3 max-w-[280px] truncate" title={a.target || ""}>{a.target || "—"}</td>
+                    <td className="p-3 max-w-[280px] truncate" title={a.target || ""}>{a.target || "-"}</td>
                     <td className="p-3"><StatusBadge status={a.status} http={a.http_status} cached={a.cached} /></td>
                     <td className="p-3 tabular-nums font-semibold">{a.credits || 0}</td>
-                    <td className="p-3 tabular-nums text-studojo-muted whitespace-nowrap">{a.ms != null ? `${a.ms} ms` : "—"}</td>
+                    <td className="p-3 tabular-nums text-studojo-muted whitespace-nowrap">{a.ms != null ? `${a.ms} ms` : "-"}</td>
                     <td className="p-3 font-mono text-[11px] text-studojo-muted whitespace-nowrap">
-                      {a.key_prefix ? `${a.key_prefix}…${a.last_four}` : "—"}
+                      {a.key_prefix ? `${a.key_prefix}…${a.last_four}` : "-"}
                     </td>
                   </tr>
                 ))}
@@ -222,7 +222,7 @@ export default function ApiDashboard() {
 
       {actionData?.createdKey && (
         <div className="mb-6 rounded-xl border-2 border-studojo-purple bg-studojo-purple-bg p-4">
-          <p className="text-sm font-bold mb-2">Copy your new key now — you will not see it again.</p>
+          <p className="text-sm font-bold mb-2">Copy your new key now. You will not see it again.</p>
           <div className="font-mono text-sm break-all bg-white border border-neutral-300 rounded-lg p-2">
             {actionData.createdKey}
           </div>

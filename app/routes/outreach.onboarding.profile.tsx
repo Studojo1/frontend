@@ -79,7 +79,7 @@ export default function ProfilePage() {
   const recommendedRoles = career.recommended_roles || [];
   const targetRole = recommendedRoles[0]?.title || profile?.target_roles?.[0] || "";
   // Backend computes the correct manager titles from target_roles + resume_profile.
-  // No client-side guessing — the array is always present in the API response.
+  // No client-side guessing: the array is always present in the API response.
   const managerTitles: string[] = profile?.hiring_manager_titles || [];
 
   const locations: string[] = preferences.locations || [];
@@ -99,7 +99,7 @@ export default function ProfilePage() {
       <Header />
 
       <div className="flex-1 flex overflow-hidden">
-        {/* ── Persistent sidebar — same as chat page ── */}
+        {/* ── Persistent sidebar (same as chat page) ── */}
         <aside className="hidden md:flex flex-col w-56 border-r border-studojo-ink/10 bg-studojo-surface-muted/30 items-center justify-center flex-shrink-0">
           <div className="flex flex-col" style={{ alignItems: "flex-start" }}>
           {STEPS.map((step, i) => {
@@ -205,7 +205,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* ── Ideal Hiring Manager — the new headline panel ─────────────── */}
+            {/* ── Ideal Hiring Manager: the new headline panel ─────────────── */}
             <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
               <div className="h-1.5 bg-gradient-to-r from-studojo-purple to-studojo-pink" />
               <div className="p-5 pb-3 border-b border-studojo-ink/8">
@@ -308,7 +308,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* ── What we know about you — the input-side panel ─────────────── */}
+            {/* ── What we know about you: the input-side panel ─────────────── */}
             <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
               <div className="p-5 pb-3 border-b border-studojo-ink/8">
                 <div className="flex items-center gap-2.5">

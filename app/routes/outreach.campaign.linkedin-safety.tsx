@@ -32,7 +32,7 @@ export default function LinkedInSafetyPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!linkedInCampaignId) {
-      // No campaign in store — kick them back to connect.
+      // No campaign in store, kick them back to connect.
       navigate("/outreach/connect/linkedin");
       return;
     }
@@ -110,12 +110,12 @@ export default function LinkedInSafetyPage() {
     {
       icon: <FiClock className="w-4 h-4" />,
       label: "Sending hours",
-      value: "9 AM – 7 PM (recipient's local time)",
+      value: "9 AM to 7 PM (recipient's local time)",
     },
     {
       icon: <FiZap className="w-4 h-4" />,
       label: "Gap between invites",
-      value: "5–12 minutes (randomised)",
+      value: "5-12 minutes (randomised)",
     },
     {
       icon: <FiShield className="w-4 h-4" />,
@@ -177,7 +177,7 @@ export default function LinkedInSafetyPage() {
               <h3 className="font-clash text-lg font-bold text-studojo-ink">Optional tweaks</h3>
             </div>
             <p className="text-sm text-studojo-muted font-satoshi mb-4">
-              These don't affect safety — they affect acceptance rate. You can change them any time from the dashboard.
+              These don't affect safety. They affect acceptance rate. You can change them any time from the dashboard.
             </p>
 
             <div className="space-y-4">
@@ -238,7 +238,7 @@ export default function LinkedInSafetyPage() {
             <ul className="space-y-1.5 text-sm font-satoshi text-studojo-ink">
               <li className="flex items-start gap-2">
                 <span className="text-studojo-green flex-shrink-0 mt-0.5">✓</span>
-                <span>We start sending within ~10 minutes — no further action needed.</span>
+                <span>We start sending within ~10 minutes. No further action needed.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-studojo-green flex-shrink-0 mt-0.5">✓</span>

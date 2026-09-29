@@ -1,8 +1,8 @@
-// Acceptance poller — checks LinkedIn Voyager API for new connections
+// Acceptance poller: checks LinkedIn Voyager API for new connections
 // and updates outreach_contacts status from 'requested' → 'accepted'.
 //
 // Runs every 2 hours per active user via the maintenance queue.
-// No browser launch needed — direct HTTP with li_at + JSESSIONID.
+// No browser launch needed: direct HTTP with li_at + JSESSIONID.
 // If JSESSIONID is expired (Voyager 400/401/403), skips gracefully and
 // retries next cycle. Extension auto-refreshes cookies every 7 days.
 
@@ -16,7 +16,7 @@ import { outreachQueue } from "~/lib/queues.server";
 // ── Main entry point ──────────────────────────────────────────────────────────
 
 export async function checkAcceptances(userId: string): Promise<{ accepted: number; skipped: string }> {
-  // 1. Load session — need li_at + cookie jar for CSRF token
+  // 1. Load session: need li_at + cookie jar for CSRF token
   const [session] = await db
     .select()
     .from(userLinkedinSessions)
@@ -59,7 +59,7 @@ export async function checkAcceptances(userId: string): Promise<{ accepted: numb
   if (requested.length === 0) return { accepted: 0, skipped: "no_pending" };
 
   // 5. Match connections against requested contacts
-  // Voyager returns publicIdentifier (the slug) — match against the URL slug
+  // Voyager returns publicIdentifier (the slug), match against the URL slug
   const newlyAccepted: string[] = [];
 
   for (const contact of requested) {
@@ -102,7 +102,7 @@ export async function checkAcceptances(userId: string): Promise<{ accepted: numb
   }
 
   await logEvent("acceptances_detected", userId, { count: newlyAccepted.length });
-  console.log(`[poller] User ${userId}: ${newlyAccepted.length} new acceptance(s) — messages queued`);
+  console.log(`[poller] User ${userId}: ${newlyAccepted.length} new acceptance(s), messages queued`);
 
   return { accepted: newlyAccepted.length, skipped: "none" };
 }
@@ -117,7 +117,7 @@ export async function pollAllUsers(): Promise<void> {
 
   console.log(`[poller] Checking acceptances for ${active.length} active users`);
 
-  // Run sequentially — Voyager calls are cheap but no need to hammer in parallel
+  // Run sequentially: Voyager calls are cheap but no need to hammer in parallel
   for (const { userId } of active) {
     try {
       const result = await checkAcceptances(userId);
@@ -170,7 +170,7 @@ async function fetchRecentConnections(
     });
 
     if (res.status === 400 || res.status === 401 || res.status === 403) {
-      console.warn(`[poller] Voyager ${res.status} — JSESSIONID likely expired`);
+      console.warn(`[poller] Voyager ${res.status}, JSESSIONID likely expired`);
       return null;
     }
 
@@ -195,7 +195,7 @@ async function fetchRecentConnections(
 function parseConnections(data: any): VoyagerConnection[] {
   const connections: VoyagerConnection[] = [];
 
-  // Voyager normalized JSON — elements live at data.elements or included[]
+  // Voyager normalized JSON: elements live at data.elements or included[]
   const elements = data?.elements ?? data?.data?.elements ?? [];
 
   for (const el of elements) {

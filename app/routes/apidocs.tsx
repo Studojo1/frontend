@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import type { Route } from "./+types/apidocs";
 import { Header, Footer } from "~/components";
 
-// This page is a FROZEN, public documentation page — no auth, no loader/action, no
+// This page is a FROZEN, public documentation page: no auth, no loader/action, no
 // per-user data. All dynamic key creation + management lives on /apidashboard.
 
 export function meta(_: Route.MetaArgs) {
@@ -170,7 +170,7 @@ const NAV = [
   ["limits", "Rate limits & credits"],
 ];
 
-// (key creation + management removed — it lives on /apidashboard, not here)
+// (key creation + management removed; it lives on /apidashboard, not here)
 
 //  page 
 export default function ApiDocs() {

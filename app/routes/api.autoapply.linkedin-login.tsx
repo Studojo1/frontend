@@ -1,6 +1,6 @@
 // POST /api/autoapply/linkedin-login
 // Enqueues a server-side Patchright login job.
-// Returns { jobId } — client polls /api/autoapply/linkedin-login/status?jobId=...
+// Returns { jobId }; client polls /api/autoapply/linkedin-login/status?jobId=...
 
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { linkedinLoginQueue } from "~/lib/queues.server";

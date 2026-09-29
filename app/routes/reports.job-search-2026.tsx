@@ -76,7 +76,7 @@ function initCharts() {
     },
   });
 
-  // Chart 2: Job market visibility — posted vs hidden
+  // Chart 2: Job market visibility: posted vs hidden
   make("hiddenChart", {
     type: "doughnut",
     data: {
@@ -120,7 +120,7 @@ function initCharts() {
     },
   });
 
-  // Chart 4: Effort vs result — weekly applications needed for 1 interview
+  // Chart 4: Effort vs result, weekly applications needed for 1 interview
   make("effortChart", {
     type: "bar",
     data: {

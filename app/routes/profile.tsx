@@ -482,7 +482,7 @@ function ProfileContent() {
             </div>
           ) : null}
 
-          {/* Outreach Orders — first so it's visible above the fold on mobile */}
+          {/* Outreach Orders: first so it's visible above the fold on mobile */}
           <Section title="Outreach Orders" cta="View in Outreach →" ctaHref="/outreach">
             {outreachOrders === null ? (
               <>
@@ -530,7 +530,7 @@ function ProfileContent() {
           <Section title="Resume Maker" cta="Open Resume Maker →" ctaHref="/resume-maker">
             <div className="text-center py-6">
               <p className="font-['Satoshi'] text-sm text-neutral-500 mb-3">
-                Build an ATS-ready resume in minutes — 12 templates, live preview, AI coach.
+                Build an ATS-ready resume in minutes: 12 templates, live preview, AI coach.
               </p>
               <Link
                 to="/resume-maker"
@@ -572,7 +572,7 @@ function ProfileContent() {
                   >
                     <div>
                       <div className="font-['Satoshi'] text-sm font-semibold text-neutral-900">
-                        {a.internship?.title ?? "—"}
+                        {a.internship?.title ?? "-"}
                       </div>
                       <div className="font-['Satoshi'] text-xs text-neutral-500">
                         {a.internship?.companyName ?? ""}

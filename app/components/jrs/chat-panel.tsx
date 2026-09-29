@@ -1,5 +1,5 @@
-// JRS chat panel — ported from rsb/ChatPanel.tsx (the resume coach chat).
-// Slimmed down: no MCQ step UI, no "Generate resume" CTA at the end — JRS
+// JRS chat panel: ported from rsb/ChatPanel.tsx (the resume coach chat).
+// Slimmed down: no MCQ step UI, no "Generate resume" CTA at the end - JRS
 // updates the resume live as the user chats, so no terminal step exists.
 import { useEffect, useRef, useState } from "react";
 import { FiSend, FiMic, FiMicOff } from "react-icons/fi";
@@ -169,7 +169,7 @@ export function ChatPanel({
 
 function Bubble({ role, text }: { role: "user" | "assistant"; text: string }) {
   const display =
-    role === "assistant" ? text.replace(/—/g, "-").replace(/–/g, "-") : text;
+    role === "assistant" ? text.replace(/\u2014/g, "-").replace(/\u2013/g, "-") : text;
   if (role === "user") {
     return (
       <div className="flex justify-end">

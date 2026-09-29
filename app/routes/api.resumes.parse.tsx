@@ -125,7 +125,7 @@ function splitSections(lines: string[]): Record<string, string[]> {
   const result: Record<string, string[]> = {
     summary: [], experience: [], education: [], skills: [], projects: [], certifications: [],
   };
-  let current = ""; // unknown/header area — don't collect
+  let current = ""; // unknown/header area, don't collect
 
   for (const line of lines) {
     let matched = false;
@@ -193,7 +193,7 @@ function extractContact(text: string, lines: string[]) {
 const MON = "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)";
 const YEAR = "\\d{4}";
 const DATE_PAT = `(?:${MON}\\s+${YEAR}|${YEAR}(?:-\\d{2})?)`;
-const DATE_RANGE = new RegExp(`(${DATE_PAT})\\s*(?:[-–—]|to)\\s*(${DATE_PAT}|present|current|now)`, "gi");
+const DATE_RANGE = new RegExp(`(${DATE_PAT})\\s*(?:[-\u2013\u2014]|to)\\s*(${DATE_PAT}|present|current|now)`, "gi");
 
 const MONTH_NUM: Record<string, string> = {
   jan:"01",feb:"02",mar:"03",apr:"04",may:"05",jun:"06",
@@ -252,7 +252,7 @@ function parseExperiences(lines: string[]) {
     const entryText = elines.join("\n");
     const { start, end, current } = parseDateRange(entryText);
 
-    // Extended bullet set — includes ● (U+25CF) and other Unicode variants
+    // Extended bullet set: includes ● (U+25CF) and other Unicode variants
     const BULLET_RE = /^[•·●○▪▸◦→➜➢➤\-\*\+]|^\d+\./;
     const stripBullet = (l: string) => l.replace(/^[•·●○▪▸◦→➜➢➤\-\*\+]\s*/, "").replace(/^\d+\.\s*/, "").trim();
 
@@ -318,7 +318,7 @@ function parseEducations(lines: string[]) {
 
     let fieldOfStudy = "";
     if (degree) {
-      const fM = entryText.match(new RegExp(`${degree}\\s+(?:of\\s+|in\\s+)?([A-Za-z\\s]+?)(?:\\s*[-–,]|\\s*\\d{4}|$)`, "i"));
+      const fM = entryText.match(new RegExp(`${degree}\\s+(?:of\\s+|in\\s+)?([A-Za-z\\s]+?)(?:\\s*[-\u2013,]|\\s*\\d{4}|$)`, "i"));
       if (fM) fieldOfStudy = fM[1].trim();
     }
 

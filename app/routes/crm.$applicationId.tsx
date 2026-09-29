@@ -30,7 +30,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   let failed = false;
   try {
     // Match on EITHER key. When the career-agent write fails there is no
-    // applicationId, so the list links to the draft's own id — and looking up
+    // applicationId, so the list links to the draft's own id, and looking up
     // only by applicationId meant that link led to "No draft for this
     // application" while the draft sat right there in the table.
     const key = params.applicationId as string;
@@ -63,7 +63,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
   );
   const [problem, setProblem] = useState<{ message: string; actionUrl?: string } | null>(null);
   // The address the email actually went to. Worth showing: the student never
-  // typed it — it is resolved server-side — so confirming it is the only way
+  // typed it (it is resolved server-side), so confirming it is the only way
   // they can tell the message reached the right person.
   const [sentTo, setSentTo] = useState<string | null>(null);
   // Whether we can actually reach this person. Checked while they edit, so
@@ -82,7 +82,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
   // Are we still looking? The check runs on mount and the backend now widens
   // its search three times before giving up, so it takes a moment. The page
   // used to render "we don't have a confirmed email address for anyone"
-  // during that moment — a dead end announced before anyone had finished
+  // during that moment: a dead end announced before anyone had finished
   // looking.
   const [searching, setSearching] = useState(true);
 
@@ -90,7 +90,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
   const [drafting, setDrafting] = useState<string | null>(null);
 
   // Clicking a suggestion WRITES THE EMAIL. It used to be a list of names, so
-  // the student had to go and find the company, find a person, and come back —
+  // the student had to go and find the company, find a person, and come back,
   // which nobody does. The search that produced the suggestion already knew
   // who to write to, so one click is all it should take.
   async function draftAlternative(c: {
@@ -111,7 +111,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
         }),
       });
       const d = await res.json();
-      // Go to the NEW draft. The original stays untouched — the student may
+      // Go to the NEW draft. The original stays untouched: the student may
       // still send it if we find someone there later.
       if (d?.id) navigate(`/crm/${d.id}`);
       else setDrafting(null);
@@ -120,8 +120,8 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
     }
   }
 
-  // Free on mount: the page's own contact, contacts already resolved, and — when
-  // the page named nobody — a fresh Apollo search, and then the reveal, so the
+  // Free on mount: the page's own contact, contacts already resolved, and (when
+  // the page named nobody) a fresh Apollo search, and then the reveal, so the
   // page can say something true about whether this person is reachable.
   useEffect(() => {
     if (!draft?.id || draft.status !== "draft") return;
@@ -132,12 +132,12 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
       // RESOLVE THE ADDRESS HERE, not at send.
       //
       // This is the bug Pranav kept hitting. The backend found 17 people at
-      // Neo — the logs say so — and then refused to reveal an address because
+      // Neo (the logs say so) and then refused to reveal an address because
       // allow_lookup was false, returning "unknown". The CRM read that as a
       // dead end and printed "we don't have a confirmed email for anyone".
       //
       // allow_lookup used to be set by the "Check now" button. Removing that
-      // button was right — the student should not have to ask — but I never
+      // button was right (the student should not have to ask), but I never
       // moved the reveal anywhere, so nothing set the flag and the flow had no
       // path to an address at all.
       //
@@ -176,7 +176,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
   const thin = !draft.subject?.includes("→");
 
   // Rewrite the draft in the chosen style. Without this the picker changed a
-  // hidden value and the email on screen stayed identical — which reads as a
+  // hidden value and the email on screen stayed identical, which reads as a
   // broken control, and gives no sense of what will actually be sent.
   async function pickStyle(id: string) {
     if (id === style) return;
@@ -245,7 +245,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
       </h1>
       <p className="mb-6 font-['Satoshi'] text-studojo-muted">
         {draft.contactName
-          ? `To ${draft.contactName}${draft.contactTitle ? ` — ${draft.contactTitle}` : ""} at ${draft.company}`
+          ? `To ${draft.contactName}${draft.contactTitle ? `, ${draft.contactTitle}` : ""} at ${draft.company}`
           : `${draft.role} at ${draft.company}`}
       </p>
 
@@ -269,7 +269,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
 
       {/* Reachability, shown while they edit rather than after they press Send.
           Deliberately understated when the answer is good and prominent when
-          it is not — a green banner on every draft is noise, but "we can't
+          it is not: a green banner on every draft is noise, but "we can't
           reach this person" is worth interrupting for. */}
       {!sent && !searching && !draft.contactName ? (
         <div className="mb-6 rounded-2xl border-2 border-studojo-ink/15 bg-studojo-surface-muted p-4">
@@ -281,7 +281,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           <p className="font-['Satoshi'] text-sm text-studojo-ink">
             {reach?.status === "reachable" && reach.contactName
               ? `This posting didn't name anyone, so we found ${reach.contactName}${
-                  reach.contactTitle ? ` — ${reach.contactTitle}` : ""
+                  reach.contactTitle ? `, ${reach.contactTitle}` : ""
                 } at ${draft.company}.`
               : reach?.status === "unreachable"
                 ? `We don't have a confirmed email address for anyone at ${draft.company} yet. Your draft is saved and we keep looking.`
@@ -317,15 +317,15 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
 
       {/* The "unreachable" case is explained inside the banner above when the
           posting named nobody. Only show a standalone notice when the page DID
-          name someone — otherwise two boxes describe the same state. */}
+          name someone; otherwise two boxes describe the same state. */}
       {/* When we cannot reach this company, offer ones we can. Same industry,
           size band and role, and every one has a contact with a verified
-          email — an alternative we cannot email is the same dead end we are
+          email: an alternative we cannot email is the same dead end we are
           trying to escape. Advisory: the student chooses, nothing is
           redirected or drafted for them. */}
       {/* Gate on HAVING suggestions, not on one status string. The service
           populates `similar` only when it could not put an address in front of
-          the student, so a non-empty list IS the signal — and it arrives under
+          the student, so a non-empty list IS the signal, and it arrives under
           two different statuses: "unreachable" when nobody was found, and
           "unknown" when a person was found but their address has not been
           revealed yet. The old `status === "unreachable"` test silently
@@ -353,7 +353,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
                   <span className="font-['Satoshi'] text-sm font-medium text-studojo-ink">
                     {c.company}
                     {c.contactName ? (
-                      <span className="font-normal text-studojo-muted"> — {c.contactName}</span>
+                      <span className="font-normal text-studojo-muted"> · {c.contactName}</span>
                     ) : null}
                   </span>
                   <span className="font-['Satoshi'] text-xs text-studojo-muted">
@@ -392,7 +392,7 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
           already runs it on the automatic check below. Getting their ADDRESS
           is the paid reveal, and send-one already does that when the student
           actually sends. The button gated the free half and made the paid half
-          look like something the student had to ask for — so most never did,
+          look like something the student had to ask for, so most never did,
           and the page sat saying "we'll look when you send" while the answer
           was one free call away. */}
       {!sent && !searching && (!reach || reach.status === "unknown") ? (
@@ -407,8 +407,8 @@ export default function CrmDraft({ loaderData }: Route.ComponentProps) {
             How should it sound
           </label>
           {/* Picking a style REWRITES the draft below. The text the student
-              ends up with is now exactly what gets sent — /extension/send-one
-              takes the subject and body verbatim — so this control shapes the
+              ends up with is now exactly what gets sent (/extension/send-one
+              takes the subject and body verbatim), so this control shapes the
               starting point, and their edits always win over it. */}
           <p className="mb-3 font-['Satoshi'] text-sm text-studojo-muted">
             Pick a starting point, then edit it. We send exactly what you write below.

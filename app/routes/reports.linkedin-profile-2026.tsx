@@ -13,7 +13,7 @@ export function meta() {
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/linkedin-profile-2026` },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "The LinkedIn Profile Report: What Hiring Managers Actually Look At" },
-    { property: "og:description", content: "7 seconds. That's how long a hiring manager spends on your LinkedIn. Here's what they actually see — and what changes your odds." },
+    { property: "og:description", content: "7 seconds. That's how long a hiring manager spends on your LinkedIn. Here's what they actually see, and what changes your odds." },
     { property: "og:url", content: `${BASE_URL}/reports/linkedin-profile-2026` },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: `${BASE_URL}/og-reports.png` },
@@ -48,7 +48,7 @@ function initCharts() {
   const INK = "#171717";
   const gridOpts = { color: "#f0f0ee", lineWidth: 1 };
 
-  // Chart 1: What hiring managers look at (bar chart — time spent per section)
+  // Chart 1: What hiring managers look at (bar chart: time spent per section)
   const scanEl = document.getElementById("scanChart") as HTMLCanvasElement | null;
   if (scanEl && !scanEl.dataset.rendered) {
     scanEl.dataset.rendered = "1";
@@ -271,7 +271,7 @@ export default function LinkedInProfileReport() {
             <h1>What Hiring Managers<br /><em>Actually Look At</em></h1>
             <p className="rpt-hero-sub">
               A hiring manager spends 7 seconds on your LinkedIn profile. This report documents exactly what gets seen in those 7 seconds,
-              what gets skipped entirely, and why a referral bypasses all of it — with a 4x conversion rate over cold applications.
+              what gets skipped entirely, and why a referral bypasses all of it, with a 4x conversion rate over cold applications.
             </p>
             <div className="rpt-meta">
               <div className="rpt-meta-item">
@@ -300,7 +300,7 @@ export default function LinkedInProfileReport() {
             <div className="stat-card">
               <div className="sc-num">7 sec</div>
               <div className="sc-label">average time a hiring manager spends reviewing a LinkedIn profile</div>
-              <div className="sc-source">Ladders Eye-Tracking Study, 2018 — consistent with 2024 LinkedIn data</div>
+              <div className="sc-source">Ladders Eye-Tracking Study, 2018 (consistent with 2024 LinkedIn data)</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">21x</div>
@@ -320,7 +320,7 @@ export default function LinkedInProfileReport() {
               <div className="sec-num" style={{ background: "#171717" }}>≡</div>
               <div>
                 <div className="sec-title">The 7-Second Scan: What Gets Seen</div>
-                <div className="sec-sub">What recruiters actually check on a LinkedIn profile — and what they skip</div>
+                <div className="sec-sub">What recruiters actually check on a LinkedIn profile, and what they skip</div>
               </div>
             </div>
             <div className="chart-wrap">
@@ -330,7 +330,7 @@ export default function LinkedInProfileReport() {
               </div>
             </div>
             <div className="callout">
-              <strong>The pattern is clear:</strong> Photo, headline, and location are checked by nearly every recruiter. The About section — which most people spend hours writing — is read by fewer than 4 in 10. Full experience history is reviewed by fewer than 3 in 10 on a first pass. The top of the profile does most of the work.
+              <strong>The pattern is clear:</strong> Photo, headline, and location are checked by nearly every recruiter. The About section, which most people spend hours writing, is read by fewer than 4 in 10. Full experience history is reviewed by fewer than 3 in 10 on a first pass. The top of the profile does most of the work.
             </div>
           </div>
 
@@ -340,7 +340,7 @@ export default function LinkedInProfileReport() {
               <div className="sec-num">1</div>
               <div>
                 <div className="sec-title">The Profile Photo: The Fastest Signal</div>
-                <div className="sec-sub">Processed in 100ms — before a single word is read</div>
+                <div className="sec-sub">Processed in 100ms, before a single word is read</div>
               </div>
             </div>
             <p>LinkedIn's own data shows that profiles with a professional headshot receive 21x more profile views and 9x more connection requests than profiles with no photo. This is not because recruiters consciously evaluate the photo. It is because the human visual system processes faces in under 100 milliseconds and makes trust and competence assessments before conscious attention kicks in.</p>
@@ -356,15 +356,15 @@ export default function LinkedInProfileReport() {
                   <strong>What counts as a professional headshot:</strong>
                   <div className="blist" style={{ marginTop: 12 }}>
                     <div className="blist-item"><div className="blist-dot" /><span>Clear face, facing the camera, neutral or warm expression</span></div>
-                    <div className="blist-item"><div className="blist-dot" /><span>Plain or blurred background — no group photos, no cropped images</span></div>
+                    <div className="blist-item"><div className="blist-dot" /><span>Plain or blurred background: no group photos, no cropped images</span></div>
                     <div className="blist-item"><div className="blist-dot" /><span>Business casual or smart dress for most industries</span></div>
-                    <div className="blist-item"><div className="blist-dot" /><span>Well-lit — natural light near a window works; no harsh shadows</span></div>
-                    <div className="blist-item"><div className="blist-dot" /><span>Recent — within the last 3 years, recognizably you</span></div>
+                    <div className="blist-item"><div className="blist-dot" /><span>Well-lit: natural light near a window works; no harsh shadows</span></div>
+                    <div className="blist-item"><div className="blist-dot" /><span>Recent: within the last 3 years, recognizably you</span></div>
                   </div>
                 </div>
               </div>
             </div>
-            <p>A 2023 study published in the Journal of Applied Psychology found that profile photos rated as "competent" received a 16% higher callback rate in equivalent applications. The photo is processed before any information is read, which means it sets the prior for everything that follows. A low-quality or missing photo does not just lose the photo's value — it actively creates a negative prior.</p>
+            <p>A 2023 study published in the Journal of Applied Psychology found that profile photos rated as "competent" received a 16% higher callback rate in equivalent applications. The photo is processed before any information is read, which means it sets the prior for everything that follows. A low-quality or missing photo does not just lose the photo's value. It actively creates a negative prior.</p>
             <div className="callout">
               <strong>The fix is free.</strong> Natural light, a plain wall, a smartphone with portrait mode on, and 10 minutes. Most people who do not have a professional headshot do not have one because they have not made the time, not because it is difficult or expensive.
             </div>
@@ -382,11 +382,11 @@ export default function LinkedInProfileReport() {
             <p>The LinkedIn headline sits directly below your name and is the first text element a hiring manager reads. It is also one of the primary inputs LinkedIn's search algorithm uses to rank your profile in recruiter searches. A headline that describes what you do rather than where you work performs dramatically better on both dimensions.</p>
             <div className="compare-block">
               <div className="compare-bad">
-                <div className="compare-label">Generic — low search visibility</div>
+                <div className="compare-label">Generic: low search visibility</div>
                 <div className="compare-text">"Marketing Executive at XYZ Corp"</div>
               </div>
               <div className="compare-good">
-                <div className="compare-label">Keyword-rich — higher search rank</div>
+                <div className="compare-label">Keyword-rich: higher search rank</div>
                 <div className="compare-text">"Growth Marketing | SEO + Paid Media | B2B SaaS | Open to opportunities"</div>
               </div>
             </div>
@@ -403,12 +403,12 @@ export default function LinkedInProfileReport() {
             <p>LinkedIn's algorithm works like a keyword search engine. When a recruiter types "growth marketing intern Mumbai," the profiles it returns are ranked partly by how well the headline and profile text match that query. A headline that says "Student | DU" does not appear in these searches. A headline that says "Growth Marketing | Content Strategy | DU | Open to internships" appears in many of them.</p>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>Use vertical bars to separate terms.</strong> This is the de facto formatting convention and it reads cleanly in the 220-character limit LinkedIn enforces.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Include your target domain and 2–3 specific skills.</strong> "Marketing" is too broad. "Performance Marketing | Google Ads | Meta Ads" gives the algorithm something to match against real recruiter searches.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Include your target domain and 2-3 specific skills.</strong> "Marketing" is too broad. "Performance Marketing | Google Ads | Meta Ads" gives the algorithm something to match against real recruiter searches.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Add "Open to opportunities" or "Open to internships" explicitly.</strong> LinkedIn surfaces this as a signal and some recruiters filter for it. The platform also shows a green frame on your photo for users who enable the Open to Work feature.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Include your location if it is a major city.</strong> Many recruiter searches include location terms. Including your city in the headline (not just the location field) increases match frequency.</span></div>
             </div>
             <div className="highlight">
-              A well-optimized headline can put you in front of recruiters who are not looking at job applications at all — they are running searches for profiles. This is inbound, not outbound. It works while you sleep.
+              A well-optimized headline can put you in front of recruiters who are not looking at job applications at all: they are running searches for profiles. This is inbound, not outbound. It works while you sleep.
             </div>
           </div>
 
@@ -418,7 +418,7 @@ export default function LinkedInProfileReport() {
               <div className="sec-num">3</div>
               <div>
                 <div className="sec-title">The About Section: Mostly Skipped</div>
-                <div className="sec-sub">60% of recruiters skip it on a first pass — but when they do read it, it matters</div>
+                <div className="sec-sub">60% of recruiters skip it on a first pass, but when they do read it, it matters</div>
               </div>
             </div>
             <p>LinkedIn data and recruiter surveys consistently show that the About section is one of the least-read parts of a profile on a first visit. Most hiring managers make a first-pass decision based on the photo, headline, current role, and education before they decide whether to read further. The About section is the reward for the profile that already passed the first filter.</p>
@@ -434,7 +434,7 @@ export default function LinkedInProfileReport() {
               </div>
               <div className="compare-good">
                 <div className="compare-label">What actually works</div>
-                <div className="compare-text" style={{ fontSize: 13 }}>"Growth marketer focused on SEO and paid acquisition. 2 years running campaigns for D2C brands — last project grew organic traffic 3x in 4 months. Looking for a product marketing or growth role at a Series A–C startup. Reach me at [email]."</div>
+                <div className="compare-text" style={{ fontSize: 13 }}>"Growth marketer focused on SEO and paid acquisition. 2 years running campaigns for D2C brands. Last project grew organic traffic 3x in 4 months. Looking for a product marketing or growth role at a Series A-C startup. Reach me at [email]."</div>
               </div>
             </div>
             <div className="callout">
@@ -467,7 +467,7 @@ export default function LinkedInProfileReport() {
                     <div className="sc-source">Jobvite, 2024</div>
                   </div>
                   <div className="stat-card" style={{ boxShadow: "none", padding: "16px 18px" }}>
-                    <div className="sc-num" style={{ fontSize: 32 }}>30–50%</div>
+                    <div className="sc-num" style={{ fontSize: 32 }}>30-50%</div>
                     <div className="sc-label">of roles filled before ever being publicly posted</div>
                     <div className="sc-source">LinkedIn Talent Trends, 2024</div>
                   </div>
@@ -481,7 +481,7 @@ export default function LinkedInProfileReport() {
             </div>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>Referrals bypass the ATS entirely.</strong> When an internal employee refers a candidate, that application typically goes directly to the hiring manager or HR partner. There is no keyword matching, no format parsing, no stack ranking. The candidate lands at the front of the process.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Referrals arrive with social proof already attached.</strong> An employee putting their name on a candidate recommendation takes on reputational risk. Hiring managers weight this signal heavily. A referred candidate is not just another applicant — they are implicitly pre-vetted.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Referrals arrive with social proof already attached.</strong> An employee putting their name on a candidate recommendation takes on reputational risk. Hiring managers weight this signal heavily. A referred candidate is not just another applicant. They are implicitly pre-vetted.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>The hidden job market is accessed through outreach, not applications.</strong> Roles that are never posted publicly are filled through conversations. A direct message to a hiring manager or team lead, sent before a role exists, is the only way to access this part of the market.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Early-career candidates are most disadvantaged and most have the most to gain.</strong> Students and recent graduates have the smallest referral networks and the highest dependency on cold applications. A single well-executed outreach campaign can generate multiple warm introductions and bypass the cold application system entirely.</span></div>
             </div>
@@ -502,9 +502,9 @@ export default function LinkedInProfileReport() {
             </div>
             <p>LinkedIn's profile displays connection count prominently once you exceed 500. Below that threshold, it shows the exact number. This is not neutral: a profile showing "38 connections" reads as professionally inactive regardless of the content of the profile. Recruiters have confirmed in multiple surveys that connection count functions as a proxy signal for professional engagement and market presence.</p>
             <div className="blist">
-              <div className="blist-item"><div className="blist-dot" /><span><strong>The 500+ threshold matters.</strong> Getting to 500 connections changes the visible signal from a specific low number to "500+" — a qualitative difference in how recruiters perceive professional engagement. This requires connecting actively: classmates, professors, event attendees, former colleagues, founders you have messaged.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>The 500+ threshold matters.</strong> Getting to 500 connections changes the visible signal from a specific low number to "500+", a qualitative difference in how recruiters perceive professional engagement. This requires connecting actively: classmates, professors, event attendees, former colleagues, founders you have messaged.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Skills endorsements are a search ranking input.</strong> LinkedIn surfaces candidates in recruiter searches partly based on endorsed skills. Getting 5 to 10 endorsements on your core skills from real connections improves your ranking for those search terms. Endorsing others reciprocally is the most effective way to generate them quickly.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Posting activity affects profile visibility.</strong> LinkedIn's algorithm surfaces profiles of people who post regularly in the feeds of their connections. A single weekly post — even a short one — increases how often your profile appears organically. Most profiles post nothing, making any activity a differentiator by default.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Posting activity affects profile visibility.</strong> LinkedIn's algorithm surfaces profiles of people who post regularly in the feeds of their connections. A single weekly post, even a short one, increases how often your profile appears organically. Most profiles post nothing, making any activity a differentiator by default.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Recommendations are underused and highly weighted.</strong> Written recommendations from managers, professors, or clients appear on your profile and are read by hiring managers who reach the profile in full. One strong recommendation is worth more than ten generic endorsements.</span></div>
             </div>
             <div className="highlight">
@@ -518,15 +518,15 @@ export default function LinkedInProfileReport() {
               <div className="sec-num">6</div>
               <div>
                 <div className="sec-title">The Keyword Wall: How LinkedIn's Algorithm Ranks You</div>
-                <div className="sec-sub">Recruiter searches are keyword queries — your profile is the document being ranked</div>
+                <div className="sec-sub">Recruiter searches are keyword queries, and your profile is the document being ranked</div>
               </div>
             </div>
-            <p>Most candidates think of LinkedIn as a social network where they maintain a profile. Recruiters use it as a search database where they run queries. These are fundamentally different mental models and they produce completely different optimization strategies. When a recruiter searches for "product marketing intern Bangalore 2026," LinkedIn returns a ranked list of profiles. The ranking is determined by a combination of factors — and keyword presence in key fields is the primary one.</p>
+            <p>Most candidates think of LinkedIn as a social network where they maintain a profile. Recruiters use it as a search database where they run queries. These are fundamentally different mental models and they produce completely different optimization strategies. When a recruiter searches for "product marketing intern Bangalore 2026," LinkedIn returns a ranked list of profiles. The ranking is determined by a combination of factors, and keyword presence in key fields is the primary one.</p>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>The headline and current title carry the highest weight.</strong> Keywords in your headline and current job title (or the title of your most recent role) are weighted more heavily than keywords elsewhere in your profile. If your target role title does not appear in your headline, you will not rank for it.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Skills section is directly indexed.</strong> The skills you add to your profile are treated as structured tags, not just text. Recruiters can filter search results by specific skills. If "Google Analytics" is not in your skills section, you will not appear when a recruiter filters for it — even if you have used it extensively.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Skills section is directly indexed.</strong> The skills you add to your profile are treated as structured tags, not just text. Recruiters can filter search results by specific skills. If "Google Analytics" is not in your skills section, you will not appear when a recruiter filters for it, even if you have used it extensively.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Connection proximity affects ranking.</strong> LinkedIn prioritizes second-degree connections (friends of friends) in search results over third-degree or beyond. Expanding your connection network in your target industry and city directly improves how often you appear in the searches of recruiters in that network.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Profile completeness is a ranking multiplier.</strong> LinkedIn's "All-Star" profile status — achieved by completing photo, headline, location, industry, education, work experience, and skills — is a threshold that unlocks higher visibility in recruiter searches. Incomplete profiles are suppressed.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Profile completeness is a ranking multiplier.</strong> LinkedIn's "All-Star" profile status (achieved by completing photo, headline, location, industry, education, work experience, and skills) is a threshold that unlocks higher visibility in recruiter searches. Incomplete profiles are suppressed.</span></div>
             </div>
             <table className="data-table">
               <thead>
@@ -544,7 +544,7 @@ export default function LinkedInProfileReport() {
                   ["Location", "High", "Not set, or wrong city"],
                   ["About section", "Medium", "Generic text with no target keywords"],
                   ["Past experience titles", "Medium", "Titles not matching market terminology"],
-                  ["Education", "Low–Medium", "Incomplete or missing graduation year"],
+                  ["Education", "Low-Medium", "Incomplete or missing graduation year"],
                   ["Connections (500+)", "Indirect", "Profile ranked lower below threshold"],
                 ].map(([field, weight, mistake]) => (
                   <tr key={field as string}>
@@ -563,15 +563,15 @@ export default function LinkedInProfileReport() {
               <div className="sec-num">7</div>
               <div>
                 <div className="sec-title">What Actually Works: The Complete Fix</div>
-                <div className="sec-sub">Profile optimization + direct outreach — the two-lever approach</div>
+                <div className="sec-sub">Profile optimization + direct outreach: the two-lever approach</div>
               </div>
             </div>
-            <p>Profile optimization is necessary but not sufficient. A fully optimized profile makes you findable when someone is already looking. Outreach makes you visible before the search happens. Both are required to operate outside the cold application system. The combination — optimized profile plus direct outreach — creates a compounding effect that cold applications alone cannot replicate.</p>
+            <p>Profile optimization is necessary but not sufficient. A fully optimized profile makes you findable when someone is already looking. Outreach makes you visible before the search happens. Both are required to operate outside the cold application system. The combination (optimized profile plus direct outreach) creates a compounding effect that cold applications alone cannot replicate.</p>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>Layer 1: Profile optimization (inbound).</strong> Professional photo. Keyword-rich headline. 500+ connections. All-Star profile completion. Core skills added and endorsed. One strong written recommendation. The About section with a clear positioning statement and contact email. This takes four to six hours to do properly and then works passively.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Layer 2: Direct outreach (outbound).</strong> Identify the hiring managers and founders at the 20 companies you most want to work at. Send a short, specific, personalized message referencing something real about their work — not a template. Ask for a conversation, not a job. One message to the right person in the right company can generate the referral that bypasses the entire application process.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Layer 2: Direct outreach (outbound).</strong> Identify the hiring managers and founders at the 20 companies you most want to work at. Send a short, specific, personalized message referencing something real about their work, not a template. Ask for a conversation, not a job. One message to the right person in the right company can generate the referral that bypasses the entire application process.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>The referral inside the target company is the goal.</strong> You do not need to know the hiring manager directly. You need to know someone inside the company who is willing to submit a referral on your behalf. LinkedIn's second-degree connections are the map. Your outreach is the path.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Timing: outreach before the posting, not after.</strong> Once a job is posted, you are competing with hundreds of applicants. Reaching a hiring manager before the role is announced — or during early active search — positions you outside the application stack entirely. Follow companies and founders. When they post about team growth, that is the signal.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Timing: outreach before the posting, not after.</strong> Once a job is posted, you are competing with hundreds of applicants. Reaching a hiring manager before the role is announced, or during early active search, positions you outside the application stack entirely. Follow companies and founders. When they post about team growth, that is the signal.</span></div>
             </div>
             <div className="pull-quote">
               <p>"I got my role without applying to a single job board. I messaged the founder directly after reading one of their posts. We talked for 20 minutes and they asked if I wanted to join the team."</p>
@@ -599,13 +599,13 @@ export default function LinkedInProfileReport() {
               </thead>
               <tbody>
                 {[
-                  ["1", "Profile photo — 21x more views with a professional headshot", "pill-red", "Low — 1 hour, free"],
-                  ["2", "Headline — keyword-rich headlines rank higher and convert better", "pill-red", "Low — 15 minutes"],
-                  ["3", "About section — 60% skip it, but the first 3 lines matter when they do read", "pill-amber", "Low — 30 minutes"],
-                  ["4", "Referrals — 4x hire rate, bypass ATS, bypass volume", "pill-red", "Medium — requires outreach effort"],
-                  ["5", "Activity and connections — 500+ threshold changes perceived credibility", "pill-amber", "Medium — takes weeks to build"],
-                  ["6", "Keyword wall — LinkedIn is a search database and profiles need to be optimized for it", "pill-red", "Low-Medium — profile audit + skills update"],
-                  ["7", "Direct outreach — the only channel that accesses the hidden job market", "pill-red", "Medium-High — research + personalization required"],
+                  ["1", "Profile photo: 21x more views with a professional headshot", "pill-red", "Low (1 hour, free)"],
+                  ["2", "Headline: keyword-rich headlines rank higher and convert better", "pill-red", "Low (15 minutes)"],
+                  ["3", "About section: 60% skip it, but the first 3 lines matter when they do read", "pill-amber", "Low (30 minutes)"],
+                  ["4", "Referrals: 4x hire rate, bypass ATS, bypass volume", "pill-red", "Medium (requires outreach effort)"],
+                  ["5", "Activity and connections: 500+ threshold changes perceived credibility", "pill-amber", "Medium (takes weeks to build)"],
+                  ["6", "Keyword wall: LinkedIn is a search database and profiles need to be optimized for it", "pill-red", "Low-Medium (profile audit + skills update)"],
+                  ["7", "Direct outreach: the only channel that accesses the hidden job market", "pill-red", "Medium-High (research + personalization required)"],
                 ].map(([num, finding, pillClass, effort]) => (
                   <tr key={num}>
                     <td style={{ fontWeight: 700, color: "#8B5CF6" }}>{num}</td>
@@ -624,17 +624,17 @@ export default function LinkedInProfileReport() {
               <div className="sec-num" style={{ background: "#6d28d9" }}>→</div>
               <div>
                 <div className="sec-title" style={{ color: "#3b0764" }}>What This Means For You</div>
-                <div className="sec-sub" style={{ color: "#7c3aed" }}>The research implication — a prioritized action list</div>
+                <div className="sec-sub" style={{ color: "#7c3aed" }}>The research implication: a prioritized action list</div>
               </div>
             </div>
             <p style={{ color: "#3b0764" }}>The evidence points to a clear priority order. Not all LinkedIn profile improvements are equal. The actions below are ranked by impact-to-effort ratio:</p>
             <div className="blist">
               {[
                 ["Fix your headline today", "This is the highest-leverage 15-minute change you can make. Replace your job title with a keyword-rich description of what you do and what you are looking for. Test it by searching for your target role on LinkedIn and checking whether you would appear."],
-                ["Add a professional headshot this week", "The 21x profile view multiplier is not marginal — it fundamentally changes how discoverable you are. A professional headshot is achievable with a smartphone, natural light, and 30 minutes. It is the single highest-ROI change on this list by time invested."],
+                ["Add a professional headshot this week", "The 21x profile view multiplier is not marginal. It fundamentally changes how discoverable you are. A professional headshot is achievable with a smartphone, natural light, and 30 minutes. It is the single highest-ROI change on this list by time invested."],
                 ["Complete your profile to All-Star status", "Profile completeness is a ranking input. Fill every section: education, current and past experience, at least 5 skills, industry, location. This alone improves your position in recruiter search results without any further changes."],
                 ["Start building toward 500 connections actively", "This is a multi-week effort but the threshold matters. Connect with classmates, professors, event attendees, alumni, and people you meet professionally. Actively endorse skills for connections who endorse you back."],
-                ["Run 20 outreach messages to target companies", "This is the hardest item on the list and also the one with the highest ceiling. Identify 20 companies. Find one person at each — a hiring manager, a team lead, a founder. Send a short, specific, personalized message. Even a 10% response rate from 20 messages generates 2 real conversations with people who can move your career. No ATS, no stack ranking, no timing decay."],
+                ["Run 20 outreach messages to target companies", "This is the hardest item on the list and also the one with the highest ceiling. Identify 20 companies. Find one person at each: a hiring manager, a team lead, a founder. Send a short, specific, personalized message. Even a 10% response rate from 20 messages generates 2 real conversations with people who can move your career. No ATS, no stack ranking, no timing decay."],
               ].map(([title, detail]) => (
                 <div className="blist-item" key={title as string}>
                   <div className="blist-dot" style={{ background: "#6d28d9" }} />

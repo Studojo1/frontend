@@ -1,4 +1,4 @@
-// Patchright apply worker — applies to jobs using user's li_at session
+// Patchright apply worker: applies to jobs using user's li_at session
 // Runs inside autoapply-worker pod with Chromium installed via patchright
 
 import { eq, and, sql } from "drizzle-orm";
@@ -179,7 +179,7 @@ async function applyLinkedIn(page: any, job: any, cvText: string, rateLimited: b
   try {
     await page.goto(job.applyUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
 
-    // Detect expired session — LinkedIn redirects to login page
+    // Detect expired session: LinkedIn redirects to login page
     if (page.url().includes("/login") || page.url().includes("/authwall")) {
       await pauseUser(job.userId, 0, "session_expired");
       return { status: "skipped", error: "session_expired" };
@@ -302,7 +302,7 @@ async function fillFormFields(page: any, prescreened: Record<string, string>, cv
     }
   }
 
-  // Radio buttons and selects — handle yes/no questions
+  // Radio buttons and selects: handle yes/no questions
   const radios = await page.$$('input[type="radio"]');
   for (const radio of radios) {
     const label = await getFieldLabel(page, radio);

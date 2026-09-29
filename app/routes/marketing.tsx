@@ -152,7 +152,7 @@ export default function MarketingDojoPage() {
             </h1>
             <p className="text-base md:text-lg text-studojo-muted font-satoshi max-w-xl mx-auto">
               Tell us the company and the role you want to reach. We'll surface the exact decision maker.
-              Free — no portal, no upload, no profiling.
+              Free: no portal, no upload, no profiling.
             </p>
           </div>
 
@@ -268,7 +268,7 @@ export default function MarketingDojoPage() {
                   {enriched?.name || lead.display_name}
                   {!enriched && lead.last_name_obfuscated && (
                     <span className="ml-2 text-xs font-satoshi font-medium text-studojo-muted align-middle">
-                      (last name hidden — enrich to reveal)
+                      (last name hidden, enrich to reveal)
                     </span>
                   )}
                 </h2>
@@ -411,7 +411,7 @@ export default function MarketingDojoPage() {
             <h3 className="font-clash text-lg font-bold text-studojo-ink mb-4">How it works</h3>
             <ol className="space-y-3">
               {[
-                "Type the company and the role you want to reach — no resume upload needed.",
+                "Type the company and the role you want to reach. No resume upload needed.",
                 "We surface one matching decision maker with their LinkedIn profile, instantly. Free.",
                 "Click Enrich Email to reveal their verified work email, uses one credit.",
                 "Browse similar companies in the same space and pull their hiring manager too.",

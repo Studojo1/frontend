@@ -5,8 +5,8 @@
 export type FontFamilyChoice = "default" | "sans" | "serif" | "mono";
 
 export interface ResumeFormatting {
-  fontScale: number;       // 0.8 – 1.3, multiplies all text
-  lineHeight: number;      // 1.1 – 1.7 absolute line-height
+  fontScale: number;       // 0.8-1.3, multiplies all text
+  lineHeight: number;      // 1.1-1.7 absolute line-height
   fontFamily: FontFamilyChoice;
   headingsBold: boolean;
   headingsItalic: boolean;

@@ -1,4 +1,4 @@
-// JRS — Studojo resume maker. Self-contained data model + persistence.
+// JRS: Studojo resume maker. Self-contained data model + persistence.
 // Stored client-side in localStorage; no backend dependency for resume data.
 
 export interface ResumeBasics {
@@ -89,7 +89,7 @@ export function uid(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
-// Starter content so the preview is never empty — user edits over it.
+// Starter content so the preview is never empty; user edits over it.
 export function starterResume(): ResumeData {
   return {
     basics: {
@@ -194,7 +194,7 @@ export function loadResume(): ResumeData {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return starterResume();
     const parsed = JSON.parse(raw);
-    // Shallow shape guard — fall back to starter if structure is off.
+    // Shallow shape guard: fall back to starter if structure is off.
     if (!parsed || !parsed.basics || !Array.isArray(parsed.experience)) {
       return starterResume();
     }
@@ -209,7 +209,7 @@ export function saveResume(data: ResumeData): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch {
-    /* quota or disabled storage — non-fatal */
+    /* quota or disabled storage, non-fatal */
   }
 }
 
@@ -247,7 +247,7 @@ export function clearSavedResume(): void {
   }
 }
 
-/** An empty resume — used when a user explicitly starts from scratch. */
+/** An empty resume, used when a user explicitly starts from scratch. */
 export function blankResume(): ResumeData {
   return {
     basics: { name: "", title: "", email: "", phone: "", location: "", website: "", linkedin: "" },
@@ -404,7 +404,7 @@ export function saveScriptHandled(steps: readonly string[]): void {
   }
 }
 
-/** Flatten a resume to plain text — used for ATS keyword analysis. */
+/** Flatten a resume to plain text, used for ATS keyword analysis. */
 export function resumeToText(d: ResumeData): string {
   const parts: string[] = [
     d.basics.name,

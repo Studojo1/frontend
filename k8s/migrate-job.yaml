@@ -2,9 +2,9 @@
 # substituted with sed at apply time.
 #
 # Placeholders:
-#   __JOB_NAME__   — uniquely names this run (e.g. frontend-migrate-<run_id>)
-#   __NAMESPACE__  — target k8s namespace (studojo or staging)
-#   __IMAGE__      — full migrate-image ref including registry and tag
+#   __JOB_NAME__   - uniquely names this run (e.g. frontend-migrate-<run_id>)
+#   __NAMESPACE__  - target k8s namespace (studojo or staging)
+#   __IMAGE__      - full migrate-image ref including registry and tag
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -13,7 +13,7 @@ metadata:
   labels:
     app: frontend-migrate
 spec:
-  # No retries on failure — let the workflow surface the error and decide.
+  # No retries on failure; let the workflow surface the error and decide.
   backoffLimit: 0
   # Hard ceiling so a stuck migration doesn't sit forever; the workflow's
   # poll loop has a shorter deadline.

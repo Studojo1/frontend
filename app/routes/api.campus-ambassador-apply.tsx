@@ -41,7 +41,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (!fullName || !whatsapp || !email || !college || !yearOfStudy || !whyYou) {
     return Response.json({ error: "Please fill in all required fields." }, { status: 400 });
   }
-  // Authoritative email check — the client-side one is bypassable. Rejects typo
+  // Authoritative email check: the client-side one is bypassable. Rejects typo
   // domains (gmail.cok, gnail.com, ...) and invalid TLDs.
   const emailCheck = checkEmail(email);
   if (!emailCheck.ok) {
@@ -69,7 +69,7 @@ export async function action({ request }: Route.ActionArgs) {
     referrer: referrer || undefined,
   });
 
-  // Already applied with this email — no duplicate row. Tell the form so it can
+  // Already applied with this email, no duplicate row. Tell the form so it can
   // show a friendly note instead of pretending this was a fresh application.
   if (!isNew) {
     return Response.json({ ok: true, alreadyApplied: true });

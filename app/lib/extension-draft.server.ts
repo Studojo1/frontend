@@ -7,13 +7,14 @@
 // editable draft in front of someone the moment they click Apply.
 //
 // What the page gives us (company, role, contact and their title) covers the
-// OPENER. What it cannot know — who the student is and their one best
-// credential — is what the express onboarding asks for, and what makes the
+// OPENER. What it cannot know (who the student is and their one best
+// credential) is what the express onboarding asks for, and what makes the
 // BRIDGE specific instead of generic.
 import db from "~/lib/db";
 import { extensionDrafts } from "../../auth-schema";
 import { and, eq } from "drizzle-orm";
 import { DEFAULT_STYLE } from "~/lib/outreach/email-styles";
+import { stripDashes } from "~/lib/strip-dashes";
 
 export interface DraftSeed {
   applicationId: string | null;
@@ -22,7 +23,7 @@ export interface DraftSeed {
   // The job's location. Stored so alternative-company suggestions can be
   // filtered to the student's city.
   location?: string | null;
-  /** The posting's own text — "About the job". Extracted on LinkedIn, Naukri
+  /** The posting's own text: "About the job". Extracted on LinkedIn, Naukri
    *  and Indeed alike, and until now thrown away at this boundary, which is
    *  why every draft was assembled from company + role + contact title and
    *  read like a template with names slotted in. */
@@ -67,7 +68,7 @@ function detailFromPosting(description?: string | null): string | null {
   const sentences = text
     // Split on sentence ends, bullets, AND section-heading colons. Without the
     // colon rule "About the job: You will build X" stays glued into one
-    // 200-char blob that the length filter then discards — a real posting
+    // 200-char blob that the length filter then discards: a real posting
     // detail lost to a heading nobody wanted anyway.
     .split(/(?<=[.!?])\s+|\n+|(?:\s[•\u2022\u2023\u25aa-]\s)|(?<=^[^.!?]{0,40}):\s+/)
     .map((x) => x.trim())
@@ -99,7 +100,7 @@ function detailFromPosting(description?: string | null): string | null {
   //
   // Postings list several duties in one breath: "You will own the pipeline,
   // and build the dashboards the category teams use". Converting the leading
-  // verb to "-ing" then leaves the later verbs unconverted — real output was
+  // verb to "-ing" then leaves the later verbs unconverted. Real output was
   // "designing the retry semantics ..., and build the internal dashboards",
   // which reads as broken software. Chasing every verb in the sentence is a
   // losing game; stopping at the first clause boundary is not, and one
@@ -109,11 +110,11 @@ function detailFromPosting(description?: string | null): string | null {
 
   // Job ads address the reader: "You will own the pipeline". Quoted as-is
   // after "the part that stuck with me was...", that reads as pasted from the
-  // ad — the exact impression we are trying to avoid.
+  // ad, the exact impression we are trying to avoid.
   //
   // Only the LEADING verb is converted, and only when the sentence starts with
   // one. An earlier version rewrote the first verb it saw and produced
-  // "building and maintain the internal ticketing platform" — a sentence with
+  // "building and maintain the internal ticketing platform", a sentence with
   // two verbs, one converted and one not. When the shape is not a clean
   // "You will <verb> ..." we leave the sentence alone rather than mangle it.
   const lead = best.match(/^you(?:'ll| will| would)?\s+(?:help\s+)?([a-z]+)\b(.*)$/i);
@@ -161,12 +162,12 @@ export function composeDraft(
 
   // Each style gets its own opener and ask, mirroring what the generator does
   // (email_generator_service.py:24-55). Without this the preview was identical
-  // whichever style you picked, which made the picker look broken — and gave
+  // whichever style you picked, which made the picker look broken, and gave
   // no sense of what the sent email would read like.
   const S: Record<string, { open: string; ask: string }> = {
     warm_intro: {
       // "your name came up" is a claim, and it is FALSE when we are greeting
-      // "Hi there" — the page named nobody and the backend has not resolved
+      // "Hi there": the page named nobody and the backend has not resolved
       // anyone yet. A draft that opens with something the student cannot stand
       // behind is worse than a plainer one. Naukri never names a contact, so
       // this was every Naukri draft.
@@ -205,7 +206,7 @@ export function composeDraft(
   const shortCredential = cred && cred.length <= 38 ? cred : null;
   const subject = shortCredential
     ? `${shortCredential} → ${trimTo(company, 26)}`
-    : `${trimTo(role, 40)} — ${trimTo(company, 26)}`;
+    : `${trimTo(role, 40)} at ${trimTo(company, 26)}`;
 
   // The bridge is the honest part. With no credential we say less rather than
   // inventing one; the CRM tells the student exactly that and offers the
@@ -215,7 +216,7 @@ export function composeDraft(
     : `I'm a student, and I'd rather say something true than something polished: I don't have a decade of experience to point at. What I do have is the willingness to learn ${company}'s problems properly before claiming I can solve them.`;
 
   // The third input: the posting itself. This paragraph was the most generic
-  // in the draft — it talked ABOUT writing to a person without ever showing
+  // in the draft: it talked ABOUT writing to a person without ever showing
   // the student had read the job. One concrete line from the posting, named as
   // their own observation, is what makes it specific.
   //
@@ -225,10 +226,10 @@ export function composeDraft(
   const detail = detailFromPosting(seed.description);
   const why = seed.contactTitle
     ? (detail
-      ? `I'm writing to you specifically rather than the careers inbox because you're ${withArticle(seed.contactTitle)}. The part of the posting that stuck with me was ${detail} — that is the work I want to be near, and you'd know what actually separates someone who lasts in ${role} from someone who looks good on paper.`
-      : `I'm writing to you specifically rather than the careers inbox because you're ${withArticle(seed.contactTitle)} — you'd know what actually separates someone who lasts in ${role} from someone who looks good on paper.`)
+      ? `I'm writing to you specifically rather than the careers inbox because you're ${withArticle(seed.contactTitle)}. The part of the posting that stuck with me was ${detail}. That is the work I want to be near, and you'd know what actually separates someone who lasts in ${role} from someone who looks good on paper.`
+      : `I'm writing to you specifically rather than the careers inbox because you're ${withArticle(seed.contactTitle)}. You'd know what actually separates someone who lasts in ${role} from someone who looks good on paper.`)
     : (detail
-      ? `I'm writing to a person rather than a careers inbox because an application form can't tell me what this team is actually trying to build. From the posting, ${detail} — that is the part I'd want to work on.`
+      ? `I'm writing to a person rather than a careers inbox because an application form can't tell me what this team is actually trying to build. From the posting, ${detail}: that is the part I'd want to work on.`
       : `I'm writing to a person rather than a careers inbox because an application form can't tell me what this team is actually trying to build.`);
 
   const body = [
@@ -248,7 +249,10 @@ export function composeDraft(
     .join("\n")
     .trim();
 
-  return { subject, body };
+  // Job titles and posting text arrive from third-party pages full of em and
+  // en dashes ("Engineer \u2013 Backend"). This goes out under the student's
+  // name, so none survive.
+  return { subject: stripDashes(subject), body: stripDashes(body) };
 }
 
 /** Trim on a word boundary. Cutting mid-word ("newsletter with 2…") reads as
@@ -293,7 +297,7 @@ export async function upsertDraft(
         .limit(1);
 
       if (existing) {
-        // Already sent — leave it alone. Re-applying should not rewrite the
+        // Already sent: leave it alone. Re-applying should not rewrite the
         // record of what actually went out.
         if (existing.status !== "draft") return { id: existing.id, created: false };
         await db

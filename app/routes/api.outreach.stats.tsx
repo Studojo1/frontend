@@ -43,7 +43,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
     db.select({
       id: outreachContacts.id,
-      campaignId: sql<string>`null`, // contacts aren't campaign-scoped yet — future
+      campaignId: sql<string>`null`, // contacts aren't campaign-scoped yet (future)
       status: outreachContacts.status,
       lastActionAt: outreachContacts.lastActionAt,
     })

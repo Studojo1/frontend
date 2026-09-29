@@ -1,4 +1,4 @@
-// Job discovery worker — fetches matching jobs from multiple sources
+// Job discovery worker: fetches matching jobs from multiple sources
 // Called every 6h per active user via BullMQ scheduler
 
 import { eq, and } from "drizzle-orm";

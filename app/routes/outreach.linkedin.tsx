@@ -119,7 +119,7 @@ function ExtensionBanner({ status, onRefresh }: { status: TokenStatus | null; on
       <div className="flex items-center gap-2.5">
         <FiWifi className="h-4 w-4 shrink-0 text-green-600" />
         <span className="font-satoshi text-sm font-semibold text-green-800">
-          LinkedIn connected — extension active
+          LinkedIn connected, extension active
         </span>
       </div>
       <span className="rounded-full bg-green-200 px-2 py-0.5 font-satoshi text-xs font-bold text-green-800">
@@ -203,7 +203,7 @@ function SendPanel({ connected }: { connected: boolean }) {
       </div>
 
       <div className="p-6">
-        {/* Profile URL — shared across tabs */}
+        {/* Profile URL: shared across tabs */}
         <div className="mb-4">
           <label className="mb-1.5 block font-satoshi text-xs font-semibold uppercase tracking-wide text-studojo-muted">
             LinkedIn Profile URL
@@ -259,7 +259,7 @@ function SendPanel({ connected }: { connected: boolean }) {
             <textarea
               value={note}
               onChange={(e) => { setNote(e.target.value.slice(0, 300)); reset(); }}
-              placeholder="Hi [Name], I'd love to connect — I'm interested in roles at [Company]."
+              placeholder="Hi [Name], I'd love to connect. I'm interested in roles at [Company]."
               rows={4}
               disabled={isLoading || !connected}
               className="mb-1 w-full resize-none rounded-xl border-2 border-studojo-ink bg-neutral-50 px-3 py-2.5 font-satoshi text-base text-studojo-ink placeholder:text-studojo-muted focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1 disabled:opacity-50"
@@ -334,7 +334,7 @@ export default function LinkedInOutreachPage() {
         extensionPresent: true,
       });
     } catch {
-      // Extension not present — fall back to backend token check
+      // Extension not present, fall back to backend token check
       try {
         const { outreachFetch } = await import("~/lib/outreach/api");
         const s = await outreachFetch<TokenStatus>("/linkedin/token/status");

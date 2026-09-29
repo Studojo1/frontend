@@ -1,8 +1,8 @@
 /**
  * Minimal Razorpay REST client for guest (logged-out) payments.
  *
- * The existing payment paths — control-plane /v1/payments/create-order and the
- * outreach service's /create-order — both require an authenticated user. A
+ * The existing payment paths (control-plane /v1/payments/create-order and the
+ * outreach service's /create-order) both require an authenticated user. A
  * webinar registrant has no Studojo account, so neither can be reused. This
  * talks to Razorpay's Orders API directly over fetch, which needs no SDK: it is
  * a Basic-auth POST with a JSON body.
@@ -81,7 +81,7 @@ export async function createRazorpayOrder(params: {
  *
  * HMAC-SHA256 over "<order_id>|<payment_id>" keyed with the API secret, the
  * scheme Razorpay documents for client-side confirmation. This proves the
- * browser's success callback is genuine — but the webhook remains the
+ * browser's success callback is genuine, but the webhook remains the
  * authority for marking a ticket paid, because a browser that closes before
  * the callback fires would otherwise lose a real payment.
  */

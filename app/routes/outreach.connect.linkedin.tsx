@@ -127,9 +127,9 @@ export default function LinkedInConnectPage() {
             </h1>
             <p className="text-sm text-studojo-muted font-satoshi">
               {sessionDead
-                ? "Your LinkedIn session is no longer valid. Log in again to resume sending — your queued requests will pick up right where they left off."
+                ? "Your LinkedIn session is no longer valid. Log in again to resume sending. Your queued requests will pick up right where they left off."
                 : planType === "both"
-                ? "Last step — connect LinkedIn so we can send connection requests alongside your emails."
+                ? "Last step: connect LinkedIn so we can send connection requests alongside your emails."
                 : "Connect LinkedIn so we can send personalised connection requests to the right hiring managers."}
             </p>
           </div>

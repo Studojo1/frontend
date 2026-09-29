@@ -106,7 +106,7 @@ function initCharts() {
     new Chart(monthlyInHandChartEl, {
       type: "bar",
       data: {
-        labels: ["IT services fresher (TCS, Infosys band)", "Mid startup SDE (₹12–18 LPA CTC)", "Top product fresher (₹20–35 LPA CTC)", "Freelancer at ₹1L/month run rate", "B2B sales at quota (base + commission)", "IB analyst at global bank"],
+        labels: ["IT services fresher (TCS, Infosys band)", "Mid startup SDE (₹12-18 LPA CTC)", "Top product fresher (₹20-35 LPA CTC)", "Freelancer at ₹1L/month run rate", "B2B sales at quota (base + commission)", "IB analyst at global bank"],
         datasets: [{
           label: "Illustrative monthly in-hand range by path at entry to ₹1L threshold (INR thousands)",
           data: [26.0, 75.0, 110.0, 100.0, 95.0, 105.0],
@@ -300,7 +300,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               <div className="sc-source">{"Studojo in-hand synthesis from 2026 campus and payroll data"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"2–3×"}</div>
+              <div className="sc-num">{"2-3×"}</div>
               <div className="sc-label">{"Typical salary gap between IT services and product companies at the same experience level in India tech"}</div>
               <div className="sc-source">{"Pathvio India Tech Salary Report 2026"}</div>
             </div>

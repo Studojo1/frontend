@@ -82,7 +82,7 @@ export default function DebriefPage() {
         });
       }
     } catch {
-      // non-blocking — don't stop the flow if save fails
+      // non-blocking: don't stop the flow if save fails
     }
     navigate("/outreach/connect/gmail");
   };
@@ -114,7 +114,7 @@ export default function DebriefPage() {
 
         {/* Two-column layout */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-          {/* Left — input fields */}
+          {/* Left: input fields */}
           <div className="lg:col-span-2 space-y-4">
             {/* Field 1 */}
             <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal p-5">
@@ -211,7 +211,7 @@ export default function DebriefPage() {
             </p>
           </div>
 
-          {/* Right — live email preview */}
+          {/* Right: live email preview */}
           <div className="lg:col-span-3 sticky top-8">
             <div className="rounded-2xl border-2 border-studojo-ink bg-white shadow-brutal overflow-hidden">
               {/* Email client chrome */}

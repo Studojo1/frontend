@@ -48,7 +48,7 @@ export function ProblemSolution() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-          {/* Bad — The old way */}
+          {/* Bad: The old way */}
           <div className="flex flex-col gap-3 rounded-[28px] border-2 border-red-200 bg-red-50 p-5 md:gap-4 md:rounded-[45px] md:p-8">
             <div className="inline-flex items-center gap-2">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-red-300 bg-red-100 text-red-500">
@@ -70,7 +70,7 @@ export function ProblemSolution() {
             </ul>
           </div>
 
-          {/* Good — The Studojo way */}
+          {/* Good: The Studojo way */}
           <div className="flex flex-col gap-3 rounded-[28px] border-2 border-neutral-900 bg-violet-500 p-5 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:rounded-[45px] md:shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] md:p-8">
             <div className="inline-flex items-center gap-2">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-white/40 bg-white/20 text-white">

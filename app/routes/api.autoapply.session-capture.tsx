@@ -1,6 +1,6 @@
 // POST /api/autoapply/session-capture
 // Accepts a one-time token (from the local capture script) + session data.
-// No Studojo auth cookie needed — the token IS the auth for this endpoint.
+// No Studojo auth cookie needed: the token IS the auth for this endpoint.
 
 import { createClient } from "redis";
 import db from "~/lib/db";

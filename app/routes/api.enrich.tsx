@@ -1,4 +1,4 @@
-// POST /api/enrich — enrich a single LinkedIn profile.
+// POST /api/enrich: enrich a single LinkedIn profile.
 // Pipeline: authenticate -> rate limit -> quota -> validate -> idempotency cache
 // -> engine (provider cascade) -> charge on a billable hit -> respond.
 import type { Route } from "./+types/api.enrich";

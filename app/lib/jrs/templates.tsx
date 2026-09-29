@@ -1,5 +1,5 @@
 // JRS resume templates. Each renders a ResumeData onto a 210mm A4 page.
-// All templates are pure text (ATS-safe) — no images, no canvas.
+// All templates are pure text (ATS-safe): no images, no canvas.
 import type { ResumeData, ExperienceItem, EducationItem, ProjectItem, TemplateId } from "./types";
 
 function nonEmpty(s: string | undefined): boolean {
@@ -16,7 +16,7 @@ function projHas(p: ProjectItem): boolean {
 }
 function dateRange(start: string, end: string, current: boolean): string {
   const e = current ? "Present" : end;
-  if (nonEmpty(start) && nonEmpty(e)) return `${start} — ${e}`;
+  if (nonEmpty(start) && nonEmpty(e)) return `${start} - ${e}`;
   return start || e || "";
 }
 function contactLine(d: ResumeData): string[] {
@@ -25,7 +25,7 @@ function contactLine(d: ResumeData): string[] {
   );
 }
 
-// Width is 100% so the template fills whatever container it's given — the
+// Width is 100% so the template fills whatever container it's given; the
 // preview/print wrapper sets the real page width. This lets the density
 // zoom keep full page width while scaling everything else.
 const PAGE: React.CSSProperties = {
@@ -107,7 +107,7 @@ function Classic({ data }: { data: ResumeData }) {
           {proj.map((p) => (
             <div key={p.id} style={{ marginBottom: 8 }}>
               <strong>{p.name}</strong>
-              {nonEmpty(p.link) && <span style={{ fontSize: 9 }}> — {p.link}</span>}
+              {nonEmpty(p.link) && <span style={{ fontSize: 9 }}> · {p.link}</span>}
               {nonEmpty(p.description) && (
                 <p style={{ margin: "1px 0 2px" }}>{p.description}</p>
               )}
@@ -123,7 +123,7 @@ function Classic({ data }: { data: ResumeData }) {
             <div key={e.id} style={{ marginBottom: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <strong>
-                  {e.degree} {e.field} — {e.school}
+                  {e.degree} {e.field} · {e.school}
                 </strong>
                 <span style={{ fontSize: 9.5 }}>{dateRange(e.start, e.end, false)}</span>
               </div>
@@ -202,7 +202,7 @@ function Compact({ data }: { data: ResumeData }) {
           {proj.map((p) => (
             <div key={p.id} style={{ marginBottom: 5 }}>
               <strong>{p.name}</strong>
-              {nonEmpty(p.description) && <span> — {p.description}</span>}
+              {nonEmpty(p.description) && <span>: {p.description}</span>}
               <Bullets items={p.bullets} />
             </div>
           ))}
@@ -310,7 +310,7 @@ function Minimal({ data }: { data: ResumeData }) {
               </strong>
               <span style={{ color: "#666" }}>
                 {" "}
-                — {e.school}, {dateRange(e.start, e.end, false)}
+                · {e.school}, {dateRange(e.start, e.end, false)}
               </span>
             </div>
           ))}
@@ -418,7 +418,7 @@ function Technical({ data }: { data: ResumeData }) {
               <strong>
                 {e.degree} {e.field}
               </strong>{" "}
-              — {e.school}{" "}
+              · {e.school}{" "}
               <span style={{ fontSize: 8.5, fontFamily: mono, color: "#555" }}>
                 {dateRange(e.start, e.end, false)}
               </span>
@@ -517,7 +517,7 @@ function Harvard({ data }: { data: ResumeData }) {
           {proj.map((p) => (
             <div key={p.id} style={{ marginBottom: 6 }}>
               <strong>{p.name}</strong>
-              {nonEmpty(p.link) && <span style={{ fontStyle: "italic" }}> — {p.link}</span>}
+              {nonEmpty(p.link) && <span style={{ fontStyle: "italic" }}> · {p.link}</span>}
               {nonEmpty(p.description) && <p style={{ margin: "1px 0 1px" }}>{p.description}</p>}
               <Bullets items={p.bullets} />
             </div>
@@ -750,7 +750,7 @@ function Executive({ data }: { data: ResumeData }) {
                   {e.degree} {e.field}
                 </strong>
                 , {e.school}
-                {nonEmpty(e.details) ? ` — ${e.details}` : ""}
+                {nonEmpty(e.details) ? ` · ${e.details}` : ""}
               </span>
               <span style={{ fontSize: 9, color: "#666" }}>{dateRange(e.start, e.end, false)}</span>
             </div>
@@ -1163,7 +1163,7 @@ function Banner({ data }: { data: ResumeData }) {
             {edu.map((e) => (
               <div key={e.id} style={{ marginBottom: 5 }}>
                 <strong>{e.degree} {e.field}</strong>
-                <span> — {e.school} </span>
+                <span> · {e.school} </span>
                 <span style={{ fontSize: 9.5, color: "#78716c" }}>
                   {dateRange(e.start, e.end, false)}
                 </span>
@@ -1263,7 +1263,7 @@ function Consulting({ data }: { data: ResumeData }) {
           {proj.map((p) => (
             <div key={p.id} style={{ marginBottom: 6 }}>
               <strong>{p.name}</strong>
-              {nonEmpty(p.description) && <span> — {p.description}</span>}
+              {nonEmpty(p.description) && <span>: {p.description}</span>}
               <Bullets items={p.bullets} />
             </div>
           ))}

@@ -1,9 +1,9 @@
-// Phone verifier — the gate that decides whether a number counts as a usable
+// Phone verifier: the gate that decides whether a number counts as a usable
 // personal mobile. Office landlines, switchboards, toll-free and VOIP lines are
 // rejected so the cascade falls through to the next source.
 //
 // Two signals are combined:
-//   1. Line type from libphonenumber (max metadata) — MOBILE vs FIXED_LINE etc.
+//   1. Line type from libphonenumber (max metadata): MOBILE vs FIXED_LINE etc.
 //   2. The provider's own label (SalesQL/Apollo tag phones "Work" / "Personal").
 // For India (+91) the number shape is authoritative when the library is unsure.
 import { parsePhoneNumberFromString } from "libphonenumber-js/max";

@@ -52,7 +52,7 @@ export default function OnboardingLoadingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Steps advance quickly — processing is fast now
+  // Steps advance quickly: processing is fast now
   useEffect(() => {
     const timers = [
       setTimeout(() => setStepIndex(1), 400),

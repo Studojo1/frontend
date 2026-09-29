@@ -13,10 +13,10 @@ import type { Route } from "./+types/crm._index";
 const CAREER_AGENT_URL =
   // Bare service name, resolving in whatever namespace we are deployed to.
   // The previous value pinned `.studojo.svc`, so from the staging namespace it
-  // pointed at the wrong cluster address — every CRM write failed silently and
+  // pointed at the wrong cluster address: every CRM write failed silently and
   // the page showed "Nothing saved yet" while the extension said "Saved".
-  // The service is `cc-backend` on port 80 in the staging namespace — see
-  // studojo-career-agent/backend/k8s/service.yaml. The previous default,
+  // The service is `cc-backend` on port 80 in the staging namespace (see
+  // studojo-career-agent/backend/k8s/service.yaml). The previous default,
   // "studojo-career-agent:8000", is a name that has never existed anywhere;
   // I invented it. Every CRM write silently failed against it, which is why
   // the extension kept saying "we couldn't reach your CRM".
@@ -50,7 +50,7 @@ export function meta() {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);
-  // Send them back here after signing in, not to a generic dashboard — they
+  // Send them back here after signing in, not to a generic dashboard: they
   // clicked through from a specific job.
   if (!session) throw redirect(`/auth?redirect=${encodeURIComponent("/crm")}`);
 
@@ -75,7 +75,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   // instead of a page that says "Nothing saved yet" while a draft exists.
   //
   // WRAPPED. An unguarded query here took the whole page down with "Oops! An
-  // unexpected error occurred" — if extension_drafts is missing or the pool is
+  // unexpected error occurred". If extension_drafts is missing or the pool is
   // unreachable, a student should still see their applications rather than a
   // dead end. A page that degrades beats a page that dies.
   let drafts: (typeof extensionDrafts.$inferSelect)[] = [];
@@ -112,7 +112,7 @@ export default function Crm({ loaderData }: Route.ComponentProps) {
   // Show a draft even when the career agent did not return its application.
   // Previously the page rendered ONLY agent rows, so an unreachable agent
   // meant "Nothing saved yet" while a perfectly good draft sat in our
-  // database — which is exactly the contradiction that was reported.
+  // database, which is exactly the contradiction that was reported.
   const seen = new Set(applications.map((a) => a.id));
   const orphanRows: Application[] = (draftRows ?? [])
     .filter((d) => !d.applicationId || !seen.has(d.applicationId))
@@ -152,8 +152,8 @@ export default function Crm({ loaderData }: Route.ComponentProps) {
           {!draftsReadable ? (
             <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
               <p className="font-['Satoshi'] text-sm text-amber-900">
-                Your drafts couldn&rsquo;t be loaded just now. Nothing is lost
-                &mdash; refresh in a moment.
+                Your drafts couldn&rsquo;t be loaded just now. Nothing is lost.
+                Refresh in a moment.
               </p>
             </div>
           ) : null}
@@ -162,7 +162,7 @@ export default function Crm({ loaderData }: Route.ComponentProps) {
             <div className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
               <p className="font-['Satoshi'] text-sm text-amber-900">
                 Some details couldn&rsquo;t be loaded just now. Your drafts are
-                here and safe &mdash; job details may fill in shortly.
+                here and safe. Job details may fill in shortly.
               </p>
             </div>
           ) : null}
@@ -195,8 +195,8 @@ export default function Crm({ loaderData }: Route.ComponentProps) {
                           </p>
                           {/* Prefer the DRAFT's contact over the career
                               agent's. When the posting named nobody we found
-                              someone ourselves, and that person — the one who
-                              actually received the email — exists only on our
+                              someone ourselves, and that person (the one who
+                              actually received the email) exists only on our
                               row. Showing the agent's blank instead was how a
                               sent email ended up with no visible recipient. */}
                           {draft?.contactName || a.contact_name ? (
@@ -204,7 +204,7 @@ export default function Crm({ loaderData }: Route.ComponentProps) {
                               {draft?.status === "sent" ? "Sent to" : "Contact"}:{" "}
                               {draft?.contactName || a.contact_name}
                               {draft?.contactTitle || a.contact_title
-                                ? ` — ${draft?.contactTitle || a.contact_title}`
+                                ? `, ${draft?.contactTitle || a.contact_title}`
                                 : ""}
                             </p>
                           ) : null}

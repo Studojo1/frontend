@@ -36,7 +36,7 @@ export function meta({}: Route.MetaArgs) {
     { property: "og:url", content: `${BASE_URL}/blog` },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: ogImage },
-    { property: "og:image:alt", content: "Studojo Blog — career tips and internship guides for students" },
+    { property: "og:image:alt", content: "Studojo Blog: career tips and internship guides for students" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:site", content: "@studojo" },
     { name: "twitter:title", content: "Studojo Blog | Internship Tips & Career Guides" },

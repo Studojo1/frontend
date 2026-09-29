@@ -5,8 +5,8 @@
 // so neither studojo nor admin-panel needs a migration step before this
 // can ship.
 //
-// Email path: direct SMTP from studojo@gmail.com via App Password — no
-// emailer-service hop. See app/lib/gmail-direct.server.ts.
+// Email path: direct SMTP from studojo@gmail.com via App Password (no
+// emailer-service hop). See app/lib/gmail-direct.server.ts.
 import { sql } from "drizzle-orm";
 import db from "./db";
 import { sendDirectGmail } from "./gmail-direct.server";

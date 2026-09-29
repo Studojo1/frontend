@@ -1,4 +1,4 @@
-// Meta Conversions API — the server-side half of the pixel.
+// Meta Conversions API: the server-side half of the pixel.
 //
 // The browser pixel is blocked for a large slice of traffic (ad blockers, iOS,
 // Safari tracking prevention). This sends the same event from our own server,

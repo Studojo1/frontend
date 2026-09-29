@@ -6,7 +6,7 @@ import type { Route } from "./+types/api.webinar-confirm";
  * Confirm a webinar payment from the browser, straight after Razorpay's
  * checkout modal reports success.
  *
- * The signature is verified before anything is marked paid — without that check
+ * The signature is verified before anything is marked paid; without that check
  * this endpoint would let anyone mark any order paid by posting its id.
  *
  * The webhook is still the authority: if someone closes the tab before this
@@ -48,7 +48,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   await fulfilWebinarPayment({ orderId, paymentId, source: "checkout" });
 
-  // `paid: true` regardless of who fulfilled it — the payment is verified, so
+  // `paid: true` regardless of who fulfilled it: the payment is verified, so
   // the person is in, whether this call or the webhook recorded it.
   return Response.json({ ok: true, paid: true });
 }

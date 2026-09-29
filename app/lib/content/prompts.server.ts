@@ -418,7 +418,7 @@ export function killCheckUserPrompt(input: {
  */
 export function cleanTells(text: string): string {
   return text
-    .replace(/\s*[—–]\s*/g, ", ")
+    .replace(/\s*[\u2014\u2013]\s*/g, ", ")
     .replace(/,\s*,/g, ",")
     .replace(/[‘’]/g, "'")
     .replace(/[“”]/g, '"');

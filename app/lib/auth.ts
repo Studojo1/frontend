@@ -87,7 +87,7 @@ async function userHasLoginAccount(userId: string): Promise<boolean> {
 async function publishWelcome(payload: { user_id: string; email: string; name?: string | null }) {
   const { publishEmailEvent } = await import("./events");
   // ONLY the new flow welcome fires on signup. The old transactional
-  // event.user.signup ("welcome" template) is retired — it produced a
+  // event.user.signup ("welcome" template) is retired: it produced a
   // duplicate second welcome. cc-welcome-new-user is the single welcome and
   // also starts the Outreach not-used gate/chase.
   await publishEmailEvent("event.cc.welcome_new_user", payload);
@@ -128,7 +128,7 @@ export const auth = betterAuth({
     ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean) || []),
     // Add maverick URL if specified
     ...(process.env.MAVERICK_URL ? [process.env.MAVERICK_URL] : []),
-    // API subdomain — needed for cross-origin cookie access from outreach and other services
+    // API subdomain: needed for cross-origin cookie access from outreach and other services
     "https://api.studojo.com",
   ],
   secret: process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET,
@@ -148,7 +148,7 @@ export const auth = betterAuth({
       ...(process.env.MAVERICK_URL ? [process.env.MAVERICK_URL] : []),
       // Explicitly add dev.studojo.com if not already in CORS_ORIGINS
       ...(process.env.CORS_ORIGINS?.includes("dev.studojo.com") ? [] : ["https://dev.studojo.com"]),
-      // API subdomain — needed for cross-origin requests from outreach and other services
+      // API subdomain: needed for cross-origin requests from outreach and other services
       "https://api.studojo.com",
     ],
     credentials: true,

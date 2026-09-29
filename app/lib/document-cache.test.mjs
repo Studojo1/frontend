@@ -66,4 +66,4 @@ if (bad) {
   console.log(`\n${bad} problem(s) with document caching.`);
   process.exit(1);
 }
-console.log("\ndocument caching intact — deploys reach returning visitors");
+console.log("\ndocument caching intact: deploys reach returning visitors");

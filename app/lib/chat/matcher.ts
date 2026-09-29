@@ -64,7 +64,7 @@ function patternMatch(input: string, pattern: string): boolean {
   // Exact substring
   if (normInput.includes(normPattern)) return true;
 
-  // Token overlap — if all pattern tokens appear in input
+  // Token overlap: if all pattern tokens appear in input
   const inputTokens = new Set(normInput.split(" "));
   const patternTokens = normPattern.split(" ").filter((t) => t.length > 1);
   if (patternTokens.length === 0) return false;
@@ -87,7 +87,7 @@ function jaccardSimilarity(a: Set<string>, b: Set<string>): number {
 }
 
 /**
- * Weighted keyword score — how many intent keywords appear in the input,
+ * Weighted keyword score: how many intent keywords appear in the input,
  * weighted by how specific they are (longer keywords = more weight)
  */
 function keywordScore(inputTokens: Set<string>, intent: Intent): number {
@@ -101,7 +101,7 @@ function keywordScore(inputTokens: Set<string>, intent: Intent): number {
     total += weight;
 
     if (kw.includes(" ")) {
-      // Multi-word keyword — check as substring in joined input
+      // Multi-word keyword: check as substring in joined input
       if (inputText.includes(kw)) matched += weight;
     } else {
       if (inputTokens.has(kw)) matched += weight;

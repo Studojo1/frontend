@@ -43,7 +43,7 @@ export function ChatWidget() {
   const inputRef = useRef<HTMLInputElement>(null);
   const sessionId = useMemo(() => generateSessionId(), []);
 
-  // Tickets state — logged-in users can switch to a Tickets tab.
+  // Tickets state: logged-in users can switch to a Tickets tab.
   const { data: session } = authClient.useSession();
   const loggedIn = !!session?.user;
   const [view, setView] = useState<ChatView>("chat");
@@ -81,7 +81,7 @@ export function ChatWidget() {
   }, [open, view, fetchTickets]);
 
   // Background poll for unread admin replies so the bubble badge stays
-  // fresh even when the widget is closed. 60s is plenty — admin replies
+  // fresh even when the widget is closed. 60s is plenty: admin replies
   // are minutes-to-hours-scale events.
   useEffect(() => {
     if (!loggedIn) return;
@@ -137,7 +137,7 @@ export function ChatWidget() {
     return () => window.removeEventListener("studojo:open-chat", handler);
   }, []);
 
-  // Drag state — null means use default CSS bottom-left position
+  // Drag state: null means use default CSS bottom-left position
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const dragging = useRef(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -224,12 +224,12 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* z-40, below the z-50 modals across the app — the Dodo checkout iframe on
+      {/* z-40, below the z-50 modals across the app: the Dodo checkout iframe on
           /outreach/enrichment is one of them, and a draggable bubble sharing a
           layer with a live payment sheet is settled by paint order. The open
           panel below stays at z-50 so it is not buried while someone types in it.
 
-          Chat bubble — draggable. Bottom-LEFT sat on top of left-aligned content:
+          Chat bubble: draggable. Bottom-LEFT sat on top of left-aligned content:
           measured at 390x844 it covered the "Join the Dojo" submit button on
           /outreach/orders and the footer links on the campaign dashboard. Page
           content is left-aligned, so on mobile the right corner is the empty one;
@@ -243,7 +243,7 @@ export function ChatWidget() {
         className="fixed bottom-6 right-6 z-40 hidden h-14 w-14 md:flex cursor-grab items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:cursor-grabbing md:left-6 md:right-auto"
         aria-label={open ? "Close chat" : "Open chat"}
       >
-        {/* Unread admin-reply badge — shows count from the background poll. */}
+        {/* Unread admin-reply badge: shows count from the background poll. */}
         {!open && summary.total_unread > 0 && (
           <span
             aria-label={`${summary.total_unread} unread message${summary.total_unread === 1 ? "" : "s"}`}
@@ -264,7 +264,7 @@ export function ChatWidget() {
         )}
       </button>
 
-      {/* Chat window — anchors above/beside the bubble */}
+      {/* Chat window: anchors above/beside the bubble */}
       {open && (() => {
         let winStyle: React.CSSProperties = {};
         if (pos) {
@@ -302,7 +302,7 @@ export function ChatWidget() {
             </button>
           </div>
 
-          {/* Tab strip — only for logged-in users (Tickets tab needs auth). */}
+          {/* Tab strip: only for logged-in users (Tickets tab needs auth). */}
           {loggedIn && view !== "thread" && (
             <div className="flex gap-1 border-b border-neutral-200 bg-neutral-50 px-2 py-1.5">
               {(
@@ -409,7 +409,7 @@ export function ChatWidget() {
             </div>
           )}
 
-          {/* Messages — only visible on the Chat view */}
+          {/* Messages: only visible on the Chat view */}
           {view === "chat" && (
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.map((msg, i) => (
@@ -456,7 +456,7 @@ export function ChatWidget() {
           </div>
           )}
 
-          {/* Input — chat view only */}
+          {/* Input: chat view only */}
           {view === "chat" && (
           <div className="border-t-2 border-neutral-900 bg-white p-3">
             {loggedIn && (
@@ -465,7 +465,7 @@ export function ChatWidget() {
                 onClick={() => setRaiseOpen(true)}
                 className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-[11px] font-bold text-neutral-700 hover:border-neutral-900 hover:bg-white"
               >
-                🎫 Raise a ticket — get the team on it
+                🎫 Raise a ticket, get the team on it
               </button>
             )}
             <form

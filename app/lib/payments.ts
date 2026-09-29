@@ -185,7 +185,7 @@ export async function verifyDodoPayment(
 }
 
 /**
- * Unified payment handler — opens Razorpay modal or redirects to Dodo checkout.
+ * Unified payment handler: opens Razorpay modal or redirects to Dodo checkout.
  * Returns a payment_id on success (Razorpay), or redirects (Dodo).
  */
 export async function openPayment(opts: {

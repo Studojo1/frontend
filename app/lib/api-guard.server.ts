@@ -21,7 +21,7 @@ export type Guarded =
   | { ok: false; response: Response };
 
 /**
- * @param count when false, only authenticate (no rate/quota) — used by GET
+ * @param count when false, only authenticate (no rate/quota), used by GET
  *              endpoints like job polling that should not consume the limit.
  */
 export async function guard(request: Request, count = true): Promise<Guarded> {

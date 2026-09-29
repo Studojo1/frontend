@@ -1,5 +1,5 @@
 /**
- * MSL Dashboard — internal revenue/signups view.
+ * MSL Dashboard: internal revenue/signups view.
  * No .server.ts imports: all server code is inline in loader/action.
  * Auth: single hardcoded HttpOnly cookie token (no node:crypto needed).
  */
@@ -293,7 +293,7 @@ function DashboardView({ stats }: { stats: Stats }) {
         </Section>
 
         {/* CALENDAR */}
-        <Section title="Daily calendar — last 60 days">
+        <Section title="Daily calendar (last 60 days)">
           <p className="text-xs text-studojo-muted -mt-2">Click any row to expand.</p>
           {stats.selectedDay && (
             <div className="border-2 border-studojo-purple bg-white p-4 shadow-brutal">
@@ -304,10 +304,10 @@ function DashboardView({ stats }: { stats: Stats }) {
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 <MiniStat label="Signups" value={fmtInt(stats.selectedDay.signups)} />
                 <MiniStat label="Orders" value={fmtInt(stats.selectedDay.orders)} />
-                <MiniStat label="INR (DB)" value={stats.selectedDay.inr ? fmtInr(stats.selectedDay.inr) : "—"} />
-                <MiniStat label="USD (DB)" value={stats.selectedDay.usd ? fmtUsd(stats.selectedDay.usd) : "—"} />
+                <MiniStat label="INR (DB)" value={stats.selectedDay.inr ? fmtInr(stats.selectedDay.inr) : "-"} />
+                <MiniStat label="USD (DB)" value={stats.selectedDay.usd ? fmtUsd(stats.selectedDay.usd) : "-"} />
                 {stats.selectedDay.b2b > 0 && <MiniStat label="B2B" value={fmtInr(stats.selectedDay.b2b)} />}
-                <MiniStat label="Total (₹)" value={stats.selectedDay.total ? fmtInr(stats.selectedDay.total) : "—"} />
+                <MiniStat label="Total (₹)" value={stats.selectedDay.total ? fmtInr(stats.selectedDay.total) : "-"} />
               </div>
             </div>
           )}
@@ -409,7 +409,7 @@ function CustomRangeSection({ cr }: { cr: RangeStats }) {
         </div>
         <div className="border border-neutral-200 bg-neutral-50 px-3 py-2">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">Rev/signup</div>
-          <div className="mt-0.5 font-clash text-lg font-bold text-studojo-ink">{cr.signups > 0 ? fmtInr(avgRev) : "—"}</div>
+          <div className="mt-0.5 font-clash text-lg font-bold text-studojo-ink">{cr.signups > 0 ? fmtInr(avgRev) : "-"}</div>
         </div>
         <div className="border border-neutral-200 bg-neutral-50 px-3 py-2">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-studojo-muted">B2B included</div>
@@ -448,9 +448,9 @@ function CalendarGrid({ calendar, selected, today, yesterday }: { calendar: CalD
             </div>
             <div className="px-3 py-2 text-right text-sm">{fmtInt(day.signups)}</div>
             <div className="px-3 py-2 text-right text-sm">{fmtInt(day.orders)}</div>
-            <div className="px-3 py-2 text-right text-sm">{day.inr ? fmtInr(day.inr) : "—"}</div>
-            <div className="px-3 py-2 text-right text-sm">{day.b2b ? <span className="text-studojo-purple font-medium">{fmtInr(day.b2b)}</span> : "—"}</div>
-            <div className="px-3 py-2 text-right text-sm font-semibold">{day.total ? fmtInr(day.total) : "—"}</div>
+            <div className="px-3 py-2 text-right text-sm">{day.inr ? fmtInr(day.inr) : "-"}</div>
+            <div className="px-3 py-2 text-right text-sm">{day.b2b ? <span className="text-studojo-purple font-medium">{fmtInr(day.b2b)}</span> : "-"}</div>
+            <div className="px-3 py-2 text-right text-sm font-semibold">{day.total ? fmtInr(day.total) : "-"}</div>
           </a>
         );
       })}

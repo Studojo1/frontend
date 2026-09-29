@@ -8,7 +8,7 @@ import { authClient } from "~/lib/auth-client";
 import { capturePostHog } from "~/lib/posthog";
 
 function trackCC(event: string, props?: Record<string, unknown>) {
-  // Relative path — works on both studojo.pro and studojo.com via ingress
+  // Relative path: works on both studojo.pro and studojo.com via ingress
   fetch(`/api/v1/cc/analytics/track`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -328,7 +328,7 @@ export default function CcIndex() {
           <style>{`@media(min-width:768px){.hero-aspect{padding-bottom:56.25%!important}}`}</style>
         </section>
 
-        {/* Returning logged-in students — sits flush below hero, no extra section wrapper */}
+        {/* Returning logged-in students: sits flush below hero, no extra section wrapper */}
         <ReturningStudentProgress />
 
         {/* ── How it works ─────────────────────────────────────────────── */}

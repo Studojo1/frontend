@@ -1,11 +1,11 @@
 /**
- * Studojo LinkedIn Connect — Background Service Worker (Manifest V3)
+ * Studojo LinkedIn Connect: Background Service Worker (Manifest V3)
  *
  * Handles:
- *   CONNECT_LINKEDIN  — capture all LinkedIn cookies + UA → POST to AutoApply session endpoint
- *   CHECK_STATUS      — check extension connection state
- *   DISCONNECT        — clear stored state
- *   chrome.alarms     — 7-day auto-refresh of cookie session
+ *   CONNECT_LINKEDIN  - capture all LinkedIn cookies + UA → POST to AutoApply session endpoint
+ *   CHECK_STATUS      - check extension connection state
+ *   DISCONNECT        - clear stored state
+ *   chrome.alarms     - 7-day auto-refresh of cookie session
  */
 
 const STUDOJO_ORIGINS = ['https://studojo.com', 'https://studojo.pro'];
@@ -69,7 +69,7 @@ async function getStudojoSession() {
 }
 
 // Capture the full LinkedIn cookie jar as an array of objects (not just a
-// fixed name list — outreach's server-side Playwright needs every cookie
+// fixed name list: outreach's server-side Playwright needs every cookie
 // LinkedIn sets to look authentic, including ones we haven't enumerated).
 async function getFullLinkedInCookieJar() {
   const jar = [];
@@ -151,7 +151,7 @@ async function captureAndSendSession() {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const locale = navigator.language || 'en-US';
 
-  // userAgent — the exact UA Patchright needs to match to avoid fingerprint mismatch
+  // userAgent: the exact UA Patchright needs to match to avoid fingerprint mismatch
   const userAgent = navigator.userAgent;
 
   const apiUrl = `${session.origin}/api/autoapply/session`;
@@ -190,7 +190,7 @@ async function captureAndSendSession() {
 // ── Option C: auto-capture when LinkedIn tab fully loads ──────────────────────
 // When the LKOT page calls STUDOJO_OPEN_LINKEDIN, the background opens a
 // LinkedIn tab and sets pendingCapture = true. This listener fires when that tab
-// reaches "complete" and auto-runs captureAndSendSession() — zero user interaction
+// reaches "complete" and auto-runs captureAndSendSession(). Zero user interaction
 // needed beyond opening the tab.
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
@@ -204,7 +204,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   ]);
   if (!stored.pendingCapture) return;
 
-  // Stale flag guard — auto-expires after 10 minutes
+  // Stale flag guard: auto-expires after 10 minutes
   if (stored.pendingCaptureExpiry && Date.now() > stored.pendingCaptureExpiry) {
     await chrome.storage.local.remove(['pendingCapture', 'pendingCaptureTabId', 'pendingCaptureExpiry']);
     return;
@@ -213,14 +213,14 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   // If we tracked which tab we opened, only fire for that one
   if (stored.pendingCaptureTabId && stored.pendingCaptureTabId !== tabId) return;
 
-  // Clear immediately — prevents double-fire if tab navigates again
+  // Clear immediately: prevents double-fire if tab navigates again
   await chrome.storage.local.remove(['pendingCapture', 'pendingCaptureTabId', 'pendingCaptureExpiry']);
 
   try {
     await captureAndSendSession();
     console.log('[studojo] Auto-captured LinkedIn session (Option C)');
 
-    // Notify open Studojo tabs — page can update immediately without waiting for next poll
+    // Notify open Studojo tabs so the page can update immediately without waiting for next poll
     const studojoTabs = await chrome.tabs.query({ url: STUDOJO_ORIGINS.map(o => `${o}/*`) });
     for (const t of studojoTabs) {
       chrome.tabs.sendMessage(t.id, { type: 'STUDOJO_SESSION_CAPTURED' }).catch(() => {});
@@ -242,7 +242,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name !== ALARM_NAME) return;
 
-  // Run both refreshes — autoapply and outreach are independent features that
+  // Run both refreshes: autoapply and outreach are independent features that
   // can be connected separately. Don't let one failure starve the other.
   const results = await Promise.allSettled([
     captureAndSendSession(),
@@ -251,7 +251,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
   const [autoApplyRes, outreachRes] = results;
 
-  // If LinkedIn or Studojo session is gone, clear ALL connected flags — the
+  // If LinkedIn or Studojo session is gone, clear ALL connected flags; the
   // user will have to reconnect manually anyway.
   const fatalErrors = ['not_logged_in_linkedin', 'not_logged_in_studojo'];
   const hadFatal = results.some(
@@ -294,10 +294,10 @@ chrome.cookies.onChanged.addListener(async (info) => {
   if (info.cookie?.name !== 'li_at') return;
   if (!info.removed) return;
   if (!(info.cookie.domain || '').includes('linkedin.com')) return;
-  // Ignore "expired_overwrite" — that's just LinkedIn rotating the value, not a logout.
+  // Ignore "expired_overwrite": that's just LinkedIn rotating the value, not a logout.
   if (info.cause === 'overwrite') return;
 
-  console.log('[studojo] li_at removed (cause=%s) — treating as LinkedIn logout', info.cause);
+  console.log('[studojo] li_at removed (cause=%s), treating as LinkedIn logout', info.cause);
 
   await chrome.storage.local.set({ li_logged_out_at: Date.now() });
   await chrome.storage.local.remove(['connected', 'outreach_connected']);
@@ -320,13 +320,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true; // keep channel open for async response
   }
 
-  // Outreach flow — return the cookie jar to the page so IT can POST to the
+  // Outreach flow: return the cookie jar to the page so IT can POST to the
   // outreach backend. We don't post from the extension here because the page
   // already has the user's auth token and the right endpoint URL.
   if (message.type === 'GET_LI_COOKIES_RAW') {
     (async () => {
       try {
-        // Pull full cookie jar from BOTH origins to maximise coverage — some
+        // Pull full cookie jar from BOTH origins to maximise coverage: some
         // cookies are set on .linkedin.com, others on www.linkedin.com.
         const jar = [];
         const seen = new Set();
@@ -358,7 +358,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         }
         if (!jsessionid) {
           // li_at without JSESSIONID happens when the user has been logged in
-          // for a while but hasn't visited LinkedIn recently — the CSRF cookie
+          // for a while but hasn't visited LinkedIn recently, so the CSRF cookie
           // got cleaned up. A single page-load on LinkedIn restores it.
           sendResponse({ error: 'no_jsessionid' });
           return;
@@ -414,7 +414,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         outreach_connected_at: Date.now(),
         studojo_origin: origin,
       });
-      // Make sure an alarm is armed so the 7-day refresh actually fires —
+      // Make sure an alarm is armed so the 7-day refresh actually fires:
       // alarms get cleared when the extension is reloaded.
       const existing = await chrome.alarms.get(ALARM_NAME);
       if (!existing) {
@@ -434,7 +434,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true;
   }
 
-  // Option C — page asks us to open LinkedIn + auto-capture on load
+  // Option C: page asks us to open LinkedIn + auto-capture on load
   if (message.type === 'OPEN_LINKEDIN_FOR_CAPTURE') {
     (async () => {
       await chrome.storage.local.set({

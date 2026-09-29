@@ -40,7 +40,7 @@ export async function getCareerSummary(
     if (!resp.ok) return null;
     return (await resp.json()) as CareerSummary;
   } catch {
-    // Coach summary is supplementary — never block the page on it.
+    // Coach summary is supplementary: never block the page on it.
     return null;
   }
 }

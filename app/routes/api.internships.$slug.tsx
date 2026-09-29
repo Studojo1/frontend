@@ -49,12 +49,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     
     let result;
     if (isUuid) {
-      // Direct ID lookup — parameterized (value is bound, not interpolated)
+      // Direct ID lookup, parameterized (value is bound, not interpolated)
       result = await db.execute(
         sql`SELECT * FROM internships WHERE id = ${idOrSlug} AND status = 'published' LIMIT 1`
       );
     } else {
-    // Decode URL-encoded characters; no manual SQL escaping needed — `sql`
+    // Decode URL-encoded characters; no manual SQL escaping needed, since `sql`
     // binds the value as a parameter.
       const slug = decodeURIComponent(idOrSlug).trim();
 

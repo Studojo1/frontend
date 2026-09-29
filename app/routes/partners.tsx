@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
 
-/** Layout wrapper for /partners/* — child routes render inside this Outlet. */
+/** Layout wrapper for /partners/*. Child routes render inside this Outlet. */
 export default function PartnersLayout() {
   return <Outlet />;
 }

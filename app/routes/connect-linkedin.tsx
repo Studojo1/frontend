@@ -1,5 +1,5 @@
 // /connect-linkedin?token=xxx
-// Token-based LinkedIn connect page — no Studojo login required.
+// Token-based LinkedIn connect page, no Studojo login required.
 // Sent via email link (Gojiberry-style).
 
 import { useState, useEffect, useRef } from "react";
@@ -183,7 +183,7 @@ export default function ConnectLinkedIn({ loaderData }: Route.ComponentProps) {
               <LinkedInIcon size={24} />
             </div>
             <h2 className="text-xl font-semibold text-[#0a0a0a] mb-1">Connect LinkedIn</h2>
-            <p className="text-sm text-[#777]">Enter your LinkedIn credentials. We log in on a secure server — your password is never stored.</p>
+            <p className="text-sm text-[#777]">Enter your LinkedIn credentials. We log in on a secure server. Your password is never stored.</p>
           </div>
 
           <div className="space-y-3">
