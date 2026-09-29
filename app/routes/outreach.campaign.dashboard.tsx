@@ -1,6 +1,6 @@
 import { describeError } from "~/lib/error-detail";
 import { useEffect, useState, useCallback, useRef, Fragment } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import {
   FiSend, FiAlertCircle, FiBarChart2, FiPause, FiPlay, FiUsers,
   FiCheckCircle, FiXCircle, FiClock, FiMessageCircle, FiX,
@@ -293,7 +293,12 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [selectedEmail, setSelectedEmail] = useState<CampaignEmail | null>(null);
   const [expandedThreads, setExpandedThreads] = useState<Set<number>>(new Set());
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  // PH-27: the Inbox page sends email-plan students here with ?filter=replied,
+  // since their replies live in this table.
+  const [searchParams] = useSearchParams();
+  const [statusFilter, setStatusFilter] = useState<string>(
+    () => (searchParams.get("filter") === "replied" ? "replied" : "all"),
+  );
   const [showTestModal, setShowTestModal] = useState(false);
   const [testRecipients, setTestRecipients] = useState<TestRecipient[]>([{ first_name: "", company: "", email: "" }]);
   const [sendingTest, setSendingTest] = useState(false);
