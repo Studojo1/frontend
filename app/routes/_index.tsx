@@ -1,4 +1,4 @@
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, redirect } from "react-router";
 import {
@@ -67,42 +67,42 @@ export function meta({ data }: Route.MetaArgs) {
     {
       name: "description",
       content:
-        "Skip the job portal queue. Studojo's AI finds the hiring manager, writes a personalised email, and sends it from your Gmail. 500+ students placed. TCS, Goldman, Figma. $20 for 200 outreaches.",
+        "Skip the job portal queue. Studojo's AI finds the hiring manager, writes a personalised email, and sends it from your Gmail. 8,500+ students signed up. $20 for 200 outreaches.",
     },
     { tagName: "link", rel: "canonical", href: BASE_URL },
     { property: "og:type", content: "website" },
     { property: "og:title", content: "Studojo | Land Your Next Internship or Job" },
-    { property: "og:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview. 500+ students placed." },
+    { property: "og:description", content: "AI finds the hiring manager. AI writes the email. It goes out from your own Gmail. 8,500+ students signed up." },
     { property: "og:url", content: BASE_URL },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "Studojo | Land Your Next Internship or Job" },
     { name: "twitter:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview." },
+    { property: "og:image", content: `${BASE_URL}/og-default.png` },
+    { name: "twitter:image", content: `${BASE_URL}/og-default.png` },
+    {
+      "script:ld+json": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": `${BASE_URL}/#organization`,
+            name: "Studojo",
+            url: BASE_URL,
+            logo: `${BASE_URL}/logo.png`,
+          },
+          {
+            "@type": "WebSite",
+            "@id": `${BASE_URL}/#website`,
+            name: "Studojo",
+            url: BASE_URL,
+            publisher: { "@id": `${BASE_URL}/#organization` },
+          },
+        ],
+      },
+    },
   ];
 }
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const sectionVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-    },
-  },
-};
 
 function AnnouncementBar() {
   return (
@@ -125,6 +125,9 @@ function InternshipPopup() {
 
   useEffect(() => {
     if (sessionStorage.getItem("outreach-popup-dismissed")) return;
+    // Not on phones: it opened mid-scroll and swallowed the tap meant for
+    // whatever button was under the user's finger.
+    if (window.matchMedia("(max-width: 767px)").matches) return;
     let fired = false;
     function onScroll() {
       if (fired) return;
@@ -179,7 +182,7 @@ function InternshipPopup() {
                   Email hiring managers directly
                 </h2>
                 <p className="font-['Satoshi'] text-base text-neutral-600">
-                  Upload your resume. We find who can hire you and write the emails. Most students get a reply within a week.
+                  Upload your resume. We find who can hire you and write the emails. About 4 in 10 students hear back in their first week.
                 </p>
               </div>
               <Link
@@ -213,39 +216,19 @@ export default function Home() {
       <AnnouncementBar />
       <Header />
       <InternshipPopup />
-      <motion.main
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.div variants={sectionVariants}>
-          <Hero />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <CollegesBanner />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <StepsSection />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <ProblemSolution />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <TrustStrip />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <FeaturedProductCard />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <BackedBySection />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <CTABanner />
-        </motion.div>
-        <motion.div variants={sectionVariants}>
-          <Footer />
-        </motion.div>
-      </motion.main>
+      {/* Content renders visible on the server, so the page is readable and
+          links work before JS loads (and even if hydration fails). */}
+      <main>
+        <Hero />
+        <CollegesBanner />
+        <StepsSection />
+        <ProblemSolution />
+        <TrustStrip />
+        <FeaturedProductCard />
+        <BackedBySection />
+        <CTABanner />
+        <Footer />
+      </main>
     </>
   );
 }

@@ -11,6 +11,11 @@ import {
 import { Header } from "~/components/common/header";
 import { outreachFetch } from "~/lib/outreach/api";
 
+// Internal tool, login-gated and unlinked: keep it out of search (HP-N05).
+export function meta() {
+  return [{ title: "Studojo" }, { name: "robots", content: "noindex, nofollow" }];
+}
+
 // ── Auth guard ────────────────────────────────────────────────────────────────
 
 export async function loader({ request }: Route.LoaderArgs) {

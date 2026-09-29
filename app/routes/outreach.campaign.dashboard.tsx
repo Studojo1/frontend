@@ -13,7 +13,7 @@ import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { MetricCard } from "~/components/outreach/MetricCard";
-import { useOutreachAuth } from "~/lib/outreach/hooks";
+import { useOutreachAuth, fetchNextStep } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
 import { formatTimestamp } from "~/lib/outreach/format-time";
@@ -148,7 +148,7 @@ function CountdownCell({ startedAt, offsetSeconds, status }: { startedAt: string
   return <span className="text-studojo-purple font-bold">Sending in {remaining}s</span>;
 }
 
-function StatusBadge({ status, sentiment, skipped }: { status: string; sentiment?: string | null; skipped?: boolean }) {
+function StatusBadge({ status, sentiment, skipped, paused }: { status: string; sentiment?: string | null; skipped?: boolean; paused?: boolean }) {
   if (status === "replied") {
     const sentimentConfig: Record<string, { color: string; icon: React.JSX.Element; label: string }> = {
       positive: { color: "text-studojo-green", icon: <FiThumbsUp className="w-3 h-3" />, label: "Positive" },
@@ -198,6 +198,14 @@ function StatusBadge({ status, sentiment, skipped }: { status: string; sentiment
       <span className="text-amber-600 font-bold text-sm">Sending</span>
     </div>
   );
+  // In a paused campaign nothing queued will go out until the user resumes, so
+  // a clock and "To Send" read as "coming soon" (audit PP-P38).
+  if (paused && !["replied", "bounced", "sent", "failed", "sending", "expired", "cancelled_expired", "cancelled_reply"].includes(status)) return (
+    <div className="flex items-center gap-1">
+      <FiPause className="w-4 h-4 text-amber-600" />
+      <span className="text-amber-600 font-bold text-sm">Paused</span>
+    </div>
+  );
   if (status === "followup_pending") return (
     <div className="flex items-center gap-1">
       <FiClock className="w-4 h-4 text-studojo-muted" />
@@ -221,6 +229,37 @@ function StatusBadge({ status, sentiment, skipped }: { status: string; sentiment
       <FiClock className="w-4 h-4 text-studojo-muted" />
       <span className="text-studojo-muted font-bold text-sm">To Send</span>
     </div>
+  );
+}
+
+type CampaignSummary = { id: number; name: string; status: string; created_at?: string | null };
+
+/** Lets a student with more than one campaign open any of them (PS-N02). */
+function CampaignSwitcher({ currentId, onPick }: { currentId: number | null; onPick: (id: number) => void }) {
+  const [campaigns, setCampaigns] = useState<CampaignSummary[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    outreachFetch<{ campaigns?: CampaignSummary[] }>("/campaign/user/all")
+      .then((d) => { if (!cancelled) setCampaigns(d?.campaigns ?? []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  if (campaigns.length < 2) return null;
+  return (
+    <label className="mt-2 flex items-center gap-2 text-sm font-satoshi text-studojo-muted">
+      Campaign
+      <select
+        value={currentId ?? ""}
+        onChange={(e) => onPick(Number(e.target.value))}
+        className="h-9 rounded-lg border-2 border-studojo-ink/20 bg-white px-2 text-base text-studojo-ink"
+      >
+        {campaigns.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name} ({c.status}{c.created_at ? `, ${new Date(c.created_at).toLocaleDateString()}` : ""})
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -348,12 +387,17 @@ export default function DashboardPage() {
     }
 
     if (!campaignId) {
-      outreachFetch<{ campaign?: { id: number } }>("/campaign/user/latest")
-        .then((data) => {
-          const c = data?.campaign;
-          if (c?.id) {
-            setCampaignId(c.id);
-          }
+      // Prefer the campaign that is running or paused (next-step picks it) over
+      // the newest one: with two campaigns on one order, an older running one
+      // was unreachable (audit PS-N02).
+      fetchNextStep()
+        .then(async (step) => {
+          if (step?.state === "campaign_active" && step.campaign_id) return step.campaign_id;
+          const data = await outreachFetch<{ campaign?: { id: number } }>("/campaign/user/latest");
+          return data?.campaign?.id ?? null;
+        })
+        .then((id) => {
+          if (id) setCampaignId(id);
         })
         .catch(() => {})
         .finally(() => setLoading(false));
@@ -1205,6 +1249,7 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h1 className="font-clash text-2xl font-bold text-studojo-ink">{metrics.campaign_name}</h1>
+                <CampaignSwitcher currentId={campaignId} onPick={setCampaignId} />
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium border ${statusColor[metrics.status] || statusColor.draft}`}>
                     {metrics.status.charAt(0).toUpperCase() + metrics.status.slice(1)}
@@ -1704,7 +1749,7 @@ export default function DashboardPage() {
                               <td className="py-3 px-2 text-studojo-muted truncate max-w-[200px]">{email.to_email}</td>
                               <td className="py-3 px-2 text-studojo-muted hidden md:table-cell">{email.lead_company}</td>
                               <td className="py-3 px-2">
-                                <StatusBadge status={email.status === "queued" ? "queued" : email.status} sentiment={email.reply_sentiment} skipped={isSkip(email)} />
+                                <StatusBadge status={email.status === "queued" ? "queued" : email.status} sentiment={email.reply_sentiment} skipped={isSkip(email)} paused={metrics?.status === "paused"} />
                               </td>
                               <td className="py-3 px-2 text-sm">
                                 {email.status === "replied" && email.reply_received_at
@@ -1739,7 +1784,7 @@ export default function DashboardPage() {
                                   <td className="py-2 px-2 text-studojo-muted text-xs truncate max-w-[200px]">{fu.to_email}</td>
                                   <td className="py-2 px-2 text-studojo-muted hidden md:table-cell text-xs">{fu.lead_company}</td>
                                   <td className="py-2 px-2">
-                                    <StatusBadge status={fu.status} sentiment={fu.reply_sentiment} skipped={isSkip(fu)} />
+                                    <StatusBadge status={fu.status} sentiment={fu.reply_sentiment} skipped={isSkip(fu)} paused={metrics?.status === "paused"} />
                                   </td>
                                   <td className="py-2 px-2 text-sm">
                                     {fu.status === "sent" && fu.sent_at

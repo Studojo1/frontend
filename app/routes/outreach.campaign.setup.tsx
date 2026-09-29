@@ -60,7 +60,6 @@ export default function CampaignSetupPage() {
   const [userTimezone, setUserTimezone] = useState(() => getDefaultTimezone());
   const [launching, setLaunching] = useState(false);
   const [error, setError] = useState("");
-  const [gmailRequired, setGmailRequired] = useState(false);
 
   // Test launch state
   const [testEmails, setTestEmails] = useState<TestEmail[]>([]);
@@ -70,8 +69,10 @@ export default function CampaignSetupPage() {
 
   const safeSettings = [
     { icon: <FiMail className="w-4 h-4" />, label: "Daily limit", value: "Up to 20 emails/day" },
-    { icon: <FiClock className="w-4 h-4" />, label: "Sending hours", value: "9 AM - 6 PM" },
-    { icon: <FiZap className="w-4 h-4" />, label: "Gap between emails", value: "40-90 minutes (randomized)" },
+    // Matches campaign_worker: sends run 9 AM to 5 PM, spaced evenly with
+    // jitter across that window (audit PS-N13).
+    { icon: <FiClock className="w-4 h-4" />, label: "Sending hours", value: "9 AM - 5 PM" },
+    { icon: <FiZap className="w-4 h-4" />, label: "Gap between emails", value: "About 20 a day, spread across the day" },
     { icon: <FiShield className="w-4 h-4" />, label: "First email", value: "Within 3 minutes of launch" },
   ];
 
@@ -92,7 +93,15 @@ export default function CampaignSetupPage() {
     fetchNextStep().then((step) => {
       if (cancelled || !step) return;
       if (step.state === "campaign_active") {
+        // Open the campaign that is actually running or paused, not whatever
+        // the store last held (audit PS-N02).
+        if (step.campaign_id) setCampaignId(step.campaign_id);
         navigate("/outreach/campaign/dashboard");
+        return;
+      }
+      // Setup is the paid part of the flow; the API refuses it unpaid (PS-N08).
+      if (step.state === "not_paid") {
+        navigate("/outreach/enrichment", { replace: true });
         return;
       }
       if (!candidateId && step.candidate_id) setCandidateId(step.candidate_id);
@@ -192,12 +201,17 @@ export default function CampaignSetupPage() {
   };
 
   const handleLaunch = async () => {
+    // A tap on Launch used to set an error far above the floating button and
+    // look like nothing happened (audit PS-N04). Without Gmail, go connect it:
+    // the connect page comes back here when done.
     if (!emailAccountId) {
-      setError("Connect your Gmail first to launch. Click here to connect →");
-      setGmailRequired(true);
+      navigate("/outreach/connect/gmail");
       return;
     }
-    if (!candidateId) return;
+    if (!candidateId) {
+      setError("We could not find your resume. Upload it again to continue.");
+      return;
+    }
     setLaunching(true);
     setError("");
     try {
@@ -379,31 +393,33 @@ export default function CampaignSetupPage() {
                   )}
                   Send Test Emails
                 </button>
-                {testLaunching && <p className="text-xs text-studojo-muted text-center mt-2 font-satoshi">Redirecting to launch screen...</p>}
+                {testLaunching && <p className="text-xs text-studojo-muted text-center mt-2 font-satoshi">Opening your test results...</p>}
               </>
             )}
           </div>
 
-          {gmailRequired ? (
-            <div className="rounded-2xl border-2 border-red-300 bg-red-50 p-4 text-center">
-              <p className="text-sm font-bold text-red-700 font-satoshi mb-2">Gmail not connected</p>
-              <p className="text-sm text-red-600 font-satoshi mb-3">You need to connect your Gmail account before launching.</p>
-              <button
-                onClick={() => navigate("/outreach/connect/gmail")}
-                className="h-9 px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-              >
-                Connect Gmail →
-              </button>
-            </div>
-          ) : error ? (
+          {error ? (
             <p className="text-red-600 text-sm text-center font-satoshi">{error}</p>
           ) : null}
         </div>
       </div>
       <Footer />
 
-      {/* Floating Launch Campaign button */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
+      {/* Floating Launch Campaign button, with any error right above it */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex w-[min(92vw,28rem)] flex-col items-center gap-2">
+        {error && (
+          <p role="alert" className="w-full rounded-xl border-2 border-red-300 bg-red-50 px-3 py-2 text-center text-sm font-satoshi text-red-700 shadow-brutal">
+            {error}
+            {!candidateId && (
+              <>
+                {" "}
+                <button onClick={() => navigate("/outreach/onboarding/upload")} className="font-semibold underline">
+                  Upload resume
+                </button>
+              </>
+            )}
+          </p>
+        )}
         <button
           onClick={handleLaunch}
           disabled={launching}

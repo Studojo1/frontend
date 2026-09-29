@@ -8,7 +8,7 @@ import {
   FiShield, FiX, FiPlus, FiUserPlus, FiBarChart2,
 } from "react-icons/fi";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
-import type { Route } from "./+types/autoapply";
+import type { Route } from "./+types/autoapply._index";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);

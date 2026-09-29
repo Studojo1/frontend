@@ -12,17 +12,17 @@ export function meta({}: Route.MetaArgs) {
     { title: "About Studojo | Work on Things That Matter" },
     {
       name: "description",
-      content: "Studojo is a global student career platform helping 10,000+ students land internships, build standout resumes, and work on things that actually matter. Based in Bangalore, serving students worldwide.",
+      content: "Studojo is a global student career platform used by 8,500+ students to find internships, build standout resumes, and work on things that actually matter. Based in Bangalore, serving students worldwide.",
     },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/about` },
     { property: "og:type", content: "website" },
     { property: "og:title", content: "About Studojo | Work on Things That Matter" },
-    { property: "og:description", content: "Studojo is a global student career platform helping 10,000+ students land internships, build standout resumes, and work on things that actually matter." },
+    { property: "og:description", content: "Studojo is a global student career platform used by 8,500+ students to find internships, build standout resumes, and work on things that actually matter." },
     { property: "og:url", content: `${BASE_URL}/about` },
     { property: "og:site_name", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "About Studojo | Work on Things That Matter" },
-    { name: "twitter:description", content: "Global student career platform helping 10,000+ students land internships, build standout resumes, and work on things that actually matter." },
+    { name: "twitter:description", content: "Global student career platform used by 8,500+ students to find internships, build standout resumes, and work on things that actually matter." },
   ];
 }
 
@@ -43,9 +43,9 @@ const itemVariants: Variants = {
 
 const DOJOS = [
   {
-    title: "Internship Dojo",
-    description: "Global internship discovery, ATS resume builder, AI-powered outreach to hiring managers and founders, application tracking. The full pipeline from zero to interview.",
-    checklist: ["AI finds the right roles", "Outreach to real humans", "Full application tracking"],
+    title: "Outreach Dojo",
+    description: "Upload your resume and we find the hiring managers who can hire you, write each one a personal email, and send it from your own Gmail.",
+    checklist: ["Finds real hiring managers", "Personal emails, not templates", "Sent from your Gmail"],
     accent: "bg-emerald-500",
     iconBg: "bg-emerald-200",
     iconColor: "text-emerald-500",
@@ -56,7 +56,7 @@ const DOJOS = [
     comingSoon: false,
   },
   {
-    title: "Careers Dojo",
+    title: "Resume Maker",
     description: "ATS-optimized resume builder. Professional-grade, 100% free. No paywalls on the thing every student needs most.",
     checklist: ["ATS optimized", "Professional design", "100% free forever"],
     accent: "bg-amber-500",
@@ -69,18 +69,19 @@ const DOJOS = [
     comingSoon: false,
   },
   {
-    title: "Revision Dojo",
-    description: "Custom study notes, practice questions, flashcards, and mind maps. Everything you need to actually retain what you learn.",
-    checklist: ["Custom study notes", "Practice questions", "Flashcards and mind maps"],
+    title: "Career Coach",
+    description: "Free AI career coach. Tell it where you are and where you want to go, and get a plan, resume feedback and interview prep.",
+    checklist: ["Personal career plan", "Resume feedback", "Interview prep"],
     accent: "bg-rose-500",
     iconBg: "bg-rose-200",
     iconColor: "text-rose-500",
     ctaColor: "text-rose-600",
     icon: <FiTarget />,
-    href: "#",
-    cta: "Coming soon",
-    comingSoon: true,
+    href: "/cc",
+    cta: "Talk to the coach",
+    comingSoon: false,
   },
+
 ];
 
 const PRINCIPLES = [
@@ -365,7 +366,7 @@ export default function About() {
                 Ready to get started?
               </h2>
               <p className="mb-8 font-['Satoshi'] text-lg text-violet-100">
-                10,000+ students already have.
+                8,500+ students already have.
               </p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link

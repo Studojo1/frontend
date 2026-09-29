@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLoaderData, useSearchParams } from "react-router";
 import { Header, Footer } from "~/components";
 import { BlogCard } from "~/components/blog/blog-card";
-import type { Route } from "./+types/blog";
+import type { Route } from "./+types/blog._index";
 import db from "~/lib/db";
 import { sql } from "drizzle-orm";
 

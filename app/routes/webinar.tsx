@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
 import { Header, Footer } from "~/components";
 import { checkEmail } from "~/lib/email-validate";
-import { WEBINAR } from "~/lib/webinar-event";
+import { WEBINAR, webinarHasEnded } from "~/lib/webinar-event";
+import type { Route } from "./+types/webinar";
 import {
   WEBINAR_PRICE_PAISE,
   WEBINAR_PRICE_WITH_REF_PAISE,
@@ -108,7 +109,97 @@ interface RefState {
   message?: string;
 }
 
-export default function Webinar() {
+// Decided on the server so the page never flashes "Book my seat" for an event
+// that already happened.
+export function loader() {
+  return { ended: webinarHasEnded() };
+}
+
+export default function WebinarRoute({ loaderData }: Route.ComponentProps) {
+  return loaderData.ended ? <WebinarEnded /> : <Webinar />;
+}
+
+/** Shown after the event: no payment, just "tell me about the next one". */
+function WebinarEnded() {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const check = checkEmail(email.trim().toLowerCase());
+    if (!check.ok) {
+      setError(check.error ?? "Please enter a valid email.");
+      return;
+    }
+    setState("sending");
+    try {
+      const res = await fetch("/api/webinar-register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notifyOnly: true, email, fullName: name }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
+      setState("done");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setState("idle");
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FAFAF9]">
+      <Header />
+      <div className="mx-auto max-w-xl px-4 py-12 md:px-8">
+        <div className="bg-white border-2 border-neutral-900 rounded-[32px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-8 text-center">
+          <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-['Clash_Display']">
+            This webinar has ended
+          </h1>
+          <p className="mt-3 text-neutral-600 font-['Satoshi']">
+            &ldquo;{WEBINAR.title}&rdquo; ran on {WEBINAR.dateLabel}. Leave your email and we will tell you when the next one opens.
+          </p>
+          {state === "done" ? (
+            <p className="mt-6 font-semibold text-neutral-900 font-['Satoshi']">You are on the list. We will email you about the next webinar.</p>
+          ) : (
+            <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3 text-left">
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                autoComplete="name"
+                className="h-12 rounded-xl border-2 border-neutral-900 px-4 font-['Satoshi'] text-base"
+              />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                className="h-12 rounded-xl border-2 border-neutral-900 px-4 font-['Satoshi'] text-base"
+              />
+              {error && <p className="text-sm text-red-600 font-['Satoshi']">{error}</p>}
+              <button
+                type="submit"
+                disabled={state === "sending"}
+                className="h-12 rounded-2xl border-2 border-neutral-900 bg-violet-500 font-['Satoshi'] font-bold text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] disabled:opacity-60"
+              >
+                {state === "sending" ? "Saving…" : "Tell me about the next one"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+function Webinar() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

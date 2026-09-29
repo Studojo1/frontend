@@ -94,6 +94,9 @@ async function publishWelcome(payload: { user_id: string; email: string; name?: 
 }
 
 export const auth = betterAuth({
+  // Failed OAuth callbacks (bad or missing state) used to land on the homepage
+  // with ?error=... that nothing reads. /auth shows a message (audit ST-N08).
+  onAPIError: { errorURL: "/auth" },
   appName: "Studojo",
   database: drizzleAdapter(db, {
     provider: "pg",

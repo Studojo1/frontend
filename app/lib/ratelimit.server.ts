@@ -46,6 +46,9 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   auth: { requests: 1000, window: 60 }, // Very high limit (effectively disabled for internal software)
   payment: { requests: 10, window: 60 }, // 10 requests per minute for payments
   admin: { requests: 30, window: 60 }, // 30 requests per minute for admin
+  // Anonymous analytics endpoints (/api/funnel-event writes a row per call,
+  // /api/meta-event forwards to Meta), per IP (audit ST-N12).
+  tracking: { requests: 30, window: 60 },
   default: { requests: 100, window: 60 }, // 100 requests per minute for general endpoints
 };
 
@@ -53,6 +56,9 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
  * Get endpoint type from request path
  */
 function getEndpointType(path: string): string {
+  if (path === "/api/funnel-event" || path === "/api/meta-event") {
+    return "tracking";
+  }
   if (path.includes("/auth") || path.includes("/login") || path.includes("/signin") || path.includes("/signup")) {
     return "auth";
   }
