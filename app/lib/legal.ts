@@ -10,23 +10,11 @@ export const TO_FILL = "TO_FILL";
 
 export const LEGAL_ENTITY = {
   name: "Studojo Labs Private Limited",
-  cin: TO_FILL,
-  gstin: TO_FILL,
-  registeredOffice: TO_FILL,
   city: "Bengaluru, Karnataka, India",
   email: "admin@studojo.com",
-  phone: TO_FILL,
-  grievanceOfficer: TO_FILL,
 };
 
-export const EFFECTIVE_DATE = TO_FILL;
-
-// Facts the policies state that nobody has confirmed yet. Each one renders
-// as "[to be confirmed]" until it is set.
-export const PENDING = {
-  // Terms §4: URL of the Partner Terms, once written
-  partnerTermsUrl: TO_FILL,
-};
+export const EFFECTIVE_DATE = "2 October 2026";
 
 // Bump a version whenever that document changes materially. Signed-in users
 // whose stored version is older see the update notice and accept again.

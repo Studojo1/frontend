@@ -5,7 +5,7 @@
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
-import { EFFECTIVE_DATE, LEGAL_ENTITY, POLICY_VERSIONS, fill } from "~/lib/legal";
+import { EFFECTIVE_DATE, POLICY_VERSIONS, fill } from "~/lib/legal";
 import type { Route } from "./+types/refund-policy";
 
 export function meta({}: Route.MetaArgs) {
@@ -219,7 +219,7 @@ export default function RefundPolicy() {
             <section id="grievance" className="scroll-mt-24">
             <h2 className="mb-6 font-['Clash_Display'] text-3xl font-medium leading-tight text-neutral-900">12. Grievance officer</h2>
             <div className="rounded-2xl border-2 border-neutral-900 bg-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] md:p-8">
-            <ul className="list-disc space-y-3 pl-6 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base"><li>Name: {fill(LEGAL_ENTITY.grievanceOfficer)}</li><li>Designation: Grievance Officer, Studojo Labs Private Limited</li><li>Email: admin@studojo.com, with &quot;GRIEVANCE&quot; at the start of the subject line</li><li>Phone: {fill(LEGAL_ENTITY.phone)}</li><li>Address: Studojo Labs Private Limited, {fill(LEGAL_ENTITY.registeredOffice)}, Bengaluru, Karnataka, India</li></ul>
+            <ul className="list-disc space-y-3 pl-6 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base"><li>Designation: Grievance Officer, Studojo Labs Private Limited</li><li>Email: admin@studojo.com, with &quot;GRIEVANCE&quot; at the start of the subject line</li><li>Address: Studojo Labs Private Limited, Bengaluru, Karnataka, India</li></ul>
             <p className="mt-3 font-['Satoshi'] text-sm leading-6 text-neutral-700 md:text-base">The grievance officer acknowledges a complaint within 48 hours and resolves it within one month of receiving it. If you are not satisfied, you can go to the National Consumer Helpline (consumerhelpline.gov.in) or file a complaint at e-daakhil.nic.in.</p>
             </div>
             </section>
