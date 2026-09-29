@@ -506,3 +506,23 @@ body {
 .sd-reel .sd-col span { height:1em; line-height:1; display:block; text-align:center; }
 .sd-odo .sd-sep { height:1em; line-height:1; }
 .sd-pii { filter:blur(4.5px); user-select:none; pointer-events:none; }
+
+/* Report pages on phones (audit HP-N14). Each report inlines its own table
+   and stat-grid CSS, so these need !important to win. Wide tables scroll
+   inside themselves instead of pushing the whole page sideways, and stat
+   grids drop to as many columns as fit. */
+@media (max-width: 640px) {
+  .data-table,
+  .vs-table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rpt-stat-row {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+  }
+  .rpt-stat {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

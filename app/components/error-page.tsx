@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { motion } from "framer-motion";
-import { Header } from "./header";
+import { Header } from "./common/header";
 
 interface ErrorPageProps {
   statusCode?: number;

@@ -42,6 +42,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
+        {/* Site-wide share image. Pages with their own og:image render theirs
+            first (via <Meta />), and link-preview crawlers use the first one,
+            so this only fills in where a page has none (audit HP-N12). */}
+        <meta property="og:image" content="https://studojo.com/og-default.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:image" content="https://studojo.com/og-default.png" />
         <Links />
         {/* Suppress third-party warnings immediately, before any scripts load */}
         <script
@@ -389,6 +396,12 @@ function ErrorTracker({ errorType, errorMessage, errorCode }: { errorType: strin
         () => send(undefined),
       );
     }
+    // PostHog, not only Mixpanel, so broken inbound links show up in the
+    // admin funnel (audit HP-N16).
+    if (errorCode === "404") {
+      initPostHog();
+      capturePostHog("page_not_found", { path: window.location.pathname, referrer: document.referrer || null });
+    }
   }, [errorType, errorMessage, errorCode]);
   return null;
 }
@@ -421,6 +434,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 
   return (
     <>
+      <title>{statusCode === 404 ? "Page not found | Studojo" : "Something went wrong | Studojo"}</title>
       <ErrorTracker errorType={errorType} errorMessage={details} errorCode={errorCode} />
       <ErrorPage
         statusCode={statusCode}
