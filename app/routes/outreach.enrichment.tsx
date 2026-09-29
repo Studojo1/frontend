@@ -285,6 +285,8 @@ export default function EnrichmentPage() {
   const [currency, setCurrency] = useState("USD");
   const [credits, setCredits] = useState<CreditsInfo | null>(null);
   const [leadCount, setLeadCount] = useState<number | null>(null);
+  // Leads whose titles match the target roles (UC-Q09); the rest are broader.
+  const [strongCount, setStrongCount] = useState<number | null>(null);
   const [dreamCompanies, setDreamCompanies] = useState<Array<{ name: string; domain: string | null }>>([]);
   const [couponCode, setCouponCode] = useState("");
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
@@ -508,7 +510,7 @@ export default function EnrichmentPage() {
     if (!candidateId) return;
     Promise.all([
       outreachFetch<any>(`/candidate/${candidateId}/profile`).catch(() => null),
-      outreachFetch<{ leads: any[] } | any[]>(`/candidate/${candidateId}/leads`).catch(() => null),
+      outreachFetch<{ leads: any[]; strong_total?: number } | any[]>(`/candidate/${candidateId}/leads`).catch(() => null),
     ]).then(([profile, leadsResp]) => {
       const raw: string[] = profile?.dream_companies || [];
       const clean = raw
@@ -524,6 +526,9 @@ export default function EnrichmentPage() {
       // for one-off sends and may never have run discovery.
       const forCrm = new URLSearchParams(window.location.search).get("for") === "crm";
       if (leadsResp && !forCrm) setLeadCount(leadArr.length);
+      if (leadsResp && !Array.isArray(leadsResp) && typeof leadsResp.strong_total === "number") {
+        setStrongCount(leadsResp.strong_total);
+      }
       const domainByCompany = new Map<string, string>();
       for (const l of leadArr) {
         const co = (l?.company || "").trim().toLowerCase();
@@ -780,6 +785,16 @@ export default function EnrichmentPage() {
           Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
         </p>
 
+        {/* Say how many of their leads actually match, before they pick a
+            pack bigger than that (UC-Q09). */}
+        {strongCount !== null && !!leadCount && (
+          <p className="max-w-xl mx-auto -mt-4 mb-8 text-center text-sm font-satoshi text-studojo-ink">
+            We found <strong>{strongCount.toLocaleString("en-US")} strong matches</strong> for your target roles
+            {leadCount > strongCount ? <> and {(leadCount - strongCount).toLocaleString("en-US")} broader matches</> : null}.
+            {" "}Every pack contacts your strongest matches first.
+          </p>
+        )}
+
         {/* Dream companies: single-row horizontal scroll */}
         {dreamCompanies.length > 0 && (
           <div className="max-w-3xl mx-auto mb-8 rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-brutal">
@@ -933,6 +948,11 @@ export default function EnrichmentPage() {
 
                 {perContact && <p className="text-xs text-studojo-muted font-satoshi mt-1">just {perContact}</p>}
                 <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{tier.tagline}</p>
+                {strongCount !== null && tier.value > strongCount && (
+                  <p className="-mt-2 mb-4 text-xs font-satoshi font-medium text-amber-700">
+                    Includes about {(tier.value - strongCount).toLocaleString("en-US")} broader matches.
+                  </p>
+                )}
 
                 <div className="border-t border-studojo-ink/10 mb-4" />
 
