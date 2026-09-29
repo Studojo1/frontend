@@ -143,8 +143,11 @@ export function WelcomeScreen({
               </li>
             </ul>
 
-            {/* Decorative template trio, centered under the hero */}
-            <div className="mt-10 flex justify-center">
+            {/* Decorative template trio, centered under the hero. PH-08: the
+                trio is ~580px wide, so on phones it is scaled down (and the
+                freed height pulled back) and clipped, so the page never
+                scrolls sideways. */}
+            <div className="mt-10 flex justify-center overflow-x-clip">
               <TemplatePeek />
             </div>
           </>
@@ -215,7 +218,10 @@ function TemplatePeek() {
     { id: "banner", rotate: "5deg", lift: "12px" },
   ];
   return (
-    <div className="flex items-center justify-center gap-3 sm:gap-5" aria-hidden="true">
+    <div
+      className="flex origin-top items-center justify-center gap-3 max-sm:-mb-[120px] max-sm:scale-[0.52] sm:gap-5"
+      aria-hidden="true"
+    >
       {peeks.map((p) => (
         <div
           key={p.id}
