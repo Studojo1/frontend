@@ -89,6 +89,14 @@ export default function handleRequest(
             responseHeaders.set("Cache-Control", "no-cache");
           }
 
+          // Basic hardening on every HTML page (audit HP-N17). Deliberately
+          // not the full CSP from security-headers.server.ts, which would
+          // block PostHog and the Meta pixel.
+          responseHeaders.set("Content-Security-Policy", "frame-ancestors 'self'");
+          responseHeaders.set("X-Frame-Options", "SAMEORIGIN");
+          responseHeaders.set("X-Content-Type-Options", "nosniff");
+          responseHeaders.set("Referrer-Policy", "strict-origin-when-cross-origin");
+
           pipe(body);
 
           resolve(

@@ -9,7 +9,7 @@ import { changePassword } from "~/lib/emailer";
 import { describeError } from "~/lib/error-detail";
 import { outreachFetch } from "~/lib/outreach/api";
 import { toast } from "sonner";
-import type { Route } from "./+types/settings";
+import type { Route } from "./+types/settings._index";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSessionFromRequest(request);

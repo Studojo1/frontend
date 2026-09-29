@@ -69,6 +69,29 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   );
 }
 
+const OUTREACH_URL = "https://studojo.com/outreach";
+const OUTREACH_TITLE = "Studojo Outreach | Email Hiring Managers Directly";
+const OUTREACH_DESC =
+  "Upload your resume. Studojo finds the hiring managers who can hire you, writes each one a personal email, and sends it from your own Gmail.";
+
+export function meta() {
+  return [
+    { title: OUTREACH_TITLE },
+    { name: "description", content: OUTREACH_DESC },
+    { tagName: "link", rel: "canonical", href: OUTREACH_URL },
+    { property: "og:type", content: "website" },
+    { property: "og:title", content: OUTREACH_TITLE },
+    { property: "og:description", content: OUTREACH_DESC },
+    { property: "og:url", content: OUTREACH_URL },
+    { property: "og:site_name", content: "Studojo" },
+    { property: "og:image", content: "https://studojo.com/og-default.png" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: OUTREACH_TITLE },
+    { name: "twitter:description", content: OUTREACH_DESC },
+    { name: "twitter:image", content: "https://studojo.com/og-default.png" },
+  ];
+}
+
 export default function OutreachLanding() {
   const navigate = useNavigate();
 
