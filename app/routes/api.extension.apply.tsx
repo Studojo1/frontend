@@ -3,7 +3,7 @@
 // The single write endpoint behind "Apply through Studojo" in the extension.
 //
 // Must return in under a second: the panel is waiting on it. So this route only
-// records the application and writes a draft. NOTHING IS SENT HERE — the
+// records the application and writes a draft. NOTHING IS SENT HERE: the
 // campaign is created when the student presses Send in the CRM, which is what
 // makes "review before it goes out" true rather than aspirational.
 //
@@ -11,7 +11,7 @@
 // (it was on a person's profile, a post, or a job page with a "Meet the hiring
 // team" block), we already have name/title/company from a page a human loaded.
 // The outreach worker then skips the headless-browser profile fetch it would
-// otherwise pay for — one fewer Chromium launch, one fewer proxied page load,
+// otherwise pay for: one fewer Chromium launch, one fewer proxied page load,
 // and one fewer automated LinkedIn view against the account's rate limit.
 import { outreachServerFetch } from "~/lib/outreach/server-api";
 import { upsertDraft, lastDraftError } from "~/lib/extension-draft.server";
@@ -25,9 +25,9 @@ import type { Route } from "./+types/api.extension.apply";
 const CAREER_AGENT_URL =
   // Bare service name, resolving in whatever namespace we are deployed to.
   // The previous value pinned `.studojo.svc`, so from the staging namespace it
-  // pointed at the wrong cluster address — every CRM write failed silently and
+  // pointed at the wrong cluster address, so every CRM write failed silently and
   // the page showed "Nothing saved yet" while the extension said "Saved".
-  // The service is `cc-backend` on port 80 in the staging namespace — see
+  // The service is `cc-backend` on port 80 in the staging namespace; see
   // studojo-career-agent/backend/k8s/service.yaml. The previous default,
   // "studojo-career-agent:8000", is a name that has never existed anywhere;
   // I invented it. Every CRM write silently failed against it, which is why
@@ -112,7 +112,7 @@ async function writeCrmRow(userId: string, body: ApplyBody, board: string): Prom
         contact_title: body.contact?.title || null,
         contact_source: body.contact?.via || (body.contact ? "page" : null),
         extraction_quality: body.quality?.completeness ?? null,
-        // Everything the extension read, verbatim — new analyses will not need
+        // Everything the extension read, verbatim, so new analyses will not need
         // another migration each time the extractor captures more.
         capture: {
           board: body.board,
@@ -128,7 +128,7 @@ async function writeCrmRow(userId: string, body: ApplyBody, board: string): Prom
     });
     // CHECK res.ok. Without this an error response was parsed as if it had
     // succeeded: `created.id` came back undefined, the function returned null,
-    // and the real reason — whatever the agent actually said — was discarded.
+    // and the real reason (whatever the agent actually said) was discarded.
     // Five rounds of "we couldn't reach your CRM" with no diagnosis came from
     // exactly this.
     const text = await res.text();
@@ -152,7 +152,7 @@ async function writeCrmRow(userId: string, body: ApplyBody, board: string): Prom
     }
     return created?.id ?? null;
   } catch (e) {
-    // A CRM write failure must not lose the outreach — but it must not be
+    // A CRM write failure must not lose the outreach, but it must not be
     // hidden either. Returning null silently let the extension announce
     // "Saved to your CRM" while the CRM page showed "Nothing saved yet".
     // The caller now reports what actually happened.
@@ -163,7 +163,7 @@ async function writeCrmRow(userId: string, body: ApplyBody, board: string): Prom
 
 /** CORS preflight.
  *
- * React Router routes OPTIONS to the LOADER, never to the action — so an
+ * React Router routes OPTIONS to the LOADER, never to the action, so an
  * `if (request.method === "OPTIONS")` check inside the action never runs and
  * the framework rejects the request with 400 before reaching it. Chrome then
  * blocks every extension call to this route without sending it.
@@ -206,7 +206,7 @@ export async function action({ request }: Route.ActionArgs) {
   // Four rounds of "it still says nobody can be reached" were undiagnosable
   // because nothing recorded whether the extension sent a contact at all. From
   // the outside, "the panel never sent Rahul Raj" and "Rahul was sent and then
-  // discarded" produce identical symptoms — and I could only guess which.
+  // discarded" produce identical symptoms, and I could only guess which.
   //
   // Greppable on purpose: `grep EXT-APPLY` answers it in one command.
   // No email is logged; a name and title are already on the public job page.
@@ -227,7 +227,7 @@ export async function action({ request }: Route.ActionArgs) {
     return extJson(request, { error: "Could not identify this job" }, 400);
   }
 
-  // Low-confidence reads are rejected — unless we have a LinkedIn job id, in
+  // Low-confidence reads are rejected, unless we have a LinkedIn job id, in
   // which case the worker can fetch full detail server-side.
   const completeness = body.quality?.completeness ?? 0;
   if (completeness < 40 && !body.job?.jobId && !hasContact) {
@@ -249,8 +249,8 @@ export async function action({ request }: Route.ActionArgs) {
 
   // START THE CRM WRITE NOW, alongside the Gmail check.
   //
-  // These do not depend on each other — one asks the mailbox service whether
-  // the student can send, the other writes a row to the career agent — but
+  // These do not depend on each other (one asks the mailbox service whether
+  // the student can send, the other writes a row to the career agent), but
   // they ran back to back, so the panel sat on "Sending…" for the SUM of both
   // round trips before handing over the link. Pranav: "when i click on review
   // my email that page took too much time to laod".
@@ -267,7 +267,7 @@ export async function action({ request }: Route.ActionArgs) {
   } catch (e) {
     // Distinguish "no mailbox" from "we could not ask". Swallowing every error
     // as null meant a 401, a timeout and a genuinely unconnected account all
-    // produced the same "connect Gmail" card — so connecting it changed
+    // produced the same "connect Gmail" card, so connecting it changed
     // nothing and there was no way to tell why.
     //
     // A 404 is the service's answer for "no Gmail account connected", not a
@@ -296,7 +296,7 @@ export async function action({ request }: Route.ActionArgs) {
       // forward it to the career agent; it was simply never kept on our row.
       location: body.job?.location || null,
       // The posting's own text. Extracted on every board and, until now,
-      // dropped right here — which is why drafts were built from company +
+      // dropped right here, which is why drafts were built from company +
       // role + contact title alone and read like templates.
       description: body.job?.description || null,
       jobUrl: body.job?.jobUrl || body.pageUrl || null,
@@ -341,7 +341,7 @@ export async function action({ request }: Route.ActionArgs) {
     } catch {
       /* fall back to the in-app page */
     }
-    // Still record the application AND prepare the draft — the student did
+    // Still record the application AND prepare the draft: the student did
     // apply, and Gmail is only needed at Send, not to write the email.
     const applicationId = await crmRowPromise;
     const draft = await upsertDraft(auth.userId, {
@@ -353,7 +353,7 @@ export async function action({ request }: Route.ActionArgs) {
       // forward it to the career agent; it was simply never kept on our row.
       location: body.job?.location || null,
       // The posting's own text. Extracted on every board and, until now,
-      // dropped right here — which is why drafts were built from company +
+      // dropped right here, which is why drafts were built from company +
       // role + contact title alone and read like templates.
       description: body.job?.description || null,
       jobUrl: body.job?.jobUrl || body.pageUrl || null,
@@ -371,7 +371,7 @@ export async function action({ request }: Route.ActionArgs) {
       savedToCrm: Boolean(applicationId),
       draftId: draft?.id ?? null,
       draftError: draft ? null : lastDraftError(),
-      message: "Saved. Review your email — connect Gmail when you're ready to send.",
+      message: "Saved. Review your email. Connect Gmail when you're ready to send.",
     });
   }
 
@@ -382,7 +382,7 @@ export async function action({ request }: Route.ActionArgs) {
   // This used to enqueue an outreach job immediately, which meant the email
   // was composed and sent without the student ever seeing it. The draft is now
   // written to Postgres and the campaign is created only when they press Send
-  // in the CRM — see app/routes/api.crm.drafts.tsx.
+  // in the CRM (see app/routes/api.crm.drafts.tsx).
   const draft = await upsertDraft(auth.userId, {
     applicationId,
     company,
@@ -403,7 +403,7 @@ export async function action({ request }: Route.ActionArgs) {
     draftError: draft ? null : lastDraftError(),
     contactPrefilled: hasContact,
     message: hasContact
-      ? `Draft ready for ${body.contact!.name} at ${company || "this company"} — review it before it sends.`
+      ? `Draft ready for ${body.contact!.name} at ${company || "this company"}. Review it before it sends.`
       : `Saved. Open your CRM to review the email before it sends.`,
     crmUrl: `${PUBLIC_ORIGIN}/crm`,
   });

@@ -7,13 +7,13 @@ const BASE_URL = "https://studojo.com";
 export function meta() {
   return [
     { title: "Startup vs MNC: A Real Comparison for Early-Career Talent | Studojo" },
-    { name: "description", content: "Salary, learning speed, brand name value, job security, and career velocity — a data-backed comparison of startups vs MNCs for students and early-career candidates in 2026." },
+    { name: "description", content: "Salary, learning speed, brand name value, job security, and career velocity: a data-backed comparison of startups vs MNCs for students and early-career candidates in 2026." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "startup vs mnc 2026, startup vs corporate salary india, should i join startup or mnc, early career startup vs mnc, fresher startup vs mnc india" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/startup-vs-mnc-2026` },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "Startup vs MNC: A Real Comparison for Early-Career Talent" },
-    { property: "og:description", content: "Salary, learning speed, job security, and career velocity — the actual data on startups vs MNCs for early-career candidates." },
+    { property: "og:description", content: "Salary, learning speed, job security, and career velocity: the actual data on startups vs MNCs for early-career candidates." },
     { property: "og:url", content: `${BASE_URL}/reports/startup-vs-mnc-2026` },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: `${BASE_URL}/og-reports.png` },
@@ -45,7 +45,7 @@ function initCharts() {
   const INK = "#171717";
   const gridOpts = { color: "#f0f0ee", lineWidth: 1 };
 
-  // Chart 1: Salary comparison — startup vs MNC by year
+  // Chart 1: Salary comparison, startup vs MNC by year
   const salaryEl = document.getElementById("salaryChart") as HTMLCanvasElement | null;
   if (salaryEl && !salaryEl.dataset.rendered) {
     salaryEl.dataset.rendered = "1";
@@ -85,7 +85,7 @@ function initCharts() {
     });
   }
 
-  // Chart 2: What matters most — radar
+  // Chart 2: What matters most (radar)
   const radarEl = document.getElementById("radarChart") as HTMLCanvasElement | null;
   if (radarEl && !radarEl.dataset.rendered) {
     radarEl.dataset.rendered = "1";
@@ -258,7 +258,7 @@ export default function StartupVsMncReport() {
         "@context": "https://schema.org",
         "@type": "Article",
         "headline": "Startup vs MNC: A Real Comparison for Early-Career Talent",
-        "description": "Salary, learning speed, brand name, job security, and career velocity — a data-backed comparison of startups vs MNCs for early-career candidates in 2026.",
+        "description": "Salary, learning speed, brand name, job security, and career velocity: a data-backed comparison of startups vs MNCs for early-career candidates in 2026.",
         "url": `${BASE_URL}/reports/startup-vs-mnc-2026`,
         "datePublished": "2026-05-03T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
@@ -289,7 +289,7 @@ export default function StartupVsMncReport() {
             </nav>
             <h1>Startup vs MNC:<br /><em>A Real Comparison</em></h1>
             <p className="rpt-hero-sub">
-              Neither is universally better. Salary, learning speed, brand name value, job security, and career velocity — compared
+              Neither is universally better. Salary, learning speed, brand name value, job security, and career velocity, compared
               across five dimensions with actual data for early-career candidates in 2026.
             </p>
             <div className="rpt-meta">
@@ -319,11 +319,11 @@ export default function StartupVsMncReport() {
             <div className="stat-card">
               <div className="sc-num">2x</div>
               <div className="sc-label">higher median entry salary at MNCs vs early-stage startups in India</div>
-              <div className="sc-source">Glassdoor India, AmbitionBox 2024–25 data</div>
+              <div className="sc-source">Glassdoor India, AmbitionBox 2024-25 data</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">90%</div>
-              <div className="sc-label">of startups fail within 10 years — but most early-career hires leave before that</div>
+              <div className="sc-label">of startups fail within 10 years, but most early-career hires leave before that</div>
               <div className="sc-source">CB Insights / Startup Genome Report, 2024</div>
             </div>
             <div className="stat-card">
@@ -357,7 +357,7 @@ export default function StartupVsMncReport() {
               </div>
             </div>
             <div className="callout">
-              <strong>The salary gap at Year 0 is real — but it narrows by Year 3 and often reverses by Year 5</strong> if the startup trajectory is strong. The comparison is not binary. It is a function of timing, company stage, and what you are optimising for.
+              <strong>The salary gap at Year 0 is real, but it narrows by Year 3 and often reverses by Year 5</strong> if the startup trajectory is strong. The comparison is not binary. It is a function of timing, company stage, and what you are optimising for.
             </div>
           </div>
 
@@ -381,12 +381,12 @@ export default function StartupVsMncReport() {
               </thead>
               <tbody>
                 {[
-                  ["Entry base (India median)", "₹3–8 LPA", "₹6–14 LPA"],
+                  ["Entry base (India median)", "₹3-8 LPA", "₹6-14 LPA"],
                   ["Equity / ESOPs", "Often offered, illiquid", "Rare at entry level"],
-                  ["Annual hike", "Performance-based, variable", "Structured band (8–15%)"],
+                  ["Annual hike", "Performance-based, variable", "Structured band (8-15%)"],
                   ["Benefits (PF, health, etc.)", "Varies widely by company", "Standardised, comprehensive"],
                   ["Bonus", "Rare at entry, sometimes equity", "Annual performance bonus common"],
-                  ["Negotiability", "High — founders often flexible", "Low — fixed bands"],
+                  ["Negotiability", "High: founders often flexible", "Low: fixed bands"],
                 ].map(([factor, s, m]) => (
                   <tr key={factor as string}>
                     <td>{factor}</td>
@@ -431,7 +431,7 @@ export default function StartupVsMncReport() {
                   ["Feedback quality", "Direct and frequent", "Structured review cycles"],
                   ["Process exposure", "Build the process yourself", "Inherit established processes"],
                   ["Mentorship", "Informal, access to founders", "Formal programs, L&D budget"],
-                  ["Failure tolerance", "High — experiments expected", "Lower — mistakes visible"],
+                  ["Failure tolerance", "High: experiments expected", "Lower: mistakes visible"],
                 ].map(([dim, s, m]) => (
                   <tr key={dim as string}>
                     <td>{dim}</td>
@@ -457,15 +457,15 @@ export default function StartupVsMncReport() {
                 <div className="sec-sub">The MNC name opens certain doors. The startup name opens others.</div>
               </div>
             </div>
-            <p>Brand name on a resume functions as a filtering signal — it tells a screener something about the candidate before any content is read. The problem is that the signal is context-dependent. The same brand name that impresses one hiring manager is irrelevant or even a negative signal to another.</p>
+            <p>Brand name on a resume functions as a filtering signal: it tells a screener something about the candidate before any content is read. The problem is that the signal is context-dependent. The same brand name that impresses one hiring manager is irrelevant or even a negative signal to another.</p>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>MNC names travel furthest in structured hiring pipelines.</strong> Large company recruitment processes, MBA admissions, government sector roles, and international applications all weight institutional recognition heavily. A Goldman Sachs, Unilever, or TCS on a resume is immediately legible to any screener globally.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>Startup names matter only if the startup is known.</strong> A role at Zepto, Razorpay, or Meesho is legible in Indian tech hiring. A role at an unknown pre-Series A company is not a brand signal — it is simply a company name. The benefit of a startup brand is concentrated in well-funded, well-known companies.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>Startup names matter only if the startup is known.</strong> A role at Zepto, Razorpay, or Meesho is legible in Indian tech hiring. A role at an unknown pre-Series A company is not a brand signal. It is simply a company name. The benefit of a startup brand is concentrated in well-funded, well-known companies.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>The brand fades as work evidence accumulates.</strong> By Year 3 to 5, what you built matters more than where you built it. Candidates who have strong portfolio evidence, quantified outcomes, and referrals from past colleagues find that the brand name question becomes secondary. The brand buys the first read; the work keeps you in the room.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>In the startup and VC ecosystem, MNC pedigree can be a mild negative signal.</strong> Founders and early-stage hiring managers frequently express preference for candidates who have worked in ambiguous, resource-constrained environments. An exclusively MNC background can read as an indicator of someone who needs structure that a startup cannot provide.</span></div>
             </div>
             <div className="callout">
-              <strong>The strategic play:</strong> A well-known MNC name early in your career followed by a respected startup gives you the broadest signal range. The reverse sequence — startup first, then MNC — is harder to execute but not impossible. The least useful path is spending five years at an unknown company in either category.
+              <strong>The strategic play:</strong> A well-known MNC name early in your career followed by a respected startup gives you the broadest signal range. The reverse sequence (startup first, then MNC) is harder to execute but not impossible. The least useful path is spending five years at an unknown company in either category.
             </div>
           </div>
 
@@ -489,7 +489,7 @@ export default function StartupVsMncReport() {
               <div>
                 <div className="blist" style={{ marginTop: 12 }}>
                   <div className="blist-item"><div className="blist-dot" /><span><strong>Most early-career candidates leave a startup before it fails.</strong> The median tenure at a Seed to Series A startup is under two years. The failure events that damage careers happen to people who stay through decline, not those who leave during the company's growth phase.</span></div>
-                  <div className="blist-item"><div className="blist-dot" /><span><strong>MNC restructuring is less visible but equally disruptive.</strong> Large-scale layoffs at IBM, Wipro, Accenture, and similar firms have affected hundreds of thousands of employees in India since 2022. The perception of MNC job security is partly a survivor bias problem — the people who were not laid off are the ones discussing their stable careers.</span></div>
+                  <div className="blist-item"><div className="blist-dot" /><span><strong>MNC restructuring is less visible but equally disruptive.</strong> Large-scale layoffs at IBM, Wipro, Accenture, and similar firms have affected hundreds of thousands of employees in India since 2022. The perception of MNC job security is partly a survivor bias problem: the people who were not laid off are the ones discussing their stable careers.</span></div>
                   <div className="blist-item"><div className="blist-dot" /><span><strong>Real security is portable skills.</strong> The candidates who navigate both startup failures and MNC restructurings without career damage are those who built genuine, demonstrable skills during their tenure. A role that teaches nothing is risky regardless of the employer's size.</span></div>
                 </div>
               </div>
@@ -505,7 +505,7 @@ export default function StartupVsMncReport() {
                 <div className="sec-sub">Promotion timelines and path clarity compared</div>
               </div>
             </div>
-            <p>Career velocity — how quickly you move from entry level to a position of real responsibility — differs structurally between startups and MNCs. Neither is objectively better; they optimise for different things.</p>
+            <p>Career velocity (how quickly you move from entry level to a position of real responsibility) differs structurally between startups and MNCs. Neither is objectively better; they optimise for different things.</p>
             <table className="vs-table">
               <thead>
                 <tr>
@@ -516,12 +516,12 @@ export default function StartupVsMncReport() {
               </thead>
               <tbody>
                 {[
-                  ["Time to first management role", "2–3 years (if company grows)", "4–6 years minimum"],
+                  ["Time to first management role", "2-3 years (if company grows)", "4-6 years minimum"],
                   ["Promotion criteria", "Informal, relationship-driven", "Formal, documented criteria"],
                   ["Compensation at promotion", "Title moves fast, pay catches up slowly", "Grade change = defined pay band jump"],
-                  ["Path visibility", "Ambiguous — depends on company trajectory", "Defined career ladders available"],
-                  ["Lateral move optionality", "High — wear many hats", "Lower — tracks are distinct"],
-                  ["Influence at early stage", "High — decisions made in small rooms", "Low — hierarchy filters access"],
+                  ["Path visibility", "Ambiguous: depends on company trajectory", "Defined career ladders available"],
+                  ["Lateral move optionality", "High: wear many hats", "Lower: tracks are distinct"],
+                  ["Influence at early stage", "High: decisions made in small rooms", "Low: hierarchy filters access"],
                 ].map(([factor, s, m]) => (
                   <tr key={factor as string}>
                     <td>{factor}</td>
@@ -532,7 +532,7 @@ export default function StartupVsMncReport() {
               </tbody>
             </table>
             <div className="highlight">
-              The startup velocity advantage only materialises <strong>if the company grows alongside you</strong>. A startup that plateaus at 20 people does not give you a management track — it gives you a stable small-team role. The velocity is a function of the company's trajectory, not just your performance.
+              The startup velocity advantage only materialises <strong>if the company grows alongside you</strong>. A startup that plateaus at 20 people does not give you a management track. It gives you a stable small-team role. The velocity is a function of the company's trajectory, not just your performance.
             </div>
             <p>MNC career paths are slower but they are legible in advance. A candidate at a structured MNC can see what the next three roles look like, what the criteria are, and what the compensation bands will be. This predictability has real value for candidates who are optimising for long-term security and institutional advancement rather than speed.</p>
           </div>
@@ -556,13 +556,13 @@ export default function StartupVsMncReport() {
               </thead>
               <tbody>
                 {[
-                  ["Maximum Year 0 salary", "pill-violet", "MNC", "Structural pay bands run 1.5–2x startup at entry"],
+                  ["Maximum Year 0 salary", "pill-violet", "MNC", "Structural pay bands run 1.5-2x startup at entry"],
                   ["Learning speed and breadth", "pill-violet", "Startup", "Full ownership faster, generalist exposure by default"],
                   ["Brand name for future roles at large companies", "pill-violet", "MNC", "Institutional recognition travels in structured pipelines"],
                   ["Brand name for future startup roles", "pill-amber", "Either", "Known startup > Unknown MNC in VC/startup ecosystem"],
-                  ["Management responsibility early", "pill-violet", "Startup", "Median time to first team lead role: 2–3 years"],
+                  ["Management responsibility early", "pill-violet", "Startup", "Median time to first team lead role: 2-3 years"],
                   ["Long-term salary trajectory", "pill-amber", "Depends", "Strong startup at right stage can match or beat MNC by Year 5"],
-                  ["Job security", "pill-amber", "Neither", "Both are riskier than they appear — portable skills are the hedge"],
+                  ["Job security", "pill-amber", "Neither", "Both are riskier than they appear; portable skills are the hedge"],
                   ["Career path clarity", "pill-violet", "MNC", "Defined ladders, documented criteria, visible next steps"],
                 ].map(([goal, pillClass, pick, reason]) => (
                   <tr key={goal as string}>
@@ -581,14 +581,14 @@ export default function StartupVsMncReport() {
               <div className="sec-num" style={{ background: "#6d28d9" }}>→</div>
               <div>
                 <div className="sec-title" style={{ color: "#3b0764" }}>What This Means For You</div>
-                <div className="sec-sub" style={{ color: "#7c3aed" }}>The research conclusion — how to actually make this decision</div>
+                <div className="sec-sub" style={{ color: "#7c3aed" }}>The research conclusion: how to actually make this decision</div>
               </div>
             </div>
             <p style={{ color: "#3b0764" }}>The startup vs MNC question is not a question about which is better. It is a question about what you are optimising for at this specific point in your career. The answer changes depending on your financial situation, risk tolerance, career goals, and the specific companies on offer. Here is the decision logic:</p>
             <div className="blist">
               {[
                 ["If money is the constraint right now, choose the MNC", "The salary gap at Year 0 is real and significant. If you have financial obligations or need to build savings quickly, the MNC offer closes the fastest. Do not romanticise the startup path if you cannot afford the pay cut."],
-                ["If learning is the priority, choose the startup — but choose carefully", "The learning advantage of a startup is not automatic. It depends on having a strong founding team, a real product, and genuine ownership from day one. A bad startup gives you chaos, not learning. Evaluate the team first, the company second."],
+                ["If learning is the priority, choose the startup, but choose carefully", "The learning advantage of a startup is not automatic. It depends on having a strong founding team, a real product, and genuine ownership from day one. A bad startup gives you chaos, not learning. Evaluate the team first, the company second."],
                 ["If brand name matters, choose the MNC for the first role", "A well-known MNC in your first two years gives you a legible credential that opens doors across the widest range of future options. You can always move to a startup from an MNC. The reverse transition is harder to explain."],
                 ["If you want to move fast, choose a startup that is already moving", "The career velocity advantage of a startup only exists if the company is growing. A Series B company adding 50 people per quarter creates management opportunities. A Seed company of 8 people does not. Stage matters as much as type."],
                 ["The best outcome is often sequential, not binary", "A well-known MNC for the first 18 to 24 months followed by a well-funded startup gives you the broadest combination of brand name, process exposure, salary floor, and growth trajectory. You do not have to choose one path forever. You have to choose which path is right for where you are right now."],

@@ -1,4 +1,4 @@
-// Residential proxy — Evomi Core Residential
+// Residential proxy: Evomi Core Residential
 //
 // Free trial: plain credentials only (no country/session suffix).
 // Paid plan: sticky session format is USERNAME_country-CC_session-SESSIONID

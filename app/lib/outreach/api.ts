@@ -79,7 +79,7 @@ export async function outreachFetch<T = unknown>(
   path: string,
   options: RequestInit & { maxRetries?: number; timeout?: number } = {},
 ): Promise<T> {
-  // Token is optional — backend also accepts session cookies (same-origin).
+  // Token is optional: backend also accepts session cookies (same-origin).
   // Don't block the request if getToken() fails.
   let token: string | null = null;
   try {

@@ -15,7 +15,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Build the WHERE clause from parameterized sql fragments. Using the `sql`
   // tagged template (not sql.raw) makes every interpolated value a bound
   // parameter, so user-supplied `status`/`search` cannot inject SQL.
-  // Exclude scraper-inserted rows — map data only, not for the dojo listing.
+  // Exclude scraper-inserted rows (map data only, not for the dojo listing).
   let whereClause = sql`status = ${status} AND (created_by IS NULL OR created_by != 'scraper-system')`;
 
   if (search) {

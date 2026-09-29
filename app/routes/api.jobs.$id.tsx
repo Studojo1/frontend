@@ -1,4 +1,4 @@
-// GET /api/jobs/{job_id} — poll a bulk job. Advances the job if the batch has
+// GET /api/jobs/{job_id}: poll a bulk job. Advances the job if the batch has
 // finished. Scoped to the caller's email, so jobs never leak across accounts.
 import type { Route } from "./+types/api.jobs.$id";
 import { guard, json } from "~/lib/api-guard.server";

@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import type { Route } from "./+types/mcpdocs";
 import { Header, Footer } from "~/components";
 
-// FROZEN, public documentation page for the hosted Sensei MCP server — no auth, no
+// FROZEN, public documentation page for the hosted Sensei MCP server: no auth, no
 // loader/action, no per-user data. Keys are created + managed on /apidashboard. Mirrors
 // the /apidocs house style (neo-brutalist cards, cURL/JSON tabs).
 
@@ -427,7 +427,7 @@ export default function McpDocs() {
                   <tbody className="divide-y divide-neutral-200">
                     {[
                       ["HTTP 401", "Missing or invalid API key."],
-                      ["isError on a tool result", "The tool ran but couldn't complete — the text explains why (bad input, out of credits, no such run)."],
+                      ["isError on a tool result", "The tool ran but couldn't complete. The text explains why (bad input, out of credits, no such run)."],
                       ["Out of credits", "The workspace is out of search or reveal credits; top up via admin@studojo.com."],
                       ["JSON-RPC -32601", "Unknown method (only initialize, tools/list, tools/call, ping are served)."],
                     ].map(([w, m]) => (

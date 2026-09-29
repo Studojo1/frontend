@@ -8,7 +8,7 @@
 //   2. `credentials: "include"` sends a cookie the server does not hold
 //   3. `getToken()` reads browser storage
 //
-// Calling it server-side therefore fails EVERY time — silently, if the caller
+// Calling it server-side therefore fails EVERY time, silently if the caller
 // wraps it in a try/catch. That is exactly what happened: the extension's apply
 // route asked whether Gmail was connected, the call threw, the catch set the
 // answer to null, and the student was told to connect Gmail no matter how many
@@ -44,7 +44,7 @@ export async function outreachServerFetch<T = unknown>(
   const { method = "GET", body, userId, timeout = 10_000 } = opts;
 
   // FormData must NOT be JSON-stringified, and must NOT carry a
-  // Content-Type header — fetch sets its own multipart boundary, and
+  // Content-Type header: fetch sets its own multipart boundary, and
   // overriding it makes the upstream unable to parse the body at all.
   const isForm = typeof FormData !== "undefined" && body instanceof FormData;
 
@@ -54,7 +54,7 @@ export async function outreachServerFetch<T = unknown>(
   // MUST be exactly "X-User-Id". job-outreach-svc's get_current_user
   // (api/dependencies.py:34) reads that header and nothing else; anything
   // differently named is ignored, it then finds no session cookie, and every
-  // call comes back 401 — which the callers were swallowing as "not
+  // call comes back 401, which the callers were swallowing as "not
   // connected". I had sent X-Studojo-User-Id.
   if (userId) headers["X-User-Id"] = userId;
   if (INTERNAL_SECRET) headers["x-studojo-internal"] = INTERNAL_SECRET;
@@ -83,7 +83,7 @@ export async function outreachServerFetch<T = unknown>(
   if (!res.ok) {
     // describeError, not a `??` chain. FastAPI returns `detail` as a STRING
     // for our own HTTPExceptions and as an ARRAY OF OBJECTS for validation
-    // failures — and an array is truthy, so it wins the fallback and then
+    // failures, and an array is truthy, so it wins the fallback and then
     // stringifies to "[object Object]". That reached a student once.
     const detail = describeError(data, `Request failed (${res.status})`);
     throw new OutreachServerError(detail, res.status, data);

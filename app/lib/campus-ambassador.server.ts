@@ -39,7 +39,7 @@ async function ensureTable() {
   `);
 
   // One application per email. A repeat submission is a no-op rather than a
-  // duplicate row — enforced at the DB level, so it holds under races too.
+  // duplicate row, enforced at the DB level, so it holds under races too.
   await db.execute(sql`
     CREATE UNIQUE INDEX IF NOT EXISTS idx_campus_ambassador_email_unique
     ON campus_ambassador_applications (lower(email))
@@ -123,7 +123,7 @@ export async function ensureRefCode(applicationId: number): Promise<string | nul
   if (!row) return null;
   if (row.ref_code) return row.ref_code;
 
-  // Letters only — a name like "Anu R." must not produce a code with a dot in
+  // Letters only: a name like "Anu R." must not produce a code with a dot in
   // it, since the code travels through URLs and gets read aloud.
   const firstName = (row.full_name || "")
     .trim()
@@ -134,7 +134,7 @@ export async function ensureRefCode(applicationId: number): Promise<string | nul
   const stem = firstName || "STUDOJO";
 
   for (let attempt = 0; attempt < 12; attempt++) {
-    const suffix = String(Math.floor(Math.random() * 90) + 10); // 10–99
+    const suffix = String(Math.floor(Math.random() * 90) + 10); // 10-99
     const candidate = `${stem}${suffix}`;
     // WHERE ref_code IS NULL means a concurrent call that already set a code
     // wins and we return theirs, instead of overwriting a published code.

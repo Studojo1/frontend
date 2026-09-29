@@ -54,7 +54,7 @@ const RESULT_FIELDS = [
   { field: "phone", desc: "Verified direct phone number" },
   { field: "email", desc: "Verified work email address" },
   { field: "linkedin_url", desc: "LinkedIn profile URL" },
-  { field: "overall_score", desc: "Heuristic relevance score (0–100)" },
+  { field: "overall_score", desc: "Heuristic relevance score (0-100)" },
   { field: "match_scores", desc: "Sub-scores: career_match, authority_match, hiring_probability, career_category" },
   { field: "outreach_intel", desc: "5-field personalised outreach intelligence object" },
 ];

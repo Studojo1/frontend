@@ -1,5 +1,5 @@
 // Safety manager: per-user pause, fleet-wide sweep detection, acceptance rate monitor
-// All pause/resume is automatic — users notified via email, dashboard reflects status
+// All pause/resume is automatic: users notified via email, dashboard reflects status
 
 import { eq, sql } from "drizzle-orm";
 import db from "~/lib/db";

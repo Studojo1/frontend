@@ -236,8 +236,8 @@ export default function Report_FirstJobIndia2026() {
               <div className="sc-source">Studojo entry-level synthesis, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">Aug–Nov</div>
-              <div className="sc-label">Peak campus placement window at most Indian colleges, with a secondary off-campus surge Jan–Mar for graduates who missed or skipped formal cycles</div>
+              <div className="sc-num">Aug-Nov</div>
+              <div className="sc-label">Peak campus placement window at most Indian colleges, with a secondary off-campus surge Jan-Mar for graduates who missed or skipped formal cycles</div>
               <div className="sc-source">Studojo hiring-calendar synthesis, 2026</div>
             </div>
             <div className="stat-card">

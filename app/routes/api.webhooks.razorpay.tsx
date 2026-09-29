@@ -1,4 +1,4 @@
-// Razorpay webhook — activates AutoApply on payment
+// Razorpay webhook: activates AutoApply on payment
 // POST /api/webhooks/razorpay
 //
 // Events handled:
@@ -66,7 +66,7 @@ export async function action({ request }: Route.ActionArgs) {
  * the caller knows not to run it through the AutoApply path as well.
  *
  * This is the authoritative fulfilment path. The browser may never come back
- * after paying — a closed tab, a dead battery, a UPI app that does not return —
+ * after paying (a closed tab, a dead battery, a UPI app that does not return),
  * and the ticket must still be valid. Failures here are swallowed rather than
  * rethrown so a broken email never turns into a 500 that makes Razorpay retry
  * a payment that has already been recorded.
@@ -140,7 +140,7 @@ async function handlePaymentSuccess(event: RazorpayEvent) {
       .where(eq(userLinkedinSessions.userId, userId));
   }
 
-  console.log(`[razorpay] Payment success — activated user ${userId} (${country}/${city})`);
+  console.log(`[razorpay] Payment success: activated user ${userId} (${country}/${city})`);
 }
 
 async function handlePaymentFailed(event: RazorpayEvent) {
@@ -155,7 +155,7 @@ async function handlePaymentFailed(event: RazorpayEvent) {
     .set({ status: "paused" })
     .where(eq(autoapplyConfigs.userId, userId));
 
-  console.log(`[razorpay] Payment failed — paused user ${userId}`);
+  console.log(`[razorpay] Payment failed: paused user ${userId}`);
 }
 
 // ── Location → proxy mapping ──────────────────────────────────────────────────

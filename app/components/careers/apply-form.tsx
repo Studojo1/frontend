@@ -112,7 +112,7 @@ export function CareersApplyForm() {
         paymentOrderId: orderRes.order_id || orderRes.session_id || "",
       };
 
-      // ── Dodo Payments (international) — redirect to checkout ──
+      // ── Dodo Payments (international): redirect to checkout ──
       if (orderRes.provider === "dodo" && orderRes.checkout_url) {
         // Store form data so payment-success page can resume submission
         localStorage.setItem("dodo_pending_job_type", "career");
@@ -121,7 +121,7 @@ export function CareersApplyForm() {
         return;
       }
 
-      // ── Razorpay (India) — modal checkout ──
+      // ── Razorpay (India): modal checkout ──
       setPaymentProcessing(true);
       await openRazorpayCheckout({
         key: orderRes.key_id!,

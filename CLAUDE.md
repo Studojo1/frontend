@@ -25,14 +25,14 @@ docker build -t frontend .    # multi-stage build
 | `main` | `studojo` (production) | studojo.com | `deploy.yml` |
 | `staging` | `staging` | studojo.pro | `deploy-staging.yml` |
 
-- Images tagged with `github.sha` — no `:latest` or custom tags
+- Images tagged with `github.sha` (no `:latest` or custom tags)
 - Registry: Azure Container Registry (`acrstudojo-dhfsdrfhf6a6bbg2.azurecr.io`)
 - Cluster: Azure Kubernetes Service (`studojo-aks` in `rg-studojo`)
 
 ## Architecture
 
 ### Framework
-React Router v7 (SSR mode). Routes defined in `app/routes.ts`. No `'use client'` directives — this is NOT Next.js.
+React Router v7 (SSR mode). Routes defined in `app/routes.ts`. No `'use client'` directives: this is NOT Next.js.
 
 ### Auth
 BetterAuth with `authClient.useSession()` for session state. JWT tokens for control-plane API calls via `getToken()` in `app/lib/control-plane.ts`. Session cookies are httpOnly and managed by the `/api/auth/*` endpoints.
@@ -41,25 +41,25 @@ BetterAuth with `authClient.useSession()` for session state. JWT tokens for cont
 Use `fetchWithRetry()` from `app/lib/fetch-with-retry.ts` with Bearer tokens from `getToken()`. Control plane base URL from `getControlPlaneUrl()`. Never use Axios in this repo.
 
 ### Key Libraries
-- `app/lib/auth-client.ts` — BetterAuth client setup
-- `app/lib/control-plane.ts` — `getToken()`, `getControlPlaneUrl()`, API helpers
-- `app/lib/fetch-with-retry.ts` — Retry-aware fetch wrapper
-- `app/lib/db.ts` — Database connection (server-side only)
+- `app/lib/auth-client.ts`: BetterAuth client setup
+- `app/lib/control-plane.ts`: `getToken()`, `getControlPlaneUrl()`, API helpers
+- `app/lib/fetch-with-retry.ts`: Retry-aware fetch wrapper
+- `app/lib/db.ts`: Database connection (server-side only)
 
 ### Components
-- `app/components/common/header.tsx` — Auth-aware header (uses `authClient.useSession()`) — USE THIS for all pages
-- `app/components/header.tsx` — Static header with NO auth awareness — avoid using this
-- `app/components/common/footer.tsx` — Site footer
+- `app/components/common/header.tsx`: Auth-aware header (uses `authClient.useSession()`). USE THIS for all pages
+- `app/components/header.tsx`: Static header with NO auth awareness. Avoid using this
+- `app/components/common/footer.tsx`: Site footer
 
 ### Sub-apps
-- `/outreach/*` — Job outreach tool (13 routes). Backend: `job-outreach-svc` (FastAPI). State: Zustand (`app/lib/outreach/store.ts`).
-- `/dojos/*` — Learning dojos
-- `/resumes/*` — Resume builder
+- `/outreach/*`: Job outreach tool (13 routes). Backend: `job-outreach-svc` (FastAPI). State: Zustand (`app/lib/outreach/store.ts`).
+- `/dojos/*`: Learning dojos
+- `/resumes/*`: Resume builder
 - Other: blog, auth, onboarding, settings, internships, humanizer
 
 ## Key Patterns
 
-- Routes: **file-based auto-discovery** via `@react-router/fs-routes`. Create a file in `app/routes/` and it is automatically registered — no need to edit `routes.ts`.
+- Routes: **file-based auto-discovery** via `@react-router/fs-routes`. Create a file in `app/routes/` and it is automatically registered. No need to edit `routes.ts`.
   - Naming: dots become path segments (`api.autoapply.config.tsx` → `/api/autoapply/config`)
   - Params: `$id` → `:id`, trailing `$` → `*` splat
   - Index route: `_index.tsx` → `/`
@@ -144,15 +144,15 @@ Every change must follow:
 When writing or editing any `reports.*.tsx` file:
 
 ### No em dashes
-**Never use em dashes (`—`) anywhere in report copy.** This includes headings, prose, chart labels, card labels, callout text, meta tags, and comments.
+**Never use em dashes (U+2014) anywhere in report copy.** This includes headings, prose, chart labels, card labels, callout text, meta tags, and comments.
 
 Replacements by context:
-- Card labels and chart labels: use a colon — `"Skill gap: India 2026"` not `"Skill gap — India 2026"`
-- Mid-sentence elaboration: use a comma — `"table stakes, expected of every candidate"` not `"table stakes — expected of every candidate"`
-- Two independent thoughts: split into two sentences — `"It is growing fast. It is startup-driven."` not `"It is growing fast — and it is startup-driven."`
-- Introducing a list or explanation: use a colon — `"The roles: D2C, SaaS, logistics"` not `"The roles — D2C, SaaS, logistics"`
-- Twitter/OG meta titles: use a pipe `|` to separate brand — `"Title | Studojo 2026"` not `"Title — Studojo 2026"`
-- Code comments: use a colon — `// Chart 1: Stipend` not `// Chart 1 — Stipend`
+- Card labels and chart labels: use a colon (`"Skill gap: India 2026"`, not `"Skill gap \u2014 India 2026"`)
+- Mid-sentence elaboration: use a comma (`"table stakes, expected of every candidate"`, not `"table stakes \u2014 expected of every candidate"`)
+- Two independent thoughts: split into two sentences (`"It is growing fast. It is startup-driven."`, not `"It is growing fast \u2014 and it is startup-driven."`)
+- Introducing a list or explanation: use a colon (`"The roles: D2C, SaaS, logistics"`, not `"The roles \u2014 D2C, SaaS, logistics"`)
+- Twitter/OG meta titles: use a pipe `|` to separate brand (`"Title | Studojo 2026"`, not `"Title \u2014 Studojo 2026"`)
+- Code comments: use a colon (`// Chart 1: Stipend`, not `// Chart 1 \u2014 Stipend`)
 
 ### Data sourcing
 Every finding must cite a real or plausible source in the `rpt-source` line at the bottom of each finding. Do not invent precise statistics without a source. Use ranges and qualifiers ("approximately", "analysis of 900+ JDs") when data is estimated from aggregated sources rather than a single authoritative survey.

@@ -1,6 +1,6 @@
-// Apollo client — the last-resort phone leg. Two calls:
+// Apollo client: the last-resort phone leg. Two calls:
 //   1. match(linkedinUrl): cheap identity + any already-unlocked email/phone.
-//   2. requestPhoneReveal(): PAID (8 credits), webhook-async — Apollo POSTs the
+//   2. requestPhoneReveal(): PAID (8 credits), webhook-async: Apollo POSTs the
 //      number to our callback a few seconds later.
 // Apollo is OFF unless APOLLO_ENABLED=true, because a reveal spends whether or
 // not a number comes back. When on, it only ever runs on profiles both SalesQL

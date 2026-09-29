@@ -472,7 +472,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
                 <div className="sec-sub">{"Proof, process, and a portfolio that survives Q&A"}</div>
               </div>
             </div>
-            <p>{"Days 1–15: pick one domain problem (market map, user research synthesis, small automation, outreach campaign analysis). Use AI for first drafts only. Build a one-page memo with sourced bullets and a short \"what I checked\" section. Days 16–35: apply to 15 tailored roles and send ten outreaches with that memo linked. Mention AI as workflow, not identity. Days 36–60: mock a manager review. Can you explain every claim? Cut anything you cannot defend."}</p>
+            <p>{"Days 1-15: pick one domain problem (market map, user research synthesis, small automation, outreach campaign analysis). Use AI for first drafts only. Build a one-page memo with sourced bullets and a short \"what I checked\" section. Days 16-35: apply to 15 tailored roles and send ten outreaches with that memo linked. Mention AI as workflow, not identity. Days 36-60: mock a manager review. Can you explain every claim? Cut anything you cannot defend."}</p>
             <p>{"During the internship itself, run the same loop on every assignment: define success, AI-assist the first pass, verify, edit for audience, document in your weekly update. After eight weeks you should have two artifacts you can show in future interviews: a deliverable and a process write-up."}</p>
 
             <div className="highlight">{"<strong>Summary insight:</strong> AI won't replace interns. But interns who combine AI speed with human judgment will replace interns who bring neither."}</div>

@@ -216,7 +216,7 @@ export default function OpsIndiaReport() {
             <div className="rpt-stat-row rpt-c4">
               <div className="rpt-stat"><div className="rpt-val rpt-o">12,400+</div><div className="rpt-lbl">Ops intern openings nationwide</div><span className="rpt-delta rpt-du">+38% vs 2024</span></div>
               <div className="rpt-stat"><div className="rpt-val">73%</div><div className="rpt-lbl">Of openings at startups and SMEs</div><span className="rpt-delta rpt-dn">vs. 27% at large cos</span></div>
-              <div className="rpt-stat"><div className="rpt-val rpt-g">₹20k+</div><div className="rpt-lbl">Median stipend at Series A–B startups</div><span className="rpt-delta rpt-du">Up from ₹14k in 2023</span></div>
+              <div className="rpt-stat"><div className="rpt-val rpt-g">₹20k+</div><div className="rpt-lbl">Median stipend at Series A-B startups</div><span className="rpt-delta rpt-du">Up from ₹14k in 2023</span></div>
               <div className="rpt-stat"><div className="rpt-val rpt-o">4</div><div className="rpt-lbl">Cities hold 88% of all openings</div><span className="rpt-delta rpt-dn">BLR, MUM, DEL, PUN</span></div>
             </div>
 
@@ -575,7 +575,7 @@ export default function OpsIndiaReport() {
                   <div className="rpt-bar-list" style={{ marginTop: 8 }}>
                     {[
                       ["Content and comms ops", "Research and writing heavy", 82, "#10b981"],
-                      ["Data entry and quality ops", "Lower stipend (₹6k–10k)", 74, "#34d399"],
+                      ["Data entry and quality ops", "Lower stipend (₹6k-10k)", 74, "#34d399"],
                       ["Customer support ops", "Often WFH for smaller cos", 61, "#6ee7b7"],
                       ["Procurement research", "Vendor sourcing, analysis", 44, "#a7f3d0"],
                     ].map(([label, sub, pct, bg]) => (

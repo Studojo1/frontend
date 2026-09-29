@@ -23,7 +23,7 @@ export function addSecurityHeaders(response: Response): Response {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://api.fontshare.com https://checkout.razorpay.com",
       "style-src 'self' 'unsafe-inline' https://api.fontshare.com https://cdn.fontshare.com",
       // Fontshare serves the @font-face CSS from api.fontshare.com but the actual .woff2 files
-      // from cdn.fontshare.com — font-src MUST allow the CDN host or every font file is
+      // from cdn.fontshare.com, so font-src MUST allow the CDN host or every font file is
       // CSP-blocked and the whole UI falls back to serif (regression from the CSP added in
       // a6876b5, which whitelisted only the stylesheet host).
       "font-src 'self' https://api.fontshare.com https://cdn.fontshare.com",

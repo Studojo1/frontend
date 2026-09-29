@@ -155,7 +155,7 @@ export function buildResult(
   let phone: EnrichResult["phone"] = null;
   if (wantPhone && parts.phone) {
     if (parts.phoneLineType) {
-      // already verified by the cascade — trust it
+      // already verified by the cascade, trust it
       phone = {
         number: parts.phone,
         type: parts.phoneLineType,
@@ -163,7 +163,7 @@ export function buildResult(
         verified: true,
       };
     } else {
-      const v = classifyPhone(parts.phone); // raw (bulk) — verify now
+      const v = classifyPhone(parts.phone); // raw (bulk), verify now
       if (v.ok) {
         phone = { number: v.number, type: v.lineType, line_type: v.lineType, verified: true };
       }

@@ -1,6 +1,8 @@
 // AI pre-answering: generate answers to all likely screening questions for a job
 // Uses Azure OpenAI GPT-4o - answers cached in job_queue.prescreened_answers
 
+import { stripDashes, stripDashesDeep } from "~/lib/strip-dashes";
+
 const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT ?? "";
 const AZURE_KEY = process.env.AZURE_OPENAI_API_KEY ?? "";
 const DEPLOYMENT = process.env.AZURE_OPENAI_CHAT_DEPLOYMENT ?? "gpt-4o";
@@ -55,7 +57,7 @@ Rules:
     const raw = data?.choices?.[0]?.message?.content?.trim() ?? "{}";
     // Strip markdown code fences if present
     const cleaned = raw.replace(/^```json?\n?/, "").replace(/\n?```$/, "").trim();
-    return JSON.parse(cleaned);
+    return stripDashesDeep(JSON.parse(cleaned));
   } catch (err) {
     console.error("[prescreen] error:", err);
     return {};
@@ -94,7 +96,7 @@ Rules:
     });
 
     const data = (await res.json()) as any;
-    return data?.choices?.[0]?.message?.content?.trim() ?? "";
+    return stripDashes(data?.choices?.[0]?.message?.content?.trim() ?? "");
   } catch {
     return "";
   }
@@ -139,7 +141,7 @@ Write a connection note (max 300 chars).`,
 
     const data = (await res.json()) as any;
     const note = data?.choices?.[0]?.message?.content?.trim() ?? "";
-    return note.slice(0, 300);
+    return stripDashes(note).slice(0, 300);
   } catch {
     return "";
   }

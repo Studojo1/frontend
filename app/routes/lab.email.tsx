@@ -1,5 +1,5 @@
 /**
- * /lab/email — hidden test page for the email composer
+ * /lab/email: hidden test page for the email composer
  * No auth required. Not linked from anywhere on the site.
  */
 import { useState } from "react";
@@ -10,7 +10,7 @@ const MOCK_TEMPLATES: EmailTemplate[] = [
   {
     id: 1,
     name: "Value Prop",
-    subject: "Quick intro — {title} role at {company}",
+    subject: "Quick intro: {title} role at {company}",
     body: `Hi {name},
 
 I came across {company} and was genuinely impressed by what you're building.
@@ -25,14 +25,14 @@ Best,
   {
     id: 2,
     name: "Direct Ask",
-    subject: "Internship enquiry — {company}",
+    subject: "Internship enquiry: {company}",
     body: `Hi {name},
 
 I'm actively looking for a {title} role and {company} stood out to me immediately.
 
 My background: [2-3 sentence summary of your key experience and skills].
 
-I'm available [timeframe] — would a quick call work?
+I'm available [timeframe]. Would a quick call work?
 
 [Your Name]`,
   },
@@ -42,7 +42,7 @@ I'm available [timeframe] — would a quick call work?
     subject: "Loved your work on [specific thing]",
     body: `Hi {name},
 
-[Specific thing you noticed about their work at {company}] — genuinely impressive.
+[Specific thing you noticed about their work at {company}]. Genuinely impressive.
 
 I'm a [Your Role] with a background in [Key Area] and I've been keen to connect with teams working on this kind of problem.
 
@@ -53,7 +53,7 @@ Open to a quick intro call?
   {
     id: 4,
     name: "Short & Punchy",
-    subject: "{title} — keen to connect",
+    subject: "{title}: keen to connect",
     body: `Hi {name},
 
 {company} is at the top of my list right now.

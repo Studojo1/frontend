@@ -1,5 +1,5 @@
 // Shared email validation for the webinar signup form. Used by both the client
-// (instant feedback) and the server (authoritative — the client is bypassable).
+// (instant feedback) and the server (authoritative, since the client is bypassable).
 //
 // The basic shape regex accepts typos like "gmail.cok" or "gnail.com", which is
 // how bad addresses got into the registrant list and bounced. This adds two
@@ -65,7 +65,7 @@ export function checkEmail(raw: string): EmailCheck {
 
   const domain = email.slice(email.lastIndexOf("@") + 1);
 
-  // Known misspelling — offer the exact fix.
+  // Known misspelling: offer the exact fix.
   const fixed = DOMAIN_TYPOS[domain];
   if (fixed) {
     const local = email.slice(0, email.lastIndexOf("@"));

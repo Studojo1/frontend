@@ -1,5 +1,5 @@
 // ── Auth ──────────────────────────────────────────────────────────────
-// User type is handled by authClient.useSession() — no custom type needed.
+// User type is handled by authClient.useSession(), no custom type needed.
 
 // ── Candidate ────────────────────────────────────────────────────────
 
@@ -148,5 +148,5 @@ export interface TierPricing {
   currency: string;
   display_price: string;
   anchor_display?: string | null;  // e.g. "₹2500" (struck out next to display_price)
-  discount_pct?: number | null;     // e.g. 27 — rendered as "Save 27%"
+  discount_pct?: number | null;     // e.g. 27, rendered as "Save 27%"
 }

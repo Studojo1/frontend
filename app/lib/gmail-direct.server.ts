@@ -4,7 +4,7 @@
 //
 // Required env vars on the deployment:
 //   STUDOJO_GMAIL_USER          (defaults to studojo@gmail.com)
-//   STUDOJO_GMAIL_APP_PASSWORD  (16-char App Password — set as k8s secret)
+//   STUDOJO_GMAIL_APP_PASSWORD  (16-char App Password, set as k8s secret)
 //
 // The transport is created lazily and cached for the lifetime of the process.
 import nodemailer, { type Transporter } from "nodemailer";
@@ -19,7 +19,7 @@ function getTransporter(): { transporter: Transporter; from: string } | null {
     .trim();
   if (!password) {
     console.error(
-      "[gmail-direct] STUDOJO_GMAIL_APP_PASSWORD not set — emails will be skipped",
+      "[gmail-direct] STUDOJO_GMAIL_APP_PASSWORD not set, emails will be skipped",
     );
     return null;
   }

@@ -1,5 +1,5 @@
 /**
- * Studojo AutoApply — Popup script
+ * Studojo AutoApply: Popup script
  */
 
 // ── State management ──────────────────────────────────────────────────────────
@@ -39,7 +39,7 @@ function showError(message) {
       const apiMessages = {
         "401": "Studojo says you're not signed in. Refresh studojo.com and sign in, then try again.",
         "403": "Studojo refused the connection (forbidden). Make sure you're using the same account in both tabs.",
-        "404": "Studojo's session endpoint is unreachable. The platform may be deploying — try again in a minute.",
+        "404": "Studojo's session endpoint is unreachable. The platform may be deploying. Try again in a minute.",
         "500": "Studojo's server hit an error storing the session. Try again in a moment.",
       };
       el.textContent = apiMessages[code] || `Studojo returned HTTP ${code}. Try again or contact support.`;

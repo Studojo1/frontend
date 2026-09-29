@@ -142,7 +142,7 @@ export async function loader({ params }: Route.LoaderArgs) {
       <stop offset="0%" stop-color="${pal.primaryDim}" stop-opacity="0.35"/>
       <stop offset="100%" stop-color="${pal.primaryDim}" stop-opacity="0"/>
     </radialGradient>
-    <!-- Centre glow — makes title pop -->
+    <!-- Centre glow: makes title pop -->
     <radialGradient id="gC" cx="38%" cy="50%" r="42%" gradientUnits="objectBoundingBox">
       <stop offset="0%" stop-color="${pal.primary}" stop-opacity="0.10"/>
       <stop offset="100%" stop-color="${pal.primary}" stop-opacity="0"/>
@@ -214,7 +214,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     <line x1="80" y1="96" x2="${W - 80}" y2="96"
           stroke="${pal.accent}" stroke-width="0.75" opacity="0.18"/>
 
-    <!-- ══ TITLE BLOCK — vertically centred ══ -->
+    <!-- ══ TITLE BLOCK: vertically centred ══ -->
 
     <!-- Left accent bar spanning full title -->
     <rect x="80" y="${(titleY - 8).toFixed(0)}" width="5" height="${(totalTitleH + 20).toFixed(0)}"
@@ -227,7 +227,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     }).join("\n    ")}
 
     ${colourLine ? `
-    <!-- Accent-coloured last line — two-tone title (reports-page style) -->
+    <!-- Accent-coloured last line: two-tone title (reports-page style) -->
     <text x="104" y="${(titleY + (lines.length - 1) * lineH + fontSize).toFixed(0)}"
           font-family="${FONT}" font-size="${fontSize}" font-weight="800"
           fill="${pal.primary}" letter-spacing="-0.03em">${safe(colourLine)}</text>

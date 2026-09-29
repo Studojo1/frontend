@@ -17,7 +17,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Mesa — Job & Hiring-Signal Tracker | Studojo" },
+    { title: "Mesa: Job & Hiring-Signal Tracker | Studojo" },
     { name: "description", content: "Daily job scraping plus company hiring signals for the roles and keywords you care about." },
   ];
 }
@@ -154,7 +154,7 @@ export default function Mesa() {
     try {
       await outreachFetch(`/mesa/searches/${id}/signals/enrich?limit=15`, { method: "POST", maxRetries: 1 });
     } catch (e: any) { setError(e?.message || "Failed to start enrichment"); setEnriching(false); return; }
-    setError("Enriching the top companies with funding, news and an AI brief — this takes a minute and refreshes automatically.");
+    setError("Enriching the top companies with funding, news and an AI brief. This takes a minute and refreshes automatically.");
     let tries = 0;
     const poll = async () => {
       tries++;
@@ -162,7 +162,7 @@ export default function Mesa() {
       try {
         const d = await outreachFetch<{ enrichment?: Enrichment }>(`/mesa/searches/${id}/signals?limit=1`);
         if (d.enrichment && !d.enrichment.running && d.enrichment.total > 0) {
-          setEnriching(false); setError("Enrichment done — companies updated."); await loadSignals(id); return;
+          setEnriching(false); setError("Enrichment done. Companies updated."); await loadSignals(id); return;
         }
       } catch {}
       if (tries >= 18) { setEnriching(false); return; }
@@ -195,7 +195,7 @@ export default function Mesa() {
     try {
       await outreachFetch(`/mesa/searches/${id}/run`, { method: "POST", maxRetries: 1 });
     } catch (e: any) { setError(e?.message || "Failed to start run"); setRunning(false); return; }
-    setError("Scraping in the background — a deep run takes 1-3 minutes. Results refresh automatically.");
+    setError("Scraping in the background. A deep run takes 1-3 minutes. Results refresh automatically.");
     let tries = 0;
     const poll = async () => {
       tries++;
@@ -205,10 +205,10 @@ export default function Mesa() {
         const now = d.searches.find((s) => s.id === id)?.last_run_at || null;
         if (now && now !== before) {
           if (view === "jobs") await loadJobs(id); else await loadSignals(id);
-          setRunning(false); setError("Done — results updated."); return;
+          setRunning(false); setError("Done. Results updated."); return;
         }
       } catch {}
-      if (tries >= 30) { setRunning(false); setError("Still scraping — it'll finish shortly; refresh to see new results."); return; }
+      if (tries >= 30) { setRunning(false); setError("Still scraping. It'll finish shortly; refresh to see new results."); return; }
       setTimeout(poll, 10_000);
     };
     setTimeout(poll, 10_000);
@@ -349,13 +349,13 @@ export default function Mesa() {
                                 <td className="px-4 py-2.5 border-b border-neutral-100 font-medium text-neutral-900 max-w-[280px]">{j.title}</td>
                                 <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-700">{j.company}</td>
                                 <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500">{j.location}</td>
-                                <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500 whitespace-nowrap">{j.posted_date || "—"}</td>
+                                <td className="px-4 py-2.5 border-b border-neutral-100 text-neutral-500 whitespace-nowrap">{j.posted_date || "-"}</td>
                                 <td className="px-4 py-2.5 border-b border-neutral-100"><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${SOURCE_STYLE[j.source] || "bg-neutral-200 text-neutral-700"}`}>{srcLabel(j.source)}</span></td>
                                 <td className="px-4 py-2.5 border-b border-neutral-100 whitespace-nowrap">
                                   <div className="flex items-center gap-3">
                                     {j.url ? (
                                       <a href={j.url} target="_blank" rel="noreferrer" title={j.author ? `Open ${j.author} on LinkedIn` : "Open on LinkedIn"} className="inline-flex items-center gap-1 text-violet-600 hover:underline"><FiExternalLink size={14} /> {j.source === "linkedin_posts" ? "LinkedIn" : "Open"}</a>
-                                    ) : <span className="text-neutral-300">—</span>}
+                                    ) : <span className="text-neutral-300">-</span>}
                                     {j.apply_link ? (
                                       <a href={j.apply_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-emerald-600 hover:underline" title={j.apply_link.replace(/^mailto:/, "")}>✉ Apply</a>
                                     ) : null}
@@ -420,7 +420,7 @@ export default function Mesa() {
               <button onClick={() => setEditing(null)}><FiX /></button>
             </div>
             <div className="space-y-4">
-              <Field label="Name"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Marketing internships — Paris" className={inputCls} /></Field>
+              <Field label="Name"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Marketing internships, Paris" className={inputCls} /></Field>
               <Field label="Keywords / role"><input value={form.keywords} onChange={(e) => setForm({ ...form, keywords: e.target.value })} placeholder="e.g. marketing intern" className={inputCls} /></Field>
               <Field label="Location"><input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. Paris, France (leave blank for worldwide)" className={inputCls} /></Field>
               <Field label="Date posted">

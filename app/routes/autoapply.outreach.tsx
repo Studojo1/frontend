@@ -71,7 +71,7 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 function timeAgo(date: string | null): string {
-  if (!date) return "—";
+  if (!date) return "-";
   const diff = Date.now() - new Date(date).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 2) return "just now";
@@ -114,7 +114,7 @@ export default function LinkedInCampaignDashboard() {
     return () => clearInterval(t);
   }, [fetchStats]);
 
-  // SSE — contacts update from stream
+  // SSE: contacts update from stream
   useEffect(() => {
     const es = new EventSource("/api/autoapply/stream");
     es.onmessage = (e) => {
@@ -186,15 +186,15 @@ export default function LinkedInCampaignDashboard() {
               </span>
               <span className="text-gray-400">
                 Sent today <span className={`font-semibold ${(session.sentToday ?? 0) >= (session.dailyLimit ?? 99) ? "text-amber-600" : "text-gray-700"}`}>
-                  {session.sentToday ?? 0} / {session.dailyLimit ?? "—"}
+                  {session.sentToday ?? 0} / {session.dailyLimit ?? "-"}
                 </span>
               </span>
               <span className="text-gray-400">
-                Proxy <span className="font-semibold text-gray-700">{session.proxyCountry ?? "—"}</span>
+                Proxy <span className="font-semibold text-gray-700">{session.proxyCountry ?? "-"}</span>
               </span>
               <span className="text-gray-400">
                 Cookie <span className={`font-semibold ${session.cookieExpiresSoon ? "text-amber-600" : "text-gray-700"}`}>
-                  {session.cookieAgeDays !== null ? `${session.cookieAgeDays}d old` : "—"}
+                  {session.cookieAgeDays !== null ? `${session.cookieAgeDays}d old` : "-"}
                 </span>
               </span>
               <div className="ml-auto flex items-center gap-2">
@@ -213,7 +213,7 @@ export default function LinkedInCampaignDashboard() {
         {/* Warnings */}
         {session?.cookieExpiresSoon && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-700 font-satoshi">
-            ⚠ LinkedIn cookie is {session.cookieAgeDays} days old — refresh via the Chrome extension before it expires.
+            ⚠ LinkedIn cookie is {session.cookieAgeDays} days old. Refresh via the Chrome extension before it expires.
           </div>
         )}
         {!session?.connected && (
@@ -451,7 +451,7 @@ function NewCampaignModal({ onClose, onSave }: { onClose: () => void; onSave: (d
         <Field label="Target companies" hint="comma-separated, leave blank for all">
           <input className={INPUT} placeholder="Google, Meta, Stripe" value={form.targetCompanies} onChange={set("targetCompanies")} />
         </Field>
-        <Field label="Connection note" hint="max 300 chars — leave blank for AI-generated">
+        <Field label="Connection note" hint="max 300 chars, leave blank for AI-generated">
           <textarea className={`${INPUT} resize-none`} rows={2} maxLength={300}
             placeholder="Hi {firstName}, I came across your profile and would love to connect…"
             value={form.connectionNote} onChange={set("connectionNote")} />
@@ -464,7 +464,7 @@ function NewCampaignModal({ onClose, onSave }: { onClose: () => void; onSave: (d
         </Field>
         <Field label="Follow-up" hint="sent 7 days after intro if no reply">
           <textarea className={`${INPUT} resize-none`} rows={2}
-            placeholder="Hi {firstName}, just following up — happy to jump on a 15 min call if useful."
+            placeholder="Hi {firstName}, just following up. Happy to jump on a 15 min call if useful."
             value={form.followUpTemplate} onChange={set("followUpTemplate")} />
         </Field>
         <div className="flex justify-end gap-3 pt-2">
@@ -505,7 +505,7 @@ function AddLeadsModal({ campaignId, onClose, onSave }: { campaignId: string; on
       const parsed = JSON.parse(raw.trim());
       leads = Array.isArray(parsed) ? parsed : [parsed];
     } catch {
-      setError("Invalid JSON — paste an array of lead objects");
+      setError("Invalid JSON. Paste an array of lead objects");
       return;
     }
     const valid = leads.filter((l: any) => l.linkedinUrl);
@@ -577,7 +577,7 @@ function Field({ label, hint, required, children }: {
     <div>
       <label className="block text-sm font-semibold text-gray-700 mb-1.5 font-satoshi">
         {label}{required && <span className="text-red-400 ml-0.5">*</span>}
-        {hint && <span className="font-normal text-gray-400 ml-1.5 text-xs">— {hint}</span>}
+        {hint && <span className="font-normal text-gray-400 ml-1.5 text-xs">({hint})</span>}
       </label>
       {children}
     </div>

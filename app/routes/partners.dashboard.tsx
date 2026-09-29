@@ -179,14 +179,14 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
               The Studojo Partners API is a career outreach intelligence engine. Given a structured candidate profile, it identifies the hiring authorities most relevant to that candidate and generates the context, reasoning, and copy needed to make contact.
             </p>
             <p className="text-neutral-600 leading-relaxed mb-6">
-              Every result set is generated fresh. The output is not a contact list — it is a ranked, researched set of opportunities with pre-written outreach intelligence for each one.
+              Every result set is generated fresh. The output is not a contact list. It is a ranked, researched set of opportunities with pre-written outreach intelligence for each one.
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {[
                 ["Base URL", "partners.studojo.com"],
                 ["Auth header", "X-API-Key"],
                 ["Leads per run", "215 verified contacts"],
-                ["Turnaround", "30–45 minutes"],
+                ["Turnaround", "30-45 minutes"],
                 ["Pricing", "1 credit per run"],
                 ["Format", "JSON over HTTPS"],
               ].map(([label, value]) => (
@@ -208,7 +208,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
                   <span className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-violet-100 flex items-center justify-center">
                     <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
                   </span>
-                  <div><span className="font-semibold text-neutral-900">{title}</span><span className="text-neutral-500"> — {desc}</span></div>
+                  <div><span className="font-semibold text-neutral-900">{title}</span><span className="text-neutral-500">: {desc}</span></div>
                 </li>
               ))}
             </ul>
@@ -216,11 +216,11 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
 
           <Sec id="concepts" title="Core Concepts">
             {[
-              ["The Candidate Profile", "A structured input describing the candidate's professional specialisation, skills, target roles, location, preferred company stage, and a signature project. The richer the profile — specifically the subdomain and flex_notes fields — the more precisely the API identifies compatible opportunities."],
-              ["Hiring Authority Relevance", "The API identifies the specific individuals with the authority and organisational context to make a hiring decision for this candidate's profile. This requires reasoning about company size, structure, and stage — not just title matching."],
-              ["Org-Stage Compatibility", "Companies at different funding stages hire differently. A very early-stage company's founder makes every hire personally. A later-stage company has formalised hiring infrastructure. The API models this — a lead's ranking reflects whether the specific person has the authority and accessibility to act."],
-              ["Outreach Intelligence", "Each lead comes with five structured fields of pre-researched context synthesised from live company research — funding events, product direction, hiring signals, team composition — not generated from static profile pages."],
-              ["Async Processing", "Each run requires live company research, multi-step compatibility analysis, and per-lead content generation. Jobs complete asynchronously within 30–45 minutes. The API returns a job_id immediately and exposes a status endpoint for tracking."],
+              ["The Candidate Profile", "A structured input describing the candidate's professional specialisation, skills, target roles, location, preferred company stage, and a signature project. The richer the profile (specifically the subdomain and flex_notes fields), the more precisely the API identifies compatible opportunities."],
+              ["Hiring Authority Relevance", "The API identifies the specific individuals with the authority and organisational context to make a hiring decision for this candidate's profile. This requires reasoning about company size, structure, and stage, not just title matching."],
+              ["Org-Stage Compatibility", "Companies at different funding stages hire differently. A very early-stage company's founder makes every hire personally. A later-stage company has formalised hiring infrastructure. The API models this: a lead's ranking reflects whether the specific person has the authority and accessibility to act."],
+              ["Outreach Intelligence", "Each lead comes with five structured fields of pre-researched context synthesised from live company research (funding events, product direction, hiring signals, team composition), not generated from static profile pages."],
+              ["Async Processing", "Each run requires live company research, multi-step compatibility analysis, and per-lead content generation. Jobs complete asynchronously within 30-45 minutes. The API returns a job_id immediately and exposes a status endpoint for tracking."],
             ].map(([title, desc]) => (
               <div key={title as string} className="mb-5 rounded-xl border-2 border-neutral-200 p-5">
                 <div className="font-['Clash_Display'] font-bold text-neutral-900 mb-1">{title}</div>
@@ -230,11 +230,11 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
           </Sec>
 
           <Sec id="auth" title="Authentication">
-            <p className="text-neutral-600 mb-4">All requests require your API key in the <InlineCode>X-API-Key</InlineCode> header. Keys are scoped to your account — credits are deducted from the account balance, not the key.</p>
+            <p className="text-neutral-600 mb-4">All requests require your API key in the <InlineCode>X-API-Key</InlineCode> header. Keys are scoped to your account. Credits are deducted from the account balance, not the key.</p>
             <CB lang="http" code={`X-API-Key: ${K}`} />
             <SchemaTable rows={[
-              { name: "sk_live_", type: "prefix", desc: "Production key — live processing, credits consumed." },
-              { name: "sk_test_", type: "prefix", desc: "Sandbox key — returns fixture data, no credits consumed, job completes in ~5 seconds." },
+              { name: "sk_live_", type: "prefix", desc: "Production key: live processing, credits consumed." },
+              { name: "sk_test_", type: "prefix", desc: "Sandbox key: returns fixture data, no credits consumed, job completes in ~5 seconds." },
             ]} />
             <Note color="amber">Never include API keys in client-side code, URLs, or public repositories. Rotate immediately via the Dashboard if compromised.</Note>
           </Sec>
@@ -274,7 +274,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
             </div></div>
             <div className="flex gap-3 mb-4">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 bg-violet-500 text-xs font-bold text-white">2</span>
-              <div className="flex-1"><div className="font-semibold text-neutral-900 mb-1">Poll for completion (every 30–60s)</div>
+              <div className="flex-1"><div className="font-semibold text-neutral-900 mb-1">Poll for completion (every 30-60s)</div>
             <CB lang="bash" code={`curl https://partners.studojo.com/api/v1/jobs/job_a1b2c3... \\
   -H "X-API-Key: ${K}"`} />
             </div></div>
@@ -298,19 +298,19 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
             </div>
             <SchemaTable rows={[
               { name: "queued", type: "status", desc: "Job accepted and waiting for a processing slot." },
-              { name: "running", type: "status", desc: "Actively processing — see stage field for the current phase." },
+              { name: "running", type: "status", desc: "Actively processing. See stage field for the current phase." },
               { name: "completed", type: "status", desc: "Results are ready at /results." },
-              { name: "failed", type: "status", desc: "Processing failed — see the error field for the reason." },
+              { name: "failed", type: "status", desc: "Processing failed. See the error field for the reason." },
             ]} />
             <H3>Processing stages</H3>
             <SchemaTable rows={[
               { name: "discovering", type: "stage", desc: "Identifying relevant hiring authorities in the candidate's target geography and domain." },
-              { name: "researching", type: "stage", desc: "Running live company research — funding history, product direction, open roles, team signals." },
+              { name: "researching", type: "stage", desc: "Running live company research: funding history, product direction, open roles, team signals." },
               { name: "analysing", type: "stage", desc: "Computing compatibility across all discovered leads." },
               { name: "generating", type: "stage", desc: "Producing per-lead outreach intelligence." },
               { name: "verifying", type: "stage", desc: "Verifying and enriching contact details." },
             ]} />
-            <Note>Use webhooks for production. Polling at 30–60 second intervals is fine for testing.</Note>
+            <Note>Use webhooks for production. Polling at 30-60 second intervals is fine for testing.</Note>
           </Sec>
 
           <Sec id="create-job" title="Create Job">
@@ -323,7 +323,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
   -H "X-API-Key: ${K}" \\
   -H "Content-Type: application/json" \\
   -d '{ "candidate": { ... }, "options": { "webhook_url": null } }'`} />
-            <H3>Response — 202 Accepted</H3>
+            <H3>Response: 202 Accepted</H3>
             <CB lang="json" code={`{
   "job_id": "job_b3fd85429d544340b487562e167c1dfe",
   "status": "queued",
@@ -332,7 +332,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
   "estimated_completion_seconds": 720
 }`} />
             <SchemaTable rows={[
-              { name: "job_id", type: "string", desc: "Unique job identifier. Prefix: job_. Store this — required for all subsequent requests." },
+              { name: "job_id", type: "string", desc: "Unique job identifier. Prefix: job_. Store this. It is required for all subsequent requests." },
               { name: "status", type: "string", desc: 'Always "queued" at creation.' },
               { name: "status_url", type: "string", desc: "Relative path to the status endpoint." },
               { name: "results_url", type: "string", desc: "Relative path to the results endpoint." },
@@ -393,7 +393,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
         "connection_point": "InferIQ is building inference-time alignment tooling that requires the same preference-scoring infrastructure Aisha built at Sarvam AI.",
         "outreach_angle": "InferIQ is building alignment guardrails for LLM inference that validate output quality against preference criteria in real time. Aisha built Sarvam AI's RLHF evaluation harness and identified reward hacking patterns that invalidated two prior training runs.",
         "why_now": "InferIQ raised a $1.2M pre-seed in March 2026 and is actively hiring an ML Researcher.",
-        "suggested_opening": "The way InferIQ is approaching preference validation at inference time caught my attention — I spent months building the exact evaluation harness for that problem at Sarvam.",
+        "suggested_opening": "The way InferIQ is approaching preference validation at inference time caught my attention; I spent months building the exact evaluation harness for that problem at Sarvam.",
         "signal_rationale": "Open ML Researcher role confirmed; InferIQ's inference-time alignment product directly overlaps with the candidate's preference-learning evaluation work."
       }
     }
@@ -423,13 +423,13 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
               { name: "name", type: "string", required: true, desc: "Candidate's full name. Used in generated outreach copy." },
               { name: "resume_profile", type: "object", required: true, desc: "Structured professional profile. See below." },
               { name: "preferences", type: "object", required: true, desc: "Search constraints and role preferences. See below." },
-              { name: "flex_notes", type: "object", desc: "Project and outcome context. Strongly recommended — highest impact on output quality." },
+              { name: "flex_notes", type: "object", desc: "Project and outcome context. Strongly recommended (highest impact on output quality)." },
               { name: "dream_companies", type: "string[]", desc: "Company names to prioritise in ranking." },
             ]} />
             <H3>candidate.resume_profile</H3>
             <Note color="violet"><strong>subdomain is the most important field.</strong> The more specific, the better. "RLHF evaluation for production 7B parameter fine-tuning" produces far better results than "Machine Learning".</Note>
             <SchemaTable rows={[
-              { name: "subdomain", type: "string", required: true, desc: "1–2 sentences describing the candidate's specific professional niche." },
+              { name: "subdomain", type: "string", required: true, desc: "1-2 sentences describing the candidate's specific professional niche." },
               { name: "top_skills", type: "string[]", required: true, desc: "The candidate's strongest skills. Use specific terms, not categories. Up to 15." },
               { name: "tech_stack", type: "string[]", desc: "Technologies the candidate works with. Used for technical overlap analysis." },
               { name: "archetype_label", type: "string", desc: "One sentence describing the candidate's professional identity and standout credential." },
@@ -445,13 +445,13 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
               { name: "preferred_roles", type: "string[]", required: true, desc: "Target role titles. Directly determines which hiring authorities are surfaced at each company." },
               { name: "locations", type: "string[]", required: true, desc: "Target cities or regions." },
               { name: "company_stage", type: "string", desc: '"startup" | "early" | "growth" | "enterprise" | "any". Default: "startup".' },
-              { name: "niche_keywords", type: "string[]", desc: 'Additional search terms to narrow discovery — e.g. "AI-native", "seed stage".' },
+              { name: "niche_keywords", type: "string[]", desc: 'Additional search terms to narrow discovery (e.g. "AI-native", "seed stage").' },
               { name: "remote", type: "boolean", desc: "Whether to include remote-first companies. Default: false." },
             ]} />
             <H3>candidate.flex_notes</H3>
             <SchemaTable rows={[
-              { name: "best_project", type: "string", desc: "1–3 sentences describing the candidate's most compelling project. Include what it did, how it was built, and what was technically hard." },
-              { name: "outcome", type: "string", desc: "The measurable result — numbers, adoption, revenue. Anchors every suggested_opening and connection_point in the result set." },
+              { name: "best_project", type: "string", desc: "1-3 sentences describing the candidate's most compelling project. Include what it did, how it was built, and what was technically hard." },
+              { name: "outcome", type: "string", desc: "The measurable result: numbers, adoption, revenue. Anchors every suggested_opening and connection_point in the result set." },
             ]} />
             <H3>options object</H3>
             <SchemaTable rows={[
@@ -526,26 +526,26 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
               {
                 field: "outreach_angle",
                 label: "Outreach Angle",
-                usage: "Use as the body of a short cold email, or paraphrase into a LinkedIn message. 50–130 words.",
-                desc: "The core argument for engagement. 2–3 sentences: observation → overlap → stakes. Sentence 1: what this company is building or the precise problem they're solving. Sentence 2: the candidate's direct overlap. Sentence 3 (optional): why the specific lead is the right receiver.",
+                usage: "Use as the body of a short cold email, or paraphrase into a LinkedIn message. 50-130 words.",
+                desc: "The core argument for engagement. 2-3 sentences: observation → overlap → stakes. Sentence 1: what this company is building or the precise problem they're solving. Sentence 2: the candidate's direct overlap. Sentence 3 (optional): why the specific lead is the right receiver.",
               },
               {
                 field: "why_now",
                 label: "Why Now",
                 usage: "Include as a postscript, or weave into the message body. Check the date on funding references if the run is more than 2 weeks old.",
-                desc: "What makes this moment the right time to reach out. Draws from live company research — a funding round with a date, a confirmed open role, a recent product launch, or a stage-based strategic observation.",
+                desc: "What makes this moment the right time to reach out. Draws from live company research: a funding round with a date, a confirmed open role, a recent product launch, or a stage-based strategic observation.",
               },
               {
                 field: "suggested_opening",
                 label: "Suggested Opening",
                 usage: "Use directly or edit for tone. If signal_rationale indicates thin company data, review before sending.",
-                desc: "A complete first sentence ready to use in a cold email or LinkedIn message. Specific to this company — replacing the company name would require rewriting it entirely.",
+                desc: "A complete first sentence ready to use in a cold email or LinkedIn message. Specific to this company: replacing the company name would require rewriting it entirely.",
               },
               {
                 field: "signal_rationale",
                 label: "Signal Rationale",
                 usage: "Read before deciding how much to personalise. A rationale citing a confirmed open role warrants a highly personalised message. A title-only match warrants a lighter, exploratory message.",
-                desc: "One sentence stating explicitly what data supported this match — and what was missing. Intentionally transparent about confidence level.",
+                desc: "One sentence stating explicitly what data supported this match, and what was missing. Intentionally transparent about confidence level.",
               },
             ].map((item, i) => (
               <div key={item.field} className="mb-5 rounded-2xl border-2 border-neutral-900 bg-white p-5 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
@@ -565,7 +565,7 @@ function ApiDocs({ apiKey }: { apiKey: string | null }) {
           </Sec>
 
           <Sec id="webhooks" title="Webhooks">
-            <p className="text-neutral-600 mb-5">Set <InlineCode>webhook_url</InlineCode> in your request options to receive a POST notification when the job completes. The payload does not include leads — fetch results separately.</p>
+            <p className="text-neutral-600 mb-5">Set <InlineCode>webhook_url</InlineCode> in your request options to receive a POST notification when the job completes. The payload does not include leads. Fetch results separately.</p>
             <H3>On success</H3>
             <CB lang="json" code={`{
   "event": "job.completed",
@@ -635,10 +635,10 @@ wh.verify(request.body, {"webhook-signature": request.headers["Webhook-Signature
             <H3>Writing an effective candidate profile</H3>
             <div className="space-y-3 mb-6">
               {[
-                ["subdomain — highest leverage field", 'Write it as a specific professional niche, not a job title. "RLHF evaluation and reward modelling for production fine-tuning pipelines" produces far better results than "Machine Learning".'],
-                ["preferred_roles — determines who gets surfaced", "The roles listed directly influence which hiring authority is identified at each company. Different roles produce very different lead sets even at the same company."],
-                ["flex_notes — the difference between generic and specific copy", "Every suggested_opening and connection_point in the result set is anchored to flex_notes.best_project. Without it, copy is generic. With a specific project and metric, copy is specific enough to pass as genuinely researched."],
-                ["company_type_avoid — prevents poor-fit noise", 'Always specify company types that would never be a fit. Common values: "IT services", "consulting", "outsourcing", "FMCG". These are excluded before ranking.'],
+                ["subdomain: highest leverage field", 'Write it as a specific professional niche, not a job title. "RLHF evaluation and reward modelling for production fine-tuning pipelines" produces far better results than "Machine Learning".'],
+                ["preferred_roles: determines who gets surfaced", "The roles listed directly influence which hiring authority is identified at each company. Different roles produce very different lead sets even at the same company."],
+                ["flex_notes: the difference between generic and specific copy", "Every suggested_opening and connection_point in the result set is anchored to flex_notes.best_project. Without it, copy is generic. With a specific project and metric, copy is specific enough to pass as genuinely researched."],
+                ["company_type_avoid: prevents poor-fit noise", 'Always specify company types that would never be a fit. Common values: "IT services", "consulting", "outsourcing", "FMCG". These are excluded before ranking.'],
               ].map(([title, desc]) => (
                 <div key={title as string} className="rounded-xl border-2 border-neutral-200 p-4">
                   <div className="font-semibold text-neutral-900 mb-1 text-sm">{title}</div>
@@ -649,9 +649,9 @@ wh.verify(request.body, {"webhook-signature": request.headers["Webhook-Signature
             <H3>Interpreting results</H3>
             <ul className="space-y-2 text-sm text-neutral-600">
               {[
-                "The first 20–30 leads in the ranked list are the highest-priority contacts — start there.",
+                "The first 20-30 leads in the ranked list are the highest-priority contacts. Start there.",
                 "Always read signal_rationale before sending a highly personalised message. It tells you exactly what the basis for the match is.",
-                "suggested_opening is a starting point — edit for your candidate's voice and communication style.",
+                "suggested_opening is a starting point. Edit for your candidate's voice and communication style.",
                 "why_now contains time-sensitive information. Verify funding references if the run is more than 2 weeks old.",
               ].map((t) => (
                 <li key={t} className="flex gap-2"><span className="mt-1 shrink-0 h-1.5 w-1.5 rounded-full bg-violet-500" />{t}</li>
@@ -789,10 +789,10 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
           <Sec id="faq" title="FAQ">
             <div className="space-y-4">
               {[
-                ["How does the API determine who to surface at each company?", "It identifies the individual with organisational authority to hire someone with the candidate's profile — which varies by company size, structure, and the specific roles listed. This is not simple title matching; it accounts for how authority is distributed at different stages."],
-                ["Are results deterministic?", "No. Company research is live — job postings, funding announcements, and team signals change daily. Two runs with the same profile will return overlapping but not identical results. Rankings may shift as company momentum changes."],
-                ["Can I run the same profile twice?", "Yes, and it is encouraged for active candidates. Re-running every 2–4 weeks refreshes company research and surfaces new leads as companies evolve. Handle deduplication between runs in your own system."],
-                ["What geographies are supported?", "Major tech hubs — Bengaluru, Mumbai, Delhi NCR, Singapore, San Francisco, London, New York — have the best coverage. Results in smaller cities or niche geographies may be lower in volume."],
+                ["How does the API determine who to surface at each company?", "It identifies the individual with organisational authority to hire someone with the candidate's profile, which varies by company size, structure, and the specific roles listed. This is not simple title matching; it accounts for how authority is distributed at different stages."],
+                ["Are results deterministic?", "No. Company research is live: job postings, funding announcements, and team signals change daily. Two runs with the same profile will return overlapping but not identical results. Rankings may shift as company momentum changes."],
+                ["Can I run the same profile twice?", "Yes, and it is encouraged for active candidates. Re-running every 2-4 weeks refreshes company research and surfaces new leads as companies evolve. Handle deduplication between runs in your own system."],
+                ["What geographies are supported?", "Major tech hubs (Bengaluru, Mumbai, Delhi NCR, Singapore, San Francisco, London, New York) have the best coverage. Results in smaller cities or niche geographies may be lower in volume."],
                 ["How specific does the subdomain need to be?", "As specific as possible. The model uses subdomain to reason about which companies are genuinely compatible, not just broadly related. A vague subdomain produces a broader, less targeted result set."],
                 ["What happens if there are not enough leads?", "For narrow geographies or niche specialisations, the discovery pool may be smaller. The API returns as many verified, qualified leads as it can find rather than padding with poor-quality matches. Adding locations, broadening target_industries, or relaxing company_stage improves yield."],
               ].map(([q, a]) => (
@@ -814,8 +814,8 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
                 ["Lead", "A specific person at a specific company, included in the ranked result set."],
                 ["Org-stage compatibility", "The degree to which a company's size and funding stage match the candidate's preferred working environment."],
                 ["Outreach intelligence", "The set of pre-researched, per-lead fields enabling specific, credible cold outreach."],
-                ["Signal rationale", "A plain-language explanation of the specific data that supports a given match — including gaps in available information."],
-                ["Subdomain", "A 1–2 sentence description of the candidate's specific professional niche. The most important input field for matching quality."],
+                ["Signal rationale", "A plain-language explanation of the specific data that supports a given match, including gaps in available information."],
+                ["Subdomain", "A 1-2 sentence description of the candidate's specific professional niche. The most important input field for matching quality."],
                 ["Webhook", "An HTTPS endpoint that receives a POST notification when a job completes."],
               ].map(([term, def]) => (
                 <div key={term as string} className="flex gap-4 border-b border-neutral-100 px-5 py-3 last:border-0">
@@ -834,7 +834,7 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
 
 export default function PartnersDashboard() {
   const navigate = useNavigate();
-  // Stabilise with useState — getStoredUser() does JSON.parse and returns a new
+  // Stabilise with useState: getStoredUser() does JSON.parse and returns a new
   // object on every call, so calling it directly causes an infinite useEffect loop.
   const [storedUser] = useState(getStoredUser);
   const [me, setMe] = useState<Me | null>(null);
@@ -873,7 +873,7 @@ export default function PartnersDashboard() {
   useEffect(() => {
     if (!storedUser) { navigate("/partners/login"); return; }
     load();
-  }, [load]); // storedUser/navigate are stable refs — omitting prevents re-trigger on object identity change
+  }, [load]); // storedUser/navigate are stable refs; omitting prevents re-trigger on object identity change
 
   const createKey = async () => {
     setCreatingKey(true);
@@ -978,7 +978,7 @@ export default function PartnersDashboard() {
             </div>
           )}
 
-          {/* Newly created key — show once */}
+          {/* Newly created key: show once */}
           {newKey && (
             <div className="rounded-2xl border-2 border-green-500 bg-green-50 p-6 shadow-[4px_4px_0px_0px_rgba(34,197,94,1)]">
               <div className="mb-3 flex items-center gap-2">

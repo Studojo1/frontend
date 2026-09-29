@@ -48,7 +48,7 @@ function initCharts() {
   const INK = "#171717";
   const gridOpts = { color: "#f0f0ee", lineWidth: 1 };
 
-  // Chart 1: Funnel — what happens to 100 applications
+  // Chart 1: Funnel (what happens to 100 applications)
   const funnelEl = document.getElementById("funnelChart") as HTMLCanvasElement | null;
   if (funnelEl && !funnelEl.dataset.rendered) {
     funnelEl.dataset.rendered = "1";
@@ -518,14 +518,14 @@ export default function ApplicationResponseRateReport() {
               </thead>
               <tbody>
                 {[
-                  ["1", "ATS keyword and formatting mismatch", "pill-red", "Yes — tailor each application"],
-                  ["2", "Application volume (you are one of 250+)", "pill-red", "Partially — apply earlier, apply to less-posted roles"],
-                  ["3", "Poor timing (applying after day 3)", "pill-red", "Yes — apply within 24 hours of posting"],
-                  ["4", "Ghost job (role not actively hiring)", "pill-amber", "No — but avoid listings over 21 days old"],
-                  ["5", "Referral wall (role filled internally)", "pill-amber", "Partially — build direct outreach to bypass ATS"],
-                  ["6", "Skills mismatch or over-specified JD", "pill-amber", "Partially — apply anyway if 60%+ match"],
-                  ["7", "Recruiter bandwidth and process breakdown", "pill-green", "No — structural problem on company side"],
-                  ["8", "Platform algorithm and engagement gaming", "pill-amber", "Partially — optimize LinkedIn profile, avoid Easy Apply only"],
+                  ["1", "ATS keyword and formatting mismatch", "pill-red", "Yes: tailor each application"],
+                  ["2", "Application volume (you are one of 250+)", "pill-red", "Partially: apply earlier, apply to less-posted roles"],
+                  ["3", "Poor timing (applying after day 3)", "pill-red", "Yes: apply within 24 hours of posting"],
+                  ["4", "Ghost job (role not actively hiring)", "pill-amber", "No, but avoid listings over 21 days old"],
+                  ["5", "Referral wall (role filled internally)", "pill-amber", "Partially: build direct outreach to bypass ATS"],
+                  ["6", "Skills mismatch or over-specified JD", "pill-amber", "Partially: apply anyway if 60%+ match"],
+                  ["7", "Recruiter bandwidth and process breakdown", "pill-green", "No: structural problem on company side"],
+                  ["8", "Platform algorithm and engagement gaming", "pill-amber", "Partially: optimize LinkedIn profile, avoid Easy Apply only"],
                 ].map(([num, reason, pillClass, fix]) => (
                   <tr key={num}>
                     <td style={{ fontWeight: 700, color: "#8B5CF6" }}>{num}</td>

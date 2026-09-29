@@ -268,7 +268,7 @@ export default function Report_AppleInternshipReport202627() {
               <div className="sc-source">{"Levels.fyi and Glassdoor self-reported data, 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"Aug–Feb"}</div>
+              <div className="sc-num">{"Aug-Feb"}</div>
               <div className="sc-label">{"Window when most summer 2027 internship roles post, with recruiter activity peaking September to December 2026"}</div>
               <div className="sc-source">{"Apple Careers postings and student recruiting guides, synthesised 2026"}</div>
             </div>

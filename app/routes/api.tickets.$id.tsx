@@ -1,4 +1,4 @@
-// GET /api/tickets/:id — fetch a single ticket + its full message thread.
+// GET /api/tickets/:id: fetch a single ticket + its full message thread.
 // Only the owner can read. Returns 404 (not 403) if a ticket isn't
 // theirs, to avoid leaking which IDs exist.
 import type { Route } from "./+types/api.tickets.$id";

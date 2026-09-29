@@ -4,8 +4,8 @@
 
 | Branch | Deploys to | Product surface |
 |---|---|---|
-| `main` | **production** — app.studojo.com + dashboard.studojo.com | via `.github/workflows/deploy.yml` (push to `main`) |
-| `staging` | **test** — app.studojo.pro + dashboard.studojo.pro | via `.github/workflows/deploy-staging.yml` (push to `staging`) |
+| `main` | **production**: app.studojo.com + dashboard.studojo.com | via `.github/workflows/deploy.yml` (push to `main`) |
+| `staging` | **test**: app.studojo.pro + dashboard.studojo.pro | via `.github/workflows/deploy-staging.yml` (push to `staging`) |
 
 Both app.* and dashboard.* are served from the **same build**, split by Host header in `app/routes/_index.tsx`.
 
@@ -15,12 +15,12 @@ Both app.* and dashboard.* are served from the **same build**, split by Host hea
 
 ## The landmine this process prevents
 
-A hand cherry-pick of **one** file (typically `app/routes/bob.tsx`) **silently drops any other file the feature touched** — a new component, shared CSS, a lib helper. The feature then ships **half-live** in prod and nothing warns you. (The Sensei streaming overlay only reached prod cleanly because it happened to be fully self-contained in `bob.tsx`. The next multi-file feature will not be that lucky.)
+A hand cherry-pick of **one** file (typically `app/routes/bob.tsx`) **silently drops any other file the feature touched**: a new component, shared CSS, a lib helper. The feature then ships **half-live** in prod and nothing warns you. (The Sensei streaming overlay only reached prod cleanly because it happened to be fully self-contained in `bob.tsx`. The next multi-file feature will not be that lucky.)
 
 ## How to promote (do this every time)
 
 1. **Know your feature's full file set.** From your staging PR, list every file the feature changed (not just `bob.tsx`).
-2. **Run the helper** with those paths — it reports the complete set of files that differ between `staging` and `main`, so nothing is missed:
+2. **Run the helper** with those paths. It reports the complete set of files that differ between `staging` and `main`, so nothing is missed:
    ```bash
    scripts/promote-sensei.sh app/routes/bob.tsx app/components/sensei/ app/styles/sensei.css
    ```

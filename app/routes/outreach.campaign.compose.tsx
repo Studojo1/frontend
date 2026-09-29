@@ -20,7 +20,7 @@ export default function ComposePage() {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
 
-  // Derive StyleProfile from the candidate's existing onboarding data — no wizard needed
+  // Derive StyleProfile from the candidate's existing onboarding data (no wizard needed)
   const derivedProfile: StyleProfile | null = (() => {
     if (!profileData) return null;
     const parsed = profileData?.parsed_json ?? profileData;
@@ -92,7 +92,7 @@ export default function ComposePage() {
         setSelectedTemplate({ ...base, subject, body });
       }
     } else if (subject || body) {
-      // Custom (no template) — store as a synthetic template
+      // Custom (no template): store as a synthetic template
       setSelectedTemplate({ id: -1, name: "Custom", subject, body });
     }
 
@@ -129,7 +129,7 @@ export default function ComposePage() {
         </div>
       </div>
 
-      {/* 3-panel composer — skips style wizard, uses onboarding data */}
+      {/* 3-panel composer: skips style wizard, uses onboarding data */}
       <EmailComposer
         templates={templates}
         initialTemplate={selectedTemplate}

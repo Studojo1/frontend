@@ -1,4 +1,4 @@
-// JRS coach — scripted onboarding + op-based resume patching.
+// JRS coach: scripted onboarding + op-based resume patching.
 // Shared between the client (apply ops live) and the chat endpoint (validate
 // ops before returning them).
 import type {

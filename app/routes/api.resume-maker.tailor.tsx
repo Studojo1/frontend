@@ -1,9 +1,10 @@
-// JRS tailor — rewrites a resume to target a specific job description.
+// JRS tailor: rewrites a resume to target a specific job description.
 // Mirrors the JD's language and priorities WITHOUT inventing facts.
 // gpt-4o-mini. Structure (contact, dates, ids, entry counts) is preserved
 // server-side; the model only rephrases and reprioritises real content.
 import type { Route } from "./+types/api.resume-maker.tailor";
 import type { ResumeData } from "~/lib/jrs/types";
+import { stripDashesDeep } from "~/lib/strip-dashes";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -48,7 +49,7 @@ async function callOpenAI(data: ResumeData, jd: string): Promise<any | null> {
     if (!res.ok) return null;
     const j = await res.json();
     const raw = j?.choices?.[0]?.message?.content?.trim();
-    return raw ? JSON.parse(raw) : null;
+    return raw ? stripDashesDeep(JSON.parse(raw)) : null;
   } catch {
     return null;
   }

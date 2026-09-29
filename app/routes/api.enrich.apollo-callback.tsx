@@ -1,4 +1,4 @@
-// POST /api/enrich/apollo-callback?secret=..&rid=.. — Apollo posts a revealed
+// POST /api/enrich/apollo-callback?secret=..&rid=..: Apollo posts a revealed
 // phone here a few seconds after a reveal. We store it against the reveal id so
 // the in-flight engine poll can pick it up, and patch the cache so a late number
 // is available to the next call for that profile.

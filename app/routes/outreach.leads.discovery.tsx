@@ -10,11 +10,11 @@ import { capturePostHog } from "~/lib/posthog";
 
 const POLL_INTERVAL_MS = 5000;
 // The counter + bar ramp over this window, then HOLD until results are actually
-// ready (allDone) — so the user never sees a "finished" screen with nothing happening.
+// ready (allDone), so the user never sees a "finished" screen with nothing happening.
 const RAMP_MS = 95000;
 const BAR_CAP = 96; // bar holds here until allDone, then jumps to 100
 
-// Named, recognizable sources — concrete names make "scouring the web" credible.
+// Named, recognizable sources: concrete names make "scouring the web" credible.
 const SOURCES = [
   "Company career pages", "LinkedIn", "Naukri", "Wellfound", "Crunchbase",
   "Y Combinator", "Product Hunt", "AngelList", "Indeed", "Glassdoor",
@@ -22,7 +22,7 @@ const SOURCES = [
   "Hacker News (Who's hiring)", "TechCrunch", "Funding & news feeds", "Twitter / X",
 ];
 
-// Rotating headline — ~50% conversion lines (c: true), interleaved with status.
+// Rotating headline: ~50% conversion lines (c: true), interleaved with status.
 const HEADLINES: { t: string; c?: boolean }[] = [
   { t: "Scouring the internet for your people…" },
   { t: "The average student lands 3 interview calls in week one.", c: true },
@@ -36,7 +36,7 @@ const HEADLINES: { t: string; c?: boolean }[] = [
   { t: "Students who finish setup get 3× more replies.", c: true },
 ];
 
-// Matches keyed by market — NO company names, location-aware.
+// Matches keyed by market: NO company names, location-aware.
 type Person = { i: string; n: string; t: string; c: string; m: number };
 const PEOPLE_BY_MARKET: Record<string, Person[]> = {
   India: [
@@ -112,7 +112,7 @@ function detectMarket(locations: string[]): string {
   return "Global";
 }
 
-// Wall of Love — mixed authentic "screenshots": X, iMessage, WhatsApp, LinkedIn.
+// Wall of Love: mixed authentic "screenshots": X, iMessage, WhatsApp, LinkedIn.
 type Card =
   | { type: "tweet"; n: string; h: string; d: string; v: boolean; q: string; re: number; rt: number; lk: number }
   | { type: "imsg"; in: string; out: string; t: string }
@@ -121,13 +121,13 @@ type Card =
 const WALL: Card[] = [
   { type: "tweet", n: "Priya Nair", h: "@priyabuilds", d: "May 24", v: false, q: "40 applications on job boards = total silence. one week on studojo = 3 replies from actual founders 💀 the math isn't close", re: 5, rt: 6, lk: 41 },
   { type: "imsg", in: "a founder just replied to my message directly 😭", out: "the studojo one?? told you to set it up", t: "11:47 PM" },
-  { type: "linkedin", n: "Karthik Menon", role: "Talent Lead · Seed-stage SaaS", deg: "2nd", q: "Got a note from a student via Studojo — tight, specific, clearly not a mass blast. Replied within the hour. More of this, please." },
+  { type: "linkedin", n: "Karthik Menon", role: "Talent Lead · Seed-stage SaaS", deg: "2nd", q: "Got a note from a student via Studojo: tight, specific, clearly not a mass blast. Replied within the hour. More of this, please." },
   { type: "tweet", n: "Devansh Rao", h: "@devansh_rao", d: "6d", v: true, q: "the outreach actually sounds like me, not a bot. recruiter wrote back that my note 'stood out' :D still not over it", re: 2, rt: 4, lk: 33 },
   { type: "whatsapp", q: "ok studojo is lowkey unfair. two interview calls this week and I never touched a single job portal", t: "8:21 PM" },
   { type: "tweet", n: "Sara Qureshi", h: "@sara_q", d: "May 31", v: false, q: "months of getting ghosted, then one weekend on studojo and my inbox finally has real humans in it", re: 3, rt: 5, lk: 29 },
   { type: "imsg", in: "wait the internship is locked?? 🔒", out: "the role studojo dug up?? lets gooo", t: "4:02 PM" },
   { type: "whatsapp", q: "the follow-ups run on their own so I don't have to chase. woke up to a reply I never had to send twice <3", t: "7:58 AM" },
-  { type: "linkedin", n: "Hannah Lim", role: "CS @ NUS", deg: "2nd", q: "Four intro calls in my first week, all for roles I'd never have surfaced on a job board. Quietly impressed — sending this to my whole cohort." },
+  { type: "linkedin", n: "Hannah Lim", role: "CS @ NUS", deg: "2nd", q: "Four intro calls in my first week, all for roles I'd never have surfaced on a job board. Quietly impressed. Sending this to my whole cohort." },
   { type: "tweet", n: "Rohit Bansal", h: "@rohitships", d: "Jun 5", v: false, q: "done firing résumés into the void. studojo drops me straight into the right person's inbox 🙌 genuinely a different game", re: 4, rt: 7, lk: 38 },
 ];
 
@@ -266,7 +266,7 @@ export default function DiscoveryPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const scanCounter = useRef(0);
 
-  // Per-user scan total: deterministic from candidateId, 2.1M–3.4M. Stable on
+  // Per-user scan total: deterministic from candidateId, 2.1M-3.4M. Stable on
   // refresh, different across users.
   const TARGET = useMemo(() => {
     const seed = String(candidateId ?? "studojo").split("").reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -379,7 +379,7 @@ export default function DiscoveryPage() {
               finish("ready", data);
             }
           } catch {
-            // non-fatal — keep polling
+            // non-fatal: keep polling
           }
         }, POLL_INTERVAL_MS);
       })

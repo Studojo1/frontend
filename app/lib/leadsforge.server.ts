@@ -1,4 +1,4 @@
-// LeadsForge client — verified contract (api.leadsforge.ai/public/v1).
+// LeadsForge client: verified contract (api.leadsforge.ai/public/v1).
 //  - Auth: raw API key in Authorization header, NO "Bearer" prefix.
 //  - Enrichment is async: POST a job, poll the job, fetch results.
 //  - Billed only on a verified result; misses are free.

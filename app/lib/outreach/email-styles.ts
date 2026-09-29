@@ -3,7 +3,7 @@
 // Copied deliberately from the service's STYLE_DESCRIPTIONS
 // (services/email_campaign/email_generator_service.py:24-55) so the wording a
 // student reads matches what the generator actually does. The ids MUST match
-// exactly — an unknown id falls back to warm_intro (assign_style, :676-693).
+// exactly: an unknown id falls back to warm_intro (assign_style, :676-693).
 //
 // This matters more than it looks. /campaign/create defaults blank styles to
 // ["warm_intro","value_prop"] and never reads subject_template/body_template

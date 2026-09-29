@@ -303,7 +303,7 @@ export default function RemoteInternshipsReport() {
             <div className="stat-card">
               <div className="sc-num">3x</div>
               <div className="sc-label">higher completion rate for paid remote internships vs unpaid ones</div>
-              <div className="sc-source">Internshala + LinkedIn survey data, 2024–25</div>
+              <div className="sc-source">Internshala + LinkedIn survey data, 2024-25</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">62%</div>
@@ -324,7 +324,7 @@ export default function RemoteInternshipsReport() {
             <p>Remote internship listings have grown significantly since 2020 and the quality distribution has widened alongside the volume. The removal of geographic constraints that makes remote internships attractive to candidates also makes it easier for low-quality or fraudulent listings to exist and persist. A bad in-person internship requires physical infrastructure and a real office. A bad remote internship requires only a posting.</p>
             <p>A Studojo analysis of over 2,400 remote internship listings across Internshala, LinkedIn, Indeed, Wellfound, and direct founder posts in Q1 2026 found that approximately 35% of listings contained at least one signal associated with fake, ghost, or exploitative internships. The figure rises to over 50% on generic job boards with no employer verification requirements.</p>
             <div className="callout">
-              <strong>The problem is not that remote internships are bad.</strong> Real remote internships exist in significant numbers and offer genuine value — often more flexibility, broader company access, and earlier responsibility than their in-person equivalents. The problem is signal quality: finding the real ones requires active filtering, not passive scrolling.
+              <strong>The problem is not that remote internships are bad.</strong> Real remote internships exist in significant numbers and offer genuine value: often more flexibility, broader company access, and earlier responsibility than their in-person equivalents. The problem is signal quality: finding the real ones requires active filtering, not passive scrolling.
             </div>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /></div>
@@ -372,7 +372,7 @@ export default function RemoteInternshipsReport() {
                 <div className="sec-sub">Five signals that reliably indicate a legitimate remote internship</div>
               </div>
             </div>
-            <p>The presence of green flags does not guarantee a quality experience — a real internship can still be poorly run. But the combination of multiple green flags significantly increases the probability that the listing represents a real role with real accountability attached to it.</p>
+            <p>The presence of green flags does not guarantee a quality experience. A real internship can still be poorly run. But the combination of multiple green flags significantly increases the probability that the listing represents a real role with real accountability attached to it.</p>
             <div className="flag-list">
               {[
                 ["A named hiring manager verifiable on LinkedIn", "Search the company on LinkedIn. Find the person whose name appears in the listing. Check that they have a genuine work history at that company. A real hiring manager with a real profile is the single strongest positive signal available."],
@@ -438,7 +438,7 @@ export default function RemoteInternshipsReport() {
             </div>
             <p>The platform a listing appears on is itself a signal. Platforms with employer verification requirements, higher posting costs, or community accountability structures have systematically better signal quality than open, free-to-post boards. This does not mean every listing on a high-signal platform is legitimate, or that every listing on a low-signal platform is fake. It means the prior is different before you read a single word of the description.</p>
             <div className="chart-wrap">
-              <div className="chart-label">Platform signal quality for remote internship listings (scored 1–10)</div>
+              <div className="chart-label">Platform signal quality for remote internship listings (scored 1-10)</div>
               <div style={{ height: 300 }}>
                 <canvas id="platformChart" />
               </div>
@@ -469,7 +469,7 @@ export default function RemoteInternshipsReport() {
               </tbody>
             </table>
             <div className="highlight">
-              <strong>Founder posts on LinkedIn are the highest-quality source of remote internship listings.</strong> They are unindexed by aggregators for several days after posting, they come from a named and verifiable individual, and the hiring manager is directly reachable. They are also time-sensitive — acting within 24 to 48 hours of a founder post significantly increases response rates.
+              <strong>Founder posts on LinkedIn are the highest-quality source of remote internship listings.</strong> They are unindexed by aggregators for several days after posting, they come from a named and verifiable individual, and the hiring manager is directly reachable. They are also time-sensitive: acting within 24 to 48 hours of a founder post significantly increases response rates.
             </div>
           </div>
 
@@ -485,8 +485,8 @@ export default function RemoteInternshipsReport() {
             <p>The verification process is not complicated. It requires four checks that collectively take under 10 minutes and dramatically reduce the probability of investing time in a listing that will not return anything.</p>
             <div className="step-list">
               {[
-                ["Find the hiring manager on LinkedIn", "Search the company name on LinkedIn. Find the person whose name appears in the listing — or, if no name is given, find the Head of the relevant function or the founder. Check: real work history at this company, profile created before 6 months ago, connections that include other employees. No profile or a profile created last month are both signals worth noting."],
-                ["Check the company website and founding date", "A real company has a real website. Find it independently — do not use only the link in the listing. Check when the domain was registered (a WHOIS lookup takes 30 seconds). A company founded last month with no product or customers is a risk. A company with a clear product, customer references, or press coverage is not."],
+                ["Find the hiring manager on LinkedIn", "Search the company name on LinkedIn. Find the person whose name appears in the listing. If no name is given, find the Head of the relevant function or the founder. Check: real work history at this company, profile created before 6 months ago, connections that include other employees. No profile or a profile created last month are both signals worth noting."],
+                ["Check the company website and founding date", "A real company has a real website. Find it independently. Do not use only the link in the listing. Check when the domain was registered (a WHOIS lookup takes 30 seconds). A company founded last month with no product or customers is a risk. A company with a clear product, customer references, or press coverage is not."],
                 ["Search for the role on Glassdoor, Ambitionbox, or LinkedIn Reviews", "Past interns and employees leave signals on review platforms. Search the company name. No reviews at all for a company that claims to have had many interns is worth noting. Negative reviews specifically about internship experiences are a serious signal."],
                 ["Ask one specific question in your application", "Include a short, specific question in your cover message: 'What will I be working on in my first week?' A real company with a real role can answer this. An automated or template-generated response that does not address the question is a strong indicator that no one is actively managing this listing."],
               ].map(([title, detail], i) => (
@@ -500,7 +500,7 @@ export default function RemoteInternshipsReport() {
               ))}
             </div>
             <div className="callout">
-              <strong>10 minutes of verification saves weeks of wasted effort.</strong> Every minute you spend on a fake listing is a minute not spent finding and applying to a real one. The verification checklist is not optional — it is the minimum viable process for a remote internship market with a 35% noise rate.
+              <strong>10 minutes of verification saves weeks of wasted effort.</strong> Every minute you spend on a fake listing is a minute not spent finding and applying to a real one. The verification checklist is not optional: it is the minimum viable process for a remote internship market with a 35% noise rate.
             </div>
           </div>
 
@@ -518,8 +518,8 @@ export default function RemoteInternshipsReport() {
               {[
                 ["Start on high-signal platforms only", "Wellfound, LinkedIn, and direct founder posts. Ignore generic job boards for remote listings until you have exhausted these sources. The noise-to-signal ratio on open boards is too high to be worth your primary search effort."],
                 ["Apply the 4-step checklist to every listing before spending time on an application", "10 minutes of verification is less than the time it takes to write a tailored cover letter. Run the checklist first. If any step raises a serious concern, move on."],
-                ["Treat unpaid remote with heightened scrutiny, not automatic rejection", "Unpaid remote is a red flag, not a disqualifier. Apply the full checklist. If the company passes — real team, real product, specific project, verifiable founding team — it may still be worth pursuing. If it fails any check, do not proceed."],
-                ["Reach out to the hiring manager directly for high-interest roles", "For roles you strongly want, a direct LinkedIn message to the hiring manager after submitting your application increases response rates significantly. Reference the specific project described. Ask one specific question about the work. This is not aggressive — it is the signal that separates candidates who want the role from those who applied to everything."],
+                ["Treat unpaid remote with heightened scrutiny, not automatic rejection", "Unpaid remote is a red flag, not a disqualifier. Apply the full checklist. If the company passes (real team, real product, specific project, verifiable founding team), it may still be worth pursuing. If it fails any check, do not proceed."],
+                ["Reach out to the hiring manager directly for high-interest roles", "For roles you strongly want, a direct LinkedIn message to the hiring manager after submitting your application increases response rates significantly. Reference the specific project described. Ask one specific question about the work. This is not aggressive. It is the signal that separates candidates who want the role from those who applied to everything."],
                 ["Track your applications and set a 10-day follow-up reminder", "Remote internship listings often have no response deadline. A single follow-up message after 10 days of silence is appropriate and often generates responses that would not have come otherwise. Most candidates do not follow up. That is the gap."],
               ].map(([title, detail]) => (
                 <div className="blist-item" key={title as string}>

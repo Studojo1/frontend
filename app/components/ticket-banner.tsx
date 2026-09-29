@@ -45,7 +45,7 @@ export function TicketBanner() {
 
   if (!summary) return null;
 
-  // Resolved overrides open — fresh win is more interesting than "still
+  // Resolved overrides open: fresh win is more interesting than "still
   // pending" if the user just got cleared.
   if (summary.recently_resolved_id) {
     const key = `resolved:${summary.recently_resolved_id}`;

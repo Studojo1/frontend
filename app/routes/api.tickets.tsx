@@ -1,5 +1,5 @@
-// POST  /api/tickets  — create a new ticket (logged-in users only)
-// GET   /api/tickets  — list this user's tickets
+// POST  /api/tickets  - create a new ticket (logged-in users only)
+// GET   /api/tickets  - list this user's tickets
 import type { Route } from "./+types/api.tickets";
 import { sql } from "drizzle-orm";
 import db from "~/lib/db";
@@ -117,7 +117,7 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
 
-  // Screenshots are mandatory — every ticket needs supporting evidence.
+  // Screenshots are mandatory: every ticket needs supporting evidence.
   // Only URLs returned by our own upload endpoint are accepted (server
   // validates each is from the configured blob host to prevent abuse).
   const attachments: Array<{ url: string; content_type?: string; filename?: string }> =
@@ -184,7 +184,7 @@ export async function action({ request }: Route.ActionArgs) {
     VALUES (${ticketId}, 'user', ${session.user.id}, ${userEmail}, ${description})
   `);
 
-  // Notify admins out of band — failures don't block ticket creation.
+  // Notify admins out of band; failures don't block ticket creation.
   notifyTicketCreated({
     ticket_id: ticketId,
     category,

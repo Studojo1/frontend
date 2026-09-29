@@ -1,4 +1,4 @@
-// Shared browser utilities — bandwidth optimization + watchdog
+// Shared browser utilities: bandwidth optimization + watchdog
 
 // ── Request interception: block everything that isn't needed ──────────────────
 // Cuts ~70-80% of per-session bandwidth. We only need HTML + XHR/fetch for
@@ -41,7 +41,7 @@ export async function blockHeavyResources(ctx: any): Promise<void> {
       return;
     }
 
-    // Always continue — catch silently since navigation may cancel pending routes
+    // Always continue, catch silently since navigation may cancel pending routes
     await route.continue().catch(() => {});
   });
 }
@@ -58,7 +58,7 @@ export function withWatchdog<T>(
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => {
-      console.warn(`[watchdog] ${label} exceeded ${timeoutMs}ms — killing browser`);
+      console.warn(`[watchdog] ${label} exceeded ${timeoutMs}ms, killing browser`);
       browser?.close().catch(() => {});
       reject(new Error(`WATCHDOG_TIMEOUT:${label}`));
     }, timeoutMs);

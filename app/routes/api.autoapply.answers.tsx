@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import db from "~/lib/db";
 import { autoapplyConfigs } from "../../auth-schema";
 import type { Route } from "./+types/api.autoapply.answers";
+import { stripDashes } from "~/lib/strip-dashes";
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") return Response.json({ error: "Method not allowed" }, { status: 405 });
@@ -61,7 +62,7 @@ Rules:
     });
 
     const data = await res.json() as any;
-    const answer = data?.choices?.[0]?.message?.content?.trim() ?? "";
+    const answer = stripDashes(data?.choices?.[0]?.message?.content?.trim() ?? "");
     return Response.json({ answer });
   } catch (err: any) {
     console.error("[autoapply/answers]", err?.message);

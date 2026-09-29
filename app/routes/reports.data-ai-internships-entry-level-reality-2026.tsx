@@ -268,7 +268,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               <div className="sc-source">{"Studojo job-posting scrape synthesis, 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"$35–$55/hr"}</div>
+              <div className="sc-num">{"$35-$55/hr"}</div>
               <div className="sc-label">{"Typical US hourly range for paid data science or ML intern roles at large tech and finance employers (varies by city and year of study)"}</div>
               <div className="sc-source">{"Levels.fyi and employer intern cohorts, synthesised June 2026"}</div>
             </div>
@@ -354,7 +354,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>90-day skill stack:</strong> Week 1–4: SQL on a real schema. Week 5–8: one Kaggle or public dataset with a written report. Week 9–12: small app or dashboard plus 5-slide presentation. Optional: one LLM eval notebook with labeled examples."}</div>
+            <div className="callout-amber">{"<strong>90-day skill stack:</strong> Week 1-4: SQL on a real schema. Week 5-8: one Kaggle or public dataset with a written report. Week 9-12: small app or dashboard plus 5-slide presentation. Optional: one LLM eval notebook with labeled examples."}</div>
           </div>
 
           <div className="rpt-section">
@@ -366,7 +366,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
             <p>{"In the United States, large tech and finance data interns often land roughly $35 to $55 per hour in major metros, with housing stipends sometimes added. Smaller startups vary from competitive hourly to low stipends. Unpaid data internships at for-profit firms remain a red flag (see Studojo's unpaid internship report)."}</p>
-            <p>{"In India, structured tech and GCC data interns often see monthly stipends roughly in the ₹25K–₹80K band for summer programmes, highly employer-dependent. Startups may offer less cash plus project ownership. Always confirm in the offer letter."}</p>
+            <p>{"In India, structured tech and GCC data interns often see monthly stipends roughly in the ₹25K-₹80K band for summer programmes, highly employer-dependent. Startups may offer less cash plus project ownership. Always confirm in the offer letter."}</p>
 
             <div className="chart-wrap">
               <div className="chart-label">{"Illustrative monthly pay index (US tech/finance vs India product/GCC, index 0 to 25)"}</div>
@@ -467,7 +467,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
                 <div className="sec-sub">{"Proof, targets, and channel mix"}</div>
               </div>
             </div>
-            <p>{"Days 1–20: finish SQL + one portfolio project with a README and slides. Days 21–40: apply to 15 tailored roles (5 large tech/finance, 5 India GCC or product, 5 startups). Days 41–60: ten outreaches to data managers with your project link; mock SQL twice a week."}</p>
+            <p>{"Days 1-20: finish SQL + one portfolio project with a README and slides. Days 21-40: apply to 15 tailored roles (5 large tech/finance, 5 India GCC or product, 5 startups). Days 41-60: ten outreaches to data managers with your project link; mock SQL twice a week."}</p>
             <p>{"Track screens per ten tailored applies. If only startups reply, tighten dashboards. If only GCC replies, emphasize SQL and pipeline hygiene. Do not spray \"AI enthusiast\" resumes."}</p>
 
             <div className="highlight">{"<strong>Summary insight:</strong> Entry-level data and AI hiring is a data credibility game with an AI accent. Build the base, then add LLM literacy with measured projects."}</div>

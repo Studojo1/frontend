@@ -6,13 +6,13 @@
   --font-satoshi: "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --font-clash: "Clash Display", ui-sans-serif, system-ui, sans-serif;
 
-  /* Studojo design system – reference colors */
+  /* Studojo design system: reference colors */
   --color-studojo-ink: #171717;
   --color-studojo-muted: #525252;
   --color-studojo-surface: #ffffff;
   --color-studojo-surface-muted: #f5f5f5;
 
-  /* Brand – neo‑brutalist palette */
+  /* Brand: neo‑brutalist palette */
   --color-studojo-purple: #8b5cf6;
   /* #8b5cf6 is 4.23:1 against white, under the 4.5:1 AA floor for body text.
      Use this one for purple text and for white-on-purple buttons; keep the

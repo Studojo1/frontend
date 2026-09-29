@@ -3,14 +3,14 @@
 //
 // Called by /extension/connect AFTER the user is signed in, so the sign-in,
 // sign-up and Google OAuth steps are all handled by the existing BetterAuth
-// flow — this route adds no auth of its own.
+// flow; this route adds no auth of its own.
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { mintExtensionToken, preflight } from "~/lib/extension-auth.server";
 import type { Route } from "./+types/api.extension.token";
 
 /** CORS preflight.
  *
- * React Router routes OPTIONS to the LOADER, never to the action — so an
+ * React Router routes OPTIONS to the LOADER, never to the action, so an
  * `if (request.method === "OPTIONS")` check inside the action never runs and
  * the framework rejects the request with 400 before reaching it. Chrome then
  * blocks every extension call to this route without sending it.

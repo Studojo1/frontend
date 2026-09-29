@@ -448,9 +448,9 @@ export default function AutoApply({ loaderData }: Route.ComponentProps) {
                       <div key={contact.id} className="flex items-center justify-between rounded-xl border-2 border-neutral-100 bg-neutral-50 px-4 py-3">
                         <div>
                           <p className="font-['Satoshi'] text-sm font-semibold text-neutral-900">
-                            {contact.name ?? "Unknown"} <span className="font-normal text-gray-500">at</span> {contact.company ?? "—"}
+                            {contact.name ?? "Unknown"} <span className="font-normal text-gray-500">at</span> {contact.company ?? "-"}
                           </p>
-                          <p className="font-['Satoshi'] text-xs text-gray-400">{contact.title ?? "—"}</p>
+                          <p className="font-['Satoshi'] text-xs text-gray-400">{contact.title ?? "-"}</p>
                         </div>
                         <span className={`shrink-0 rounded-full border px-2.5 py-1 font-['Satoshi'] text-xs font-semibold capitalize ${
                           contact.status === "accepted" ? "border-emerald-300 bg-emerald-50 text-emerald-700"

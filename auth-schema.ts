@@ -70,7 +70,7 @@ export const account = pgTable(
     // 'local:<provider>' for credential and passkey, the provider's own issuer
     // URL for OAuth (Google declares https://accounts.google.com).
     //
-    // Nullable here even though the library calls it required — every existing
+    // Nullable here even though the library calls it required: every existing
     // row predates the column, and a NOT NULL add would fail on them. The
     // backfill in drizzle/0032 populates it; tightening is a later decision.
     issuer: text("issuer"),
@@ -1065,7 +1065,7 @@ export const apiKeys = pgTable("api_keys", {
  * the moment they press Send.
  *
  * A row exists from the moment Apply is clicked. `campaignId` stays null until
- * Send — which is what guarantees nothing can leave before a human reads it.
+ * Send, which is what guarantees nothing can leave before a human reads it.
  */
 export const extensionDrafts = pgTable(
   "extension_drafts",
@@ -1087,11 +1087,11 @@ export const extensionDrafts = pgTable(
     company: text("company"),
     role: text("role"),
     // The job's location. Used to filter alternative-company suggestions to
-    // the student's city — without it they are offered companies anywhere.
+    // the student's city; without it they are offered companies anywhere.
     location: text("location"),
     // The posting's own "About the job" text. Stored because the draft is
     // RECOMPOSED whenever we discover who to write to, and without it that
-    // rewrite would silently drop the one concrete detail from the job ad —
+    // rewrite would silently drop the one concrete detail from the job ad,
     // the thing that makes the email read as written by a person.
     description: text("description"),
     jobUrl: text("job_url"),
@@ -1101,7 +1101,7 @@ export const extensionDrafts = pgTable(
 
     // Which of job-outreach-svc's six email styles the student picked. The
     // service rewrites the message with the chosen style, so this is what
-    // actually controls the email they send — see routes_campaign.py:258.
+    // actually controls the email they send (see routes_campaign.py:258).
     emailStyle: text("email_style").notNull().default("warm_intro"),
     // draft | sending | sent | failed
     status: text("status").notNull().default("draft"),

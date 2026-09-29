@@ -86,13 +86,13 @@ export async function action({ request }: Route.ActionArgs) {
   });
 
   // No row came back, so an existing registration for this webinar is already
-  // paid. Nothing to charge again — tell the form so it can say so kindly.
+  // paid. Nothing to charge again, so tell the form so it can say so kindly.
   if (registrationId === null) {
     return Response.json({ ok: true, alreadyPaid: true });
   }
 
   // Create the payment order. The ticket is not a ticket until this is paid,
-  // so the confirmation email is deliberately NOT sent here — it goes out from
+  // so the confirmation email is deliberately NOT sent here; it goes out from
   // the webhook, once money has actually moved.
   try {
     const order = await createRazorpayOrder({

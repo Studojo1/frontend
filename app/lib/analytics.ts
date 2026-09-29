@@ -85,6 +85,6 @@ export function track(
     if (opts?.currency) metaProps.currency = opts.currency;
     trackMeta(metaEvent, metaProps, opts?.eventId);
   } catch {
-    // Silently fail — analytics must never break the app
+    // Silently fail: analytics must never break the app
   }
 }

@@ -5,7 +5,7 @@
  *
  * Flow:
  *  1. Strip "at [Company]" from input
- *  2. Run deterministic engine (analyseJob) — instant for known roles (high/medium confidence)
+ *  2. Run deterministic engine (analyseJob): instant for known roles (high/medium confidence)
  *  3. If confidence is "low" (engine doesn't recognise the role):
  *     → Single Ollama call: normalise title + risk analysis + 3 contextual pivot recommendations
  *     → Try engine again on normalised title (may hit now)
@@ -112,7 +112,7 @@ function stripCompany(input: string): string {
 }
 
 function sanitiseStr(s: any): string {
-  return String(s || "").replace(/[–—]/g, "-").trim();
+  return String(s || "").replace(/[\u2013\u2014]/g, "-").trim();
 }
 
 function parsePivots(raw: any[]): SuggestedPivot[] {
@@ -217,17 +217,17 @@ export async function action({ request }: Route.ActionArgs) {
   // Step 2: try deterministic engine
   const engineResult = analyseJob(cleaned);
 
-  // Step 3: high/medium confidence — engine knows this role, return instantly
+  // Step 3: high/medium confidence (engine knows this role), return instantly
   // The frontend will still call /api/ai-risk/suggest for LLM pivot enhancement
   if (engineResult.confidence === "high" || engineResult.confidence === "medium") {
     return Response.json({ ...engineResult, job_input: rawInput, suggested_pivots: null });
   }
 
-  // Step 4: low confidence — call LLM for full analysis + pivots in one shot
+  // Step 4: low confidence, call LLM for full analysis + pivots in one shot
   const llmResult = await llmAnalyse(rawInput);
 
   if (llmResult) {
-    // Try engine again on the normalised title — may match now (e.g. "gtm" -> "Go-to-Market Manager")
+    // Try engine again on the normalised title; may match now (e.g. "gtm" -> "Go-to-Market Manager")
     const secondPass = analyseJob(llmResult.normalized_title);
 
     if (secondPass.confidence === "high" || secondPass.confidence === "medium") {
@@ -239,7 +239,7 @@ export async function action({ request }: Route.ActionArgs) {
       });
     }
 
-    // Engine still doesn't know it — use LLM analysis + LLM pivots entirely
+    // Engine still doesn't know it: use LLM analysis + LLM pivots entirely
     return Response.json({
       ...engineResult,
       job_input: rawInput,
@@ -255,7 +255,7 @@ export async function action({ request }: Route.ActionArgs) {
     } satisfies AnalysisResult & { suggested_pivots: SuggestedPivot[] | null });
   }
 
-  // Step 5: LLM failed — return keyword-inferred result with title-cased title, no pivots override
+  // Step 5: LLM failed, return keyword-inferred result with title-cased title, no pivots override
   const titleCased = cleaned
     .split(/\s+/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())

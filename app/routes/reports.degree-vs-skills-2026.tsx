@@ -309,7 +309,7 @@ export default function DegreeVsSkillsReport() {
             <div className="stat-card">
               <div className="sc-num">55%</div>
               <div className="sc-label">of employers have removed formal degree requirements from entry-level job postings since 2020</div>
-              <div className="sc-source">LinkedIn Talent Trends / Burning Glass Institute, 2024–25</div>
+              <div className="sc-source">LinkedIn Talent Trends / Burning Glass Institute, 2024-25</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">65%</div>
@@ -318,7 +318,7 @@ export default function DegreeVsSkillsReport() {
             </div>
             <div className="stat-card">
               <div className="sc-num">9.2</div>
-              <div className="sc-label">out of 10 — how hirers rank a deployed portfolio project vs. 5.1 for a degree on its own</div>
+              <div className="sc-label">out of 10: how hirers rank a deployed portfolio project vs. 5.1 for a degree on its own</div>
               <div className="sc-source">Studojo hirer survey, 2025</div>
             </div>
           </div>
@@ -339,7 +339,7 @@ export default function DegreeVsSkillsReport() {
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>The shift is faster in some industries than others.</strong> Technology, marketing, design, sales, and data analytics have moved fastest toward skills-first hiring. Medicine, law, chartered accountancy, investment banking, and government roles have moved slowest. The degree question does not have a universal answer.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Company stage matters more than company size.</strong> A 50-person seed-funded startup is more likely to hire on demonstrated work than a 50,000-person enterprise. Not because enterprises are more conservative, but because they have HR departments optimised for processing volume, and degree is a volume-processing tool.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>The ATS problem is structural.</strong> Most enterprise ATS systems were built with degree as a field. Many hiring teams use degree filtering without explicit policy decisions — it is a default setting, not a deliberate choice. This means the gap between a company's public policy and its actual screening practice can be wide and unintentional.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>The ATS problem is structural.</strong> Most enterprise ATS systems were built with degree as a field. Many hiring teams use degree filtering without explicit policy decisions. It is a default setting, not a deliberate choice. This means the gap between a company's public policy and its actual screening practice can be wide and unintentional.</span></div>
             </div>
           </div>
 
@@ -461,7 +461,7 @@ export default function DegreeVsSkillsReport() {
               </div>
             </div>
             <p>The disconnect between company policy and actual screening practice is the most practically important thing to understand about hiring in 2026. A company can simultaneously have a public policy of skills-first hiring and an ATS workflow that eliminates non-degree candidates before a human ever sees the resume.</p>
-            <p>On days when an entry-level posting receives 250+ applications — now the median for established companies — degree becomes a filter by default because something has to cut the pile.</p>
+            <p>On days when an entry-level posting receives 250+ applications (now the median for established companies), degree becomes a filter by default because something has to cut the pile.</p>
             <div className="highlight">
               <strong>What this means in practice:</strong> You can have a 9.2/10 portfolio and still get eliminated before a human reviews your application, because an algorithm applied a degree filter you did not know existed. This is not an argument against building skills. It is an argument for also having a bypass strategy.
             </div>

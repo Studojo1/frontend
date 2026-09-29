@@ -22,7 +22,7 @@ export function meta() {
     { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "Cold Outreach: What Actually Gets a Reply | Studojo" },
-    { name: "twitter:description", content: "Cold outreach: what actually gets a reply in 2026 — relevance, one ask, and follow-ups without spam." },
+    { name: "twitter:description", content: "Cold outreach: what actually gets a reply in 2026. Relevance, one ask, and follow-ups without spam." },
     { name: "twitter:image", content: `${BASE_URL}/og-reports.png` },
     { name: "twitter:site", content: "@studojo_com" },
   ];
@@ -231,12 +231,12 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">~1–3%</div>
+              <div className="sc-num">~1-3%</div>
               <div className="sc-label">Typical cold email reply band for unsolicited first touches in noisy inboxes when relevance and timing are weak</div>
               <div className="sc-source">Industry outreach benchmarks, synthesised in Studojo framework, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">3–5×</div>
+              <div className="sc-num">3-5×</div>
               <div className="sc-label">Illustrative lift in positive replies when the first paragraph contains a specific, accurate observation about the recipient's work versus a generic compliment</div>
               <div className="sc-source">Studojo outreach signal synthesis, 2026</div>
             </div>
@@ -252,12 +252,12 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
             <div className="sec-header">
               <div className="sec-num" style={{ background: "#8B5CF6" }}>1</div>
               <div>
-                <div className="sec-title">The first filter is not politeness — it is triage</div>
+                <div className="sec-title">The first filter is not politeness; it is triage</div>
                 <div className="sec-sub">Why most cold outreach dies before anyone forms an opinion about you</div>
               </div>
             </div>
             <p>Busy people do not evaluate cold messages on fairness. They sort them the way spam filters do: pattern match for risk, effort, and relevance in a few seconds. A message that opens with a generic compliment, a wall of biography, or a subject line that could apply to five hundred companies already signals "this will cost me time" before they reach your ask.</p>
-            <p>That does not mean cold outreach is rude or doomed. It means the burden of proof sits on the sender. Your job in the first lines is to show that this message exists because of something they did, said, or shipped — not because you need a favour from someone with their job title.</p>
+            <p>That does not mean cold outreach is rude or doomed. It means the burden of proof sits on the sender. Your job in the first lines is to show that this message exists because of something they did, said, or shipped, not because you need a favour from someone with their job title.</p>
 
             <div className="chart-wrap">
               <div className="chart-label">Why cold messages get ignored (recipient-side themes, illustrative %)</div>
@@ -293,7 +293,7 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
               </div>
             </div>
             <p>A clever subject line can lift opens, but opens are not the goal. The preview text and first sentence still have to pass the "is this work for me?" test. Clickbait subjects that overpromise relative to the body train people to distrust the next message too.</p>
-            <p>What works more reliably is plain specificity: three to seven words that signal the topic and the human behind it. Pair that with a first line that contains a concrete observation — not flattery — so the reader knows you did homework instead of mail merge.</p>
+            <p>What works more reliably is plain specificity: three to seven words that signal the topic and the human behind it. Pair that with a first line that contains a concrete observation, not flattery, so the reader knows you did homework instead of mail merge.</p>
 
             <div className="highlight"><strong>Key insight:</strong> The subject and first line should read like a colleague forwarding context, not like marketing copy.</div>
 
@@ -311,7 +311,7 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Match the channel.</strong> LinkedIn DMs, email, and alumni inboxes each have different norms. Shorter in chat, slightly more room in email — but never confuse length with seriousness.</span>
+                <span><strong>Match the channel.</strong> LinkedIn DMs, email, and alumni inboxes each have different norms. Shorter in chat, slightly more room in email. But never confuse length with seriousness.</span>
               </div>
             </div>
           </div>
@@ -324,9 +324,9 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
                 <div className="sec-sub">Specificity, credibility, and a single ask that fits the relationship temperature</div>
               </div>
             </div>
-            <p>The messages that get answered usually contain three things in order: proof you chose them, proof you can be trusted with a small amount of attention, and one ask that can be resolved in under two minutes — a yes, a no, a forward, or a pointer to the right person.</p>
+            <p>The messages that get answered usually contain three things in order: proof you chose them, proof you can be trusted with a small amount of attention, and one ask that can be resolved in under two minutes (a yes, a no, a forward, or a pointer to the right person).</p>
             <p>Stacking multiple requests ("Can you review my resume, intro me to three people, and tell me if you are hiring?") guarantees deferral or silence because there is no obvious first step. The same applies to attaching large files unprompted or asking for a call without stating why a call beats async for them.</p>
-            <p>Credibility is not the same as a long CV paragraph. One crisp line of proof — a project, a metric, a course output, a shared affiliation — is enough if it connects directly to the ask.</p>
+            <p>Credibility is not the same as a long CV paragraph. One crisp line of proof (a project, a metric, a course output, a shared affiliation) is enough if it connects directly to the ask.</p>
 
             <div className="highlight"><strong>Key insight:</strong> The easiest reply is often "not me, try X" or "not now." Make it psychologically safe to say no; people avoid messages that feel like traps.</div>
 
@@ -341,7 +341,7 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>One ask, one thread.</strong> If you need two things, sequence them across replies once there is consent and momentum — not in the opener.</span>
+                <span><strong>One ask, one thread.</strong> If you need two things, sequence them across replies once there is consent and momentum, not in the opener.</span>
               </div>
 
               <div className="blist-item">
@@ -362,10 +362,10 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
               </div>
             </div>
             <p>Polite follow-ups can recover real replies when the first message arrived during travel, quarter close, or parental leave. The line between persistence and pestering is crossed when each bump adds no new information, escalates guilt, or shortens the interval until it feels like a bot sequence.</p>
-            <p>A useful follow-up does one of three things: adds a single new fact ("I shipped the demo I mentioned"), narrows the ask ("If hiring is frozen, who owns internships?"), or offers an graceful out ("If this is not on your plate, feel free to ignore — thanks for the work you publish on X").</p>
+            <p>A useful follow-up does one of three things: adds a single new fact ("I shipped the demo I mentioned"), narrows the ask ("If hiring is frozen, who owns internships?"), or offers an graceful out ("If this is not on your plate, feel free to ignore. Thanks for the work you publish on X").</p>
             <p>After two or three well-spaced, substantive touches with no signal, move on. Silence is data. Burning the contact with "just bumping this" six times closes doors for the next opportunity too.</p>
 
-            <div className="highlight"><strong>Summary insight:</strong> Reply rates rise when you optimise for respect and clarity at every stage — not when you optimise for maximum sends per week.</div>
+            <div className="highlight"><strong>Summary insight:</strong> Reply rates rise when you optimise for respect and clarity at every stage, not when you optimise for maximum sends per week.</div>
           </div>
 
           <div className="takeaway-section">
@@ -395,7 +395,7 @@ export default function Report_ColdOutreachWhatGetsReply2026() {
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Turn outreach into structured practice, not guesswork</h3>
-              <p>Studojo helps you draft tighter asks, keep track of who you contacted, and iterate on what earns replies — without spamming your network.</p>
+              <p>Studojo helps you draft tighter asks, keep track of who you contacted, and iterate on what earns replies, without spamming your network.</p>
             </div>
             <Link to="/outreach" className="rpt-cta-btn">
               Try Studojo Outreach →

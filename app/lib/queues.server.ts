@@ -1,4 +1,4 @@
-// Shared BullMQ queue clients — usable from both the web app and worker process
+// Shared BullMQ queue clients, usable from both the web app and worker process
 // Both connect to the same Redis instance; the worker pod is the consumer.
 
 import { Queue } from "bullmq";

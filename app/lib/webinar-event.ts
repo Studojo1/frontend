@@ -7,7 +7,7 @@
  *
  * Note this is display copy only. Which webinar a registration is *attached*
  * to still comes from the `webinars` table (the row marked 'upcoming'), set in
- * the admin panel — see getActiveWebinarId() in webinar.server.ts.
+ * the admin panel (see getActiveWebinarId() in webinar.server.ts).
  */
 
 export const WEBINAR = {

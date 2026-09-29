@@ -343,7 +343,7 @@ export default function App() {
   const { isSenseiHost } = useLoaderData<typeof loader>();
   const location = useLocation();
   // The resume maker has its own coach chat, and Sensei has its own "Get
-  // support" — the global floating widget would just float over those UIs.
+  // support", so the global floating widget would just float over those UIs.
   const onSensei = isSenseiHost || location.pathname.startsWith("/bob");
   // The launcher is fixed bottom-left at z-50, which on a 390px viewport lands
   // squarely on top of the Confirm Password field and the submit button. Keep it
