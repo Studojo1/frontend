@@ -148,7 +148,7 @@ function CountdownCell({ startedAt, offsetSeconds, status }: { startedAt: string
   return <span className="text-studojo-purple font-bold">Sending in {remaining}s</span>;
 }
 
-function StatusBadge({ status, sentiment }: { status: string; sentiment?: string | null }) {
+function StatusBadge({ status, sentiment, skipped }: { status: string; sentiment?: string | null; skipped?: boolean }) {
   if (status === "replied") {
     const sentimentConfig: Record<string, { color: string; icon: React.JSX.Element; label: string }> = {
       positive: { color: "text-studojo-green", icon: <FiThumbsUp className="w-3 h-3" />, label: "Positive" },
@@ -176,6 +176,14 @@ function StatusBadge({ status, sentiment }: { status: string; sentiment?: string
     <div className="flex items-center gap-1">
       <FiCheckCircle className="w-4 h-4 text-studojo-green" />
       <span className="text-studojo-green font-bold text-sm">Sent</span>
+    </div>
+  );
+  // A contact with no usable email is a skip, not a failure (audit P22), so the
+  // badge must not say "Failed" next to a note that says "Skipped".
+  if (status === "failed" && skipped) return (
+    <div className="flex items-center gap-1">
+      <FiMinus className="w-4 h-4 text-studojo-muted" />
+      <span className="text-studojo-muted font-bold text-sm">Skipped</span>
     </div>
   );
   if (status === "failed") return (
@@ -1652,7 +1660,7 @@ export default function DashboardPage() {
                               <td className="py-3 px-2 text-studojo-muted truncate max-w-[200px]">{email.to_email}</td>
                               <td className="py-3 px-2 text-studojo-muted hidden md:table-cell">{email.lead_company}</td>
                               <td className="py-3 px-2">
-                                <StatusBadge status={email.status === "queued" ? "queued" : email.status} sentiment={email.reply_sentiment} />
+                                <StatusBadge status={email.status === "queued" ? "queued" : email.status} sentiment={email.reply_sentiment} skipped={isSkip(email)} />
                               </td>
                               <td className="py-3 px-2 text-sm">
                                 {email.status === "replied" && email.reply_received_at
@@ -1687,7 +1695,7 @@ export default function DashboardPage() {
                                   <td className="py-2 px-2 text-studojo-muted text-xs truncate max-w-[200px]">{fu.to_email}</td>
                                   <td className="py-2 px-2 text-studojo-muted hidden md:table-cell text-xs">{fu.lead_company}</td>
                                   <td className="py-2 px-2">
-                                    <StatusBadge status={fu.status} sentiment={fu.reply_sentiment} />
+                                    <StatusBadge status={fu.status} sentiment={fu.reply_sentiment} skipped={isSkip(fu)} />
                                   </td>
                                   <td className="py-2 px-2 text-sm">
                                     {fu.status === "sent" && fu.sent_at
