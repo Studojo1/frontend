@@ -386,7 +386,9 @@ export default function DashboardPage() {
     try {
       const [metricsData, emailsData] = await Promise.all([
         outreachFetch<CampaignMetrics>(`/campaign/${campaignId}/metrics`),
-        outreachFetch<{ emails: CampaignEmail[] }>(`/campaign/${campaignId}/emails`),
+        // NEW-06: summary rows omit body and reply_text; the detail modal
+        // loads those per email. Older backends ignore the param.
+        outreachFetch<{ emails: CampaignEmail[] }>(`/campaign/${campaignId}/emails?fields=summary`),
       ]);
       setMetrics(metricsData);
       setEmails(emailsData.emails || []);
@@ -423,6 +425,25 @@ export default function DashboardPage() {
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [campaignId, testJobId, campaignStatus, fetchCampaignData]);
+
+  // NEW-06: fetch the full email (body, reply_text) when its modal opens. On
+  // failure (or a backend without this endpoint) keep the row's own fields.
+  const selectedEmailId = selectedEmail?.id;
+  useEffect(() => {
+    if (!campaignId || selectedEmailId == null) return;
+    let cancelled = false;
+    outreachFetch<CampaignEmail | { email?: CampaignEmail }>(
+      `/campaign/${campaignId}/emails/${selectedEmailId}`,
+      { maxRetries: 0 },
+    )
+      .then((data) => {
+        const full = data && "email" in data && data.email ? data.email : (data as CampaignEmail);
+        if (cancelled || !full || full.id !== selectedEmailId) return;
+        setSelectedEmail((cur) => (cur && cur.id === selectedEmailId ? { ...cur, ...full } : cur));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [campaignId, selectedEmailId]);
 
   // Check if Gmail re-auth is needed (for reply tracking scope)
   useEffect(() => {
