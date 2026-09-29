@@ -27,10 +27,52 @@ export type Attribution = {
   untagged?: boolean;
 };
 
-const PARAMS = [
+export const PARAMS = [
   "fbclid", "gclid",
   "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
 ] as const;
+
+/** Hosts a visitor passes through on the way into or around Studojo, not
+ * sources that sent them. EX-08 / VS-V09: the Google sign-in return arrives
+ * with an accounts.google.com referrer, and that was counted as a referral,
+ * so it overwrote the held direct or search first touch (89 of 161 untagged
+ * rows). Payment gateways return the same way after checkout. */
+const INTERNAL_HOSTS = [
+  "studojo.com", "studojo.pro",
+  "razorpay.com", "dodopayments.com",
+];
+
+function hostMatches(host: string, domain: string): boolean {
+  return host === domain || host.endsWith(`.${domain}`);
+}
+
+/** True if `referrer` is a real outside source, not our own site, the Google
+ * OAuth hop or a payment gateway returning the user. Pure, for tests. */
+export function isExternalReferrer(referrer: string, currentHost: string): boolean {
+  if (!referrer) return false;
+  let host: string;
+  try {
+    host = new URL(referrer).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  const own = currentHost.toLowerCase().split(":")[0];
+  if (host === own) return false;
+  // accounts.google.com, and its country variants.
+  if (/^accounts\.google\.[a-z.]+$/.test(host)) return false;
+  return !INTERNAL_HOSTS.some((d) => hostMatches(host, d));
+}
+
+/** The ad click parameters present in a query string. */
+export function trackingParams(search: string): URLSearchParams {
+  const qs = new URLSearchParams(search);
+  const out = new URLSearchParams();
+  for (const p of PARAMS) {
+    const v = qs.get(p);
+    if (v) out.set(p, v);
+  }
+  return out;
+}
 
 function read(): Attribution | null {
   try {
@@ -61,12 +103,14 @@ export function captureAttribution(): void {
     // (it counts direct traffic), a missing row is not. It is marked so a later
     // tagged click can still take the first-touch slot.
     const ref = document.referrer || "";
-    const external = ref && !ref.includes(window.location.host);
+    const external = isExternalReferrer(ref, window.location.host);
     const untagged = Object.keys(found).length === 0 && !external;
     if (untagged && held) return;
     if (untagged) found.untagged = true;
 
-    found.referrer = ref.slice(0, 500);
+    // EX-08: an internal hop (Google OAuth, a payment gateway, our own pages)
+    // is not a source, so a first row seen straight after one reads as direct.
+    found.referrer = external ? ref.slice(0, 500) : "";
     found.landing_path = window.location.pathname.slice(0, 200);
     found.captured_at = new Date().toISOString();
     localStorage.setItem(KEY, JSON.stringify(found));
@@ -84,10 +128,13 @@ export function captureAttribution(): void {
  * on. Watching for "a session is present and we have not sent yet" covers the
  * email and the OAuth paths with the same code.
  */
-export async function flushAttribution(): Promise<void> {
+export async function flushAttribution(userId: string): Promise<void> {
   if (typeof window === "undefined") return;
+  // VS-V09: keyed per user. One flag per browser meant a second account made
+  // on the same device never got a row. The server ignores repeats.
+  const sentKey = `${SENT}_${userId}`;
   try {
-    if (localStorage.getItem(SENT)) return;
+    if (localStorage.getItem(sentKey)) return;
     const data = read();
     if (!data) return;
 
@@ -98,8 +145,56 @@ export async function flushAttribution(): Promise<void> {
     });
     // Only mark as sent on success, so a transient failure retries next load
     // rather than losing the attribution permanently.
-    if (res.ok) localStorage.setItem(SENT, "1");
+    if (res.ok) localStorage.setItem(sentKey, "1");
   } catch {
     // Same reasoning as above: never let this surface to the user.
   }
+}
+
+/** The held first-touch ad parameters, for carrying onto a link that may be
+ * opened in another browser (EX-06: leaving the Instagram in-app browser
+ * would otherwise drop the fbclid that credits the ad). */
+export function heldTrackingParams(): URLSearchParams {
+  const out = new URLSearchParams();
+  if (typeof window === "undefined") return out;
+  const held = read();
+  if (!held) return out;
+  for (const p of PARAMS) {
+    const v = held[p];
+    if (v) out.set(p, v);
+  }
+  return out;
+}
+
+/** Meta's fbc format for a click id: fb.<subdomain index>.<ms>.<fbclid>. */
+export function buildFbc(fbclid: string, clickMs: number): string {
+  return `fb.1.${Math.floor(clickMs)}.${fbclid}`;
+}
+
+/** The browser ids Meta matches a server-side event on (EX-07): the _fbp and
+ * _fbc cookies the pixel sets, or an fbc built from the stored fbclid when
+ * the pixel was blocked before it could write one. */
+export function metaBrowserIds(): { fbp?: string; fbc?: string } {
+  if (typeof document === "undefined") return {};
+  const cookie = (name: string): string | undefined => {
+    const m = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+    try {
+      return m ? decodeURIComponent(m[1]) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  const out: { fbp?: string; fbc?: string } = {};
+  const fbp = cookie("_fbp");
+  if (fbp) out.fbp = fbp;
+  let fbc = cookie("_fbc");
+  if (!fbc) {
+    const held = read();
+    if (held?.fbclid) {
+      const ms = Date.parse(held.captured_at ?? "");
+      fbc = buildFbc(held.fbclid, Number.isFinite(ms) ? ms : Date.now());
+    }
+  }
+  if (fbc) out.fbc = fbc;
+  return out;
 }

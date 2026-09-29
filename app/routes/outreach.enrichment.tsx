@@ -10,6 +10,7 @@ import { useOrder } from "~/lib/outreach/hooks";
 import { outreachFetch } from "~/lib/outreach/api";
 import { capturePostHog } from "~/lib/posthog";
 import { track } from "~/lib/analytics";
+import { metaBrowserIds } from "~/lib/attribution";
 import type { TierPricing } from "~/lib/outreach/types";
 
 declare global {
@@ -587,7 +588,7 @@ export default function EnrichmentPage() {
     try {
       const orderData = await outreachFetch<any>("/payment/create-order", {
         method: "POST",
-        body: JSON.stringify({ tier: tierValue, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined }),
+        body: JSON.stringify({ tier: tierValue, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined, ...metaBrowserIds() }), // EX-07
       });
 
       if (orderData.free) {

@@ -7,6 +7,7 @@ import { Footer } from "~/components/common/footer";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
+import { metaBrowserIds } from "~/lib/attribution";
 
 declare global { interface Window { Razorpay: any } }
 
@@ -100,6 +101,7 @@ export default function LinkedInPricing() {
         body: JSON.stringify({
           plan_id: plan.plan_id,
           currency,
+          ...metaBrowserIds(), // EX-07: better Meta match for the server Purchase
           // Coupons apply to the weekly plan only.
           coupon_code: couponApplied && plan.plan_id === "linkedin_weekly" ? couponApplied.code : undefined,
         }),

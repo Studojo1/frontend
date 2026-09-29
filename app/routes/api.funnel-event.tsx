@@ -13,7 +13,15 @@ import type { Route } from "./+types/api.funnel-event";
  * never the body. anon_id links the pre-login auth view to the later user.
  */
 
-const EVENTS = new Set(["auth_view", "upload_view"]);
+// EX-06: the auth_* steps carry an in_app flag (instagram, facebook or null) so
+// the in-app browser drop point can be found: view, Google click, OAuth error
+// return, email submit.
+const EVENTS = new Set([
+  "auth_view", "upload_view",
+  "auth_google_click", "auth_email_submit", "auth_oauth_error",
+  "auth_in_app_copy_link", "auth_in_app_open_chrome",
+]);
+const IN_APP = new Set(["instagram", "facebook"]);
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
@@ -23,6 +31,8 @@ export async function action({ request }: Route.ActionArgs) {
     event?: string;
     anon_id?: string;
     path?: string;
+    in_app?: string | null;
+    info?: string;
   };
   if (!body.event || !EVENTS.has(body.event)) {
     return Response.json({ error: "Unknown event" }, { status: 400 });
@@ -36,6 +46,8 @@ export async function action({ request }: Route.ActionArgs) {
     metadata: {
       anon_id: String(body.anon_id ?? "").slice(0, 64) || null,
       path: String(body.path ?? "").slice(0, 300) || null,
+      in_app: body.in_app && IN_APP.has(body.in_app) ? body.in_app : null,
+      info: String(body.info ?? "").slice(0, 64) || null,
     },
   });
   return Response.json({ ok: true });
