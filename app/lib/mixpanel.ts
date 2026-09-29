@@ -1,26 +1,61 @@
-import mixpanel from "mixpanel-browser";
+import type { OverridedMixpanel } from "mixpanel-browser";
 
 const MIXPANEL_TOKEN = "78431f4d81860b16a66d35a343d0618e";
 
-let isInitialized = false;
+// PH-05: mixpanel-browser (with its session recorder) is ~117 KB gzipped, the
+// largest chunk in the root bundle, and used to download before first paint on
+// every page. It is now fetched with a dynamic import on first use (root calls
+// initMixpanel after hydration). Calls made before it loads are queued and
+// replayed in order.
+let mixpanel: OverridedMixpanel | null = null;
+let loading = false;
+let failed = false;
+const pending: ((mp: OverridedMixpanel) => void)[] = [];
+
+function run(fn: (mp: OverridedMixpanel) => void) {
+  try {
+    fn(mixpanel!);
+  } catch {
+    // Silently fail to avoid breaking the app
+  }
+}
+
+function withMixpanel(fn: (mp: OverridedMixpanel) => void) {
+  if (typeof window === "undefined" || failed) return;
+  if (mixpanel) {
+    run(fn);
+    return;
+  }
+  pending.push(fn);
+  initMixpanel();
+}
 
 // Initialize Mixpanel
 export function initMixpanel() {
   if (typeof window === "undefined") return;
-  
-  try {
-  mixpanel.init(MIXPANEL_TOKEN, {
-    debug: import.meta.env.DEV,
-    track_pageview: true,
-    persistence: "localStorage",
-    autocapture: true,
-    record_sessions_percent: 100,
-  });
-    isInitialized = true;
-  } catch (error) {
-    console.error("Failed to initialize Mixpanel:", error);
-    isInitialized = false;
-  }
+  if (mixpanel || loading || failed) return;
+  loading = true;
+
+  import("mixpanel-browser")
+    .then(({ default: mp }) => {
+      mp.init(MIXPANEL_TOKEN, {
+        debug: import.meta.env.DEV,
+        track_pageview: true,
+        persistence: "localStorage",
+        autocapture: true,
+        record_sessions_percent: 100,
+      });
+      mixpanel = mp;
+      for (const fn of pending.splice(0)) run(fn);
+    })
+    .catch((error) => {
+      console.error("Failed to initialize Mixpanel:", error);
+      failed = true;
+      pending.length = 0;
+    })
+    .finally(() => {
+      loading = false;
+    });
 }
 
 // Identify a user
@@ -29,69 +64,27 @@ export function identifyUser(userId: string, properties?: {
   name?: string;
   [key: string]: any;
 }) {
-  if (typeof window === "undefined") return;
-  
-  // Ensure Mixpanel is initialized
-  if (!isInitialized) {
-    try {
-      initMixpanel();
-    } catch {
-      return;
+  withMixpanel((mp) => {
+    mp.identify(userId);
+    if (properties) {
+      mp.people.set({
+        $name: properties.name,
+        $email: properties.email,
+        ...properties,
+      });
     }
-  }
-  
-  try {
-  mixpanel.identify(userId);
-  
-  if (properties) {
-    mixpanel.people.set({
-      $name: properties.name,
-      $email: properties.email,
-      ...properties,
-    });
-    }
-  } catch {
-    // Silently fail to avoid breaking the app
-  }
+  });
 }
 
 // Track an event
 export function trackEvent(eventName: string, properties?: Record<string, any>) {
-  if (typeof window === "undefined") return;
-  
-  // Ensure Mixpanel is initialized before tracking
-  if (!isInitialized) {
-    // Try to initialize if not already done
-    try {
-      initMixpanel();
-    } catch {
-      // Silently fail to avoid breaking the app
-      return;
-    }
-  }
-  
-  try {
-    // Check if mixpanel is initialized by checking if it has the track method
-    if (mixpanel && typeof mixpanel.track === "function") {
-  mixpanel.track(eventName, properties);
-    }
-  } catch {
-    // Silently fail to avoid breaking the app - don't log to avoid console spam
-    // The error is likely due to Mixpanel hooks not being set up, which happens
-    // if init() hasn't completed or failed
-  }
+  withMixpanel((mp) => {
+    mp.track(eventName, properties);
+  });
 }
 
 // Reset Mixpanel (on logout)
 export function resetMixpanel() {
-  if (typeof window === "undefined") return;
-  
-  try {
-    if (isInitialized && mixpanel && typeof mixpanel.reset === "function") {
-  mixpanel.reset();
-    }
-  } catch {
-    // Silently fail to avoid breaking the app
-  }
+  if (typeof window === "undefined" || !mixpanel) return;
+  run((mp) => mp.reset());
 }
-
