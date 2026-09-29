@@ -205,7 +205,7 @@ export const INTENTS: Intent[] = [
       "help with my homework",
       "can i get assignment help",
     ],
-    response: "Assignment Dojo generates formatted, referenced, plagiarism-safe assignments. Pick your topic, set your level and word count, and get a ready document in minutes. Pay per assignment, no subscription.",
+    response: "Assignment Dojo generates a formatted, referenced document from your brief. Pick your topic, set your level and word count, and get it in minutes. It is a study aid: we can't promise any plagiarism or AI-detection score, so check your college's rules on using it. Pay per assignment, no subscription.",
     links: [],
   },
 
@@ -343,7 +343,7 @@ export const INTENTS: Intent[] = [
       "dispute a charge",
       "refund request",
     ],
-    response: "If your campaign stalled or you paid and got nothing, you are covered. We fix it first, and if the fix does not work in the time the policy sets, the money is owed. A failed payment, a double charge, or a payment where credits never arrived is refunded straight away. See the refund policy, then tap 'Raise a ticket' above with your order ID.",
+    response: "Purchases are final, so unused credits are not refunded, but they never expire and you can use them any time. We do refund a failed, duplicate or unauthorised payment, anything you paid for that never arrived, and a campaign that stopped completely because of a fault on our side. See the refund policy, then tap 'Raise a ticket' above with your payment ID.",
     links: [{ label: "Refund policy", url: "/refund-policy" }],
   },
 
@@ -681,7 +681,7 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 - Works well combined with the Outreach Tool
 
 **Assignment Dojo**: AI assignment help
-- AI-generated assignments, plagiarism-safe, formatted, referenced
+- AI-generated assignments, formatted, referenced. A study aid: never promise a plagiarism or AI-detection score
 - Pay per assignment, no subscription
 
 **AI Risk Dojo** (studojo.com/dojos/ai-risk): AI detection risk checker
@@ -694,16 +694,17 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 - Resume builder: free, no limits
 - Outreach Tool: credit-based, buy as you need, no subscription
 - Assignment Dojo: pay per assignment, no subscription
-- Payments via Razorpay (UPI, cards, net banking)
+- Payments via Razorpay in India (UPI, cards, net banking) and Dodo Payments for international cards
 
-## Refunds (policy v2.0, studojo.com/refund-policy)
-- Failed payment, double charge, payment captured with no credits granted, or a charge the user did not authorise: refunded in money straight away, no fix first
-- A campaign that stopped after delivering 10% or less of its reserved emails: money straight away if the user asks
-- Anything else that went wrong with a campaign: we fix it first (restart, release stuck credits, rebuild the list, reconnect the mailbox). The fix is capped: one attempt per problem, two per campaign, 14 days in total. If it still is not working, the money for what was not delivered is owed. The user can also decline the fix and ask for money
-- Assignment: full refund if cancelled before the document is generated; after delivery, two free fix attempts, then money
-- We do not refund outcomes (who replies), but never tell a user a paid service is non-refundable
-- Never quote a 7-day or 24-hour refund window: those were in the old policy
-- Contact: raise a ticket from this chat with the order ID
+## Refunds (policy v3.0, studojo.com/refund-policy)
+- All purchases are final. Unused credits, unused plan time and change of mind are not refunded. Credits never expire.
+- Refunded: a failed payment (the bank reverses it automatically: UPI by the next working day, cards within 5 days), a double charge, a wrong amount, an unauthorised charge
+- Refunded: paid but nothing delivered, if we cannot deliver within 2 working days
+- Refunded: a campaign that sent no emails for 7 days in a row because of a fault on our side, while active and with Gmail connected, that we could not fix within 7 days of the report. Only the unsent credits are refunded.
+- Refunded: an assignment or rewrite on the wrong subject, not answering the brief, or under half the length, still wrong after one regeneration
+- Not refunded: results (replies, interviews), bounces (replaced free), Gmail or LinkedIn restrictions, detection scores, deleted or banned accounts
+- Unused credits come back to the balance automatically when a campaign ends, is cancelled, or an email fails permanently
+- Contact: raise a ticket from this chat with the payment ID
 
 ## Contact
 - Primary support channel: tap "Raise a ticket" in this chat. The team responds within 48 hours.
@@ -714,7 +715,7 @@ A student career platform at studojo.com. Based in Bangalore, India. Tagline: "W
 - Studojo is a career PLATFORM with tools. It is NOT an internship provider and does NOT post internship listings itself.
 - NEVER say "Studojo doesn't offer unpaid internships". Studojo provides tools to find and apply for internships, not the internships themselves.
 - NEVER suggest LinkedIn, Glassdoor, Indeed, or any competitor platform as an alternative.
-- NEVER say users must be over 18 or any age requirement. There is no stated age requirement.
+- Studojo is for people aged 18 and over. If a user says they are under 18, tell them they cannot create an account yet.
 - NEVER invent product names (e.g. "Design Dojo" does not exist).
 - NEVER say the site is down or having technical issues unless the user says so first.
 - NEVER give advice about internships themselves (how competitive they are, cover letters, etc.). Stick to what Studojo's tools do.

@@ -118,7 +118,7 @@ export default function DeleteAccount({ loaderData }: Route.ComponentProps) {
                   <li>Your resumes, profile, leads and campaigns are deleted. Any campaign still sending stops.</li>
                   <li>Every email sent from your Gmail, and every reply, is deleted from Studojo.</li>
                   <li>Studojo&apos;s access to your Gmail is revoked with Google.</li>
-                  <li>Unused credits are lost. If you want a refund, raise a ticket before you delete.</li>
+                  <li>Unused credits and plan time are forfeited and can&apos;t be refunded (<a href="/refund-policy" className="underline">Refund Policy</a>). If you think a refund is owed, raise a ticket before you delete.</li>
                 </ul>
                 <p className="mb-6 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-500">
                   We keep a record of your payments, with no name or email attached, because the law requires it.

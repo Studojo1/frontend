@@ -21,6 +21,8 @@ import { track } from "./lib/analytics";
 import { captureAttribution, flushAttribution } from "./lib/attribution";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
+import { CookieNotice } from "./components/legal/cookie-notice";
+import { PolicyUpdateNotice } from "./components/legal/policy-update-notice";
 import "./app.css";
 // Self-hosted Satoshi + Clash Display (@font-face -> /public/fonts/*.woff2, with the Fontshare
 // CDN kept only as a src fallback). Replaces the render-blocking external Fontshare stylesheet so
@@ -194,7 +196,9 @@ function MixpanelInit() {
         fetch("/api/user/accept-terms", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ termsAccepted: true, privacyAccepted: true }),
+          // Both sign-up routes (checkboxes, and the notice under Google) include
+          // the 18+ confirmation.
+          body: JSON.stringify({ termsAccepted: true, privacyAccepted: true, ageConfirmed: true }),
         })
           .then((r) => { if (r.ok) localStorage.removeItem("sj_consent_pending"); })
           .catch(() => {});
@@ -360,6 +364,8 @@ export default function App() {
       <MixpanelInit />
       <Outlet />
       {!hideGlobalChat && <ChatWidget />}
+      {!onSensei && <CookieNotice />}
+      {!onSensei && <PolicyUpdateNotice />}
     </>
   );
 }
