@@ -102,7 +102,7 @@ function Section({
       <div className="flex items-center justify-between px-5 py-3 border-b-2 border-neutral-900 bg-neutral-50">
         <h2 className="font-['Clash_Display'] text-base font-bold text-neutral-900">{title}</h2>
         {cta && ctaHref && (
-          <Link to={ctaHref} className="text-xs font-bold text-violet-600 hover:text-violet-800 font-['Satoshi']">
+          <Link to={ctaHref} className="-my-3 inline-flex min-h-[44px] items-center text-sm font-bold text-violet-600 hover:text-violet-800 font-['Satoshi']">
             {cta}
           </Link>
         )}
@@ -144,7 +144,7 @@ function InputField({
 function ProfileContent() {
   const { data: auth, isPending } = authClient.useSession();
   const navigate = useNavigate();
-  const { setOrderId, setCandidateId, setCampaignId, setEmailAccountId } = useOutreachStore();
+  const { setOrderId, setCandidateId, setCampaignId, setEmailAccountId, candidateId } = useOutreachStore();
   const [mounted, setMounted] = useState(false);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -154,6 +154,9 @@ function ProfileContent() {
   const [outreachOrdersError, setOutreachOrdersError] = useState(false);
   const [jobs, setJobs] = useState<any[] | null>(null);
   const [coachSummary, setCoachSummary] = useState<CoachSummary | null>(null);
+  // PH-28: name parsed from the outreach resume, used when the account has no
+  // real name (email signups through outreach never see the profile form).
+  const [resumeName, setResumeName] = useState<string | null>(null);
 
   // Edit state
   const [editing, setEditing] = useState(false);
@@ -215,14 +218,24 @@ function ProfileContent() {
       })
       .catch(() => { setOutreachOrders([]); setOutreachOrdersError(true); });
 
+    if (candidateId) {
+      outreachFetch<any>(`/candidate/${candidateId}/profile`)
+        .then((d) => {
+          const info = d?.parsed_json?.personal_info || {};
+          const n = String(info.name || info.full_name || "").trim();
+          setResumeName(n.length > 2 ? n : null);
+        })
+        .catch(() => setResumeName(null));
+    }
+
     getJobs(undefined, 10)
       .then((j) => setJobs(Array.isArray(j) ? j : []))
       .catch(() => setJobs([]));
-  }, [auth?.user]);
+  }, [auth?.user, candidateId]);
 
   const openEdit = () => {
     setEditForm({
-      fullName: storedName ?? user?.name ?? "",
+      fullName: displayName ?? "",
       college: profile?.college ?? "",
       yearOfStudy: profile?.yearOfStudy ?? "",
       course: profile?.course ?? "",
@@ -292,9 +305,16 @@ function ProfileContent() {
 
   const user = auth.user;
   const storedName = profile?.fullName && profile.fullName.trim().length > 2 ? profile.fullName.trim() : null;
-  const displayName = storedName ?? user.name ?? user.email;
+  // PH-28: email signups get the email prefix as their account name, which
+  // is not a name. Ignore it and fall back to the resume, then to a prompt.
+  const emailPrefix = (user.email ?? "").split("@")[0].toLowerCase();
+  const accountName =
+    user.name && !user.name.includes("@") && user.name.trim().toLowerCase() !== emailPrefix
+      ? user.name.trim()
+      : null;
+  const displayName = storedName ?? accountName ?? resumeName;
   const initials = (() => {
-    const parts = (displayName ?? "").split(" ").filter(Boolean);
+    const parts = (displayName ?? user.email ?? "").split(" ").filter(Boolean);
     if (parts.length === 0) return "?";
     if (parts.length === 1) return (parts[0][0] ?? "?").toUpperCase();
     return ((parts[0][0] ?? "") + (parts[parts.length - 1][0] ?? "")).toUpperCase();
@@ -302,7 +322,7 @@ function ProfileContent() {
 
   // Profile completeness
   const fields = [
-    { label: "Name", filled: !!(profile?.fullName && profile.fullName !== "Not specified") },
+    { label: "Name", filled: !!(storedName && storedName !== "Not specified") || !!accountName },
     { label: "College", filled: !!(profile?.college && profile.college !== "Not specified") },
     { label: "Year", filled: !!(profile?.yearOfStudy && profile.yearOfStudy !== "Not specified") },
     { label: "Course", filled: !!(profile?.course && profile.course !== "Not specified") },
@@ -323,7 +343,7 @@ function ProfileContent() {
                   <span className="font-['Clash_Display'] text-xl font-bold text-white">{initials}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h1 className="font-['Clash_Display'] text-2xl font-bold text-neutral-900 truncate">{displayName}</h1>
+                  <h1 className="font-['Clash_Display'] text-2xl font-bold text-neutral-900 truncate">{displayName ?? "Your profile"}</h1>
                   <p className="font-['Satoshi'] text-sm text-neutral-600 mt-0.5">{user.email}</p>
                   {(profile?.college || profile?.yearOfStudy) && (
                     <p className="font-['Satoshi'] text-sm text-neutral-500 mt-1">
@@ -337,7 +357,9 @@ function ProfileContent() {
                     <div className="mt-3">
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-['Satoshi'] text-xs text-neutral-500">
-                          Profile {completeness}% complete
+                          {filledCount === 0
+                            ? "Add your details so we can match you better"
+                            : `Profile ${completeness}% complete`}
                         </span>
                         <span className="font-['Satoshi'] text-xs text-neutral-400">
                           {fields.filter((f) => !f.filled).map((f) => f.label).join(", ")} missing
@@ -354,9 +376,9 @@ function ProfileContent() {
                   <button
                     type="button"
                     onClick={openEdit}
-                    className="inline-block mt-3 text-xs font-bold text-violet-600 hover:text-violet-800 font-['Satoshi']"
+                    className="mt-1 inline-flex min-h-[44px] items-center text-sm font-bold text-violet-600 hover:text-violet-800 font-['Satoshi']"
                   >
-                    Edit profile →
+                    {filledCount === 0 ? "Complete profile →" : "Edit profile →"}
                   </button>
                 </div>
               </div>
@@ -491,7 +513,7 @@ function ProfileContent() {
               </>
             ) : outreachOrdersError ? (
               <p className="font-['Satoshi'] text-sm text-neutral-500 py-4 text-center">
-                Couldn't load orders. <a href="/outreach/orders" className="text-violet-600 font-semibold hover:underline">View in Outreach →</a>
+                Couldn't load orders. <a href="/outreach/orders" className="inline-flex min-h-[44px] items-center text-violet-600 font-semibold hover:underline">View in Outreach →</a>
               </p>
             ) : outreachOrders.length === 0 ? (
               <div className="text-center py-4">
@@ -558,7 +580,7 @@ function ProfileContent() {
                 <p className="font-['Satoshi'] text-sm text-neutral-500 mb-3">No applications yet.</p>
                 <Link
                   to="/dojos/internships"
-                  className="font-['Satoshi'] text-sm font-bold text-violet-600 hover:text-violet-800"
+                  className="inline-flex min-h-[44px] items-center font-['Satoshi'] text-sm font-bold text-violet-600 hover:text-violet-800"
                 >
                   Find internships →
                 </Link>
