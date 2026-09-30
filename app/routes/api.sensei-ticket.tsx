@@ -9,6 +9,7 @@ import type { Route } from "./+types/api.sensei-ticket";
 import { sql } from "drizzle-orm";
 import db from "~/lib/db";
 import { ensureTicketTables, notifyTicketCreated } from "~/lib/tickets.server";
+import { guardPublicForm } from "~/lib/ratelimit.server";
 
 // Sensei reasons map onto existing ticket categories so the admin filters and
 // priority routing keep working unchanged.
@@ -34,6 +35,10 @@ export async function action({ request }: Route.ActionArgs) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  // Unauthenticated: per-IP rate limit and honeypot (audit AS-N05).
+  const blocked = await guardPublicForm(request, body);
+  if (blocked) return blocked;
 
   const email = String(body?.email || "").trim().toLowerCase();
   const org = String(body?.org || "").trim();
