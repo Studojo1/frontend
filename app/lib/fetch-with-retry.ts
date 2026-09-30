@@ -119,7 +119,19 @@ export async function fetchWithRetry(
   let lastError: Error | null = null;
   let lastResponse: Response | null = null;
   
+  const callerSignal = fetchOptions.signal ?? null;
+  // The caller cancelled (unmount, navigation, a newer request): stop at once.
+  // This used to be retried as a network error (audit CF-N06).
+  const throwIfCallerAborted = () => {
+    if (callerSignal?.aborted) {
+      throw callerSignal.reason instanceof Error
+        ? callerSignal.reason
+        : new DOMException("The operation was aborted.", "AbortError");
+    }
+  };
+
   for (let attempt = 0; attempt < maxRetries; attempt++) {
+    throwIfCallerAborted();
     // Check network state before attempting request
     // Browser only, and only on an explicit "offline". Node 21+ has a global
     // navigator with no onLine at all, which read as offline and then crashed
@@ -220,6 +232,8 @@ export async function fetchWithRetry(
       } catch (error: any) {
         clearTimeout(timeoutId);
         
+        // The caller's own abort is not a timeout and is never retried.
+        throwIfCallerAborted();
         // Handle abort/timeout
         if (error.name === "AbortError") {
           throw new Error(`Request timeout after ${requestTimeout / 1000}s`);
@@ -229,6 +243,7 @@ export async function fetchWithRetry(
       }
       
     } catch (error: any) {
+      throwIfCallerAborted();
       lastError = error;
       const isLastAttempt = attempt === maxRetries - 1;
       
@@ -250,10 +265,19 @@ export async function fetchWithRetry(
       
       // If we shouldn't retry or this is the last attempt, throw
       if (!shouldRetryError || isLastAttempt) {
+        // A 5xx that is not retried again goes back to the caller as the
+        // Response, like a 4xx does. Throwing here dropped the body, so the
+        // backend's recovery message ("detail") never reached the student and
+        // they saw "HTTP 503: Service Unavailable" (audit CF-N03).
+        // (Assigned inside the inner try, which TypeScript's narrowing misses.)
+        const last = lastResponse as Response | null;
+        if (typeof error?.status === "number" && error.status >= 500 && last && last.status === error.status) {
+          return last;
+        }
         // Enhance error message for network errors
         if (isNetworkError(error) && isLastAttempt) {
           throw new Error(
-            `Request failed after ${maxRetries} attempts: ${extractErrorMessage(error)}. Please check your connection and try again.`
+            `Request failed after ${maxRetries} attempt${maxRetries === 1 ? "" : "s"}: ${extractErrorMessage(error)}. Please check your connection and try again.`
           );
         }
         throw error;
@@ -262,6 +286,7 @@ export async function fetchWithRetry(
       // Exponential backoff: 500ms, 1s, 2s
       const backoffMs = Math.min(500 * Math.pow(2, attempt), 2000);
       await new Promise(resolve => setTimeout(resolve, backoffMs));
+      throwIfCallerAborted();
     }
   }
   
