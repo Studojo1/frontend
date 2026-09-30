@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiClipboard, FiArrowRight, FiClock, FiCheckCircle, FiZap } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
@@ -225,7 +225,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <Footer />
+      <AppFooter />
     </div>
   );
 }

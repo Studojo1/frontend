@@ -101,13 +101,7 @@ export default function OutreachLanding() {
   // hidden through the first render rather than letting it flash in and out.
   const { data: session, isPending } = authClient.useSession();
   const nextStep = useNextStep();
-  // A coupon from an email link survives the hop to the leads and pricing
-  // pages (audit NEW-07).
-  useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get("coupon");
-    if (!code) return;
-    try { sessionStorage.setItem("outreach_coupon", code); } catch { /* storage blocked */ }
-  }, []);
+  // A ?coupon= from an email link is kept by the outreach layout (NEW-07).
   // Only for someone who has something to go back to: an order or a launched
   // campaign, not every signed-in visitor (audit VS-V05).
   const showMyCampaigns = !isPending && !!session &&

@@ -487,7 +487,9 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
               ) : (
                 !onAuthPage && (
                 <>
-                  {!hideGetStarted && <li>
+                  {/* The header bar already shows Get Started on phones everywhere but
+                      the home page, so the menu repeats it only there. */}
+                  {!hideGetStarted && isHomePage && <li>
                     <Link
                       to={authUrl("signup", signupReturnTo)}
                       onClick={() => setMobileOpen(false)}

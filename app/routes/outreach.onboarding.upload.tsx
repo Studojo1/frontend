@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 import { redirect, useNavigate, useSearchParams } from "react-router";
 import { FiUpload, FiFileText, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { ProgressSteps } from "~/components/outreach/ProgressSteps";
 import { useOutreachAuth, useNextStep, isPaidNotLaunched, nextStepLabel, nextStepSummary } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -398,7 +398,7 @@ export default function UploadPage() {
         </div>
       </div>
 
-      <Footer />
+      <AppFooter />
     </div>
   );
 }
