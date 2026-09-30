@@ -5,7 +5,7 @@ import {
   FiShield, FiCheckCircle, FiMail, FiZap, FiClock, FiSend, FiAlertCircle,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { useOutreachAuth, fetchNextStep } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
@@ -212,7 +212,7 @@ export default function CampaignLaunchingPage() {
           </div>
         )}
       </div>
-      <Footer />
+      <AppFooter />
     </div>
   );
 }

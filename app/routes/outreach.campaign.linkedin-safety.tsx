@@ -5,7 +5,7 @@ import {
   FiShield, FiClock, FiUsers, FiZap, FiCheckCircle, FiCalendar, FiHeart, FiMessageSquare,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
@@ -86,7 +86,7 @@ export default function LinkedInSafetyPage() {
             <div className="w-8 h-8 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin" />
           )}
         </div>
-        <Footer />
+        <AppFooter />
       </div>
     );
   }
@@ -252,7 +252,7 @@ export default function LinkedInSafetyPage() {
           </div>
         </div>
       </div>
-      <Footer />
+      <AppFooter />
 
       {/* Floating Start button */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
