@@ -34,6 +34,9 @@ jobs:
       - name: Create auth tables
         run: npx drizzle-kit push --force
       - run: npm test
+      # Deploy workflows never write a secret into a Deployment as a literal
+      # env value (audit ST-N07).
+      - run: bash scripts/ci/check_no_literal_secrets.sh
       # Type errors and lint errors fail the check. Both were at zero when
       # these were added (88 type errors cleared, several of them real bugs),
       # so any new one is a regression.
