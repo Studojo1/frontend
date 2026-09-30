@@ -6,6 +6,8 @@ import { Header, Footer } from "~/components";
 import { Section } from "~/components/common/section";
 import { authClient } from "~/lib/auth-client";
 import { capturePostHog } from "~/lib/posthog";
+import ccHero from "~/assets/cc/cc-hero.webp";
+import ccHeroMobile from "~/assets/cc/cc-hero-mobile.webp";
 
 function trackCC(event: string, props?: Record<string, unknown>) {
   // Relative path: works on both studojo.pro and studojo.com via ingress
@@ -254,11 +256,14 @@ export default function CcIndex() {
         >
           <div className="hero-aspect relative w-full" style={{ paddingBottom: "177.78%" }}>
             {/* One image per device, ~50-75 KB WebP. Two eager PNGs (5.5 MB) both
-                downloaded on every device; the hero took 27s on slow 4G (HP-N11). */}
+                downloaded on every device; the hero took 27s on slow 4G (HP-N11).
+                Imported, not in public/, so Vite hashes the filename and they
+                are served from /assets with a 1-year cache; public/ files get
+                max-age=0 and were re-checked on every visit. */}
             <picture>
-              <source media="(min-width: 768px)" srcSet="/cc-hero.webp" type="image/webp" width={1400} height={787} />
+              <source media="(min-width: 768px)" srcSet={ccHero} type="image/webp" width={1400} height={787} />
               <img
-                src="/cc-hero-mobile.webp"
+                src={ccHeroMobile}
                 width={800}
                 height={1066}
                 alt="Bobie the career coach in front of the Studojo dojo gate"

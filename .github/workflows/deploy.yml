@@ -131,6 +131,11 @@ jobs:
           # No-op when unchanged, so it only triggers a rollout when the value moves.
           kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
             EMAILER_INTERNAL_SECRET="${{ secrets.EMAILER_INTERNAL_SECRET }}"
+          # Reach the emailer in-cluster. Unset, app/lib/events.ts falls back to
+          # the public https://email.studojo.com, whose ingress no longer routes
+          # /v1/email/events or /v1/email/send-template (audit AS-N02).
+          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            EMAILER_SERVICE_URL="http://emailer-service:8087"
 
       - name: Ensure career-coach internal secret
         run: |
