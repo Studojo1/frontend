@@ -28,6 +28,7 @@ import { ProfileTickets } from "~/components/profile-tickets";
 import { outreachFetch } from "~/lib/outreach/api";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { getJobs } from "~/lib/control-plane";
+import { profileFromResume, type ResumeProfile } from "~/lib/profile-from-resume";
 
 type UserProfile = {
   fullName: string | null;
@@ -141,6 +142,11 @@ function InputField({
   );
 }
 
+/** A stored profile value, or null when it is empty or the "Not specified" placeholder. */
+function filled(v: string | null | undefined): string | null {
+  return v && v.trim() && v !== "Not specified" ? v : null;
+}
+
 function ProfileContent() {
   const { data: auth, isPending } = authClient.useSession();
   const navigate = useNavigate();
@@ -156,7 +162,10 @@ function ProfileContent() {
   const [coachSummary, setCoachSummary] = useState<CoachSummary | null>(null);
   // PH-28: name parsed from the outreach resume, used when the account has no
   // real name (email signups through outreach never see the profile form).
-  const [resumeName, setResumeName] = useState<string | null>(null);
+  // College, course and graduation year come from the same resume and prefill
+  // the form; nothing is saved until the student presses Save.
+  const [resumeProfile, setResumeProfile] = useState<ResumeProfile | null>(null);
+  const resumeName = resumeProfile?.name ?? null;
 
   // Edit state
   const [editing, setEditing] = useState(false);
@@ -220,12 +229,8 @@ function ProfileContent() {
 
     if (candidateId) {
       outreachFetch<any>(`/candidate/${candidateId}/profile`)
-        .then((d) => {
-          const info = d?.parsed_json?.personal_info || {};
-          const n = String(info.name || info.full_name || "").trim();
-          setResumeName(n.length > 2 ? n : null);
-        })
-        .catch(() => setResumeName(null));
+        .then((d) => setResumeProfile(profileFromResume(d?.parsed_json)))
+        .catch(() => setResumeProfile(null));
     }
 
     getJobs(undefined, 10)
@@ -236,9 +241,9 @@ function ProfileContent() {
   const openEdit = () => {
     setEditForm({
       fullName: displayName ?? "",
-      college: profile?.college ?? "",
-      yearOfStudy: profile?.yearOfStudy ?? "",
-      course: profile?.course ?? "",
+      college: filled(profile?.college) ?? resumeProfile?.college ?? "",
+      yearOfStudy: filled(profile?.yearOfStudy) ?? resumeProfile?.yearOfStudy ?? "",
+      course: filled(profile?.course) ?? resumeProfile?.course ?? "",
     });
     setSaveError("");
     setEditing(true);
@@ -328,6 +333,13 @@ function ProfileContent() {
     { label: "Course", filled: !!(profile?.course && profile.course !== "Not specified") },
   ];
   const filledCount = fields.filter((f) => f.filled).length;
+  // PH-28: the resume can fill at least one missing field.
+  const fromResume =
+    !!resumeProfile &&
+    ((!fields[0].filled && !!resumeProfile.name) ||
+      (!fields[1].filled && !!resumeProfile.college) ||
+      (!fields[2].filled && !!resumeProfile.yearOfStudy) ||
+      (!fields[3].filled && !!resumeProfile.course));
   const completeness = Math.round((filledCount / fields.length) * 100);
 
   return (
@@ -378,7 +390,7 @@ function ProfileContent() {
                     onClick={openEdit}
                     className="mt-1 inline-flex min-h-[44px] items-center text-sm font-bold text-violet-600 hover:text-violet-800 font-['Satoshi']"
                   >
-                    {filledCount === 0 ? "Complete profile →" : "Edit profile →"}
+                    {filledCount < fields.length && fromResume ? "Fill in from my resume →" : filledCount === 0 ? "Complete profile →" : "Edit profile →"}
                   </button>
                 </div>
               </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { FiArrowRight, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
@@ -227,7 +227,7 @@ export default function StylePickPage() {
         </div>
 
       </div>
-      <Footer />
+      <AppFooter />
 
       {/* Floating Use these styles button */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
