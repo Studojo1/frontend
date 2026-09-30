@@ -78,7 +78,9 @@ export function resultsDestination(step: NextStep | null | undefined, search = "
   if (step.state === "campaign_active") return "/outreach/campaign/dashboard";
   if (PAID_NOT_LAUNCHED.includes(step.state) && step.path) return `/outreach${step.path}`;
   if (step.state === "not_paid") {
-    return step.path ? `/outreach${step.path}${qs}` : `/outreach/onboarding/upload${qs}`;
+    // No leads anywhere: the /outreach page, which explains the product and
+    // starts them off; the layout keeps ?coupon= for when they reach pricing.
+    return step.path ? `/outreach${step.path}${qs}` : `/outreach${qs}`;
   }
   return `/outreach/leads/results${qs}`;
 }
