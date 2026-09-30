@@ -67,6 +67,9 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
   const onAuthPage = location.pathname === "/auth" || location.pathname.startsWith("/auth/");
   const returnTo = location.pathname + location.search;
   const resourcesActive = isResourcesPath(location.pathname);
+  // Landing pages hide the nav, but /outreach keeps a way back to the home
+  // page beside Resources. /start (ad traffic) stays one-CTA.
+  const showHomeOnLanding = landing && location.pathname !== "/start";
   const { data: session, isPending } = authClient.useSession();
 
   // Listen for session update events and refetch session
@@ -153,6 +156,12 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
               </LinkComponent>
             );
           })}
+
+          {showHomeOnLanding && (
+            <Link to="/" className="font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
+              Home
+            </Link>
+          )}
 
           {/* Resources dropdown */}
           <div className="relative" ref={resourcesRef}>
@@ -400,6 +409,17 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                 </li>
               );
             })}
+            {showHomeOnLanding && (
+              <li>
+                <Link
+                  to="/"
+                  onClick={() => setMobileOpen(false)}
+                  className="block rounded-lg min-h-11 py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                >
+                  Home
+                </Link>
+              </li>
+            )}
             <li>
               {/* Resources live in the footer; take them there. Pages without
                   the site footer fall back to the home page's. */}
