@@ -5,7 +5,9 @@ import { redirect } from "react-router";
 // LinkedIn customers keep /linkedin/dashboard.
 export function loader({ request }: { request: Request }) {
   const url = new URL(request.url);
-  return redirect(`/outreach/enrichment${url.search}`, 301);
+  // /outreach, not /outreach/enrichment: that page needs a resume in
+  // progress, so a logged-out visitor saw a blank screen and was bounced on.
+  return redirect(`/outreach${url.search}`, 301);
 }
 
 export default function Retired() {

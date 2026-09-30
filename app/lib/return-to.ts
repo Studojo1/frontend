@@ -38,6 +38,18 @@ export function authUrl(mode: "signin" | "signup", returnTo?: string): string {
   return `/auth?${qs}`;
 }
 
+/**
+ * Where the header's Get Started should return a new user to. On the
+ * /outreach landing page that is the upload step, not the landing page
+ * itself, which made every ad visitor who signed up from the header tap the
+ * same CTA a second time (audit VS-V05). The query string is kept so ad
+ * click ids and utm tags still reach /auth. Everywhere else: this page.
+ */
+export function signupReturnPath(pathname: string, search = ""): string {
+  if (pathname === "/outreach" || pathname === "/outreach/") return `/outreach/onboarding/upload${search}`;
+  return pathname + search;
+}
+
 /** /onboarding URL that continues to `returnTo` once the profile form is done. */
 export function onboardingUrl(request: Request): string {
   const url = new URL(request.url);
