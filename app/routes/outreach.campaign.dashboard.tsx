@@ -11,7 +11,7 @@ import {
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { MetricCard } from "~/components/outreach/MetricCard";
 import { useOutreachAuth, fetchNextStep } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -937,7 +937,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-        <Footer />
+        <AppFooter />
       </div>
     );
   }
@@ -956,7 +956,7 @@ export default function DashboardPage() {
             Create Campaign
           </button>
         </div>
-        <Footer />
+        <AppFooter />
       </div>
     );
   }
@@ -2085,7 +2085,7 @@ export default function DashboardPage() {
         }}
         onClose={() => setReportIssueOpen(false)}
       />
-      <Footer />
+      <AppFooter />
     </div>
   );
 }

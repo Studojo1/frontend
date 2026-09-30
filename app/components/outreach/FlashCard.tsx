@@ -130,12 +130,12 @@ export function FlashCard({ lead, onSelect, actionLabel, notePending = false }: 
       <div className="flex items-center gap-2 mt-2.5 flex-wrap">
         {company && <p className="text-[13px] font-semibold text-studojo-ink truncate font-satoshi">{company}</p>}
         {stage && (
-          <span className="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-studojo-purple/10 text-studojo-purple-strong border border-studojo-purple/20 whitespace-nowrap flex-shrink-0 font-satoshi">{stage}</span>
+          <span className="px-1.5 py-0.5 rounded-md text-xs font-semibold bg-studojo-purple/10 text-studojo-purple-strong border border-studojo-purple/20 whitespace-nowrap flex-shrink-0 font-satoshi">{stage}</span>
         )}
-        {lead.location && <span className="text-[11px] text-studojo-muted truncate font-satoshi">· {lead.location}</span>}
+        {lead.location && <span className="text-xs text-studojo-muted truncate font-satoshi">· {lead.location}</span>}
       </div>
-      {lead.industry && <p className="text-[11px] text-studojo-muted mt-0.5 truncate font-satoshi">{lead.industry}</p>}
-      {about && <p className="text-[11px] text-studojo-muted mt-0.5 line-clamp-2 font-satoshi">{about}</p>}
+      {lead.industry && <p className="text-xs text-studojo-muted mt-0.5 truncate font-satoshi">{lead.industry}</p>}
+      {about && <p className="text-xs text-studojo-muted mt-0.5 line-clamp-2 font-satoshi">{about}</p>}
 
       {liUrl && (
         <a
@@ -157,9 +157,9 @@ export function FlashCard({ lead, onSelect, actionLabel, notePending = false }: 
 
       <div className="mt-3 pt-3 border-t border-studojo-ink/8">
         <div className="flex items-center justify-between gap-2 mb-1.5">
-          <p className="text-[11px] font-bold text-studojo-purple-strong uppercase tracking-wide font-satoshi">Why contact them</p>
+          <p className="text-xs font-bold text-studojo-purple-strong uppercase tracking-wide font-satoshi">Why contact them</p>
           {signal && (
-            <span className="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-studojo-green-bg text-emerald-800 border border-studojo-green/30 whitespace-nowrap font-satoshi">{signal}</span>
+            <span className="px-1.5 py-0.5 rounded-md text-xs font-semibold bg-studojo-green-bg text-emerald-800 border border-studojo-green/30 whitespace-nowrap font-satoshi">{signal}</span>
           )}
         </div>
         {desc && <p className="text-[13px] text-studojo-ink leading-snug mb-1.5 font-satoshi line-clamp-3">{desc}</p>}
