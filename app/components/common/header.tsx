@@ -49,7 +49,7 @@ const isResourcesPath = (pathname: string) => RESOURCES_LINKS.some((r) => isActi
 /**
  * landing: ad and marketing landing pages (/outreach, /start). No nav links
  * and no header Get Started, so the page's own CTA is the one thing to tap
- * (audit VS-V05: /outreach had 34 competing targets). Sign in stays.
+ * (audit VS-V05: /outreach had 34 competing targets).
  */
 export function Header({ landing = false }: { landing?: boolean } = {}) {
   const navigate = useNavigate();
@@ -61,9 +61,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   // HP-N09: /auth is already the sign-in/sign-up form with its own toggle, so
-  // both header links are redundant there. Sign in would also drop the page's
-  // ?redirect (authUrl never returns to /auth) and the form does not follow a
-  // mode change in the URL.
+  // the header button is redundant there.
   const onAuthPage = location.pathname === "/auth" || location.pathname.startsWith("/auth/");
   const returnTo = location.pathname + location.search;
   const resourcesActive = isResourcesPath(location.pathname);
@@ -345,15 +343,8 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
             ) : (
               !onAuthPage && (
               <>
-                {/* HP-N09: returning students had no way in from the header
-                    and landed on "Create your account". Desktop only here;
-                    the phone menu has its own Sign in row. */}
-                <Link
-                  to={authUrl("signin", returnTo)}
-                  className="hidden font-['Satoshi'] text-base font-medium leading-6 text-neutral-900 underline-offset-4 hover:underline md:inline"
-                >
-                  Sign in
-                </Link>
+                {/* One button only: Sign in and Get Started both open /auth,
+                    which has its own sign-in/sign-up toggle. */}
                 {!landing && <Link
                   to={authUrl("signup", returnTo)}
                   className={`flex h-12 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-sm font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] px-4 max-w-[120px] flex-shrink-0 md:w-32 md:text-base md:max-w-none ${
@@ -491,16 +482,6 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
               ) : (
                 !onAuthPage && (
                 <>
-                  {/* HP-N09: a Sign in row for returning students. */}
-                  <li>
-                    <Link
-                      to={authUrl("signin", returnTo)}
-                      onClick={() => setMobileOpen(false)}
-                      className="flex min-h-11 items-center rounded-lg py-2 font-['Satoshi'] font-medium text-neutral-900 hover:bg-neutral-50"
-                    >
-                      Sign in
-                    </Link>
-                  </li>
                   {!landing && <li>
                     <Link
                       to={authUrl("signup", returnTo)}
