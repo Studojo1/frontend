@@ -68,6 +68,9 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
   // Landing pages hide the nav, but /outreach keeps a way back to the home
   // page beside Resources. /start (ad traffic) stays one-CTA.
   const showHomeOnLanding = landing && location.pathname !== "/start";
+  // The header always has exactly one auth button, Get Started, except on
+  // /start, where the ad page's own call to action is the only one.
+  const hideGetStarted = landing && location.pathname === "/start";
   const { data: session, isPending } = authClient.useSession();
 
   // Listen for session update events and refetch session
@@ -345,7 +348,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
               <>
                 {/* One button only: Sign in and Get Started both open /auth,
                     which has its own sign-in/sign-up toggle. */}
-                {!landing && <Link
+                {!hideGetStarted && <Link
                   to={authUrl("signup", returnTo)}
                   className={`flex h-12 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-sm font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] px-4 max-w-[120px] flex-shrink-0 md:w-32 md:text-base md:max-w-none ${
                     isHomePage ? "hidden md:flex" : ""
@@ -482,7 +485,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
               ) : (
                 !onAuthPage && (
                 <>
-                  {!landing && <li>
+                  {!hideGetStarted && <li>
                     <Link
                       to={authUrl("signup", returnTo)}
                       onClick={() => setMobileOpen(false)}
