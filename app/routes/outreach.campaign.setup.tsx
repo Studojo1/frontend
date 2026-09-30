@@ -6,11 +6,15 @@ import {
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOrder, fetchNextStep } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
+
+// Campaign.daily_limit's default in job-outreach-svc; the setup page does not
+// change it, so every email campaign sends at most this many a day.
+const DAILY_LIMIT = 20;
 
 interface TestEmail {
   index: number;
@@ -66,13 +70,15 @@ export default function CampaignSetupPage() {
   const [testEmailsLoading, setTestEmailsLoading] = useState(false);
   const [overrides, setOverrides] = useState<Record<number, string>>({});
   const [testLaunching, setTestLaunching] = useState(false);
+  // The connected Gmail: where every deliverability-test email goes (PS-N13).
+  const [ownInbox, setOwnInbox] = useState<string | null>(null);
 
   const safeSettings = [
-    { icon: <FiMail className="w-4 h-4" />, label: "Daily limit", value: "Up to 20 emails/day" },
+    { icon: <FiMail className="w-4 h-4" />, label: "Daily limit", value: `Up to ${DAILY_LIMIT} emails/day` },
     // Matches campaign_worker: sends run 9 AM to 5 PM, spaced evenly with
     // jitter across that window (audit PS-N13).
     { icon: <FiClock className="w-4 h-4" />, label: "Sending hours", value: "9 AM - 5 PM" },
-    { icon: <FiZap className="w-4 h-4" />, label: "Gap between emails", value: "About 20 a day, spread across the day" },
+    { icon: <FiZap className="w-4 h-4" />, label: "Gap between emails", value: `About ${DAILY_LIMIT} a day, spread across the day` },
     { icon: <FiShield className="w-4 h-4" />, label: "First email", value: "Within 3 minutes of launch" },
   ];
 
@@ -119,9 +125,10 @@ export default function CampaignSetupPage() {
   useEffect(() => {
     if (authLoading) return;
     let cancelled = false;
-    outreachFetch<{ email_account_id?: number; token_valid?: boolean }>("/gmail/oauth/account")
+    outreachFetch<{ email_account_id?: number; email_address?: string; token_valid?: boolean }>("/gmail/oauth/account")
       .then((data) => {
         if (cancelled) return;
+        if (data?.email_address) setOwnInbox(data.email_address);
         if (data?.email_account_id && data.token_valid !== false) {
           if (data.email_account_id !== emailAccountId) {
             setEmailAccountId(data.email_account_id);
@@ -255,7 +262,9 @@ export default function CampaignSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    // PH-06: room for the floating Launch button (and any error above it), so
+    // nothing ends up underneath it at the bottom of the page.
+    <div className={`min-h-screen bg-white ${error ? "pb-48" : "pb-28"}`}>
       <Header />
       <div className="mx-auto max-w-3xl px-4 py-8 md:px-8">
         <h1 className="font-clash text-2xl font-bold mb-2 text-studojo-ink">Campaign Setup</h1>
@@ -333,7 +342,7 @@ export default function CampaignSetupPage() {
               </span>
             </div>
             <p className="text-sm text-studojo-muted font-satoshi mb-4">
-              Send 5 quick test emails to your own inbox to confirm your email connection and deliverability before launching the campaign.
+              Sends 5 sample emails to your own inbox{ownInbox ? <> (<strong className="text-studojo-ink">{ownInbox}</strong>)</> : null}, each subject starting with [TEST], so you can check how they look and that your Gmail is connected. Nothing goes to the hiring managers.
             </p>
 
             {testEmails.length === 0 ? (
@@ -351,21 +360,20 @@ export default function CampaignSetupPage() {
               </button>
             ) : (
               <>
+                <p className="text-xs text-studojo-muted font-satoshi mb-3">
+                  To use another of your own addresses, type it in. Anything else is sent to your connected Gmail.
+                </p>
                 <div className="space-y-3 mb-4">
                   {testEmails.map((email) => (
                     <div key={email.index} className="bg-studojo-surface-muted rounded-xl border-2 border-studojo-ink/20 p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-bold font-satoshi text-studojo-ink truncate">{email.lead_name}</p>
+                          <p className="text-sm font-bold font-satoshi text-studojo-ink truncate"><span className="font-medium text-studojo-muted">Sample written for </span>{email.lead_name}</p>
                           <p className="text-xs text-studojo-muted font-satoshi truncate">{email.lead_company}</p>
                           <p className="text-xs text-studojo-muted font-satoshi mt-1 truncate">Subject: {email.subject}</p>
                         </div>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium border ${
-                          overrides[email.index]
-                            ? "bg-amber-50 text-amber-700 border-amber-200"
-                            : "bg-studojo-green-bg text-studojo-green border-studojo-green/30"
-                        }`}>
-                          {overrides[email.index] ? "Override" : "Original"}
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-satoshi font-medium border bg-studojo-green-bg text-studojo-green border-studojo-green/30 whitespace-nowrap">
+                          To your inbox
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-2">
@@ -373,7 +381,8 @@ export default function CampaignSetupPage() {
                         <input
                           value={overrides[email.index] || ""}
                           onChange={(e) => setOverrides((prev) => ({ ...prev, [email.index]: e.target.value }))}
-                          placeholder={email.original_email}
+                          placeholder={ownInbox ?? "Your connected Gmail"}
+                          aria-label="Send this test to another of your own addresses"
                           className="flex-1 h-8 px-3 rounded-lg border-2 border-studojo-ink/20 text-base font-satoshi focus:outline-none focus:ring-2 focus:ring-studojo-purple"
                         />
                       </div>
@@ -403,7 +412,7 @@ export default function CampaignSetupPage() {
           ) : null}
         </div>
       </div>
-      <Footer />
+      <AppFooter />
 
       {/* Floating Launch Campaign button, with any error right above it */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex w-[min(92vw,28rem)] flex-col items-center gap-2">
