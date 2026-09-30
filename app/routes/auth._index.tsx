@@ -7,7 +7,9 @@ import { heldTrackingParams } from "~/lib/attribution";
 import { authClient } from "~/lib/auth-client";
 import { logFunnelStep } from "~/lib/funnel";
 import { chromeIntentUrl, detectInAppBrowser, isAndroid, type InAppBrowser } from "~/lib/in-app-browser";
-import { capturePostHog } from "~/lib/posthog";
+import { capturePostHog, featureFlagEnabled } from "~/lib/posthog";
+import { ResumeFirstCard } from "~/components/outreach/ResumeFirstCard";
+import { UPLOAD_BEFORE_SIGNUP_FLAG, headedToUpload, isAdVisitor } from "~/lib/outreach/resume-draft";
 import type { Route } from "./+types/auth._index";
 
 const floatY = [0, -24, -12, -30, 0];
@@ -228,6 +230,26 @@ export default function Auth() {
   // uploading a resume. Tell them what they get for signing up. Read from the
   // raw param, which the server render sees too.
   const forOutreach = (searchParams.get("redirect") ?? "").startsWith("/outreach");
+
+  // EX-06 experiment, flag `upload-before-signup` (off by default): an ad
+  // visitor on the way to resume upload may pick the resume before signing
+  // up. Decided once after hydration; until the flag answers (or when it is
+  // off) the page is exactly as before.
+  const [resumeFirst, setResumeFirst] = useState(false);
+  useEffect(() => {
+    if (!headedToUpload(searchParams.get("redirect"))) return;
+    if (!isAdVisitor(window.location.search, heldTrackingParams())) return;
+    let live = true;
+    void featureFlagEnabled(UPLOAD_BEFORE_SIGNUP_FLAG).then((on) => {
+      if (!live || !on) return;
+      setResumeFirst(true);
+      capturePostHog("upload_before_signup_shown", {});
+    });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { data: session, isPending } = authClient.useSession();
   // The last-used method lives in a cookie the server render never reads, so
@@ -558,6 +580,8 @@ export default function Auth() {
                 Sign Up
               </button>
             </div>
+
+            {resumeFirst && mode === "signup" && <ResumeFirstCard />}
 
             {/* Form Card */}
             <div className="relative rounded-2xl border-2 border-neutral-900 bg-white p-8 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] overflow-hidden">

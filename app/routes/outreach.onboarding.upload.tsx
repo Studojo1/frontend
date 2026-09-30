@@ -1,5 +1,5 @@
 import { describeError } from "~/lib/error-detail";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { redirect, useNavigate, useSearchParams } from "react-router";
 import { FiUpload, FiFileText, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
@@ -15,6 +15,7 @@ import { trackMeta } from "~/lib/meta-pixel";
 import { track } from "~/lib/analytics";
 import type { ResumePreview } from "~/lib/outreach/types";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
+import { MAX_RESUME_BYTES, isResumeFile, loadResumeDraft, clearResumeDraft } from "~/lib/outreach/resume-draft";
 import type { Route } from "./+types/outreach.onboarding.upload";
 
 // Meta ads land here. Logged-out visitors used to load the whole page and
@@ -31,10 +32,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return null;
 }
 
-// The page says "up to 10MB" and the API now enforces it (413).
-const MAX_RESUME_BYTES = 10 * 1024 * 1024;
 const TOO_BIG = "That file is over 10MB. Please upload a smaller PDF or DOCX, or export your resume again with smaller images.";
-const isResumeFile = (f: File) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf") || f.name.toLowerCase().endsWith(".docx");
 
 export default function UploadPage() {
   const navigate = useNavigate();
@@ -109,7 +107,8 @@ export default function UploadPage() {
     void acceptFile(f);
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (picked: File | null = file) => {
+    const file = picked;
     if (!file) return;
     setUploading(true);
     setError("");
@@ -208,6 +207,24 @@ export default function UploadPage() {
     }
   };
 
+  // EX-06 experiment: a resume picked on /auth before the account existed.
+  // Claim it once (so a failed upload cannot loop) and send it now, so it
+  // lands on the new account with no second pick. A failed upload leaves the
+  // file selected for the usual Upload button.
+  const draftClaimedRef = useRef(false);
+  useEffect(() => {
+    if (!userId || draftClaimedRef.current) return;
+    draftClaimedRef.current = true;
+    void loadResumeDraft().then(async (draft) => {
+      if (!draft) return;
+      await clearResumeDraft();
+      capturePostHog("upload_before_signup_attached", { file_type: draft.type || "unknown", file_size: draft.size });
+      setFile(draft);
+      void handleUpload(draft);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
   const handleContinue = () => {
     setCurrentStep(2);
     navigate("/outreach/onboarding/chat");
@@ -300,7 +317,7 @@ export default function UploadPage() {
 
               <div className="mt-6">
                 <button
-                  onClick={handleUpload}
+                  onClick={() => void handleUpload()}
                   disabled={!file || uploading}
                   className="h-12 w-full md:w-auto px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
                 >

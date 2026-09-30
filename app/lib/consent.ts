@@ -80,3 +80,28 @@ export function onConsentChange(fn: (choice: Consent | null) => void): () => voi
   window.addEventListener(CHANGE_EVENT, handler);
   return () => window.removeEventListener(CHANGE_EVENT, handler);
 }
+
+/**
+ * The consent state for a server that reports to Meta on our behalf (HP-N13):
+ * job-outreach-svc's Purchase and our own /api/meta-event. The server applies
+ * the same rule as trackingAllowed(): an EU/UK time zone with no "granted"
+ * choice means no event. Sent with every order and every mirrored event.
+ */
+export function consentForServer(): { tracking_consent: Consent | null; time_zone: string | null } {
+  let tz: string | null = null;
+  try {
+    tz = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+  } catch {
+    tz = null;
+  }
+  const c = memo !== undefined ? memo : readConsent();
+  return { tracking_consent: c ?? null, time_zone: tz };
+}
+
+/** Server side of the same rule, for /api/meta-event. Pure, for tests.
+ * An explicit choice wins; with none, an EU/UK (or unknown) time zone is no. */
+export function serverMayReportToMeta(consent: unknown, timeZone: unknown): boolean {
+  if (consent === "denied") return false;
+  if (consent === "granted") return true;
+  return !consentRegion(typeof timeZone === "string" ? timeZone : null);
+}

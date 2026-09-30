@@ -53,3 +53,36 @@ export function leadHeadline(leadCount: number | null, strongCount: number | nul
   }
   return `We found ${n(leadCount)} hiring managers for you.`;
 }
+
+/**
+ * Is this pack offered to this student (audit UC-Q09)?
+ *
+ * `sellable` is `sellable_email_packs` from GET /candidate/{id}/leads: the API
+ * stops selling packs much bigger than the student's strong matches, and
+ * create-order refuses them. A pack paid for from credits the student already
+ * holds creates no order, so it stays usable. With no list from the API
+ * (older API, failed call) every pack is offered, as before.
+ */
+export function packOffered(tier: number, sellable: number[] | null | undefined, availableCredits: number): boolean {
+  if (availableCredits >= tier) return true;
+  if (!Array.isArray(sellable) || sellable.length === 0) return true;
+  return sellable.includes(tier);
+}
+
+/** Why a pack is not offered, shown on its card. */
+export function packNotOfferedReason(strongCount: number | null): string {
+  return typeof strongCount === "number"
+    ? `Not offered: you have ${n(strongCount)} strong matches, so most of this pack would go to weaker ones.`
+    : "Not offered: most of this pack would go to weaker matches.";
+}
+
+export type SampleEmail = { masked: string; kind: "email" | "domain"; company?: string | null };
+
+/** The line under the headline that proves an email exists (audit UC-Q13). */
+export function sampleEmailLine(sample: SampleEmail | null | undefined): string | null {
+  if (!sample || typeof sample.masked !== "string" || !sample.masked.includes("@")) return null;
+  const at = sample.company ? ` at ${sample.company}` : "";
+  return sample.kind === "email"
+    ? `For example, a hiring manager${at}: ${sample.masked}. You see every address in full once you buy a pack.`
+    : `For example, a hiring manager${at} uses ${sample.masked} addresses. You see every address in full once you buy a pack.`;
+}

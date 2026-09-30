@@ -14,7 +14,8 @@ import { metaBrowserIds } from "~/lib/attribution";
 import type { TierPricing } from "~/lib/outreach/types";
 import { RealNumbers } from "~/components/outreach/RealNumbers";
 import { recallCoupon, sessionStore } from "~/lib/outreach/coupon";
-import { tierMatch, leadHeadline } from "~/lib/outreach/tier-match";
+import { tierMatch, leadHeadline, packOffered, packNotOfferedReason, sampleEmailLine, type SampleEmail } from "~/lib/outreach/tier-match";
+import { consentForServer } from "~/lib/consent";
 
 declare global {
   interface Window {
@@ -200,6 +201,10 @@ export default function EnrichmentPage() {
   const [leadCount, setLeadCount] = useState<number | null>(null);
   // Leads whose titles match the target roles (UC-Q09); the rest are broader.
   const [strongCount, setStrongCount] = useState<number | null>(null);
+  // Packs the API still sells for this pool (UC-Q09) and one masked address
+  // as proof an email exists (UC-Q13). Both come with the leads.
+  const [sellablePacks, setSellablePacks] = useState<number[] | null>(null);
+  const [sampleEmail, setSampleEmail] = useState<SampleEmail | null>(null);
   // Candidates this page already switched away from (OP-N03), so it cannot loop.
   const switchedFromRef = useRef<Set<number>>(new Set());
   const [dreamCompanies, setDreamCompanies] = useState<Array<{ name: string; domain: string | null }>>([]);
@@ -399,6 +404,14 @@ export default function EnrichmentPage() {
     if ((selectedTier as number) === 50) setSelectedTier(200);
   }, [selectedTier, setSelectedTier]);
 
+  // A pack this pool no longer supports (UC-Q09) cannot stay selected, or the
+  // sticky Pay button would try to buy it. Move to the biggest one offered.
+  useEffect(() => {
+    if (!sellablePacks?.length) return;
+    if (packOffered(selectedTier, sellablePacks, credits?.available_credits ?? 0)) return;
+    setSelectedTier(Math.max(...sellablePacks) as typeof selectedTier);
+  }, [sellablePacks, selectedTier, credits, setSelectedTier]);
+
   // Prices and credits load separately: credits needs a session and can fail
   // on its own, and it used to take prices that loaded fine down with it.
   // There are no made-up backup prices. Until the real ones arrive the page
@@ -438,7 +451,7 @@ export default function EnrichmentPage() {
     if (!candidateId) return;
     Promise.all([
       outreachFetch<any>(`/candidate/${candidateId}/profile`).catch(() => null),
-      outreachFetch<{ leads: any[]; strong_total?: number; active_candidate_id?: number | null } | any[]>(`/candidate/${candidateId}/leads`).catch(() => null),
+      outreachFetch<{ leads: any[]; strong_total?: number; active_candidate_id?: number | null; sellable_email_packs?: number[]; sample_email?: SampleEmail | null } | any[]>(`/candidate/${candidateId}/leads`).catch(() => null),
     ]).then(([profile, leadsResp]) => {
       // OP-N03: a re-upload leaves this browser on a newer resume with no
       // leads while an older one holds them, and the checkout guard below then
@@ -470,6 +483,10 @@ export default function EnrichmentPage() {
       if (leadsResp && !forCrm) setLeadCount(leadArr.length);
       if (leadsResp && !Array.isArray(leadsResp) && typeof leadsResp.strong_total === "number") {
         setStrongCount(leadsResp.strong_total);
+      }
+      if (leadsResp && !Array.isArray(leadsResp) && !forCrm) {
+        setSellablePacks(Array.isArray(leadsResp.sellable_email_packs) ? leadsResp.sellable_email_packs : null);
+        setSampleEmail(leadsResp.sample_email ?? null);
       }
       const domainByCompany = new Map<string, string>();
       for (const l of leadArr) {
@@ -547,7 +564,14 @@ export default function EnrichmentPage() {
     try {
       const orderData = await outreachFetch<any>("/payment/create-order", {
         method: "POST",
-        body: JSON.stringify({ tier: tierValue, currency, coupon_code: couponResult?.valid ? couponCode.trim() : undefined, ...metaBrowserIds() }), // EX-07
+        body: JSON.stringify({
+          tier: tierValue,
+          currency,
+          coupon_code: couponResult?.valid ? couponCode.trim() : undefined,
+          candidate_id: candidateId, // UC-Q09: the pool the server checks the pack against
+          ...metaBrowserIds(), // EX-07
+          ...consentForServer(), // HP-N13
+        }),
       });
 
       if (orderData.free) {
@@ -730,6 +754,7 @@ export default function EnrichmentPage() {
   const selectedTierObj = TIERS.find((t) => t.value === selectedTier) ?? TIERS[0];
   const selectedPrice = getTierPrice(selectedTier);
   const hasCreditsForSelected = credits ? credits.available_credits >= selectedTier : false;
+  const availableCredits = credits?.available_credits ?? 0;
 
   return (
     <div className="min-h-screen bg-white pb-28">
@@ -759,6 +784,9 @@ export default function EnrichmentPage() {
           <p className="max-w-xl mx-auto -mt-4 mb-8 text-center text-sm font-satoshi text-studojo-ink">
             <strong>{leadHeadline(leadCount, strongCount)}</strong>
             {" "}Every pack contacts your strongest matches first, and a campaign never uses more credits than you have matches.
+            {sampleEmailLine(sampleEmail) && (
+              <span className="mt-2 block text-studojo-muted" data-testid="sample-email">{sampleEmailLine(sampleEmail)}</span>
+            )}
           </p>
         )}
 
@@ -856,15 +884,19 @@ export default function EnrichmentPage() {
             const isSelected = selectedTier === tier.value;
             const hasCredits = credits ? credits.available_credits >= tier.value : false;
             const isStarter = "durationDays" in tier && !!tier.durationDays;
+            const offered = packOffered(tier.value, sellablePacks, availableCredits);
 
             return (
               <div
                 key={tier.value}
-                onClick={() => { capturePostHog("tier_selected", { tier: tier.value }); setSelectedTier(tier.value); setCouponError(""); if (couponCode.trim()) { void validateCoupon(tier.value); } else { setCouponResult(null); } }}
-                className={`relative rounded-2xl border-2 p-5 cursor-pointer transition-all flex flex-col ${
-                  isSelected
+                aria-disabled={!offered || undefined}
+                onClick={() => { if (!offered) return; capturePostHog("tier_selected", { tier: tier.value }); setSelectedTier(tier.value); setCouponError(""); if (couponCode.trim()) { void validateCoupon(tier.value); } else { setCouponResult(null); } }}
+                className={`relative rounded-2xl border-2 p-5 transition-all flex flex-col ${
+                  !offered
+                    ? "border-studojo-ink/10 bg-studojo-surface-muted opacity-60 cursor-not-allowed"
+                    : isSelected
                     ? "border-studojo-purple bg-studojo-purple-bg/20 shadow-[4px_4px_0px_0px_rgba(124,58,237,1)]"
-                    : "border-studojo-ink/20 bg-white hover:border-studojo-ink/50"
+                    : "border-studojo-ink/20 bg-white hover:border-studojo-ink/50 cursor-pointer"
                 }`}
               >
                 {/* Badges */}
@@ -901,6 +933,9 @@ export default function EnrichmentPage() {
                 <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{tier.tagline}</p>
                 {/* UC-Q20: what this pack reaches in their own list. */}
                 {(() => {
+                  if (!offered) {
+                    return <p className="-mt-2 mb-4 text-xs font-satoshi font-medium leading-snug text-studojo-ink">{packNotOfferedReason(strongCount)}</p>;
+                  }
                   const m = tierMatch(tier.value, leadCount, strongCount);
                   if (!m) return null;
                   return (
@@ -930,7 +965,7 @@ export default function EnrichmentPage() {
                     setSelectedTier(tier.value);
                     handlePayAndContinue(tier.value);
                   }}
-                  disabled={(paying && isSelected) || leadCount === 0 || (pricingState !== "ready" && !hasCredits) || (!hasCredits && !refundAgreed)}
+                  disabled={!offered || (paying && isSelected) || leadCount === 0 || (pricingState !== "ready" && !hasCredits) || (!hasCredits && !refundAgreed)}
                   className={`w-full h-10 rounded-xl font-satoshi font-bold text-sm border-2 border-studojo-ink transition-all flex items-center justify-center gap-1.5 ${
                     isSelected
                       ? "bg-studojo-purple text-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"

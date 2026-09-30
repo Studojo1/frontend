@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { resultsDestination, isPaidNotLaunched } from "./next-step.ts";
 import { couponFromSearch, rememberCoupon, recallCoupon, COUPON_STORAGE_KEY } from "./coupon.ts";
-import { tierMatch, leadHeadline } from "./tier-match.ts";
+import { tierMatch, leadHeadline, packOffered, packNotOfferedReason, sampleEmailLine } from "./tier-match.ts";
 import { profileFromResume } from "../profile-from-resume.ts";
 
 const APP = new URL("../../", import.meta.url).pathname;
@@ -154,3 +154,29 @@ for (const f of readdirSync(APP + "routes").filter((f) => /^outreach\..+\.tsx$/.
 }
 
 console.log("outreach app-screens: ok");
+
+// ── UC-Q09 (round 2): packs bigger than the strong pool are not offered ─────
+assert.equal(packOffered(500, [200], 0), false);
+assert.equal(packOffered(200, [200], 0), true);
+assert.equal(packOffered(350, [200, 350], 0), true);
+assert.equal(packOffered(500, [200], 500), true, "a pack covered by credits creates no order");
+assert.equal(packOffered(500, null, 0), true, "no list from the API: offer everything, as before");
+assert.equal(packOffered(500, [], 0), true);
+assert.match(packNotOfferedReason(120), /120 strong matches/);
+{
+  const page = read("routes/outreach.enrichment.tsx");
+  assert.match(page, /sellable_email_packs/, "the pricing page reads the API's sellable packs");
+  assert.match(page, /packOffered\(/, "each card checks packOffered");
+  assert.match(page, /sampleEmailLine\(/, "the pricing page shows the masked sample");
+  assert.match(page, /candidate_id: candidateId/, "create-order is told which candidate's pool to check");
+  assert.match(page, /consentForServer\(\)/, "create-order carries the consent state (HP-N13)");
+}
+
+// ── UC-Q13 (round 2): one masked sample email ───────────────────────────────
+assert.equal(sampleEmailLine(null), null);
+assert.equal(sampleEmailLine({ masked: "nothing", kind: "email" }), null);
+assert.equal(
+  sampleEmailLine({ masked: "j\u2022\u2022\u2022@acme.com", kind: "email", company: "Acme" }),
+  "For example, a hiring manager at Acme: j\u2022\u2022\u2022@acme.com. You see every address in full once you buy a pack.",
+);
+assert.match(sampleEmailLine({ masked: "\u2022\u2022\u2022@acme.com", kind: "domain" }), /uses \u2022\u2022\u2022@acme\.com addresses/);
