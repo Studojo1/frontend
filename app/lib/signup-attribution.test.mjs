@@ -3,7 +3,7 @@
 // gateway returns were counted as referral sources and overwrote the held
 // direct first touch; the header on /auth dropped the redirect.
 import assert from "node:assert/strict";
-import { buildFbc, isExternalReferrer, trackingParams } from "./attribution.ts";
+import { buildFbc, carriesTrackingParams, isExternalReferrer, trackingParams, withHeldTracking } from "./attribution.ts";
 import { authUrl } from "./return-to.ts";
 import { chromeIntentUrl, detectInAppBrowser } from "./in-app-browser.ts";
 
@@ -84,5 +84,17 @@ assert.ok(intent.endsWith(";end"));
 
 // EX-07: fbc built from a stored fbclid, in Meta's format.
 assert.equal(buildFbc("IwAR0abc", 1727600000000.7), "fb.1.1727600000000.IwAR0abc");
+
+// VS-V09: /auth and the upload step carry the held ad click in the URL, so
+// "Open in browser" from an in-app browser keeps it. A URL that already has
+// its own tracking params is left alone (never mix two touches).
+const held = new URLSearchParams("fbclid=IwAR0abc&utm_source=ig");
+assert.equal(carriesTrackingParams("/auth"), true);
+assert.equal(carriesTrackingParams("/outreach/onboarding/upload"), true);
+assert.equal(carriesTrackingParams("/outreach"), false);
+assert.equal(withHeldTracking("?mode=signup&redirect=%2Foutreach", held), "?mode=signup&redirect=%2Foutreach&fbclid=IwAR0abc&utm_source=ig");
+assert.equal(withHeldTracking("", held), "?fbclid=IwAR0abc&utm_source=ig");
+assert.equal(withHeldTracking("?utm_source=google", held), null);
+assert.equal(withHeldTracking("?mode=signin", new URLSearchParams()), null);
 
 console.log("signup attribution helpers: all cases pass");

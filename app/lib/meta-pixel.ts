@@ -4,7 +4,23 @@
 // server-side, the same eventId must be sent with the server copy so Meta deduplicates
 // the pair into a single event instead of counting it twice.
 
+import { trackingAllowed } from "./consent";
+
 const PIXEL_ID = import.meta.env?.VITE_PUBLIC_META_PIXEL_ID as string | undefined;
+
+/** Pages Meta must never see: the high-school reports are read by minors, who
+ * must not be profiled for ads (audit HP-N13). Pure, for tests. */
+export function metaExcludedPath(pathname: string): boolean {
+  return pathname.startsWith("/reports/") && pathname.includes("high-school");
+}
+
+/** Every Meta call checks this: a production host, the visitor's consent
+ * where it is needed (EU/UK), and not a page minors read. */
+function metaAllowed(): boolean {
+  if (!isTrackableHost()) return false;
+  if (!trackingAllowed()) return false;
+  return !metaExcludedPath(window.location.pathname ?? "");
+}
 
 // Staging builds from the same Dockerfile and so carries the same pixel id. Without
 // this gate, QA and smoke runs on studojo.pro would fire real conversions into the
@@ -47,7 +63,7 @@ export function initMetaPixel() {
   if (typeof window === "undefined") return;
   if (!PIXEL_ID) return;
   if (isInitialized) return;
-  if (!isTrackableHost()) return;
+  if (!metaAllowed()) return;
 
   try {
     /* eslint-disable */
@@ -117,7 +133,8 @@ export function trackMeta(
   explicitEventId?: string
 ): string | null {
   if (typeof window === "undefined") return null;
-  if (!isTrackableHost()) return null;
+  // Also covers the server mirror: no consent, no event to Meta at all.
+  if (!metaAllowed()) return null;
 
   // A route's effect runs before the root effect that normally initialises the
   // pixel, so ViewContent on the landing page would otherwise lose its browser
@@ -143,9 +160,33 @@ export function trackMeta(
 
 /** PageView on every client-side route change. Meta only auto-fires it on hard loads. */
 export function trackMetaPageView() {
-  if (typeof window === "undefined" || !isInitialized) return;
+  if (typeof window === "undefined" || !metaAllowed()) return;
+  // A visit that began on an excluded page, or before consent, never ran init.
+  initMetaPixel();
+  if (!isInitialized) return;
   try {
     fbq()?.("track", "PageView");
+  } catch {
+    // Silently fail
+  }
+}
+
+/** The visitor withdrew consent after the pixel loaded: tell Meta to stop
+ * using its cookies for them. Later calls are already blocked by metaAllowed. */
+export function revokeMetaConsent() {
+  if (typeof window === "undefined" || !isInitialized) return;
+  try {
+    fbq()?.("consent", "revoke");
+  } catch {
+    // Silently fail
+  }
+}
+
+/** The visitor accepted: lift a revoke from earlier in this page. */
+export function grantMetaConsent() {
+  if (typeof window === "undefined" || !isInitialized) return;
+  try {
+    fbq()?.("consent", "grant");
   } catch {
     // Silently fail
   }
