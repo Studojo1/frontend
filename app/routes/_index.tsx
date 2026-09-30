@@ -78,8 +78,10 @@ export function meta({ data }: Route.MetaArgs) {
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "Studojo | Land Your Next Internship or Job" },
     { name: "twitter:description", content: "AI finds the hiring manager. AI writes the email. You just show up to the interview." },
-    { property: "og:image", content: `${BASE_URL}/og-default.png` },
-    { name: "twitter:image", content: `${BASE_URL}/og-default.png` },
+    // The homepage has its own card (its hero line); /outreach uses
+    // og-default.png, the outreach card, which is also the site-wide fallback.
+    { property: "og:image", content: `${BASE_URL}/og-home.png` },
+    { name: "twitter:image", content: `${BASE_URL}/og-home.png` },
     {
       "script:ld+json": {
         "@context": "https://schema.org",

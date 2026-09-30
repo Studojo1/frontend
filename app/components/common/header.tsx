@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { authUrl } from "~/lib/return-to";
+import { authUrl, signupReturnPath } from "~/lib/return-to";
 import { authClient } from "~/lib/auth-client";
 import { clearTokenCache } from "~/lib/control-plane";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -63,7 +63,9 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
   // HP-N09: /auth is already the sign-in/sign-up form with its own toggle, so
   // the header button is redundant there.
   const onAuthPage = location.pathname === "/auth" || location.pathname.startsWith("/auth/");
-  const returnTo = location.pathname + location.search;
+  // VS-V05: Get Started on /outreach goes straight on to the upload step
+  // after signup, not back to the landing page the visitor just left.
+  const signupReturnTo = signupReturnPath(location.pathname, location.search);
   const resourcesActive = isResourcesPath(location.pathname);
   // Landing pages hide the nav, but /outreach keeps a way back to the home
   // page beside Resources. /start (ad traffic) stays one-CTA.
@@ -133,7 +135,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
       <div className="mx-auto flex h-16 max-w-[var(--section-max-width)] items-center justify-between px-4 pt-4 pb-px md:h-24 md:px-8 md:pt-0 md:pb-0">
         <Link
           to="/"
-          className="font-['Satoshi'] text-2xl font-black leading-9 text-neutral-900 md:text-4xl md:leading-7"
+          className="inline-flex min-h-11 items-center font-['Satoshi'] text-2xl font-black leading-9 text-neutral-900 md:text-4xl md:leading-7"
         >
           studojo
         </Link>
@@ -217,7 +219,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                   <button
                     type="button"
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2"
+                    className="flex min-h-11 items-center gap-2"
                     aria-label="Open profile menu"
                   >
                     <div className="h-9 w-9 rounded-full bg-violet-500 border-2 border-neutral-900 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] flex items-center justify-center">
@@ -349,7 +351,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                 {/* One button only: Sign in and Get Started both open /auth,
                     which has its own sign-in/sign-up toggle. */}
                 {!hideGetStarted && <Link
-                  to={authUrl("signup", returnTo)}
+                  to={authUrl("signup", signupReturnTo)}
                   className={`flex h-12 items-center justify-center rounded-2xl bg-neutral-900 font-['Satoshi'] text-sm font-medium leading-6 text-white transition-transform hover:translate-x-[2px] hover:translate-y-[2px] px-4 max-w-[120px] flex-shrink-0 md:w-32 md:text-base md:max-w-none ${
                     isHomePage ? "hidden md:flex" : ""
                   }`}
@@ -396,7 +398,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                     to={to}
                     onClick={() => setMobileOpen(false)}
                     aria-current={active ? "page" : undefined}
-                    className={`block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50 ${active ? "font-black" : ""}`}
+                    className={`flex min-h-11 items-center rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50 ${active ? "font-black" : ""}`}
                   >
                     {label}
                   </LinkComponent>
@@ -408,7 +410,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                 <Link
                   to="/"
                   onClick={() => setMobileOpen(false)}
-                  className="block rounded-lg min-h-11 py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                  className="flex min-h-11 items-center rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                 >
                   Home
                 </Link>
@@ -425,7 +427,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                   if (footer) footer.scrollIntoView({ behavior: "smooth" });
                   else window.location.assign("/#resources");
                 }}
-                className={`block w-full rounded-lg min-h-11 py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50 ${resourcesActive ? "font-black" : ""}`}
+                className={`flex w-full min-h-11 items-center rounded-lg py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50 ${resourcesActive ? "font-black" : ""}`}
               >
                 Resources
               </button>
@@ -437,7 +439,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                     <Link
                       to="/profile"
                       onClick={() => setMobileOpen(false)}
-                      className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                      className="flex min-h-11 items-center rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >
                       My Profile
                     </Link>
@@ -446,16 +448,16 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                     <Link
                       to="/my-applications"
                       onClick={() => setMobileOpen(false)}
-                      className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                      className="flex min-h-11 items-center rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >
                       My Applications
                     </Link>
                   </li>
                   <li>
                     <Link
-                      to="/assignments"
+                      to="/outreach/orders"
                       onClick={() => setMobileOpen(false)}
-                      className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                      className="flex min-h-11 items-center rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >
                       My Orders
                     </Link>
@@ -464,7 +466,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                     <Link
                       to="/settings"
                       onClick={() => setMobileOpen(false)}
-                      className="block rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                      className="flex min-h-11 items-center rounded-lg py-2 font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >
                       Settings
                     </Link>
@@ -476,7 +478,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                         setMobileOpen(false);
                         handleSignOut();
                       }}
-                      className="block w-full rounded-lg min-h-11 py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
+                      className="flex w-full min-h-11 items-center rounded-lg py-2 text-left font-['Satoshi'] text-neutral-700 hover:bg-neutral-50"
                     >
                       Sign out
                     </button>
@@ -489,7 +491,7 @@ export function Header({ landing = false }: { landing?: boolean } = {}) {
                       the home page, so the menu repeats it only there. */}
                   {!hideGetStarted && isHomePage && <li>
                     <Link
-                      to={authUrl("signup", returnTo)}
+                      to={authUrl("signup", signupReturnTo)}
                       onClick={() => setMobileOpen(false)}
                       className="mt-2 flex min-h-12 w-full items-center justify-center rounded-2xl border-2 border-neutral-900 bg-violet-500 px-4 font-['Satoshi'] text-base font-medium text-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
                     >
