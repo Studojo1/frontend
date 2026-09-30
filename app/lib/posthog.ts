@@ -137,3 +137,37 @@ export function registerPostHogProps(props: Record<string, string>) {
   if (typeof window === "undefined" || !isInitialized) return;
   withPostHog((ph) => ph.register(props));
 }
+
+/**
+ * Is a PostHog feature flag on for this visitor? Resolves false when PostHog
+ * is not running (staging, local, blocked) or the flags do not arrive within
+ * `timeoutMs`, so an experiment can never hold up the default experience.
+ * Asking PostHog records the exposure the experiment is measured on.
+ *
+ * Off production a QA override is honoured: localStorage "sj_ff_<flag>" = "1".
+ */
+export function featureFlagEnabled(flag: string, timeoutMs = 2500): Promise<boolean> {
+  if (typeof window === "undefined") return Promise.resolve(false);
+  if (!isProductionHost()) {
+    try {
+      return Promise.resolve(localStorage.getItem(`sj_ff_${flag}`) === "1");
+    } catch {
+      return Promise.resolve(false);
+    }
+  }
+  // No isInitialized check: a route's effect runs before the root effect that
+  // starts PostHog, so the call is queued and answered once it loads.
+  if (!POSTHOG_KEY) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (v: boolean) => {
+      if (settled) return;
+      settled = true;
+      resolve(v);
+    };
+    setTimeout(() => done(false), timeoutMs);
+    withPostHog((ph) => {
+      ph.onFeatureFlags(() => done(ph.isFeatureEnabled(flag) === true));
+    });
+  });
+}
