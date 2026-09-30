@@ -8,6 +8,7 @@ import { Footer } from "~/components/common/footer";
 import { TrustStrip } from "~/components";
 import { RealNumbers } from "~/components/outreach/RealNumbers";
 import { useNextStep, isPaidNotLaunched, nextStepLabel, nextStepSummary } from "~/lib/outreach/hooks";
+import { seeLeadsLabel } from "~/lib/outreach/next-step";
 
 const STEPS = [
   {
@@ -121,7 +122,7 @@ export default function OutreachLanding() {
       : nextStep?.state === "not_paid" && nextStep.path
         // Unpaid but already has leads: show them, do not restart upload,
         // which hid those leads behind a new resume (audit OP-N03).
-        ? { label: "See my hiring managers", to: `/outreach${nextStep.path}` }
+        ? { label: seeLeadsLabel(nextStep), to: `/outreach${nextStep.path}` }
         : { label: "Find My Hiring Managers", to: "/outreach/onboarding/upload" };
 
   // Ad traffic lands here. This is the audience the retargeting campaigns are
