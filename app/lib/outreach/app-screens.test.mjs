@@ -30,8 +30,8 @@ assert.equal(
   resultsDestination(step("not_paid", { path: "/leads/results", candidate_id: 7 }), "?coupon=SAVE20"),
   "/outreach/leads/results?coupon=SAVE20",
 );
-// Unpaid with no leads anywhere: upload, coupon kept for later.
-assert.equal(resultsDestination(step("not_paid"), "?coupon=SAVE20"), "/outreach/onboarding/upload?coupon=SAVE20");
+// Unpaid with no leads anywhere: the /outreach page, coupon kept for later.
+assert.equal(resultsDestination(step("not_paid"), "?coupon=SAVE20"), "/outreach?coupon=SAVE20");
 // Paid, not launched: the step that blocks Launch, never upload.
 assert.equal(resultsDestination(step("connect_gmail", { path: "/connect/gmail", available_credits: 200 }), "?coupon=X"), "/outreach/connect/gmail");
 assert.ok(isPaidNotLaunched(step("launch_ready", { path: "/campaign/setup" })));

@@ -13,7 +13,7 @@ import { resultsDestination } from "~/lib/outreach/next-step";
  * page, whose button restarted resume upload. This page asks the server
  * where the student really is and goes there: their leads when unpaid (with
  * ?coupon= kept for the pricing page), Launch when paid, the dashboard when
- * a campaign is running, upload only when there are no leads at all.
+ * a campaign is running, the /outreach page when there are no leads at all.
  */
 export default function OutreachResultsEntry() {
   const navigate = useNavigate();
