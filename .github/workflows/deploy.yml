@@ -125,7 +125,6 @@ jobs:
 
       - name: Secrets as secretKeyRef (audit ST-N07)
         env:
-          EMAILER_INTERNAL_SECRET: ${{ secrets.EMAILER_INTERNAL_SECRET }}
           BOB_MCP_SECRET: ${{ secrets.BOB_MCP_SECRET }}
           META_CAPI_TOKEN: ${{ secrets.META_CAPI_TOKEN }}
         run: |
@@ -138,15 +137,15 @@ jobs:
           . scripts/ci/secret_env.sh
           # GitHub secrets are stored in app-secrets (an empty one changes nothing,
           # so a working value is never blanked), then referenced.
-          #  - EMAILER_INTERNAL_SECRET: the emailer's gated routes (event
-          #    publishing); the emailer reads the same app-secrets key.
           #  - BOB_MCP_SECRET: Sensei MCP gateway secret (== bob-svc
           #    BOB_GATEWAY_SECRET). Unset = the MCP's Sensei tools stay off.
           #  - META_CAPI_TOKEN: server-side half of the Meta Pixel
           #    (app/lib/meta-capi.server.ts). Unset = only the browser copy is sent.
-          secret_put emailer-internal-secret "$EMAILER_INTERNAL_SECRET"
           secret_put bob-gateway-secret "$BOB_MCP_SECRET"
           secret_put meta-capi-token "$META_CAPI_TOKEN"
+          # EMAILER_INTERNAL_SECRET: the emailer's gated routes. Shared with the
+          # emailer, control-plane, job-outreach-svc and cc-backend, so it is only
+          # referenced here, never rewritten from this repo's GitHub secret.
           secret_adopt EMAILER_INTERNAL_SECRET emailer-internal-secret
           secret_adopt BOB_MCP_SECRET bob-gateway-secret
           secret_adopt META_CAPI_TOKEN meta-capi-token
