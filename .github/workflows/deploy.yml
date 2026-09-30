@@ -328,6 +328,15 @@ jobs:
             --name studojo-aks \
             --overwrite-existing
 
+      - name: Spread replicas across nodes
+        run: |
+          # The HPA keeps 2 frontend pods (IN-N01), but on 30 Sep both ran on
+          # the same node, so losing that node still took studojo.com down.
+          # ScheduleAnyway never blocks a rollout when only one node has room.
+          # Idempotent; a no-op once set.
+          kubectl patch deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} --type=merge -p \
+            '{"spec":{"template":{"spec":{"topologySpreadConstraints":[{"maxSkew":1,"topologyKey":"kubernetes.io/hostname","whenUnsatisfiable":"ScheduleAnyway","labelSelector":{"matchLabels":{"app":"frontend"}}}]}}}}'
+
       - name: Ensure zero-downtime rollout strategy
         run: |
           # Surge a new pod up and wait for it to become ready BEFORE the old
