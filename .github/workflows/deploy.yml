@@ -123,61 +123,54 @@ jobs:
             --name studojo-aks \
             --overwrite-existing
 
-      - name: Ensure emailer internal secret
+      - name: Secrets as secretKeyRef (audit ST-N07)
+        env:
+          BOB_MCP_SECRET: ${{ secrets.BOB_MCP_SECRET }}
+          META_CAPI_TOKEN: ${{ secrets.META_CAPI_TOKEN }}
         run: |
-          # Service-to-service secret for the emailer's gated routes (event
-          # publishing). Must match the emailer's INTERNAL_SECRET, which is
-          # sourced from the same EMAILER_INTERNAL_SECRET GitHub secret.
-          # No-op when unchanged, so it only triggers a rollout when the value moves.
-          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
-            EMAILER_INTERNAL_SECRET="${{ secrets.EMAILER_INTERNAL_SECRET }}"
+          # Every secret lives in app-secrets and reaches the pod through
+          # secretKeyRef, never as a literal value in the Deployment spec, where
+          # anyone who can read Deployments or old ReplicaSets sees it.
+          # scripts/ci/secret_env.sh explains; scripts/ci/check_no_literal_secrets.sh
+          # fails CI if a workflow writes one back.
+          export NS=${{ env.NAMESPACE }} DEP=${{ env.APP_NAME }}
+          . scripts/ci/secret_env.sh
+          # GitHub secrets are stored in app-secrets (an empty one changes nothing,
+          # so a working value is never blanked), then referenced.
+          #  - BOB_MCP_SECRET: Sensei MCP gateway secret (== bob-svc
+          #    BOB_GATEWAY_SECRET). Unset = the MCP's Sensei tools stay off.
+          #  - META_CAPI_TOKEN: server-side half of the Meta Pixel
+          #    (app/lib/meta-capi.server.ts). Unset = only the browser copy is sent.
+          secret_put bob-gateway-secret "$BOB_MCP_SECRET"
+          secret_put meta-capi-token "$META_CAPI_TOKEN"
+          # EMAILER_INTERNAL_SECRET: the emailer's gated routes. Shared with the
+          # emailer, control-plane, job-outreach-svc and cc-backend, so it is only
+          # referenced here, never rewritten from this repo's GitHub secret.
+          secret_adopt EMAILER_INTERNAL_SECRET emailer-internal-secret
+          secret_adopt BOB_MCP_SECRET bob-gateway-secret
+          secret_adopt META_CAPI_TOKEN meta-capi-token
+          # Keys that were set by hand on the Deployment: adopted into app-secrets
+          # once (current value kept), referenced from then on.
+          secret_adopt API_KEY_PEPPER api-key-pepper
+          secret_adopt APOLLO_API_KEY apollo-api-key
+          secret_adopt APOLLO_WEBHOOK_SECRET apollo-webhook-secret
+          secret_adopt SALESQL_API_KEY salesql-api-key
+          secret_adopt LEADSFORGE_API_KEY leadsforge-api-key
+          # Career Coach / job-outreach-svc internal header (audit G1).
+          secret_ref INTERNAL_API_SECRET INTERNAL_API_SECRET
+          secret_audit
+
+      - name: Non-secret runtime env
+        run: |
           # Reach the emailer in-cluster. Unset, app/lib/events.ts falls back to
           # the public https://email.studojo.com, whose ingress no longer routes
           # /v1/email/events or /v1/email/send-template (audit AS-N02).
+          # BOB_INTERNAL_URL is in-cluster DNS (bypasses the ingress); BOB_ENV
+          # scopes each Sensei MCP API key's workspace mapping to THIS environment.
           kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
-            EMAILER_SERVICE_URL="http://emailer-service:8087"
-
-      - name: Ensure career-coach internal secret
-        run: |
-          # Service-to-service secret for the Career Coach's gated routes, sent as
-          # the x-studojo-internal header by the resume-ready + summary routes and
-          # checked against the coach's INTERNAL_API_SECRET. Without this,
-          # process.env.INTERNAL_API_SECRET is undefined on the frontend, the route
-          # bails "unconfigured", and the Resume Maker -> Coach cross-tool flow is
-          # dead (audit G1). job-outreach-svc also checks it before trusting
-          # X-User-Id, so the CRM and extension routes need it too.
-          #
-          # Read from the app-secrets key, as staging does. There is no
-          # INTERNAL_API_SECRET GitHub secret in this repo, so the old
-          # secrets.INTERNAL_API_SECRET line set it to an empty string.
-          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
-            --from=secret/app-secrets --keys=INTERNAL_API_SECRET
-
-      - name: Configure Sensei MCP gateway env
-        run: |
-          # Server-side runtime env for the hosted Sensei MCP (app/routes/api.mcp.tsx).
-          # BOB_INTERNAL_URL is in-cluster DNS (non-secret, bypasses the ingress);
-          # BOB_ENV scopes each API key's workspace mapping to THIS environment;
-          # BOB_MCP_SECRET is the shared gateway secret (== bob-svc BOB_GATEWAY_SECRET).
-          # Unset secret = the MCP's Sensei tools stay disabled (fail-closed).
-          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+            EMAILER_SERVICE_URL="http://emailer-service:8087" \
             BOB_INTERNAL_URL="http://bob-svc:8000" \
             BOB_ENV="prod"
-          if [ -n "${{ secrets.BOB_MCP_SECRET }}" ]; then
-            kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
-              BOB_MCP_SECRET="${{ secrets.BOB_MCP_SECRET }}"
-          fi
-
-      - name: Configure Meta Conversions API
-        run: |
-          # Server-side half of the Meta Pixel (app/lib/meta-capi.server.ts).
-          # Recovers the 20-40%% of conversions that ad blockers and iOS delete
-          # from the browser pixel. Unset secret = CAPI stays disabled and only
-          # the browser copy is sent (fail-open on function, closed on data).
-          if [ -n "${{ secrets.META_CAPI_TOKEN }}" ]; then
-            kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
-              META_CAPI_TOKEN="${{ secrets.META_CAPI_TOKEN }}"
-          fi
 
       - name: Configure Razorpay (webinar ticketing)
         run: |

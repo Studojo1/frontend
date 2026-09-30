@@ -298,10 +298,26 @@ jobs:
           # the staging secret, so no staging email was ever sent.
           kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
             EMAILER_SERVICE_URL="http://emailer-service:8087"
-          if [ -n "${{ secrets.BOB_MCP_SECRET }}" ]; then
-            kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
-              BOB_MCP_SECRET="${{ secrets.BOB_MCP_SECRET }}"
-          fi
+
+      - name: Secrets as secretKeyRef (audit ST-N07)
+        env:
+          BOB_MCP_SECRET: ${{ secrets.BOB_MCP_SECRET }}
+        run: |
+          # Secrets reach the pod only as secretKeyRef on the staging app-secrets,
+          # never as literal values in the Deployment spec. See
+          # scripts/ci/secret_env.sh. Hand-set literals are adopted once, keeping
+          # their current (staging) values.
+          export NS=${{ env.NAMESPACE }} DEP=${{ env.APP_NAME }}
+          . scripts/ci/secret_env.sh
+          secret_put bob-gateway-secret "$BOB_MCP_SECRET"
+          secret_adopt BOB_MCP_SECRET bob-gateway-secret
+          secret_adopt EMAILER_INTERNAL_SECRET emailer-internal-secret
+          secret_adopt API_KEY_PEPPER api-key-pepper
+          secret_adopt APOLLO_API_KEY apollo-api-key
+          secret_adopt APOLLO_WEBHOOK_SECRET apollo-webhook-secret
+          secret_adopt SALESQL_API_KEY salesql-api-key
+          secret_adopt LEADSFORGE_API_KEY leadsforge-api-key
+          secret_audit
 
       - name: Deploy to Kubernetes (staging)
         run: |
