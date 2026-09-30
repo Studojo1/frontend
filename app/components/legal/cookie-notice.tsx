@@ -1,7 +1,39 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { consentRequired, onConsentChange, readConsent, writeConsent } from "~/lib/consent";
 
 const KEY = "sj_cookie_notice_seen";
+
+/** The CSS variable floating actions ([data-floating-cta], app.css) are lifted by. */
+export const NOTICE_VAR = "--sj-notice-h";
+
+/** How far a floating action must rise to clear the notice: its height, the
+ * 16px it sits above the screen edge, and an 8px gap (audit PH-06). */
+export function noticeLift(noticeHeight: number): string {
+  return noticeHeight > 0 ? `${Math.ceil(noticeHeight) + 24}px` : "0px";
+}
+
+/** Keep NOTICE_VAR equal to the notice's lift while it is on screen. */
+function useLiftFloatingActions(mode: string) {
+  const open = mode !== "hidden";
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = document.documentElement;
+    const el = ref.current;
+    if (!open || !el) {
+      root.style.removeProperty(NOTICE_VAR);
+      return;
+    }
+    const set = () => root.style.setProperty(NOTICE_VAR, noticeLift(el.getBoundingClientRect().height));
+    set();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(set) : null;
+    ro?.observe(el);
+    return () => {
+      ro?.disconnect();
+      root.style.removeProperty(NOTICE_VAR);
+    };
+  }, [open, mode]);
+  return ref;
+}
 
 const box =
   "flex flex-wrap items-center gap-3 rounded-2xl border-2 border-neutral-900 bg-white py-3 pl-4 pr-3 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]";
@@ -20,6 +52,7 @@ const secondaryBtn =
  */
 export function CookieNotice() {
   const [mode, setMode] = useState<"hidden" | "notice" | "choice">("hidden");
+  const liftRef = useLiftFloatingActions(mode);
 
   useEffect(() => {
     const decide = () => {
@@ -48,6 +81,7 @@ export function CookieNotice() {
     };
     return (
       <div
+        ref={liftRef}
         role="region"
         aria-label="Cookie choice"
         className="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-xl pb-[env(safe-area-inset-bottom,0px)]"
@@ -82,6 +116,7 @@ export function CookieNotice() {
 
   return (
     <div
+      ref={liftRef}
       role="region"
       aria-label="Cookie notice"
       className="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-xl pb-[env(safe-area-inset-bottom,0px)]"
