@@ -415,7 +415,7 @@ export default function CampaignSetupPage() {
       <AppFooter />
 
       {/* Floating Launch Campaign button, with any error right above it */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex w-[min(92vw,28rem)] flex-col items-center gap-2">
+      <div data-floating-cta className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex w-[min(92vw,28rem)] flex-col items-center gap-2">
         {error && (
           <p role="alert" className="w-full rounded-xl border-2 border-red-300 bg-red-50 px-3 py-2 text-center text-sm font-satoshi text-red-700 shadow-brutal">
             {error}

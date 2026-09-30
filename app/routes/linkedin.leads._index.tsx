@@ -288,7 +288,7 @@ export default function LinkedInLeads() {
 
       {/* Sticky CTA, drives them to pricing */}
       {!loading && sorted.length > 0 && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10">
+        <div data-floating-cta className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10">
           <button
             onClick={() => navigate("/outreach/enrichment")}
             className="h-12 px-7 rounded-2xl bg-studojo-purple text-white font-satoshi font-bold text-sm border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center gap-2 whitespace-nowrap"

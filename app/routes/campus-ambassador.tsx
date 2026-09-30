@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { Header, Footer } from "~/components";
 import { checkEmail } from "~/lib/email-validate";
+import { revealResult } from "~/lib/reveal-result";
 
 export function meta() {
   return [
@@ -91,6 +92,12 @@ export default function CampusAmbassador() {
   const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [alreadyApplied, setAlreadyApplied] = useState(false);
+  // PH-16: the short result card replaces the long form, and on a phone the
+  // viewport was left in the footer. Bring the card into view.
+  const resultRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (done) revealResult(resultRef.current);
+  }, [done]);
 
   const set =
     (k: keyof FormState) =>
@@ -178,7 +185,13 @@ export default function CampusAmbassador() {
         </div>
 
         {done ? (
-          <div className="bg-white border-2 border-neutral-900 rounded-[32px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-10 text-center">
+          <div
+            ref={resultRef}
+            tabIndex={-1}
+            role="status"
+            data-testid="apply-result"
+            className="scroll-mt-24 outline-none bg-white border-2 border-neutral-900 rounded-[32px] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-10 text-center"
+          >
             <div className="text-4xl mb-3">{alreadyApplied ? "✅" : "🎉"}</div>
             <h2 className="text-2xl font-bold text-neutral-900 font-['Clash_Display']">
               {alreadyApplied ? "You have already applied!" : "Application received!"}
