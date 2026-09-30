@@ -4,6 +4,7 @@ import {
   WEBINAR_REF_DISCOUNT_PAISE,
 } from "~/lib/webinar-pricing";
 import type { Route } from "./+types/api.webinar-ref-code";
+import { guardPublicForm } from "~/lib/ratelimit.server";
 
 /**
  * Check a campus-ambassador code and report the price it unlocks, so the form
@@ -29,6 +30,10 @@ export async function action({ request }: Route.ActionArgs) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  // Unauthenticated: per-IP rate limit and honeypot (audit AS-N05).
+  const blocked = await guardPublicForm(request, body);
+  if (blocked) return blocked;
 
   const code = String(body.refCode ?? "").trim().slice(0, 40);
   if (!code) {
