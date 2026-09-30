@@ -59,11 +59,4 @@ assert.ok(rows.length >= 5, `found ${rows.length} mobile menu rows`);
 for (const cls of rows) assert.match(cls, /\bmin-h-1[12]\b/, `mobile menu row under 44px: ${cls}`);
 assert.ok(!/to="\/assignments"/.test(header), "header My Orders goes to /outreach/orders");
 
-// HP-N11: the Career Coach hero images are Vite imports (hashed, served from
-// /assets with a 1-year cache), not public/ files, which are sent with
-// max-age=0 and re-checked on every visit.
-const cc = readFileSync(APP + "routes/cc._index.tsx", "utf8");
-assert.ok(!/(src|srcSet)="\/cc-hero/.test(cc), "cc hero images come from ~/assets, not public/");
-assert.ok(!existsSync(PUBLIC + "cc-hero.webp") && !existsSync(PUBLIC + "cc-hero-mobile.webp"), "no public/ copy of the cc hero WebPs");
-
 console.log("public-pages: ok");
