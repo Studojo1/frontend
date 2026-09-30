@@ -525,6 +525,13 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
             </div>
           </div>
 
+          {/* Companion report (audit HP-N18): the two unpaid-internship
+              reports answer different questions, so they link to each other. */}
+          <p style={{ margin: "32px 0", fontSize: 16, lineHeight: 1.6, color: "#3b0764" }}>
+            <strong>Related report:</strong> Legal is not the same as worth it. Weigh an unpaid offer before you say yes: 
+            <Link to="/reports/unpaid-internship-trap-2026" style={{ color: "#6d28d9", fontWeight: 600, textDecoration: "underline" }}>The unpaid internship trap: is it ever worth it?</Link>
+          </p>
+
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Target paid internships first.</h3>
