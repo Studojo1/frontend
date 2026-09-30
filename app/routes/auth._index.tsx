@@ -204,8 +204,6 @@ export default function Auth() {
   }, [mode, searchParams]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
   // EX-06: set after hydration, since the user agent is browser only.
   const [inApp, setInApp] = useState<InAppBrowser>(null);
   const [inAppDismissed, setInAppDismissed] = useState(false);
@@ -226,7 +224,10 @@ export default function Auth() {
     }
   };
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  // EX-06: most sign-ups come from an ad or the outreach page on their way to
+  // uploading a resume. Tell them what they get for signing up. Read from the
+  // raw param, which the server render sees too.
+  const forOutreach = (searchParams.get("redirect") ?? "").startsWith("/outreach");
 
   const { data: session, isPending } = authClient.useSession();
   // The last-used method lives in a cookie the server render never reads, so
@@ -376,21 +377,12 @@ export default function Auth() {
     const formData = new FormData(form);
     const email = formData.get("email") as string;
     const passwordValue = password || (formData.get("password") as string);
-    const confirmPasswordValue = confirmPassword || (formData.get("confirmPassword") as string | null);
     const remember = (form.querySelector<HTMLInputElement>("input[name=remember]")?.checked) ?? true;
     logFunnelStep("auth_email_submit", { in_app: inAppNow(), info: mode });
 
     if (mode === "signup") {
-      if (passwordValue !== confirmPasswordValue) {
-        setError("Passwords don't match");
-        setSubmitting(false);
-        return;
-      }
-      if (!ageConfirmed || !termsAccepted) {
-        setError("Please confirm you are 18 or older and accept the Terms of Service and Privacy Policy to continue");
-        setSubmitting(false);
-        return;
-      }
+      // VS-V04: the notice under the button replaces the two checkboxes, as it
+      // already does under Continue with Google. Submitting is acceptance.
       localStorage.setItem(CONSENT_PENDING_KEY, "1");
       const { error: err, data } = await authClient.signUp.email(
         {
@@ -578,12 +570,18 @@ export default function Auth() {
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                 >
                   <h1 className="mb-6 font-['Clash_Display'] text-3xl font-medium leading-tight tracking-tight text-neutral-900">
-                    {mode === "signin" ? "Welcome back" : "Create your account"}
+                    {mode === "signin"
+                      ? "Welcome back"
+                      : forOutreach
+                        ? "See your hiring managers first"
+                        : "Create your account"}
                   </h1>
                   <p className="mb-8 font-['Satoshi'] text-base font-normal leading-6 text-neutral-700">
                     {mode === "signin"
                       ? "Sign in to continue to your account"
-                      : "Get started with Studojo today"}
+                      : forOutreach
+                        ? "Create a free account and upload your resume. We find the hiring managers who can hire you, and you see who they are before you pay anything."
+                        : "Get started with Studojo today"}
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -684,19 +682,6 @@ export default function Auth() {
                   label="Password"
                 />
 
-                {mode === "signup" && (
-                  <PasswordInput
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    autoComplete="new-password"
-                    placeholder="••••••••"
-                    label="Confirm Password"
-                  />
-                )}
-
                 {mode === "signin" && (
                   <div className="flex items-center justify-between">
                     <label className="flex items-center">
@@ -709,43 +694,6 @@ export default function Auth() {
                   </div>
                 )}
 
-                {mode === "signup" && (
-                  <div className="space-y-3">
-                    <label className="flex min-h-11 items-start py-2">
-                      <input
-                        type="checkbox"
-                        checked={ageConfirmed}
-                        onChange={(e) => setAgeConfirmed(e.target.checked)}
-                        className="mt-1 h-4 w-4 shrink-0 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
-                        required
-                      />
-                      <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
-                        I am 18 or older.
-                      </span>
-                    </label>
-                    <label className="flex min-h-11 items-start py-2">
-                      <input
-                        type="checkbox"
-                        checked={termsAccepted}
-                        onChange={(e) => setTermsAccepted(e.target.checked)}
-                        className="mt-1 h-4 w-4 shrink-0 rounded border-2 border-neutral-900 text-purple-500 focus:ring-2 focus:ring-purple-500"
-                        required
-                      />
-                      <span className="ml-2 font-['Satoshi'] text-sm font-normal leading-5 text-neutral-700">
-                        I agree to the{" "}
-                        <a href="/terms" target="_blank" rel="noopener" className="font-medium text-purple-500 hover:text-purple-600 underline">
-                          Terms of Service
-                        </a>{" "}
-                        and{" "}
-                        <a href="/privacy" target="_blank" rel="noopener" className="font-medium text-purple-500 hover:text-purple-600 underline">
-                          Privacy Policy
-                        </a>
-                        .
-                      </span>
-                    </label>
-                  </div>
-                )}
-
                 <button
                   type="submit"
                   disabled={submitting}
@@ -753,6 +701,13 @@ export default function Auth() {
                 >
                   {submitting ? "Please wait…" : mode === "signin" ? "Sign In" : "Sign Up"}
                 </button>
+                {mode === "signup" && (
+                  <p className="font-['Satoshi'] text-xs leading-4 text-neutral-500">
+                    By signing up, you confirm you are 18 or older and agree to our{" "}
+                    <a href="/terms" target="_blank" rel="noopener" className="underline">Terms of Service</a> and{" "}
+                    <a href="/privacy" target="_blank" rel="noopener" className="underline">Privacy Policy</a>.
+                  </p>
+                )}
                 </div>
               </form>
 
