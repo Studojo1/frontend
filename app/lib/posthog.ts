@@ -1,4 +1,5 @@
-import type { PostHog } from "posthog-js";
+import type { PostHog, PostHogConfig } from "posthog-js";
+import { trackingAllowed } from "./consent";
 
 // PH-05: posthog-js is ~57 KB gzipped and used to ship in the root bundle on
 // every page. It is now fetched with a dynamic import after hydration, so it
@@ -48,6 +49,35 @@ export function scrubSecrets<T>(value: T): T {
   return value;
 }
 
+/**
+ * PostHog init options. `full` is false for an EU/UK visitor who has not
+ * accepted cookies: then nothing is stored on the device and nothing is
+ * recorded until they do (audit HP-N13).
+ */
+export function posthogConfig(full: boolean): Partial<PostHogConfig> {
+  return {
+    api_host: POSTHOG_HOST,
+    capture_pageview: false, // we fire manually on route change
+    capture_pageleave: true,
+    persistence: full ? "localStorage+cookie" : "memory",
+    disable_session_recording: !full,
+    // JS crashes and dead UI were invisible: the only client error signal was
+    // the root error boundary (audit CF-N04). before_send scrubs these like
+    // every other event.
+    capture_exceptions: true,
+    capture_dead_clicks: true,
+    before_send: (event) => (event ? { ...event, properties: scrubSecrets(event.properties) } : event),
+    // Replays mask every piece of on-screen text, not only inputs: they were
+    // recording resume details, outreach email bodies and hiring managers'
+    // replies (audit ST-N05).
+    session_recording: {
+      maskAllInputs: true,
+      maskTextSelector: "*",
+      blockSelector: ".ph-no-capture",
+    },
+  };
+}
+
 export function initPostHog() {
   if (typeof window === "undefined") return;
   if (!POSTHOG_KEY) return;
@@ -57,20 +87,7 @@ export function initPostHog() {
   isInitialized = true;
   import("posthog-js")
     .then(({ default: ph }) => {
-      ph.init(POSTHOG_KEY, {
-        api_host: POSTHOG_HOST,
-        capture_pageview: false, // we fire manually on route change
-        capture_pageleave: true,
-        before_send: (event) => (event ? { ...event, properties: scrubSecrets(event.properties) } : event),
-        // Replays mask every piece of on-screen text, not only inputs: they
-        // were recording resume details, outreach email bodies and hiring
-        // managers' replies (audit ST-N05).
-        session_recording: {
-          maskAllInputs: true,
-          maskTextSelector: "*",
-          blockSelector: ".ph-no-capture",
-        },
-      });
+      ph.init(POSTHOG_KEY, posthogConfig(trackingAllowed()));
       posthog = ph;
       for (const fn of pending.splice(0)) withPostHog(fn);
     })
@@ -81,6 +98,21 @@ export function initPostHog() {
       pending.length = 0;
       isInitialized = false;
     });
+}
+
+/** Follow the visitor's cookie choice: accept switches on storage and
+ * session recording, reject (or withdrawing) switches them off again. */
+export function applyPostHogConsent(granted: boolean) {
+  if (typeof window === "undefined" || !isInitialized) return;
+  withPostHog((ph) => {
+    if (granted) {
+      ph.set_config({ persistence: "localStorage+cookie", disable_session_recording: false });
+      ph.startSessionRecording();
+    } else {
+      ph.stopSessionRecording();
+      ph.set_config({ persistence: "memory", disable_session_recording: true });
+    }
+  });
 }
 
 export function identifyPostHogUser(

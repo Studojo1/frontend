@@ -10,6 +10,8 @@
  * would quietly credit the wrong source. Once set, it is never replaced.
  */
 
+import { trackingAllowed } from "./consent";
+
 const KEY = "studojo_attribution";
 const SENT = "studojo_attribution_sent";
 
@@ -166,6 +168,27 @@ export function heldTrackingParams(): URLSearchParams {
   return out;
 }
 
+/** Pages where a visitor may leave for another browser (the Instagram and
+ * Facebook in-app browsers' "Open in browser" menu) and where the held ad
+ * click should ride along in the address bar (audit VS-V09). */
+export function carriesTrackingParams(pathname: string): boolean {
+  return pathname === "/auth" || pathname.startsWith("/outreach/onboarding/upload");
+}
+
+/**
+ * The query string with the held first-touch ad parameters added, or null
+ * when there is nothing to add. A URL that already carries any tracking
+ * parameter is left alone, so two different touches are never mixed. Pure,
+ * for tests.
+ */
+export function withHeldTracking(search: string, held: URLSearchParams): string | null {
+  const qs = new URLSearchParams(search);
+  if ([...held.keys()].length === 0) return null;
+  if (PARAMS.some((p) => qs.has(p))) return null;
+  held.forEach((v, k) => qs.set(k, v));
+  return `?${qs.toString()}`;
+}
+
 /** Meta's fbc format for a click id: fb.<subdomain index>.<ms>.<fbclid>. */
 export function buildFbc(fbclid: string, clickMs: number): string {
   return `fb.1.${Math.floor(clickMs)}.${fbclid}`;
@@ -176,6 +199,8 @@ export function buildFbc(fbclid: string, clickMs: number): string {
  * the pixel was blocked before it could write one. */
 export function metaBrowserIds(): { fbp?: string; fbc?: string } {
   if (typeof document === "undefined") return {};
+  // No consent (EU/UK), no Meta identifiers on the order either (HP-N13).
+  if (!trackingAllowed()) return {};
   const cookie = (name: string): string | undefined => {
     const m = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
     try {

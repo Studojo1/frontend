@@ -7,17 +7,19 @@ import {
   ScrollRestoration,
   useLoaderData,
   useLocation,
+  useNavigate,
 } from "react-router";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 
 import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
-import { capturePostHog, identifyPostHogUser, initPostHog, registerPostHogProps } from "./lib/posthog";
+import { applyPostHogConsent, capturePostHog, identifyPostHogUser, initPostHog, registerPostHogProps } from "./lib/posthog";
 import { clearTokenCache } from "./lib/control-plane";
-import { initMetaPixel, trackMetaPageView } from "./lib/meta-pixel";
+import { grantMetaConsent, initMetaPixel, revokeMetaConsent, trackMetaPageView } from "./lib/meta-pixel";
+import { onConsentChange, trackingAllowed } from "./lib/consent";
 import { track } from "./lib/analytics";
-import { captureAttribution, flushAttribution } from "./lib/attribution";
+import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
 import { ErrorPage } from "./components/error-page";
 import { ChatWidget } from "./components/chat-widget";
 import { CookieNotice } from "./components/legal/cookie-notice";
@@ -141,6 +143,24 @@ function AnalyticsInit() {
     initPostHog();
     initMetaPixel();
   }, []);
+
+  // EU/UK cookie choice (HP-N13): accepting switches on PostHog storage and
+  // recording and starts the Meta pixel on this page; rejecting or withdrawing
+  // switches them off.
+  useEffect(
+    () =>
+      onConsentChange(() => {
+        if (trackingAllowed()) {
+          applyPostHogConsent(true);
+          grantMetaConsent();
+          trackMetaPageView();
+        } else {
+          applyPostHogConsent(false);
+          revokeMetaConsent();
+        }
+      }),
+    [],
+  );
 
   // Register UTM params as PostHog super properties so all subsequent events carry them
   useEffect(() => {
@@ -328,6 +348,25 @@ export default function App() {
   useEffect(() => {
     captureAttribution();
   }, []);
+
+  // VS-V09: on /auth and the upload step, keep the held ad click in the
+  // address bar. Leaving the Instagram or Facebook in-app browser through its
+  // own "Open in browser" menu carries only the URL, so without this the
+  // signup in the new browser arrived untagged.
+  const navigate = useNavigate();
+  const here = useLocation();
+  useEffect(() => {
+    if (!carriesTrackingParams(here.pathname)) return;
+    const next = withHeldTracking(here.search, heldTrackingParams());
+    if (next) {
+      navigate(
+        { pathname: here.pathname, search: next, hash: here.hash },
+        { replace: true, preventScrollReset: true, state: here.state },
+      );
+    }
+    // Only on arrival at a page, not on every query change within it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [here.pathname]);
 
   // Write it against the user as soon as a session exists. This runs on every
   // load rather than at signup on purpose: Google sign-in leaves the site for
