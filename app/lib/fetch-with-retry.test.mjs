@@ -24,6 +24,14 @@ const server = http.createServer((req, res) => {
     res.write('{"leads": [');
     return;
   }
+  if (u.pathname === "/detail") {
+    res.writeHead(503, { "Content-Type": "application/json" });
+    return res.end('{"detail":"Search infrastructure is busy. Try again in a minute."}');
+  }
+  if (u.pathname === "/slow") {
+    setTimeout(() => { res.writeHead(200); res.end("late"); }, 300);
+    return;
+  }
   if (u.pathname === "/status") {
     const code = Number(u.searchParams.get("code"));
     if (n <= fail) { res.writeHead(code); return res.end("err"); }
@@ -59,6 +67,35 @@ for (const code of [500, 502, 503, 504]) {
 for (const code of [400, 401, 404]) {
   const res = await fetchWithRetry(`${base}/status?code=${code}&fail=9`, { maxRetries: 3, timeout: 2000 });
   check(`#27 ${code} is not retried`, res.status === code && hits[`/status?code=${code}&fail=9`] === 1);
+}
+
+// CF-N03: a persistent 5xx comes back as the Response, body intact, so the
+// backend's recovery message can reach the student.
+{
+  const res = await fetchWithRetry(`${base}/detail`, { maxRetries: 2, timeout: 2000 });
+  const body = await res.json().catch(() => null);
+  check("CF-N03 persistent 503 returns the response", res.status === 503 && hits["/detail"] === 2, `status ${res.status}, ${hits["/detail"]} attempts`);
+  check("CF-N03 the 503 body is readable", body?.detail?.startsWith("Search infrastructure is busy"), JSON.stringify(body));
+}
+
+// CF-N06: a caller abort is not retried and not reported as a timeout.
+{
+  const ac = new AbortController();
+  setTimeout(() => ac.abort(), 50);
+  const err = await fetchWithRetry(`${base}/slow`, { maxRetries: 3, timeout: 2000, signal: ac.signal }).catch((e) => e);
+  check("CF-N06 aborted request is not retried", hits["/slow"] === 1, `${hits["/slow"]} attempts`);
+  check("CF-N06 abort surfaces as AbortError", err?.name === "AbortError", `${err?.name}: ${err?.message}`);
+  const ac2 = new AbortController();
+  ac2.abort();
+  const before = hits["/slow"];
+  const err2 = await fetchWithRetry(`${base}/slow`, { maxRetries: 3, signal: ac2.signal }).catch((e) => e);
+  check("CF-N06 already-aborted signal sends nothing", hits["/slow"] === before && err2?.name === "AbortError");
+}
+
+// CF-N06: "after 1 attempt", not "after 1 attempts".
+{
+  const err = await fetchWithRetry("http://127.0.0.1:1/", { maxRetries: 1, timeout: 2000 }).catch((e) => e);
+  check("CF-N06 singular attempt in the message", /after 1 attempt:/.test(err?.message ?? ""), err?.message);
 }
 
 // #55: overlapping retrying calls must leave console.error/warn intact.
