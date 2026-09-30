@@ -49,15 +49,33 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   // Anonymous analytics endpoints (/api/funnel-event writes a row per call,
   // /api/meta-event forwards to Meta), per IP (audit ST-N12).
   tracking: { requests: 30, window: 60 },
+  // Unauthenticated public forms (contact, newsletter, consultation, Sensei
+  // ticket, campus ambassador, webinar), per IP and per route (audit AS-N05).
+  // Generous enough for a campus of students on one wifi, far below a flood.
+  forms: { requests: 30, window: 600 },
   default: { requests: 100, window: 60 }, // 100 requests per minute for general endpoints
 };
 
 /**
  * Get endpoint type from request path
  */
+export const PUBLIC_FORM_PATHS = new Set([
+  "/api/contact",
+  "/api/newsletter",
+  "/api/consultation-signup",
+  "/api/sensei-ticket",
+  "/api/campus-ambassador-apply",
+  "/api/webinar-register",
+  "/api/webinar-confirm",
+  "/api/webinar-ref-code",
+]);
+
 function getEndpointType(path: string): string {
   if (path === "/api/funnel-event" || path === "/api/meta-event") {
     return "tracking";
+  }
+  if (PUBLIC_FORM_PATHS.has(path)) {
+    return "forms";
   }
   if (path.includes("/auth") || path.includes("/login") || path.includes("/signin") || path.includes("/signup")) {
     return "auth";
@@ -88,11 +106,18 @@ function getIdentifier(request: Request, userId?: string): string {
  * Check rate limit and return whether request should be allowed
  * @returns { allowed: boolean, remaining: number, reset: number } or null if rate limiting is disabled
  */
+type RateLimitStore = Pick<
+  NonNullable<Awaited<ReturnType<typeof getRedisClient>>>,
+  "zRemRangeByScore" | "zCard" | "zAdd" | "expire"
+>;
+
 export async function checkRateLimit(
   request: Request,
-  userId?: string
+  userId?: string,
+  // Tests pass an in-memory store; production uses Redis.
+  store?: RateLimitStore
 ): Promise<{ allowed: boolean; remaining: number; reset: number } | null> {
-  const client = await getRedisClient();
+  const client = store ?? (await getRedisClient());
   if (!client) {
     // Rate limiting disabled, allow request
     return null;
@@ -114,8 +139,12 @@ export async function checkRateLimit(
   const config = RATE_LIMITS[endpointType];
   const identifier = getIdentifier(request, userId);
 
-  // Create Redis key
-  const key = `ratelimit:${endpointType}:${identifier}`;
+  // Create Redis key. Forms are counted per route, so one busy form cannot
+  // lock the same visitor out of another.
+  const key =
+    endpointType === "forms"
+      ? `ratelimit:${endpointType}:${path}:${identifier}`
+      : `ratelimit:${endpointType}:${identifier}`;
 
   try {
     const now = Math.floor(Date.now() / 1000);
@@ -136,8 +165,10 @@ export async function checkRateLimit(
       };
     }
 
-    // Add current request to the set
-    const member = now.toString();
+    // Add current request to the set. The member must be unique per request:
+    // a bare timestamp collapsed every request in the same second into one
+    // entry, so a burst counted as a single request.
+    const member = `${now}:${Math.random().toString(36).slice(2)}`;
     await client.zAdd(key, {
       score: now,
       value: member,
@@ -232,3 +263,32 @@ export async function withRateLimit<T>(
   return response;
 }
 
+
+/** Hidden form field real people never see or fill (AS-N05). Named so
+ * browser autofill has no reason to touch it. */
+export const HONEYPOT_FIELD = "sj_trap";
+
+/**
+ * Guard for an unauthenticated public form route. Returns a Response to send
+ * instead of handling the request, or null to carry on.
+ * - Honeypot filled: a bot. Answer as if it worked, so it does not adapt.
+ * - Too many requests from this IP to this route: 429.
+ */
+export async function guardPublicForm(
+  request: Request,
+  body: unknown,
+  store?: RateLimitStore
+): Promise<Response | null> {
+  const trap = (body as Record<string, unknown> | null)?.[HONEYPOT_FIELD];
+  if (typeof trap === "string" && trap.trim()) {
+    return Response.json({ success: true, message: "Thanks, we got it." }, { status: 200 });
+  }
+  const limit = await checkRateLimit(request, undefined, store);
+  if (limit && !limit.allowed) {
+    return Response.json(
+      { error: "Too many requests. Please wait a few minutes and try again." },
+      { status: 429, headers: { "Retry-After": String(RATE_LIMITS.forms.window) } }
+    );
+  }
+  return null;
+}

@@ -1,4 +1,17 @@
+import { timingSafeEqual } from "node:crypto";
 import type { Route } from "./+types/api.auth.hash-password";
+
+/** True only when the X-Internal-Secret header matches EMAILER_INTERNAL_SECRET
+ * (the service-to-service secret the emailer already uses). No secret
+ * configured means nobody gets in. */
+export function hasInternalSecret(request: Request): boolean {
+  const expected = process.env.EMAILER_INTERNAL_SECRET || "";
+  const given = request.headers.get("x-internal-secret") || "";
+  if (!expected || !given) return false;
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 /**
  * Internal API endpoint for hashing passwords using Better Auth's hashing function.
@@ -9,8 +22,9 @@ import type { Route } from "./+types/api.auth.hash-password";
  * 
  * This is used by the emailer-service to ensure password hashes are compatible with Better Auth.
  * 
- * SECURITY: This endpoint should only be accessible internally (e.g., from emailer-service).
- * In production, add IP whitelisting or service-to-service authentication.
+ * SECURITY: it was public and unauthenticated, an uncapped bcrypt CPU cost
+ * for anyone (audit AS-N04). It now requires the X-Internal-Secret header.
+ * The emailer falls back to hashing locally when this answers non-200.
  */
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
@@ -20,9 +34,12 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
-  // Allow this endpoint to be called from emailer-service without authentication
-  // In production, add proper service-to-service authentication (e.g., IP whitelisting)
-  // For now, we'll allow it without auth since it's an internal service-to-service call
+  if (!hasInternalSecret(request)) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   let body: unknown;
   try {
@@ -58,8 +75,6 @@ export async function action({ request }: Route.ActionArgs) {
     // This is safe: $2a$ and $2b$ use identical algorithms, only the prefix differs
     // Better Auth's validation checks the prefix, so we must convert it
     const compatibleHash = hash.replace(/^\$2b\$/, "$2a$");
-    
-    console.log("[api.auth.hash-password] Generated hash:", compatibleHash.substring(0, 20) + "...", "format:", compatibleHash.substring(0, 7));
     
     return new Response(
       JSON.stringify({ hash: compatibleHash }),

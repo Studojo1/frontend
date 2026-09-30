@@ -13,6 +13,7 @@ import {
   RazorpayNotConfiguredError,
 } from "~/lib/razorpay.server";
 import type { Route } from "./+types/api.webinar-register";
+import { guardPublicForm } from "~/lib/ratelimit.server";
 
 function clamp(v: unknown, max = 200): string {
   return String(v ?? "").trim().slice(0, max);
@@ -29,6 +30,10 @@ export async function action({ request }: Route.ActionArgs) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  // Unauthenticated: per-IP rate limit and honeypot (audit AS-N05).
+  const blocked = await guardPublicForm(request, body);
+  if (blocked) return blocked;
 
   // After the event: never take money. The page offers "tell me about the next
   // one", which only records the email as a standing subscriber.
