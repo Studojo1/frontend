@@ -1,6 +1,7 @@
 import { saveConsultationSignup } from "~/lib/consultation.server";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import type { Route } from "./+types/api.consultation-signup";
+import { guardPublicForm } from "~/lib/ratelimit.server";
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
@@ -13,6 +14,10 @@ export async function action({ request }: Route.ActionArgs) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  // Unauthenticated: per-IP rate limit and honeypot (audit AS-N05).
+  const blocked = await guardPublicForm(request, body);
+  if (blocked) return blocked;
 
   const { targetRole, biggestChallenge, timeline } = body;
 

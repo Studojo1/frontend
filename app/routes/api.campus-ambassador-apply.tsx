@@ -1,6 +1,7 @@
 import { saveCampusAmbassadorApplication } from "~/lib/campus-ambassador.server";
 import { checkEmail } from "~/lib/email-validate";
 import type { Route } from "./+types/api.campus-ambassador-apply";
+import { guardPublicForm } from "~/lib/ratelimit.server";
 
 function clamp(v: unknown, max = 200): string {
   return String(v ?? "").trim().slice(0, max);
@@ -17,6 +18,10 @@ export async function action({ request }: Route.ActionArgs) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  // Unauthenticated: per-IP rate limit and honeypot (audit AS-N05).
+  const blocked = await guardPublicForm(request, body);
+  if (blocked) return blocked;
 
   const fullName = clamp(body.fullName);
   const whatsapp = clamp(body.whatsapp, 30);
