@@ -4,7 +4,7 @@
 // server-side, the same eventId must be sent with the server copy so Meta deduplicates
 // the pair into a single event instead of counting it twice.
 
-import { trackingAllowed } from "./consent";
+import { consentForServer, trackingAllowed } from "./consent";
 
 const PIXEL_ID = import.meta.env?.VITE_PUBLIC_META_PIXEL_ID as string | undefined;
 
@@ -111,7 +111,8 @@ function mirrorToServer(eventName: string, eventId: string) {
     fetch("/api/meta-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ eventName, eventId, sourceUrl: window.location.href }),
+      // HP-N13: the server checks consent again before it reports anything.
+      body: JSON.stringify({ eventName, eventId, sourceUrl: window.location.href, ...consentForServer() }),
       // survives the page being navigated away mid-flight
       keepalive: true,
       // the session cookie is how the server gets a trustworthy email

@@ -230,7 +230,7 @@ export default function StylePickPage() {
       <AppFooter />
 
       {/* Floating Use these styles button */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
+      <div data-floating-cta className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
         <button
           onClick={handleContinue}
           disabled={selected.length === 0}

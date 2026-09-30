@@ -2,6 +2,7 @@ import type { Route } from "./+types/api.meta-event";
 import { auth } from "~/lib/auth";
 import { sendMetaEvent, metaUserDataFromRequest, isMetaCapiConfigured } from "~/lib/meta-capi.server";
 import { checkRateLimit } from "~/lib/ratelimit.server";
+import { serverMayReportToMeta } from "~/lib/consent";
 
 /**
  * Server-side mirror for browser pixel events (Meta Conversions API).
@@ -56,7 +57,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (!isMetaCapiConfigured()) return ok();
 
-  let body: { eventName?: string; eventId?: string; sourceUrl?: string } = {};
+  let body: { eventName?: string; eventId?: string; sourceUrl?: string; tracking_consent?: unknown; time_zone?: unknown } = {};
   try {
     body = await request.json();
   } catch {
@@ -65,6 +66,10 @@ export async function action({ request }: Route.ActionArgs) {
 
   const { eventName, eventId } = body;
   if (!eventName || !eventId || !ALLOWED_EVENTS.has(eventName)) return ok();
+  // HP-N13: the browser holds these events for an EU/UK visitor who has not
+  // accepted, and so does the server. No consent state from an EU/UK time
+  // zone, or no time zone at all, is a no.
+  if (!serverMayReportToMeta(body.tracking_consent, body.time_zone)) return ok();
 
   // Per-IP cap, silent like everything else here (audit ST-N12).
   const limit = await checkRateLimit(request);

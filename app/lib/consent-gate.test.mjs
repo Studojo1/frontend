@@ -31,12 +31,14 @@ globalThis.document = {
   getElementsByTagName: () => [{ parentNode: { insertBefore() {} } }],
   cookie: "_fbp=fb.1.1.1; _fbc=fb.1.1.abc",
 };
-globalThis.fetch = async (url) => {
+const bodies = [];
+globalThis.fetch = async (url, init) => {
   sent.push(["fetch", String(url)]);
+  if (init?.body) bodies.push(JSON.parse(init.body));
   return { ok: true, json: async () => ({}) };
 };
 
-const { consentRegion, writeConsent, trackingAllowed } = await import("./consent.ts");
+const { consentRegion, writeConsent, trackingAllowed, consentForServer, serverMayReportToMeta } = await import("./consent.ts");
 const { trackMeta, metaExcludedPath } = await import("./meta-pixel.ts");
 const { metaBrowserIds } = await import("./attribution.ts");
 const { posthogConfig } = await import("./posthog.ts");
@@ -71,6 +73,12 @@ writeConsent("granted");
 assert.ok(trackMeta("ViewContent"));
 await flush();
 assert.ok(sent.some(([k, u]) => k === "fetch" && u === "/api/meta-event"), "accepted visitor must reach Meta");
+// The server mirror carries the choice, so /api/meta-event can check it too.
+assert.deepEqual(
+  { c: bodies.at(-1).tracking_consent, tz: bodies.at(-1).time_zone },
+  { c: "granted", tz: "Europe/London" },
+);
+assert.deepEqual(consentForServer(), { tracking_consent: "granted", time_zone: "Europe/London" });
 assert.equal(posthogConfig(trackingAllowed()).persistence, "localStorage+cookie");
 assert.ok(metaBrowserIds().fbp);
 
@@ -98,5 +106,22 @@ assert.equal(cfg.capture_exceptions, true);
 assert.equal(cfg.capture_dead_clicks, true);
 assert.equal(cfg.session_recording.maskTextSelector, "*");
 assert.equal(typeof cfg.before_send, "function");
+
+// HP-N13 remainder: the server-side rule (/api/meta-event; job-outreach-svc
+// applies the same one to the Purchase). Unknown consent from an EU/UK time
+// zone is a no; so is a request with no time zone at all.
+assert.equal(serverMayReportToMeta(undefined, "Europe/London"), false);
+assert.equal(serverMayReportToMeta(null, "Europe/Paris"), false);
+assert.equal(serverMayReportToMeta(undefined, undefined), false);
+assert.equal(serverMayReportToMeta("denied", "Asia/Kolkata"), false);
+assert.equal(serverMayReportToMeta("granted", "Europe/London"), true);
+assert.equal(serverMayReportToMeta(undefined, "Asia/Kolkata"), true);
+{
+  const { readFileSync } = await import("node:fs");
+  const route = readFileSync(new URL("../routes/api.meta-event.tsx", import.meta.url), "utf8");
+  const gate = route.indexOf("serverMayReportToMeta(body.tracking_consent, body.time_zone)");
+  assert.ok(gate > 0, "/api/meta-event checks consent");
+  assert.ok(gate < route.indexOf("await sendMetaEvent("), "consent is checked before anything is sent");
+}
 
 console.log("consent-gate: ok");
