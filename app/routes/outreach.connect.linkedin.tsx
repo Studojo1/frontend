@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { FiAlertTriangle, FiCheckCircle, FiLinkedin } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { LinkedInConnectPanel } from "~/components/outreach/LinkedInConnectPanel";
 import { outreachFetch } from "~/lib/outreach/api";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
@@ -108,7 +108,7 @@ export default function LinkedInConnectPage() {
             </button>
           </div>
         </div>
-        <Footer />
+        <AppFooter />
       </div>
     );
   }
@@ -137,7 +137,7 @@ export default function LinkedInConnectPage() {
           <LinkedInConnectPanel orderId={orderId} onSuccess={handleSuccess} />
         </div>
       </div>
-      <Footer />
+      <AppFooter />
     </div>
   );
 }
