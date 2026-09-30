@@ -26,6 +26,8 @@ export interface NextStep {
   campaign_id: number | null;
   /** True once any campaign has launched: a returning customer, not a first-timer. */
   has_launched?: boolean;
+  /** Unpaid with leads: how many hiring managers they already have (UC-Q14). */
+  lead_count?: number;
 }
 
 /** States where the user has paid and has not launched. */
@@ -50,6 +52,18 @@ export function nextStepLabel(step: NextStep): string {
     default:
       return step.has_launched ? "Launch another campaign" : "Launch my campaign";
   }
+}
+
+/**
+ * The /outreach button for an unpaid student who already has leads (audit
+ * UC-Q14): "See your 214 hiring managers", so they go back to the list they
+ * have instead of re-uploading and waiting through a new search. Older
+ * backends send no count; then it stays "See my hiring managers".
+ */
+export function seeLeadsLabel(step: Pick<NextStep, "lead_count"> | null | undefined): string {
+  const n = step?.lead_count ?? 0;
+  if (n <= 0) return "See my hiring managers";
+  return n === 1 ? "See your 1 hiring manager" : `See your ${n.toLocaleString("en-IN")} hiring managers`;
 }
 
 /** One line telling a paid, unlaunched user what is waiting for them. */

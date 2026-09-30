@@ -154,3 +154,26 @@ for (const f of readdirSync(APP + "routes").filter((f) => /^outreach\..+\.tsx$/.
 }
 
 console.log("outreach app-screens: ok");
+
+// ── UC-Q14 (recon 30 Sep): unpaid with leads sees how many ──────────────────
+{
+  const { seeLeadsLabel } = await import("./next-step.ts");
+  assert.equal(seeLeadsLabel({ lead_count: 214 }), "See your 214 hiring managers");
+  assert.equal(seeLeadsLabel({ lead_count: 1 }), "See your 1 hiring manager");
+  assert.equal(seeLeadsLabel({ lead_count: 0 }), "See my hiring managers");
+  assert.equal(seeLeadsLabel(null), "See my hiring managers");
+  const landing = readFileSync(`${APP}routes/outreach._index.tsx`, "utf8");
+  assert.match(landing, /label: seeLeadsLabel\(nextStep\)/, "/outreach's unpaid-with-leads button must use seeLeadsLabel");
+}
+
+// ── IN-N01 (recon 30 Sep): the two prod frontend pods must not share a node ──
+{
+  const wf = readFileSync(new URL("../../../.github/workflows/deploy.yml", import.meta.url), "utf8");
+  const m = wf.match(/'(\{"spec":\{"template":\{"spec":\{"topologySpreadConstraints".*?)'\n/);
+  assert.ok(m, "deploy.yml must patch a topologySpreadConstraint onto the frontend Deployment");
+  const [c] = JSON.parse(m[1]).spec.template.spec.topologySpreadConstraints;
+  assert.equal(c.topologyKey, "kubernetes.io/hostname");
+  assert.equal(c.whenUnsatisfiable, "ScheduleAnyway", "must never block a rollout");
+  assert.deepEqual(c.labelSelector.matchLabels, { app: "frontend" });
+  assert.ok(wf.indexOf("topologySpreadConstraints") < wf.indexOf("kubectl set image"), "spread before the new image rolls out");
+}
