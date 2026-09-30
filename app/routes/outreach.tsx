@@ -1,4 +1,6 @@
-import { Outlet } from "react-router";
+import { useEffect } from "react";
+import { Outlet, useLocation } from "react-router";
+import { rememberCoupon, sessionStore } from "~/lib/outreach/coupon";
 
 /**
  * Layout wrapper for /outreach/*.
@@ -23,5 +25,11 @@ export function meta() {
 }
 
 export default function OutreachLayout() {
+  // A ?coupon= on any /outreach page (email links land on /outreach/results)
+  // is kept for the pricing page, however the student gets there (NEW-07).
+  const { search } = useLocation();
+  useEffect(() => {
+    rememberCoupon(search, sessionStore());
+  }, [search]);
   return <Outlet />;
 }

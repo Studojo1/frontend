@@ -5,7 +5,7 @@ import {
   FiArrowLeft, FiCheck, FiCornerDownLeft, FiExternalLink, FiMessageCircle, FiRefreshCw, FiSearch,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { outreachFetch } from "~/lib/outreach/api";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -220,7 +220,7 @@ export default function InboxPage() {
             </button>
           )}
         </div>
-        <Footer />
+        <AppFooter />
       </div>
     );
   }
@@ -242,7 +242,7 @@ export default function InboxPage() {
             Connect LinkedIn
           </button>
         </div>
-        <Footer />
+        <AppFooter />
       </div>
     );
   }
@@ -492,7 +492,7 @@ export default function InboxPage() {
           </div>
         </div>
       </div>
-      <Footer />
+      <AppFooter />
     </div>
   );
 }
