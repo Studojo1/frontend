@@ -2,7 +2,7 @@ import { describeError } from "~/lib/error-detail";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { outreachFetch } from "~/lib/outreach/api";
@@ -253,11 +253,11 @@ export default function DiscoveryPage() {
               <div className="grid sm:grid-cols-2 gap-3 text-left items-start">
                 {/* what is actually happening */}
                 <div className="rounded-2xl border-2 border-studojo-ink bg-white p-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
-                  <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-3">What is happening</p>
+                  <p className="text-xs uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-3">What is happening</p>
                   <ol className="space-y-3">
                     {steps.map((st) => (
                       <li key={st.label} className="flex items-start gap-2.5">
-                        <span className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold ${
+                        <span className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${
                           st.state === "done" ? "bg-studojo-green text-white" : st.state === "active" ? "border-2 border-studojo-purple" : "border-2 border-studojo-ink/15"
                         }`}>
                           {st.state === "done" ? "✓" : st.state === "active" ? <span className="w-1.5 h-1.5 rounded-full bg-studojo-purple animate-pulse" /> : null}
@@ -270,7 +270,7 @@ export default function DiscoveryPage() {
 
                 {/* the first real matches, once the search has returned */}
                 <div className="rounded-2xl border-2 border-studojo-ink bg-white p-4 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
-                  <p className="text-[11px] uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-3">First matches</p>
+                  <p className="text-xs uppercase tracking-wide font-satoshi font-bold text-studojo-muted mb-3">First matches</p>
                   {preview.length > 0 ? (
                     <ul className="space-y-2.5">
                       {preview.map((m, k) => (
@@ -280,7 +280,7 @@ export default function DiscoveryPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-satoshi font-semibold text-studojo-ink truncate">{m.title}</p>
-                            <p className="text-[11px] font-satoshi text-studojo-muted truncate">{m.company}</p>
+                            <p className="text-xs font-satoshi text-studojo-muted truncate">{m.company}</p>
                           </div>
                         </li>
                       ))}
@@ -300,7 +300,7 @@ export default function DiscoveryPage() {
         )}
       </div>
 
-      <Footer />
+      <AppFooter />
     </div>
   );
 }

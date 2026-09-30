@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { FiMail, FiShield, FiEye, FiSend, FiCheckCircle } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOrder } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -269,7 +269,7 @@ export default function GmailConnectPage() {
           </div>
         )}
       </div>
-      <Footer />
+      <AppFooter />
     </div>
   );
 }

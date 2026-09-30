@@ -7,11 +7,11 @@ import {
   FiArrowRight, FiThumbsUp, FiThumbsDown, FiMinus,
   FiPlus, FiTrash2, FiMail, FiRefreshCw, FiGlobe,
   FiChevronRight, FiChevronDown, FiCornerDownRight, FiLinkedin,
-  FiPercent,
+  FiPercent, FiMoreHorizontal,
 } from "react-icons/fi";
 import { RiFlaskLine } from "react-icons/ri";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { MetricCard } from "~/components/outreach/MetricCard";
 import { useOutreachAuth, fetchNextStep } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -331,6 +331,21 @@ export default function DashboardPage() {
   // Cancel returns the credits for everything not yet sent (audit P04). Two
   // clicks: the first asks, the second does it.
   const [confirmCancel, setConfirmCancel] = useState(false);
+  // Secondary actions (cancel, test emails, report) live in one "More" menu so
+  // the header has a single primary action.
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+        setConfirmCancel(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [moreOpen]);
   const [cancelling, setCancelling] = useState(false);
   const [cancelNote, setCancelNote] = useState("");
   const [emails, setEmails] = useState<CampaignEmail[]>([]);
@@ -937,7 +952,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-        <Footer />
+        <AppFooter />
       </div>
     );
   }
@@ -956,7 +971,7 @@ export default function DashboardPage() {
             Create Campaign
           </button>
         </div>
-        <Footer />
+        <AppFooter />
       </div>
     );
   }
@@ -1305,33 +1320,66 @@ export default function DashboardPage() {
                     <FiPlay className="w-4 h-4 mr-2" /> Restart campaign
                   </button>
                 )}
-                {["running", "paused", "draft"].includes(metrics.status) && (
+                <div className="relative" ref={moreRef}>
                   <button
-                    onClick={handleCancel}
-                    disabled={cancelling}
-                    className={`h-9 px-4 rounded-xl border-2 text-sm font-satoshi font-medium transition-all inline-flex items-center disabled:opacity-50 ${
-                      confirmCancel ? "border-red-600 bg-red-600 text-white" : "border-studojo-ink bg-white"
-                    }`}
+                    onClick={() => { setMoreOpen((o) => !o); setConfirmCancel(false); }}
+                    aria-haspopup="menu"
+                    aria-expanded={moreOpen}
+                    className="h-9 px-3 rounded-xl border-2 border-studojo-ink bg-white text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
                   >
-                    <FiXCircle className="w-4 h-4 mr-2" />
-                    {confirmCancel ? "Yes, cancel and return unused credits" : "Cancel campaign"}
+                    <FiMoreHorizontal className="w-4 h-4 mr-1.5" /> More
                   </button>
-                )}
-                {["running", "completed", "paused"].includes(metrics.status) && (
-                  <button
-                    onClick={() => { setTestError(""); setShowTestModal(true); }}
-                    className="h-9 px-4 rounded-xl border-2 border-studojo-ink bg-white text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
-                  >
-                    <FiMail className="w-4 h-4 mr-2" /> Send Test Emails
-                  </button>
-                )}
-                <button
-                  onClick={() => setReportIssueOpen(true)}
-                  className="h-9 px-4 rounded-xl border-2 border-studojo-ink bg-white text-sm font-satoshi font-medium shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none inline-flex items-center"
-                  title="Raise a ticket for the team"
-                >
-                  <FiAlertCircle className="w-4 h-4 mr-2" /> Report issue
-                </button>
+                  {moreOpen && (
+                    <div role="menu" className="absolute right-0 z-30 mt-2 w-72 rounded-xl border-2 border-studojo-ink bg-white p-1.5 shadow-brutal">
+                      {["running", "completed", "paused"].includes(metrics.status) && (
+                        <button
+                          role="menuitem"
+                          onClick={() => { setMoreOpen(false); setTestError(""); setShowTestModal(true); }}
+                          className="flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm font-satoshi text-studojo-ink hover:bg-studojo-surface-muted"
+                        >
+                          <FiMail className="w-4 h-4 mr-2.5" /> Send test emails
+                        </button>
+                      )}
+                      <button
+                        role="menuitem"
+                        onClick={() => { setMoreOpen(false); setReportIssueOpen(true); }}
+                        className="flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm font-satoshi text-studojo-ink hover:bg-studojo-surface-muted"
+                      >
+                        <FiAlertCircle className="w-4 h-4 mr-2.5" /> Report an issue
+                      </button>
+                      {["running", "paused", "draft"].includes(metrics.status) && (
+                        confirmCancel ? (
+                          <div className="mt-1 rounded-lg border-2 border-red-300 bg-red-50 p-3">
+                            <p className="text-xs font-satoshi text-red-800 mb-2">Stop this campaign? Unsent emails will not go out, and their credits come back to you.</p>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleCancel}
+                                disabled={cancelling}
+                                className="h-8 px-3 rounded-lg border-2 border-red-600 bg-red-600 text-white text-xs font-satoshi font-bold disabled:opacity-50"
+                              >
+                                {cancelling ? "Cancelling..." : "Yes, cancel campaign"}
+                              </button>
+                              <button
+                                onClick={() => setConfirmCancel(false)}
+                                className="h-8 px-3 rounded-lg border-2 border-studojo-ink/20 bg-white text-xs font-satoshi font-medium"
+                              >
+                                Keep it
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            role="menuitem"
+                            onClick={handleCancel}
+                            className="flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm font-satoshi text-red-700 hover:bg-red-50"
+                          >
+                            <FiXCircle className="w-4 h-4 mr-2.5" /> Cancel campaign
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1387,75 +1435,31 @@ export default function DashboardPage() {
                     </button>
                   </div>
                 ) : (
-                  <p className="text-sm font-satoshi text-studojo-ink">
-                    <span className="font-bold">On hold{metrics.paused_by === "user" || metrics.pause_reason === "user" ? " (you paused it)" : ""}.</span>
-                    {" "}{campaignToSend + campaignPendingEnrichment} emails will not send until you resume.
-                    {metrics.paused_at ? ` Paused ${new Date(metrics.paused_at + "Z").toLocaleDateString()}.` : ""}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Unreachable contacts and replacements (audit P33). */}
-            {(metrics.emails_skipped_no_email ?? 0) > 0 && (
-              <p className="text-xs font-satoshi text-studojo-muted">
-                {metrics.emails_skipped_no_email} of your contacts had no email address we could find
-                {(metrics.replacements_added ?? 0) > 0 ? `; we replaced ${metrics.replacements_added} of them with new contacts` : ""}.
-                You aren't charged for contacts we couldn't reach.
-              </p>
-            )}
-
-            {/* Credits held by this campaign (audit P39). The wallet reads 0
-                while a campaign runs, which looked like the money vanished. */}
-            {metrics.credits_reserved != null && metrics.credits_reserved > 0 && (
-              <p className="text-xs font-satoshi text-studojo-muted">
-                This campaign holds {metrics.credits_reserved - (metrics.credits_released ?? 0)} of your credits
-                ({metrics.first_touch_delivered ?? 0} delivered so far
-                {(metrics.credits_released ?? 0) > 0 ? `, ${metrics.credits_released} already returned` : ""}).
-                Credits for emails that can't be sent go back to your balance and are added to your next campaign.
-              </p>
-            )}
-
-            {/* Cadence info banner: shown while campaign is running and not yet complete */}
-            {metrics.status === "running" && campaignToSend + campaignPendingEnrichment > 0 && (
-              <div className="rounded-2xl border-2 border-studojo-ink/20 bg-amber-50 p-4 flex items-start gap-3">
-                <span className="text-lg mt-0.5">📬</span>
-                <div className="flex-1">
-                  <p className="text-sm font-satoshi text-studojo-ink">
-                    <span className="font-bold">Your emails go out gradually</span> (about {metrics.daily_limit ?? 20} per day) to protect your Gmail reputation. Check back tomorrow. Most replies come within 3-5 days.
-                  </p>
-                  {metrics.user_timezone && (
-                    <p className="text-xs text-studojo-muted font-satoshi mt-1 flex items-center gap-1">
-                      <FiGlobe className="w-3 h-3" />
-                      Sending 9am-5pm {metrics.user_timezone}
+                  <div>
+                    {/* One card for a paused campaign: why, what is held, when it
+                        would send. These were three separate blocks. */}
+                    <p className="text-sm font-satoshi text-studojo-ink">
+                      <span className="font-bold">On hold{metrics.paused_by === "user" || metrics.pause_reason === "user" ? " (you paused it)" : ""}.</span>
+                      {" "}{campaignToSend + campaignPendingEnrichment} emails will not send until you resume.
+                      {metrics.paused_at ? ` Paused ${new Date(metrics.paused_at + "Z").toLocaleDateString()}.` : ""}
                     </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Paused: show timezone change option */}
-            {metrics.status === "paused" && (
-              <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FiGlobe className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold font-satoshi text-studojo-ink">
-                        Sending timezone: {metrics.user_timezone || "Asia/Kolkata"}
+                    {metrics.credits_reserved != null && metrics.credits_reserved > 0 && (
+                      <p className="text-xs font-satoshi text-studojo-muted mt-1">
+                        Holding {metrics.credits_reserved - (metrics.credits_released ?? 0)} of your credits ({metrics.first_touch_delivered ?? 0} delivered so far). Credits for emails that can't be sent come back to you.
                       </p>
-                      <p className="text-xs text-studojo-muted font-satoshi">Emails go out 9am-5pm in this timezone</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => { setPendingTz(metrics.user_timezone || "Asia/Kolkata"); setShowTzPanel(!showTzPanel); setTzError(""); }}
-                    className="h-8 px-3 rounded-lg border-2 border-amber-300 bg-white text-xs font-satoshi font-medium text-amber-700 hover:bg-amber-50 transition-colors flex-shrink-0"
-                  >
-                    Change
-                  </button>
-                </div>
+                    )}
+                    <p className="text-xs font-satoshi text-studojo-muted mt-1 flex items-center gap-1.5">
+                      <FiGlobe className="w-3 h-3" />
+                      Sends 9am-5pm {metrics.user_timezone || "Asia/Kolkata"}
+                      <button
+                        onClick={() => { setPendingTz(metrics.user_timezone || "Asia/Kolkata"); setShowTzPanel(!showTzPanel); setTzError(""); }}
+                        className="font-semibold text-studojo-purple underline underline-offset-2"
+                      >
+                        Change
+                      </button>
+                    </p>
                 {showTzPanel && (
-                  <div className="mt-4 pt-4 border-t border-amber-200 space-y-3">
+                  <div className="mt-4 pt-4 border-t border-studojo-ink/10 space-y-3">
                     <select
                       value={pendingTz}
                       onChange={(e) => setPendingTz(e.target.value)}
@@ -1483,16 +1487,54 @@ export default function DashboardPage() {
                     </button>
                   </div>
                 )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Unreachable contacts and replacements (audit P33). */}
+            {(metrics.emails_skipped_no_email ?? 0) > 0 && (
+              <p className="text-xs font-satoshi text-studojo-muted">
+                {metrics.emails_skipped_no_email} of your contacts had no email address we could find
+                {(metrics.replacements_added ?? 0) > 0 ? `; we replaced ${metrics.replacements_added} of them with new contacts` : ""}.
+                You aren't charged for contacts we couldn't reach.
+              </p>
+            )}
+
+            {/* Credits held by this campaign (audit P39). The wallet reads 0
+                while a campaign runs, which looked like the money vanished. */}
+            {metrics.status !== "paused" && metrics.credits_reserved != null && metrics.credits_reserved > 0 && (
+              <p className="text-xs font-satoshi text-studojo-muted">
+                This campaign holds {metrics.credits_reserved - (metrics.credits_released ?? 0)} of your credits
+                ({metrics.first_touch_delivered ?? 0} delivered so far
+                {(metrics.credits_released ?? 0) > 0 ? `, ${metrics.credits_released} already returned` : ""}).
+                Credits for emails that can't be sent go back to your balance and are added to your next campaign.
+              </p>
+            )}
+
+            {/* Cadence info banner: shown while campaign is running and not yet complete */}
+            {metrics.status === "running" && campaignToSend + campaignPendingEnrichment > 0 && (
+              <div className="rounded-2xl border-2 border-studojo-ink/20 bg-amber-50 p-4 flex items-start gap-3">
+                <span className="text-lg mt-0.5">📬</span>
+                <div className="flex-1">
+                  <p className="text-sm font-satoshi text-studojo-ink">
+                    <span className="font-bold">Your emails go out gradually</span> (about {metrics.daily_limit ?? 20} per day) to protect your Gmail reputation. Check back tomorrow. Most replies come within 3-5 days.
+                  </p>
+                  {metrics.user_timezone && (
+                    <p className="text-xs text-studojo-muted font-satoshi mt-1 flex items-center gap-1">
+                      <FiGlobe className="w-3 h-3" />
+                      Sending 9am-5pm {metrics.user_timezone}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
             {/* Gmail Re-Auth Banner */}
             {showReauthBanner && (
-              <div className={`rounded-2xl border-2 p-4 flex items-center justify-between gap-4 ${gmailTokenValid ? "border-studojo-purple/30 bg-studojo-purple-bg" : "border-red-300 bg-red-50"}`}>
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center flex-shrink-0 ${gmailTokenValid ? "bg-studojo-purple/10 border-studojo-purple/20" : "bg-red-100 border-red-200"}`}>
-                    <FiMessageCircle className={`w-4 h-4 ${gmailTokenValid ? "text-studojo-purple" : "text-red-600"}`} />
-                  </div>
+              <div className={`rounded-xl border px-4 py-2.5 flex items-center justify-between gap-4 ${gmailTokenValid ? "border-studojo-purple/30 bg-studojo-purple-bg/60" : "border-red-300 bg-red-50"}`}>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <FiMessageCircle className={`w-4 h-4 flex-shrink-0 ${gmailTokenValid ? "text-studojo-purple" : "text-red-600"}`} />
                   <p className="text-sm font-satoshi text-studojo-ink">
                     {gmailTokenValid ? (
                       <><span className="font-bold">Reply tracking is now available!</span>{" "}Reconnect your Gmail to see who replies to your outreach emails.</>
@@ -2085,7 +2127,7 @@ export default function DashboardPage() {
         }}
         onClose={() => setReportIssueOpen(false)}
       />
-      <Footer />
+      <AppFooter />
     </div>
   );
 }
