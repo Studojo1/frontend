@@ -1,5 +1,6 @@
 import { getEmailerServiceUrl } from "~/lib/emailer";
 import type { Route } from "./+types/api.contact";
+import { guardPublicForm } from "~/lib/ratelimit.server";
 
 export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
@@ -18,6 +19,10 @@ export async function action({ request }: Route.ActionArgs) {
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
+
+  // Unauthenticated: per-IP rate limit and honeypot (audit AS-N05).
+  const blocked = await guardPublicForm(request, body);
+  if (blocked) return blocked;
 
   const { name, email, subject, message } = body as {
     name?: string;

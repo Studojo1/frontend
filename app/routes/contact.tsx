@@ -92,6 +92,8 @@ export default function Contact() {
     subject: SUBJECT_OPTIONS[0],
     message: "",
   });
+  // Honeypot: invisible to people, filled in by form-spamming bots (AS-N05).
+  const [trap, setTrap] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -104,7 +106,7 @@ export default function Contact() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, sj_trap: trap }),
       });
       const data = await res.json();
 
@@ -162,6 +164,18 @@ export default function Contact() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
+                <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
+                  <label htmlFor="sj_trap">Leave this empty</label>
+                  <input
+                    id="sj_trap"
+                    name="sj_trap"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={trap}
+                    onChange={(e) => setTrap(e.target.value)}
+                  />
+                </div>
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
                     <label htmlFor="name" className="mb-2 block font-['Satoshi'] text-sm font-medium text-neutral-900">
