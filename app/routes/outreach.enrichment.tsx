@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { FiTag, FiArrowRight, FiArrowLeft, FiCheck } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
 import { useOrder } from "~/lib/outreach/hooks";
@@ -13,6 +13,8 @@ import { track } from "~/lib/analytics";
 import { metaBrowserIds } from "~/lib/attribution";
 import type { TierPricing } from "~/lib/outreach/types";
 import { RealNumbers } from "~/components/outreach/RealNumbers";
+import { recallCoupon, sessionStore } from "~/lib/outreach/coupon";
+import { tierMatch, leadHeadline } from "~/lib/outreach/tier-match";
 
 declare global {
   interface Window {
@@ -140,7 +142,7 @@ export default function EnrichmentPage() {
 
   const navigate = useNavigate();
   const { user, loading: authLoading, recovering } = useOutreachAuth();
-  const { candidateId, selectedTier, setSelectedTier, orderId } = useOutreachStore();
+  const { candidateId, setCandidateId, selectedTier, setSelectedTier, orderId } = useOutreachStore();
   const { createOrder, updateOrder } = useOrder();
 
   // No candidate: send them to upload, but only once the active order has had
@@ -198,16 +200,20 @@ export default function EnrichmentPage() {
   const [leadCount, setLeadCount] = useState<number | null>(null);
   // Leads whose titles match the target roles (UC-Q09); the rest are broader.
   const [strongCount, setStrongCount] = useState<number | null>(null);
+  // Candidates this page already switched away from (OP-N03), so it cannot loop.
+  const switchedFromRef = useRef<Set<number>>(new Set());
   const [dreamCompanies, setDreamCompanies] = useState<Array<{ name: string; domain: string | null }>>([]);
   const [couponCode, setCouponCode] = useState("");
   // Links in coupon and checkout-recovery emails carry ?coupon=CODE, either
-  // straight here or via /outreach, which keeps it for this page (NEW-07).
+  // straight here or via /outreach/results, and the outreach layout keeps it
+  // for this page (NEW-07). A code from a link is applied once prices load.
+  const linkCouponRef = useRef<string | null>(null);
   useEffect(() => {
-    let code = new URLSearchParams(window.location.search).get("coupon");
-    if (!code) {
-      try { code = sessionStorage.getItem("outreach_coupon"); } catch { /* storage blocked */ }
+    const code = recallCoupon(window.location.search, sessionStore());
+    if (code) {
+      linkCouponRef.current = code;
+      setCouponCode(code);
     }
-    if (code) setCouponCode(code.trim().toUpperCase());
   }, []);
   const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
@@ -432,8 +438,22 @@ export default function EnrichmentPage() {
     if (!candidateId) return;
     Promise.all([
       outreachFetch<any>(`/candidate/${candidateId}/profile`).catch(() => null),
-      outreachFetch<{ leads: any[]; strong_total?: number } | any[]>(`/candidate/${candidateId}/leads`).catch(() => null),
+      outreachFetch<{ leads: any[]; strong_total?: number; active_candidate_id?: number | null } | any[]>(`/candidate/${candidateId}/leads`).catch(() => null),
     ]).then(([profile, leadsResp]) => {
+      // OP-N03: a re-upload leaves this browser on a newer resume with no
+      // leads while an older one holds them, and the checkout guard below then
+      // blocked a student who had hundreds. The API names the candidate that
+      // has them; switch once, and this effect runs again for it.
+      const active = leadsResp && !Array.isArray(leadsResp) ? leadsResp.active_candidate_id : null;
+      if (
+        leadsResp && !Array.isArray(leadsResp) && (leadsResp.leads?.length ?? 0) === 0 &&
+        typeof active === "number" && active !== candidateId && !switchedFromRef.current.has(active)
+      ) {
+        switchedFromRef.current.add(candidateId);
+        capturePostHog("pricing_switched_to_active_candidate", { from: candidateId, to: active });
+        setCandidateId(active);
+        return;
+      }
       const raw: string[] = profile?.dream_companies || [];
       const clean = raw
         .map((c) => (c || "").trim())
@@ -487,6 +507,16 @@ export default function EnrichmentPage() {
       setCouponLoading(false);
     }
   };
+
+  // Apply a coupon that came in a link once, as soon as the currency is known
+  // (the discount depends on it), so the student sees the price they were
+  // promised without finding the coupon box (NEW-07, OP-N12).
+  useEffect(() => {
+    if (pricingState !== "ready" || !linkCouponRef.current) return;
+    linkCouponRef.current = null;
+    void validateCoupon();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pricingState]);
 
   const handlePayAndContinue = async (tierValue: number = selectedTier) => {
     if (!candidateId) return;
@@ -647,7 +677,9 @@ export default function EnrichmentPage() {
   const currSymbol = currency === "INR" ? "₹" : "$";
 
   const SHARED_FEATURES = (count: number) => [
-    `${count} verified hiring managers`,
+    // Emails are found and checked after payment, and a campaign stops at the
+    // leads the student has, so this is a ceiling, not a promise (UC-Q20).
+    `Emails to up to ${count} hiring managers`,
     // Leads carry no industry data, so this said more than it could (UC-Q03).
     "Found from your target roles and location",
     "AI-personalised email per contact",
@@ -720,20 +752,20 @@ export default function EnrichmentPage() {
           Skip the job board queue. We find verified emails, write personalised messages, and send them on your behalf.
         </p>
 
-        {/* Say how many of their leads actually match, before they pick a
-            pack bigger than that (UC-Q09). */}
-        {strongCount !== null && !!leadCount && (
+        {/* Say how many hiring managers they have, and how many actually
+            match, before they pick a pack bigger than that (UC-Q09, UC-Q13).
+            Shown with or without strong_total from the API. */}
+        {leadHeadline(leadCount, strongCount) && (
           <p className="max-w-xl mx-auto -mt-4 mb-8 text-center text-sm font-satoshi text-studojo-ink">
-            We found <strong>{strongCount.toLocaleString("en-US")} strong matches</strong> for your target roles
-            {leadCount > strongCount ? <> and {(leadCount - strongCount).toLocaleString("en-US")} broader matches</> : null}.
-            {" "}Every pack contacts your strongest matches first.
+            <strong>{leadHeadline(leadCount, strongCount)}</strong>
+            {" "}Every pack contacts your strongest matches first, and a campaign never uses more credits than you have matches.
           </p>
         )}
 
         {/* Dream companies: single-row horizontal scroll */}
         {dreamCompanies.length > 0 && (
           <div className="max-w-3xl mx-auto mb-8 rounded-2xl border-2 border-studojo-ink bg-white p-5 shadow-brutal">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-studojo-muted mb-3 text-center">Your dream companies are in the mix</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-studojo-muted mb-3 text-center">Your dream companies are in the mix</p>
             <div className="flex gap-2.5 overflow-x-auto pb-1 sm:justify-center">
               {dreamCompanies.map((c) => <DreamChip key={c.name} name={c.name} domain={c.domain} />)}
             </div>
@@ -838,21 +870,21 @@ export default function EnrichmentPage() {
                 {/* Badges */}
                 {isStarter && (
                   <div className="absolute -top-3 left-4">
-                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-ink text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
+                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-ink text-white text-xs font-bold font-satoshi whitespace-nowrap">
                       8-day sprint
                     </span>
                   </div>
                 )}
                 {tier.recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-purple text-white text-[11px] font-bold font-satoshi whitespace-nowrap">
+                    <span className="px-2.5 py-0.5 rounded-full bg-studojo-purple text-white text-xs font-bold font-satoshi whitespace-nowrap">
                       Recommended
                     </span>
                   </div>
                 )}
 
                 {/* Plan name */}
-                <p className="text-[11px] font-clash font-bold text-studojo-muted uppercase tracking-widest mb-3 mt-1">
+                <p className="text-xs font-clash font-bold text-studojo-muted uppercase tracking-widest mb-3 mt-1">
                   {tier.name}
                 </p>
 
@@ -867,11 +899,17 @@ export default function EnrichmentPage() {
                 </div>
 
                 <p className="text-xs text-studojo-muted font-satoshi mt-2 mb-4 leading-relaxed">{tier.tagline}</p>
-                {strongCount !== null && !!leadCount && Math.min(tier.value, leadCount) > strongCount && (
-                  <p className="-mt-2 mb-4 text-xs font-satoshi font-medium text-amber-700">
-                    Includes about {(Math.min(tier.value, leadCount) - strongCount).toLocaleString("en-US")} broader matches.
-                  </p>
-                )}
+                {/* UC-Q20: what this pack reaches in their own list. */}
+                {(() => {
+                  const m = tierMatch(tier.value, leadCount, strongCount);
+                  if (!m) return null;
+                  return (
+                    <div className="-mt-2 mb-4 text-xs font-satoshi leading-snug">
+                      <p className="font-medium text-studojo-ink">{m.reach}.</p>
+                      {m.leftover && <p className="mt-1 text-amber-700">{m.leftover}</p>}
+                    </div>
+                  );
+                })()}
 
                 <div className="border-t border-studojo-ink/10 mb-4" />
 
@@ -996,7 +1034,7 @@ export default function EnrichmentPage() {
           Emails sent gradually over several days. About 4 in 10 students hear back in their first week.
         </p>
       </div>
-      <Footer />
+      <AppFooter />
 
       {/* Sticky CTA */}
       <div className="fixed bottom-0 inset-x-0 z-40 border-t-2 border-studojo-ink bg-white/95 backdrop-blur">
@@ -1005,7 +1043,7 @@ export default function EnrichmentPage() {
             <p className="text-sm font-bold font-satoshi text-studojo-ink truncate">
               {selectedTierObj?.name} · {selectedTier} contacts
             </p>
-            <p className="text-[11px] text-studojo-muted font-satoshi">
+            <p className="text-xs text-studojo-muted font-satoshi">
               {selectedPrice.discounted || selectedPrice.display}
               {hasCreditsForSelected ? " · covered by your credits" : ""}
               {!hasCreditsForSelected && !couponResult?.valid && (
@@ -1014,7 +1052,8 @@ export default function EnrichmentPage() {
                   <button
                     type="button"
                     onClick={() => document.getElementById("coupon")?.scrollIntoView({ behavior: "smooth", block: "center" })}
-                    className="underline font-semibold text-studojo-purple"
+                    // PH-14: a 44px tap area without making the bar taller.
+                    className="-my-3 inline-block py-3 underline font-semibold text-studojo-purple"
                   >
                     Have a coupon?
                   </button>

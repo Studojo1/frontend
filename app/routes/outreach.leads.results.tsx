@@ -5,7 +5,7 @@ import { capturePostHog } from "~/lib/posthog";
 import { FiArrowRight, FiArrowLeft, FiSearch, FiSend, FiRefreshCw } from "react-icons/fi";
 import { LuArrowUpDown } from "react-icons/lu";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { FlashCard } from "~/components/outreach/FlashCard";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 import { useOutreachStore } from "~/lib/outreach/store";
@@ -438,19 +438,19 @@ export default function ResultsPage() {
             {existingNote && (
               <div className="mb-4 rounded-xl border-2 border-studojo-purple/30 bg-studojo-purple-bg px-4 py-3 flex flex-wrap items-center justify-between gap-2 font-satoshi text-sm text-studojo-ink" role="status">
                 <span>That's the same resume you uploaded before, so here are the hiring managers we already found for it.</span>
-                <button onClick={() => setExistingNote(false)} className="font-semibold text-studojo-purple-strong underline">Got it</button>
+                <button onClick={() => setExistingNote(false)} className="inline-flex min-h-11 items-center font-semibold text-studojo-purple-strong underline">Got it</button>
               </div>
             )}
             {refreshFailed && (
               <div className="mb-4 rounded-xl border-2 border-studojo-orange/40 bg-studojo-orange-bg px-4 py-3 flex flex-wrap items-center justify-between gap-2 font-satoshi text-sm text-studojo-ink" role="status">
                 <span>We couldn't refresh your matches just now. You're seeing the latest we have.</span>
-                <button onClick={() => refreshNowRef.current()} className="font-semibold underline">Retry</button>
+                <button onClick={() => refreshNowRef.current()} className="inline-flex min-h-11 items-center font-semibold underline">Retry</button>
               </div>
             )}
             {rankingChanged && (
               <div className="mb-4 rounded-xl border-2 border-studojo-purple/30 bg-studojo-purple-bg px-4 py-3 flex flex-wrap items-center justify-between gap-2 font-satoshi text-sm text-studojo-ink" role="status">
                 <span>Our AI has finished reviewing your matches.</span>
-                <button onClick={() => resort("best")} className="font-semibold text-studojo-purple-strong underline">Show the best matches first</button>
+                <button onClick={() => resort("best")} className="inline-flex min-h-11 items-center font-semibold text-studojo-purple-strong underline">Show the best matches first</button>
               </div>
             )}
 
@@ -525,7 +525,7 @@ export default function ResultsPage() {
           </>
         )}
       </main>
-      <Footer />
+      <AppFooter />
 
       {/* Floating CTA: only once the data is in, and only while the header CTA is off screen */}
       {hasLeads && !headerCtaVisible && (

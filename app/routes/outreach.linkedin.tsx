@@ -11,7 +11,7 @@ import {
   FiDownload,
 } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { Footer } from "~/components/common/footer";
+import { AppFooter } from "~/components/outreach/AppFooter";
 import { useOutreachAuth } from "~/lib/outreach/hooks";
 
 // ── Extension bridge ──────────────────────────────────────────────────────────
@@ -391,7 +391,7 @@ export default function LinkedInOutreachPage() {
         </div>
       </section>
 
-      <Footer />
+      <AppFooter />
     </div>
   );
 }
