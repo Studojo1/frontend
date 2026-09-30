@@ -393,6 +393,13 @@ export default function Report_UnpaidInternshipTrap2026() {
             </div>
           </div>
 
+          {/* Companion report (audit HP-N18): the two unpaid-internship
+              reports answer different questions, so they link to each other. */}
+          <p style={{ margin: "32px 0", fontSize: 16, lineHeight: 1.6, color: "#3b0764" }}>
+            <strong>Related report:</strong> Is the unpaid role you were offered even legal where you are? 
+            <Link to="/reports/unpaid-internship-report-where-legal-2026" style={{ color: "#6d28d9", fontWeight: 600, textDecoration: "underline" }}>Unpaid internships: where they are legal and where they are not</Link>
+          </p>
+
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Choose internships that build real proof.</h3>
