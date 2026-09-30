@@ -1072,7 +1072,7 @@ export default function EnrichmentPage() {
       <AppFooter />
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 inset-x-0 z-40 border-t-2 border-studojo-ink bg-white/95 backdrop-blur">
+      <div data-floating-cta className="fixed bottom-0 inset-x-0 z-40 border-t-2 border-studojo-ink bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-6xl px-4 md:px-8 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-bold font-satoshi text-studojo-ink truncate">

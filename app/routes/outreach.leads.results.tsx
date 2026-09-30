@@ -529,7 +529,7 @@ export default function ResultsPage() {
 
       {/* Floating CTA: only once the data is in, and only while the header CTA is off screen */}
       {hasLeads && !headerCtaVisible && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
+        <div data-floating-cta className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
           <button
             onClick={() => onCta("floating")}
             className="h-12 px-8 rounded-2xl bg-studojo-purple-strong text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-brutal transition-all motion-safe:hover:translate-x-[2px] motion-safe:hover:translate-y-[2px] hover:shadow-none inline-flex items-center whitespace-nowrap"

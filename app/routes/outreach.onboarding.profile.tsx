@@ -510,7 +510,7 @@ export default function ProfilePage() {
       </div>{/* end flex-1 flex */}
 
       {/* ── Floating CTA pill ──────────────────────────────────────────────────── */}
-      <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none md:pl-56">
+      <div data-floating-cta className="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none md:pl-56">
         <button
           onClick={() => navigate("/outreach/leads/discovery")}
           className="pointer-events-auto px-8 py-3.5 rounded-full bg-studojo-purple text-white font-satoshi font-semibold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none flex items-center gap-2.5"

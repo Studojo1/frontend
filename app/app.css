@@ -79,6 +79,14 @@ body {
   font-family: var(--font-sans);
 }
 
+/* PH-06: a page's floating action (Launch Campaign, Use these styles, the
+   pricing Pay bar) sits above the cookie notice while the notice is open,
+   instead of under it. The notice sets --sj-notice-h to the space it takes
+   (components/legal/cookie-notice.tsx); a margin lifts a fixed element. */
+[data-floating-cta] {
+  margin-bottom: var(--sj-notice-h, 0px);
+}
+
 /* Smooth scrolling for all scrollable containers */
 [data-scroll-container] {
   scroll-behavior: smooth;
