@@ -9,6 +9,16 @@ import { renderToPipeableStream } from "react-dom/server";
 
 export const streamTimeout = 5_000;
 
+/** Basic hardening on every HTML page (audit HP-N17). Deliberately not the
+ * full CSP from security-headers.server.ts, which would block PostHog and the
+ * Meta pixel. Set on HEAD too, which is what `curl -I` and scanners send. */
+export function setPageSecurityHeaders(headers: Headers): void {
+  headers.set("Content-Security-Policy", "frame-ancestors 'self'");
+  headers.set("X-Frame-Options", "SAMEORIGIN");
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+}
+
 export default function handleRequest(
   request: Request,
   responseStatusCode: number,
@@ -30,6 +40,7 @@ export default function handleRequest(
 
   // https://httpwg.org/specs/rfc9110.html#HEAD
   if (request.method.toUpperCase() === "HEAD") {
+    setPageSecurityHeaders(responseHeaders);
     return new Response(null, {
       status: responseStatusCode,
       headers: responseHeaders,
@@ -89,13 +100,7 @@ export default function handleRequest(
             responseHeaders.set("Cache-Control", "no-cache");
           }
 
-          // Basic hardening on every HTML page (audit HP-N17). Deliberately
-          // not the full CSP from security-headers.server.ts, which would
-          // block PostHog and the Meta pixel.
-          responseHeaders.set("Content-Security-Policy", "frame-ancestors 'self'");
-          responseHeaders.set("X-Frame-Options", "SAMEORIGIN");
-          responseHeaders.set("X-Content-Type-Options", "nosniff");
-          responseHeaders.set("Referrer-Policy", "strict-origin-when-cross-origin");
+          setPageSecurityHeaders(responseHeaders);
 
           pipe(body);
 

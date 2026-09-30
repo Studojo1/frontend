@@ -1,6 +1,7 @@
 import { verifyCheckoutSignature } from "~/lib/razorpay.server";
 import { fulfilWebinarPayment } from "~/lib/webinar-payment.server";
 import type { Route } from "./+types/api.webinar-confirm";
+import { guardPublicForm } from "~/lib/ratelimit.server";
 
 /**
  * Confirm a webinar payment from the browser, straight after Razorpay's
@@ -24,6 +25,10 @@ export async function action({ request }: Route.ActionArgs) {
   } catch {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
+  // Unauthenticated: per-IP rate limit and honeypot (audit AS-N05).
+  const blocked = await guardPublicForm(request, body);
+  if (blocked) return blocked;
 
   const orderId = String(body.razorpay_order_id ?? "");
   const paymentId = String(body.razorpay_payment_id ?? "");

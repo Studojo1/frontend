@@ -562,7 +562,10 @@ export default function DashboardPage() {
     if (!linkedInCampaignId) return;
     setLiLoading(true);
     fetchLinkedIn();
-    const interval = setInterval(fetchLinkedIn, 30000);
+    // Same gate as the email poll: no requests from a background tab (CF-N06).
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchLinkedIn();
+    }, 30000);
     return () => clearInterval(interval);
   }, [linkedInCampaignId, fetchLinkedIn]);
 
