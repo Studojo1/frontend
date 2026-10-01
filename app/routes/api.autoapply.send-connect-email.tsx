@@ -3,6 +3,7 @@
 
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { sendLinkedInConnectEmail } from "~/lib/notifications.server";
+import { callName } from "~/lib/call-name";
 import { createClient } from "redis";
 import { randomUUID } from "crypto";
 import type { Route } from "./+types/api.autoapply.send-connect-email";
@@ -30,7 +31,7 @@ export async function action({ request }: Route.ActionArgs) {
 
   // Default to sending to the logged-in user's own email
   const to = body.email?.trim() || session.user.email;
-  const firstName = body.firstName?.trim() || session.user.name?.split(" ")[0];
+  const firstName = body.firstName?.trim() || callName(session.user.name);
 
   if (!to) return Response.json({ error: "email required" }, { status: 400 });
 
