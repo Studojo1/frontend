@@ -15,6 +15,7 @@ import { extensionDrafts } from "../../auth-schema";
 import { and, eq } from "drizzle-orm";
 import { DEFAULT_STYLE } from "~/lib/outreach/email-styles";
 import { stripDashes } from "~/lib/strip-dashes";
+import { callName } from "~/lib/call-name";
 
 export interface DraftSeed {
   applicationId: string | null;
@@ -156,7 +157,7 @@ export function composeDraft(
   const contact = FIRST_NAME(seed.contactName);
   const company = seed.company || "your team";
   const role = seed.role || "the role";
-  const who = profile.name ? profile.name.split(/\s+/)[0] : "a student";
+  const who = callName(profile.name) || "a student";
   const at = profile.university ? ` at ${profile.university}` : "";
   const cred = profile.topCredential?.trim();
 
