@@ -316,7 +316,9 @@ jobs:
           secret_adopt APOLLO_API_KEY apollo-api-key
           secret_adopt APOLLO_WEBHOOK_SECRET apollo-webhook-secret
           secret_adopt SALESQL_API_KEY salesql-api-key
-          secret_adopt LEADSFORGE_API_KEY leadsforge-api-key
+          # The hand-set literal was the PRODUCTION key; both keys work on the same
+          # LeadsForge account, so staging uses its own app-secrets key (2026-10-01).
+          secret_ref LEADSFORGE_API_KEY leadsforge-api-key
           secret_audit
 
       - name: Deploy to Kubernetes (staging)
