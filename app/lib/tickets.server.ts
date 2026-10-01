@@ -13,7 +13,7 @@ import { sendDirectGmail } from "./gmail-direct.server";
 
 const TICKET_ADMIN_RECIPIENTS = (
   process.env.TICKET_ADMIN_RECIPIENTS ||
-  "jeremy.zac@gmail.com,businessconnect.pranav@gmail.com"
+  "jeremy.zac@gmail.com,businessconnect.pranav@gmail.com,pranavshastry4@gmail.com"
 )
   .split(",")
   .map((s) => s.trim())
