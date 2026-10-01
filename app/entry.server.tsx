@@ -1,8 +1,8 @@
 import { PassThrough } from "node:stream";
 
-import type { AppLoadContext, EntryContext } from "react-router";
+import type { AppLoadContext, EntryContext, HandleErrorFunction } from "react-router";
 import { createReadableStreamFromReadable } from "@react-router/node";
-import { ServerRouter } from "react-router";
+import { ServerRouter, isRouteErrorResponse } from "react-router";
 import { isbot } from "isbot";
 import type { RenderToPipeableStreamOptions } from "react-dom/server";
 import { renderToPipeableStream } from "react-dom/server";
@@ -18,6 +18,18 @@ export function setPageSecurityHeaders(headers: Headers): void {
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 }
+
+/** Server error logging (audit AR-B05). React Router's default logs every
+ * unmatched URL as an Error with a ~70-line stack: the Facebook crawler asks
+ * for /meta.json ~420 times a day and scanners probe /.env and *.php, which
+ * buried real errors. A 404 is not a server error and the ingress log already
+ * records it, so it is not logged here. Everything else is logged as before. */
+export const handleError: HandleErrorFunction = (error, { request }) => {
+  if (request.signal.aborted) return;
+  if (isRouteErrorResponse(error) && error.status === 404) return;
+  const inner = isRouteErrorResponse(error) ? (error as { error?: unknown }).error : undefined;
+  console.error(inner ?? error);
+};
 
 export default function handleRequest(
   request: Request,
