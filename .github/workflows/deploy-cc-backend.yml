@@ -92,7 +92,7 @@ jobs:
             kubectl create deployment ${{ env.APP_NAME }} \
               --image=${{ env.REGISTRY }}/${{ env.APP_NAME }}:${{ github.sha }} \
               --namespace=${{ env.NAMESPACE }}
-            kubectl set env deployment/${{ env.APP_NAME }} \
+            kubectl set env deployment/${{ env.APP_NAME }} -c ${{ env.APP_NAME }} \
               --namespace=${{ env.NAMESPACE }} \
               --from=secret/cc-backend-secrets
             kubectl patch deployment ${{ env.APP_NAME }} \

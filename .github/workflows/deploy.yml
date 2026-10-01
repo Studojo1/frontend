@@ -167,7 +167,7 @@ jobs:
           # /v1/email/events or /v1/email/send-template (audit AS-N02).
           # BOB_INTERNAL_URL is in-cluster DNS (bypasses the ingress); BOB_ENV
           # scopes each Sensei MCP API key's workspace mapping to THIS environment.
-          kubectl set env deployment/${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
+          kubectl set env deployment/${{ env.APP_NAME }} -c ${{ env.APP_NAME }} -n ${{ env.NAMESPACE }} \
             EMAILER_SERVICE_URL="http://emailer-service:8087" \
             BOB_INTERNAL_URL="http://bob-svc:8000" \
             BOB_ENV="prod"
