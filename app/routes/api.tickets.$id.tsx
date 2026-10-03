@@ -32,7 +32,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   const messagesRes = await db.execute(sql`
-    SELECT id, ticket_id, author_type, author_email, body, created_at
+    SELECT id, ticket_id, author_type,
+           -- Never show a customer the replying staff member's own address.
+           CASE WHEN author_type = 'user' THEN author_email ELSE '' END AS author_email,
+           body, created_at
     FROM ticket_messages
     WHERE ticket_id = ${id}
     ORDER BY created_at ASC
