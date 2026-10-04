@@ -193,6 +193,35 @@ function setBasicsField(d: ResumeData, field: keyof ResumeBasics, v: string): Re
   return { ...d, basics: { ...d.basics, [field]: v } };
 }
 
+/**
+ * Resolve the item an update targets. The model is told to use the item's id,
+ * but it sometimes sends the list index ("skills.0") instead.
+ */
+function resolveId(list: { id: string }[], ref: string): string | undefined {
+  if (list.some((x) => x.id === ref)) return ref;
+  return /^\d+$/.test(ref) ? list[Number(ref)]?.id : undefined;
+}
+
+/**
+ * Normalise an update's patch. Accepts the documented object form and the
+ * "section.<id>.<field>" form the model also produces. Returns null for
+ * anything else, so a bad op changes nothing rather than corrupting the item.
+ */
+function updatePatch(field: string | undefined, value: unknown): Record<string, any> | null {
+  const patch: Record<string, any> | null = field
+    ? { [field]: value }
+    : value && typeof value === "object" && !Array.isArray(value)
+      ? { ...(value as Record<string, any>) }
+      : null;
+  if (!patch) return null;
+  delete patch.id;
+  if ("bullets" in patch) {
+    if (!Array.isArray(patch.bullets)) return null;
+    patch.bullets = patch.bullets.map(String);
+  }
+  return patch;
+}
+
 function applyOne(data: ResumeData, op: Op): ResumeData {
   try {
     if (op.op === "set") {
@@ -239,8 +268,11 @@ function applyOne(data: ResumeData, op: Op): ResumeData {
     }
     if (op.op === "update") {
       // path: "experience.<id>" / "education.<id>" / "projects.<id>" / "skills.<id>"
-      const [section, id] = op.path.split(".");
-      const patch = (op.value ?? {}) as Record<string, any>;
+      const [section, ref, field] = op.path.split(".");
+      const patch = updatePatch(field, op.value);
+      if (!ref || !patch) return data;
+      const list = (data as any)[section];
+      const id = Array.isArray(list) ? resolveId(list, ref) : undefined;
       if (!id) return data;
       if (section === "experience") {
         return {
