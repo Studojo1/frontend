@@ -5,6 +5,7 @@
 // returning both the ops (small) and the final data (for the client to use).
 import type { Route } from "./+types/api.resume-maker.chat";
 import { applyOps, compactResume, type Op } from "~/lib/jrs/coach";
+import { COACH_SCOPE_PROMPT, enforceCoachLimits } from "~/lib/jrs/coach-limits";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -44,19 +45,22 @@ HOW IT WORKS
 - Never invent facts. If the user said "skip" or "next", just move on with no ops.
 - Don't ask about info already on the resume.
 
+${COACH_SCOPE_PROMPT}
+
 OPS SCHEMA (emit only these shapes):
   { "op":"set", "path":"basics.name", "value":"Aanya Sharma" }
   { "op":"set", "path":"basics.title|email|phone|location|website|linkedin", "value":"..." }
   { "op":"set", "path":"summary", "value":"..." }
   { "op":"add", "path":"experience|education|projects|skills", "value":{ ...item fields... } }
-  { "op":"update", "path":"experience.<id>", "value":{ ...partial fields... } }
-  { "op":"remove", "path":"experience.<id>" }
+  { "op":"update", "path":"experience|education|projects|skills.<id>", "value":{ ...partial fields... } }
+  { "op":"remove", "path":"experience|education|projects|skills.<id>" }
 
 OUTPUT
 Return strict JSON only:
 {
   "reply": "your short message to the user (REQUIRED, never empty, even when only adding data, e.g. 'Got it, added Blip Store. What did you build there?')",
-  "ops": [ ... ops here, [] if nothing changed ... ]
+  "ops": [ ... ops here, [] if nothing changed ... ],
+  "limit": "format" | "other" | null
 }
 
 The "reply" field must ALWAYS be a non-empty sentence. If you're adding or
@@ -166,16 +170,24 @@ export async function action({ request }: Route.ActionArgs) {
     // If the model only returned ops with no reply, synthesise a friendly
     // acknowledgement so the user always gets feedback. Only bail out if we
     // got nothing useful at all.
+    const lastUser = [...trimmed].reverse().find((m) => m.role === "user");
     let finalReply = reply;
+    if (!finalReply && rawOps.length > 0) finalReply = summariseOps(rawOps);
+
+    // The coach cannot change how the resume looks. Say so explicitly, even
+    // if the model didn't.
+    finalReply = enforceCoachLimits({
+      userText: lastUser?.content ?? "",
+      reply: finalReply,
+      limit: parsed.limit,
+      // Ops that changed nothing (e.g. a made-up "format" path) don't count.
+      opsCount: JSON.stringify(next) === JSON.stringify(data) ? 0 : rawOps.length,
+    });
     if (!finalReply) {
-      if (rawOps.length > 0) {
-        finalReply = summariseOps(rawOps);
-      } else {
-        return Response.json(
-          { error: "Hmm, I didn't catch that. Try rephrasing?" },
-          { status: 502 },
-        );
-      }
+      return Response.json(
+        { error: "Hmm, I didn't catch that. Try rephrasing?" },
+        { status: 502 },
+      );
     }
 
     // Em/en dash cleanup.

@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FiSend, FiMic, FiMicOff } from "react-icons/fi";
 import type { JrsChatMsg } from "~/lib/jrs/types";
+import { COACH_SCOPE_NOTE } from "~/lib/jrs/coach-limits";
 
 export function ChatPanel({
   messages,
@@ -105,6 +106,10 @@ export function ChatPanel({
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         Resume coach
       </div>
+      {/* Always on screen: what the coach can and cannot do. */}
+      <p className="border-b-2 border-neutral-900 bg-amber-50 px-4 py-2 text-xs leading-snug text-neutral-700">
+        {COACH_SCOPE_NOTE}
+      </p>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
         {messages.length === 0 && !sending && (

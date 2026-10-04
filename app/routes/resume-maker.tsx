@@ -56,6 +56,7 @@ import {
   applyOps,
   KICKOFF_AFTER_BASICS,
 } from "~/lib/jrs/coach";
+import { FORMAT_LIMIT_REPLY, isFormatRequest } from "~/lib/jrs/coach-limits";
 
 type Phase = "welcome" | "template" | "editor";
 
@@ -304,6 +305,16 @@ export default function JrsRoute() {
 
       // ── Scripted path: zero LLM cost ───────────────────────────────────
       if (scriptStep) {
+        // A format request is not an answer to "what's your name?". Say the
+        // coach can't do it and ask the question again, instead of saving the
+        // request as the field's value.
+        if (isFormatRequest(t)) {
+          pushBot(
+            `${FORMAT_LIMIT_REPLY}\n\n${scriptedQuestion(scriptStep, data)}`,
+            afterUser,
+          );
+          return;
+        }
         const patched = applyScripted(scriptStep, t, data);
         setData(patched);
         saveResume(patched);
