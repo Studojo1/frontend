@@ -8,7 +8,9 @@ import {
   COACH_SCOPE_PROMPT,
   FORMAT_LIMIT_REPLY,
   NO_CHANGE_REPLY,
+  SECTION_ORDER_REPLY,
   enforceCoachLimits,
+  isSectionOrderRequest,
   isFormatRequest,
 } from "./coach-limits.ts";
 import { applyOps } from "./coach.ts";
@@ -106,6 +108,30 @@ assert.equal(
   }),
   "Got it, added Blip Store. What did you build there?",
 );
+
+// Moving whole sections: the model kept pointing at the entry arrows, which
+// only reorder entries inside a section.
+for (const q of [
+  "put education above experience",
+  "move my skills section to the top",
+  "can you reorder the sections",
+  "bring projects before experience",
+]) {
+  assert.equal(isSectionOrderRequest(q), true, `not caught: "${q}"`);
+  assert.equal(
+    enforceCoachLimits({
+      userText: q,
+      reply: "You can do it using the up and down arrows in the Edit tab.",
+      limit: "other",
+      opsCount: 0,
+    }),
+    SECTION_ORDER_REPLY,
+  );
+}
+assert.match(SECTION_ORDER_REPLY, /^I can't move sections/);
+for (const q of ["add Python to my skills", "my first experience was at Blip", "rewrite my summary"]) {
+  assert.equal(isSectionOrderRequest(q), false, `false positive: "${q}"`);
+}
 
 // The model sent edits that changed nothing: it may not claim they landed.
 assert.equal(
