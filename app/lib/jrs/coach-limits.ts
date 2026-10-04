@@ -19,11 +19,16 @@ export const FORMAT_LIMIT_REPLY =
 export const FORMAT_LIMIT_SHORT =
   "I can't change the format of your resume, only what's written on it. Use the Template button and the Edit tab for the look.";
 
+/** Sent when the model's ops changed nothing, so it can't claim they did. */
+export const NO_CHANGE_REPLY =
+  "That didn't change anything on your resume. Tell me exactly what to add or edit and I'll try again.";
+
 /** Section of the system prompt that states the coach's limits. */
 export const COACH_SCOPE_PROMPT = `WHAT YOU CAN AND CANNOT DO
 - You can ONLY change the written content of the resume, through OPS: contact details, summary, experience, education, projects and skills. You can add, rewrite, shorten or remove them.
 - You CANNOT change how the resume looks. That covers the format, template, design, theme, fonts, text size, bold/italic/underline, colours, margins, spacing, line height, columns, alignment, layout, section order and page breaks. No op does any of this.
 - You also CANNOT download, export, print or email the resume, read or upload files, change the order of entries, score the resume against a job, or write cover letters.
+- The order of the sections (for example education above experience) is fixed by the template. Nobody can drag sections around, the only way to get a different order is a different template.
 - When the user asks for something you cannot do, say plainly in your FIRST sentence that you can't do it. Never say or imply that you did it. Never answer "done" or "sure". Then tell them where they can do it themselves:
   - Template or design: the Template button at the top.
   - Spacing: the Compact / Normal / Roomy switch at the top.
@@ -65,12 +70,17 @@ export function enforceCoachLimits(input: {
   userText: string;
   reply: string;
   limit: unknown;
+  /** Ops that actually changed the resume. */
   opsCount: number;
+  /** Ops the model sent, whether or not they changed anything. */
+  opsTried?: number;
 }): string {
-  const { userText, reply, limit, opsCount } = input;
+  const { userText, reply, limit, opsCount, opsTried = opsCount } = input;
   const flagged = limit === "format";
   if (opsCount === 0) {
-    return flagged || isFormatRequest(userText) ? FORMAT_LIMIT_REPLY : reply;
+    if (flagged || isFormatRequest(userText)) return FORMAT_LIMIT_REPLY;
+    // The model sent edits and none of them took: don't let it say "added".
+    return opsTried > 0 ? NO_CHANGE_REPLY : reply;
   }
   // Content was changed too: keep the model's account of that, and make sure
   // the format refusal is in there.

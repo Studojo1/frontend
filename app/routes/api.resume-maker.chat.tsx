@@ -54,6 +54,10 @@ OPS SCHEMA (emit only these shapes):
   { "op":"add", "path":"experience|education|projects|skills", "value":{ ...item fields... } }
   { "op":"update", "path":"experience|education|projects|skills.<id>", "value":{ ...partial fields... } }
   { "op":"remove", "path":"experience|education|projects|skills.<id>" }
+<id> is the item's "id" from CURRENT_RESUME, never its position. An update's value is always an object of the fields to change, for example:
+  { "op":"update", "path":"skills.ab12cd34", "value":{ "items":"Java, Python" } }
+  { "op":"update", "path":"experience.ef56gh78", "value":{ "bullets":["full list of bullets, old and new"] } }
+Item fields: experience { company, role, location, start, end, current, bullets[] }, education { school, degree, field, start, end, location, details }, projects { name, link, description, bullets[] }, skills { category, items (comma-separated string) }.
 
 OUTPUT
 Return strict JSON only:
@@ -166,6 +170,7 @@ export async function action({ request }: Route.ActionArgs) {
         )
       : [];
     const next = applyOps(data, rawOps);
+    const changed = JSON.stringify(next) !== JSON.stringify(data);
 
     // If the model only returned ops with no reply, synthesise a friendly
     // acknowledgement so the user always gets feedback. Only bail out if we
@@ -181,7 +186,8 @@ export async function action({ request }: Route.ActionArgs) {
       reply: finalReply,
       limit: parsed.limit,
       // Ops that changed nothing (e.g. a made-up "format" path) don't count.
-      opsCount: JSON.stringify(next) === JSON.stringify(data) ? 0 : rawOps.length,
+      opsCount: changed ? rawOps.length : 0,
+      opsTried: rawOps.length,
     });
     if (!finalReply) {
       return Response.json(
@@ -197,7 +203,7 @@ export async function action({ request }: Route.ActionArgs) {
       .replace(/\u2014/g, ",")
       .replace(/\u2013/g, ",");
 
-    return Response.json({ reply: cleanReply, ops: rawOps, data: next });
+    return Response.json({ reply: cleanReply, ops: changed ? rawOps : [], data: next });
   } catch (error: any) {
     if (error?.name === "AbortError") {
       console.error("[jrs-chat] OpenAI request timed out");

@@ -7,9 +7,11 @@ import {
   COACH_SCOPE_NOTE,
   COACH_SCOPE_PROMPT,
   FORMAT_LIMIT_REPLY,
+  NO_CHANGE_REPLY,
   enforceCoachLimits,
   isFormatRequest,
 } from "./coach-limits.ts";
+import { applyOps } from "./coach.ts";
 
 const here = (p) => readFileSync(new URL(p, import.meta.url), "utf8");
 
@@ -104,6 +106,47 @@ assert.equal(
   }),
   "Got it, added Blip Store. What did you build there?",
 );
+
+// The model sent edits that changed nothing: it may not claim they landed.
+assert.equal(
+  enforceCoachLimits({
+    userText: "add Python to my skills",
+    reply: "Got it, added Python to your skills.",
+    limit: null,
+    opsCount: 0,
+    opsTried: 1,
+  }),
+  NO_CHANGE_REPLY,
+);
+
+// Op shapes the model really sends (seen on staging) must apply, not vanish.
+const resume = {
+  basics: { name: "T", title: "", email: "", phone: "", location: "", website: "", linkedin: "" },
+  summary: "",
+  experience: [
+    { id: "e1", company: "Blip", role: "Intern", location: "", start: "", end: "", current: false, bullets: ["Built a page"] },
+  ],
+  education: [],
+  projects: [],
+  skills: [{ id: "s1", category: "Languages", items: "Java" }],
+};
+assert.equal(
+  applyOps(resume, [{ op: "update", path: "skills.0.items", value: "Java, Python" }]).skills[0].items,
+  "Java, Python",
+);
+assert.deepEqual(
+  applyOps(resume, [{ op: "update", path: "experience.e1.bullets", value: ["A", "B"] }]).experience[0].bullets,
+  ["A", "B"],
+);
+const viaObject = applyOps(resume, [
+  { op: "update", path: "skills.s1", value: { id: "other", items: "Go" } },
+]).skills[0];
+assert.equal(viaObject.items, "Go");
+assert.equal(viaObject.id, "s1", "an update must not rewrite the item id");
+// A malformed patch changes nothing instead of corrupting the item.
+assert.deepEqual(applyOps(resume, [{ op: "update", path: "experience.e1", value: ["x"] }]), resume);
+assert.deepEqual(applyOps(resume, [{ op: "update", path: "experience.e1.bullets", value: "x" }]), resume);
+assert.deepEqual(applyOps(resume, [{ op: "set", path: "format", value: "modern" }]), resume);
 
 // Wiring: the endpoint uses the prompt section and the enforcement, the
 // scripted onboarding refuses instead of saving the request as an answer, and
