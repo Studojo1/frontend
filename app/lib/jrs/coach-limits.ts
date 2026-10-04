@@ -19,6 +19,10 @@ export const FORMAT_LIMIT_REPLY =
 export const FORMAT_LIMIT_SHORT =
   "I can't change the format of your resume, only what's written on it. Use the Template button and the Edit tab for the look.";
 
+/** The reply to a request to move whole sections around. */
+export const SECTION_ORDER_REPLY =
+  "I can't move sections around. The order of the sections is set by the template, so for a different order pick another template with the Template button at the top (Harvard, for example, puts education first). Inside a section you can reorder entries with the up and down arrows in the Edit tab.";
+
 /** Sent when the model's ops changed nothing, so it can't claim they did. */
 export const NO_CHANGE_REPLY =
   "That didn't change anything on your resume. Tell me exactly what to add or edit and I'll try again.";
@@ -59,6 +63,16 @@ export function isFormatRequest(text: string): boolean {
   return ASK.test(t) && LOOK.test(t);
 }
 
+const MOVE = /\b(move|put|place|bring|shift|swap|reorder|rearrange|re-order|re-arrange|order)\b/i;
+const SECTION = /\b(sections?|education|experience|projects?|skills|summary)\b/i;
+const WHERE = /\b(above|below|before|after|top|bottom|first|last|up|down|higher|lower|order|reorder|rearrange|re-order|re-arrange|swap)\b/i;
+
+/** True when the text asks to move a whole section (education above experience). */
+export function isSectionOrderRequest(text: string): boolean {
+  const t = String(text || "");
+  return MOVE.test(t) && SECTION.test(t) && WHERE.test(t);
+}
+
 const SAYS_CANNOT = /\b(can[’']?t|cannot|can not|not able to|unable to)\b/i;
 
 /**
@@ -78,6 +92,7 @@ export function enforceCoachLimits(input: {
   const { userText, reply, limit, opsCount, opsTried = opsCount } = input;
   const flagged = limit === "format";
   if (opsCount === 0) {
+    if (isSectionOrderRequest(userText)) return SECTION_ORDER_REPLY;
     if (flagged || isFormatRequest(userText)) return FORMAT_LIMIT_REPLY;
     // The model sent edits and none of them took: don't let it say "added".
     return opsTried > 0 ? NO_CHANGE_REPLY : reply;
