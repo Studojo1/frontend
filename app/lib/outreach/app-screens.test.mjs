@@ -240,3 +240,39 @@ assert.match(sampleEmailLine({ masked: "\u2022\u2022\u2022@acme.com", kind: "dom
   assert.deepEqual(c.labelSelector.matchLabels, { app: "frontend" });
   assert.ok(wf.indexOf("topologySpreadConstraints") < wf.indexOf("kubectl set image"), "spread before the new image rolls out");
 }
+
+// ── Lead cards (10 Oct): the industry line drops the research citation ──────
+{
+  const { cleanIndustry } = await import("./industry.ts");
+  // Real values from production leads.
+  for (const raw of [
+    "Accounting software ([en.wikipedia.org](https://en.wikipedia.org/wiki/Tally_Solutions))",
+    "AdTech ([builtin.com](https://builtin.com/company/responsiveads))",
+    "Advertising & Marketing ([zoominfo.com](https://www.zoominfo.com/c/viral-groww/482281645))",
+    "advertising ([raagnaaiads.com](https://raagnaaiads.com/))",
+    "Aesthetic Medicine ([datanyze.com](https://www.datanyze.com/companies/aayna-clinic/370747005))",
+  ]) {
+    assert.equal(cleanIndustry(raw), raw.slice(0, raw.indexOf(" ([")), raw);
+  }
+  for (const clean of ["Information Technology & Services", "Retail", "Other business activities n.e.c."]) {
+    assert.equal(cleanIndustry(clean), clean, "a clean value passes through unchanged");
+  }
+  // The other shapes production holds: a full stop before the link, no space,
+  // doubled brackets, a bracket of its own.
+  assert.equal(cleanIndustry("Ecommerce. ([example.com](https://www.example.com/))"), "Ecommerce");
+  assert.equal(cleanIndustry("Public Relations([example.com](https://example.com/company/x/))"), "Public Relations");
+  assert.equal(cleanIndustry("Industrial Machinery (([example.com](https://example.com/x-profile)))"), "Industrial Machinery");
+  assert.equal(cleanIndustry("Travel (DMC). ([example.com](https://www.example.com/about-us))"), "Travel (DMC)");
+  assert.equal(cleanIndustry("Footwear ([en.wikipedia.org](https://en.wikipedia.org/wiki/On_(company)))"), "Footwear");
+  // Any other markdown link keeps its text; bare URLs go.
+  assert.equal(cleanIndustry("[Fintech](https://example.com/fintech) and payments"), "Fintech and payments");
+  assert.equal(cleanIndustry("SaaS, https://example.com/about"), "SaaS");
+  assert.equal(cleanIndustry("Retail (www.example.com)"), "Retail");
+  // Nothing left.
+  assert.equal(cleanIndustry("([example.com](https://example.com/))"), "");
+  assert.equal(cleanIndustry("  "), "");
+  assert.equal(cleanIndustry(null), "");
+  const card = read("components/outreach/FlashCard.tsx");
+  assert.match(card, /cleanIndustry\(lead\.industry\)/, "the card shows the cleaned industry");
+  assert.doesNotMatch(card, /\{lead\.industry\}/, "the card never prints the raw industry");
+}
