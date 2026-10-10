@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "react-router";
 import { FiArrowRight } from "react-icons/fi";
 import { Header } from "~/components/common/header";
 import { REAL_NUMBERS } from "~/components/outreach/RealNumbers";
+import { trackMeta } from "~/lib/meta-pixel";
 
 // /start: the page paid ads point at (audit VS-V06). /outreach is a 6-screen
 // marketing page with dozens of links; ad visitors need one screen and one
@@ -29,6 +31,12 @@ const STEPS = [
 export default function Start() {
   const { search } = useLocation();
   const cta = `/outreach/onboarding/upload${search}`;
+
+  // Paid ads land here, so this is the audience retargeting is built from.
+  // Without its own event these visitors gave Meta nothing but a PageView.
+  useEffect(() => {
+    trackMeta("ViewContent", { content_name: "Outreach ad landing" });
+  }, []);
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header landing />
