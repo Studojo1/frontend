@@ -13,9 +13,10 @@ import { EMPTY_SIGNALS, mergeSignals, signalsFromCandidate, signalsFromTalent, t
 import type { ProfileLinks, TalentStore } from "../../auth-schema";
 
 /**
- * /profile: the student's profile, laid out like a Tal public profile (big
- * name, portrait card between two tilted cards, then timelines and a stack),
- * in the sensei.studojo.com style used by /start. Everything comes from what
+ * /profile: the student's talent sheet, shown the way a recruiter would see
+ * them in Sensei: identity with what's verified, a "why talk to them" note
+ * written from their answers, signals and top matches, then the detail as
+ * rows, in the sensei.studojo.com style used by /start. Everything comes from what
  * signup learned (resume, swipes, question cards) plus the outreach profile.
  * After signup (?welcome=1) it leads straight on to the agent chat in /app.
  */
@@ -44,14 +45,6 @@ const PROFILE_CSS = `
 .ss .sec__head h2 { font-size:1.35rem; letter-spacing:-.025em; font-weight:600; margin:0; }
 .ss .sec__head h2 em { font-family:var(--serif); font-style:italic; font-weight:400; color:var(--accent); }
 .ss .sec__body { padding:16px 22px 22px; }
-.ss .tl { position:relative; display:grid; gap:18px; }
-.ss .tl__item { display:grid; grid-template-columns:44px 1fr; gap:14px; position:relative; }
-.ss .tl__item:not(:last-child)::after { content:""; position:absolute; left:21px; top:48px; bottom:-14px; width:1px; background:var(--border-2); }
-.ss .duration { display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10.5px; padding:2px 8px; border-radius:999px; background:var(--bg-2); color:var(--text-2); }
-.ss .tilt-l { transform:rotate(-6deg) translateY(18px); }
-.ss .tilt-r { transform:rotate(6deg) translateY(18px); }
-@media (max-width: 860px) { .ss .tilt-l, .ss .tilt-r { transform:none; } }
-.ss .seal { width:84px; height:84px; filter:drop-shadow(0 6px 10px rgba(18,20,45,.25)); }
 `;
 
 function Section({ title, right, children, tour }: { title: ReactNode; right?: ReactNode; children: ReactNode; tour?: string }) {
@@ -60,26 +53,6 @@ function Section({ title, right, children, tour }: { title: ReactNode; right?: R
       <div className="sec__head"><h2>{title}</h2>{right}</div>
       <div className="sec__body">{children}</div>
     </section>
-  );
-}
-
-function Seal() {
-  // A silver scalloped seal with a tick, like Tal's verified badge.
-  const pts = Array.from({ length: 24 }, (_, i) => {
-    const a = (i / 24) * Math.PI * 2, r = i % 2 ? 40 : 46;
-    return `${50 + Math.cos(a) * r},${50 + Math.sin(a) * r}`;
-  }).join(" ");
-  return (
-    <svg viewBox="0 0 100 100" className="seal" aria-hidden="true">
-      <defs>
-        <linearGradient id="sealg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#F2F2F6" /><stop offset=".45" stopColor="#B9BAC6" /><stop offset=".7" stopColor="#E4E4EC" /><stop offset="1" stopColor="#9A9BA9" />
-        </linearGradient>
-      </defs>
-      <polygon points={pts} fill="url(#sealg)" stroke="#8E8FA0" strokeWidth=".8" />
-      <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="1.2" />
-      <path d="M37 51l9 9 18-20" fill="none" stroke="#F8F8FB" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }
 
@@ -153,7 +126,7 @@ export default function ProfilePage() {
   const emailPrefix = (user?.email ?? "").split("@")[0].toLowerCase();
   const accountName = user?.name && !user.name.includes("@") && user.name.trim().toLowerCase() !== emailPrefix ? user.name.trim() : null;
   const name = filled(profile?.fullName) ?? accountName ?? resumeProfile?.name ?? "Your profile";
-  const [first, ...rest] = name.split(" ");
+  const [first] = name.split(" ");
   const college = filled(profile?.college) ?? resumeProfile?.college ?? null;
   const course = filled(profile?.course) ?? resumeProfile?.course ?? null;
   const year = filled(profile?.yearOfStudy) ?? resumeProfile?.yearOfStudy ?? null;
@@ -211,6 +184,23 @@ export default function ProfilePage() {
   }
 
   const insights = (prefs.insights ?? []).filter((i) => i.kind !== "speed");
+  // "Why talk to them", written in the third person from what signup learned.
+  const third = (x: string) => x.replace(/^You'd /, `${first} would `).replace(/^You're /, `${first} is `).replace(/^You /, `${first} `).replace(/\byou\b/g, "them").replace(/\byour\b/g, "their");
+  const values = insights.find((i) => i.kind === "values" && !/^Dream/.test(i.text));
+  const pitch = [
+    exp[0] ? `${exp[0].title}${exp[0].company ? ` at ${exp[0].company}` : ""}.` : course && college ? `${course} at ${college}.` : null,
+    chat.proud ? `${chat.proud.replace(/\.$/, "")}.` : null,
+    lookingFor ? `Wants ${lookingFor.toLowerCase()} roles${prefs.cities?.length ? ` in ${prefs.cities.slice(0, 2).join(" or ")}` : ""}${chat.workMode ? `, ${chat.workMode.toLowerCase()}` : ""}${chat.startWhen ? `, ${chat.startWhen === "Right away" ? "can start right away" : `starting ${chat.startWhen.toLowerCase()}`}` : ""}.` : null,
+    values ? third(values.text) : null,
+  ].filter(Boolean).join(" ") || "Finish signup and this fills in from your resume and swipes.";
+  const signalTags: [string, string][] = [
+    ...(prefs.clusters?.[0] ? [[`into ${prefs.clusters[0].toLowerCase()}`, ""] as [string, string]] : []),
+    ...(insights.some((i) => /move for the right role|move to/.test(i.text)) ? [["would relocate", ""] as [string, string]] : insights.some((i) => /rather stay/.test(i.text)) ? [["stays local", "plain"] as [string, string]] : []),
+    ...(chat.companyStage ? [[chat.companyStage.toLowerCase(), "rose"] as [string, string]] : []),
+    ...(prefs.minMonthly ? [[`₹${Math.round(prefs.minMonthly / 1000)}k+ / month`, "mint"] as [string, string]] : insights.some((i) => /work matters more to you than the stipend/.test(i.text)) ? [["work over stipend", "mint"] as [string, string]] : []),
+    ...(chat.startWhen ? [[chat.startWhen.toLowerCase(), "amber"] as [string, string]] : []),
+    ...(insights.some((i) => /mentor/.test(i.text)) ? [["wants a mentor", "rose"] as [string, string]] : []),
+  ];
   const workRows = insights.filter((i) => ["work", "avoid", "fit"].includes(i.kind));
   const lifeRows = insights.filter((i) => !["work", "avoid", "fit"].includes(i.kind));
   const skills = (t.resume?.skills?.length ? t.resume.skills : signals.skills) ?? [];
@@ -243,66 +233,85 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Hero: big name, portrait between two tilted cards */}
-        <header style={{ textAlign: "center", marginTop: 40 }} data-tour="hero">
-          <h1 style={{ fontSize: "clamp(2.8rem, 7vw, 5.2rem)", letterSpacing: "-.04em", lineHeight: 1 }}>
-            <em style={{ color: "var(--ink)" }}>{first?.toLowerCase()}</em> {rest.join(" ").toLowerCase()}
-          </h1>
-          {lookingFor && <p className="lead" style={{ margin: "14px auto 0" }}>Looking for <span style={{ color: "var(--ink)", fontWeight: 500 }}>{lookingFor}</span> roles{city ? <> · {city}</> : null}</p>}
-        </header>
-
-        <div style={{ maxWidth: 1040, margin: "34px auto 0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", alignItems: "center", gap: 20 }}>
-          {/* Left card: what they're after */}
-          <div className="sec tilt-l" style={{ padding: 22, order: 0 }} data-tour="card-left">
-            <span className="sq" style={{ width: 52, height: 52, borderRadius: 14, background: colorFor(exp[0]?.company || prefs.clusters?.[0] || "x"), fontSize: 18 }}>{initials(exp[0]?.company || prefs.clusters?.[0] || lookingFor || name)}</span>
-            <div style={{ marginTop: 14, fontSize: 13.5, color: "var(--text-2)" }}>{exp[0]?.company || college || "Student"}</div>
-            <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-.025em", lineHeight: 1.15 }}>{exp[0]?.title || course || "Your next role"}</div>
-            <div style={{ marginTop: 18, display: "grid", gap: 10 }}>
-              <div><div className="label">looking for</div><div style={{ fontSize: 15, fontWeight: 500 }}>{lookingFor ?? "Tell us in signup"}</div></div>
-              <div style={{ borderTop: "1px solid var(--border)", paddingTop: 10 }}><div className="label">location</div><div style={{ fontSize: 15, fontWeight: 500 }}>{[city, ...(prefs.cities ?? []).filter((c) => c !== city)].filter(Boolean).slice(0, 3).join(", ") || "Anywhere"}</div></div>
-            </div>
+        {/* Talent sheet: how a recruiter sees them in Sensei */}
+        <main className="panel fade" style={{ maxWidth: 1040, margin: "24px auto 0" }} data-tour="sheet">
+          <div className="panel__bar">
+            <span style={{ display: "flex", gap: 5 }} aria-hidden="true">{[0, 1, 2].map((i) => <span key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: "#DCDCE6" }} />)}</span>
+            <span style={{ marginLeft: 6 }}>studojo · talent sheet · {name.toLowerCase().replace(/\s+/g, "-")}</span>
+            <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 7 }}><span className="dot" />live</span>
           </div>
-
-          {/* Centre: portrait */}
-          <div style={{ padding: 14, background: "#fff", borderRadius: 26, boxShadow: "var(--sh-lg)", border: "1px solid var(--border)", order: 1 }} data-tour="portrait">
-            {user.image ? (
-              <img src={user.image} alt="" referrerPolicy="no-referrer" style={{ width: "100%", aspectRatio: "4 / 5", objectFit: "cover", borderRadius: 18, display: "block" }} />
-            ) : (
-              <div style={{ aspectRatio: "4 / 5", borderRadius: 18, display: "grid", placeItems: "center", position: "relative", overflow: "hidden",
-                background: "radial-gradient(120% 90% at 30% 10%, #8E95F5 0%, #5B63E8 45%, #2E2F8C 100%)" }}>
-                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(255,255,255,.18) 1px, transparent 1px)", backgroundSize: "14px 14px" }} />
-                <span style={{ position: "relative", fontFamily: "var(--serif)", fontStyle: "italic", fontSize: "clamp(5rem, 11vw, 7.5rem)", color: "#fff", letterSpacing: "-.02em" }}>{initials(name)}</span>
-                <span className="mono" style={{ position: "absolute", bottom: 14, left: 16, fontSize: 11, color: "rgba(255,255,255,.75)" }}>{[course, year].filter(Boolean).join(" · ").toLowerCase()}</span>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 330px), 1fr))" }}>
+            {/* Identity */}
+            <div style={{ padding: 26, borderRight: "1px solid var(--border)", display: "grid", gap: 18, alignContent: "start" }} data-tour="identity">
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                {user.image ? (
+                  <img src={user.image} alt="" referrerPolicy="no-referrer" style={{ width: 84, height: 84, borderRadius: 20, objectFit: "cover", boxShadow: "var(--sh-md)" }} />
+                ) : (
+                  <span style={{ width: 84, height: 84, borderRadius: 20, display: "grid", placeItems: "center", flexShrink: 0, color: "#fff", fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 40,
+                    background: "radial-gradient(120% 100% at 25% 15%, #8E95F5 0%, #5B63E8 50%, #3A3FB0 100%)", boxShadow: "var(--sh-md)" }}>{initials(name)}</span>
+                )}
+                <div style={{ minWidth: 0 }}>
+                  <h1 style={{ fontSize: "clamp(1.7rem, 3.4vw, 2.2rem)" }}>{name}</h1>
+                  {lookingFor && <div style={{ fontSize: 17, marginTop: 2 }}>Aspiring <em className="em">{lookingFor.toLowerCase()}</em></div>}
+                </div>
               </div>
-            )}
-          </div>
-
-          {/* Right card: verified */}
-          <div className="sec tilt-r" style={{ padding: 22, textAlign: "center", order: 2 }} data-tour="card-right">
-            <div style={{ display: "grid", placeItems: "center" }}><Seal /></div>
-            <div style={{ marginTop: 14, fontFamily: "var(--serif)", fontSize: 22, lineHeight: 1.15, textTransform: "uppercase", letterSpacing: ".02em" }}>
-              {verified ? <>{first} is a verified<br />Studojo student</> : <>{first}'s email<br />isn't verified yet</>}
+              <div className="mono" style={{ fontSize: 12, color: "var(--text-3)", lineHeight: 1.7 }}>
+                {[course, college, year].filter(Boolean).join(" · ").toLowerCase()}
+                {city && <><br />based in {city.toLowerCase()}</>}
+              </div>
+              <div className="tile" style={{ overflow: "hidden" }} data-tour="verified">
+                {[
+                  ["email", user.email, verified ? "verified" : "unverified", verified ? "mint" : "amber"],
+                  ["resume", t.resume ? "read at signup" : "not uploaded", t.resume ? "read" : "missing", t.resume ? "" : "amber"],
+                  ["answers", `${(prefs.liked?.length ?? 0) + (prefs.passed?.length ?? 0)} roles judged`, insights.length ? "learned" : "pending", insights.length ? "" : "plain"],
+                  ["github", links?.github ? `@${links.github}` : "not linked", links?.github ? "linked" : "add", links?.github ? "" : "plain"],
+                ].map(([k, v, status, tone]) => (
+                  <div key={k as string} className="row" style={{ padding: "10px 14px", gap: 10 }}>
+                    <span className="label" style={{ width: 62 }}>{k}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</span>
+                    {status === "add" ? <button type="button" className="link" style={{ fontSize: 12.5 }} onClick={openEdit}>add</button> : <span className={`tag ${tone}`}>{status}</span>}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
-              {verified && <span className="tag mint">email verified</span>}
-              {t.resume && <span className="tag">resume read</span>}
-              {!!insights.length && <span className="tag rose">{insights.length} things learned</span>}
+
+            {/* Why talk to them + matches */}
+            <div style={{ padding: 26, display: "grid", gap: 18, alignContent: "start" }}>
+              <div style={{ padding: "16px 18px", borderRadius: 14, background: "var(--accent-soft)", border: "1px solid var(--accent-line)" }} data-tour="why">
+                <div className="label" style={{ color: "var(--accent-deep)" }}>why talk to {first?.toLowerCase()}</div>
+                <p style={{ margin: "6px 0 0", fontSize: 15.5, lineHeight: 1.55 }}>{pitch}</p>
+              </div>
+              {!!signalTags.length && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} data-tour="signals">
+                  {signalTags.map(([text, tone]) => <span key={text} className={`tag ${tone}`}>{text}</span>)}
+                </div>
+              )}
+              {!!prefs.best?.length && (
+                <div>
+                  <div className="label" style={{ marginBottom: 8 }}>top matches for {first?.toLowerCase()}</div>
+                  <div className="tile" style={{ overflow: "hidden" }} data-tour="matches">
+                    {prefs.best.map((m) => (
+                      <a key={m.slug} href={`/internships/${m.slug}`} target="_blank" rel="noopener" className="row" style={{ textDecoration: "none", color: "inherit" }}>
+                        <span className="sq" style={{ background: colorFor(m.company) }}>{initials(m.company)}</span>
+                        <span style={{ minWidth: 0, flex: 1 }}>
+                          <span style={{ display: "block", fontWeight: 500, fontSize: 14.5 }}>{m.title}</span>
+                          <span className="mono" style={{ display: "block", fontSize: 11.5, color: "var(--text-3)" }}>{m.company} · {(m.city ?? "remote").toLowerCase()}</span>
+                        </span>
+                        <span style={{ fontWeight: 600, fontSize: 17 }}>{m.match}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        </main>
 
-        {/* Sections */}
-        <div style={{ maxWidth: 1040, margin: "56px auto 0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 20, alignItems: "start" }}>
+        {/* The sheet's detail, as rows */}
+        <div style={{ maxWidth: 1040, margin: "20px auto 0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 20, alignItems: "start" }}>
           <div style={{ display: "grid", gap: 20, minWidth: 0 }}>
-            {chat.proud && (
-              <section className="sec" style={{ padding: "26px 26px 22px" }} data-tour="proud">
-                <div className="label">proud of</div>
-                <p style={{ margin: "8px 0 0", fontFamily: "var(--serif)", fontSize: 28, lineHeight: 1.2, letterSpacing: "-.01em" }}>“{chat.proud}”</p>
-              </section>
-            )}
-
-            <Section title={<>What {first} is <em>looking for</em></>} tour="looking">
-              <div style={{ display: "grid", gap: 10 }}>
+            <Section title="Wants" tour="wants">
+              <div className="tile" style={{ overflow: "hidden" }}>
                 {[
                   ["roles", (prefs.titles ?? []).slice(0, 3).join(", ") || lookingFor],
                   ["cities", (prefs.cities ?? []).join(", ")],
@@ -310,36 +319,24 @@ export default function ProfilePage() {
                   ["starts", chat.startWhen],
                   ["company", chat.companyStage ?? prefs.companyStage],
                   ["stipend", prefs.minMonthly ? `₹${Math.round(prefs.minMonthly / 1000)}k+ a month` : null],
+                  ["dream", chat.dreamCompanies?.join(", ")],
                 ].filter(([, v]) => v).map(([k, v]) => (
-                  <div key={k as string} style={{ display: "grid", gridTemplateColumns: "84px 1fr", gap: 12, alignItems: "baseline" }}>
-                    <span className="label">{k}</span>
-                    <span style={{ fontSize: 15 }}>{v}</span>
+                  <div key={k as string} className="row" style={{ padding: "11px 14px" }}>
+                    <span className="label" style={{ width: 70, flexShrink: 0 }}>{k}</span>
+                    <span style={{ fontSize: 14.5 }}>{v}</span>
                   </div>
                 ))}
               </div>
-              {!!chat.dreamCompanies?.length && (
-                <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
-                  <div className="label" style={{ marginBottom: 10 }}>dream companies</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    {chat.dreamCompanies.map((c) => (
-                      <span key={c} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px 6px 6px", border: "1px solid var(--border)", borderRadius: 999, background: "#fff" }}>
-                        <span className="sq" style={{ width: 26, height: 26, borderRadius: 8, fontSize: 11, background: colorFor(c) }}>{initials(c)}</span>
-                        <span style={{ fontSize: 14 }}>{c}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </Section>
 
             {!!(workRows.length + lifeRows.length) && (
-              <Section title={<>What we <em>learned</em></>} right={<span className="mono" style={{ fontSize: 11.5, color: "var(--text-3)" }}>from {prefs.liked?.length ?? 0} kept · {prefs.passed?.length ?? 0} passed</span>} tour="learned">
-                <div style={{ display: "grid", gap: 14 }}>
+              <Section title={<>What we <em>learned</em></>} right={<span className="mono" style={{ fontSize: 11.5, color: "var(--text-3)" }}>{prefs.liked?.length ?? 0} kept · {prefs.passed?.length ?? 0} passed</span>} tour="learned">
+                <div className="tile" style={{ overflow: "hidden" }}>
                   {[...workRows, ...lifeRows].map((i) => (
-                    <div key={i.text} style={{ display: "grid", gridTemplateColumns: "92px 1fr", gap: 12 }}>
-                      <span><span className={`tag ${TAG_TONE[i.kind] ?? ""}`}>{i.kind === "avoid" ? "not for you" : i.kind === "plan" ? "plans" : i.kind}</span></span>
-                      <span>
-                        <span style={{ display: "block", fontSize: 15, fontWeight: 500 }}>{i.text}</span>
+                    <div key={i.text} className="row" style={{ alignItems: "flex-start", padding: "11px 14px" }}>
+                      <span style={{ width: 84, flexShrink: 0 }}><span className={`tag ${TAG_TONE[i.kind] ?? ""}`}>{i.kind === "avoid" ? "not for you" : i.kind === "plan" ? "plans" : i.kind}</span></span>
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: "block", fontSize: 14.5, fontWeight: 500 }}>{i.text}</span>
                         <span className="mono" style={{ display: "block", fontSize: 11.5, color: "var(--text-3)" }}>{i.evidence}</span>
                       </span>
                     </div>
@@ -350,58 +347,42 @@ export default function ProfilePage() {
           </div>
 
           <div style={{ display: "grid", gap: 20, minWidth: 0 }}>
-            <Section title={exp.length ? <>{exp.length} {exp.length === 1 ? "role" : "roles"} of <em>experience</em></> : <>Experience</>} tour="experience">
-              {exp.length ? (
-                <div className="tl">
-                  {(showAllExp ? exp : exp.slice(0, 3)).map((e, i) => (
-                    <div key={i} className="tl__item">
-                      <span className="sq" style={{ width: 44, height: 44, borderRadius: 12, background: colorFor(e.company || e.title) }}>{initials(e.company || e.title)}</span>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 15.5 }}>{e.title}</div>
-                        <div style={{ fontSize: 14, color: "var(--text-2)" }}>{e.company}</div>
-                        {e.duration && <div style={{ marginTop: 6 }}><span className="duration">{e.duration}</span></div>}
-                      </div>
-                    </div>
-                  ))}
-                  {exp.length > 3 && <button type="button" className="link" onClick={() => setShowAllExp((x) => !x)} style={{ justifySelf: "start" }}>{showAllExp ? "Show less" : `Show ${exp.length - 3} more`}</button>}
-                </div>
-              ) : <p style={{ margin: 0, color: "var(--text-3)", fontSize: 14 }}>None yet. Your first role is what we're here for.</p>}
+            <Section title="Experience" tour="experience">
+              <div className="tile" style={{ overflow: "hidden" }}>
+                {exp.length ? (showAllExp ? exp : exp.slice(0, 4)).map((e, i) => (
+                  <div key={i} className="row" style={{ padding: "11px 14px" }}>
+                    <span className="sq" style={{ width: 32, height: 32, borderRadius: 9, fontSize: 11.5, background: colorFor(e.company || e.title) }}>{initials(e.company || e.title)}</span>
+                    <span style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ display: "block", fontWeight: 500, fontSize: 14.5 }}>{e.title}</span>
+                      <span className="mono" style={{ display: "block", fontSize: 11.5, color: "var(--text-3)" }}>{(e.company || "").toLowerCase()}{e.duration ? ` · ${e.duration.toLowerCase()}` : ""}</span>
+                    </span>
+                  </div>
+                )) : <div className="row" style={{ color: "var(--text-3)", fontSize: 14 }}>None yet. Your first role is what we're here for.</div>}
+                {exp.length > 4 && <div className="row"><button type="button" className="link" onClick={() => setShowAllExp((x) => !x)}>{showAllExp ? "Show less" : `Show ${exp.length - 4} more`}</button></div>}
+              </div>
             </Section>
 
             <Section title="Education" tour="education">
-              <div className="tl">
-                <div className="tl__item">
-                  <span className="sq" style={{ width: 44, height: 44, borderRadius: 12, background: colorFor(college ?? "c") }}>{initials(college ?? "?")}</span>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 15.5 }}>{college ?? "Add your college"}</div>
-                    <div style={{ fontSize: 14, color: "var(--text-2)" }}>{course ?? ""}</div>
-                    {year && <div style={{ marginTop: 6 }}><span className="duration">{year.toLowerCase()}</span></div>}
-                  </div>
+              <div className="tile" style={{ overflow: "hidden" }}>
+                <div className="row" style={{ padding: "11px 14px" }}>
+                  <span className="sq" style={{ width: 32, height: 32, borderRadius: 9, fontSize: 11.5, background: colorFor(college ?? "c") }}>{initials(college ?? "?")}</span>
+                  <span style={{ minWidth: 0, flex: 1 }}>
+                    <span style={{ display: "block", fontWeight: 500, fontSize: 14.5 }}>{college ?? "Add your college"}</span>
+                    <span className="mono" style={{ display: "block", fontSize: 11.5, color: "var(--text-3)" }}>{[course, year].filter(Boolean).join(" · ").toLowerCase()}</span>
+                  </span>
                 </div>
               </div>
             </Section>
 
             {!!skills.length && (
-              <Section title={<>{first}'s <em>stack</em></>} tour="stack">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(92px, 1fr))", gap: 10 }}>
-                  {skills.slice(0, 12).map((s) => (
-                    <div key={s} style={{ display: "grid", justifyItems: "center", gap: 8, padding: "14px 8px", border: "1px solid var(--border)", borderRadius: 14, background: "#fff" }}>
-                      <span className="sq" style={{ width: 40, height: 40, borderRadius: 11, background: colorFor(s), fontSize: 12 }}>{s.replace(/[^A-Za-z0-9+#]/g, "").slice(0, 2).toUpperCase()}</span>
-                      <span style={{ fontSize: 12.5, color: "var(--text-2)", textAlign: "center", lineHeight: 1.2 }}>{s}</span>
-                    </div>
-                  ))}
+              <Section title="Skills" tour="stack">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {skills.map((s) => <span key={s} className="tag plain" style={{ fontSize: 11.5, padding: "4px 10px" }}>{s.toLowerCase()}</span>)}
                 </div>
               </Section>
             )}
 
-            {links?.github ? (
-              <Section title={<>What {first}'s <em>shipped</em></>} tour="github"><GithubGraph handle={links.github} /></Section>
-            ) : (
-              <section className="sec" style={{ padding: 22, display: "flex", alignItems: "center", gap: 14 }}>
-                <span style={{ fontSize: 14.5, color: "var(--text-2)" }}>Add your GitHub, LinkedIn or portfolio so recruiters see your work.</span>
-                <button type="button" className="btn btn--ghost" style={{ padding: "8px 14px", fontSize: 13.5, marginLeft: "auto" }} onClick={openEdit}>Add links</button>
-              </section>
-            )}
+            {links?.github && <Section title={<>Recent <em>work</em></>} tour="github"><GithubGraph handle={links.github} /></Section>}
           </div>
         </div>
 

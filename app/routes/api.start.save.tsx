@@ -106,6 +106,9 @@ export async function action({ request }: Route.ActionArgs) {
         : [],
       matters: strs(p.matters, 40, 6),
       companyStage: str(p.companyStage, 40) || null,
+      best: Array.isArray(p.best)
+        ? p.best.slice(0, 3).map((b: any) => ({ title: str(b?.title, 120), company: str(b?.company, 80), slug: str(b?.slug, 160), city: str(b?.city, 60) || null, cluster: str(b?.cluster, 30), match: Math.max(0, Math.min(100, Math.round(Number(b?.match) || 0))) })).filter((b: { title: string; slug: string }) => b.title && b.slug)
+        : [],
     };
     talent.sources = { ...(talent.sources ?? {}), roles: "swipes", cities: "swipes", pay: "swipes" };
     talent.updatedAt = now;

@@ -120,6 +120,20 @@ if (fail) process.exit(1);
   ok("city card answers shape the cities", l.cities.includes("Mumbai"), JSON.stringify(l.cities));
   console.log("Mixed deck:", kinds.join(""), "→", l.insights.filter((i) => ["values", "plan"].includes(i.kind)).map((i) => i.text).join(" | "));
 }
+// ── Hidden facts teach nothing ──────────────────────────────────────────────
+{
+  const { learn: learn4 } = await import("./swipe-brain.ts");
+  const ctx = { homeCity: "Bengaluru", skills: ["SQL", "Excel"] };
+  const mumbai = rows.filter((r) => r.city === "Mumbai");
+  const blind = mumbai.map((r) => ({ id: r.id, verdict: "like", ms: 1500, shows: [] }));
+  const seen = mumbai.map((r) => ({ id: r.id, verdict: "like", ms: 1500, shows: ["place"] }));
+  const tb = learn4(rows, blind, ctx).insights.map((i) => i.text).join(" | ");
+  const ts = learn4(rows, seen, ctx).insights.map((i) => i.text).join(" | ");
+  ok("location not shown: no moving claim, no cities", !/move/.test(tb) && learn4(rows, blind, ctx).cities.every((c) => c === "Bengaluru"), tb);
+  ok("location shown: the same swipes do count", /move for the right role/.test(ts), ts);
+  ok("company type not shown: no company claim", !/Big names|startups/.test(tb), tb);
+}
+
 // ── Branching: no repeats, follow-ups on topic ──────────────────────────────
 {
   const { nextItem, learn: learn3 } = await import("./swipe-brain.ts");

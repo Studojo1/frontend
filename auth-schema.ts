@@ -27,6 +27,8 @@ export type TalentStore = {
     matters?: string[];
     /** Inferred from swipes when clear; the chat then skips asking. */
     companyStage?: string | null;
+    /** Top unseen roles when signup finished, with match scores (0-100). */
+    best?: { title: string; company: string; slug: string; city: string | null; cluster: string; match: number }[];
   };
   /** Follow-ups from the /start chat. */
   chat?: {

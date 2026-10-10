@@ -35,7 +35,17 @@ export type BrainRole = {
 };
 
 export type Verdict = "like" | "pass" | "love";
-export type Swipe = { id: string; verdict: Verdict; ms: number };
+/** Role facts that are only shown on a card when that card is testing them. */
+export type Shown = "place" | "company" | "length";
+/**
+ * One decision. `shows` lists the facts that were visible on the card; the
+ * brain learns location, company type and length only from cards that showed
+ * them (undefined means everything was shown, as in older callers and tests).
+ */
+export type Swipe = { id: string; verdict: Verdict; ms: number; shows?: Shown[] };
+const SHOWN_DIMS: Record<Shown, Dim[]> = { place: ["place", "city"], company: ["company"], length: ["length"] };
+const visibleDims = (s: Swipe): Set<Dim> =>
+  new Set<Dim>(s.shows ? ["cluster", "focus", "fit", ...s.shows.flatMap((x) => SHOWN_DIMS[x])] : (Object.keys(SHOWN_DIMS).flatMap((x) => SHOWN_DIMS[x as Shown]) as Dim[]).concat(["cluster", "focus", "fit", "pay"]));
 export type Ctx = { homeCity: string | null; skills: string[] };
 
 export type Dim = "cluster" | "focus" | "place" | "city" | "pay" | "length" | "company" | "fit";
@@ -145,7 +155,8 @@ export function believe(pool: BrainRole[], swipes: Swipe[], ctx: Ctx): Belief {
     if (!r) continue;
     const w = weightOf(s);
     const f = features(r, ctx);
-    const dims = Object.keys(f) as Dim[];
+    const seenDims = visibleDims(s);
+    const dims = (Object.keys(f) as Dim[]).filter((d) => seenDims.has(d));
     // A pass is blamed mostly on traits we already know they dislike (moving,
     // low pay…), so one known deal-breaker doesn't sink everything else on the card.
     const dislike = dims.map((d) => 1 - mean(belief[d].get(f[d])));
@@ -197,7 +208,15 @@ export function confidence(belief: Belief, swipes: Swipe[]): number {
 
 // ── Choosing the next card ───────────────────────────────────────────────────
 
-export type CardPick = { role: BrainRole; probe: string; reason: string };
+export type CardPick = { role: BrainRole; probe: string; reason: string; shows: Shown[] };
+
+/** Which role facts a card shows: only the one its probe is about. */
+function showsFor(probe: string): Shown[] {
+  if (probe === "relocate" || probe === "remote" || probe === "gain:place" || probe === "retest:place") return ["place"];
+  if (probe === "company" || probe === "gain:company" || probe === "retest:company") return ["company"];
+  if (probe === "length" || probe === "gain:length") return ["length"];
+  return [];
+}
 
 const ADJACENT: Partial<Record<Cluster, Cluster[]>> = {
   Analytics: ["Product", "Finance", "Consulting"],
@@ -246,7 +265,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
   // 1. Open with the role their resume fits best, near home: an easy yes builds trust.
   if (n === 0) {
     const first = [...cand].sort((a, b) => score0(b) - score0(a))[0];
-    return { role: first, probe: "open", reason: `Starting with what your resume points to: ${first.cluster}.` };
+    return { role: first, probe: "open", reason: `Starting with what your resume points to: ${first.cluster}.`, shows: [] };
   }
   function score0(r: BrainRole) {
     const x = f(r);
@@ -259,7 +278,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
     const other = cand.filter((r) => !seenClusters.has(r.cluster));
     if (other.length) {
       const pick = [...other].sort((a, b) => skillHits(b, ctx.skills).length - skillHits(a, ctx.skills).length)[0];
-      return { role: pick, probe: `explore:${pick.cluster}`, reason: `Exploring: is ${pick.cluster} for you?` };
+      return { role: pick, probe: `explore:${pick.cluster}`, reason: `Exploring: is ${pick.cluster} for you?`, shows: [] };
     }
   }
 
@@ -275,7 +294,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
       const pick = alt.sort((a, b) => predict(b, belief, ctx) - predict(a, belief, ctx))[0];
       const fp = f(pick);
       const change = fp.place !== fb.place ? (fp.place === "home" ? "this one's near you" : fp.place === "remote" ? "this one's remote" : `this one's in ${pick.city}`) : pick.big ? "this one's a big company" : "this one's a startup";
-      return { role: pick, probe: `retest:${resumeCluster}`, reason: `Giving ${resumeCluster} another look: ${change}.` };
+      return { role: pick, probe: `retest:${resumeCluster}`, reason: `Giving ${resumeCluster} another look: ${change}.`, shows: showsFor(fp.place !== fb.place ? "retest:place" : "retest:company") };
     }
   }
 
@@ -304,7 +323,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
     const hits = cand.filter(p.match);
     if (hits.length) {
       const pick = hits.sort((a, b) => likeness(b) - likeness(a) || predict(b, belief, ctx) - predict(a, belief, ctx))[0];
-      return { role: pick, probe: p.id, reason: p.reason(pick) };
+      return { role: pick, probe: p.id, reason: p.reason(pick), shows: showsFor(p.id) };
     }
   }
 
@@ -312,7 +331,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
   const lastThree = swipes.slice(-3);
   if (lastThree.length === 3 && lastThree.every((s) => s.verdict === "pass")) {
     const pick = [...cand].sort((a, b) => predict(b, belief, ctx) - predict(a, belief, ctx))[0];
-    return { role: pick, probe: "confirm", reason: "Based on what you kept, this should fit." };
+    return { role: pick, probe: "confirm", reason: "Based on what you kept, this should fit.", shows: [] };
   }
 
   // 5. Otherwise the card that teaches us most: uncertain traits, likely enough to be worth asking.
@@ -336,7 +355,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
     length: "Checking: how long you want to intern.",
     fit: "Checking: another one close to what you kept.",
   };
-  return { role: pick, probe: `gain:${least}`, reason: why[least] };
+  return { role: pick, probe: `gain:${least}`, reason: why[least], shows: showsFor(`gain:${least}`) };
 }
 
 // ── What we learned ──────────────────────────────────────────────────────────
@@ -366,10 +385,11 @@ export type Learned = {
 export function learn(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, answers: Answers = {}): Learned {
   const byId = new Map(pool.map((r) => [r.id, r]));
   const belief = believe(pool, swipes, ctx);
-  const rows = swipes.map((s) => ({ s, r: byId.get(s.id)!, f: features(byId.get(s.id)!, ctx) })).filter((x) => x.r);
+  const rows = swipes.map((s) => ({ s, r: byId.get(s.id)!, f: features(byId.get(s.id)!, ctx), vis: visibleDims(s) })).filter((x) => x.r);
   const kept = rows.filter((x) => x.s.verdict !== "pass");
   const passed = rows.filter((x) => x.s.verdict === "pass");
-  const count = (list: typeof rows, d: Dim, v: string) => list.filter((x) => x.f[d] === v).length;
+  // Location, company type and length count only on cards that showed them.
+  const count = (list: typeof rows, d: Dim, v: string) => list.filter((x) => x.vis.has(d) && x.f[d] === v).length;
   const insights: Insight[] = [];
 
   // Kind of work.
@@ -389,8 +409,8 @@ export function learn(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, answers: Ans
   // Judge moving only on roles they'd otherwise take (their kind of work, a stated
   // stipend), so a pass for low pay isn't read as "won't move".
   const fair = (x: (typeof rows)[number]) => (!clusters.length || clusters.includes(x.r.cluster)) && x.f.pay !== "low" && x.f.pay !== "unstated";
-  const movedKept = kept.filter((x) => x.f.place === "move"), movedPassed = passed.filter((x) => x.f.place === "move" && fair(x));
-  const homeKept = kept.filter((x) => x.f.place === "home");
+  const movedKept = kept.filter((x) => x.vis.has("place") && x.f.place === "move"), movedPassed = passed.filter((x) => x.vis.has("place") && x.f.place === "move" && fair(x));
+  const homeKept = kept.filter((x) => x.vis.has("place") && x.f.place === "home");
   // When they answered "would you move at all?", that answer speaks for itself.
   if (!answers.move_any) {
     if (movedKept.length) insights.push({ kind: "place", text: "You'd move for the right role.", evidence: `kept roles in ${[...new Set(movedKept.map((x) => x.r.city))].slice(0, 3).join(", ")}` });
@@ -438,7 +458,7 @@ export function learn(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, answers: Ans
   const unseen = pool.filter((r) => !swipes.some((s) => s.id === r.id));
   const scored = unseen.map((role) => ({ role, match: predict(role, belief, ctx) })).sort((a, b) => b.match - a.match);
   // Cities: where kept roles are, plus "yes, I'd move there" cards, minus "no" cards.
-  const cities = [...new Set([...kept.map((x) => x.r.city).filter((c): c is string => !!c), ...q.citiesYes])].filter((c) => !q.citiesNo.includes(c) && !(q.noMove && c !== ctx.homeCity));
+  const cities = [...new Set([...kept.filter((x) => x.vis.has("place")).map((x) => x.r.city).filter((c): c is string => !!c), ...q.citiesYes])].filter((c) => !q.citiesNo.includes(c) && !(q.noMove && c !== ctx.homeCity));
   if (ctx.homeCity && !cities.includes(ctx.homeCity) && !q.citiesNo.includes(ctx.homeCity) && !(movedPassed.length === 0 && movedKept.length > 0 && homeKept.length === 0)) cities.unshift(ctx.homeCity);
 
   return {

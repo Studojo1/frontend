@@ -129,7 +129,6 @@ export default function StartPage() {
   const [probes, setProbes] = useState<string[]>([]);
   const [item, setItem] = useState<Item | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
-  const [lastQuick, setLastQuick] = useState(false);
   const [sinceQuick, setSinceQuick] = useState(0);
   const [proud, setProud] = useState("");
   const [extra, setExtra] = useState(0);
@@ -286,7 +285,6 @@ export default function StartPage() {
     setSwipes(nextSwipes);
     setAnswers(nextAnswers);
     setProbes(nextProbes);
-    setLastQuick(wasQuick);
     setSinceQuick(since);
     const n = nextItem(pool, nextSwipes, nextAnswers, ctx, nextProbes, wasQuick, since, extra);
     setItem(n);
@@ -300,7 +298,7 @@ export default function StartPage() {
     if (!current || fling) return;
     const ms = Math.round(performance.now() - shownAt);
     setFling(verdict === "pass" ? "left" : verdict === "love" ? "up" : "right");
-    setTimeout(() => advance([...swipes, { id: current.role.id, verdict, ms }], answers, [...probes, current.probe], false, sinceQuick + 1), 220);
+    setTimeout(() => advance([...swipes, { id: current.role.id, verdict, ms, shows: current.shows }], answers, [...probes, current.probe], false, sinceQuick + 1), 220);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, fling, shownAt, swipes, probes, pool, ctx, learned, answers, sinceQuick]);
 
@@ -356,6 +354,7 @@ export default function StartPage() {
           liked: swipes.filter((s) => s.verdict !== "pass").map((s) => s.id), passed: swipes.filter((s) => s.verdict === "pass").map((s) => s.id),
           likedCompanies: [...new Set(swipes.filter((s) => s.verdict !== "pass").map((s) => byId.get(s.id)?.company).filter(Boolean))],
           insights: l?.insights ?? [], matters: l?.matters ?? [], companyStage: l?.companyStage ?? null,
+          best: (l?.best ?? []).map((b) => ({ title: b.role.title, company: b.role.company, slug: b.role.slug, city: b.role.city, cluster: b.role.cluster, match: Math.min(97, Math.round(b.match * 100)) })),
         },
       }),
     }).catch(() => {});
@@ -385,15 +384,15 @@ export default function StartPage() {
   const stepIndex = STEPS.findIndex((s) => s.key.includes(step));
   const dx = fling === "right" ? 520 : fling === "left" ? -520 : drag?.x ?? 0;
   const dy = fling === "up" ? -420 : 0;
-  const tags = (c: BrainRole) => {
-    const out: { text: string; tone: string }[] = [];
-    if (c.city && d.city && c.city === d.city) out.push({ text: "near you", tone: "mint" });
-    else if (c.city) out.push({ text: `move to ${c.city}`, tone: "" });
-    else out.push({ text: "remote", tone: "" });
-    out.push({ text: c.big ? "big company" : "startup", tone: "plain" });
-    if (c.months && c.months >= 6) out.push({ text: "6+ months", tone: "plain" });
-    return out;
+  // The one fact a card is testing, if any. Nothing else about the role is shown,
+  // so a swipe can't be read as a preference the student never saw.
+  const testedFact = (c: BrainRole, shows: string[]): { label: string; value: string } | null => {
+    if (shows.includes("place")) return { label: "location", value: !c.city ? "Remote" : c.city === d.city ? `${c.city} · near you` : `${c.city} · means moving${d.city ? ` from ${d.city}` : ""}` };
+    if (shows.includes("company")) return { label: "company", value: c.big ? "A big, well-known company" : "A startup / smaller company" };
+    if (shows.includes("length")) return { label: "length", value: c.duration };
+    return null;
   };
+
 
   const Bar = ({ children, right }: { children: ReactNode; right?: ReactNode }) => (
     <div className="panel__bar">
@@ -650,7 +649,7 @@ export default function StartPage() {
                   </div>
                 )}
 
-                {current && <div style={{ position: "relative", height: 268, userSelect: "none" }} data-tour="deck">
+                {current && <div style={{ position: "relative", height: 236, userSelect: "none" }} data-tour="deck">
                   {[2, 1].map((depth) => (
                     <div key={depth} aria-hidden="true" className="tile" style={{ position: "absolute", inset: 0, transform: `translateY(${depth * 8}px) scale(${1 - depth * 0.03})`, opacity: 1 - depth * 0.25 }} />
                   ))}
@@ -678,7 +677,7 @@ export default function StartPage() {
                           <span className="sq" style={{ background: CLUSTER_COLOR[c.cluster] }}>{initials(c.company)}</span>
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontWeight: 500, fontSize: 15 }}>{c.company}</div>
-                            <div className="mono" style={{ fontSize: 11.5, color: "var(--text-3)" }}>{c.focus.toLowerCase()} · {c.big ? "big company" : "startup"}</div>
+                            <div className="mono" style={{ fontSize: 11.5, color: "var(--text-3)" }}>{c.focus.toLowerCase()}</div>
                           </div>
                           <span className="tag" style={{ marginLeft: "auto" }}>{c.cluster.toLowerCase()}</span>
                         </div>
@@ -686,17 +685,19 @@ export default function StartPage() {
                         <div style={{ marginTop: 6, fontSize: 14, color: hits.length ? "var(--mint)" : "var(--text-3)" }}>
                           {hits.length ? `Uses your ${hits.join(", ")}` : "Doesn't use your resume skills: a stretch"}
                         </div>
-                        <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6 }}>
-                          {tags(c).map((t) => <span key={t.text} className={`tag ${t.tone}`}>{t.text}</span>)}
-                        </div>
-                        <dl style={{ marginTop: "auto", marginBottom: 0, paddingTop: 14, borderTop: "1px solid var(--border)", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-                          {[["where", c.city ?? c.location], ["length", c.duration], ["company", c.big ? "Big company" : "Startup"]].map(([k, v]) => (
-                            <div key={k} style={{ minWidth: 0 }}>
-                              <dt className="label">{k}</dt>
-                              <dd style={{ margin: "2px 0 0", fontSize: 14.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</dd>
+                        {(() => {
+                          const fact = testedFact(c, current.shows);
+                          return fact ? (
+                            <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12, background: "var(--accent-soft)", border: "1px solid var(--accent-line)" }} data-tour="fact">
+                              <span className="label" style={{ color: "var(--accent-deep)" }}>{fact.label}</span>
+                              <span style={{ fontSize: 15, fontWeight: 500 }}>{fact.value}</span>
                             </div>
-                          ))}
-                        </dl>
+                          ) : (
+                            <div className="mono" style={{ marginTop: "auto", paddingTop: 12, borderTop: "1px solid var(--border)", fontSize: 11.5, color: "var(--text-4)" }}>
+                              just the role: would you want to do this work?
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })()}
