@@ -1066,7 +1066,7 @@ export default function EnrichmentPage() {
 
 
         <p className="text-xs text-studojo-muted font-satoshi text-center">
-          Emails sent gradually over several days. About 4 in 10 students hear back in their first week.
+          Emails sent gradually over several days.
         </p>
       </div>
       <AppFooter />
