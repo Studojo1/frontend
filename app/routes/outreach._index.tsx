@@ -168,7 +168,7 @@ export default function OutreachLanding() {
               {secondaryCta && (
                 <button
                   onClick={() => navigate(secondaryCta.to)}
-                  className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-transparent text-white font-satoshi font-medium text-base border-2 border-white/40 transition-all hover:border-white/70"
+                  className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-transparent text-white font-satoshi font-medium text-base border-2 border-white/40 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:border-white/70 hover:shadow-none"
                 >
                   {secondaryCta.label} <FiClipboard className="w-5 h-5 ml-2" />
                 </button>
