@@ -12,7 +12,6 @@ const GOOD_ITEMS = [
   "Email the actual hiring manager",
   "Personal message, not a form",
   "Replies land in your own inbox",
-  "About 4 in 10 hear back in week one",
 ];
 
 function XIcon() {

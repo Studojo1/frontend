@@ -184,7 +184,7 @@ function InternshipPopup() {
                   Email hiring managers directly
                 </h2>
                 <p className="font-['Satoshi'] text-base text-neutral-600">
-                  Upload your resume. We find who can hire you and write the emails. About 4 in 10 students hear back in their first week.
+                  Upload your resume. We find who can hire you and write the emails.
                 </p>
               </div>
               <Link

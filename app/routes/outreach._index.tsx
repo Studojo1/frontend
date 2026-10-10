@@ -46,7 +46,7 @@ const FAQS = [
   },
   {
     q: "What happens after I pay?",
-    a: "You connect your Gmail, confirm your target companies and roles, and we handle the rest. About 4 in 10 students hear back in their first week. You can track everything from your dashboard.",
+    a: "You connect your Gmail, confirm your target companies and roles, and we handle the rest. You can track everything from your dashboard.",
   },
 ];
 
@@ -96,17 +96,25 @@ export function meta() {
 export default function OutreachLanding() {
   const navigate = useNavigate();
 
-  // "View My Campaigns" is meaningless to someone who arrived from an ad and has
-  // no campaigns yet, and on mobile it stacks directly under the primary CTA. Show
-  // it only once we know there is a session to go back to. isPending keeps it
+  // The second button is meaningless to someone who arrived from an ad and has
+  // nothing to go back to, and on mobile it stacks directly under the primary
+  // CTA. Show it only once we know there is a session. isPending keeps it
   // hidden through the first render rather than letting it flash in and out.
   const { data: session, isPending } = authClient.useSession();
   const nextStep = useNextStep();
   // A ?coupon= from an email link is kept by the outreach layout (NEW-07).
-  // Only for someone who has something to go back to: an order or a launched
-  // campaign, not every signed-in visitor (audit VS-V05).
-  const showMyCampaigns = !isPending && !!session &&
-    !!(nextStep?.order_id || nextStep?.has_launched || nextStep?.state === "campaign_active");
+  // Only for someone who has something to go back to: leads, an order or a
+  // launched campaign, not every signed-in visitor (audit VS-V05).
+  const signedIn = !isPending && !!session;
+  const secondaryCta = !signedIn
+    ? null
+    : nextStep?.state === "not_paid" && nextStep.path
+      // Unpaid but already has leads: keep them one tap away, so a new search
+      // never hides the list they have behind a new resume (audit OP-N03).
+      ? { label: seeLeadsLabel(nextStep), to: `/outreach${nextStep.path}` }
+      : nextStep?.order_id || nextStep?.has_launched || nextStep?.state === "campaign_active"
+        ? { label: "View My Campaigns", to: "/outreach/orders" }
+        : null;
 
   // A signed-in user who has paid and not launched must never be sent back to
   // resume upload from here. One who paid Rs 3,465 followed "Find My Hiring
@@ -119,11 +127,7 @@ export default function OutreachLanding() {
       }
     : nextStep?.state === "campaign_active"
       ? { label: "Go to my campaign", to: "/outreach/campaign/dashboard" }
-      : nextStep?.state === "not_paid" && nextStep.path
-        // Unpaid but already has leads: show them, do not restart upload,
-        // which hid those leads behind a new resume (audit OP-N03).
-        ? { label: seeLeadsLabel(nextStep), to: `/outreach${nextStep.path}` }
-        : { label: "Find My Hiring Managers", to: "/outreach/onboarding/upload" };
+      : { label: "Find the right hiring managers", to: "/outreach/onboarding/upload" };
 
   // Ad traffic lands here. This is the audience the retargeting campaigns are
   // built from, so it needs its own event rather than a bare PageView.
@@ -147,7 +151,7 @@ export default function OutreachLanding() {
               Skip the job board queue. Email hiring managers directly.
             </h1>
             <p className="max-w-xl font-satoshi text-sm font-normal leading-6 text-white/90 md:text-base md:leading-7">
-              Upload your resume. We find who can actually hire you, write a personal email, and send it from your Gmail. About 4 in 10 students hear back in their first week.
+              Upload your resume. We find who can actually hire you, write a personal email, and send it from your Gmail.
             </p>
             {paidNotLaunched && (
               <p className="max-w-xl font-satoshi text-sm font-semibold text-white">
@@ -161,12 +165,12 @@ export default function OutreachLanding() {
               >
                 {primaryCta.label} <FiArrowRight className="w-5 h-5 ml-2" />
               </button>
-              {showMyCampaigns && (
+              {secondaryCta && (
                 <button
-                  onClick={() => navigate("/outreach/orders")}
+                  onClick={() => navigate(secondaryCta.to)}
                   className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-transparent text-white font-satoshi font-medium text-base border-2 border-white/40 transition-all hover:border-white/70"
                 >
-                  View My Campaigns <FiClipboard className="w-5 h-5 ml-2" />
+                  {secondaryCta.label} <FiClipboard className="w-5 h-5 ml-2" />
                 </button>
               )}
             </div>
@@ -285,7 +289,7 @@ export default function OutreachLanding() {
         <div className="mx-auto max-w-[var(--section-max-width)] px-4 py-16 md:px-8 md:py-24 text-center">
           <h2 className="font-clash text-3xl font-bold text-white mb-4 md:text-4xl">Your resume is worth more than a job board application.</h2>
           <p className="font-satoshi text-base text-white/80 mb-10 max-w-lg mx-auto">
-            Takes 2 minutes to set up. About 4 in 10 students hear back in their first week.
+            Takes 2 minutes to set up.
           </p>
           <button
             onClick={() => navigate(primaryCta.to)}

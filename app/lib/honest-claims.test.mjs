@@ -31,6 +31,7 @@ const BANNED = [
   /(first )?reply (typically )?within a week/i,
   /Priya Nair|Hannah Lim|Devansh Rao|Karthik Menon|Sara Qureshi|Rohit Bansal/,
   /3 interview calls in week one|95% of students say/i,
+  /4 in 10 (students )?hear back/i,
   /success stories are students placed/i,
   /anchor_display/,
 ];
