@@ -2,6 +2,8 @@ import { eq } from "drizzle-orm";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { userProfile, user } from "../../auth-schema";
+import { normalizeLinks } from "~/lib/talent-profile";
+import type { ProfileLinks } from "../../auth-schema";
 import type { Route } from "./+types/api.user.profile";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -39,6 +41,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         college: profile.college,
         yearOfStudy: profile.yearOfStudy,
         course: profile.course,
+        links: profile.links ?? null,
         createdAt: profile.createdAt,
         updatedAt: profile.updatedAt,
       } : null,
@@ -85,6 +88,20 @@ export async function action({ request }: Route.ActionArgs) {
     name?: string;
   };
 
+  // Links are optional; when sent, the whole set is replaced (empty clears one).
+  let links: ProfileLinks | undefined;
+  const rawLinks = (body as { links?: unknown })?.links;
+  if (rawLinks !== undefined) {
+    const result = normalizeLinks(rawLinks);
+    if ("error" in result) {
+      return new Response(JSON.stringify({ error: result.error }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    links = result.links;
+  }
+
   try {
     // Update user name if provided
     if (name !== undefined) {
@@ -108,6 +125,7 @@ export async function action({ request }: Route.ActionArgs) {
         college?: string;
         yearOfStudy?: string;
         course?: string;
+        links?: ProfileLinks;
         updatedAt: Date;
       } = { updatedAt: new Date() };
 
@@ -115,6 +133,7 @@ export async function action({ request }: Route.ActionArgs) {
       if (college !== undefined) updateData.college = college.trim() || "Not specified";
       if (yearOfStudy !== undefined) updateData.yearOfStudy = yearOfStudy.trim() || "Not specified";
       if (course !== undefined) updateData.course = course.trim() || "Not specified";
+      if (links !== undefined) updateData.links = links;
 
       await db
         .update(userProfile)
@@ -130,6 +149,7 @@ export async function action({ request }: Route.ActionArgs) {
         college: college?.trim() || "Not specified",
         yearOfStudy: yearOfStudy?.trim() || "Not specified",
         course: course?.trim() || "Not specified",
+        links: links ?? null,
       });
     }
 
@@ -159,6 +179,7 @@ export async function action({ request }: Route.ActionArgs) {
           college: updatedProfile.college,
           yearOfStudy: updatedProfile.yearOfStudy,
           course: updatedProfile.course,
+          links: updatedProfile.links ?? null,
           createdAt: updatedProfile.createdAt,
           updatedAt: updatedProfile.updatedAt,
         } : null,
