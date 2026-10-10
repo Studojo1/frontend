@@ -267,7 +267,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> The interview punishes ambiguity. Shortlisted candidates who sound smart in the abstract but vague on specifics lose to candidates who are narrower and clearer."}</div>
+            <div className="highlight"><strong>Key insight:</strong> The interview punishes ambiguity. Shortlisted candidates who sound smart in the abstract but vague on specifics lose to candidates who are narrower and clearer.</div>
 
             <div className="blist">
 
@@ -282,7 +282,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               </div>
             </div>
 
-            <div className="callout">{"<strong>Reframe:</strong> You are not trying to impress them with range. You are trying to leave them confident about one thing: what you would do in week one if hired."}</div>
+            <div className="callout"><strong>Reframe:</strong> You are not trying to impress them with range. You are trying to leave them confident about one thing: what you would do in week one if hired.</div>
           </div>
 
           <div className="rpt-section">
@@ -297,7 +297,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
             <p>{"Skill gaps still end interviews, especially in technical and case-heavy roles. But many shortlisted candidates fail before skill is fully tested because they never reach a crisp demonstration. The interviewer runs out of time or patience."}</p>
             <p>{"Another quiet killer is misalignment on level and scope. A strong student who sounds like they want strategy when the role is execution-heavy will lose to a quieter candidate who describes exactly how they would ship the first task."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Most post-shortlist failures are performance failures, not identity failures. That means they are trainable with deliberate prep."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Most post-shortlist failures are performance failures, not identity failures. That means they are trainable with deliberate prep.</div>
 
             <div className="pull-quote">
               <p>{"\"We rarely reject shortlisted candidates because they are not smart enough. We reject them because we cannot picture them on our team after forty-five minutes.\""}</p>
@@ -337,7 +337,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Passing round one with charm but no substance sets you up for a harder fall in round two. Better to be slightly narrower and highly prepared."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Passing round one with charm but no substance sets you up for a harder fall in round two. Better to be slightly narrower and highly prepared.</div>
 
             <div className="blist">
 
@@ -352,7 +352,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Practical note:</strong> Ask at the end of each round what the next stage evaluates. Recruiters will often tell you if it is technical depth, stakeholder communication, or culture. Prep to that rubric, not a generic list."}</div>
+            <div className="callout-amber"><strong>Practical note:</strong> Ask at the end of each round what the next stage evaluates. Recruiters will often tell you if it is technical depth, stakeholder communication, or culture. Prep to that rubric, not a generic list.</div>
           </div>
 
           <div className="rpt-section">
@@ -367,7 +367,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
             <p>{"They bring one page of prep: three stories, three questions for the interviewer, and one informed take on the company's current priority. Not a binder. A single sheet that keeps them from improvising into vagueness."}</p>
             <p>{"They treat the interview as bilateral. They ask questions that reference something the interviewer said earlier, which signals listening. They also clarify expectations: team size, success in ninety days, what the last person in the role struggled with."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> The bar is not perfection. It is reducing uncertainty for the hiring manager. Every structured answer lowers their risk."}</div>
+            <div className="highlight"><strong>Key insight:</strong> The bar is not perfection. It is reducing uncertainty for the hiring manager. Every structured answer lowers their risk.</div>
 
             <div className="pull-quote">
               <p>{"\"The candidate we hired answered fewer questions than others. Every answer had a number and a next step. That made the debrief easy.\""}</p>
@@ -422,7 +422,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Weekly habit:</strong> One mock interview, one JD decoded, one thank-you sent. Shortlists compound when you treat each one as a project with a deadline."}</div>
+            <div className="callout-green"><strong>Weekly habit:</strong> One mock interview, one JD decoded, one thank-you sent. Shortlists compound when you treat each one as a project with a deadline.</div>
           </div>
 
           <div className="rpt-section">
@@ -437,7 +437,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
             <p>{"When you can ask for feedback, ask one specific question: Was it depth on experience, communication, technical skill, or fit with the team working style? Binary answers are easier for recruiters to give and more useful for you."}</p>
             <p>{"Run a ten-minute self-debrief within forty-eight hours: which question felt weakest, where did you ramble, which story landed. Adjust the next prep cycle once, then move on. Shortlisted candidates who iterate fast win the next slot."}</p>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> Failing after shortlist is common and usually fixable. The interview is a skill separate from applying. Train it like one."}</div>
+            <div className="highlight"><strong>Summary insight:</strong> Failing after shortlist is common and usually fixable. The interview is a skill separate from applying. Train it like one.</div>
 
             <div className="blist">
 
@@ -452,7 +452,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
               </div>
             </div>
 
-            <div className="callout-red">{"<strong>Checklist before your next live round:</strong> Three timed stories with numbers, five role-specific questions, one-page notes, JD decoded into week-one deliverables, and a clear ask at the end about next steps and timeline."}</div>
+            <div className="callout-red"><strong>Checklist before your next live round:</strong> Three timed stories with numbers, five role-specific questions, one-page notes, JD decoded into week-one deliverables, and a clear ask at the end about next steps and timeline.</div>
           </div>
 
           <div className="takeaway-section">

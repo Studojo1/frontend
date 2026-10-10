@@ -260,7 +260,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <p>{"Students often imagine a placement officer personally lobbying for them. At scale that is rare. At large Indian engineering colleges, a small placement team usually handles the whole graduating batch in peak season, so one-to-one attention is scarce. The office optimises for process integrity and employer satisfaction, not bespoke career strategy for every candidate."}</p>
             <p>{"US and UK equivalents (career centers, Handshake admins, OCR coordinators) play a similar role with different branding: calendars, employer events, and system access, not guaranteed outcomes."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Treat the placement cell as infrastructure you plug into, not a concierge that shops roles on your behalf."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Treat the placement cell as infrastructure you plug into, not a concierge that shops roles on your behalf.</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"What placement cells handle vs what students must own (responsibility index, 0 to 10)"}</div>
@@ -282,7 +282,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Mental model:</strong> Airport control tower, not the airline booking your seat. They sequence traffic. You still need a ticket (skills, proof, fit) and you still choose your destination."}</div>
+            <div className="callout"><strong>Mental model:</strong> Airport control tower, not the airline booking your seat. They sequence traffic. You still need a ticket (skills, proof, fit) and you still choose your destination.</div>
           </div>
 
           <div className="rpt-section">
@@ -298,7 +298,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <p>{"They also maintain institutional memory: which firms actually joined last year, which roles were real versus vanity drives, and which recruiters respond when batches complain collectively."}</p>
             <p>{"Access still does not guarantee an offer. AICTE data shows that of the roughly 3.43 million students enrolled in undergraduate engineering programmes between 2019-20 and 2022-23, only 47.7% secured placements (reported by ThePrint, March 2025). Even at the IITs, about 38% of the 21,500 students who registered for placements in 2024 were still unplaced (RTI data reported by Outlook India, May 2024)."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> The placement cell's superpower is legitimate access to employers who refuse open-market chaos. Use it when those employers match your goals."}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" The placement cell's superpower is legitimate access to employers who refuse open-market chaos. Use it when those employers match your goals."}</div>
 
             <div className="pull-quote">
               <p>{"\"We can get the recruiter on campus. We cannot get you through the technical round if your projects are empty.\""}</p>
@@ -318,7 +318,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Get from your office early:</strong> Placement policy PDF, slot and renege rules, eligible company list from last two years, and the official resume format. Read before dream-company season, not after you are disqualified."}</div>
+            <div className="callout-green"><strong>Get from your office early:</strong> Placement policy PDF, slot and renege rules, eligible company list from last two years, and the official resume format. Read before dream-company season, not after you are disqualified.</div>
           </div>
 
           <div className="rpt-section">
@@ -333,7 +333,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <p>{"They cannot override employer hiring bars. Low GPA cutoffs, branch restrictions, backlog rules, and aptitude thresholds are set by recruiters. Officers may negotiate batch size or dates; they rarely negotiate individual exceptions without a strong referral or exceptional proof."}</p>
             <p>{"They cannot interview for you, build your GitHub, or fix a generic resume. They also cannot force employers to wait while you explore off-campus options if slot policies require you to accept or release offers on a deadline."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> The placement cell controls process, not outcomes. Passing the aptitude test still leaves technical, HR, and fit screens entirely on you."}</div>
+            <div className="highlight"><strong>Key insight:</strong> The placement cell controls process, not outcomes. Passing the aptitude test still leaves technical, HR, and fit screens entirely on you.</div>
 
             <div className="pull-quote">
               <p>{"\"Students blame us when they fail GD rounds. We brought the company. We did not write their answers.\""}</p>
@@ -353,7 +353,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout-red">{"<strong>Common myths:</strong> \"The TPO will push my profile\" (only if the employer asks for a shortlist and you are already on it). \"Campus means safe offer\" (startups and third-party staffing still flake). \"One offer is enough\" (role scope may be wrong; read the letter)."}</div>
+            <div className="callout-red"><strong>Common myths:</strong>{" \"The TPO will push my profile\" (only if the employer asks for a shortlist and you are already on it). \"Campus means safe offer\" (startups and third-party staffing still flake). \"One offer is enough\" (role scope may be wrong; read the letter)."}</div>
           </div>
 
           <div className="rpt-section">
@@ -375,7 +375,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Judge your placement cell by the employer graph it actually has, not the brochure from a sibling college."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Judge your placement cell by the employer graph it actually has, not the brochure from a sibling college.</div>
 
             <div className="blist">
 
@@ -390,7 +390,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Ask your seniors:</strong> Which drives were real jobs versus attendance theater? Which offers had bonds or training deposits? Which firms returned three years in a row?"}</div>
+            <div className="callout-amber"><strong>Ask your seniors:</strong> Which drives were real jobs versus attendance theater? Which offers had bonds or training deposits? Which firms returned three years in a row?</div>
           </div>
 
           <div className="rpt-section">
@@ -413,7 +413,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> High performers treat campus drives as one channel in a portfolio. They do not pause other channels until placement season ends."}</div>
+            <div className="highlight"><strong>Key insight:</strong> High performers treat campus drives as one channel in a portfolio. They do not pause other channels until placement season ends.</div>
 
             <div className="pull-quote">
               <p>{"\"The students who stressed less treated placement season like exam season: calendar, mocks, and backups. The ones who waited for us to call them daily got surprised.\""}</p>
@@ -433,7 +433,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Weekly habit during season:</strong> Monday: check drive calendar. Tuesday: one off-campus outreach. Wednesday: aptitude or technical prep. Thursday: follow up pending applications. Friday: talk to one senior about employer reality."}</div>
+            <div className="callout"><strong>Weekly habit during season:</strong> Monday: check drive calendar. Tuesday: one off-campus outreach. Wednesday: aptitude or technical prep. Thursday: follow up pending applications. Friday: talk to one senior about employer reality.</div>
           </div>
 
           <div className="rpt-section">
@@ -448,7 +448,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <p>{"Legitimate off-campus paths include LinkedIn and Naukri with tailoring, alumni WhatsApp and Slack groups, professor referrals, prior internship conversions, hackathon networks, and direct outreach to hiring managers. Many strong offers never touch the placement cell, even at colleges with active offices."}</p>
             <p>{"Stay compliant: read whether your institute requires offer disclosure, whether off-campus offers count toward placement stats, and whether signing an outside offer triggers renege penalties. Work the system; do not get disqualified on a technicality."}</p>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> Placement cells run the on-campus railroad. You still need a map for the territory outside the tracks."}</div>
+            <div className="highlight"><strong>Summary insight:</strong> Placement cells run the on-campus railroad. You still need a map for the territory outside the tracks.</div>
 
             <div className="pull-quote">
               <p>{"\"My offer came from a founder DM. I told placement office after signing so they could update records. Both paths can coexist.\""}</p>
@@ -473,7 +473,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>90-day parallel plan:</strong> Month 1: fix proof and policy literacy. Month 2: register all viable drives plus ten off-campus outreaches per week. Month 3: decide using role fit and joining certainty, not panic or peer pressure."}</div>
+            <div className="callout-amber"><strong>90-day parallel plan:</strong> Month 1: fix proof and policy literacy. Month 2: register all viable drives plus ten off-campus outreaches per week. Month 3: decide using role fit and joining certainty, not panic or peer pressure.</div>
           </div>
 
           <div className="takeaway-section">

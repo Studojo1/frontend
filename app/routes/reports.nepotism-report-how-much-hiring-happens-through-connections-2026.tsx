@@ -326,7 +326,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             <p>{"If you ask workers how they got their current role, connections outperform every other channel in recent surveys. MyPerfectResume's Networking Nation Report (May 2025, 1,000 U.S. workers) found 54% credit a personal or professional connection for at least one hire in their career. When asked what made the biggest difference in their most recent search, personal connections (27%) and professional connections (23%) together outranked job boards (13%) and staffing firms (8%) by a wide margin."}</p>
             <p>{"Kickresume's March 2026 global survey tells a similar story at the role level: 38% of respondents found their current job through referrals or networking, edging out the 36% who secured it through direct application alone. The gap is not huge, but the direction matters. The channel candidates treat as backup is, in aggregate, at least as effective as the channel they treat as default."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Hiring through connections is not a fringe phenomenon. It is what a majority of workers describe when asked honestly about their own careers."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Hiring through connections is not a fringe phenomenon. It is what a majority of workers describe when asked honestly about their own careers.</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"How workers got their current or most recent job (Kickresume survey of 1,030 people, March 2026). Red bars are referrals and networking: 38% combined"}</div>
@@ -348,7 +348,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
 
-            <div className="callout">{"<strong>The behaviour gap:</strong> Nearly 60% of workers reach out to only a few close contacts or no one during a job search, and just 1 in 10 network with multiple contacts weekly. People know connections work. They still avoid using them."}</div>
+            <div className="callout"><strong>The behaviour gap:</strong> Nearly 60% of workers reach out to only a few close contacts or no one during a job search, and just 1 in 10 network with multiple contacts weekly. People know connections work. They still avoid using them.</div>
           </div>
 
           <div className="rpt-section">
@@ -369,7 +369,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> People condemn nepotism in the abstract and practise connection-hiring in the specific. The hiring market runs on that contradiction."}</div>
+            <div className="highlight"><strong>Key insight:</strong> People condemn nepotism in the abstract and practise connection-hiring in the specific. The hiring market runs on that contradiction.</div>
 
             <div className="pull-quote">
               <p>{"\"Everyone calls it networking when they do it and nepotism when someone else does it. The ATS does not distinguish. It just sees a name attached to a source tag.\""}</p>
@@ -401,7 +401,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             <p>{"The most striking number in recent nepotism research is not how many people got hired through family. It is how many people have watched it happen. Only 10% of Kickresume respondents said they had never seen a connection-driven hire. The rest split between seeing it once or twice (33%) and seeing it repeatedly (57%)."}</p>
             <p>{"That prevalence shapes behaviour. Workers who believe the game is rigged are more willing to rig it in their own favour when opportunity appears. U.S. respondents in the Kickresume sample were most likely to say they would definitely use connections to beat a more qualified candidate (36%). Asian respondents were nearly three times more likely to rule that out entirely. Geography and cultural norms change how openly people discuss connection hiring, not whether it occurs."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Nepotism is not a scandal most workers discover once. It is background radiation in how they understand workplaces."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Nepotism is not a scandal most workers discover once. It is background radiation in how they understand workplaces.</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"Workers who have seen nepotism influence a hire (Kickresume, 2026)"}</div>
@@ -423,7 +423,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Trust cost:</strong> 61% of workers said they would trust their boss more if promotions were allocated purely on merit. Connection-heavy cultures pay a credibility tax even when outcomes are defensible."}</div>
+            <div className="callout-amber"><strong>Trust cost:</strong> 61% of workers said they would trust their boss more if promotions were allocated purely on merit. Connection-heavy cultures pay a credibility tax even when outcomes are defensible.</div>
           </div>
 
           <div className="rpt-section">
@@ -444,7 +444,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Formal referral programs are institutionalised connection hiring with compliance wrappers. They do not eliminate the advantage. They tax and track it."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Formal referral programs are institutionalised connection hiring with compliance wrappers. They do not eliminate the advantage. They tax and track it.</div>
 
             <div className="blist">
 
@@ -471,7 +471,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             <p>{"India presents the nepotism story in its sharpest form. Unstop's 2024 Talent Report, drawing on 11,000+ students, universities, and HR practitioners, found 88% of HR professionals prefer skill-based hiring over academics, references, or experience. Students largely agree. Yet sector hiring in practice still runs heavily on networks: campus placement slots, alumni WhatsApp groups, professor intros, and employee referrals at firms where 25% to 50% of hires come through internal recommendation."}</p>
             <p>{"Structural nepotism also shows up outside corporate HR. Politics is the clearest case: an Association for Democratic Reforms analysis of 5,203 sitting MPs, MLAs and MLCs (September 2025) found that 21% come from political families, rising to 31% in the Lok Sabha. These are not anecdotes about one bad hire. They are system-level concentration of access."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> \"We hire on skills\" is the stated policy. \"We hire people someone already trusts\" is the observed mechanism. Both can be true at once."}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" \"We hire on skills\" is the stated policy. \"We hire people someone already trusts\" is the observed mechanism. Both can be true at once."}</div>
 
             <div className="blist">
 
@@ -486,7 +486,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
 
-            <div className="callout-red">{"<strong>For students:</strong> Tier-1 campus brands are connection factories with calendars. Tier-2 and off-cycle candidates compete in the less formal half of the market, where professor, alumni, and manager paths matter even more."}</div>
+            <div className="callout-red"><strong>For students:</strong> Tier-1 campus brands are connection factories with calendars. Tier-2 and off-cycle candidates compete in the less formal half of the market, where professor, alumni, and manager paths matter even more.</div>
           </div>
 
           <div className="rpt-section">
@@ -508,7 +508,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Connections do not only help you win posted roles. They help you access roles that were never meant to be a lottery."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Connections do not only help you win posted roles. They help you access roles that were never meant to be a lottery.</div>
 
             <div className="pull-quote">
               <p>{"\"Half our intern shortlist never touched the public form. The manager already had names from alumni Slack and professor emails before HR published anything.\""}</p>
@@ -528,7 +528,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
 
-            <div className="callout">{"<strong>Practical test:</strong> If a role has been reposted three times or accepts easy-apply, assume connection candidates already failed or passed. Your edge is not another identical PDF. It is a human path."}</div>
+            <div className="callout"><strong>Practical test:</strong> If a role has been reposted three times or accepts easy-apply, assume connection candidates already failed or passed. Your edge is not another identical PDF. It is a human path.</div>
           </div>
 
           <div className="rpt-section">
@@ -542,7 +542,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             <p>{"The data is not an argument for cynicism. It is an argument for strategy. Connection hiring works because it transfers trust. You can manufacture trust transfer without an uncle in the C-suite. Competitions, open-source contributions, prior internship managers, teaching assistants, and niche online communities all function as referral sources when you make the forward easy."}</p>
             <p>{"Run a 90-day experiment. Week 1 to 4: build one flagship proof (deployed project, case write-up, competition result) and a three-line forwardable blurb. Week 5 to 8: send one warm ask per week to someone who has seen your work (professor, judge, prior manager, peer at target firm). Week 9 to 12: apply on careers pages only where you can tailor, and log which channel produces conversations. Most candidates discover their personal conversion curve steepens on warm paths faster than industry averages suggest, because targeting improves when feedback is human."}</p>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> You cannot eliminate connection advantage from hiring. You can stop competing as if it does not exist."}</div>
+            <div className="highlight"><strong>Summary insight:</strong> You cannot eliminate connection advantage from hiring. You can stop competing as if it does not exist.</div>
 
             <div className="pull-quote">
               <p>{"\"I had no family in tech. I had one professor willing to forward a paragraph and one repo that proved I could ship. That counted as a connection. The form was just paperwork.\""}</p>
@@ -567,7 +567,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Ethical line:</strong> Ask people who know your work to vouch for your work. Do not ask them to vouch for you generically. Weak intros convert like weak resumes and burn the relationship."}</div>
+            <div className="callout-green"><strong>Ethical line:</strong> Ask people who know your work to vouch for your work. Do not ask them to vouch for you generically. Weak intros convert like weak resumes and burn the relationship.</div>
           </div>
 
           <div className="takeaway-section">

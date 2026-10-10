@@ -266,7 +266,7 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Write the subject as if a colleague is forwarding you context, not as if a brand is launching a campaign."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Write the subject as if a colleague is forwarding you context, not as if a brand is launching a campaign.</div>
 
             <div className="blist">
 
@@ -281,7 +281,7 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>The practical implication:</strong> Draft the subject last. Write the body first, then pull the most specific true phrase from paragraph one into four to seven words."}</div>
+            <div className="callout"><strong>The practical implication:</strong> Draft the subject last. Write the body first, then pull the most specific true phrase from paragraph one into four to seven words.</div>
           </div>
 
           <div className="rpt-section">
@@ -295,7 +295,7 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
             <p>{"Across internship asks, referral requests, and hiring manager notes, five patterns show up again and again in messages that get opened and answered. They share one trait: each could not be sent to a different person without rewriting."}</p>
             <p>{"The strongest pattern is a specific observation plus topic: \"Your post on intern pipelines\" or \"Re: your talk at SaaStr.\" Second is a tight question tied to their work: \"Who owns campus hiring at Acme?\" Third is a warm intro signal: \"Intro from Priya (IITB '24).\" Fourth is a plain label when context already exists: \"Summer PM intern question.\" Fifth, weaker but acceptable in alumni or event follow-ups: \"Met at Demo Day Thursday.\""}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Specificity beats creativity. A boring accurate subject outperforms a witty vague one almost every time."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Specificity beats creativity. A boring accurate subject outperforms a witty vague one almost every time.</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"Relative open strength by subject pattern (illustrative index, 0 to 10)"}</div>
@@ -340,7 +340,7 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
             <p>{"Formatting tells matter too. ALL CAPS, emoji stacks, Re: or Fwd: when there was no prior thread, and keyword stuffing for SEO-style subjects all reduce trust. Personalization tokens that break (\"Hi {{FirstName}}\") are worse than no name."}</p>
             <p>{"Length is a secondary filter. Subjects over roughly ten words often truncate on mobile before the meaningful phrase appears. Subjects under two words (\"Hello\", \"Internship\") fail the relevance test from the other direction."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> If your subject could appear on a listicle of \"100 best cold email templates,\" rewrite it until it sounds like something you would send to one person you actually researched."}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" If your subject could appear on a listicle of \"100 best cold email templates,\" rewrite it until it sounds like something you would send to one person you actually researched."}</div>
 
             <div className="blist">
 
@@ -355,7 +355,7 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
               </div>
             </div>
 
-            <div className="callout-red">{"<strong>Red flags to delete from your drafts:</strong> \"Partnership opportunity\", \"Following up\", \"Touching base\", \"Pick your brain\", \"Synergy\", \"Revolutionary\", and any subject that does not contain a noun tied to their world."}</div>
+            <div className="callout-red"><strong>Red flags to delete from your drafts:</strong>{" \"Partnership opportunity\", \"Following up\", \"Touching base\", \"Pick your brain\", \"Synergy\", \"Revolutionary\", and any subject that does not contain a noun tied to their world."}</div>
           </div>
 
           <div className="rpt-section">
@@ -369,7 +369,7 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
             <p>{"The right subject depends on relationship temperature and channel norms. A hiring manager who posted a role publicly tolerates a direct label. A stranger at your target company needs observation or a question first. An alumni contact can carry school name in the subject if the body is short and respectful."}</p>
             <p>{"Below are patterns that work when filled with real details. Swap bracketed placeholders for one true fact each. If you cannot fill a bracket honestly, pick a different pattern."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> The best template is a sentence structure, not a fixed string. Keep the skeleton, replace every noun."}</div>
+            <div className="highlight"><strong>Key insight:</strong> The best template is a sentence structure, not a fixed string. Keep the skeleton, replace every noun.</div>
 
             <div className="blist">
 
@@ -412,9 +412,9 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
             <p>{"Test one variable at a time: observation vs question, with vs without referrer, four words vs seven. Do not change subject and body together or you will not know what moved the needle. When a subject earns opens but not replies, the problem moved to the body or ask, not the subject."}</p>
             <p>{"For LinkedIn InMail or connection notes, subject lines do not exist the same way. Treat the first line like a subject: same rules, same length discipline."}</p>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> Subject line craft is the highest-leverage edit in cold outreach because it is the cheapest to change and the first thing every recipient sees."}</div>
+            <div className="highlight"><strong>Summary insight:</strong> Subject line craft is the highest-leverage edit in cold outreach because it is the cheapest to change and the first thing every recipient sees.</div>
 
-            <div className="callout-amber">{"<strong>Before you send checklist:</strong> (1) Could only this person receive this subject? (2) Does the first body sentence match? (3) Under ten words? (4) No hype, urgency, or fake Re:? (5) One clear topic noun?"}</div>
+            <div className="callout-amber"><strong>Before you send checklist:</strong> (1) Could only this person receive this subject? (2) Does the first body sentence match? (3) Under ten words? (4) No hype, urgency, or fake Re:? (5) One clear topic noun?</div>
           </div>
 
           <div className="takeaway-section">

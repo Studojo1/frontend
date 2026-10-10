@@ -264,7 +264,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <p>{"Ask a senior executive how they got their break and you will hear a coherent arc: internships, late nights, a manager who believed in them. That story is true as lived experience. It is incomplete as causal explanation. Psychologists call this the narrative fallacy: humans compress random sequences into plots with heroes and turning points."}</p>
             <p>{"Survivorship bias completes the illusion. You hear from people who landed roles, not from equally skilled peers who applied in the same month, to the same firms, and received silence because a headcount freeze hit on a Tuesday. The visible sample is conditioned on success, so luck looks like strategy in hindsight. Robert Frank and Philip Cook argued decades ago that winner-take-more markets amplify small initial advantages; a slightly better interview in a tight year can fork a career for decades."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Luck rarely announces itself. It shows up later as a story beat called \"I worked hard\" or \"I took a risk.\""}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" Luck rarely announces itself. It shows up later as a story beat called \"I worked hard\" or \"I took a risk.\""}</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"How people explain success vs what longitudinal data weights (illustrative index, 0-10)"}</div>
@@ -286,7 +286,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Reframe:</strong> When someone shares a career path, ask what they would have done if the first break had not happened. The honest answer often reveals contingency, not destiny."}</div>
+            <div className="callout"><strong>Reframe:</strong> When someone shares a career path, ask what they would have done if the first break had not happened. The honest answer often reveals contingency, not destiny.</div>
           </div>
 
           <div className="rpt-section">
@@ -300,7 +300,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <p>{"In labour economics, \"luck\" is not mysticism. It is exposure to opportunities whose timing and gatekeepers you did not choose: which city had hiring momentum when you finished school, whether your roommate's cousin hiring interned at a fund, whether a recruiter's keyword filter matched your project title. Pluchino, Biondo, and Rapisarda modeled careers as repeated competitions where modest talent plus occasional lucky events beat high talent with bad luck almost every time. In their simulations, the most successful agents were rarely the most skilled."}</p>
             <p>{"Economist Robert Frank separates \"dumb luck\" (born healthy, stable household) from \"circumstantial luck\" (right seminar, right macro cycle) and \"social luck\" (mentors, referrals). All three shift outcomes without negating skill. Skill still matters because it determines whether you can convert a lucky opening. But skill alone, without openings, produces the familiar complaint: \"I'm qualified, so why is nothing happening?\""}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Luck is not the opposite of merit. It is the distribution of opportunities merit must attach to."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Luck is not the opposite of merit. It is the distribution of opportunities merit must attach to.</div>
 
             <div className="pull-quote">
               <p>{"\"I did the same projects as my roommate. She got a referral because her TA knew a PM. I cold-applied for six months. We were not equally talented. We were equally skilled with unequal luck surfaces.\""}</p>
@@ -332,7 +332,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <p>{"Timing is the most quantifiable form of career luck. Oreopoulos, von Wachter, and Heisz tracked Canadian college graduates and found that entering the labour market in a typical recession cut earnings by about 9% at first. The gap halved within 5 years and faded by about year 10, partly because unlucky graduates started at lower-paying employers and had to move up to better ones. In US data, Lisa Kahn (Labour Economics, 2010) found that men who graduated from college around the early 1980s recession were still earning less 15 years later. Similar patterns appear in UK and European cohort studies: the state of hiring when you exit education shifts your first job, and first jobs anchor expectations, networks, and skill accumulation."}</p>
             <p>{"Macro luck also shows up in sector booms. Graduating into fintech expansion (2021), AI infrastructure hiring (2024 to 2025), or Gulf construction cycles produces different offer letters for the same GPA. None of this means individual effort is irrelevant. It means two identical effort profiles face different opportunity densities. Students who internalise \"I must be doing something wrong\" during a freeze often blame skill when the vacancy index is the binding constraint."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Your job search is a match between your profile and a market moment. Skill sets the ceiling; timing sets how high the ladder is that year."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Your job search is a match between your profile and a market moment. Skill sets the ceiling; timing sets how high the ladder is that year.</div>
 
             <div className="blist">
 
@@ -347,7 +347,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Recession playbook:</strong> Extend runway (projects, contract work, research), widen geography, prioritise roles that build transferable proof over brand-only logos, and track macro hiring indices so you do not misread silence as personal failure."}</div>
+            <div className="callout-amber"><strong>Recession playbook:</strong> Extend runway (projects, contract work, research), widen geography, prioritise roles that build transferable proof over brand-only logos, and track macro hiring indices so you do not misread silence as personal failure.</div>
           </div>
 
           <div className="rpt-section">
@@ -369,7 +369,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Networks are luck you can partially manufacture, but manufacturing takes years. Starting late is not a moral failing."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Networks are luck you can partially manufacture, but manufacturing takes years. Starting late is not a moral failing.</div>
 
             <div className="pull-quote">
               <p>{"\"Nobody in my family worked in tech. I thought referrals were for other people until a hackathon judge forwarded my repo. One random Saturday changed my pipeline more than three months of applications.\""}</p>
@@ -389,7 +389,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Network debt:</strong> If you lack family or alumni ties, treat every semester as compound interest on weak ties: one genuine follow-up beats fifty passive LinkedIn connects."}</div>
+            <div className="callout-green"><strong>Network debt:</strong> If you lack family or alumni ties, treat every semester as compound interest on weak ties: one genuine follow-up beats fifty passive LinkedIn connects.</div>
           </div>
 
           <div className="rpt-section">
@@ -410,7 +410,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Luck favors the visible. Work locked in a private repo or unread notebook cannot be lucky."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Luck favors the visible. Work locked in a private repo or unread notebook cannot be lucky.</div>
 
             <div className="blist">
 
@@ -425,7 +425,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Visibility rule:</strong> Ship one piece of work per month that a stranger can evaluate in under three minutes without a login. Luck needs a surface to land on."}</div>
+            <div className="callout"><strong>Visibility rule:</strong> Ship one piece of work per month that a stranger can evaluate in under three minutes without a login. Luck needs a surface to land on.</div>
           </div>
 
           <div className="rpt-section">
@@ -439,7 +439,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <p>{"Acknowledging luck is not an argument for passivity. Skill and effort control preparation quality, learning speed, interview performance, and whether a lucky introduction converts into an offer. Angela Duckworth's grit research and deliberate-practice literature show that sustained effort shifts distributions upward. The nuance is statistical: effort shifts your mean; luck shifts how many draws you take from the distribution."}</p>
             <p>{"Frank's \"Success and Luck\" proposes a useful split: be humble about causation (your win involved helpers and timing) and aggressive about behaviour (create conditions where luck can find you). That means portfolios, clear positioning, follow-through on intros, and skills that transfer across sectors so one unlucky industry year does not strand you. It also means not weaponising merit narratives against peers who faced harsher draws."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Control conversion. Expand discovery. Do not confuse the two when diagnosing a stalled search."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Control conversion. Expand discovery. Do not confuse the two when diagnosing a stalled search.</div>
 
             <div className="pull-quote">
               <p>{"\"Luck got me the intro. Skill got me the return offer. If either piece had been missing, I'd still be explaining gap years on my resume.\""}</p>
@@ -459,7 +459,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               </div>
             </div>
 
-            <div className="callout-red">{"<strong>Diagnostic:</strong> If you get interviews but no offers, train conversion (cases, stories, work samples). If you get silence, train discovery (network, proof, geography, timing tactics). Misdiagnosis wastes months."}</div>
+            <div className="callout-red"><strong>Diagnostic:</strong> If you get interviews but no offers, train conversion (cases, stories, work samples). If you get silence, train discovery (network, proof, geography, timing tactics). Misdiagnosis wastes months.</div>
           </div>
 
           <div className="rpt-section">
@@ -481,7 +481,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> Career success is partly luck, partly skill, always path-dependent. The winning move is to respect the dice and rig the table: more surfaces, better conversion, honest diagnostics."}</div>
+            <div className="highlight"><strong>Summary insight:</strong> Career success is partly luck, partly skill, always path-dependent. The winning move is to respect the dice and rig the table: more surfaces, better conversion, honest diagnostics.</div>
 
             <div className="pull-quote">
               <p>{"\"The most useful career advice I got was: work hard, but also roll the dice more times. I stopped romanticising one perfect application and started treating luck as something you meet halfway.\""}</p>
@@ -501,7 +501,7 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>90-day luck-aware plan:</strong> Month 1: one flagship public artefact and headline rewrite. Month 2: ten weak-tie conversations with forwardable blurbs. Month 3: review channel log; double down on what produced human replies, not what felt busiest."}</div>
+            <div className="callout"><strong>90-day luck-aware plan:</strong> Month 1: one flagship public artefact and headline rewrite. Month 2: ten weak-tie conversations with forwardable blurbs. Month 3: review channel log; double down on what produced human replies, not what felt busiest.</div>
           </div>
 
           <div className="takeaway-section">
