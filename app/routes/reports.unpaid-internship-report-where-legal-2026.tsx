@@ -273,9 +273,9 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
               <div className="sc-source">NACE internship and student experience surveys</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">₹5K+</div>
-              <div className="sc-label">Common floor cited in Indian campus placement guidelines and state rules for many formal internships (employer and state dependent)</div>
-              <div className="sc-source">AICTE / state labour guidelines and campus placement norms, synthesised 2026</div>
+              <div className="sc-num">₹9,000</div>
+              <div className="sc-label">Minimum monthly assistance for interns under India's PM Internship Scheme since its March 2026 revision, up from ₹5,000. AICTE sets no stipend floor for interns; registered apprentices have a legal minimum of ₹6,800 to ₹12,300 a month</div>
+              <div className="sc-source">Ministry of Corporate Affairs (PIB, 22 Apr 2026); Business Standard, 24 Mar 2026; AICTE Internship Policy; Apprenticeship (Amendment) Rules, 2025</div>
             </div>
           </div>
 
@@ -403,7 +403,8 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
                 <div className="sec-sub">What placement cells expect vs what startups post</div>
               </div>
             </div>
-            <p>India does not have one federal "intern minimum wage" branded like the US FLSA test, but multiple layers apply: state labour laws, apprenticeship schemes, company policies, and campus placement guidelines. Many Indian institutes expect stipends for summer internships and treat zero-pay roles as non-eligible for credit. AICTE and university placement norms often cite minimum stipend floors (commonly discussed around ₹5,000 to ₹10,000 per month for formal programmes, varying by institution and state).</p>
+            <p>India does not have one federal "intern minimum wage" branded like the US FLSA test, but multiple layers apply: state labour laws, apprenticeship schemes, company policies, and campus placement guidelines. Many Indian institutes expect stipends for summer internships and treat zero-pay roles as non-eligible for credit.</p>
+            <p>AICTE's Internship Policy sets no minimum stipend: it says an internship "may be compensated, non-compensated or some time may be paid". The clearest public benchmarks are government schemes. The PM Internship Scheme pays at least ₹9,000 a month after its March 2026 revision (Ministry of Corporate Affairs, 22 Apr 2026). Maharashtra's Mukhyamantri Yuva Karya Prashikshan Yojana pays ₹6,000 to ₹10,000 a month depending on qualification. Registered apprentices have a legal minimum stipend of ₹6,800 to ₹12,300 a month, also set by qualification, under the Apprenticeship (Amendment) Rules, 2025, in force since 11 Sep 2025.</p>
             <p>Startups and creative agencies sometimes offer "unpaid" or performance-only roles. Legality depends on classification, hours, sector, and whether an employment relationship exists under state law. Even where enforcement is loose, career risk is real: unpaid gigs rarely convert to quality full-time offers compared with paid structured programmes.</p>
             <p>Government and PSU internships often pay modest but defined honoraria. MNC and large tech summer programmes in India usually pay competitive stipends; unpaid pitches there deserve skepticism.</p>
 

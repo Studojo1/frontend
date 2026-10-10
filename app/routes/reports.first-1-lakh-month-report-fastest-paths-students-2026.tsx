@@ -489,7 +489,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>{"Platform fees eat margin."}</strong> {"Upwork charges 20% on the first $500 per client. Price your rates to absorb platform tax and Payoneer conversion."}</span>
+                <span><strong>{"Platform fees eat margin."}</strong> {"Upwork charges freelancers a variable service fee of 0% to 15% per contract (since May 2025), shown before you submit a proposal. Price your rates to absorb that fee and Payoneer conversion."}</span>
               </div>
 
               <div className="blist-item">

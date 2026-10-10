@@ -232,13 +232,13 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
           <div className="stat-bar">
             <div className="stat-card">
               <div className="sc-num">{"47%"}</div>
-              <div className="sc-label">{"Share of professionals who say the subject line alone determines whether they open an unsolicited email"}</div>
-              <div className="sc-source">{"Boomerang email behaviour survey, synthesised in Studojo framework, 2025"}</div>
+              <div className="sc-label">{"Share of email recipients who open an email based on the subject line. A widely repeated marketing statistic about email in general, not cold outreach"}</div>
+              <div className="sc-source">{"Invesp infographic, March 2016"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"2-3×"}</div>
-              <div className="sc-label">{"Typical open-rate lift when the subject contains a specific, accurate detail about the recipient versus a generic opener"}</div>
-              <div className="sc-source">{"Studojo outreach signal synthesis, 2026"}</div>
+              <div className="sc-num">{"~1.3×"}</div>
+              <div className="sc-label">{"Open-rate lift for personalized subject lines (46%) versus non-personalized ones (35%) across 5.5 million B2B cold emails sent in 2024. Reply rates rose from 3% to 7%"}</div>
+              <div className="sc-source">{"Belkins, August 2025"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"4-7"}</div>

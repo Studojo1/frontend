@@ -263,14 +263,14 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">{"~47%"}</div>
-              <div className="sc-label">{"Illustrative share of intern job posts in Studojo's 2026 synthesis that mention AI tools, automation, or AI-assisted workflows in requirements or nice-to-haves"}</div>
-              <div className="sc-source">{"Studojo job-posting scrape synthesis, 2026"}</div>
+              <div className="sc-num">{"10%+"}</div>
+              <div className="sc-label">{"Share of active internships on Handshake that mention AI keywords as of March 2026, against 4.2% of full-time postings, a share that nearly doubled in a year"}</div>
+              <div className="sc-source">{"Handshake, AI and the Workforce Ahead (Class of 2026 report), April 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"2.4x"}</div>
-              <div className="sc-label">{"Typical lift in positive manager feedback when an intern documents how they used AI in a deliverable versus submitting unexplained polished output"}</div>
-              <div className="sc-source">{"Studojo hiring-manager interview synthesis, 2025 to 2026"}</div>
+              <div className="sc-num">{"13 studies"}</div>
+              <div className="sc-label">{"Experiments with more than 5,000 participants in which people who disclosed their AI use were trusted less than those who did not. Being exposed for using it covertly hurt trust even more, so show how you used AI before someone else finds out"}</div>
+              <div className="sc-source">{"Schilke and Reimann, Organizational Behavior and Human Decision Processes, 2025"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"60 days"}</div>

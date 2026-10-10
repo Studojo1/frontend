@@ -263,9 +263,9 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">{"~62%"}</div>
-              <div className="sc-label">{"Illustrative share of entry-level data/AI-titled intern reqs that emphasize SQL, Python, and analytics over training frontier models (Studojo job-post synthesis, 2026)"}</div>
-              <div className="sc-source">{"Studojo job-posting scrape synthesis, 2026"}</div>
+              <div className="sc-num">{"About half"}</div>
+              <div className="sc-label">{"Share of 1,355 US data analyst job postings that mention SQL, with Python in about a third and machine learning in 14%. Querying and analysis come before model training"}</div>
+              <div className="sc-source">{"365 Data Science analysis of Glassdoor US postings, April 2026"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"$35-$55/hr"}</div>

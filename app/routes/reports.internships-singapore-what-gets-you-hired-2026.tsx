@@ -241,9 +241,9 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
               <div className="sc-source">Studojo programme-length synthesis, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">3×</div>
-              <div className="sc-label">Typical lift in interview probability when a candidate leads with one flagship artefact and a tight problem brief versus a generic CV blast</div>
-              <div className="sc-source">Studojo intern signal framework, 2026</div>
+              <div className="sc-num">1.85x</div>
+              <div className="sc-label">Among Huntr users, applications sent with a job-tailored resume recorded interviews at 5.71% against 3.09% without one, across 1.99 million tracked applications. Self-reported, not Singapore-specific, and the gap narrows when the same person is compared</div>
+              <div className="sc-source">Huntr Job Search Trends Report, Q2 2026 (published August 2026)</div>
             </div>
           </div>
 

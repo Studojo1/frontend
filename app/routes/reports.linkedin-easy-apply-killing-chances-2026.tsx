@@ -231,9 +231,9 @@ export default function Report_LinkedinEasyApplyKillingChances2026() {
               <div className="sc-source">Studojo application-behaviour synthesis, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">10-50x</div>
-              <div className="sc-label">Typical volume inflation per role when friction drops, which compresses attention per application</div>
-              <div className="sc-source">Studojo recruiter-capacity model, 2026</div>
+              <div className="sc-num">5x</div>
+              <div className="sc-label">More completed applications for employers who used Indeed Apply, Indeed's own easy-apply flow, by Indeed's figures. When applying gets easier, the pile per role grows and attention per application shrinks</div>
+              <div className="sc-source">Indeed for Employers, Indeed Apply page (Indeed data, worldwide), viewed October 2026</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">3 fixes</div>

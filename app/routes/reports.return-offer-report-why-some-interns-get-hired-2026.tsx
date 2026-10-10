@@ -68,17 +68,17 @@ function initCharts() {
     });
   }
 
-  const managerEvalFactorsChartEl = document.getElementById("managerEvalFactorsChart") as HTMLCanvasElement | null;
-  if (managerEvalFactorsChartEl && !managerEvalFactorsChartEl.dataset.rendered) {
-    managerEvalFactorsChartEl.dataset.rendered = "1";
-    new Chart(managerEvalFactorsChartEl, {
+  const employerAttributesChartEl = document.getElementById("employerAttributesChart") as HTMLCanvasElement | null;
+  if (employerAttributesChartEl && !employerAttributesChartEl.dataset.rendered) {
+    employerAttributesChartEl.dataset.rendered = "1";
+    new Chart(employerAttributesChartEl, {
       type: "bar",
       data: {
-        labels: ["Follow-through without reminders", "Clear written updates", "Quality of final deliverable", "Asks smart questions early", "Easy to staff on future work", "Hours logged or face time alone", "Polished deck with weak Q&A"],
+        labels: ["Problem-solving skills", "Ability to work in a team", "Written communication skills", "Initiative", "Strong work ethic", "Technical skills"],
         datasets: [{
-          label: "What managers rank in intern evaluations (index 0 to 10)",
-          data: [9.3, 9.0, 8.8, 8.2, 8.0, 3.5, 2.8],
-          backgroundColor: ["#6366f1", "#6366f1", "#818cf8", "#8b5cf6", "#a855f7", "#737373", "#ef4444"],
+          label: "Top six attributes employers seek on a college candidate's resume (NACE Job Outlook 2025, % of employers)",
+          data: [88.3, 81.0, 77.1, 73.7, 73.2, 73.2],
+          backgroundColor: ["#6366f1", "#6366f1", "#818cf8", "#8b5cf6", "#a855f7", "#a855f7"],
           borderRadius: 6,
           borderWidth: 0,
         }],
@@ -89,10 +89,10 @@ function initCharts() {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}/10` } },
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
         },
         scales: {
-          x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 10.0,
+          x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 100.0,
                ticks: { font: { size: 11 }, color: MUTED } },
           y: { grid: { display: false }, ticks: { font: { size: 12 }, color: INK } },
         },
@@ -263,9 +263,9 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">{"~40 to 65%"}</div>
-              <div className="sc-label">{"Illustrative return-offer rate at large structured intern programmes in tech and consulting when headcount is stable (drops sharply during hiring freezes)"}</div>
-              <div className="sc-source">{"NACE intern conversion surveys and employer cohort data, synthesised 2026"}</div>
+              <div className="sc-num">{"62 to 72%"}</div>
+              <div className="sc-label">{"Share of interns offered a full-time job by their employer in NACE's two latest cohorts: 61.9% of 2023-24 interns, the lowest of the past five years, and 71.8% of 2024-25 interns"}</div>
+              <div className="sc-source">{"NACE 2026 Internship & Co-op Survey (284 employers), April 2026"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"Week 4-5"}</div>
@@ -325,14 +325,14 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
                 <div className="sec-sub">{"Deliverables matter, but so does being low-friction to manage"}</div>
               </div>
             </div>
-            <p>{"Managers consistently rank follow-through and communication near the top of intern evaluations in Studojo's 2025 to 2026 synthesis. The intern who closes loops, writes crisp updates, and surfaces blockers early reads as future headcount worth buying. The intern who disappears until demo day forces rescue work."}</p>
+            <p>{"Employers put problem-solving, teamwork and written communication at the top of what they look for in students: 88.3%, 81.0% and 77.1% of employers in NACE's Job Outlook 2025 survey. The intern who closes loops, writes crisp updates, and surfaces blockers early reads as future headcount worth buying. The intern who disappears until demo day forces rescue work."}</p>
             <p>{"Deliverable quality still matters, but managers parse quality differently than professors. They weight judgment under ambiguity: did you pick the right metric, flag the risky assumption, and simplify for the audience? A beautiful chart with wrong conclusions loses to an ugly spreadsheet with a correct recommendation."}</p>
             <p>{"Collaboration signals show up in peer feedback more than interns expect. Teams remember who shared credit, who reviewed drafts, and who created cleanup work. Return offers are team bets, not solo awards."}</p>
 
             <div className="chart-wrap">
-              <div className="chart-label">{"What managers rank in intern evaluations (index 0 to 10)"}</div>
+              <div className="chart-label">{"Top six attributes employers seek on a college candidate's resume (NACE Job Outlook 2025, % of employers)"}</div>
               <div style={{ height: 300 }}>
-                <canvas id="managerEvalFactorsChart" />
+                <canvas id="employerAttributesChart" />
               </div>
             </div>
 
