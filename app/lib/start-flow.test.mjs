@@ -92,6 +92,9 @@ eq("deck spreads across clusters", new Set(deck.map((d) => d.cluster)).size >= 4
 // ── talent store feeds the profile ──────────────────────────────────────────
 const fromStart = signalsFromTalent({ resume: { skills: ["SQL", "Excel"], experience: [{ title: "Data Intern", company: "Zepto" }] }, prefs: { cities: ["Bengaluru"], titles: ["Data Analyst Intern"], clusters: ["Analytics"], minMonthly: 25000 } });
 eq("talent: skills, cities, roles, pay", [fromStart.skills, fromStart.locations, fromStart.targetRoles, fromStart.salary], [["SQL", "Excel"], ["Bengaluru"], ["Data Analyst Intern"], "₹25k+/mo"]);
+const withChat = signalsFromTalent({ chat: { dreamCompanies: ["Razorpay"], workMode: "Hybrid", startWhen: "Within a month", proud: "Built a churn dashboard" } });
+eq("talent: chat answers", [withChat.dreamCompanies, withChat.workMode, withChat.timeline, withChat.summary], [["Razorpay"], "Hybrid", "Within a month", "Built a churn dashboard"]);
+eq("talent: 'Any' work mode is not a preference", signalsFromTalent({ chat: { workMode: "Any" } }).workMode, null);
 eq("talent: garbage is empty", signalsFromTalent("x"), EMPTY_SIGNALS);
 const merged = mergeSignals({ ...EMPTY_SIGNALS, skills: ["Python"] }, fromStart);
 eq("merge: outreach wins where it has data, talent fills gaps", [merged.skills, merged.locations], [["Python"], ["Bengaluru"]]);

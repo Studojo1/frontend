@@ -5,20 +5,22 @@ import { authClient } from "~/lib/auth-client";
 import type { QuickResume } from "~/lib/resume-quick-parse";
 import { inferPrefs, matches, type Cluster, type DeckRole } from "~/lib/swipe-prefs";
 import { TalentGlobe, type GlobePin } from "~/components/profile/talent-globe";
+import { ProfileChat, type ChatAnswers } from "~/components/start/profile-chat";
 import { COORDS } from "~/lib/geo";
 
 /**
- * /start: sign up by dropping a resume. This is the profiling stage that
- * leads into the Sensei-style outreach app, so it uses the same design
- * language (Geist, indigo, soft bordered panels, a live panel on the right).
+ * /start: sign up by dropping a resume.
  *
  *  1. Drop    the resume is read instantly (no account yet, nothing stored)
  *  2. Verify  a six-digit code goes to the email on the resume; no password
  *  3. Confirm one tap if we read it right; edit only what's wrong
  *  4. Swipe   real roles instead of a quiz, so we learn what they want
- *  5. Cities  confirm where they'd work, on the globe
+ *  5. Cities  where they'd work, on the globe
+ *  6. Chat    a short conversation for what a resume can't say
  *
- * The right panel (globe, counts, talent card) fills in as each step lands.
+ * Three columns so no space sits empty: steps and a log of what we've
+ * learned on the left, the step in the middle, and a live panel (globe,
+ * counts, profile card) on the right that fills in as each step lands.
  */
 
 export function meta() {
@@ -28,41 +30,50 @@ export function meta() {
   ];
 }
 
-type Step = "drop" | "reading" | "verify" | "confirm" | "swipe" | "cities" | "saving";
+type Step = "drop" | "reading" | "verify" | "confirm" | "swipe" | "cities" | "chat" | "saving";
 type Card = DeckRole;
 type PoolRow = Pick<DeckRole, "cluster" | "city" | "monthly">;
 
 const CONSENT_PENDING_KEY = "sj_consent_pending";
 const STASH_KEY = "sj_start_resume";
 
-const STEPS: { key: Step[]; label: string; hint: string }[] = [
-  { key: ["drop", "reading"], label: "Drop your resume", hint: "We read it in a second" },
-  { key: ["verify"], label: "Verify your email", hint: "A code, not a password" },
-  { key: ["confirm"], label: "Check what we found", hint: "Fix only what's wrong" },
-  { key: ["swipe"], label: "Swipe real roles", hint: "We learn what you want" },
-  { key: ["cities", "saving"], label: "Pick your cities", hint: "Where you'd work" },
+const BTN =
+  "inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-violet-500 text-white font-bold text-sm border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all font-['Satoshi'] disabled:opacity-60 disabled:pointer-events-none";
+const BTN_GHOST =
+  "inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-neutral-900 font-bold text-sm border-2 border-neutral-900 rounded-xl shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(25,26,35,1)] transition-all font-['Satoshi']";
+const CARD = "rounded-2xl border-2 border-neutral-900 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]";
+const LABEL = "font-['Satoshi'] text-[10px] font-bold uppercase tracking-wider text-neutral-500";
+const H1 = "font-['Clash_Display'] text-4xl md:text-5xl font-bold leading-[1.02] text-neutral-900";
+
+const STEPS: { key: Step[]; label: string; hint: string; dot: string }[] = [
+  { key: ["drop", "reading"], label: "Drop your resume", hint: "We read it in a second", dot: "bg-amber-300" },
+  { key: ["verify"], label: "Verify your email", hint: "A code, not a password", dot: "bg-pink-300" },
+  { key: ["confirm"], label: "Check what we found", hint: "Fix only what's wrong", dot: "bg-emerald-300" },
+  { key: ["swipe"], label: "Swipe real roles", hint: "We learn what you want", dot: "bg-violet-300" },
+  { key: ["cities"], label: "Pick your cities", hint: "Where you'd work", dot: "bg-sky-300" },
+  { key: ["chat", "saving"], label: "Tell us more", hint: "A one-minute chat", dot: "bg-amber-300" },
 ];
 
-// One hue per kind of work, so the deck isn't a wall of the same colour.
-const CLUSTER_HUE: Record<Cluster, { bg: string; fg: string }> = {
-  Analytics: { bg: "#EEEFFD", fg: "#4349C9" },
-  Product: { bg: "#F3ECFE", fg: "#7A3FD8" },
-  Engineering: { bg: "#E8F4FD", fg: "#1F6FB2" },
-  Design: { bg: "#FDEDF5", fg: "#B4337A" },
-  Marketing: { bg: "#FFF1E6", fg: "#B85A12" },
-  Finance: { bg: "#E8F7F0", fg: "#167A55" },
-  Consulting: { bg: "#E6F6F6", fg: "#13777A" },
-  Sales: { bg: "#FFF7E0", fg: "#946200" },
-  Content: { bg: "#FDECEC", fg: "#B23B3B" },
-  HR: { bg: "#F0F7E4", fg: "#4F7A16" },
-  Operations: { bg: "#EEF1F5", fg: "#4A5568" },
-  Other: { bg: "#F1F1F5", fg: "#55556A" },
+// One colour per kind of work, in the Studojo palette.
+const CLUSTER_STYLE: Record<Cluster, string> = {
+  Analytics: "bg-violet-200",
+  Product: "bg-pink-200",
+  Engineering: "bg-sky-200",
+  Design: "bg-fuchsia-200",
+  Marketing: "bg-orange-200",
+  Finance: "bg-emerald-200",
+  Consulting: "bg-teal-200",
+  Sales: "bg-amber-200",
+  Content: "bg-rose-200",
+  HR: "bg-lime-200",
+  Operations: "bg-slate-200",
+  Other: "bg-neutral-200",
 };
 
 // Skills that make a kind of work a natural fit, for "why you're seeing this".
 const CLUSTER_SKILLS: Partial<Record<Cluster, string[]>> = {
   Analytics: ["sql", "excel", "python", "tableau", "power bi", "statistics", "r", "looker", "data analysis"],
-  Product: ["sql", "figma", "a/b testing", "excel", "product management", "mixpanel", "analytics"],
+  Product: ["sql", "figma", "a/b testing", "excel", "product management", "mixpanel"],
   Engineering: ["python", "java", "javascript", "typescript", "react", "node.js", "c++", "go", "sql", "git"],
   Design: ["figma", "photoshop", "illustrator", "canva", "ui/ux"],
   Marketing: ["seo", "google analytics", "social media", "canva", "content writing", "digital marketing", "excel"],
@@ -111,6 +122,11 @@ function draftFrom(r: QuickResume | null): Draft {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const coordsOf = (city: string) => COORDS[city.toLowerCase()] ?? (city === "Bengaluru" ? COORDS.bangalore : undefined);
 const maskEmail = (e: string) => e.replace(/^(.)[^@]*(@.*)$/, "$1•••$2");
+const Check = ({ className = "" }: { className?: string }) => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true" className={className}>
+    <path d="M3 8.5l3 3 7-7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 function useCountUp(target: number) {
   const [n, setN] = useState(target);
@@ -131,110 +147,72 @@ function useCountUp(target: number) {
   return n;
 }
 
-const CSS = `
-@font-face { font-family: "Geist"; src: url(/fonts/geist/Geist-Variable.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
-@font-face { font-family: "Geist Mono"; src: url(/fonts/geist/GeistMono-Variable.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
-.st {
-  --bg: #FBFBFD; --panel: #FFFFFF; --ink: #16161E; --ink-2: #3A3A4A; --muted: #6B6B80; --faint: #9A9AAD;
-  --line: #E7E7EF; --line-2: #F0F0F5; --indigo: #5B63E8; --indigo-ink: #4349C9; --indigo-soft: #EEEFFD;
-  --green: #12A672; --green-soft: #E7F7F0; --amber: #D98A00; --amber-soft: #FFF5E0; --night: #10112A;
-  --sans: "Geist", -apple-system, "Segoe UI", system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, Menlo, monospace;
-  font-family: var(--sans); color: var(--ink); background: var(--bg);
-  min-height: 100dvh; display: grid; grid-template-rows: auto 1fr;
-}
-.st *:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; border-radius: 8px; }
-.st-mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-.st-label { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
-@media (max-width: 720px) { .st-hide-sm { display: none !important; } .st-seg { width: 22px !important; } .st-top { gap: 10px !important; padding: 0 14px !important; } }
-.st-top { height: 56px; display: flex; align-items: center; gap: 16px; padding: 0 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
-.st-body { display: grid; grid-template-columns: 1fr; min-height: 0; }
-@media (min-width: 1100px) { .st-body { grid-template-columns: 272px minmax(0, 1fr) 420px; height: calc(100dvh - 56px); } .st-rail, .st-center, .st-side { overflow-y: auto; } }
-.st-rail { display: none; border-right: 1px solid var(--line); background: var(--panel); padding: 20px 16px; }
-@media (min-width: 1100px) { .st-rail { display: flex; flex-direction: column; gap: 20px; } }
-.st-center { position: relative; padding: 28px 20px 40px; background-color: var(--bg);
-  background-image: radial-gradient(circle at 1px 1px, #DCDCE8 1px, transparent 0); background-size: 22px 22px; }
-@media (min-width: 1100px) { .st-center { padding: 40px 48px; } }
-.st-center-inner { max-width: 680px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
-.st-side { border-left: 1px solid var(--line); background: var(--panel); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-.st-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 2px rgba(22,22,30,.04), 0 8px 24px rgba(22,22,30,.04); }
-.st-h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spacing: -.03em; font-weight: 650; text-wrap: balance; margin: 0; }
-.st-sub { color: var(--muted); font-size: 16px; line-height: 1.55; max-width: 56ch; margin: 0; }
-.st-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 12px; font: 600 14px var(--sans);
-  background: var(--ink); color: #fff; border: 0; cursor: pointer; transition: transform .15s, background .15s; }
-.st-btn:hover { background: #2A2A38; } .st-btn:active { transform: translateY(1px); }
-.st-btn[disabled] { opacity: .5; pointer-events: none; }
-.st-btn.indigo { background: var(--indigo); } .st-btn.indigo:hover { background: var(--indigo-ink); }
-.st-btn.ghost { background: var(--panel); color: var(--ink); border: 1px solid var(--line); } .st-btn.ghost:hover { background: var(--line-2); }
-.st-link { color: var(--indigo-ink); font-weight: 600; background: none; border: 0; padding: 0; cursor: pointer; font: inherit; font-weight: 600; }
-.st-pill { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 999px; font: 600 11px var(--sans); white-space: nowrap; }
-.st-kbd { font: 500 11px var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 6px; color: var(--muted); background: var(--panel); }
-.st-chip { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 10px; border-radius: 999px; font: 500 12px var(--sans); background: var(--line-2); color: var(--ink-2); }
-@keyframes stPop { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
-.st-pop { animation: stPop .35s ease both }
-@keyframes stScan { from { top: 8% } to { top: 88% } }
-@keyframes stSpin { to { transform: rotate(360deg) } }
-.st-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--indigo-soft); border-top-color: var(--indigo); animation: stSpin .8s linear infinite; }
-@media (prefers-reduced-motion: reduce) { .st-pop, .st-spin { animation: none } .st-scan { display: none } }
-`;
-
 type FeedItem = { t: number; text: string; tone?: "good" | "warn" | "info" };
 
-// ── Right panel ──────────────────────────────────────────────────────────────
+// ── Right panel pieces ───────────────────────────────────────────────────────
 
-function Stat({ label, value, tone, tour }: { label: string; value: ReactNode; tone?: string; tour?: string }) {
+function Stat({ label, value, bg, tour }: { label: string; value: ReactNode; bg: string; tour?: string }) {
   return (
-    <div className="st-panel" style={{ padding: "12px 12px 10px", textAlign: "center" }} data-tour={tour}>
-      <div className="st-mono" style={{ fontSize: 24, fontWeight: 600, color: tone ?? "var(--ink)", lineHeight: 1.1 }}>{value}</div>
-      <div className="st-label" style={{ marginTop: 4, fontSize: 10 }}>{label}</div>
+    <div className={`rounded-xl border-2 border-neutral-900 ${bg} px-2 py-2.5 text-center shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]`} data-tour={tour}>
+      <div className="font-['Clash_Display'] text-2xl font-bold leading-none text-neutral-900 tabular-nums">{value}</div>
+      <div className="mt-1 font-['Satoshi'] text-[10px] font-bold uppercase tracking-wider text-neutral-700">{label}</div>
     </div>
   );
 }
 
-function TalentCard({ d, prefs }: { d: Draft; prefs: ReturnType<typeof inferPrefs> | null }) {
+function TalentCard({ d, prefs, chat }: { d: Draft; prefs: ReturnType<typeof inferPrefs> | null; chat: ChatAnswers }) {
   const initials = (d.name || "").split(" ").filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   const line = [d.course, d.college, d.gradYear && `’${d.gradYear.slice(-2)}`].filter(Boolean).join(" · ");
+  const Empty = ({ w }: { w: string }) => <span className={`block h-3.5 ${w} rounded bg-neutral-100`} />;
   return (
-    <div className="st-panel" style={{ padding: 16 }} data-tour="card">
-      <div className="st-label" style={{ marginBottom: 10 }}>Your profile, building itself</div>
-      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <div
-          style={{ width: 44, height: 44, borderRadius: 12, display: "grid", placeItems: "center", fontWeight: 650, fontSize: 15,
-            background: initials ? "linear-gradient(135deg,#5B63E8,#8B5CF6)" : "var(--line-2)", color: initials ? "#fff" : "var(--faint)" }}
-        >
+    <div className={`${CARD} p-4`} data-tour="card">
+      <div className={`${LABEL} mb-3`}>Your profile, building itself</div>
+      <div className="flex items-center gap-3">
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-neutral-900 font-['Clash_Display'] text-base font-bold ${initials ? "bg-violet-500 text-white" : "bg-neutral-100 text-neutral-300"}`}>
           {initials || "?"}
         </div>
-        <div style={{ minWidth: 0 }}>
-          {d.name ? <div className="st-pop" style={{ fontWeight: 650, fontSize: 16 }}>{d.name}</div> : <div style={{ height: 14, width: 140, borderRadius: 6, background: "var(--line-2)" }} />}
-          {line ? (
-            <div className="st-pop" style={{ fontSize: 12.5, color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 300 }}>{line}</div>
-          ) : (
-            <div style={{ height: 10, width: 200, borderRadius: 6, background: "var(--line-2)", marginTop: 6 }} />
-          )}
+        <div className="min-w-0 flex-1 space-y-1">
+          {d.name ? <div className="truncate font-['Clash_Display'] text-lg font-bold text-neutral-900 sj-pop">{d.name}</div> : <Empty w="w-36" />}
+          {line ? <div className="truncate font-['Satoshi'] text-xs text-neutral-600 sj-pop">{line}</div> : <Empty w="w-48" />}
         </div>
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 12 }}>
+      <div className="mt-3 flex flex-wrap gap-1">
         {d.skills.length
           ? d.skills.slice(0, 8).map((s, i) => (
-              <span key={s} className="st-chip st-pop" style={{ height: 22, fontSize: 11, animationDelay: `${i * 40}ms` }}>{s}</span>
+              <span key={s} className="rounded-full bg-violet-50 px-2 py-0.5 font-['Satoshi'] text-[11px] font-semibold text-violet-700 sj-pop" style={{ animationDelay: `${i * 40}ms` }}>{s}</span>
             ))
-          : [64, 48, 80, 56].map((w, i) => <span key={i} style={{ height: 22, width: w, borderRadius: 999, background: "var(--line-2)" }} />)}
+          : ["w-14", "w-10", "w-16", "w-12"].map((w, i) => <span key={i} className={`h-5 ${w} rounded-full bg-neutral-100`} />)}
       </div>
-      <div style={{ borderTop: "1px dashed var(--line)", marginTop: 12, paddingTop: 10 }}>
-        <div className="st-label" style={{ fontSize: 10 }}>Looking for</div>
-        {prefs && (prefs.clusters.length || prefs.cities.length || prefs.minMonthly) ? (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 6 }}>
-            {prefs.clusters.slice(0, 3).map((c) => (
-              <span key={c} className="st-pill st-pop" style={{ background: CLUSTER_HUE[c].bg, color: CLUSTER_HUE[c].fg }}>{c}</span>
-            ))}
-            {prefs.cities.slice(0, 3).map((c) => (
-              <span key={c} className="st-pill st-pop" style={{ background: "var(--line-2)", color: "var(--ink-2)" }}>{c}</span>
-            ))}
-            {prefs.minMonthly ? (
-              <span className="st-pill st-pop st-mono" style={{ background: "var(--green-soft)", color: "var(--green)" }}>₹{Math.round(prefs.minMonthly / 1000)}k+/mo</span>
-            ) : null}
+      <div className="mt-3 space-y-2 border-t-2 border-dashed border-neutral-200 pt-3">
+        <div>
+          <div className={LABEL}>Looking for</div>
+          {prefs && (prefs.clusters.length || prefs.cities.length || prefs.minMonthly) ? (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {prefs.clusters.slice(0, 3).map((c) => (
+                <span key={c} className={`rounded-full border-2 border-neutral-900 ${CLUSTER_STYLE[c]} px-2 py-0.5 font-['Satoshi'] text-[11px] font-bold sj-pop`}>{c}</span>
+              ))}
+              {prefs.cities.slice(0, 3).map((c) => (
+                <span key={c} className="rounded-full bg-neutral-100 px-2 py-0.5 font-['Satoshi'] text-[11px] font-semibold text-neutral-700 sj-pop">{c}</span>
+              ))}
+              {prefs.minMonthly ? (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-['Satoshi'] text-[11px] font-bold text-emerald-800 sj-pop">₹{Math.round(prefs.minMonthly / 1000)}k+/mo</span>
+              ) : null}
+            </div>
+          ) : (
+            <p className="mt-1 font-['Satoshi'] text-xs text-neutral-400">Fills in as you swipe roles</p>
+          )}
+        </div>
+        {(chat.companyStage || chat.dreamCompanies?.length || chat.workMode || chat.startWhen || chat.proud) && (
+          <div className="sj-pop" data-tour="from-chat">
+            <div className={LABEL}>From our chat</div>
+            <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-['Satoshi'] text-xs">
+              {chat.companyStage && <><dt className="text-neutral-500">Company</dt><dd className="font-semibold text-neutral-900">{chat.companyStage}</dd></>}
+              {chat.dreamCompanies?.length ? <><dt className="text-neutral-500">Dream</dt><dd className="truncate font-semibold text-neutral-900">{chat.dreamCompanies.join(", ")}</dd></> : null}
+              {chat.workMode && <><dt className="text-neutral-500">Works</dt><dd className="font-semibold text-neutral-900">{chat.workMode}</dd></>}
+              {chat.startWhen && <><dt className="text-neutral-500">Starts</dt><dd className="font-semibold text-neutral-900">{chat.startWhen}</dd></>}
+              {chat.proud && <><dt className="text-neutral-500">Proud of</dt><dd className="line-clamp-2 font-semibold text-neutral-900">{chat.proud}</dd></>}
+            </dl>
           </div>
-        ) : (
-          <div style={{ fontSize: 12, color: "var(--faint)", marginTop: 4 }}>Fills in as you swipe roles</div>
         )}
       </div>
     </div>
@@ -267,7 +245,7 @@ export default function StartPage() {
   const [newSkill, setNewSkill] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // swipe + cities
+  // swipe + cities + chat
   const [cards, setCards] = useState<Card[]>([]);
   const [pool, setPool] = useState<PoolRow[]>([]);
   const [liked, setLiked] = useState<Card[]>([]);
@@ -276,6 +254,8 @@ export default function StartPage() {
   const [fling, setFling] = useState<"left" | "right" | null>(null);
   const [cities, setCities] = useState<string[]>([]);
   const [focusCity, setFocusCity] = useState<string | null>(null);
+  const [chat, setChat] = useState<ChatAnswers>({});
+  const [chatDone, setChatDone] = useState(false);
 
   const signedIn = !!auth?.user;
   // While reading, the panel shows only the fields revealed so far, in checklist order.
@@ -285,6 +265,7 @@ export default function StartPage() {
     return { ...d, name: keep(0) ? d.name : "", email: keep(1) ? d.email : "", college: keep(2) ? d.college : "",
       course: keep(3) ? d.course : "", gradYear: keep(4) ? d.gradYear : "", city: keep(5) ? d.city : "", skills: keep(6) ? d.skills : [] };
   }, [d, step, revealed]);
+
   useEffect(() => {
     setMounted(true);
     t0.current = Date.now();
@@ -303,7 +284,6 @@ export default function StartPage() {
         sessionStorage.removeItem(STASH_KEY);
         const r = JSON.parse(raw) as QuickResume;
         setD({ ...draftFrom(r), email: auth!.user.email });
-        setRevealed(99);
         setStep("confirm");
       }
     } catch {}
@@ -334,7 +314,6 @@ export default function StartPage() {
       const draft = draftFrom(data.resume);
       try { localStorage.setItem(CONSENT_PENDING_KEY, "1"); } catch {}
       setD(signedIn ? { ...draft, email: auth!.user.email } : draft);
-      // Reveal the found fields one by one so the student sees what we read.
       for (let i = 1; i <= 7; i++) {
         setRevealed(i);
         await sleep(240);
@@ -479,7 +458,7 @@ export default function StartPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, cards.length, step]);
 
-  // City options: where the open roles are, with counts.
+  // ── 5. Cities → 6. Chat ──
   const cityCounts = useMemo(() => {
     const n = new Map<string, number>();
     for (const r of pool) if (r.city) n.set(r.city, (n.get(r.city) ?? 0) + 1);
@@ -488,8 +467,31 @@ export default function StartPage() {
   }, [pool, cities]);
   const maxCount = Math.max(1, ...cityCounts.map(([, n]) => n));
 
+  const toChat = async () => {
+    const p = prefs ?? inferPrefs([], []);
+    await fetch("/api/start/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ step: "prefs", prefs: { ...p, cities, liked: liked.map((c) => c.id), passed: passed.map((c) => c.id) } }),
+    }).catch(() => {});
+    log(`Saved ${cities.length} ${cities.length === 1 ? "city" : "cities"}${cities.length ? `: ${cities.join(", ")}` : ""}`, "good");
+    setStep("chat");
+  };
+
+  const finishChat = async (a: ChatAnswers) => {
+    setChat(a);
+    setChatDone(true);
+    await fetch("/api/start/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ step: "chat", chat: a }),
+    }).catch(() => {});
+    log("Profile complete", "good");
+  };
+
   // Globe: home from the resume, hubs where roles are, targets from swipes / picks.
-  const targetCities = step === "cities" || step === "saving" ? cities : (prefs?.cities ?? []);
+  const afterSwipes = step === "cities" || step === "chat" || step === "saving";
+  const targetCities = afterSwipes ? cities : (prefs?.cities ?? []);
   const pins = useMemo<GlobePin[]>(() => {
     const out: GlobePin[] = [];
     const home = shown.city ? coordsOf(shown.city) : undefined;
@@ -505,129 +507,122 @@ export default function StartPage() {
   }, [shown.city, cityCounts, targetCities]);
   const globeFocus = focusCity ?? (shown.city ? "home" : null);
 
-  const finish = async () => {
-    setStep("saving");
-    const p = prefs ?? inferPrefs([], []);
-    await fetch("/api/start/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        step: "prefs",
-        prefs: { ...p, cities, liked: liked.map((c) => c.id), passed: passed.map((c) => c.id) },
-      }),
-    }).catch(() => {});
-    navigate("/profile");
-  };
-
   const stepIndex = STEPS.findIndex((s) => s.key.includes(step));
   const dx = fling === "right" ? 560 : fling === "left" ? -560 : drag?.x ?? 0;
   const why = (c: Card) => {
     const want = CLUSTER_SKILLS[c.cluster] ?? [];
     const hits = d.skills.filter((s) => want.includes(s.toLowerCase())).slice(0, 3);
-    return hits.length ? `Uses your ${hits.join(", ")}` : "A different direction. Tells us if you're open to it.";
+    return { fit: hits.length > 0, text: hits.length ? `Uses your ${hits.join(", ")}` : "A different direction. Tells us if you're open to it." };
   };
   const tags = (c: Card) => {
-    const out: { text: string; bg: string; fg: string }[] = [];
-    if (c.city && d.city && c.city === d.city) out.push({ text: "Near you", bg: "var(--green-soft)", fg: "var(--green)" });
-    else if (c.city) out.push({ text: `Move to ${c.city}`, bg: "var(--line-2)", fg: "var(--ink-2)" });
-    else out.push({ text: "Remote", bg: "var(--indigo-soft)", fg: "var(--indigo-ink)" });
-    if (c.monthly) out.push({ text: c.monthly >= 40000 ? "Well paid" : "Paid", bg: "var(--green-soft)", fg: "var(--green)" });
-    else out.push({ text: "Stipend not stated", bg: "var(--amber-soft)", fg: "var(--amber)" });
-    if (/6 month/i.test(c.duration)) out.push({ text: "Long internship", bg: "var(--line-2)", fg: "var(--ink-2)" });
+    const out: { text: string; cls: string }[] = [];
+    if (c.city && d.city && c.city === d.city) out.push({ text: "Near you", cls: "bg-emerald-100 text-emerald-800" });
+    else if (c.city) out.push({ text: `Move to ${c.city}`, cls: "bg-sky-100 text-sky-800" });
+    else out.push({ text: "Remote", cls: "bg-violet-100 text-violet-800" });
+    if (c.monthly) out.push({ text: c.monthly >= 40000 ? "Well paid" : "Paid", cls: "bg-emerald-100 text-emerald-800" });
+    else out.push({ text: "Stipend not stated", cls: "bg-amber-100 text-amber-800" });
+    if (/6 month/i.test(c.duration)) out.push({ text: "Long internship", cls: "bg-neutral-100 text-neutral-700" });
     return out;
   };
   const globeCaption =
     step === "swipe" && prefs?.cities.length
       ? `Your swipes point to ${prefs.cities.slice(0, 2).join(" and ")}`
-      : step === "cities" || step === "saving"
+      : afterSwipes
         ? cities.length ? `${cities.length} ${cities.length === 1 ? "city" : "cities"} picked` : "Pick where you'd work"
         : shown.city
           ? `Based in ${shown.city}`
           : "Your map lights up as we learn";
+  const firstName = d.name.split(" ")[0] || "there";
+  const known = [
+    prefs?.clusters.length ? `you're into ${prefs.clusters.slice(0, 2).join(" and ")}` : null,
+    cities.length ? `you want to work in ${cities.slice(0, 3).join(", ")}` : null,
+    prefs?.minMonthly ? `you're after ₹${Math.round(prefs.minMonthly / 1000)}k+ a month` : null,
+  ].filter(Boolean);
+  const chatSummary = known.length
+    ? `From your resume and swipes I know ${known.join(", ")}. I won't ask you that again.`
+    : "I've got your resume, so I won't ask you anything that's already on it.";
+  const chatSuggestions = [...new Set(liked.map((c) => c.company))];
 
   return (
-    <div className="st">
-      <style>{CSS}</style>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-violet-50 via-white to-amber-50 lg:h-screen lg:overflow-hidden">
+      <style>{`
+        @keyframes sjPop { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
+        .sj-pop { animation: sjPop .35s ease both }
+        @media (prefers-reduced-motion: reduce) { .sj-pop { animation: none } }
+      `}</style>
 
       {/* Top bar */}
-      <header className="st-top">
-        <Link to="/" style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--ink)", textDecoration: "none" }}>
-          <span style={{ width: 26, height: 26, borderRadius: 8, background: "var(--ink)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 700, fontSize: 13 }}>S</span>
-          <span style={{ fontWeight: 650, fontSize: 15 }}>studojo</span>
-        </Link>
-        <span className="st-hide-sm" style={{ width: 1, height: 20, background: "var(--line)" }} />
-        <span className="st-hide-sm" style={{ fontSize: 14, color: "var(--muted)" }}>Getting to know you</span>
-        <div style={{ flex: 1, display: "flex", justifyContent: "center", gap: 4 }} data-tour="progress" aria-label={`Step ${stepIndex + 1} of ${STEPS.length}`}>
+      <header className="flex h-16 shrink-0 items-center gap-3 border-b-2 border-neutral-900 bg-white px-4 md:gap-4 md:px-6">
+        <Link to="/" className="font-['Clash_Display'] text-2xl font-bold text-neutral-900">studojo</Link>
+        <span className="hidden md:inline rounded-full border-2 border-neutral-900 bg-amber-200 px-2.5 py-0.5 font-['Satoshi'] text-xs font-bold">Getting to know you</span>
+        <div className="flex flex-1 justify-center gap-1.5" data-tour="progress" aria-label={`Step ${stepIndex + 1} of ${STEPS.length}`}>
           {STEPS.map((s, i) => (
-            <span key={s.label} className="st-seg" style={{ width: 44, height: 4, borderRadius: 4, background: i < stepIndex ? "var(--ink)" : i === stepIndex ? "var(--indigo)" : "var(--line)", transition: "background .3s" }} />
+            <span key={s.label} className={`h-2.5 w-5 rounded-full border-2 border-neutral-900 transition-colors md:w-10 ${i < stepIndex ? "bg-neutral-900" : i === stepIndex ? "bg-violet-500" : "bg-white"}`} />
           ))}
         </div>
-        <span className="st-mono st-hide-sm" style={{ fontSize: 12, color: "var(--muted)" }}>Step {stepIndex + 1} of {STEPS.length}</span>
-        {!signedIn && <Link to="/auth?mode=signin" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>Sign in</Link>}
+        <span className="hidden md:inline font-['Satoshi'] text-sm font-bold tabular-nums text-neutral-600">Step {stepIndex + 1}/{STEPS.length}</span>
+        {!signedIn && <Link to="/auth?mode=signin" className="font-['Satoshi'] text-sm font-bold text-neutral-900 hover:text-violet-700">Sign in</Link>}
       </header>
 
-      <div className="st-body">
+      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_400px]">
         {/* Left rail: steps + what we've learned */}
-        <aside className="st-rail" data-tour="rail">
-          <div>
-            <div className="st-label" style={{ marginBottom: 12 }}>Setup · about 90 seconds</div>
-            <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 4 }}>
-              {STEPS.map((s, i) => {
-                const done = i < stepIndex, now = i === stepIndex;
-                return (
-                  <li key={s.label} style={{ display: "flex", gap: 10, padding: "8px 10px", borderRadius: 10, background: now ? "var(--indigo-soft)" : "transparent" }}>
-                    <span style={{ marginTop: 2, width: 16, height: 16, flexShrink: 0, display: "grid", placeItems: "center" }}>
-                      {done ? (
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3 3 7-7" stroke="#12A672" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      ) : now ? (
-                        <span className="st-spin" />
-                      ) : (
-                        <span style={{ width: 13, height: 13, borderRadius: "50%", border: "1.5px solid var(--line)" }} />
-                      )}
-                    </span>
-                    <span>
-                      <span style={{ display: "block", fontSize: 13.5, fontWeight: now ? 600 : 500, color: done || now ? "var(--ink)" : "var(--faint)" }}>{s.label}</span>
-                      <span style={{ display: "block", fontSize: 12, color: "var(--faint)" }}>{s.hint}</span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-          <div style={{ borderTop: "1px solid var(--line)", paddingTop: 16, minHeight: 0 }} data-tour="feed">
-            <div className="st-label" style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: feed.length ? "var(--green)" : "var(--line)" }} /> What we've learned
+        <aside className="hidden min-h-0 flex-col gap-5 overflow-y-auto border-r-2 border-neutral-900 bg-white p-4 lg:flex" data-tour="rail">
+          <ol className="space-y-1.5">
+            {STEPS.map((s, i) => {
+              const done = i < stepIndex, now = i === stepIndex;
+              return (
+                <li key={s.label} className={`flex items-center gap-3 rounded-xl border-2 px-3 py-2 transition-colors ${now ? "border-neutral-900 bg-violet-50 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]" : "border-transparent"}`}>
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 font-['Clash_Display'] text-xs font-bold ${done ? "border-neutral-900 bg-neutral-900 text-white" : now ? `border-neutral-900 ${s.dot}` : "border-neutral-300 bg-white text-neutral-400"}`}>
+                    {done ? <Check /> : i + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className={`block font-['Satoshi'] text-sm font-bold ${done || now ? "text-neutral-900" : "text-neutral-400"}`}>{s.label}</span>
+                    <span className="block font-['Satoshi'] text-xs text-neutral-500">{s.hint}</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+          <div className="min-h-0 border-t-2 border-dashed border-neutral-200 pt-4" data-tour="feed">
+            <div className={`${LABEL} mb-3 flex items-center gap-1.5`}>
+              <span className={`h-2 w-2 rounded-full ${feed.length ? "bg-emerald-500" : "bg-neutral-300"}`} /> What we've learned
             </div>
             {feed.length === 0 ? (
-              <p style={{ fontSize: 12.5, color: "var(--faint)", margin: 0, lineHeight: 1.5 }}>
-                Everything we read or infer shows up here, so nothing about your profile is a mystery.
+              <p className="font-['Satoshi'] text-xs leading-relaxed text-neutral-500">
+                Everything we read or work out shows up here, so nothing about your profile is a mystery.
               </p>
             ) : (
-              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+              <ul className="space-y-2">
                 {feed.map((f, i) => (
-                  <li key={`${f.t}-${i}-${f.text}`} className="st-pop" style={{ display: "grid", gridTemplateColumns: "36px 1fr", gap: 6, fontSize: 12.5, lineHeight: 1.4 }}>
-                    <span className="st-mono" style={{ color: "var(--faint)", fontSize: 11 }}>{`0:${String(f.t).padStart(2, "0")}`.replace(/^0:(\d{3,})$/, "$1s")}</span>
-                    <span style={{ color: f.tone === "good" ? "var(--ink)" : f.tone === "warn" ? "var(--amber)" : "var(--muted)" }}>{f.text}</span>
+                  <li key={`${f.t}-${i}-${f.text}`} className="grid grid-cols-[34px_1fr] gap-1.5 font-['Satoshi'] text-xs leading-snug sj-pop">
+                    <span className="tabular-nums text-neutral-400">{`0:${String(f.t).padStart(2, "0")}`}</span>
+                    <span className={f.tone === "good" ? "font-semibold text-neutral-900" : f.tone === "warn" ? "font-semibold text-amber-700" : "text-neutral-600"}>{f.text}</span>
                   </li>
                 ))}
               </ul>
             )}
           </div>
-          <p style={{ marginTop: "auto", fontSize: 11.5, color: "var(--faint)", lineHeight: 1.5 }}>
+          <p className="mt-auto rounded-xl bg-neutral-50 p-3 font-['Satoshi'] text-[11px] leading-relaxed text-neutral-500">
             Your file is read once and isn't stored until you confirm. No password is created.
           </p>
         </aside>
 
         {/* Centre: the current step */}
-        <main className="st-center">
-          <div className="st-center-inner">
+        <main className="min-h-0 overflow-y-auto px-4 py-8 md:px-10">
+          <div className={`mx-auto flex min-h-full max-w-[680px] flex-col gap-6 ${step === "chat" || step === "saving" ? "" : "justify-center"}`}>
             {/* 1. Drop */}
             {(step === "drop" || step === "reading") && (
               <>
                 <div>
-                  <span className="st-pill" style={{ background: "var(--indigo-soft)", color: "var(--indigo-ink)" }}>No forms · no password</span>
-                  <h1 className="st-h1" style={{ marginTop: 14 }}>Drop your resume.<br /><span style={{ color: "var(--indigo)" }}>That's your signup.</span></h1>
-                  <p className="st-sub" style={{ marginTop: 12 }}>We read it, set up your account, and learn what you want from a few swipes. Then Sensei starts finding the people hiring for it.</p>
+                  <span className="inline-block -rotate-2 rounded-lg border-2 border-neutral-900 bg-amber-300 px-2.5 py-1 font-['Satoshi'] text-xs font-bold shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">No forms · no password</span>
+                  <h1 className={`${H1} mt-4`}>
+                    Drop your resume.
+                    <br />
+                    <span className="text-violet-600">That's the signup.</span>
+                  </h1>
+                  <p className="mt-3 max-w-xl font-['Satoshi'] text-base text-neutral-600">
+                    We read it in a second, set up your account, and get to know you with a few swipes and a quick chat.
+                  </p>
                 </div>
                 <label
                   data-tour="dropzone"
@@ -639,12 +634,7 @@ export default function StartPage() {
                     const f = e.dataTransfer.files?.[0];
                     if (f) void readFile(f);
                   }}
-                  className="st-panel"
-                  style={{
-                    position: "relative", overflow: "hidden", display: "block", cursor: step === "reading" ? "default" : "pointer",
-                    border: `1.5px dashed ${dragOver ? "var(--indigo)" : "#CFCFDD"}`, background: dragOver ? "var(--indigo-soft)" : "var(--panel)",
-                    padding: step === "reading" ? 20 : "36px 24px", pointerEvents: step === "reading" ? "none" : undefined,
-                  }}
+                  className={`relative block overflow-hidden rounded-2xl border-[3px] border-dashed bg-white transition-colors ${dragOver ? "border-violet-500 bg-violet-50" : "border-neutral-900"} ${step === "reading" ? "pointer-events-none p-5" : "cursor-pointer p-8"}`}
                 >
                   <input
                     id="start-resume"
@@ -659,12 +649,12 @@ export default function StartPage() {
                   />
                   {step === "reading" ? (
                     <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span className="st-spin" />
-                        <span style={{ fontWeight: 600 }}>Reading {fileName}</span>
-                        <span className="st-mono" style={{ marginLeft: "auto", fontSize: 12, color: "var(--muted)" }}>{Math.min(revealed, 7)}/7</span>
+                      <div className="flex items-center gap-2">
+                        <span className="h-3 w-3 animate-ping rounded-full bg-violet-500" />
+                        <span className="truncate font-['Clash_Display'] text-lg font-bold text-neutral-900">Reading {fileName}</span>
+                        <span className="ml-auto font-['Satoshi'] text-sm font-bold tabular-nums text-neutral-500">{Math.min(revealed, 7)}/7</span>
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginTop: 14 }}>
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
                         {(
                           [
                             ["Name", d.name],
@@ -676,45 +666,43 @@ export default function StartPage() {
                             ["Skills", d.skills.length ? `${d.skills.length} found` : ""],
                           ] as [string, string][]
                         ).map(([k, v], i) => (
-                          <div key={k} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 10, background: i < revealed ? "var(--line-2)" : "transparent", border: "1px solid var(--line-2)", opacity: i < revealed ? 1 : 0.45, transition: "all .25s" }}>
-                            <span style={{ width: 16 }}>{i < revealed ? (v ? <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3 3 7-7" stroke="#12A672" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg> : "–") : ""}</span>
-                            <span className="st-label" style={{ fontSize: 10, width: 70 }}>{k}</span>
-                            <span style={{ fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{i < revealed ? v || "not found" : ""}</span>
+                          <div key={k} className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 transition-all ${i < revealed ? "border-neutral-900 bg-emerald-50" : "border-neutral-200 opacity-50"}`}>
+                            <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md ${i < revealed && v ? "bg-emerald-500 text-white" : "bg-neutral-100"}`}>{i < revealed && v ? <Check /> : null}</span>
+                            <span className={`${LABEL} w-20 shrink-0`}>{k}</span>
+                            <span className="truncate font-['Satoshi'] text-sm font-semibold text-neutral-900">{i < revealed ? v || "not found" : ""}</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   ) : (
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 10 }}>
-                      <span style={{ width: 52, height: 52, borderRadius: 14, background: "var(--indigo-soft)", display: "grid", placeItems: "center" }}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V4m0 0l-4 4m4-4l4 4M5 15v3a2 2 0 002 2h10a2 2 0 002-2v-3" stroke="#5B63E8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      </span>
-                      <span style={{ fontSize: 17, fontWeight: 600 }}>Drop your resume here</span>
-                      <span style={{ fontSize: 13, color: "var(--muted)" }}>or <span style={{ color: "var(--indigo-ink)", fontWeight: 600 }}>choose a file</span> · PDF up to 5 MB</span>
+                    <div className="flex flex-col items-center text-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-xl border-2 border-neutral-900 bg-amber-300 font-['Clash_Display'] text-2xl font-bold shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">↓</div>
+                      <div className="mt-4 font-['Clash_Display'] text-xl font-bold text-neutral-900">Drop your resume here</div>
+                      <div className="mt-1 font-['Satoshi'] text-sm text-neutral-500">or <span className="font-bold text-violet-700 underline">choose a file</span> · PDF up to 5 MB</div>
                     </div>
                   )}
                 </label>
-                {error && <p style={{ color: "#C0392B", fontWeight: 600, fontSize: 14, margin: 0 }}>{error}</p>}
+                {error && <p className="font-['Satoshi'] text-sm font-semibold text-red-600">{error}</p>}
                 {step === "drop" && (
                   <>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 10 }}>
+                    <div className="grid gap-3 sm:grid-cols-3">
                       {[
-                        ["01", "Read in a second", "Name, college, skills and links come straight off your resume."],
-                        ["02", "A code, not a password", "We email a 6-digit code to the address on it."],
-                        ["03", "Swipe, not a quiz", "Keep or pass real roles. We learn what you want."],
-                      ].map(([n, t, b]) => (
-                        <div key={n} className="st-panel" style={{ padding: 14 }}>
-                          <div className="st-mono" style={{ fontSize: 11, color: "var(--indigo)" }}>{n}</div>
-                          <div style={{ fontWeight: 600, fontSize: 14, marginTop: 6 }}>{t}</div>
-                          <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 4, lineHeight: 1.45 }}>{b}</div>
+                        ["bg-violet-200", "Read in a second", "Name, college, skills and links come straight off your resume."],
+                        ["bg-pink-200", "A code, not a password", "We email a 6-digit code to the address on it."],
+                        ["bg-emerald-200", "Swipe, then chat", "Keep or pass real roles, then a one-minute chat."],
+                      ].map(([bg, t, b], i) => (
+                        <div key={t} className={`${CARD} p-4`}>
+                          <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg border-2 border-neutral-900 ${bg} font-['Clash_Display'] text-sm font-bold`}>{i + 1}</span>
+                          <div className="mt-2 font-['Satoshi'] text-sm font-bold text-neutral-900">{t}</div>
+                          <div className="mt-1 font-['Satoshi'] text-xs leading-relaxed text-neutral-600">{b}</div>
                         </div>
                       ))}
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+                    <div className="flex flex-wrap items-center gap-3">
                       {!signedIn && (
                         <button
                           type="button"
-                          className="st-btn ghost"
+                          className={BTN_GHOST}
                           onClick={() => {
                             try { localStorage.setItem(CONSENT_PENDING_KEY, "1"); } catch {}
                             authClient.signIn.social({ provider: "google", callbackURL: "/start", errorCallbackURL: "/auth?redirect=%2Fstart" });
@@ -723,11 +711,11 @@ export default function StartPage() {
                           No resume handy? Continue with Google
                         </button>
                       )}
-                      <span style={{ fontSize: 12, color: "var(--faint)", maxWidth: "52ch", lineHeight: 1.5 }}>
+                      <p className="max-w-md font-['Satoshi'] text-xs text-neutral-500">
                         By continuing, you confirm you are 18 or older and agree to our{" "}
-                        <a href="/terms" target="_blank" rel="noopener" style={{ color: "inherit" }}>Terms</a> and{" "}
-                        <a href="/privacy" target="_blank" rel="noopener" style={{ color: "inherit" }}>Privacy Policy</a>.
-                      </span>
+                        <a href="/terms" target="_blank" rel="noopener" className="underline">Terms of Service</a> and{" "}
+                        <a href="/privacy" target="_blank" rel="noopener" className="underline">Privacy Policy</a>.
+                      </p>
                     </div>
                   </>
                 )}
@@ -736,23 +724,23 @@ export default function StartPage() {
 
             {/* 2. Verify */}
             {step === "verify" && (
-              <div data-tour="verify" style={{ display: "grid", gap: 22 }}>
+              <div data-tour="verify" className="space-y-6">
                 <div>
-                  <span className="st-pill" style={{ background: "var(--green-soft)", color: "var(--green)" }}>Resume read · {d.name || "you"}</span>
-                  <h1 className="st-h1" style={{ marginTop: 14 }}>Check your inbox.</h1>
+                  <span className="inline-block -rotate-2 rounded-lg border-2 border-neutral-900 bg-emerald-300 px-2.5 py-1 font-['Satoshi'] text-xs font-bold shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">✓ Resume read · {d.name || "you"}</span>
+                  <h1 className={`${H1} mt-4`}>Check your inbox.</h1>
                   {sentTo && !changingEmail ? (
-                    <p className="st-sub" style={{ marginTop: 10 }}>
-                      Your resume says <strong style={{ color: "var(--ink)" }}>{sentTo}</strong>. We sent a 6-digit code there.{" "}
-                      <button type="button" className="st-link" onClick={() => setChangingEmail(true)}>Wrong address?</button>
+                    <p className="mt-3 font-['Satoshi'] text-base text-neutral-600">
+                      Your resume says <span className="font-bold text-neutral-900">{sentTo}</span>. We sent a 6-digit code there.{" "}
+                      <button type="button" onClick={() => setChangingEmail(true)} className="font-bold text-violet-700 hover:text-violet-900">Wrong address?</button>
                     </p>
                   ) : (
-                    <p className="st-sub" style={{ marginTop: 10 }}>{d.email ? "Where should we send your code?" : "We couldn't find an email on your resume. Where should we send your code?"}</p>
+                    <p className="mt-3 font-['Satoshi'] text-base text-neutral-600">{d.email ? "Where should we send your code?" : "We couldn't find an email on your resume. Where should we send your code?"}</p>
                   )}
                 </div>
                 {sentTo && !changingEmail ? (
-                  <div className="st-panel" style={{ padding: 22 }}>
-                    <label htmlFor="start-code" className="st-label">6-digit code</label>
-                    <div style={{ position: "relative", display: "inline-block", marginTop: 10 }}>
+                  <div className={`${CARD} p-6`}>
+                    <label htmlFor="start-code" className={LABEL}>6-digit code</label>
+                    <div className="relative mt-3 inline-block">
                       <input
                         id="start-code"
                         inputMode="numeric"
@@ -761,25 +749,24 @@ export default function StartPage() {
                         maxLength={6}
                         value={code}
                         onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                        style={{ position: "absolute", inset: 0, opacity: 0 }}
+                        className="absolute inset-0 opacity-0"
                       />
-                      <div style={{ display: "flex", gap: 8 }} aria-hidden="true">
+                      <div className="flex gap-2" aria-hidden="true">
                         {Array.from({ length: 6 }).map((_, i) => (
-                          <div key={i} className="st-mono" style={{ width: 48, height: 58, borderRadius: 12, display: "grid", placeItems: "center", fontSize: 24, fontWeight: 600, background: code[i] ? "var(--panel)" : "var(--bg)", border: `1.5px solid ${i === code.length ? "var(--indigo)" : "var(--line)"}`, boxShadow: i === code.length ? "0 0 0 4px var(--indigo-soft)" : "none" }}>
+                          <div key={i} className={`flex h-14 w-11 items-center justify-center rounded-xl border-2 font-['Clash_Display'] text-2xl font-bold sm:h-16 sm:w-12 ${code[i] ? "border-neutral-900 bg-violet-50" : i === code.length ? "border-violet-500 bg-white" : "border-neutral-900 bg-white"}`}>
                             {code[i] ?? ""}
                           </div>
                         ))}
                       </div>
                     </div>
-                    <p style={{ fontSize: 13, color: "var(--muted)", margin: "14px 0 0" }}>
+                    <p className="mt-4 font-['Satoshi'] text-sm text-neutral-500">
                       {verifying ? "Checking…" : "You're signed in as soon as you type the last digit."}{" "}
-                      {!verifying && <button type="button" className="st-link" onClick={() => void sendCode(sentTo)}>Send a new code</button>}
+                      {!verifying && <button type="button" onClick={() => void sendCode(sentTo)} className="font-bold text-violet-700 hover:text-violet-900">Send a new code</button>}
                     </p>
                   </div>
                 ) : (
                   <form
-                    className="st-panel"
-                    style={{ padding: 18, display: "flex", gap: 10, flexWrap: "wrap" }}
+                    className={`${CARD} flex flex-wrap gap-2 p-4`}
                     onSubmit={(e) => {
                       e.preventDefault();
                       if (/\S+@\S+\.\S+/.test(d.email)) void sendCode(d.email.trim().toLowerCase());
@@ -787,25 +774,33 @@ export default function StartPage() {
                   >
                     <label htmlFor="start-email" className="sr-only">Email</label>
                     <input id="start-email" type="email" value={d.email} onChange={(e) => setD((x) => ({ ...x, email: e.target.value }))} placeholder="you@college.edu"
-                      style={{ flex: 1, minWidth: 200, height: 44, borderRadius: 12, border: "1px solid var(--line)", padding: "0 14px", font: "500 15px var(--sans)" }} />
-                    <button type="submit" className="st-btn indigo">Send code</button>
+                      className="min-w-0 flex-1 rounded-xl border-2 border-neutral-300 px-3 py-2 font-['Satoshi'] text-base focus:border-violet-500 focus:outline-none" />
+                    <button type="submit" className={BTN}>Send code</button>
                   </form>
                 )}
-                {error && <p style={{ color: "#C0392B", fontWeight: 600, fontSize: 14, margin: 0 }}>{error}</p>}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border-2 border-dashed border-neutral-300 bg-white/60 p-4 font-['Satoshi'] text-sm text-neutral-600">
+                    <span className="font-bold text-neutral-900">No password to remember.</span> Next time, sign in with a code the same way.
+                  </div>
+                  <div className="rounded-xl border-2 border-dashed border-neutral-300 bg-white/60 p-4 font-['Satoshi'] text-sm text-neutral-600">
+                    <span className="font-bold text-neutral-900">Can't find it?</span> Check spam or Promotions. Codes last 10 minutes.
+                  </div>
+                </div>
+                {error && <p className="font-['Satoshi'] text-sm font-semibold text-red-600">{error}</p>}
               </div>
             )}
 
             {/* 3. Confirm */}
             {step === "confirm" && (
-              <div data-tour="confirm" style={{ display: "grid", gap: 18 }}>
+              <div data-tour="confirm" className="space-y-5">
                 <div>
-                  <h1 className="st-h1">Did we get it right?</h1>
-                  <p className="st-sub" style={{ marginTop: 10 }}>
+                  <h1 className={H1}>Did we get it right?</h1>
+                  <p className="mt-3 font-['Satoshi'] text-base text-neutral-600">
                     Tap anything that's wrong.{" "}
-                    {d.unsure.size ? <>The <span style={{ color: "var(--amber)", fontWeight: 600 }}>amber</span> ones we weren't sure about.</> : "Everything came straight off your resume."}
+                    {d.unsure.size ? <>The <span className="rounded bg-amber-200 px-1 font-bold text-neutral-900">amber</span> ones we weren't sure about.</> : "Everything came straight off your resume."}
                   </p>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {(
                     [
                       ["name", "Name", d.name, "Your full name"],
@@ -818,110 +813,128 @@ export default function StartPage() {
                     const unsure = d.unsure.has(key as string);
                     const mine = d.edited.has(key === "gradYear" ? "year" : (key as string));
                     const pill = unsure
-                      ? { t: "Check this", bg: "var(--amber-soft)", fg: "var(--amber)" }
+                      ? { t: "Check this", cls: "bg-amber-300 text-neutral-900" }
                       : !value
-                        ? { t: "Add", bg: "var(--line-2)", fg: "var(--muted)" }
+                        ? { t: "Add", cls: "bg-neutral-100 text-neutral-600" }
                         : mine
-                          ? { t: "Edited", bg: "var(--indigo-soft)", fg: "var(--indigo-ink)" }
-                          : { t: "From resume", bg: "var(--green-soft)", fg: "var(--green)" };
+                          ? { t: "Edited", cls: "bg-violet-200 text-violet-900" }
+                          : { t: "From resume", cls: "bg-emerald-200 text-emerald-900" };
                     return editing === key ? (
-                      <div key={key} className="st-panel" style={{ padding: 12, borderColor: "var(--indigo)", boxShadow: "0 0 0 4px var(--indigo-soft)" }}>
-                        <label htmlFor={`start-${key}`} className="st-label" style={{ color: "var(--indigo-ink)" }}>{label}</label>
-                        <input id={`start-${key}`} autoFocus defaultValue={value} placeholder={ph}
+                      <div key={key} className="rounded-xl border-2 border-violet-500 bg-white p-3 shadow-[3px_3px_0px_0px_rgba(139,92,246,1)]">
+                        <label htmlFor={`start-${key}`} className={`${LABEL} text-violet-700`}>{label}</label>
+                        <input
+                          id={`start-${key}`}
+                          autoFocus
+                          defaultValue={value}
+                          placeholder={ph}
                           onBlur={(e) => { setField(key, e.target.value.trim()); setEditing(null); }}
                           onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-                          style={{ display: "block", width: "100%", marginTop: 6, border: 0, outline: "none", font: "600 16px var(--sans)", color: "var(--ink)", background: "transparent" }} />
+                          className="mt-1 w-full bg-transparent font-['Satoshi'] text-base font-bold text-neutral-900 focus:outline-none"
+                        />
                       </div>
                     ) : (
-                      <button key={key} type="button" data-tour={`field-${key}`} onClick={() => setEditing(key as string)} className="st-panel"
-                        style={{ padding: 12, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit", borderStyle: unsure ? "dashed" : "solid", borderColor: unsure ? "#E8B54D" : "var(--line)", background: unsure ? "#FFFCF5" : "var(--panel)" }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                          <span className="st-label">{label}</span>
-                          <span className="st-pill" style={{ background: pill.bg, color: pill.fg }}>{pill.t}</span>
+                      <button
+                        key={key}
+                        type="button"
+                        data-tour={`field-${key}`}
+                        onClick={() => setEditing(key as string)}
+                        className={`rounded-xl border-2 p-3 text-left transition-all hover:-translate-y-0.5 ${unsure ? "border-dashed border-amber-500 bg-amber-50" : value ? "border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]" : "border-dashed border-neutral-300 bg-white"}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={LABEL}>{label}</span>
+                          <span className={`rounded-full px-2 py-0.5 font-['Satoshi'] text-[10px] font-bold ${pill.cls}`}>{pill.t}</span>
                         </div>
-                        <div style={{ marginTop: 6, fontSize: 16, fontWeight: 600, color: value ? "var(--ink)" : "var(--faint)" }}>{value || ph}</div>
+                        <div className={`mt-1 font-['Satoshi'] text-base font-bold ${value ? "text-neutral-900" : "text-neutral-400"}`}>{value || ph}</div>
                       </button>
                     );
                   })}
-                  <div className="st-panel" style={{ padding: 12 }}>
-                    <div className="st-label">Experience</div>
+                  <div className="rounded-xl border-2 border-neutral-900 bg-white p-3 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
+                    <span className={LABEL}>Experience</span>
                     {d.experience.length ? (
-                      <ul style={{ listStyle: "none", margin: "6px 0 0", padding: 0, display: "grid", gap: 4 }}>
+                      <ul className="mt-1 space-y-0.5">
                         {d.experience.slice(0, 3).map((e, i) => (
-                          <li key={i} style={{ fontSize: 13.5 }}><strong style={{ fontWeight: 600 }}>{e.title}</strong>{e.company && <span style={{ color: "var(--muted)" }}> · {e.company}</span>}</li>
+                          <li key={i} className="font-['Satoshi'] text-sm"><span className="font-bold">{e.title}</span>{e.company && <span className="text-neutral-500"> · {e.company}</span>}</li>
                         ))}
                       </ul>
                     ) : (
-                      <div style={{ marginTop: 6, fontSize: 14, color: "var(--faint)" }}>None yet. That's fine.</div>
+                      <div className="mt-1 font-['Satoshi'] text-sm text-neutral-400">None yet. That's fine.</div>
                     )}
                   </div>
                 </div>
-                <div className="st-panel" style={{ padding: 14 }} data-tour="skills">
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span className="st-label">Skills · {d.skills.length}</span>
-                    <span style={{ fontSize: 12, color: "var(--muted)" }}>Tap × to remove</span>
+                <div className="rounded-xl border-2 border-neutral-900 bg-white p-3 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]" data-tour="skills">
+                  <div className="flex items-center justify-between">
+                    <span className={LABEL}>Skills · {d.skills.length}</span>
+                    <span className="font-['Satoshi'] text-xs text-neutral-500">Tap × to remove</span>
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
                     {d.skills.map((s) => (
-                      <span key={s} className="st-chip" style={{ paddingRight: 4, background: "var(--indigo-soft)", color: "var(--indigo-ink)", fontWeight: 600 }}>
+                      <span key={s} className="inline-flex items-center gap-1 rounded-full border-2 border-neutral-900 bg-violet-100 py-0.5 pl-2.5 pr-1 font-['Satoshi'] text-xs font-bold text-neutral-900">
                         {s}
-                        <button type="button" aria-label={`Remove ${s}`} onClick={() => setD((x) => ({ ...x, skills: x.skills.filter((k) => k !== s), edited: new Set(x.edited).add("skills") }))}
-                          style={{ width: 18, height: 18, borderRadius: 999, border: 0, background: "transparent", color: "inherit", cursor: "pointer", fontSize: 14, lineHeight: 1 }}>×</button>
+                        <button
+                          type="button"
+                          aria-label={`Remove ${s}`}
+                          onClick={() => setD((x) => ({ ...x, skills: x.skills.filter((k) => k !== s), edited: new Set(x.edited).add("skills") }))}
+                          className="flex h-4 w-4 items-center justify-center rounded-full hover:bg-violet-300"
+                        >
+                          ×
+                        </button>
                       </span>
                     ))}
-                    <form onSubmit={(e) => {
-                      e.preventDefault();
-                      const s = newSkill.trim();
-                      if (s && !d.skills.some((k) => k.toLowerCase() === s.toLowerCase())) setD((x) => ({ ...x, skills: [...x.skills, s], edited: new Set(x.edited).add("skills") }));
-                      setNewSkill("");
-                    }}>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const s = newSkill.trim();
+                        if (s && !d.skills.some((k) => k.toLowerCase() === s.toLowerCase()))
+                          setD((x) => ({ ...x, skills: [...x.skills, s], edited: new Set(x.edited).add("skills") }));
+                        setNewSkill("");
+                      }}
+                    >
                       <label htmlFor="start-skill" className="sr-only">Add a skill</label>
-                      <input id="start-skill" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} placeholder="+ Add skill"
-                        style={{ height: 26, width: 110, borderRadius: 999, border: "1px dashed #CFCFDD", padding: "0 10px", font: "500 12px var(--sans)", background: "transparent" }} />
+                      <input id="start-skill" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} placeholder="+ add skill"
+                        className="w-28 rounded-full border-2 border-dashed border-neutral-400 px-2.5 py-0.5 font-['Satoshi'] text-xs focus:border-violet-500 focus:outline-none" />
                     </form>
                   </div>
                   {(d.links.github || d.links.linkedin || d.links.portfolio) && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--line-2)" }}>
-                      <span className="st-label" style={{ alignSelf: "center", marginRight: 4 }}>Links</span>
-                      {d.links.github && <span className="st-chip">GitHub @{d.links.github}</span>}
-                      {d.links.linkedin && <span className="st-chip">LinkedIn</span>}
-                      {d.links.portfolio && <span className="st-chip">{d.links.portfolio.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span>}
+                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t-2 border-dashed border-neutral-200 pt-3">
+                      <span className={LABEL}>Links</span>
+                      {d.links.github && <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-['Satoshi'] text-xs font-semibold">GitHub @{d.links.github}</span>}
+                      {d.links.linkedin && <span className="rounded-full bg-sky-100 px-2.5 py-0.5 font-['Satoshi'] text-xs font-semibold">LinkedIn</span>}
+                      {d.links.portfolio && <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 font-['Satoshi'] text-xs font-semibold">{d.links.portfolio.replace(/^https?:\/\//, "").replace(/\/$/, "")}</span>}
                     </div>
                   )}
                 </div>
-                {error && <p style={{ color: "#C0392B", fontWeight: 600, fontSize: 14, margin: 0 }}>{error}</p>}
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <button type="button" className="st-btn indigo" onClick={confirm} disabled={saving || !d.name.trim()} data-tour="looks-right">
+                {error && <p className="font-['Satoshi'] text-sm font-semibold text-red-600">{error}</p>}
+                <div className="flex flex-wrap items-center gap-3">
+                  <button type="button" onClick={confirm} disabled={saving || !d.name.trim()} className={BTN} data-tour="looks-right">
                     {saving ? "Saving…" : "Looks right →"}
                   </button>
-                  <span style={{ fontSize: 13, color: "var(--muted)" }}>{!d.name.trim() ? "Add your name to continue." : "Next: a few swipes so we know what you want."}</span>
+                  <span className="font-['Satoshi'] text-sm text-neutral-500">{!d.name.trim() ? "Add your name to continue." : "Next: a few swipes so we know what you want."}</span>
                 </div>
               </div>
             )}
 
             {/* 4. Swipe */}
             {step === "swipe" && (
-              <div style={{ display: "grid", gap: 18 }}>
-                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+              <div className="space-y-5">
+                <div className="flex flex-wrap items-end justify-between gap-4">
                   <div>
-                    <span className="st-pill" style={{ background: "var(--indigo-soft)", color: "var(--indigo-ink)" }}>Getting to know you</span>
-                    <h1 className="st-h1" style={{ marginTop: 12 }}>Would you take this?</h1>
-                    <p className="st-sub" style={{ marginTop: 8 }}>Real roles, open right now. Keep or pass; we learn what you want from what you keep.</p>
+                    <span className="inline-block -rotate-2 rounded-lg border-2 border-neutral-900 bg-violet-300 px-2.5 py-1 font-['Satoshi'] text-xs font-bold shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">Getting to know you</span>
+                    <h1 className={`${H1} mt-4`}>Would you take this?</h1>
+                    <p className="mt-2 font-['Satoshi'] text-base text-neutral-600">Real roles, open right now. Keep or pass; we learn what you want from what you keep.</p>
                   </div>
-                  <div className="st-mono" style={{ fontSize: 13, color: "var(--muted)" }}>{Math.min(index + 1, cards.length)} / {cards.length}</div>
+                  <span className="font-['Clash_Display'] text-lg font-bold tabular-nums text-neutral-900">{Math.min(index + 1, cards.length)}/{cards.length}</span>
                 </div>
-
-                <div style={{ display: "flex", gap: 4 }} aria-hidden="true">
+                <div className="flex gap-1" aria-hidden="true">
                   {cards.map((c, i) => (
-                    <span key={c.id} style={{ flex: 1, height: 4, borderRadius: 4, background: i < index ? (liked.includes(c) ? "var(--indigo)" : "#D5D5E0") : i === index ? "var(--ink)" : "var(--line)" }} />
+                    <span key={c.id} className={`h-2 flex-1 rounded-full border border-neutral-900 ${i < index ? (liked.includes(c) ? "bg-violet-500" : "bg-neutral-300") : i === index ? "bg-amber-300" : "bg-white"}`} />
                   ))}
                 </div>
 
-                <div style={{ position: "relative", height: 300, userSelect: "none" }} data-tour="deck">
+                <div className="relative h-[310px] select-none" data-tour="deck">
                   {cards.slice(index, index + 3).reverse().map((c, i, arr) => {
                     const top = i === arr.length - 1;
                     const depth = arr.length - 1 - i;
-                    const hue = CLUSTER_HUE[c.cluster];
+                    const w = why(c);
                     return (
                       <div
                         key={c.id}
@@ -929,46 +942,45 @@ export default function StartPage() {
                         onPointerDown={top ? (e) => { (e.target as HTMLElement).setPointerCapture?.(e.pointerId); setDrag({ x: 0, start: e.clientX }); } : undefined}
                         onPointerMove={top ? (e) => drag && setDrag({ ...drag, x: e.clientX - drag.start }) : undefined}
                         onPointerUp={top ? () => { if (drag && Math.abs(drag.x) > 90) decide(drag.x > 0 ? "right" : "left"); else setDrag(null); } : undefined}
-                        className="st-panel"
+                        className={`absolute inset-0 flex touch-none flex-col rounded-2xl border-2 border-neutral-900 bg-white p-6 ${top ? "cursor-grab shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]" : ""}`}
                         style={{
-                          position: "absolute", inset: 0, padding: 24, touchAction: "none", cursor: top ? "grab" : "default",
-                          boxShadow: top ? "0 1px 2px rgba(22,22,30,.06), 0 18px 40px rgba(22,22,30,.10)" : undefined,
-                          transform: top ? `translateX(${dx}px) rotate(${dx / 24}deg)` : `translateY(${depth * 12}px) scale(${1 - depth * 0.04})`,
+                          transform: top ? `translateX(${dx}px) rotate(${dx / 22}deg)` : `translateY(${depth * 10}px) scale(${1 - depth * 0.04})`,
                           transition: drag && !fling ? "none" : "transform .22s ease",
-                          display: "flex", flexDirection: "column",
                         }}
                       >
                         {top && dx !== 0 && (
-                          <span className="st-pill" style={{ position: "absolute", top: 18, [dx > 0 ? "right" : "left"]: 18, height: 28, fontSize: 12, opacity: Math.min(1, Math.abs(dx) / 90),
-                            background: dx > 0 ? "var(--indigo)" : "var(--ink)", color: "#fff" } as React.CSSProperties}>
-                            {dx > 0 ? "Interested" : "Not for me"}
+                          <span
+                            className={`absolute top-5 rounded-lg border-2 px-2 py-0.5 font-['Clash_Display'] text-lg font-bold ${dx > 0 ? "right-5 rotate-6 border-emerald-600 bg-emerald-50 text-emerald-700" : "left-5 -rotate-6 border-red-500 bg-red-50 text-red-600"}`}
+                            style={{ opacity: Math.min(1, Math.abs(dx) / 90) }}
+                          >
+                            {dx > 0 ? "INTERESTED" : "NOT FOR ME"}
                           </span>
                         )}
-                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                          <span style={{ width: 44, height: 44, borderRadius: 12, display: "grid", placeItems: "center", fontWeight: 700, fontSize: 15, background: hue.bg, color: hue.fg }}>
-                            {c.company.replace(/[^A-Za-z0-9 ]/g, "").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                        <div className="flex items-center gap-3">
+                          <span className={`flex h-11 w-11 items-center justify-center rounded-xl border-2 border-neutral-900 ${CLUSTER_STYLE[c.cluster]} font-['Clash_Display'] text-sm font-bold`}>
+                            {c.company.replace(/[^A-Za-z0-9 ]/g, "").split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase()}
                           </span>
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontWeight: 600, fontSize: 14 }}>{c.company}</div>
-                            <div style={{ fontSize: 12.5, color: "var(--muted)" }}>is hiring</div>
+                          <div className="min-w-0">
+                            <div className="font-['Satoshi'] text-sm font-bold text-neutral-900">{c.company}</div>
+                            <div className="font-['Satoshi'] text-xs text-neutral-500">is hiring</div>
                           </div>
-                          <span className="st-pill" style={{ marginLeft: "auto", background: hue.bg, color: hue.fg }}>{c.cluster}</span>
+                          <span className={`ml-auto rounded-full border-2 border-neutral-900 ${CLUSTER_STYLE[c.cluster]} px-2.5 py-0.5 font-['Satoshi'] text-xs font-bold`}>{c.cluster}</span>
                         </div>
-                        <div style={{ fontSize: 28, fontWeight: 650, letterSpacing: "-.02em", lineHeight: 1.15, marginTop: 20, textWrap: "balance" } as React.CSSProperties}>{c.title}</div>
-                        <div style={{ marginTop: 10, fontSize: 13, color: CLUSTER_SKILLS[c.cluster]?.some((k) => d.skills.some((s) => s.toLowerCase() === k)) ? "var(--green)" : "var(--muted)", display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
-                          {why(c)}
+                        <div className="mt-4 font-['Clash_Display'] text-3xl font-bold leading-tight text-neutral-900">{c.title}</div>
+                        <div className={`mt-2 flex items-center gap-1.5 font-['Satoshi'] text-sm font-semibold ${w.fit ? "text-emerald-700" : "text-neutral-500"}`}>
+                          <span className="h-2 w-2 rounded-full bg-current" />
+                          {w.text}
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 14 }}>
+                        <div className="mt-3 flex flex-wrap gap-1.5">
                           {tags(c).map((t) => (
-                            <span key={t.text} className="st-pill" style={{ height: 24, background: t.bg, color: t.fg }}>{t.text}</span>
+                            <span key={t.text} className={`rounded-full px-2.5 py-0.5 font-['Satoshi'] text-xs font-bold ${t.cls}`}>{t.text}</span>
                           ))}
                         </div>
-                        <dl style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginTop: "auto", paddingTop: 16, borderTop: "1px solid var(--line-2)", marginBottom: 0 }}>
+                        <dl className="mt-auto grid grid-cols-3 gap-3 border-t-2 border-neutral-100 pt-4">
                           {[["Stipend", c.stipend], ["Where", c.city ?? c.location], ["Length", c.duration]].map(([k, v]) => (
-                            <div key={k} style={{ minWidth: 0 }}>
-                              <dt className="st-label" style={{ fontSize: 10 }}>{k}</dt>
-                              <dd className="st-mono" style={{ margin: "4px 0 0", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</dd>
+                            <div key={k} className="min-w-0">
+                              <dt className={LABEL}>{k}</dt>
+                              <dd className="truncate font-['Satoshi'] text-sm font-bold text-neutral-900">{v}</dd>
                             </div>
                           ))}
                         </dl>
@@ -976,59 +988,79 @@ export default function StartPage() {
                     );
                   })}
                   {cards.length === 0 && (
-                    <div className="st-panel" style={{ height: "100%", display: "grid", placeItems: "center", color: "var(--muted)", fontSize: 14 }}>No open roles to show yet. You can pick cities next.</div>
+                    <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-300 font-['Satoshi'] text-sm text-neutral-500">
+                      No open roles to show yet. You can pick cities next.
+                    </div>
                   )}
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-                  <button type="button" className="st-btn ghost" onClick={() => decide("left")} data-tour="pass" style={{ minWidth: 150 }}>
-                    <span className="st-kbd">←</span> Not for me
-                  </button>
-                  <button type="button" className="st-btn indigo" onClick={() => decide("right")} data-tour="like" style={{ minWidth: 150 }}>
-                    Interested <span className="st-kbd" style={{ background: "rgba(255,255,255,.15)", color: "#fff", borderColor: "rgba(255,255,255,.3)" }}>→</span>
-                  </button>
+                <div className="flex items-center justify-center gap-4">
+                  <button type="button" onClick={() => decide("left")} className={`${BTN_GHOST} min-w-[150px]`} data-tour="pass">✕ Not for me</button>
+                  <button type="button" onClick={() => decide("right")} className={`${BTN} min-w-[150px]`} data-tour="like">♥ Interested</button>
                 </div>
-                <p style={{ textAlign: "center", fontSize: 12.5, color: "var(--faint)", margin: 0 }}>
-                  Drag the card, use the buttons or your arrow keys.{" "}
-                  {(index >= 6 || cards.length === 0) && <button type="button" className="st-link" onClick={toCities}>That's enough, next →</button>}
+                <p className="text-center font-['Satoshi'] text-xs text-neutral-500">
+                  Drag the card, use the buttons, or press ← →.{" "}
+                  {(index >= 6 || cards.length === 0) && (
+                    <button type="button" onClick={toCities} className="font-bold text-violet-700 hover:text-violet-900">That's enough, next →</button>
+                  )}
                 </p>
               </div>
             )}
 
             {/* 5. Cities */}
-            {(step === "cities" || step === "saving") && (
-              <div data-tour="cities" style={{ display: "grid", gap: 18 }}>
+            {step === "cities" && (
+              <div data-tour="cities" className="space-y-5">
                 <div>
-                  <h1 className="st-h1">Where would you work?</h1>
-                  <p className="st-sub" style={{ marginTop: 10 }}>{cities.length ? "Picked from your swipes. Tap to add or remove; the globe follows." : "Tap the cities you'd work in."}</p>
+                  <h1 className={H1}>Where would you work?</h1>
+                  <p className="mt-3 font-['Satoshi'] text-base text-neutral-600">{cities.length ? "Picked from your swipes. Tap to add or remove; the globe follows." : "Tap the cities you'd work in."}</p>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 10 }}>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {cityCounts.map(([c, n]) => {
                     const on = cities.includes(c);
                     return (
-                      <button key={c} type="button" className="st-panel" onClick={() => { setFocusCity(c); setCities((x) => (on ? x.filter((k) => k !== c) : [...x, c])); }}
-                        style={{ padding: 14, textAlign: "left", cursor: "pointer", font: "inherit", color: "inherit", borderColor: on ? "var(--indigo)" : "var(--line)", boxShadow: on ? "0 0 0 3px var(--indigo-soft)" : undefined }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                          <span style={{ fontWeight: 600, fontSize: 15 }}>{c}</span>
-                          <span style={{ width: 20, height: 20, borderRadius: 6, display: "grid", placeItems: "center", background: on ? "var(--indigo)" : "transparent", border: on ? 0 : "1.5px solid var(--line)" }}>
-                            {on && <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3 3 7-7" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                          </span>
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => { setFocusCity(c); setCities((x) => (on ? x.filter((k) => k !== c) : [...x, c])); }}
+                        className={`rounded-xl border-2 border-neutral-900 p-3 text-left transition-all hover:-translate-y-0.5 ${on ? "bg-violet-100 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]" : "bg-white"}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-['Clash_Display'] text-lg font-bold text-neutral-900">{c}</span>
+                          <span className={`flex h-6 w-6 items-center justify-center rounded-md border-2 border-neutral-900 ${on ? "bg-violet-500 text-white" : "bg-white"}`}>{on && <Check />}</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-                          <span style={{ flex: 1, height: 4, borderRadius: 4, background: "var(--line-2)", overflow: "hidden" }}>
-                            <span style={{ display: "block", height: "100%", width: `${(n / maxCount) * 100}%`, background: on ? "var(--indigo)" : "#C9C9D8" }} />
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className="h-2 flex-1 overflow-hidden rounded-full border border-neutral-900 bg-white">
+                            <span className={`block h-full ${on ? "bg-violet-500" : "bg-amber-300"}`} style={{ width: `${(n / maxCount) * 100}%` }} />
                           </span>
-                          <span className="st-mono" style={{ fontSize: 12, color: "var(--muted)" }}>{n} open</span>
+                          <span className="font-['Satoshi'] text-xs font-bold tabular-nums text-neutral-600">{n} open</span>
                         </div>
                       </button>
                     );
                   })}
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <button type="button" className="st-btn indigo" onClick={finish} disabled={step === "saving"} data-tour="finish">
-                    {step === "saving" ? "Setting up…" : "Finish and see my profile →"}
-                  </button>
-                  <span style={{ fontSize: 13, color: "var(--muted)" }}>Next, Sensei finds the people hiring for this.</span>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button type="button" onClick={toChat} className={BTN} data-tour="finish">Next: a quick chat →</button>
+                  <span className="font-['Satoshi'] text-sm text-neutral-500">One minute. Things a resume can't tell us.</span>
+                </div>
+              </div>
+            )}
+
+            {/* 6. Chat */}
+            {(step === "chat" || step === "saving") && (
+              <div className="flex h-[78vh] flex-col gap-4 lg:h-[calc(100vh-64px-64px)]">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <h1 className="font-['Clash_Display'] text-3xl font-bold leading-tight text-neutral-900 md:text-4xl">Tell us more about you.</h1>
+                    <p className="mt-2 font-['Satoshi'] text-sm text-neutral-600">What a resume can't say. Everything you answer shows up on the right.</p>
+                  </div>
+                  {chatDone && (
+                    <button type="button" onClick={() => { setStep("saving"); navigate("/profile"); }} className={BTN} data-tour="done">
+                      {step === "saving" ? "Opening…" : "See my profile →"}
+                    </button>
+                  )}
+                </div>
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <ProfileChat firstName={firstName} summary={chatSummary} suggestions={chatSuggestions} onAnswer={setChat} onDone={finishChat} />
                 </div>
               </div>
             )}
@@ -1036,38 +1068,38 @@ export default function StartPage() {
         </main>
 
         {/* Right: live panel */}
-        <aside className="st-side">
+        <aside className="min-h-0 space-y-4 overflow-y-auto border-t-2 border-neutral-900 bg-white/70 p-4 lg:border-l-2 lg:border-t-0">
           <div
             data-tour="globe"
-            style={{ borderRadius: 18, overflow: "hidden", position: "relative", padding: "16px 16px 12px",
-              background: "radial-gradient(120% 90% at 50% 0%, #2A2E78 0%, #15173A 45%, #0D0E24 100%)", color: "#fff", boxShadow: "0 12px 32px rgba(16,17,42,.25)" }}
+            className="relative overflow-hidden rounded-2xl border-2 border-neutral-900 p-4 text-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
+            style={{ background: "radial-gradient(120% 90% at 50% 0%, #4c1d95 0%, #1e1b4b 50%, #0f0d24 100%)" }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
-              <span className="st-label" style={{ color: "rgba(255,255,255,.55)" }}>Your map</span>
-              <span className="st-pill" style={{ background: "rgba(255,255,255,.1)", color: "rgba(255,255,255,.85)" }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: pins.length ? "#3BE29A" : "rgba(255,255,255,.4)" }} />
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="font-['Satoshi'] text-[10px] font-bold uppercase tracking-wider text-white/60">Your map</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 font-['Satoshi'] text-[11px] font-bold">
+                <span className={`h-1.5 w-1.5 rounded-full ${pins.length ? "bg-emerald-400" : "bg-white/40"}`} />
                 {pins.length ? "Live" : "Waiting"}
               </span>
             </div>
-            <div style={{ position: "relative", margin: "4px auto 0", maxWidth: 340 }}>
-              <div aria-hidden="true" style={{ position: "absolute", inset: "6%", borderRadius: "50%", boxShadow: "0 0 80px 10px rgba(91,99,232,.35)" }} />
+            <div className="relative mx-auto mt-1 max-w-[320px]">
+              <div aria-hidden="true" className="absolute inset-[8%] rounded-full" style={{ boxShadow: "0 0 70px 8px rgba(139,92,246,.4)" }} />
               <TalentGlobe pins={pins} arcsFrom="home" focus={globeFocus} tone="dark" />
             </div>
-            <div style={{ textAlign: "center", fontSize: 13.5, fontWeight: 500, color: "rgba(255,255,255,.9)", marginTop: 2 }}>{globeCaption}</div>
-            <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 8, fontSize: 11, color: "rgba(255,255,255,.55)" }}>
-              <span><span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#9EA8FF", marginRight: 5 }} />You</span>
-              <span><span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#FFB840", marginRight: 5 }} />Your picks</span>
-              <span><span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#7F8BD9", marginRight: 5 }} />Roles open</span>
+            <div className="text-center font-['Satoshi'] text-sm font-bold text-white/90">{globeCaption}</div>
+            <div className="mt-2 flex justify-center gap-3 font-['Satoshi'] text-[11px] text-white/60">
+              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-indigo-300" />You</span>
+              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400" />Your picks</span>
+              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-indigo-400/70" />Roles open</span>
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-            <Stat label="Skills" value={shown.skills.length || "–"} />
-            <Stat label="Roles fit" value={pool.length ? matchCount : "–"} tone="var(--indigo)" tour="counter" />
-            <Stat label="Cities" value={(step === "cities" || step === "saving" ? cities.length : prefs?.cities.length) || "–"} tone="var(--green)" />
+          <div className="grid grid-cols-3 gap-2">
+            <Stat label="Skills" value={shown.skills.length || "–"} bg="bg-violet-200" />
+            <Stat label="Roles fit" value={pool.length ? matchCount : "–"} bg="bg-amber-200" tour="counter" />
+            <Stat label="Cities" value={(afterSwipes ? cities.length : prefs?.cities.length) || "–"} bg="bg-emerald-200" />
           </div>
 
-          <TalentCard d={shown} prefs={prefs} />
+          <TalentCard d={shown} prefs={prefs} chat={chat} />
         </aside>
       </div>
     </div>

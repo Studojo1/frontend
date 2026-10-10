@@ -20,8 +20,16 @@ export type TalentStore = {
     liked?: string[];
     passed?: string[];
   };
+  /** Follow-ups from the /start chat. */
+  chat?: {
+    companyStage?: string;
+    dreamCompanies?: string[];
+    workMode?: string;
+    startWhen?: string;
+    proud?: string;
+  };
   /** Where each confirmed fact came from: "resume" (read, then confirmed) or "you" (edited). */
-  sources?: Record<string, "resume" | "you" | "swipes">;
+  sources?: Record<string, "resume" | "you" | "swipes" | "chat">;
   updatedAt?: string;
 };
 

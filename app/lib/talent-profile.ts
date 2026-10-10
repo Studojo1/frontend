@@ -346,9 +346,14 @@ export function signalsFromTalent(t: unknown): TalentSignals {
         .filter((e) => e.title || e.company)
         .slice(0, 6)
     : [];
+  const chat = obj(store.chat);
   const min = typeof prefs.minMonthly === "number" && prefs.minMonthly > 0 ? prefs.minMonthly : null;
   return {
     ...EMPTY_SIGNALS,
+    summary: str(chat.proud, 400),
+    dreamCompanies: strings(chat.dreamCompanies, 60, 8),
+    workMode: meaningful(chat.workMode, 30) === "Any" ? null : meaningful(chat.workMode, 30),
+    timeline: meaningful(chat.startWhen, 40),
     skills: strings(resume.skills, 32, 24),
     experience,
     targetRoles: strings(prefs.titles, 80, 6),

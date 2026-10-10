@@ -11,6 +11,7 @@ import type { Route } from "./+types/api.start.save";
  *  { step: "confirm", basics: {fullName, college, course, yearOfStudy},
  *    resume: {skills, experience, city, gradYear}, links, edited: ["college", ...] }
  *  { step: "prefs", prefs: {clusters, avoid, cities, minMonthly, titles, liked, passed} }
+ *  { step: "chat", chat: {companyStage, dreamCompanies, workMode, startWhen, proud} }
  *
  * Writes the basics to user_profile (and the account name), and merges the
  * rest into the shared talent store with where each fact came from.
@@ -110,6 +111,22 @@ export async function action({ request }: Route.ActionArgs) {
         yearOfStudy: "Not specified",
         talent,
       });
+    return Response.json({ ok: true });
+  }
+
+  if (body?.step === "chat") {
+    if (!existing) return Response.json({ error: "Finish the earlier steps first." }, { status: 400 });
+    const c = body.chat ?? {};
+    talent.chat = {
+      companyStage: str(c.companyStage, 40) || undefined,
+      dreamCompanies: strs(c.dreamCompanies, 60, 10),
+      workMode: str(c.workMode, 30) || undefined,
+      startWhen: str(c.startWhen, 40) || undefined,
+      proud: str(c.proud, 400) || undefined,
+    };
+    talent.sources = { ...(talent.sources ?? {}), companyStage: "chat", dreamCompanies: "chat", workMode: "chat", startWhen: "chat", proud: "chat" };
+    talent.updatedAt = now;
+    await db.update(userProfile).set({ talent }).where(eq(userProfile.userId, userId));
     return Response.json({ ok: true });
   }
 
