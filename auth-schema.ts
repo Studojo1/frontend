@@ -19,6 +19,8 @@ export type TalentStore = {
     titles?: string[];
     liked?: string[];
     passed?: string[];
+    /** Companies behind the roles they kept, offered as dream companies in the chat. */
+    likedCompanies?: string[];
   };
   /** Follow-ups from the /start chat. */
   chat?: {

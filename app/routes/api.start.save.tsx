@@ -97,6 +97,7 @@ export async function action({ request }: Route.ActionArgs) {
       titles: strs(p.titles, 100, 8),
       liked: strs(p.liked, 40, 40),
       passed: strs(p.passed, 40, 40),
+      likedCompanies: strs(p.likedCompanies, 60, 12),
     };
     talent.sources = { ...(talent.sources ?? {}), roles: "swipes", cities: "swipes", pay: "swipes" };
     talent.updatedAt = now;

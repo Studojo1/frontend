@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import type { QuickResume } from "~/lib/resume-quick-parse";
 import { inferPrefs, matches, type Cluster, type DeckRole } from "~/lib/swipe-prefs";
 import { TalentGlobe, type GlobePin } from "~/components/profile/talent-globe";
-import { ProfileChat, type ChatAnswers } from "~/components/start/profile-chat";
 import { COORDS } from "~/lib/geo";
 
 /**
@@ -16,11 +15,10 @@ import { COORDS } from "~/lib/geo";
  *  3. Confirm one tap if we read it right; edit only what's wrong
  *  4. Swipe   real roles instead of a quiz, so we learn what they want
  *  5. Cities  where they'd work, on the globe
- *  6. Chat    a short conversation for what a resume can't say
  *
- * Three columns so no space sits empty: steps and a log of what we've
- * learned on the left, the step in the middle, and a live panel (globe,
- * counts, profile card) on the right that fills in as each step lands.
+ * Then it hands off to /app, where a short chat covers what a resume can't
+ * say. Three layouts share this flow (?layout=split|stage|canvas) while we
+ * pick one; each shows the globe and the profile building as steps land.
  */
 
 export function meta() {
@@ -30,7 +28,8 @@ export function meta() {
   ];
 }
 
-type Step = "drop" | "reading" | "verify" | "confirm" | "swipe" | "cities" | "chat" | "saving";
+type Step = "drop" | "reading" | "verify" | "confirm" | "swipe" | "cities" | "saving";
+export type StartLayout = "split" | "stage" | "canvas";
 type Card = DeckRole;
 type PoolRow = Pick<DeckRole, "cluster" | "city" | "monthly">;
 
@@ -50,8 +49,7 @@ const STEPS: { key: Step[]; label: string; hint: string; dot: string }[] = [
   { key: ["verify"], label: "Verify your email", hint: "A code, not a password", dot: "bg-pink-300" },
   { key: ["confirm"], label: "Check what we found", hint: "Fix only what's wrong", dot: "bg-emerald-300" },
   { key: ["swipe"], label: "Swipe real roles", hint: "We learn what you want", dot: "bg-violet-300" },
-  { key: ["cities"], label: "Pick your cities", hint: "Where you'd work", dot: "bg-sky-300" },
-  { key: ["chat", "saving"], label: "Tell us more", hint: "A one-minute chat", dot: "bg-amber-300" },
+  { key: ["cities", "saving"], label: "Pick your cities", hint: "Where you'd work", dot: "bg-sky-300" },
 ];
 
 // One colour per kind of work, in the Studojo palette.
@@ -160,13 +158,13 @@ function Stat({ label, value, bg, tour }: { label: string; value: ReactNode; bg:
   );
 }
 
-function TalentCard({ d, prefs, chat }: { d: Draft; prefs: ReturnType<typeof inferPrefs> | null; chat: ChatAnswers }) {
+function TalentCard({ d, prefs, compact = false }: { d: Draft; prefs: ReturnType<typeof inferPrefs> | null; compact?: boolean }) {
   const initials = (d.name || "").split(" ").filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   const line = [d.course, d.college, d.gradYear && `’${d.gradYear.slice(-2)}`].filter(Boolean).join(" · ");
   const Empty = ({ w }: { w: string }) => <span className={`block h-3.5 ${w} rounded bg-neutral-100`} />;
   return (
-    <div className={`${CARD} p-4`} data-tour="card">
-      <div className={`${LABEL} mb-3`}>Your profile, building itself</div>
+    <div className={`${CARD} ${compact ? "p-3" : "p-4"}`} data-tour="card">
+      {!compact && <div className={`${LABEL} mb-3`}>Your profile, building itself</div>}
       <div className="flex items-center gap-3">
         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border-2 border-neutral-900 font-['Clash_Display'] text-base font-bold ${initials ? "bg-violet-500 text-white" : "bg-neutral-100 text-neutral-300"}`}>
           {initials || "?"}
@@ -202,18 +200,6 @@ function TalentCard({ d, prefs, chat }: { d: Draft; prefs: ReturnType<typeof inf
             <p className="mt-1 font-['Satoshi'] text-xs text-neutral-400">Fills in as you swipe roles</p>
           )}
         </div>
-        {(chat.companyStage || chat.dreamCompanies?.length || chat.workMode || chat.startWhen || chat.proud) && (
-          <div className="sj-pop" data-tour="from-chat">
-            <div className={LABEL}>From our chat</div>
-            <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-['Satoshi'] text-xs">
-              {chat.companyStage && <><dt className="text-neutral-500">Company</dt><dd className="font-semibold text-neutral-900">{chat.companyStage}</dd></>}
-              {chat.dreamCompanies?.length ? <><dt className="text-neutral-500">Dream</dt><dd className="truncate font-semibold text-neutral-900">{chat.dreamCompanies.join(", ")}</dd></> : null}
-              {chat.workMode && <><dt className="text-neutral-500">Works</dt><dd className="font-semibold text-neutral-900">{chat.workMode}</dd></>}
-              {chat.startWhen && <><dt className="text-neutral-500">Starts</dt><dd className="font-semibold text-neutral-900">{chat.startWhen}</dd></>}
-              {chat.proud && <><dt className="text-neutral-500">Proud of</dt><dd className="line-clamp-2 font-semibold text-neutral-900">{chat.proud}</dd></>}
-            </dl>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -223,6 +209,8 @@ function TalentCard({ d, prefs, chat }: { d: Draft; prefs: ReturnType<typeof inf
 
 export default function StartPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const layout: StartLayout = (["split", "stage", "canvas"] as const).find((l) => l === params.get("layout")) ?? "split";
   const { data: auth, isPending } = authClient.useSession();
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<Step>("drop");
@@ -254,8 +242,6 @@ export default function StartPage() {
   const [fling, setFling] = useState<"left" | "right" | null>(null);
   const [cities, setCities] = useState<string[]>([]);
   const [focusCity, setFocusCity] = useState<string | null>(null);
-  const [chat, setChat] = useState<ChatAnswers>({});
-  const [chatDone, setChatDone] = useState(false);
 
   const signedIn = !!auth?.user;
   // While reading, the panel shows only the fields revealed so far, in checklist order.
@@ -467,30 +453,24 @@ export default function StartPage() {
   }, [pool, cities]);
   const maxCount = Math.max(1, ...cityCounts.map(([, n]) => n));
 
-  const toChat = async () => {
+  // Signup ends here: the "tell us more" chat happens inside the app.
+  const toApp = async () => {
+    setStep("saving");
     const p = prefs ?? inferPrefs([], []);
     await fetch("/api/start/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ step: "prefs", prefs: { ...p, cities, liked: liked.map((c) => c.id), passed: passed.map((c) => c.id) } }),
+      body: JSON.stringify({
+        step: "prefs",
+        prefs: { ...p, cities, liked: liked.map((c) => c.id), passed: passed.map((c) => c.id), likedCompanies: [...new Set(liked.map((c) => c.company))] },
+      }),
     }).catch(() => {});
-    log(`Saved ${cities.length} ${cities.length === 1 ? "city" : "cities"}${cities.length ? `: ${cities.join(", ")}` : ""}`, "good");
-    setStep("chat");
-  };
-
-  const finishChat = async (a: ChatAnswers) => {
-    setChat(a);
-    setChatDone(true);
-    await fetch("/api/start/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ step: "chat", chat: a }),
-    }).catch(() => {});
-    log("Profile complete", "good");
+    log(`Saved ${cities.length} ${cities.length === 1 ? "city" : "cities"}`, "good");
+    navigate("/app?welcome=1");
   };
 
   // Globe: home from the resume, hubs where roles are, targets from swipes / picks.
-  const afterSwipes = step === "cities" || step === "chat" || step === "saving";
+  const afterSwipes = step === "cities" || step === "saving";
   const targetCities = afterSwipes ? cities : (prefs?.cities ?? []);
   const pins = useMemo<GlobePin[]>(() => {
     const out: GlobePin[] = [];
@@ -532,84 +512,8 @@ export default function StartPage() {
         : shown.city
           ? `Based in ${shown.city}`
           : "Your map lights up as we learn";
-  const firstName = d.name.split(" ")[0] || "there";
-  const known = [
-    prefs?.clusters.length ? `you're into ${prefs.clusters.slice(0, 2).join(" and ")}` : null,
-    cities.length ? `you want to work in ${cities.slice(0, 3).join(", ")}` : null,
-    prefs?.minMonthly ? `you're after ₹${Math.round(prefs.minMonthly / 1000)}k+ a month` : null,
-  ].filter(Boolean);
-  const chatSummary = known.length
-    ? `From your resume and swipes I know ${known.join(", ")}. I won't ask you that again.`
-    : "I've got your resume, so I won't ask you anything that's already on it.";
-  const chatSuggestions = [...new Set(liked.map((c) => c.company))];
-
-  return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-violet-50 via-white to-amber-50 lg:h-screen lg:overflow-hidden">
-      <style>{`
-        @keyframes sjPop { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
-        .sj-pop { animation: sjPop .35s ease both }
-        @media (prefers-reduced-motion: reduce) { .sj-pop { animation: none } }
-      `}</style>
-
-      {/* Top bar */}
-      <header className="flex h-16 shrink-0 items-center gap-3 border-b-2 border-neutral-900 bg-white px-4 md:gap-4 md:px-6">
-        <Link to="/" className="font-['Clash_Display'] text-2xl font-bold text-neutral-900">studojo</Link>
-        <span className="hidden md:inline rounded-full border-2 border-neutral-900 bg-amber-200 px-2.5 py-0.5 font-['Satoshi'] text-xs font-bold">Getting to know you</span>
-        <div className="flex flex-1 justify-center gap-1.5" data-tour="progress" aria-label={`Step ${stepIndex + 1} of ${STEPS.length}`}>
-          {STEPS.map((s, i) => (
-            <span key={s.label} className={`h-2.5 w-5 rounded-full border-2 border-neutral-900 transition-colors md:w-10 ${i < stepIndex ? "bg-neutral-900" : i === stepIndex ? "bg-violet-500" : "bg-white"}`} />
-          ))}
-        </div>
-        <span className="hidden md:inline font-['Satoshi'] text-sm font-bold tabular-nums text-neutral-600">Step {stepIndex + 1}/{STEPS.length}</span>
-        {!signedIn && <Link to="/auth?mode=signin" className="font-['Satoshi'] text-sm font-bold text-neutral-900 hover:text-violet-700">Sign in</Link>}
-      </header>
-
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)_400px]">
-        {/* Left rail: steps + what we've learned */}
-        <aside className="hidden min-h-0 flex-col gap-5 overflow-y-auto border-r-2 border-neutral-900 bg-white p-4 lg:flex" data-tour="rail">
-          <ol className="space-y-1.5">
-            {STEPS.map((s, i) => {
-              const done = i < stepIndex, now = i === stepIndex;
-              return (
-                <li key={s.label} className={`flex items-center gap-3 rounded-xl border-2 px-3 py-2 transition-colors ${now ? "border-neutral-900 bg-violet-50 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]" : "border-transparent"}`}>
-                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 font-['Clash_Display'] text-xs font-bold ${done ? "border-neutral-900 bg-neutral-900 text-white" : now ? `border-neutral-900 ${s.dot}` : "border-neutral-300 bg-white text-neutral-400"}`}>
-                    {done ? <Check /> : i + 1}
-                  </span>
-                  <span className="min-w-0">
-                    <span className={`block font-['Satoshi'] text-sm font-bold ${done || now ? "text-neutral-900" : "text-neutral-400"}`}>{s.label}</span>
-                    <span className="block font-['Satoshi'] text-xs text-neutral-500">{s.hint}</span>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-          <div className="min-h-0 border-t-2 border-dashed border-neutral-200 pt-4" data-tour="feed">
-            <div className={`${LABEL} mb-3 flex items-center gap-1.5`}>
-              <span className={`h-2 w-2 rounded-full ${feed.length ? "bg-emerald-500" : "bg-neutral-300"}`} /> What we've learned
-            </div>
-            {feed.length === 0 ? (
-              <p className="font-['Satoshi'] text-xs leading-relaxed text-neutral-500">
-                Everything we read or work out shows up here, so nothing about your profile is a mystery.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {feed.map((f, i) => (
-                  <li key={`${f.t}-${i}-${f.text}`} className="grid grid-cols-[34px_1fr] gap-1.5 font-['Satoshi'] text-xs leading-snug sj-pop">
-                    <span className="tabular-nums text-neutral-400">{`0:${String(f.t).padStart(2, "0")}`}</span>
-                    <span className={f.tone === "good" ? "font-semibold text-neutral-900" : f.tone === "warn" ? "font-semibold text-amber-700" : "text-neutral-600"}>{f.text}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <p className="mt-auto rounded-xl bg-neutral-50 p-3 font-['Satoshi'] text-[11px] leading-relaxed text-neutral-500">
-            Your file is read once and isn't stored until you confirm. No password is created.
-          </p>
-        </aside>
-
-        {/* Centre: the current step */}
-        <main className="min-h-0 overflow-y-auto px-4 py-8 md:px-10">
-          <div className={`mx-auto flex min-h-full max-w-[680px] flex-col gap-6 ${step === "chat" || step === "saving" ? "" : "justify-center"}`}>
+  const content = (
+    <>
             {/* 1. Drop */}
             {(step === "drop" || step === "reading") && (
               <>
@@ -1008,7 +912,7 @@ export default function StartPage() {
             )}
 
             {/* 5. Cities */}
-            {step === "cities" && (
+            {(step === "cities" || step === "saving") && (
               <div data-tour="cities" className="space-y-5">
                 <div>
                   <h1 className={H1}>Where would you work?</h1>
@@ -1039,68 +943,172 @@ export default function StartPage() {
                   })}
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <button type="button" onClick={toChat} className={BTN} data-tour="finish">Next: a quick chat →</button>
-                  <span className="font-['Satoshi'] text-sm text-neutral-500">One minute. Things a resume can't tell us.</span>
+                  <button type="button" onClick={toApp} disabled={step === "saving"} className={BTN} data-tour="finish">{step === "saving" ? "Setting up…" : "Finish signup →"}</button>
+                  <span className="font-['Satoshi'] text-sm text-neutral-500">Next, a one-minute chat in your Studojo app.</span>
                 </div>
               </div>
             )}
 
-            {/* 6. Chat */}
-            {(step === "chat" || step === "saving") && (
-              <div className="flex h-[78vh] flex-col gap-4 lg:h-[calc(100vh-64px-64px)]">
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                  <div>
-                    <h1 className="font-['Clash_Display'] text-3xl font-bold leading-tight text-neutral-900 md:text-4xl">Tell us more about you.</h1>
-                    <p className="mt-2 font-['Satoshi'] text-sm text-neutral-600">What a resume can't say. Everything you answer shows up on the right.</p>
-                  </div>
-                  {chatDone && (
-                    <button type="button" onClick={() => { setStep("saving"); navigate("/profile"); }} className={BTN} data-tour="done">
-                      {step === "saving" ? "Opening…" : "See my profile →"}
-                    </button>
-                  )}
+    </>
+  );
+
+  const globe = (big = false) => (
+    <div className={`relative mx-auto w-full ${big ? "max-w-[520px]" : "max-w-[320px]"}`} data-tour="globe">
+      <div aria-hidden="true" className="absolute inset-[8%] rounded-full" style={{ boxShadow: "0 0 80px 10px rgba(139,92,246,.45)" }} />
+      <TalentGlobe pins={pins} arcsFrom="home" focus={globeFocus} tone="dark" />
+    </div>
+  );
+  const stats = (
+    <div className="grid grid-cols-3 gap-2">
+      <Stat label="Skills" value={shown.skills.length || "–"} bg="bg-violet-200" />
+      <Stat label="Roles fit" value={pool.length ? matchCount : "–"} bg="bg-amber-200" tour="counter" />
+      <Stat label="Cities" value={(afterSwipes ? cities.length : prefs?.cities.length) || "–"} bg="bg-emerald-200" />
+    </div>
+  );
+  const progress = (dark = false) => (
+    <div className="flex items-center gap-1.5" data-tour="progress" aria-label={`Step ${stepIndex + 1} of ${STEPS.length}`}>
+      {STEPS.map((s, i) => (
+        <span key={s.label} className={`h-2.5 w-7 rounded-full border-2 transition-colors ${dark ? "border-white" : "border-neutral-900"} ${i < stepIndex ? (dark ? "bg-white" : "bg-neutral-900") : i === stepIndex ? "bg-violet-500" : dark ? "bg-transparent" : "bg-white"}`} />
+      ))}
+      <span className={`ml-2 font-['Satoshi'] text-xs font-bold tabular-nums ${dark ? "text-white/80" : "text-neutral-500"}`}>{STEPS[stepIndex]?.label}</span>
+    </div>
+  );
+  const latest = feed[0];
+  const styles = (
+    <style>{`
+      @keyframes sjPop { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
+      .sj-pop { animation: sjPop .35s ease both }
+      @media (prefers-reduced-motion: reduce) { .sj-pop { animation: none } }
+    `}</style>
+  );
+  const signIn = !signedIn && <Link to="/auth?mode=signin" className="font-['Satoshi'] text-sm font-bold hover:underline">Sign in</Link>;
+
+  // ── Layout A: split screen ──
+  if (layout === "split") {
+    return (
+      <div className="grid min-h-screen grid-cols-1 lg:h-screen lg:grid-cols-2 lg:overflow-hidden">
+        {styles}
+        <div className="flex min-h-0 flex-col bg-gradient-to-br from-white via-white to-amber-50">
+          <header className="flex items-center justify-between gap-4 px-6 py-5 md:px-12">
+            <Link to="/" className="font-['Clash_Display'] text-2xl font-bold text-neutral-900">studojo</Link>
+            {signIn}
+          </header>
+          <div className="px-6 md:px-12">{progress()}</div>
+          <main className="min-h-0 flex-1 overflow-y-auto px-6 py-8 md:px-12">
+            <div className="flex min-h-full max-w-[620px] flex-col justify-center gap-6">{content}</div>
+          </main>
+        </div>
+        <aside className="relative flex min-h-[640px] flex-col overflow-hidden border-t-2 border-neutral-900 p-8 text-white lg:border-l-2 lg:border-t-0"
+          style={{ background: "radial-gradient(110% 80% at 50% 10%, #5b21b6 0%, #1e1b4b 55%, #0c0a1f 100%)" }}>
+          <div className="flex items-center justify-between">
+            <span className="font-['Satoshi'] text-[11px] font-bold uppercase tracking-wider text-white/60">Your profile, building itself</span>
+            <span className="font-['Satoshi'] text-sm font-bold text-white/90">{globeCaption}</span>
+          </div>
+          <div className="flex flex-1 items-center justify-center py-4">{globe(true)}</div>
+          <div className="grid gap-3 xl:grid-cols-[1fr_220px] xl:items-end">
+            <div className="text-neutral-900"><TalentCard d={shown} prefs={prefs} /></div>
+            <div className="space-y-3">
+              {stats}
+              {latest && (
+                <div key={latest.text} className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 font-['Satoshi'] text-xs text-white/90 sj-pop" data-tour="feed">
+                  <span className="text-white/50">Just now · </span>{latest.text}
                 </div>
-                <div className="flex min-h-0 flex-1 flex-col">
-                  <ProfileChat firstName={firstName} summary={chatSummary} suggestions={chatSuggestions} onAnswer={setChat} onDone={finishChat} />
-                </div>
-              </div>
-            )}
-          </div>
-        </main>
-
-        {/* Right: live panel */}
-        <aside className="min-h-0 space-y-4 overflow-y-auto border-t-2 border-neutral-900 bg-white/70 p-4 lg:border-l-2 lg:border-t-0">
-          <div
-            data-tour="globe"
-            className="relative overflow-hidden rounded-2xl border-2 border-neutral-900 p-4 text-white shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]"
-            style={{ background: "radial-gradient(120% 90% at 50% 0%, #4c1d95 0%, #1e1b4b 50%, #0f0d24 100%)" }}
-          >
-            <div className="relative z-10 flex items-center justify-between">
-              <span className="font-['Satoshi'] text-[10px] font-bold uppercase tracking-wider text-white/60">Your map</span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 font-['Satoshi'] text-[11px] font-bold">
-                <span className={`h-1.5 w-1.5 rounded-full ${pins.length ? "bg-emerald-400" : "bg-white/40"}`} />
-                {pins.length ? "Live" : "Waiting"}
-              </span>
-            </div>
-            <div className="relative mx-auto mt-1 max-w-[320px]">
-              <div aria-hidden="true" className="absolute inset-[8%] rounded-full" style={{ boxShadow: "0 0 70px 8px rgba(139,92,246,.4)" }} />
-              <TalentGlobe pins={pins} arcsFrom="home" focus={globeFocus} tone="dark" />
-            </div>
-            <div className="text-center font-['Satoshi'] text-sm font-bold text-white/90">{globeCaption}</div>
-            <div className="mt-2 flex justify-center gap-3 font-['Satoshi'] text-[11px] text-white/60">
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-indigo-300" />You</span>
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400" />Your picks</span>
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-indigo-400/70" />Roles open</span>
+              )}
             </div>
           </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <Stat label="Skills" value={shown.skills.length || "–"} bg="bg-violet-200" />
-            <Stat label="Roles fit" value={pool.length ? matchCount : "–"} bg="bg-amber-200" tour="counter" />
-            <Stat label="Cities" value={(afterSwipes ? cities.length : prefs?.cities.length) || "–"} bg="bg-emerald-200" />
-          </div>
-
-          <TalentCard d={shown} prefs={prefs} chat={chat} />
         </aside>
+      </div>
+    );
+  }
+
+  // ── Layout B: focused centre stage ──
+  if (layout === "stage") {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-violet-50 via-white to-amber-50 pb-40">
+        {styles}
+        <header className="flex items-center justify-between gap-4 px-6 py-5 md:px-10">
+          <Link to="/" className="font-['Clash_Display'] text-2xl font-bold text-neutral-900">studojo</Link>
+          <div className="hidden md:block">{progress()}</div>
+          {signIn || <span />}
+        </header>
+        <main className="mx-auto flex max-w-[680px] flex-col gap-6 px-4 py-6 md:py-12">
+          {(step === "cities" || step === "saving") && (
+            <div className="rounded-3xl border-2 border-neutral-900 p-4 shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]" style={{ background: "radial-gradient(110% 80% at 50% 10%, #5b21b6 0%, #1e1b4b 55%, #0c0a1f 100%)" }}>
+              {globe(true)}
+            </div>
+          )}
+          {content}
+        </main>
+        {/* Profile strip */}
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-neutral-900 bg-white" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} data-tour="card">
+          <div className="mx-auto flex max-w-6xl items-center gap-4 overflow-x-auto px-4 py-3 md:px-8">
+            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-neutral-900 font-['Clash_Display'] font-bold ${shown.name ? "bg-violet-500 text-white" : "bg-neutral-100 text-neutral-300"}`}>
+              {(shown.name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+            </div>
+            <div className="min-w-[140px]">
+              <div className="truncate font-['Clash_Display'] text-base font-bold text-neutral-900">{shown.name || "Your profile"}</div>
+              <div className="truncate font-['Satoshi'] text-xs text-neutral-500">{[shown.course, shown.college].filter(Boolean).join(" · ") || "Builds itself as you go"}</div>
+            </div>
+            <span className="h-8 w-px shrink-0 bg-neutral-200" />
+            <div className="flex shrink-0 gap-1">
+              {shown.skills.slice(0, 4).map((s) => <span key={s} className="rounded-full bg-violet-50 px-2 py-0.5 font-['Satoshi'] text-[11px] font-semibold text-violet-700 sj-pop">{s}</span>)}
+              {shown.skills.length > 4 && <span className="rounded-full bg-neutral-100 px-2 py-0.5 font-['Satoshi'] text-[11px] font-semibold text-neutral-600">+{shown.skills.length - 4}</span>}
+            </div>
+            {prefs && prefs.clusters.length > 0 && (
+              <div className="flex shrink-0 gap-1">
+                {prefs.clusters.slice(0, 2).map((c) => <span key={c} className={`rounded-full border-2 border-neutral-900 ${CLUSTER_STYLE[c]} px-2 py-0.5 font-['Satoshi'] text-[11px] font-bold sj-pop`}>{c}</span>)}
+              </div>
+            )}
+            <div className="ml-auto flex shrink-0 items-center gap-4">
+              {latest && <span key={latest.text} className="hidden max-w-[240px] truncate font-['Satoshi'] text-xs text-neutral-500 xl:inline sj-pop">{latest.text}</span>}
+              {[["Skills", shown.skills.length], ["Roles fit", pool.length ? matchCount : 0], ["Cities", afterSwipes ? cities.length : prefs?.cities.length ?? 0]].map(([k, v]) => (
+                <div key={k as string} className="text-center" data-tour={k === "Roles fit" ? "counter" : undefined}>
+                  <div className="font-['Clash_Display'] text-xl font-bold leading-none tabular-nums">{(v as number) || "–"}</div>
+                  <div className="font-['Satoshi'] text-[10px] font-bold uppercase tracking-wider text-neutral-500">{k}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Layout C: card on a canvas ──
+  return (
+    <div className="relative min-h-screen overflow-hidden" style={{ background: "radial-gradient(120% 90% at 50% 30%, #4c1d95 0%, #1e1b4b 50%, #0b0a1c 100%)" }}>
+      {styles}
+      {/* The globe turns behind the card */}
+      <div aria-hidden="true" className="pointer-events-none fixed left-1/2 top-1/2 w-[min(110vh,110vw)] -translate-x-1/2 -translate-y-1/2 opacity-70">
+        <TalentGlobe pins={pins} arcsFrom="home" focus={globeFocus} tone="dark" />
+      </div>
+      <div className="relative z-10 flex min-h-screen flex-col items-center px-4 py-6">
+        <header className="flex w-full max-w-[680px] items-center justify-between gap-4">
+          <Link to="/" className="font-['Clash_Display'] text-2xl font-bold text-white">studojo</Link>
+          <span className="text-white">{signIn}</span>
+        </header>
+        <div className="mt-4 w-full max-w-[680px]">{progress(true)}</div>
+        <main className="mt-4 w-full max-w-[680px] rounded-3xl border-2 border-neutral-900 bg-gradient-to-br from-white via-white to-amber-50 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.6)] md:p-8">
+          <div className="flex flex-col gap-6">{content}</div>
+        </main>
+        <div className="mt-4 flex w-full max-w-[680px] flex-wrap items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-white backdrop-blur" data-tour="card">
+          <div className={`flex h-9 w-9 items-center justify-center rounded-lg border-2 border-white font-['Clash_Display'] text-sm font-bold ${shown.name ? "bg-violet-500" : "bg-white/10"}`}>
+            {(shown.name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <div className="truncate font-['Satoshi'] text-sm font-bold">{shown.name || "Your profile"}</div>
+            <div className="truncate font-['Satoshi'] text-xs text-white/60">{globeCaption}</div>
+          </div>
+          <div className="ml-auto flex gap-4" data-tour="counter">
+            {[["Skills", shown.skills.length], ["Roles fit", pool.length ? matchCount : 0], ["Cities", afterSwipes ? cities.length : prefs?.cities.length ?? 0]].map(([k, v]) => (
+              <div key={k as string} className="text-center">
+                <div className="font-['Clash_Display'] text-lg font-bold leading-none tabular-nums">{(v as number) || "–"}</div>
+                <div className="font-['Satoshi'] text-[10px] font-bold uppercase tracking-wider text-white/60">{k}</div>
+              </div>
+            ))}
+          </div>
+          {latest && <div key={latest.text} className="w-full truncate font-['Satoshi'] text-xs text-white/70 sj-pop" data-tour="feed">Just now · {latest.text}</div>}
+        </div>
       </div>
     </div>
   );
