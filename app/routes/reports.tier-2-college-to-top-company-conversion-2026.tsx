@@ -231,9 +231,9 @@ export default function Report_Tier2CollegeToTopCompanyConversion2026() {
               <div className="sc-source">Studojo synthesis of campus funnel patterns, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">5-15x</div>
-              <div className="sc-label">Typical relative lift when comparing serious off-campus applicants with proof versus a generic blast of applications</div>
-              <div className="sc-source">Studojo hiring signal framework, 2026</div>
+              <div className="sc-num">1.85x</div>
+              <div className="sc-label">Among Huntr users, applications sent with a job-tailored resume recorded interviews at 5.71% against 3.09% without one, across 1.99 million tracked applications. Self-reported, not India-specific, and the gap narrows when the same person is compared</div>
+              <div className="sc-source">Huntr Job Search Trends Report, Q2 2026 (published August 2026)</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">3 paths</div>

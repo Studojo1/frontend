@@ -263,9 +263,9 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">{"~62%"}</div>
-              <div className="sc-label">{"Illustrative share of entry-level data/AI-titled intern reqs that emphasize SQL, Python, and analytics over training frontier models (Studojo job-post synthesis, 2026)"}</div>
-              <div className="sc-source">{"Studojo job-posting scrape synthesis, 2026"}</div>
+              <div className="sc-num">{"About half"}</div>
+              <div className="sc-label">{"Share of 1,355 US data analyst job postings that mention SQL, with Python in about a third and machine learning in 14%. Querying and analysis come before model training"}</div>
+              <div className="sc-source">{"365 Data Science analysis of Glassdoor US postings, April 2026"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"$35-$55/hr"}</div>
@@ -291,7 +291,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
             <p>{"Job boards bundle data analyst intern, data science intern, ML intern, AI research intern, and business intelligence intern into one hype bucket. In 2026, most undergrad and master's interns spend time on definable data work: writing SQL, fixing datasets, building dashboards, running A/B analysis, labeling and evaluating model outputs, or wiring APIs into product features. Training foundation models from scratch is rare at intern level outside a handful of research labs."}</p>
             <p>{"GenAI shifted the stack, not the entry bar. Employers want interns who can measure quality, debug bad outputs, and ship small features with guardrails. That is closer to analytics plus software hygiene than to Hollywood AI."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Optimize for data credibility first. AI fluency is a layer on top of SQL, Python, and clear metrics."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Optimize for data credibility first. AI fluency is a layer on top of SQL, Python, and clear metrics.</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"What \"data/AI\" intern roles actually do (illustrative mix of work, %)"}</div>
@@ -313,7 +313,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Title decoder:</strong> \"Data analyst intern\" → SQL + dashboards. \"Data science intern\" → notebooks + experiments. \"ML intern\" → features + evaluation. \"AI intern\" → read the bullets; often product analytics with LLM APIs."}</div>
+            <div className="callout"><strong>Title decoder:</strong>{" \"Data analyst intern\" → SQL + dashboards. \"Data science intern\" → notebooks + experiments. \"ML intern\" → features + evaluation. \"AI intern\" → read the bullets; often product analytics with LLM APIs."}</div>
           </div>
 
           <div className="rpt-section">
@@ -334,7 +334,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> One end-to-end project (question → data → analysis → decision) beats listing sklearn on your resume without context."}</div>
+            <div className="highlight"><strong>Key insight:</strong> One end-to-end project (question → data → analysis → decision) beats listing sklearn on your resume without context.</div>
 
             <div className="pull-quote">
               <p>{"\"I hire data interns who explain one decision their analysis changed. Most portfolios only show plots.\""}</p>
@@ -354,7 +354,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>90-day skill stack:</strong> Week 1-4: SQL on a real schema. Week 5-8: one Kaggle or public dataset with a written report. Week 9-12: small app or dashboard plus 5-slide presentation. Optional: one LLM eval notebook with labeled examples."}</div>
+            <div className="callout-amber"><strong>90-day skill stack:</strong> Week 1-4: SQL on a real schema. Week 5-8: one Kaggle or public dataset with a written report. Week 9-12: small app or dashboard plus 5-slide presentation. Optional: one LLM eval notebook with labeled examples.</div>
           </div>
 
           <div className="rpt-section">
@@ -375,7 +375,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Paid data interns exist in volume at employers with real data teams. If everyone on the team is paid except interns, question the setup."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Paid data interns exist in volume at employers with real data teams. If everyone on the team is paid except interns, question the setup.</div>
 
             <div className="blist">
 
@@ -390,7 +390,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Negotiate scope, not only stipend:</strong> Ask about mentor, warehouse access, presentation to leadership, and return offer history."}</div>
+            <div className="callout-green"><strong>Negotiate scope, not only stipend:</strong> Ask about mentor, warehouse access, presentation to leadership, and return offer history.</div>
           </div>
 
           <div className="rpt-section">
@@ -404,7 +404,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
             <p>{"Large tech, fintech, and e-commerce run the biggest cohorts: product analytics, risk, search, ads, and platform data. Banks and asset managers hire quant-leaning and analytics interns. GCCs in India hire data engineering and BI interns for global stacks. Health, retail, and logistics hire when they have centralized data teams, not when \"AI\" is a press release only."}</p>
             <p>{"Consulting and agencies hire analytics interns for client dashboards. AI startups hire if you can ship evaluations and prototypes, not because you watched a transformer lecture."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Target employers with a named data org chart. \"AI-first\" marketing without data job postings is a warning."}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" Target employers with a named data org chart. \"AI-first\" marketing without data job postings is a warning."}</div>
 
             <div className="blist">
 
@@ -419,7 +419,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Search strings:</strong> \"data analyst intern,\" \"analytics intern,\" \"data science intern summer 2026,\" \"ML intern,\" plus company careers filter. Add city if you target India GCC or US hub."}</div>
+            <div className="callout"><strong>Search strings:</strong>{" \"data analyst intern,\" \"analytics intern,\" \"data science intern summer 2026,\" \"ML intern,\" plus company careers filter. Add city if you target India GCC or US hub."}</div>
           </div>
 
           <div className="rpt-section">
@@ -441,7 +441,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Interviewers reward clarity: metric, method, limitation, next step. Practice saying \"I don't know, but I would test X.\""}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" Interviewers reward clarity: metric, method, limitation, next step. Practice saying \"I don't know, but I would test X.\""}</div>
 
             <div className="blist">
 
@@ -456,7 +456,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Take-home template:</strong> Problem → Data quirks → Analysis → Chart → Recommendation → What I'd do with two more weeks."}</div>
+            <div className="callout-amber"><strong>Take-home template:</strong>{" Problem → Data quirks → Analysis → Chart → Recommendation → What I'd do with two more weeks."}</div>
           </div>
 
           <div className="rpt-section">
@@ -470,7 +470,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
             <p>{"Days 1-20: finish SQL + one portfolio project with a README and slides. Days 21-40: apply to 15 tailored roles (5 large tech/finance, 5 India GCC or product, 5 startups). Days 41-60: ten outreaches to data managers with your project link; mock SQL twice a week."}</p>
             <p>{"Track screens per ten tailored applies. If only startups reply, tighten dashboards. If only GCC replies, emphasize SQL and pipeline hygiene. Do not spray \"AI enthusiast\" resumes."}</p>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> Entry-level data and AI hiring is a data credibility game with an AI accent. Build the base, then add LLM literacy with measured projects."}</div>
+            <div className="highlight"><strong>Summary insight:</strong> Entry-level data and AI hiring is a data credibility game with an AI accent. Build the base, then add LLM literacy with measured projects.</div>
 
             <div className="pull-quote">
               <p>{"\"The intern who got the return offer explained one dashboard that changed a team's sprint priority. The others had pretty plots.\""}</p>
@@ -490,7 +490,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Portfolio must-haves:</strong> One SQL repo, one notebook with business recommendation, one slide deck under 6 pages, LinkedIn headline that names your stack honestly."}</div>
+            <div className="callout"><strong>Portfolio must-haves:</strong> One SQL repo, one notebook with business recommendation, one slide deck under 6 pages, LinkedIn headline that names your stack honestly.</div>
           </div>
 
           <div className="takeaway-section">

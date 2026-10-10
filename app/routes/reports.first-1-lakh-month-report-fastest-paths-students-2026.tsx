@@ -323,7 +323,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
             <p>{"Students chase CTC. Landlords cash in-hand cheques. ₹1 lakh per month in take-home pay typically requires roughly ₹12 lakh or more in annual CTC after income tax, provident fund, and standard deductions, assuming a metro location and a normal salary structure without large one-time bonuses counted as monthly income."}</p>
             <p>{"The 2026 fresher market is the most bifurcated it has been. Recrew.ai's salary synthesis puts the gap between bottom-quartile and top-quartile campus offers at nearly 8× for the same graduating year. A TCS or Infosys fresher at ₹3.5 to ₹4.5 LPA takes home roughly ₹22,000 to ₹30,000 per month. A Google, Microsoft, or Amazon India offer at ₹20 to ₹45 LPA can clear ₹1 lakh per month in-hand at the upper band. Same country. Same job title on LinkedIn. Different lane entirely."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Before picking a path, decide whether you are optimising for CTC on an offer letter or in-hand cash every month. They diverge sharply at bonus-heavy and ESOP-heavy packages."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Before picking a path, decide whether you are optimising for CTC on an offer letter or in-hand cash every month. They diverge sharply at bonus-heavy and ESOP-heavy packages.</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"Annual CTC vs realistic monthly in-hand at fresher level (₹ thousands/month)"}</div>
@@ -345,7 +345,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Rule of thumb:</strong> Divide annual CTC by 14 (not 12) for a conservative monthly in-hand estimate on standard Indian payroll. Variable pay and ESOPs are upside, not rent money."}</div>
+            <div className="callout"><strong>Rule of thumb:</strong> Divide annual CTC by 14 (not 12) for a conservative monthly in-hand estimate on standard Indian payroll. Variable pay and ESOPs are upside, not rent money.</div>
           </div>
 
           <div className="rpt-section">
@@ -366,7 +366,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> This is the only path where ₹1 lakh/month can arrive at graduation. It is also the path with the lowest admission rate and the highest prep intensity."}</div>
+            <div className="highlight"><strong>Key insight:</strong> This is the only path where ₹1 lakh/month can arrive at graduation. It is also the path with the lowest admission rate and the highest prep intensity.</div>
 
             <div className="pull-quote">
               <p>{"\"The offer letter said ₹38 LPA. My first in-hand was ₹92,000. Close enough that I stopped doing the math and started doing the work.\""}</p>
@@ -398,7 +398,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
             <p>{"If FAANG campus slots miss you, funded fintech and consumer startups are the next fastest lane. JoinSaarthi lists CRED at ₹15 to ₹25 LPA, PhonePe at ₹15 to ₹25 LPA, Razorpay at ₹12 to ₹18 LPA, and Swiggy at ₹12 to ₹22 LPA for engineering freshers in 2026. PhonePe's published fresher structure shows base salary of ₹14 to ₹20 lakh plus joining bonus, pushing total CTC toward ₹18 to ₹28 lakh for strong performers."}</p>
             <p>{"At ₹18 LPA and above, monthly in-hand typically lands in the ₹85,000 to ₹1.1 lakh range. A performance cycle or promotion within 12 months pushes many startup SDEs over the ₹1 lakh line without switching companies. The interview bar is high: machine coding, system design, and take-home assignments (CRED is known for 24-hour build tasks) filter harder than mass IT services screens."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Startup SDE is the realistic \"almost ₹1 lakh\" path for strong engineers from tier-1 and tier-2 colleges who miss the FAANG slot but clear product-style interviews."}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" Startup SDE is the realistic \"almost ₹1 lakh\" path for strong engineers from tier-1 and tier-2 colleges who miss the FAANG slot but clear product-style interviews."}</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"Illustrative monthly in-hand range by path at entry to ₹1L threshold (INR thousands)"}</div>
@@ -420,7 +420,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Target list:</strong> CRED, PhonePe, Razorpay, Swiggy, Zepto, Meesho, BrowserStack, Chargebee, Freshworks, and well-funded Series B+ SaaS. Skip unfunded startups offering equity instead of cash unless you have a runway."}</div>
+            <div className="callout-amber"><strong>Target list:</strong> CRED, PhonePe, Razorpay, Swiggy, Zepto, Meesho, BrowserStack, Chargebee, Freshworks, and well-funded Series B+ SaaS. Skip unfunded startups offering equity instead of cash unless you have a runway.</div>
           </div>
 
           <div className="rpt-section">
@@ -434,7 +434,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
             <p>{"The majority of Indian engineering graduates still start in IT services at ₹3.5 to ₹7 LPA. Pathvio's 2026 tech salary report states the gap between IT services and product companies at the same experience level is 2 to 3× and widening. A mid-level SWE at TCS earns ₹14 to ₹18 LPA; the same profile at Swiggy or CRED earns ₹28 to ₹45 LPA; at Google or Amazon India, ₹45 to ₹70 LPA."}</p>
             <p>{"The switch typically happens between 18 and 36 months. Engineers who treat the services job as a paid DSA gym, ship one external-facing project, and interview at product firms during the 2-year mark often land 80% to 150% CTC jumps. That single move is how most engineers who did not get a dream campus offer eventually cross ₹1 lakh per month."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> IT services is not a dead end. It is a slow lane that punishes people who stop preparing and rewards people who treat it as runway."}</div>
+            <div className="highlight"><strong>Key insight:</strong> IT services is not a dead end. It is a slow lane that punishes people who stop preparing and rewards people who treat it as runway.</div>
 
             <div className="pull-quote">
               <p>{"\"Two years at Infosys, one side project with 2,000 users, one referral into a fintech. CTC went from ₹4.5L to ₹22L. That was the whole strategy.\""}</p>
@@ -454,7 +454,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Switch checklist:</strong> (1) DSA at product-interview level. (2) One project outside work with users or metrics. (3) LinkedIn headline with nouns, not adjectives. (4) Apply through referrals, not only portals."}</div>
+            <div className="callout-green"><strong>Switch checklist:</strong> (1) DSA at product-interview level. (2) One project outside work with users or metrics. (3) LinkedIn headline with nouns, not adjectives. (4) Apply through referrals, not only portals.</div>
           </div>
 
           <div className="rpt-section">
@@ -483,13 +483,13 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Freelancing hits ₹1 lakh faster than IT services but slower than a top campus offer. The bottleneck is client acquisition, not skill alone."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Freelancing hits ₹1 lakh faster than IT services but slower than a top campus offer. The bottleneck is client acquisition, not skill alone.</div>
 
             <div className="blist">
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>{"Platform fees eat margin."}</strong> {"Upwork charges 20% on the first $500 per client. Price your rates to absorb platform tax and Payoneer conversion."}</span>
+                <span><strong>{"Platform fees eat margin."}</strong> {"Upwork charges freelancers a variable service fee of 0% to 15% per contract (since May 2025), shown before you submit a proposal. Price your rates to absorb that fee and Payoneer conversion."}</span>
               </div>
 
               <div className="blist-item">
@@ -498,7 +498,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Realistic student math:</strong> Three retainer clients at ₹35,000/month each gets you to ₹1.05 lakh. That is a sales and delivery job, not a gig platform lottery."}</div>
+            <div className="callout"><strong>Realistic student math:</strong> Three retainer clients at ₹35,000/month each gets you to ₹1.05 lakh. That is a sales and delivery job, not a gig platform lottery.</div>
           </div>
 
           <div className="rpt-section">
@@ -512,7 +512,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
             <p>{"Sales is the most ignored high-ceiling path on campus. B2B SaaS, EdTech institutional sales, and digital marketing agency field sales routinely advertise uncapped commission structures where top performers clear ₹1 to ₹2 lakh per month on ₹30,000 to ₹70,000 bases. Aimlead's Bangalore field sales manager posting cites ₹30,000 fixed with realistic earnings of ₹80,000 to ₹2,00,000 per month for performers. Ixyle AI's institutional SaaS role offers ₹50,000 fixed plus ₹50,000 per deal closed plus revenue share."}</p>
             <p>{"This path favours students who already sell: society sponsorships, event ticketing, prior internship BD work. The ramp is 6 to 12 months of pipeline building before commission income stabilises. It is high variance. Many wash out at the base-salary line. The ones who survive often out-earn batchmates in IT services within 18 months."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Sales is the fastest non-technical path to ₹1 lakh/month with uncapped upside, and the path most career offices never mention."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Sales is the fastest non-technical path to ₹1 lakh/month with uncapped upside, and the path most career offices never mention.</div>
 
             <div className="pull-quote">
               <p>{"\"My engineering friends were mock-interviewing for TCS. I was closing three college deals a month. I crossed ₹1 lakh in month seven. Different game.\""}</p>
@@ -532,7 +532,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               </div>
             </div>
 
-            <div className="callout-red">{"<strong>Red flag filter:</strong> Avoid roles that are pure cold-calling with no product-market fit, no CRM, and no existing leads. \"Uncapped commission\" without inbound pipeline is a churn factory."}</div>
+            <div className="callout-red"><strong>Red flag filter:</strong>{" Avoid roles that are pure cold-calling with no product-market fit, no CRM, and no existing leads. \"Uncapped commission\" without inbound pipeline is a churn factory."}</div>
           </div>
 
           <div className="rpt-section">
@@ -546,7 +546,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
             <p>{"Investment banking and top consulting pay well but rarely hit ₹1 lakh per month in-hand at true fresher level at domestic firms. GeeksforGeeks and TimesPro put IB analyst salaries at ₹6 to ₹19 LPA at domestic houses, with global banks (Goldman Sachs, JP Morgan, Morgan Stanley) at ₹15 to ₹28 LPA for analysts. Monthly in-hand at a global bank analyst offer often lands at ₹80,000 to ₹1.2 lakh, crossing the threshold at the upper band."}</p>
             <p>{"The finance path is slow-burn for most: CA or CFA progression, MBA from a top programme, or boutique advisory grind before base plus bonus consistently clears ₹1 lakh monthly. Associate-level IB (2 to 4 years) reliably crosses ₹1.5 to ₹2.5 lakh per month at global banks. For students, the honest timeline is 3 to 5 years unless you enter through a top MBA campus process."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Finance pays among the highest lifetime ceilings but is rarely the fastest first ₹1 lakh unless you land a global bank analyst offer or top consulting return."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Finance pays among the highest lifetime ceilings but is rarely the fastest first ₹1 lakh unless you land a global bank analyst offer or top consulting return.</div>
 
             <div className="blist">
 
@@ -561,7 +561,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Honest comparison:</strong> A PhonePe SDE fresher may match an IB analyst's in-hand with less credential debt and more linear skill progression. Finance wins on bonus spikes and senior comp, not on speed to first ₹1 lakh for the median entrant."}</div>
+            <div className="callout-amber"><strong>Honest comparison:</strong>{" A PhonePe SDE fresher may match an IB analyst's in-hand with less credential debt and more linear skill progression. Finance wins on bonus spikes and senior comp, not on speed to first ₹1 lakh for the median entrant."}</div>
           </div>
 
           <div className="takeaway-section">

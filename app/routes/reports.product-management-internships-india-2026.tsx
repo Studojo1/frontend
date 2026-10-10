@@ -241,9 +241,9 @@ export default function Report_ProductManagementInternshipsIndia2026() {
               <div className="sc-source">Studojo hiring-calendar synthesis, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">3x</div>
-              <div className="sc-label">Typical lift in interview probability when a candidate ships one crisp case write-up or teardown versus a generic resume-only apply</div>
-              <div className="sc-source">Studojo PM intern signal framework, 2026</div>
+              <div className="sc-num">71%</div>
+              <div className="sc-label">Higher callback rate for applicants whose resume linked to a detailed LinkedIn profile versus none (13.5% vs 7.9%). A thin profile gave no lift, so a teardown only helps if it is substantial</div>
+              <div className="sc-source">ResumeGo field test: 24,570 resumes sent via Indeed, ZipRecruiter and Glassdoor, Oct 2018 to Mar 2019</div>
             </div>
           </div>
 
@@ -298,11 +298,6 @@ export default function Report_ProductManagementInternshipsIndia2026() {
             <p>Some programmes are explicitly APM tracks with rotation across growth, platform, and core product. Others title the role "product intern" but assign mostly analytics or operations support. Read scope, not only the badge.</p>
 
             <div className="highlight"><strong>Key insight:</strong> The same employer can run a serious PM intern programme in one business unit and a token internship in another. Business-unit research beats company-level myth.</div>
-
-            <div className="pull-quote">
-              <p>"We filled half our PM intern seats from referrals and club networks before the official form went live. The form was hygiene, not discovery."</p>
-              <span className="pq-source">Product leader, growth-stage SaaS (representative synthesis), 2026</span>
-            </div>
 
             <div className="blist">
 

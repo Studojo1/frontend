@@ -6,14 +6,14 @@ const BASE_URL = "https://studojo.com";
 
 export function meta() {
   return [
-    { title: "The Hidden Job Market: How 70% of Roles Never Get Posted | Studojo" },
+    { title: "The Hidden Job Market: Why So Many Roles Are Filled Through Referrals | Studojo" },
     { name: "description", content: "How much hiring stays off job boards in 2026, why roles never get posted, and what candidates can do to show up where decisions actually happen." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "hidden job market 2026, jobs never posted online, how to find unlisted jobs, referral hiring and internal candidates" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/hidden-job-market-70-percent-never-posted-2026` },
     { property: "og:type", content: "article" },
-    { property: "og:title", content: "The Hidden Job Market: How 70% of Roles Never Get Posted" },
-    { property: "og:description", content: "Most hiring never touches the feed you refresh. Here is how the hidden market works, and how to enter it." },
+    { property: "og:title", content: "The Hidden Job Market: Why So Many Roles Are Filled Through Referrals" },
+    { property: "og:description", content: "Job boards show only part of how hiring happens. Referrals and insiders still shape who gets hired. Here is how the hidden market works, and how to enter it." },
     { property: "og:url", content: `${BASE_URL}/reports/hidden-job-market-70-percent-never-posted-2026` },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: `${BASE_URL}/og-reports.png` },
@@ -21,7 +21,7 @@ export function meta() {
     { property: "article:published_time", content: "2026-05-07T00:00:00Z" },
     { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: "The Hidden Job Market: How 70% of Roles Never Get Posted | Studojo" },
+    { name: "twitter:title", content: "The Hidden Job Market: Why So Many Roles Are Filled Through Referrals | Studojo" },
     { name: "twitter:description", content: "Job boards show the surface. A large share of hiring is filled before the post, or without one." },
     { name: "twitter:image", content: `${BASE_URL}/og-reports.png` },
     { name: "twitter:site", content: "@studojo_com" },
@@ -169,7 +169,7 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Article",
-        "headline": "The Hidden Job Market: How 70% of Roles Never Get Posted",
+        "headline": "The Hidden Job Market: Why So Many Roles Are Filled Through Referrals",
         "description": "How much hiring stays off job boards in 2026, why roles never get posted, and what candidates can do to show up where decisions actually happen.",
         "url": `${BASE_URL}/reports/hidden-job-market-70-percent-never-posted-2026`,
         "datePublished": "2026-05-07T00:00:00Z",
@@ -185,7 +185,7 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL },
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
-          { "@type": "ListItem", "position": 3, "name": "The Hidden Job Market: How 70% of Roles Never Get Posted", "item": `${BASE_URL}/reports/hidden-job-market-70-percent-never-posted-2026` },
+          { "@type": "ListItem", "position": 3, "name": "The Hidden Job Market: Why So Many Roles Are Filled Through Referrals", "item": `${BASE_URL}/reports/hidden-job-market-70-percent-never-posted-2026` },
         ],
       }) }} />
 
@@ -198,9 +198,9 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
             <nav className="rpt-breadcrumb" aria-label="Breadcrumb">
               <Link to="/reports" className="rpt-breadcrumb-link">Reports</Link>
               <span className="rpt-breadcrumb-sep">›</span>
-              <span>The Hidden Job Market: How 70% of Roles Never Get Posted</span>
+              <span>The Hidden Job Market: Why So Many Roles Are Filled Through Referrals</span>
             </nav>
-            <h1 dangerouslySetInnerHTML={{ __html: "The Hidden Job Market:<br /><em>How 70% of Roles Never Get Posted</em>" }} />
+            <h1 dangerouslySetInnerHTML={{ __html: "The Hidden Job Market:<br /><em>Why So Many Roles Are Filled Through Referrals</em>" }} />
             <p className="rpt-hero-sub">Public listings are one lane, not the highway. Many teams hire through referrals, internal moves, agencies, and warm pipelines long before a role is polished for the web. This report explains the split, and how to operate in both worlds without guessing.</p>
             <div className="rpt-meta">
               <div className="rpt-meta-item">
@@ -226,9 +226,9 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">~70%</div>
-              <div className="sc-label">Illustrative combined share of hiring that is filled without a widely visible public post, in synthesis across networks and employer practice</div>
-              <div className="sc-source">Studojo synthesis of hiring-channel patterns, 2026</div>
+              <div className="sc-num">70%</div>
+              <div className="sc-label">Share of people hired in 2016 who joined a company where they already had a connection. It measures connections, not unposted jobs</div>
+              <div className="sc-source">LinkedIn global survey of 15,905 members, published June 2017</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">4-5x</div>
@@ -247,11 +247,12 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
             <div className="sec-header">
               <div className="sec-num" style={{ background: "#8B5CF6" }}>1</div>
               <div>
-                <div className="sec-title">Seventy percent is a headline, not a single census</div>
+                <div className="sec-title">Seventy percent measures connections, not unposted jobs</div>
                 <div className="sec-sub">The hidden market is a bundle of channels that rarely show up in your alerts</div>
               </div>
             </div>
             <p>When people say most jobs are never posted, they usually mean something softer: a large fraction of hires are influenced by relationships, internal candidates, or sourcing before a req ever looks polished on a careers site. The exact percentage varies by industry, seniority, and country. The directional point still matters. Public search is incomplete.</p>
+            <p>The 70% figure you see quoted has a real source, but it measured something else. A LinkedIn survey published in June 2017 found that 70% of people hired in 2016 joined a company where they already had a connection. On postings themselves, published estimates point the other way: Georgetown University's Center on Education and the Workforce estimated in 2014 that 60 to 70% of US job openings were posted online, rising to 80 to 90% of openings that need at least a bachelor's degree.</p>
             <p>Posted jobs are real, but they compete with a parallel system. Managers ask their teams for referrals. Recruiters maintain shortlists. Internal mobility clears roles before externals see them. Confidential searches stay narrow. None of that invalidates job boards. It just explains why board-only search can feel like shouting into a partial market.</p>
             <p>Your practical takeaway is not cynicism. It is coverage. Treat listings as one signal among several, and build a second track that creates introductions and credibility.</p>
 
