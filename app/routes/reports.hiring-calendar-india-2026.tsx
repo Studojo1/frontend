@@ -579,17 +579,17 @@ export default function HiringCalendarReport() {
                 <tbody>
                   <tr className="rpt-tr-hi">
                     <td><strong>Google India</strong></td>
-                    <td>STEP Intern (Software Engineering)</td>
-                    <td>July - August</td>
+                    <td>Associate Software Developer Intern (ASDI), formerly STEP</td>
+                    <td>2026 cycle: posted mid-December 2025. No 2027 posting yet on 10 Oct 2026</td>
                     <td>2-3 technical rounds (DSA heavy)</td>
                     <td>May - August</td>
                     <td>₹1,50,000-₹2,00,000/mo</td>
-                    <td>1st/2nd year CS undergrads, IIT/BITS/NIT</td>
+                    <td>2nd year CS undergrads, IIT/BITS/NIT</td>
                   </tr>
                   <tr>
                     <td><strong>Google India</strong></td>
                     <td>SWE Intern (Penultimate)</td>
-                    <td>August - September</td>
+                    <td>Mid-June (2027 cycle: apply before 28 June 2026)</td>
                     <td>2-3 technical rounds</td>
                     <td>May - August</td>
                     <td>₹1,80,000-₹2,20,000/mo</td>
@@ -693,7 +693,7 @@ export default function HiringCalendarReport() {
               <div className="rpt-cl">OA is the first filter - and it runs out of slots</div>
               <p>Most Big Tech companies use Online Assessments (OAs) as the first round. OA slots are limited and expire. Google, Amazon, and Microsoft have sent OA links that expire in 5-7 days. If you apply late, the OA link may already be exhausted for your cohort. Early application is not about eagerness - it's about securing a slot in the assessment pipeline.</p>
             </div>
-            <p className="rpt-source">Source: Google India careers, Microsoft India, Amazon India, Codeforces / LeetCode India community data, IIT campus placement committee reports 2025</p>
+            <p className="rpt-source">Source: Google Careers India postings (Associate Software Developer Intern 2026, posted December 2025; Software Engineering Intern Summer 2027, posted June 2026), Microsoft India, Amazon India, Codeforces / LeetCode India community data, IIT campus placement committee reports 2025</p>
           </div>
 
           {/* CTA 2 */}
@@ -1014,15 +1014,15 @@ export default function HiringCalendarReport() {
                   <tr>
                     <td><strong>June</strong></td>
                     <td>Prepare - Big Tech OAs open in July. Get your materials ready now.</td>
-                    <td>Very quiet. A few agencies and SMEs.</td>
-                    <td>None significant.</td>
+                    <td>Google (SWE Intern, India). Otherwise very quiet: a few agencies and SMEs.</td>
+                    <td>Google SWE Intern (India): the 2027 posting went up mid-June 2026 and asked for applications before 28 June.</td>
                     <td>Finalize resume for Big Tech. Complete LeetCode medium problems. Research IB firms.</td>
                   </tr>
                   <tr className="rpt-tr-hi">
                     <td><strong>July</strong></td>
-                    <td>Apply - Google STEP, Amazon SDE, Microsoft Explore open NOW.</td>
-                    <td>Google, Amazon, Microsoft, Adobe, Meta (open July-August). Unicorns restart.</td>
-                    <td>Google STEP OA slots fill fast - apply Week 1 of July.</td>
+                    <td>Apply - Amazon SDE, Microsoft Explore open NOW.</td>
+                    <td>Amazon, Microsoft, Adobe, Meta (open July-August). Unicorns restart.</td>
+                    <td>Google India SWE has already closed: the 2027 posting asked for applications before 28 June 2026.</td>
                     <td>Set up campus interview prep group. Research unicorn hiring plans.</td>
                   </tr>
                   <tr>
@@ -1056,7 +1056,7 @@ export default function HiringCalendarReport() {
                   <tr>
                     <td><strong>December</strong></td>
                     <td>FMCG MBA cycle in full swing. HUL ULIP, P&G CEO, Nestlé NILE active.</td>
-                    <td>HUL ULIP, McKinsey, BCG (next cycle preview). Godrej, Nestlé open.</td>
+                    <td>HUL ULIP, McKinsey, BCG (next cycle preview). Godrej, Nestlé open. Google ASDI, formerly STEP, for 2nd years (the 2026 posting went up mid-December 2025).</td>
                     <td>HUL ULIP closes Jan. P&G CEO closes Dec. Nestlé closes Jan-Feb.</td>
                     <td>Prepare case interviews for Jan-Feb FMCG GD/PIs. Refresh portfolio.</td>
                   </tr>
