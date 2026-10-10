@@ -16,7 +16,7 @@ import type { Route } from "./+types/root";
 import { authClient } from "./lib/auth-client";
 import { applyPostHogConsent, capturePostHog, identifyPostHogUser, initPostHog, registerPostHogProps } from "./lib/posthog";
 import { clearTokenCache } from "./lib/control-plane";
-import { grantMetaConsent, initMetaPixel, revokeMetaConsent, trackMetaPageView } from "./lib/meta-pixel";
+import { grantMetaConsent, initMetaPixel, metaExcludedPath, revokeMetaConsent, trackMetaPageView } from "./lib/meta-pixel";
 import { onConsentChange, trackingAllowed } from "./lib/consent";
 import { track } from "./lib/analytics";
 import { captureAttribution, carriesTrackingParams, flushAttribution, heldTrackingParams, withHeldTracking } from "./lib/attribution";
@@ -37,11 +37,16 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* A page Meta must not see would otherwise reach it as the referrer
+            of the next page loaded from it: same-site navigations send the
+            full URL by default. */}
+        {metaExcludedPath(pathname) && <meta name="referrer" content="strict-origin" />}
         <Meta />
         {/* Site-wide share image. Pages with their own og:image render theirs
             first (via <Meta />), and link-preview crawlers use the first one,
