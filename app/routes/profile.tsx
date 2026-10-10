@@ -35,11 +35,13 @@ import { profileFromResume, type ResumeProfile } from "~/lib/profile-from-resume
 import {
   EMPTY_SIGNALS,
   headline,
+  mergeSignals,
   profileStrength,
   signalsFromCandidate,
+  signalsFromTalent,
   type TalentSignals,
 } from "~/lib/talent-profile";
-import type { ProfileLinks } from "../../auth-schema";
+import type { ProfileLinks, TalentStore } from "../../auth-schema";
 
 type UserProfile = {
   fullName: string | null;
@@ -47,6 +49,7 @@ type UserProfile = {
   yearOfStudy: string | null;
   course: string | null;
   links: ProfileLinks | null;
+  talent: TalentStore | null;
 };
 
 type ClassicResume = { id: string; name: string; updatedAt: string };
@@ -218,7 +221,7 @@ function ProfileContent() {
   const [resumeProfile, setResumeProfile] = useState<ResumeProfile | null>(null);
   const resumeName = resumeProfile?.name ?? null;
   // Everything else the outreach profiling already learned: skills, roles, cities.
-  const [signals, setSignals] = useState<TalentSignals>(EMPTY_SIGNALS);
+  const [candidateSignals, setSignals] = useState<TalentSignals>(EMPTY_SIGNALS);
   // undefined = still looking, null = this user has no outreach candidate.
   const [activeCandidate, setActiveCandidate] = useState<number | null | undefined>(undefined);
   const [candidateLoaded, setCandidateLoaded] = useState(false);
@@ -335,6 +338,12 @@ function ProfileContent() {
       .finally(() => setCandidateLoaded(true));
   }, [activeCandidate]);
 
+  // What the outreach profiling learned wins; the /start talent store fills the gaps.
+  const signals = useMemo(
+    () => mergeSignals(candidateSignals, signalsFromTalent(profile?.talent)),
+    [candidateSignals, profile?.talent],
+  );
+
   // Globe: wait until we know the student's cities (or that there are none).
   const homeText = filled(profile?.college) ?? resumeProfile?.college ?? "";
   const cityKey = signals.locations.join("|");
@@ -380,7 +389,7 @@ function ProfileContent() {
   const strength = profileStrength({
     basics,
     resumeCanFill,
-    hasResume: !!activeCandidate || (classicResumes?.length ?? 0) > 0,
+    hasResume: !!activeCandidate || (classicResumes?.length ?? 0) > 0 || !!profile?.talent?.resume,
     hasCareerDna: !!(coachSummary?.found && coachSummary.has_analysis),
     signals,
     links: profile?.links ?? null,

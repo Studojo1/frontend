@@ -3,6 +3,28 @@ import { boolean, index, integer, jsonb, pgTable, real, text, timestamp, unique,
 
 export type ProfileLinks = { github?: string; linkedin?: string; portfolio?: string };
 
+/** Shared talent store on user_profile (drizzle/0038). Written by /start. */
+export type TalentStore = {
+  resume?: {
+    skills?: string[];
+    experience?: { title: string; company: string }[];
+    city?: string | null;
+    gradYear?: number | null;
+  };
+  prefs?: {
+    clusters?: string[];
+    avoid?: string[];
+    cities?: string[];
+    minMonthly?: number | null;
+    titles?: string[];
+    liked?: string[];
+    passed?: string[];
+  };
+  /** Where each confirmed fact came from: "resume" (read, then confirmed) or "you" (edited). */
+  sources?: Record<string, "resume" | "you" | "swipes">;
+  updatedAt?: string;
+};
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -164,6 +186,8 @@ export const userProfile = pgTable(
     course: text("course").notNull(),
     // Proof-of-work links: { github?, linkedin?, portfolio? }. See drizzle/0037.
     links: jsonb("links").$type<ProfileLinks>(),
+    // Shared talent store: confirmed resume facts and swipe preferences. See drizzle/0038.
+    talent: jsonb("talent").$type<TalentStore>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

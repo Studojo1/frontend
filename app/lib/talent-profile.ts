@@ -331,3 +331,39 @@ export function headline(signals: TalentSignals, coachTargetRole: string | null 
   if (!role) return signals.cluster ? `Exploring ${signals.cluster}` : null;
   return `Aspiring ${role}`;
 }
+
+// ── Shared talent store (/start) ─────────────────────────────────────────────
+
+/** Signals from user_profile.talent, written by /start. */
+export function signalsFromTalent(t: unknown): TalentSignals {
+  const store = obj(t);
+  const resume = obj(store.resume);
+  const prefs = obj(store.prefs);
+  const experience: ExperienceItem[] = Array.isArray(resume.experience)
+    ? resume.experience
+        .map((e) => obj(e))
+        .map((e) => ({ title: str(e.title, 100) ?? "", company: str(e.company, 100) ?? "", duration: null }))
+        .filter((e) => e.title || e.company)
+        .slice(0, 6)
+    : [];
+  const min = typeof prefs.minMonthly === "number" && prefs.minMonthly > 0 ? prefs.minMonthly : null;
+  return {
+    ...EMPTY_SIGNALS,
+    skills: strings(resume.skills, 32, 24),
+    experience,
+    targetRoles: strings(prefs.titles, 80, 6),
+    locations: strings(prefs.cities, 60, 8),
+    salary: min ? `₹${Math.round(min / 1000)}k+/mo` : null,
+    industries: strings(prefs.clusters, 30, 6),
+    cluster: strings(prefs.clusters, 30, 1)[0] ?? null,
+  };
+}
+
+/** Field by field: the first source that has a value wins. */
+export function mergeSignals(primary: TalentSignals, fallback: TalentSignals): TalentSignals {
+  const pick = <K extends keyof TalentSignals>(k: K): TalentSignals[K] => {
+    const a = primary[k];
+    return (Array.isArray(a) ? a.length > 0 : a !== null) ? a : fallback[k];
+  };
+  return Object.fromEntries((Object.keys(EMPTY_SIGNALS) as (keyof TalentSignals)[]).map((k) => [k, pick(k)])) as TalentSignals;
+}
