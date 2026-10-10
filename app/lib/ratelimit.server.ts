@@ -68,6 +68,8 @@ export const PUBLIC_FORM_PATHS = new Set([
   "/api/webinar-register",
   "/api/webinar-confirm",
   "/api/webinar-ref-code",
+  // /start reads a resume before the account exists.
+  "/api/start/parse",
 ]);
 
 function getEndpointType(path: string): string {

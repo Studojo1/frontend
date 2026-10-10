@@ -3,6 +3,46 @@ import { boolean, index, integer, jsonb, pgTable, real, text, timestamp, unique,
 
 export type ProfileLinks = { github?: string; linkedin?: string; portfolio?: string };
 
+/** Shared talent store on user_profile (drizzle/0038). Written by /start. */
+export type TalentStore = {
+  resume?: {
+    skills?: string[];
+    experience?: { title: string; company: string }[];
+    city?: string | null;
+    gradYear?: number | null;
+  };
+  prefs?: {
+    clusters?: string[];
+    avoid?: string[];
+    cities?: string[];
+    minMonthly?: number | null;
+    titles?: string[];
+    liked?: string[];
+    passed?: string[];
+    /** Companies behind the roles they kept, offered as dream companies in the chat. */
+    likedCompanies?: string[];
+    /** What the swipe brain concluded, in words, with the evidence. */
+    insights?: { kind: string; text: string; evidence: string }[];
+    /** Traits in the order they drive decisions, e.g. ["kind of work", "pay"]. */
+    matters?: string[];
+    /** Inferred from swipes when clear; the chat then skips asking. */
+    companyStage?: string | null;
+    /** Top unseen roles when signup finished, with match scores (0-100). */
+    best?: { title: string; company: string; slug: string; city: string | null; cluster: string; match: number }[];
+  };
+  /** Follow-ups from the /start chat. */
+  chat?: {
+    companyStage?: string;
+    dreamCompanies?: string[];
+    workMode?: string;
+    startWhen?: string;
+    proud?: string;
+  };
+  /** Where each confirmed fact came from: "resume" (read, then confirmed) or "you" (edited). */
+  sources?: Record<string, "resume" | "you" | "swipes" | "chat">;
+  updatedAt?: string;
+};
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -164,6 +204,8 @@ export const userProfile = pgTable(
     course: text("course").notNull(),
     // Proof-of-work links: { github?, linkedin?, portfolio? }. See drizzle/0037.
     links: jsonb("links").$type<ProfileLinks>(),
+    // Shared talent store: confirmed resume facts and swipe preferences. See drizzle/0038.
+    talent: jsonb("talent").$type<TalentStore>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

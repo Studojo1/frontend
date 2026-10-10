@@ -3,6 +3,7 @@ import { createAuthMiddleware, APIError, getSessionFromCtx } from "better-auth/a
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import {
   admin,
+  emailOTP,
   jwt,
   lastLoginMethod,
   phoneNumber,
@@ -75,13 +76,22 @@ const adminUserIds = process.env.ADMIN_USER_IDS
   : [];
 
 // Welcome only once the sign-up has committed a login (see welcome-after-commit).
+// Password and Google sign-ups write an account row; email-code sign-ups (/start)
+// have no account row at all, only the session created right after the user, so
+// either one counts. Without the session check they were never welcomed.
 async function userHasLoginAccount(userId: string): Promise<boolean> {
   const rows = await db
     .select({ id: schema.account.id })
     .from(schema.account)
     .where(eq(schema.account.userId, userId))
     .limit(1);
-  return rows.length > 0;
+  if (rows.length > 0) return true;
+  const sessions = await db
+    .select({ id: schema.session.id })
+    .from(schema.session)
+    .where(eq(schema.session.userId, userId))
+    .limit(1);
+  return sessions.length > 0;
 }
 
 async function publishWelcome(payload: { user_id: string; email: string; name?: string | null }) {
@@ -502,6 +512,19 @@ export const auth = betterAuth({
       rpName: "Studojo",
     }),
     twoFactor(),
+    // Six-digit email codes: /start signs students up with the email on their
+    // resume, no password. Signing in with a code to an unknown email creates
+    // the account (emailVerified, since they proved they read the inbox).
+    emailOTP({
+      otpLength: 6,
+      expiresIn: 600,
+      allowedAttempts: 5,
+      sendVerificationOTP: async ({ email, otp, type }) => {
+        if (type !== "sign-in") return;
+        if (process.env.NODE_ENV !== "production") console.info(`[auth] dev sign-in code for ${email}: ${otp}`);
+        await sendTemplateEmail(email, "login-code", { code: otp });
+      },
+    }),
     phoneNumber({
       sendOTP: ({ phoneNumber: to, code }) => {
         sendOtpSms(to, code);
