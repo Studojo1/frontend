@@ -1,6 +1,8 @@
 import { relations } from "drizzle-orm";
 import { boolean, index, integer, jsonb, pgTable, real, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
+export type ProfileLinks = { github?: string; linkedin?: string; portfolio?: string };
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -160,6 +162,8 @@ export const userProfile = pgTable(
     college: text("college").notNull(),
     yearOfStudy: text("year_of_study").notNull(),
     course: text("course").notNull(),
+    // Proof-of-work links: { github?, linkedin?, portfolio? }. See drizzle/0037.
+    links: jsonb("links").$type<ProfileLinks>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
