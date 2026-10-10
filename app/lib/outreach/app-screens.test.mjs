@@ -189,7 +189,44 @@ assert.match(sampleEmailLine({ masked: "\u2022\u2022\u2022@acme.com", kind: "dom
   assert.equal(seeLeadsLabel({ lead_count: 0 }), "See my hiring managers");
   assert.equal(seeLeadsLabel(null), "See my hiring managers");
   const landing = readFileSync(`${APP}routes/outreach._index.tsx`, "utf8");
-  assert.match(landing, /label: seeLeadsLabel\(nextStep\)/, "/outreach's unpaid-with-leads button must use seeLeadsLabel");
+  assert.match(landing, /landingCtas\(nextStep, signedIn\)/, "/outreach's buttons must come from landingCtas");
+}
+
+// ── /outreach (10 Oct): a signed-in student with leads gets them first ───────
+// Students come back to /outreach for their list. Every other state, signed-out
+// ad traffic included, must keep its buttons.
+{
+  const { landingCtas } = await import("./next-step.ts");
+  const SEARCH = { label: "Find the right hiring managers", to: "/outreach/onboarding/upload" };
+  const CAMPAIGNS = { label: "View My Campaigns", to: "/outreach/orders" };
+  const withLeads = step("not_paid", { path: "/leads/results", candidate_id: 42, lead_count: 800 });
+  assert.deepEqual(landingCtas(withLeads, true), {
+    primary: { label: "See your 800 hiring managers", to: "/outreach/leads/results", candidateId: 42 },
+    secondary: { label: "Start a new search", to: "/outreach/onboarding/upload" },
+  });
+  // Signed out, or the session still loading: the ad landing page.
+  assert.deepEqual(landingCtas(null, false), { primary: SEARCH, secondary: null });
+  assert.deepEqual(landingCtas(withLeads, false), { primary: SEARCH, secondary: null }, "never the leads button without a session");
+  // Signed in, next step not loaded yet or the lookup failed.
+  assert.deepEqual(landingCtas(null, true), { primary: SEARCH, secondary: null });
+  // Unpaid with no leads: a search, and their orders when they have one.
+  assert.deepEqual(landingCtas(step("not_paid"), true), { primary: SEARCH, secondary: CAMPAIGNS });
+  assert.deepEqual(landingCtas(step("not_paid", { order_id: null }), true), { primary: SEARCH, secondary: null });
+  // Paid, not launched: the step that blocks Launch, never upload.
+  assert.deepEqual(landingCtas(step("connect_gmail", { path: "/connect/gmail", available_credits: 200 }), true), {
+    primary: { label: "Connect Gmail to launch", to: "/outreach/connect/gmail" },
+    secondary: CAMPAIGNS,
+  });
+  // Running campaign.
+  assert.deepEqual(landingCtas(step("campaign_active", { path: "/campaign/dashboard", order_id: null, has_launched: true }), true), {
+    primary: { label: "Go to my campaign", to: "/outreach/campaign/dashboard" },
+    secondary: CAMPAIGNS,
+  });
+  // Every button stores the candidate before opening the list, as
+  // /outreach/results does, so a newer resume with no leads cannot hide it.
+  const landing = read("routes/outreach._index.tsx");
+  assert.match(landing, /setCandidateId\(cta\.candidateId\)/);
+  assert.doesNotMatch(landing, /navigate\((primary|secondary)Cta\.to\)/, "a hero button skips go() and the candidate");
 }
 
 // ── IN-N01 (recon 30 Sep): the two prod frontend pods must not share a node ──
