@@ -40,7 +40,6 @@ function initCharts() {
 
   const VIOLET = "#8B5CF6";
   const VIOLET2 = "#a78bfa";
-  const VIOLET3 = "#c4b5fd";
   const ORANGE = "#f59e0b";
   const RED = "#ef4444";
   const GREEN = "#10b981";
@@ -106,34 +105,6 @@ function initCharts() {
         scales: {
           x: { grid: { display: false }, ticks: { font: { size: 11 }, color: INK } },
           y: { grid: gridOpts, border: { dash: [4, 4] }, ticks: { font: { size: 12 }, callback: (v: any) => v + "%", color: MUTED } },
-        },
-      },
-    });
-  }
-
-  // Chart 3: How roles are actually filled
-  const filledEl = document.getElementById("filledChart") as HTMLCanvasElement | null;
-  if (filledEl && !filledEl.dataset.rendered) {
-    filledEl.dataset.rendered = "1";
-    new Chart(filledEl, {
-      type: "doughnut",
-      data: {
-        labels: ["Internal referral or promotion (49%)", "Direct recruiter outreach (21%)", "Public application (19%)", "Other / agency (11%)"],
-        datasets: [{
-          data: [49, 21, 19, 11],
-          backgroundColor: [VIOLET, VIOLET2, RED, VIOLET3],
-          borderColor: "#fff",
-          borderWidth: 3,
-          hoverOffset: 8,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "62%",
-        plugins: {
-          legend: { position: "bottom", labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
         },
       },
     });
@@ -381,18 +352,10 @@ export default function ApplicationResponseRateReport() {
               </div>
             </div>
             <p>LinkedIn data consistently shows that applications submitted within the first 24 to 48 hours of a posting going live receive significantly higher callback rates than those submitted later. This is not only because recruiters work through the early stack first. It is also because many roles are filled or shortlisted before the posting officially closes.</p>
-            <div className="chart-two">
-              <div>
-                <div className="chart-label">Estimated callback rate by day applied</div>
-                <div style={{ height: 240 }}>
-                  <canvas id="timingChart" />
-                </div>
-              </div>
-              <div>
-                <div className="chart-label">How roles are actually filled</div>
-                <div style={{ height: 240 }}>
-                  <canvas id="filledChart" />
-                </div>
+            <div className="chart-wrap">
+              <div className="chart-label">Estimated callback rate by day applied</div>
+              <div style={{ height: 240 }}>
+                <canvas id="timingChart" />
               </div>
             </div>
             <div className="highlight">
@@ -426,13 +389,13 @@ export default function ApplicationResponseRateReport() {
               <div className="sec-num">5</div>
               <div>
                 <div className="sec-title">The Referral Wall</div>
-                <div className="sec-sub">Most roles are filled before the public ever sees them</div>
+                <div className="sec-sub">Connections shape who gets hired, even when the role is posted</div>
               </div>
             </div>
-            <p>Research from LinkedIn, Jobvite, and the Society for Human Resource Management consistently shows that internal referrals account for the majority of hires at most companies. The public job posting is often a formality after the referral pipeline has already been worked.</p>
+            <p>A LinkedIn survey of 15,905 members in 17 countries, published in June 2017, found that 70% of people hired in 2016 joined a company where they already had a connection. The public job posting is often a formality after the referral pipeline has already been worked.</p>
             <div className="blist">
               <div className="blist-item"><div className="blist-dot" /><span><strong>Referrals convert at 4x the rate of cold applications.</strong> A referred candidate bypasses the ATS entirely, receives a warm introduction to the hiring manager, and is reviewed with a prior positive signal already in place. Cold applicants start with none of that.</span></div>
-              <div className="blist-item"><div className="blist-dot" /><span><strong>The hidden job market:</strong> Estimates vary, but between 30% and 50% of roles are never publicly posted. They are filled through internal movement, direct recruiter outreach, or known candidates in the team's network before a job board listing is ever created.</span></div>
+              <div className="blist-item"><div className="blist-dot" /><span><strong>The hidden job market:</strong> Most openings do get posted. Georgetown University's Center on Education and the Workforce estimated in 2014 that 60 to 70% of US job openings were posted online, rising to 80 to 90% of openings that need at least a bachelor's degree. Roles that skip a public listing are filled through internal movement, direct recruiter outreach, or known candidates in the team's network.</span></div>
               <div className="blist-item"><div className="blist-dot" /><span><strong>Early-career candidates are most disadvantaged:</strong> Referral networks take years to build. A student or recent graduate applying cold is competing against candidates who already have a connection inside the company. Without the network, the cold application is the only tool available and it is the least effective one.</span></div>
             </div>
             <div className="pull-quote">

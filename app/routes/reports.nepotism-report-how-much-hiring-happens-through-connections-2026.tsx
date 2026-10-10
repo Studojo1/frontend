@@ -414,7 +414,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>{"Underqualified hires know it."}</strong> {"StandOut CV found one in three connection-hired workers felt underqualified for the role, and 35.9% believed they were paid more than merit alone would justify."}</span>
+                <span><strong>{"Underqualified hires know it."}</strong> {"StandOut CV found one in three connection-hired workers (33.1%) felt underqualified for the role, and 35.9% said they had been given preferential treatment compared to other colleagues."}</span>
               </div>
 
               <div className="blist-item">
@@ -497,7 +497,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
                 <div className="sec-sub">{"Why the 54% survey number is probably a floor, not a ceiling"}</div>
               </div>
             </div>
-            <p>{"Worker surveys capture hires people remember getting through someone they knew. They undercount a second category: roles that were never publicly posted. Recruiting industry estimates, including Apollo Technical and Payscale analyses cited across labour-market research, suggest 70% to 80% of roles may be filled internally, through referrals, or before a public listing goes live. The 54% figure from U.S. worker recall is conservative because it only counts hires the worker attributes to a connection, not hires that happened without any public competition at all."}</p>
+            <p>{"Worker surveys capture hires people remember getting through someone they knew. They undercount a second category: roles that were never publicly posted. Most openings do get posted, though: Georgetown University's Center on Education and the Workforce estimated in 2014 that 60 to 70% of US job openings were posted online, rising to 80 to 90% of openings that need at least a bachelor's degree. The 54% figure from U.S. worker recall is conservative because it only counts hires the worker attributes to a connection, not hires that happened without any public competition at all."}</p>
             <p>{"StandOut CV found 91.3% of respondents would accept a dream job offered through a personal connection even if it bypassed the normal application process. That willingness reveals how normalised shortcut hiring is. The \"fair\" process is often the fallback when no one credible is already in frame."}</p>
 
             <div className="rpt-cta-mid">

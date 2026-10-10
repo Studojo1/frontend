@@ -681,7 +681,7 @@ const REPORTS = [
     publishDate: "2026-04-22",
     title: "Job Boards Are Dead: How Students Actually Get Hired in 2026",
     subtitle: "Q2 2026",
-    excerpt: "Job board callback rates sit at 2-7%. 75% of roles are filled through the hidden market. A referral makes you 5x more likely to get an interview. Here is the data and the system that actually works.",
+    excerpt: "Job board callback rates sit at 2-7%. In a LinkedIn survey, 70% of people hired in 2016 joined a company where they already had a connection. A referral makes you 5x more likely to get an interview. Here is the data and the system that actually works.",
     category: "Internships",
     type: "Internships" as ReportType,
     date: "April 2026",

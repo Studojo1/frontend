@@ -451,7 +451,7 @@ export default function LinkedInProfileReport() {
                 <div className="sec-sub">4x hire rate, no ATS, no volume competition, no timing decay</div>
               </div>
             </div>
-            <p>The single most important finding in this report has nothing to do with your profile photo or your headline. It is about the channel. Referrals convert to hires at 4x the rate of cold applications. Between 30% and 50% of roles are filled before the job posting is ever created. And a referred candidate skips the ATS entirely, bypasses the stack-ranking problem, and arrives with a warm introduction already in place.</p>
+            <p>The single most important finding in this report has nothing to do with your profile photo or your headline. It is about the channel. Referrals convert to hires at 4x the rate of cold applications. And a referred candidate skips the ATS entirely, bypasses the stack-ranking problem, and arrives with a warm introduction already in place.</p>
             <div className="chart-two">
               <div>
                 <div className="chart-label">How roles are actually filled</div>
