@@ -39,7 +39,9 @@ export type Swipe = { id: string; verdict: Verdict; ms: number };
 export type Ctx = { homeCity: string | null; skills: string[] };
 
 export type Dim = "cluster" | "focus" | "place" | "city" | "pay" | "length" | "company" | "fit";
-const DIM_WEIGHT: Record<Dim, number> = { cluster: 1.4, focus: 0.6, place: 0.9, city: 0.5, pay: 0.8, length: 0.4, company: 0.5, fit: 0.6 };
+// Pay is not shown on role cards (stipends in listings mislead), so it carries no
+// weight here: pay is learned only from the direct questions below.
+const DIM_WEIGHT: Record<Dim, number> = { cluster: 1.4, focus: 0.6, place: 0.9, city: 0.5, pay: 0, length: 0.4, company: 0.5, fit: 0.6 };
 
 // ── Role features ────────────────────────────────────────────────────────────
 
@@ -215,16 +217,24 @@ export const MIN_SWIPES = 14;
 export const MAX_SWIPES = 22;
 
 /** The next card to show, or null when we've learned enough (or run out). */
-export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbes: string[] = []): CardPick | null {
+export type DeckOpts = {
+  /** They said they won't move: no roles that need moving, no relocation probes. */
+  noMove?: boolean;
+  /** "Doesn't look like you? Continue": extra role cards beyond the usual stop. */
+  extra?: number;
+};
+
+export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbes: string[] = [], opts: DeckOpts = {}): CardPick | null {
+  const extra = opts.extra ?? 0;
   const shown = new Set(swipes.map((s) => s.id));
   const byId = new Map(pool.map((r) => [r.id, r]));
   const history = swipes.map((s) => byId.get(s.id)).filter((r): r is BrainRole => !!r);
   const lastCompany = history[history.length - 1]?.company.toLowerCase();
   const seenCompanies = new Set(history.map((r) => r.company.toLowerCase()));
-  const left = pool.filter((r) => !shown.has(r.id));
-  if (!left.length || swipes.length >= MAX_SWIPES) return null;
+  const left = pool.filter((r) => !shown.has(r.id) && !(opts.noMove && r.city && ctx.homeCity && r.city !== ctx.homeCity));
+  if (!left.length || swipes.length >= MAX_SWIPES + extra) return null;
   const belief = believe(pool, swipes, ctx);
-  if (swipes.length >= MIN_SWIPES && confidence(belief, swipes) >= 0.92) return null;
+  if (swipes.length >= MIN_SWIPES + extra && confidence(belief, swipes) >= 0.92) return null;
 
   const fresh = left.filter((r) => r.company.toLowerCase() !== lastCompany);
   const cand = fresh.length ? fresh : left;
@@ -240,7 +250,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
   }
   function score0(r: BrainRole) {
     const x = f(r);
-    return skillHits(r, ctx.skills).length * 1.5 + (x.place === "home" ? 1 : 0) + (r.monthly ? 0.5 : 0) - (seenCompanies.has(r.company.toLowerCase()) ? 1 : 0);
+    return skillHits(r, ctx.skills).length * 1.5 + (x.place === "home" ? 1 : 0) - (seenCompanies.has(r.company.toLowerCase()) ? 1 : 0);
   }
 
   // 2. Spread across kinds of work until we've seen four.
@@ -260,11 +270,11 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
   if (resumeCluster && rc && rc.a === 1 && rc.b > 1 && rc.b < 3 && !usedProbes.includes(`retest:${resumeCluster}`)) {
     const before = history.find((r) => r.cluster === resumeCluster)!;
     const fb = f(before);
-    const alt = cand.filter((r) => r.cluster === resumeCluster && (f(r).place !== fb.place || f(r).pay !== fb.pay));
+    const alt = cand.filter((r) => r.cluster === resumeCluster && (f(r).place !== fb.place || f(r).company !== fb.company));
     if (alt.length) {
       const pick = alt.sort((a, b) => predict(b, belief, ctx) - predict(a, belief, ctx))[0];
       const fp = f(pick);
-      const change = fp.place !== fb.place ? (fp.place === "home" ? "this one's near you" : fp.place === "remote" ? "this one's remote" : `this one's in ${pick.city}`) : `this one pays ${pick.stipend}`;
+      const change = fp.place !== fb.place ? (fp.place === "home" ? "this one's near you" : fp.place === "remote" ? "this one's remote" : `this one's in ${pick.city}`) : pick.big ? "this one's a big company" : "this one's a startup";
       return { role: pick, probe: `retest:${resumeCluster}`, reason: `Giving ${resumeCluster} another look: ${change}.` };
     }
   }
@@ -275,14 +285,13 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
   const likeness = (r: BrainRole) => {
     if (!ref) return 0;
     const a = f(r), b = f(ref);
-    return (["pay", "fit", "length", "company"] as Dim[]).filter((d) => a[d] === b[d]).length + (a.pay === "high" || a.pay === "mid" ? 0.5 : 0);
+    return (["fit", "length", "company"] as Dim[]).filter((d) => a[d] === b[d]).length;
   };
   const lead = [...belief.cluster.entries()].filter(([, b]) => seen(b) >= 1 && mean(b) > 0.55).sort((a, b) => mean(b[1]) - mean(a[1]))[0]?.[0] as Cluster | undefined;
   const used = new Set(usedProbes);
   const probes: { id: string; match: (r: BrainRole) => boolean; reason: (r: BrainRole) => string }[] = lead
     ? [
-        { id: "relocate", match: (r) => r.cluster === lead && f(r).place === "move", reason: (r) => `Would you move to ${r.city} for ${lead}?` },
-        { id: "pay", match: (r) => r.cluster === lead && (f(r).pay === "low" || f(r).pay === "unstated"), reason: (r) => `Same kind of work, ${r.monthly ? `pays ${r.stipend}` : "no stipend stated"}. Does pay matter?` },
+        ...(opts.noMove ? [] : [{ id: "relocate", match: (r: BrainRole) => r.cluster === lead && f(r).place === "move", reason: (r: BrainRole) => `Would you move to ${r.city} for ${lead}?` }]),
         { id: "company", match: (r) => r.cluster === lead && liked.length > 0 && f(r).company !== f(liked[liked.length - 1]).company, reason: (r) => (r.big ? "A big name this time. Does that pull you?" : "A smaller company this time. Startup or big name?") },
         { id: "adjacent", match: (r) => (ADJACENT[lead] ?? []).includes(r.cluster) && !liked.some((l) => l.cluster === r.cluster), reason: (r) => `Next door to ${lead}: ${r.cluster}. Open to it?` },
         { id: "length", match: (r) => r.cluster === lead && liked.length > 0 && f(r).length !== f(liked[liked.length - 1]).length && f(r).length !== "unknown", reason: (r) => (f(r).length === "short" ? "A short one. Would a 2-3 month internship work?" : "A long one. Up for 6 months?") },
@@ -294,7 +303,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
     if (used.has(p.id)) continue;
     const hits = cand.filter(p.match);
     if (hits.length) {
-      const pick = hits.sort((a, b) => (p.id === "pay" ? 0 : likeness(b) - likeness(a)) || predict(b, belief, ctx) - predict(a, belief, ctx))[0];
+      const pick = hits.sort((a, b) => likeness(b) - likeness(a) || predict(b, belief, ctx) - predict(a, belief, ctx))[0];
       return { role: pick, probe: p.id, reason: p.reason(pick) };
     }
   }
@@ -310,18 +319,22 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
   const gain = (r: BrainRole) => {
     const x = f(r);
     let g = 0;
-    for (const d of ["cluster", "place", "pay", "company", "length", "fit"] as Dim[]) g += DIM_WEIGHT[d] / (1 + seen(belief[d].get(x[d])));
+    for (const d of ["cluster", "place", "company", "length", "fit"] as Dim[]) g += DIM_WEIGHT[d] / (1 + seen(belief[d].get(x[d])));
     const p = predict(r, belief, ctx);
     return g * (0.4 + p) - (seenCompanies.has(r.company.toLowerCase()) ? 0.5 : 0);
   };
   const pick = [...cand].sort((a, b) => gain(b) - gain(a))[0];
   const x = f(pick);
-  const least = (["place", "pay", "company", "length"] as Dim[]).sort((a, b) => seen(belief[a].get(x[a])) - seen(belief[b].get(x[b])))[0];
+  // Never the same kind of check more than twice: once a trait has had two
+  // check cards it is settled as far as the deck is concerned.
+  const uses = (d: string) => usedProbes.filter((p) => p === `gain:${d}`).length;
+  const open = (["place", "company", "length"] as Dim[]).filter((d) => uses(d) < 2 && !(d === "place" && opts.noMove));
+  const least = open.sort((a, b) => seen(belief[a].get(x[a])) - seen(belief[b].get(x[b])))[0] ?? "fit";
   const why: Record<string, string> = {
     place: x.place === "home" ? `Checking: ${/^[AEIOU]/.test(pick.cluster) ? "an" : "a"} ${pick.cluster} role near you.` : x.place === "remote" ? "Checking: how you feel about remote." : `Checking: would you move to ${pick.city}?`,
-    pay: x.pay === "high" ? "Checking: a well-paid one." : "Checking: how much pay matters.",
     company: pick.big ? "Checking: big names vs smaller companies." : "Checking: smaller companies vs big names.",
     length: "Checking: how long you want to intern.",
+    fit: "Checking: another one close to what you kept.",
   };
   return { role: pick, probe: `gain:${least}`, reason: why[least] };
 }
@@ -378,28 +391,15 @@ export function learn(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, answers: Ans
   const fair = (x: (typeof rows)[number]) => (!clusters.length || clusters.includes(x.r.cluster)) && x.f.pay !== "low" && x.f.pay !== "unstated";
   const movedKept = kept.filter((x) => x.f.place === "move"), movedPassed = passed.filter((x) => x.f.place === "move" && fair(x));
   const homeKept = kept.filter((x) => x.f.place === "home");
-  if (movedKept.length) insights.push({ kind: "place", text: "You'd move for the right role.", evidence: `kept roles in ${[...new Set(movedKept.map((x) => x.r.city))].slice(0, 3).join(", ")}` });
-  else if (movedPassed.length >= 2 && homeKept.length) insights.push({ kind: "place", text: `You'd rather stay in ${ctx.homeCity}.`, evidence: `passed ${movedPassed.length} roles that meant moving` });
+  // When they answered "would you move at all?", that answer speaks for itself.
+  if (!answers.move_any) {
+    if (movedKept.length) insights.push({ kind: "place", text: "You'd move for the right role.", evidence: `kept roles in ${[...new Set(movedKept.map((x) => x.r.city))].slice(0, 3).join(", ")}` });
+    else if (movedPassed.length >= 2 && homeKept.length) insights.push({ kind: "place", text: `You'd rather stay in ${ctx.homeCity}.`, evidence: `passed ${movedPassed.length} roles that meant moving` });
+  }
   if (count(kept, "place", "remote")) insights.push({ kind: "place", text: "Open to remote work.", evidence: "kept a remote role" });
 
-  // Pay.
-  const lowKept = kept.filter((x) => x.f.pay === "low" || x.f.pay === "unstated");
-  const lowPassed = passed.filter((x) => x.f.pay === "low" || x.f.pay === "unstated");
-  const paid = kept.map((x) => x.r.monthly).filter((m): m is number => m !== null);
+  // Pay comes only from the direct questions (stipends aren't shown on cards).
   let minMonthly: number | null = null;
-  if (lowPassed.length >= 1 && !lowKept.length && paid.length) {
-    // Only claim the floor the evidence shows: just above the best-paid low role they passed.
-    const passedPay = lowPassed.map((x) => x.r.monthly).filter((m): m is number => m !== null);
-    const unstated = lowPassed.some((x) => x.r.monthly === null);
-    if (passedPay.length) {
-      minMonthly = Math.max(...passedPay) + 1; // "more than what they passed", nothing stronger
-      insights.push({ kind: "pay", text: "Pay matters to you.", evidence: `passed roles paying ₹${Math.round(Math.max(...passedPay) / 1000)}k or less${unstated ? ", and ones with no stipend stated" : ""}` });
-    } else if (unstated) {
-      insights.push({ kind: "pay", text: "You skip roles that don't say what they pay.", evidence: `passed ${lowPassed.length} with no stipend stated` });
-    }
-  } else if (lowKept.length) {
-    insights.push({ kind: "pay", text: "Pay isn't what decides it for you.", evidence: `kept ${lowKept[0].r.title}${lowKept[0].r.monthly ? ` at ${lowKept[0].r.stipend}` : " with no stipend stated"}` });
-  }
 
   // Length.
   const longK = count(kept, "length", "long"), shortK = count(kept, "length", "short"), longP = count(passed, "length", "long"), shortP = count(passed, "length", "short");
@@ -432,12 +432,13 @@ export function learn(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, answers: Ans
   const q = quickFindings(answers, ctx);
   insights.push(...q.insights);
   if (!companyStage && q.companyStage) companyStage = q.companyStage;
+  minMonthly = q.minMonthly;
 
   const matters = importance(belief).filter((x) => x.spread >= 0.2).map((x) => LABEL[x.dim]);
   const unseen = pool.filter((r) => !swipes.some((s) => s.id === r.id));
   const scored = unseen.map((role) => ({ role, match: predict(role, belief, ctx) })).sort((a, b) => b.match - a.match);
   // Cities: where kept roles are, plus "yes, I'd move there" cards, minus "no" cards.
-  const cities = [...new Set([...kept.map((x) => x.r.city).filter((c): c is string => !!c), ...q.citiesYes])].filter((c) => !q.citiesNo.includes(c));
+  const cities = [...new Set([...kept.map((x) => x.r.city).filter((c): c is string => !!c), ...q.citiesYes])].filter((c) => !q.citiesNo.includes(c) && !(q.noMove && c !== ctx.homeCity));
   if (ctx.homeCity && !cities.includes(ctx.homeCity) && !q.citiesNo.includes(ctx.homeCity) && !(movedPassed.length === 0 && movedKept.length > 0 && homeKept.length === 0)) cities.unshift(ctx.homeCity);
 
   return {
@@ -479,15 +480,30 @@ export type Quick = {
   count?: number;
 };
 
-const QUICK: (Quick & { skip?: (l: Learned | null) => boolean })[] = [
-  { id: "stage", kind: "quick", label: "what kind of place", question: "Where would you rather start?", left: "A big company: structure, a known name", right: "An early startup: more ownership, more chaos", either: "No preference", skip: (l) => !!l?.companyStage },
-  { id: "learn_pay", kind: "quick", label: "a trade-off", question: "Which offer would you take?", left: "₹40k a month, routine work", right: "₹15k a month, building with the founders" },
+type Ask = Quick & {
+  /** Only ask when this holds (follow-ups). */
+  when?: (a: Answers, l: Learned | null, ctx: Ctx) => boolean;
+  /** Follow-ups jump the queue so the conversation stays on topic. */
+  followUp?: boolean;
+};
+
+const QUICK: Ask[] = [
+  // Follow-ups first: asked right after the answer that opened them.
+  { id: "move_any", kind: "quick", label: "moving", question: "Are you open to moving cities at all?", left: "No, I'd rather stay", right: "Yes, for the right role", either: "It depends on the role", followUp: true,
+    when: (a) => Object.entries(a).some(([k, v]) => k.startsWith("city:") && v === "left") },
+  { id: "pay_floor", kind: "quick", label: "stipend", question: "What's the least you'd take a month?", left: "₹15k is fine", right: "At least ₹30k", either: "Somewhere in between", followUp: true,
+    when: (a) => a.pay_matters === "right" },
+  { id: "learn_pay", kind: "quick", label: "a trade-off", question: "Then which offer would you take?", left: "₹40k a month, routine work", right: "₹15k a month, building with the founders", followUp: true,
+    when: (a) => a.pay_matters === "either" },
+  // The rest, once each.
+  { id: "stage", kind: "quick", label: "what kind of place", question: "Where would you rather start?", left: "A big company: structure, a known name", right: "An early startup: more ownership, more chaos", either: "No preference", when: (_a, l) => !l?.companyStage },
+  { id: "pay_matters", kind: "quick", label: "stipend", question: "Does the stipend decide it for you?", left: "No, the work matters more", right: "Yes, it has to pay well", either: "It depends on the role" },
   { id: "mode", kind: "quick", label: "how you work", question: "Where do you want to work from?", left: "In the office, with the team", right: "Remote, from anywhere", either: "Hybrid works best" },
   { id: "start", kind: "quick", label: "timing", question: "When could you start?", left: "Right away", right: "In a few months", either: "Just exploring for now" },
   { id: "brand_work", kind: "quick", label: "what matters more", question: "Which matters more to you?", left: "A famous company name on my resume", right: "The work I'd actually be doing" },
   { id: "mentor", kind: "quick", label: "how you learn", question: "You learn best…", left: "Figuring things out myself", right: "With a mentor checking in" },
   { id: "outcome", kind: "quick", label: "the goal", question: "What do you want out of this internship?", left: "A full-time offer at the end", right: "Experience, then something new", either: "Either is fine" },
-  { id: "length", kind: "quick", label: "length", question: "How long would you intern?", left: "2 to 3 months", right: "6 months or more", either: "Depends on the role", skip: (l) => !!l?.insights.some((i) => i.kind === "length") },
+  { id: "length", kind: "quick", label: "length", question: "How long would you intern?", left: "2 to 3 months", right: "6 months or more", either: "Depends on the role", when: (_a, l) => !l?.insights.some((i) => i.kind === "length") },
 ];
 
 function quickFindings(a: Answers, ctx: Ctx) {
@@ -499,6 +515,13 @@ function quickFindings(a: Answers, ctx: Ctx) {
     companyStage = a.stage === "left" ? "Big company" : a.stage === "right" ? "Early-stage startup" : "No preference";
     if (a.stage !== "either") insights.push({ kind: "company", text: a.stage === "left" ? "You want structure and a known name." : "You want ownership, even if it's chaotic.", evidence: `picked "${said("stage", "a big company", "an early startup")}"` });
   }
+  let minMonthly: number | null = null;
+  if (a.pay_matters === "left") insights.push({ kind: "pay", text: "The work matters more to you than the stipend.", evidence: "you said so" });
+  if (a.pay_matters === "right") {
+    minMonthly = a.pay_floor === "right" ? 30000 : a.pay_floor === "either" ? 20000 : a.pay_floor === "left" ? 15000 : null;
+    insights.push({ kind: "pay", text: "Pay matters to you.", evidence: minMonthly ? `at least ₹${minMonthly / 1000}k a month` : "you said so" });
+  }
+  if (a.pay_matters === "either") insights.push({ kind: "pay", text: "Pay depends on the role for you.", evidence: "you said it depends" });
   if (a.learn_pay && a.learn_pay !== "either") insights.push({ kind: "values", text: a.learn_pay === "right" ? "You'd take learning over a bigger stipend." : "A stronger stipend beats a scrappy setup for you.", evidence: `picked ${said("learn_pay", "₹40k routine work", "₹15k with the founders")}` });
   if (a.mode) {
     workMode = a.mode === "left" ? "In the office" : a.mode === "right" ? "Remote" : "Hybrid";
@@ -520,8 +543,9 @@ function quickFindings(a: Answers, ctx: Ctx) {
   for (const [id, side] of Object.entries(a)) if (id.startsWith("dream:") && side === "right") dreamCompanies.push(id.slice(6));
   if (dreamCompanies.length) insights.push({ kind: "values", text: `Dream companies: ${dreamCompanies.slice(0, 3).join(", ")}.`, evidence: "you said yes when we asked" });
   if (citiesYes.length) insights.push({ kind: "place", text: `You'd move to ${citiesYes.slice(0, 3).join(", ")}.`, evidence: "said yes when we asked" });
-  if (citiesNo.length >= 2 && !citiesYes.length) insights.push({ kind: "place", text: `You'd rather not move${ctx.homeCity ? ` from ${ctx.homeCity}` : ""}.`, evidence: `said no to ${citiesNo.slice(0, 3).join(", ")}` });
-  return { insights, companyStage, workMode, startWhen, citiesYes, citiesNo, dreamCompanies };
+  const noMove = a.move_any === "left";
+  if (a.move_any) insights.push({ kind: "place", text: noMove ? `You'd rather stay${ctx.homeCity ? ` in ${ctx.homeCity}` : ""}.` : a.move_any === "right" ? "You'd move for the right role." : "Moving depends on the role for you.", evidence: citiesNo.length ? `said no to ${citiesNo[0]}, then ${noMove ? "no to moving at all" : a.move_any === "right" ? "yes to moving in general" : "it depends"}` : "you said so" });
+  return { insights, companyStage, workMode, startWhen, citiesYes, citiesNo, dreamCompanies, minMonthly, noMove };
 }
 
 /** The next quick card worth asking, or null. */
@@ -532,11 +556,17 @@ export function nextQuick(pool: BrainRole[], swipes: Swipe[], answers: Answers, 
   const judged = new Set(swipes.filter((s) => s.verdict !== "pass").map((s) => byId.get(s.id)?.city).filter(Boolean) as string[]);
   const counts = new Map<string, number>();
   for (const r of pool) if (r.city && r.city !== ctx.homeCity) counts.set(r.city, (counts.get(r.city) ?? 0) + 1);
-  const cityAsked = Object.keys(answers).filter((k) => k.startsWith("city:")).length;
-  const city = cityAsked >= 3 ? undefined : [...counts.entries()].filter(([c, n]) => n >= 2 && !judged.has(c) && !(`city:${c}` in answers)).sort((a, b) => b[1] - a[1])[0];
+  // Cities: one at a time. A "no" opens "would you move at all?" and ends city
+  // questions; a "yes" allows one more city, never more than two.
+  const cityAnswers = Object.entries(answers).filter(([k]) => k.startsWith("city:"));
+  const cityDone = !!answers.move_any || cityAnswers.some(([, v]) => v === "left") || cityAnswers.length >= 2;
+  const city = cityDone ? undefined : [...counts.entries()].filter(([c, n]) => n >= 2 && !judged.has(c) && !(`city:${c}` in answers)).sort((a, b) => b[1] - a[1])[0];
   const asked = Object.keys(answers).length;
   const cityTurn = asked % 3 === 2; // every third quick card is a city
-  const general = QUICK.find((q) => !(q.id in answers) && !q.skip?.(learned));
+  const due = QUICK.filter((q) => !(q.id in answers) && (q.when ? q.when(answers, learned, ctx) : true));
+  const follow = due.find((q) => q.followUp);
+  if (follow) { const { when: _w, followUp: _f, ...q } = follow; return q; }
+  const general = due.find((q) => !q.followUp);
   if (city && (cityTurn || !general)) {
     return { id: `city:${city[0]}`, kind: "city", label: "where you'd work", question: `Would you move to ${city[0]}?`, left: "No, not for now", right: "Yes, I'd move", city: city[0], count: city[1] };
   }
@@ -547,7 +577,7 @@ export function nextQuick(pool: BrainRole[], swipes: Swipe[], answers: Answers, 
   if (dream && dreamAsked < 3 && asked % 4 === 3) {
     return { id: `dream:${dream}`, kind: "dream", label: "dream companies", question: `Is ${dream} a dream company for you?`, left: "Not really", right: "Yes, I'd love to work there" };
   }
-  if (general) { const { skip: _s, ...q } = general; return q; }
+  if (general) { const { when: _w, followUp: _f, ...q } = general; return q; }
   if (dream && dreamAsked < 3) return { id: `dream:${dream}`, kind: "dream", label: "dream companies", question: `Is ${dream} a dream company for you?`, left: "Not really", right: "Yes, I'd love to work there" };
   return null;
 }
@@ -558,15 +588,15 @@ export type Item = { kind: "role"; pick: CardPick } | { kind: "quick"; quick: Qu
  * The deck: role cards, with a quick card after every two of them, until
  * both the roles and the quick questions have nothing left to teach.
  */
-export function nextItem(pool: BrainRole[], swipes: Swipe[], answers: Answers, ctx: Ctx, usedProbes: string[], lastWasQuick: boolean, rolesSinceQuick: number): Item | null {
-  // A question after every two roles, then after every role once we know the basics,
-  // so questions are spread through the deck instead of piling up at the end.
+export function nextItem(pool: BrainRole[], swipes: Swipe[], answers: Answers, ctx: Ctx, usedProbes: string[], lastWasQuick: boolean, rolesSinceQuick: number, extra = 0): Item | null {
+  // A follow-up comes straight after the answer that opened it ("no" to Mumbai →
+  // "would you move at all?"); otherwise a question after every two roles, then
+  // after every role, so questions are spread through the deck.
+  const q0 = nextQuick(pool, swipes, answers, ctx);
+  const isFollow = !!q0 && QUICK.some((x) => x.id === q0.id && x.followUp);
   const gap = swipes.length >= 8 ? 1 : 2;
-  if (!lastWasQuick && rolesSinceQuick >= gap && swipes.length >= 2) {
-    const q = nextQuick(pool, swipes, answers, ctx);
-    if (q) return { kind: "quick", quick: q };
-  }
-  const pick = nextCard(pool, swipes, ctx, usedProbes);
+  if (q0 && (isFollow || (!lastWasQuick && rolesSinceQuick >= gap && swipes.length >= 2))) return { kind: "quick", quick: q0 };
+  const pick = nextCard(pool, swipes, ctx, usedProbes, { noMove: answers.move_any === "left", extra });
   if (pick) return { kind: "role", pick };
   const q = nextQuick(pool, swipes, answers, ctx);
   return q ? { kind: "quick", quick: q } : null;

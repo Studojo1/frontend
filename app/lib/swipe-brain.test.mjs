@@ -64,7 +64,7 @@ ok("first card follows the resume (Dev)", dev.deck[0].role.cluster === "Design",
 ok("decks differ between people", JSON.stringify(titles(asha)) !== JSON.stringify(titles(dev)));
 ok("early cards explore other kinds of work", new Set(asha.deck.slice(0, 4).map((p) => p.role.cluster)).size >= 3);
 ok("deck probes relocation for Asha", asha.deck.some((p) => p.probe === "relocate"), JSON.stringify(asha.deck.map((p) => p.probe)));
-ok("deck probes pay for Asha", asha.deck.some((p) => p.probe === "pay"));
+ok("role cards never probe pay (stipends aren't shown)", ![...asha.deck, ...dev.deck].some((p) => p.probe === "pay" || p.probe === "gain:pay"));
 ok("every card says why it's shown", [...asha.deck, ...dev.deck].every((p) => p.reason && p.reason.length > 10));
 ok("no company twice in a row", asha.deck.every((p, i) => i === 0 || p.role.company !== asha.deck[i - 1].role.company));
 ok("stops between min and max", asha.swipes.length >= MIN_SWIPES && asha.swipes.length <= MAX_SWIPES, String(asha.swipes.length));
@@ -72,7 +72,8 @@ ok("stops between min and max", asha.swipes.length >= MIN_SWIPES && asha.swipes.
 const say = (x) => x.learned.insights.map((i) => i.text).join(" | ");
 ok("Asha: drawn to analytics", asha.learned.clusters[0] === "Analytics", say(asha));
 ok("Asha: would move", /move for the right role/.test(say(asha)), say(asha));
-ok("Asha: pay matters, floor only as high as the evidence", /Pay matters/.test(say(asha)) && asha.learned.minMonthly > 8000 && asha.learned.minMonthly <= 30000, `${say(asha)} floor=${asha.learned.minMonthly}`);
+ok("Asha: no pay claims from role swipes alone", !/Pay matters|Pay isn't/.test(say(asha)) && asha.learned.minMonthly === null, say(asha));
+ok("no kind of check more than twice", ["gain:place", "gain:company", "gain:length"].every((g) => asha.deck.filter((p) => p.probe === g).length <= 2), JSON.stringify(asha.deck.map((p) => p.probe)));
 ok("Asha: every insight has evidence", asha.learned.insights.every((i) => i.evidence));
 ok("Asha: best matches are analytics she hasn't seen", asha.learned.best.length === 0 || asha.learned.best[0].role.cluster === "Analytics", JSON.stringify(asha.learned.best.map((b) => b.role.title)));
 ok("Dev: drawn to design", dev.learned.clusters[0] === "Design", say(dev));
@@ -113,11 +114,52 @@ if (fail) process.exit(1);
   const total = kinds.length;
   const l = learn2(rows, swipes, ctx, answers);
   ok("mixed deck is long", total >= 22, `${total}: ${kinds.join("")}`);
-  ok("quick cards are mixed in, never two in a row", /RRQ|RRC|RRD/.test(kinds.join("")) && !/[QCD]{2}/.test(kinds.join("").slice(0, swipes.length + 6)), kinds.join(""));
+  ok("quick cards are mixed in, never three in a row (a follow-up may come straight after)", /RRQ|RRC|RRD/.test(kinds.join("")) && !/[QCD]{3}/.test(kinds.join("").slice(0, swipes.length + 6)), kinds.join(""));
   ok("chat questions answered by the deck", l.workMode === "Hybrid" && l.startWhen && l.companyStage, JSON.stringify([l.workMode, l.startWhen, l.companyStage]));
   ok("dream companies asked about kept roles", l.dreamCompanies.length >= 1, JSON.stringify(l.dreamCompanies));
   ok("city card answers shape the cities", l.cities.includes("Mumbai"), JSON.stringify(l.cities));
   console.log("Mixed deck:", kinds.join(""), "→", l.insights.filter((i) => ["values", "plan"].includes(i.kind)).map((i) => i.text).join(" | "));
+}
+// ── Branching: no repeats, follow-ups on topic ──────────────────────────────
+{
+  const { nextItem, learn: learn3 } = await import("./swipe-brain.ts");
+  const ctx = { homeCity: "Bengaluru", skills: ["SQL", "Excel", "Python"] };
+  const play = (answerFor) => {
+    const swipes = [], answers = {}, probes = [], seq = [];
+    let lastQuick = false, since = 0;
+    for (let i = 0; i < 80; i++) {
+      const it = nextItem(rows, swipes, answers, ctx, probes, lastQuick, since);
+      if (!it) break;
+      if (it.kind === "role") {
+        seq.push(`R:${it.pick.role.city ?? "remote"}`);
+        probes.push(it.pick.probe);
+        swipes.push({ id: it.pick.role.id, verdict: it.pick.role.cluster === "Analytics" ? "like" : "pass", ms: 1500 });
+        lastQuick = false; since++;
+      } else {
+        seq.push(`Q:${it.quick.id}`);
+        answers[it.quick.id] = answerFor(it.quick.id);
+        lastQuick = true; since = 0;
+      }
+    }
+    return { seq, answers, l: learn3(rows, swipes, ctx, answers) };
+  };
+  // Stays home: no to the first city, then no to moving at all.
+  const home = play((id) => (id.startsWith("city:") ? "left" : id === "move_any" ? "left" : id === "pay_matters" ? "right" : id === "pay_floor" ? "right" : "right"));
+  const firstCity = home.seq.findIndex((x) => x.startsWith("Q:city:"));
+  ok("a 'no' to a city is followed straight away by 'move at all?'", firstCity >= 0 && home.seq[firstCity + 1] === "Q:move_any", home.seq.join(" "));
+  ok("only one city question once they said no", home.seq.filter((x) => x.startsWith("Q:city:")).length === 1, home.seq.join(" "));
+  ok("won't move: no roles in other cities after that", home.seq.slice(firstCity + 2).filter((x) => x.startsWith("R:") && x !== "R:Bengaluru" && x !== "R:remote").length === 0, home.seq.join(" "));
+  ok("won't move: says so, with the answer as evidence", /rather stay in Bengaluru/.test(home.l.insights.map((i) => i.text).join(" ")));
+  const payQs = home.seq.filter((x) => /pay/.test(x));
+  ok("pay: one question and one follow-up, right after", payQs.length === 2 && home.seq.indexOf("Q:pay_floor") === home.seq.indexOf("Q:pay_matters") + 1, payQs.join(" "));
+  ok("pay floor from their answer", home.l.minMonthly === 30000);
+  // Pay doesn't matter: no follow-up at all.
+  const free = play((id) => (id === "pay_matters" ? "left" : "right"));
+  ok("pay doesn't matter: no pay follow-ups", !free.seq.some((x) => x === "Q:pay_floor" || x === "Q:learn_pay"), free.seq.join(" "));
+  // It depends: the trade-off, once.
+  const dep = play((id) => (id === "pay_matters" ? "either" : "right"));
+  ok("pay depends: one trade-off follow-up", dep.seq.filter((x) => x === "Q:learn_pay").length === 1 && !dep.seq.includes("Q:pay_floor"));
+  ok("no question asked twice", [home, free, dep].every((r) => { const qs = r.seq.filter((x) => x.startsWith("Q:")); return new Set(qs).size === qs.length; }));
 }
 console.log(`${pass} passed, ${fail} failed (after mixed deck)`);
 if (fail) process.exit(1);

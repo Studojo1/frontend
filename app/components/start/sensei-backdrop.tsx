@@ -69,13 +69,13 @@ function build(r: () => number, roots: { x: number; y: number; a: number; len: n
   return { ops, tips, maxT };
 }
 
-export function SenseiBackdrop() {
+export function SenseiBackdrop({ trees = true }: { trees?: boolean } = {}) {
   const cvRef = useRef<HTMLCanvasElement>(null);
   const labsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const cv = cvRef.current, labs = labsRef.current;
-    if (!cv || !labs) return;
+    if (!cv || !labs || !trees) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
     let raf = 0;
@@ -158,7 +158,7 @@ export function SenseiBackdrop() {
     const onResize = () => { clearTimeout(t); t = setTimeout(draw, 200); };
     window.addEventListener("resize", onResize);
     return () => { cancelAnimationFrame(raf); clearTimeout(t); window.removeEventListener("resize", onResize); };
-  }, []);
+  }, [trees]);
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden" style={{ background: "radial-gradient(rgba(22,22,42,.045) 1px, transparent 1px) 0 0/24px 24px, #FBFBFD" }}>

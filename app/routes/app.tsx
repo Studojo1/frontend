@@ -128,7 +128,7 @@ export default function AppHome() {
     .map(pickKind)
     .filter((i): i is { kind: string; text: string; evidence: string } => !!i)
     .slice(0, 3)
-    .map((i) => i.text.replace(/\.$/, "").replace(/, and you loved one$/, "").replace(/^You/, "you").replace(/^Pay/, "pay"));
+    .map((i) => { const t = i.text.replace(/\.$/, "").replace(/, and you loved one$/, ""); return /^[A-Z][a-z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t; });
   const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0];
   const summary = list
     ? `From your swipes I learned ${list}.${prefs.cities?.length ? ` You'd work in ${prefs.cities.slice(0, 3).join(", ")}.` : ""} I won't ask about any of that again.`
@@ -192,7 +192,7 @@ export default function AppHome() {
           <div className="ap-label" style={{ padding: "4px 10px 6px" }}>Chats</div>
           <div className="ap-nav on">
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: done || alreadyDone ? "var(--green)" : "var(--indigo)" }} />
-            Getting to know you
+            {done || alreadyDone ? "Your agent" : "Getting to know you"}
           </div>
           <div className="ap-nav off"><Lock /> Find people hiring</div>
           <div className="ap-nav off"><Lock /> Draft my first emails</div>
@@ -219,13 +219,27 @@ export default function AppHome() {
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
           {alreadyDone ? (
-            <div style={{ height: "100%", display: "grid", placeItems: "center", padding: 24, textAlign: "center" }}>
-              <div>
-                <div style={{ fontSize: 22, fontWeight: 650 }}>You're all set, {firstName}.</div>
-                <p style={{ color: "var(--muted)", marginTop: 8 }}>We learned everything we need from your resume and swipes. Next, find the people hiring for it.</p>
-                <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 16 }}>
-                  <Link to="/outreach" className="ap-btn indigo">Find people hiring →</Link>
-                  <Link to="/profile" className="ap-btn ghost">See my profile</Link>
+            // Signup answered everything, so the agent opens ready to work.
+            <div style={{ height: "100%", overflowY: "auto", padding: "28px 28px 20px" }} data-tour="agent">
+              <div style={{ maxWidth: 720, margin: "0 auto", display: "grid", gap: 14 }}>
+                {[
+                  `Hi ${firstName}. I've read your profile.`,
+                  summary.replace(" I won't ask about any of that again.", ""),
+                  "Where do you want to start?",
+                ].map((m, i) => (
+                  <div key={i} className="ap-pop" style={{ display: "flex", gap: 10, alignItems: "flex-start", animationDelay: `${i * 250}ms` }}>
+                    <span style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, display: "grid", placeItems: "center", background: "var(--ink)", color: "#fff", fontWeight: 700, fontSize: 12 }}>S</span>
+                    <div className="ap-bubble">{m}</div>
+                  </div>
+                ))}
+                <div className="ap-pop" style={{ display: "grid", gap: 8, paddingLeft: 40, animationDelay: "750ms" }}>
+                  {[
+                    [`Find people hiring for ${(prefs.titles?.[0] ?? prefs.clusters?.[0] ?? "my roles").replace(/\s*intern(ship)?$/i, "")}${prefs.cities?.[0] ? ` in ${prefs.cities[0]}` : ""}`, "/outreach"],
+                    ["Draft my first cold email", "/outreach"],
+                    ["Prep me for interviews", "/cc"],
+                  ].map(([label, href]) => (
+                    <Link key={label} to={href} className="ap-reply" style={{ display: "inline-flex", alignItems: "center", justifySelf: "start", textDecoration: "none" }} data-tour="agent-start">{label} →</Link>
+                  ))}
                 </div>
               </div>
             </div>

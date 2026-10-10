@@ -390,6 +390,7 @@ export default function App() {
     location.pathname.startsWith("/auth") ||
     location.pathname.startsWith("/start") ||
     location.pathname === "/app" ||
+    location.pathname === "/profile" ||
     location.pathname.startsWith("/forgot-password") ||
     location.pathname.startsWith("/reset-password");
   const hideGlobalChat =
