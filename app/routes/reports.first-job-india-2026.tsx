@@ -74,11 +74,11 @@ function initCharts() {
     new Chart(indiaFirstJobCtcBandChartEl, {
       type: "bar",
       data: {
-        labels: ["Top product or GCC (tier-1 campus pipeline)", "Scaled startup with funding (engineering or product)", "Leading IT services (structured fresher programme)", "Mid-tier IT services or tech consulting", "BFSI analyst or operations (non-IB track)", "Inside sales or BD at growth employer"],
+        labels: ["Top product or GCC (tier-1 campus pipeline)", "Scaled startup with funding (engineering or product)", "BFSI analyst or operations (non-IB track)", "Inside sales or BD at growth employer"],
         datasets: [{
           label: "Illustrative annual CTC index for entry-level full-time roles in India (midpoint index, 0 to 20 scale)",
-          data: [18.5, 16.0, 14.2, 11.5, 10.8, 9.2],
-          backgroundColor: ["#8B5CF6", "#a78bfa", "#c4b5fd", "#7c3aed", "#6d28d9", "#737373"],
+          data: [18.5, 16.0, 10.8, 9.2],
+          backgroundColor: ["#8B5CF6", "#a78bfa", "#6d28d9", "#737373"],
           borderRadius: 6,
           borderWidth: 0,
         }],
@@ -241,9 +241,9 @@ export default function Report_FirstJobIndia2026() {
               <div className="sc-source">Studojo hiring-calendar synthesis, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">3.2x</div>
-              <div className="sc-label">Typical lift in interview probability when a candidate leads with one shipped project, case study, or portfolio link versus a generic resume-only apply</div>
-              <div className="sc-source">Studojo entry-level signal framework, 2026</div>
+              <div className="sc-num">71%</div>
+              <div className="sc-label">Higher callback rate for applicants whose resume linked to a detailed LinkedIn profile versus none (13.5% vs 7.9%). A bare-bones profile gave no lift, so the proof has to be substantial</div>
+              <div className="sc-source">ResumeGo field test: 24,570 resumes sent via Indeed, ZipRecruiter and Glassdoor, Oct 2018 to Mar 2019</div>
             </div>
           </div>
 
@@ -326,7 +326,7 @@ export default function Report_FirstJobIndia2026() {
                 <div className="sec-sub">CTC varies by sector, employer type, and whether variable pay is bundled into the headline number</div>
               </div>
             </div>
-            <p>Annual CTC for entry-level full-time roles in India in 2026 often sits in a wide band from roughly 3.5 LPA to 18 LPA or more for top product and GCC campus offers, with IT services structured programmes typically in a strong mid band and startups more variable.</p>
+            <p>Annual CTC for entry-level full-time roles in India in 2026 runs from about ₹3 LPA to ₹18 LPA or more. Mass IT services hiring sits at the bottom (TCS Ninja pays ₹3.36 LPA to undergraduate hires). Premium tracks such as TCS Digital (about ₹7.1 LPA) and Prime (₹9.1 to 11.8 LPA) sit in the middle. The top end belongs to product and GCC campus offers and to elite cadres such as HCLTech's at ₹18 to 22 LPA, which is only 15 to 20% of its fresher intake (Jan 2026). Startup pay is more variable. Sources: TCS NQT 2026 pay bands; People Matters, Feb 2026; HCLTech Q3 FY26 earnings call, Jan 2026.</p>
             <p>Some employers bundle variable pay, joining bonus, and stock into headline CTC, which changes your in-hand cash. Two offers with the same headline number are not equal if one is 70% fixed and the other is 50% variable with a clawback clause.</p>
             <p>Tier-two city roles and mid-market employers may pay below headline Bangalore numbers but offer lower living costs and faster ownership. That can be rational if you are optimising for skill depth and conversion odds, not headline CTC alone.</p>
 
@@ -340,7 +340,7 @@ export default function Report_FirstJobIndia2026() {
 
             <div className="chart-wrap">
               <div className="chart-label">Illustrative annual CTC index for entry-level full-time roles in India (midpoint index, 0 to 20 scale)</div>
-              <div style={{ height: 340 }}>
+              <div style={{ height: 260 }}>
                 <canvas id="indiaFirstJobCtcBandChart" />
               </div>
             </div>

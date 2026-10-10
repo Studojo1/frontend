@@ -73,28 +73,33 @@ function initCharts() {
     });
   }
 
-  const unpaidOutcomeSplitChartEl = document.getElementById("unpaidOutcomeSplitChart") as HTMLCanvasElement | null;
-  if (unpaidOutcomeSplitChartEl && !unpaidOutcomeSplitChartEl.dataset.rendered) {
-    unpaidOutcomeSplitChartEl.dataset.rendered = "1";
-    new Chart(unpaidOutcomeSplitChartEl, {
-      type: "doughnut",
+  const internOfferGapChartEl = document.getElementById("internOfferGapChart") as HTMLCanvasElement | null;
+  if (internOfferGapChartEl && !internOfferGapChartEl.dataset.rendered) {
+    internOfferGapChartEl.dataset.rendered = "1";
+    new Chart(internOfferGapChartEl, {
+      type: "bar",
       data: {
-        labels: ["Portfolio output + strong reference", "Portfolio output only", "Vague experience, no usable proof", "Churned or extended indefinitely"],
+        labels: ["Paid interns (1.61)", "Unpaid interns (0.94)", "No internship (0.77)"],
         datasets: [{
-          data: [22.0, 33.0, 30.0, 15.0],
-          backgroundColor: ["#10b981", "#f59e0b", "#ef4444", "#991b1b"],
-          borderColor: "#fff",
-          borderWidth: 3,
-          hoverOffset: 8,
+          label: "Average job offers per student, US four-year colleges (NACE 2022 Student Survey)",
+          data: [1.61, 0.94, 0.77],
+          backgroundColor: ["#737373", "#ef4444", "#737373"],
+          borderRadius: 6,
+          borderWidth: 0,
         }],
       },
       options: {
+        indexAxis: "y" as const,
         responsive: true,
         maintainAspectRatio: false,
-        cutout: "62%",
         plugins: {
-          legend: { position: "bottom" as const, labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw} job offers` } },
+        },
+        scales: {
+          x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 2.0,
+               ticks: { font: { size: 11 }, color: MUTED } },
+          y: { grid: { display: false }, ticks: { font: { size: 12 }, color: INK } },
         },
       },
     });
@@ -253,11 +258,12 @@ export default function Report_UnpaidInternshipTrap2026() {
             </div>
             <p>The common justification for unpaid internships is “experience”. But experience is only valuable if it translates into signal for the next gate: a portfolio artifact, a credible reference, a demonstrable skill increase, or direct access to better opportunities.</p>
             <p>If the work is repetitive, unscoped, or detached from real feedback, you are not buying experience. You are donating time. The trap is that unpaid roles often keep you busy enough to block better options, while producing little that hiring teams can verify.</p>
+            <p>Survey data shows the gap. In NACE's 2022 Student Survey of US four-year college students, paid interns averaged 1.61 job offers, unpaid interns 0.94, and students with no internship 0.77.</p>
 
             <div className="chart-wrap">
-              <div className="chart-label">Typical outcomes students report from unpaid roles (pattern, not a promise)</div>
-              <div style={{ height: 240 }}>
-                <canvas id="unpaidOutcomeSplitChart" />
+              <div className="chart-label">Average job offers per student, US four-year colleges (NACE 2022 Student Survey)</div>
+              <div style={{ height: 190 }}>
+                <canvas id="internOfferGapChart" />
               </div>
             </div>
 

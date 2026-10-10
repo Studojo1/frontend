@@ -231,14 +231,14 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">{"~65%"}</div>
-              <div className="sc-label">{"Illustrative share of interviewed candidates who do not receive an offer after at least one live interview (all-industry hiring funnel synthesis)"}</div>
-              <div className="sc-source">{"CareerPlug recruiting metrics synthesis; Studojo 2026"}</div>
+              <div className="sc-num">{"73%"}</div>
+              <div className="sc-label">{"Share of interview invitations at small businesses that did not end in a hire in 2024, based on a 27% interview-to-hire rate across 60,000+ employers. In campus recruiting, NACE puts the interview-to-offer rate at 47.5%"}</div>
+              <div className="sc-source">{"CareerPlug 2025 Recruiting Metrics Report (2024 data); NACE recruiting benchmarks, November 2022"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"3x"}</div>
-              <div className="sc-label">{"Higher pass rate to next round when candidates deliver one structured story with a metric versus answering in unstructured paragraphs"}</div>
-              <div className="sc-source">{"Studojo interview signal framework, 2026"}</div>
+              <div className="sc-num">{"0.42"}</div>
+              <div className="sc-label">{"Validity of structured interviews for predicting job performance (a correlation, where 1 is perfect), the highest of the selection methods reviewed by Sackett, Zhang, Berry and Lievens. Give interviewers one story with a result they can score"}</div>
+              <div className="sc-source">{"Sackett et al., Journal of Applied Psychology, 2022"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"Round 2"}</div>

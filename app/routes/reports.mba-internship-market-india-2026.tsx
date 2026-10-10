@@ -118,7 +118,7 @@ const reportCSS = `
   .rpt-meta-label { font-size: 10px; font-weight: 700; color: #525252; text-transform: uppercase; letter-spacing: 1.5px; }
   .rpt-meta-value { font-size: 14px; font-weight: 600; color: #a3a3a3; }
   .rpt-body { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; display: flex; flex-direction: column; gap: 20px; }
-  .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .stat-bar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
   @media (max-width: 640px) { .stat-bar { grid-template-columns: 1fr; } .rpt-hero h1 { font-size: 32px; } }
   .stat-card { background: #fff; border: 2px solid #171717; border-radius: 16px; box-shadow: 4px 4px 0 #171717; padding: 24px 26px; }
   .stat-card .sc-num { font-size: 42px; font-weight: 700; color: #0d9488; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
@@ -231,19 +231,14 @@ export default function Report_MbaInternshipMarketIndia2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">~42%</div>
-              <div className="sc-label">Illustrative share of visible MBA summer internship pipeline volume tied to consulting, banking, and FMCG employers in Studojo's 2026 India synthesis</div>
-              <div className="sc-source">Studojo sector-weighting synthesis, 2026</div>
+              <div className="sc-num">75%</div>
+              <div className="sc-label">Share of IIM Ahmedabad's 410 summer offers for the 2025-27 batch that went to consulting (166), banking, financial services and insurance (105), and FMCG and consumer durables (37)</div>
+              <div className="sc-source">IIM Ahmedabad summer placement release, 17 November 2025</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">Jan-Apr</div>
-              <div className="sc-label">Peak offer window for most structured MBA summer internships aligned with first-year MBA calendars at leading Indian business schools</div>
-              <div className="sc-source">Studojo hiring-calendar synthesis, 2026</div>
-            </div>
-            <div className="stat-card">
-              <div className="sc-num">2.5x</div>
-              <div className="sc-label">Typical lift in interview probability when a candidate leads with one crisp case memo or sector thesis versus a generic resume-only apply</div>
-              <div className="sc-source">Studojo MBA intern signal framework, 2026</div>
+              <div className="sc-num">Oct-Nov</div>
+              <div className="sc-label">When leading IIMs completed summer placements for the 2025-27 batch: IIM Bangalore placed all 601 students from 13 to 18 October 2025, and IIM Ahmedabad ran its three clusters from 28 October to 3 November 2025</div>
+              <div className="sc-source">IIM Bangalore release, 18 October 2025; IIM Ahmedabad release, 17 November 2025</div>
             </div>
           </div>
 
@@ -298,11 +293,6 @@ export default function Report_MbaInternshipMarketIndia2026() {
             <p>Some programmes are explicitly general management tracks with rotation. Others title the role "summer intern" but assign narrow workstreams. Read scope, staffing model, and who signs your evaluation, not only the badge on LinkedIn.</p>
 
             <div className="highlight"><strong>Key insight:</strong> The same employer can run a serious MBA summer programme in one practice and a token internship in another. Practice-level research beats firm-level myth.</div>
-
-            <div className="pull-quote">
-              <p>"We filled a third of our MBA summer seats from referrals and alumni intros before the official form went live. The form was hygiene, not discovery."</p>
-              <span className="pq-source">Campus recruiting lead, consulting firm (representative synthesis), 2026</span>
-            </div>
 
             <div className="blist">
 
@@ -369,7 +359,7 @@ export default function Report_MbaInternshipMarketIndia2026() {
                 <div className="sec-sub">Summer windows dominate, but sector days and rolling lateral hires reward preparation</div>
               </div>
             </div>
-            <p>Most high-visibility MBA summer hiring aligns with first-year MBA calendars, with offer spikes between January and April for May and June start dates and a smaller autumn window for six-month or off-cycle programmes.</p>
+            <p>Most high-visibility MBA summer hiring happens early in the first year, in October and November. IIM Bangalore placed all 601 students between 13 and 18 October 2025, and all 410 IIM Ahmedabad students had offers between 28 October and 3 November 2025, for internships the following summer (IIM Bangalore and IIM Ahmedabad placement releases).</p>
             <p>Return offers often assume you will join full-time after graduation. Read clauses for role placement guarantees, location lock-in, and what happens if the practice reorganises before you join.</p>
             <p>Macro hiring cycles still shift intern cohort sizes quarter to quarter. A brand that hired thirty MBA summers last year may hire fifteen this year without a press release. Parallel pipelines matter until paperwork is signed.</p>
 

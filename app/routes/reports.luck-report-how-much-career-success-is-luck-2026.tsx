@@ -73,65 +73,6 @@ function initCharts() {
     });
   }
 
-  const outcomeVarianceDonutEl = document.getElementById("outcomeVarianceDonut") as HTMLCanvasElement | null;
-  if (outcomeVarianceDonutEl && !outcomeVarianceDonutEl.dataset.rendered) {
-    outcomeVarianceDonutEl.dataset.rendered = "1";
-    new Chart(outcomeVarianceDonutEl, {
-      type: "doughnut",
-      data: {
-        labels: ["Individual skill and effort (35%)", "Network and background (30%)", "Macro timing and geography (20%)", "Random exposure and path dependence (15%)"],
-        datasets: [{
-          data: [35.0, 30.0, 20.0, 15.0],
-          backgroundColor: ["#8B5CF6", "#10b981", "#f59e0b", "#737373"],
-          borderColor: "#fff",
-          borderWidth: 3,
-          hoverOffset: 8,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "62%",
-        plugins: {
-          legend: { position: "bottom" as const, labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
-        },
-      },
-    });
-  }
-
-  const recessionPenaltyChartEl = document.getElementById("recessionPenaltyChart") as HTMLCanvasElement | null;
-  if (recessionPenaltyChartEl && !recessionPenaltyChartEl.dataset.rendered) {
-    recessionPenaltyChartEl.dataset.rendered = "1";
-    new Chart(recessionPenaltyChartEl, {
-      type: "bar",
-      data: {
-        labels: ["1982 recession entry", "1991 recession entry", "2009 Great Recession entry", "2020 pandemic entry (early estimate)"],
-        datasets: [{
-          label: "Estimated earnings gap vs expansion cohorts (% lower annual earnings, selected recession entry years, US graduates)",
-          data: [9.0, 7.0, 8.0, 6.0],
-          backgroundColor: ["#ef4444", "#ef4444", "#ef4444", "#f59e0b"],
-          borderRadius: 6,
-          borderWidth: 0,
-        }],
-      },
-      options: {
-        indexAxis: "y" as const,
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
-        },
-        scales: {
-          x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 12.0,
-               ticks: { font: { size: 11 }, color: MUTED } },
-          y: { grid: { display: false }, ticks: { font: { size: 12 }, color: INK } },
-        },
-      },
-    });
-  }
-
   const luckSurfaceChartEl = document.getElementById("luckSurfaceChart") as HTMLCanvasElement | null;
   if (luckSurfaceChartEl && !luckSurfaceChartEl.dataset.rendered) {
     luckSurfaceChartEl.dataset.rendered = "1";
@@ -295,19 +236,19 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">{"~0%"}</div>
-              <div className="sc-label">{"Share of \"most talented\" agents who became \"most successful\" in Pluchino et al. talent-plus-luck simulations when random lucky events were modeled realistically"}</div>
+              <div className="sc-num">{"3%"}</div>
+              <div className="sc-label">{"Share of simulation runs in which the most talented agents (talent above 0.8) finished as the top performers in Pluchino, Biondo and Rapisarda's talent-versus-luck model"}</div>
               <div className="sc-source">{"Pluchino, Biondo & Rapisarda, Advances in Complex Systems (2018)"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"6 to 9%"}</div>
-              <div className="sc-label">{"Estimated lifetime earnings penalty for US graduates who entered the labour market during a recession vs peers who graduated into expansion"}</div>
-              <div className="sc-source">{"Oreopoulos, von Wachter & Heisz, American Economic Journal (2012); updated cohort studies"}</div>
+              <div className="sc-num">{"~9%"}</div>
+              <div className="sc-label">{"Initial earnings loss for Canadian college graduates who entered the labour market in a typical recession, a gap that halved within 5 years and faded by about year 10"}</div>
+              <div className="sc-source">{"Oreopoulos, von Wachter & Heisz, American Economic Journal: Applied Economics (2012)"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"~40%"}</div>
-              <div className="sc-label">{"Rough share of intergenerational income persistence in OECD samples attributed to environmental and network factors rather than measured cognitive skill alone"}</div>
-              <div className="sc-source">{"Chetty et al. mobility research; Blanden skill-vs-environment decompositions"}</div>
+              <div className="sc-num">{"~54%"}</div>
+              <div className="sc-label">{"Share of the link between parental income and sons' adult earnings, in a UK cohort born in 1970, that is explained by cognitive and noncognitive skills, education and labour-market attachment together. Cognitive test scores alone explain about 27%"}</div>
+              <div className="sc-source">{"Blanden, Gregg & Macmillan, IZA Discussion Paper 2554 (January 2007)"}</div>
             </div>
           </div>
 
@@ -359,13 +300,6 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
             <p>{"In labour economics, \"luck\" is not mysticism. It is exposure to opportunities whose timing and gatekeepers you did not choose: which city had hiring momentum when you finished school, whether your roommate's cousin hiring interned at a fund, whether a recruiter's keyword filter matched your project title. Pluchino, Biondo, and Rapisarda modeled careers as repeated competitions where modest talent plus occasional lucky events beat high talent with bad luck almost every time. In their simulations, the most successful agents were rarely the most skilled."}</p>
             <p>{"Economist Robert Frank separates \"dumb luck\" (born healthy, stable household) from \"circumstantial luck\" (right seminar, right macro cycle) and \"social luck\" (mentors, referrals). All three shift outcomes without negating skill. Skill still matters because it determines whether you can convert a lucky opening. But skill alone, without openings, produces the familiar complaint: \"I'm qualified, so why is nothing happening?\""}</p>
 
-            <div className="chart-wrap">
-              <div className="chart-label">{"Decomposition of early-career outcome variance (synthesised from mobility and hiring studies)"}</div>
-              <div style={{ height: 260 }}>
-                <canvas id="outcomeVarianceDonut" />
-              </div>
-            </div>
-
             <div className="highlight">{"<strong>Key insight:</strong> Luck is not the opposite of merit. It is the distribution of opportunities merit must attach to."}</div>
 
             <div className="pull-quote">
@@ -395,17 +329,10 @@ export default function Report_LuckReportHowMuchCareerSuccessIsLuck2026() {
                 <div className="sec-sub">{"Recession cohorts pay a tax that résumé polish cannot fully erase"}</div>
               </div>
             </div>
-            <p>{"Timing is the most quantifiable form of career luck. Oreopoulos, von Wachter, and Heisz tracked US graduates who entered the labour market during recessions and found persistent earnings penalties of roughly 6 to 9% even a decade later, with scarring effects on promotion velocity and employer quality. Similar patterns appear in UK and European cohort studies: the state of hiring when you exit education shifts your first job, and first jobs anchor expectations, networks, and skill accumulation."}</p>
+            <p>{"Timing is the most quantifiable form of career luck. Oreopoulos, von Wachter, and Heisz tracked Canadian college graduates and found that entering the labour market in a typical recession cut earnings by about 9% at first. The gap halved within 5 years and faded by about year 10, partly because unlucky graduates started at lower-paying employers and had to move up to better ones. In US data, Lisa Kahn (Labour Economics, 2010) found that men who graduated from college around the early 1980s recession were still earning less 15 years later. Similar patterns appear in UK and European cohort studies: the state of hiring when you exit education shifts your first job, and first jobs anchor expectations, networks, and skill accumulation."}</p>
             <p>{"Macro luck also shows up in sector booms. Graduating into fintech expansion (2021), AI infrastructure hiring (2024 to 2025), or Gulf construction cycles produces different offer letters for the same GPA. None of this means individual effort is irrelevant. It means two identical effort profiles face different opportunity densities. Students who internalise \"I must be doing something wrong\" during a freeze often blame skill when the vacancy index is the binding constraint."}</p>
 
             <div className="highlight">{"<strong>Key insight:</strong> Your job search is a match between your profile and a market moment. Skill sets the ceiling; timing sets how high the ladder is that year."}</div>
-
-            <div className="chart-wrap">
-              <div className="chart-label">{"Estimated earnings gap vs expansion cohorts (% lower annual earnings, selected recession entry years, US graduates)"}</div>
-              <div style={{ height: 240 }}>
-                <canvas id="recessionPenaltyChart" />
-              </div>
-            </div>
 
             <div className="blist">
 

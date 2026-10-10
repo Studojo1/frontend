@@ -7,13 +7,13 @@ const BASE_URL = "https://studojo.com";
 export function meta() {
   return [
     { title: "The Apple Internship Report: 2026-27 | Studojo" },
-    { name: "description", content: "Apple internships 2026-27: when teams post roles, what interns earn, how team-based interviews work, and what gets students hired in the US and India." },
+    { name: "description", content: "Apple internships 2026-27: when roles post, what interns earn, how team-based interviews work, and what gets students hired in the US and India." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "Apple internship 2026, Apple internship 2027, Apple software engineering intern, Apple intern salary, how to get an Apple internship, Apple internship India Hyderabad Bengaluru, Apple internship interview process" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/apple-internship-report-2026-27` },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "The Apple Internship Report: 2026-27" },
-    { property: "og:description", content: "Apple does not hire interns into a central pool. Teams hire. This report explains the 2026-27 timeline, pay, interviews, and how to get picked." },
+    { property: "og:description", content: "Apple posts US internships by track, then individual teams pick from the pool. This report explains the 2026-27 timeline, pay, interviews, and how to get picked." },
     { property: "og:url", content: `${BASE_URL}/reports/apple-internship-report-2026-27` },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: `${BASE_URL}/og-reports.png` },
@@ -22,7 +22,7 @@ export function meta() {
     { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "The Apple Internship Report: 2026-27 | Studojo" },
-    { name: "twitter:description", content: "Apple internships 2026-27: team-by-team hiring, ~$60/hr for SWE interns in the US, and why depth beats a polished generic resume." },
+    { name: "twitter:description", content: "Apple internships 2026-27: track postings and team-run interviews, ~$60/hr for SWE interns in the US, and why depth beats a polished generic resume." },
     { name: "twitter:image", content: `${BASE_URL}/og-reports.png` },
     { name: "twitter:site", content: "@studojo_com" },
   ];
@@ -207,7 +207,7 @@ export default function Report_AppleInternshipReport202627() {
         "@context": "https://schema.org",
         "@type": "Article",
         "headline": "The Apple Internship Report: 2026-27",
-        "description": "Apple internships 2026-27: when teams post roles, what interns earn, how team-based interviews work, and what gets students hired in the US and India.",
+        "description": "Apple internships 2026-27: when roles post, what interns earn, how team-based interviews work, and what gets students hired in the US and India.",
         "url": `${BASE_URL}/reports/apple-internship-report-2026-27`,
         "datePublished": "2026-09-26T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
@@ -238,7 +238,7 @@ export default function Report_AppleInternshipReport202627() {
               <span>{"The Apple Internship Report: 2026-27"}</span>
             </nav>
             <h1 dangerouslySetInnerHTML={{ __html: "The Apple Internship Report:<br /><em>2026-27</em>" }} />
-            <p className="rpt-hero-sub">{"Apple is one of the most applied-to internship brands in the world and one of the least explained. There is no single intern class you apply into. Individual teams post roles, screen for depth in their own domain, and hire when their headcount opens. This report explains how that system works for the 2026-27 cycle, what it pays, and what actually moves a student from the applicant pile to an offer."}</p>
+            <p className="rpt-hero-sub">{"Apple is one of the most applied-to internship brands in the world and one of the least explained. In the US you apply to a broad pipeline posting for your discipline and degree level. Individual teams then pick from that pool, screen for depth in their own domain, and hire when their headcount opens. This report explains how that system works for the 2026-27 cycle, what it pays, and what actually moves a student from the applicant pile to an offer."}</p>
             <div className="rpt-meta">
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Scope</span>
@@ -284,15 +284,15 @@ export default function Report_AppleInternshipReport202627() {
             <div className="sec-header">
               <div className="sec-num" style={{ background: "#0ea5e9" }}>{"1"}</div>
               <div>
-                <div className="sec-title">{"There is no Apple intern class. There are Apple teams."}</div>
-                <div className="sec-sub">{"Why the Apple funnel looks nothing like a typical Big Tech programme"}</div>
+                <div className="sec-title">{"You apply to a track. A team picks you."}</div>
+                <div className="sec-sub">{"How the Apple funnel works in the US, and where teams still post their own roles"}</div>
               </div>
             </div>
-            <p>{"Most large tech companies run a centralised intern programme: one application, a general coding screen, then team matching after you pass. Apple works the other way round. A specific team (say, Camera Software, Silicon Validation, Maps, or Retail Operations) opens a requisition, writes its own posting, and hires the student it wants for that exact work."}</p>
-            <p>{"That changes the strategy completely. You are not trying to impress Apple in general. You are trying to look like the obvious fit for one team's problem. A student who applies to five closely related postings with a tailored resume usually does better than one who applies to forty unrelated ones."}</p>
+            <p>{"In the US, Apple posts internships as broad pipeline listings by discipline and degree level, such as Software Undergrad Engineering Internships. In October 2026, all 25 US listings under Students: Internships on jobs.apple.com were pipeline postings. Teams then pick candidates from that pool and run their own interviews. Outside the US, some teams post their own intern roles: the UK, Germany, and China all had team-specific intern postings that month."}</p>
+            <p>{"That shapes the strategy. You are not trying to impress Apple in general. You are trying to look like the obvious fit for one team's problem. Write your application for the track, then tailor it to the teams you want. In the US there is typically one posting per track and degree level, so depth in one application matters more than the number you send."}</p>
             <p>{"It also explains why Apple internship outcomes feel random from the outside. Two equally strong students can get very different results simply because one matched a team that had open headcount that month."}</p>
 
-            <div className="highlight"><strong>{"Key insight:"}</strong>{" Treat every Apple posting as its own job. The team, not the company, is the hiring unit."}</div>
+            <div className="highlight"><strong>{"Key insight:"}</strong>{" Apply to the track, but write for the team. The team, not the company, is the hiring unit."}</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"Where Apple internship roles concentrate (illustrative share of postings, %)"}</div>
@@ -310,7 +310,7 @@ export default function Report_AppleInternshipReport202627() {
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>{"Cluster your applications."}</strong> {"Pick one lane (iOS software, silicon, ML, operations) and apply to several related roles instead of spreading thin."}</span>
+                <span><strong>{"Pick one lane."}</strong> {"Choose the track that fits your work (software, hardware, ML, operations) at your degree level and put your effort there instead of spreading thin. Where teams post their own roles, apply to the closely related ones."}</span>
               </div>
             </div>
           </div>
@@ -323,7 +323,7 @@ export default function Report_AppleInternshipReport202627() {
                 <div className="sec-sub">{"When summer 2027 roles open and when it is already late"}</div>
               </div>
             </div>
-            <p>{"For summer 2027 internships, Apple teams began posting in August 2026 and will keep posting through roughly February 2027. Recruiter screens and interviews are busiest from September to December. Because hiring is rolling, a role can close within weeks of posting once the team finds its candidate."}</p>
+            <p>{"For summer 2027 internships, postings began in August 2026 and will keep coming through roughly February 2027. Recruiter screens and interviews are busiest from September to December. Because hiring is rolling, a team can fill its seat within weeks once it finds its candidate."}</p>
             <p>{"Apple also hires for fall, spring, and co-op terms, especially in hardware and engineering teams that want 6-month placements. These off-cycle roles get far fewer applicants than summer postings and are one of the most under-used routes in."}</p>
 
             <div className="highlight"><strong>{"Key insight:"}</strong>{" Apply in the first two weeks a relevant posting is live. On a rolling system, early and good beats late and perfect."}</div>
@@ -445,7 +445,7 @@ export default function Report_AppleInternshipReport202627() {
             <div className="rpt-cta-mid">
               <div className="rpt-cta-mid-inner">
                 <h4>{"Reach the team, not just the portal"}</h4>
-                <p>{"Studojo Outreach helps you find and message engineers and recruiters on the specific Apple team you are applying to, with a short proof link instead of a generic ask."}</p>
+                <p>{"Studojo Outreach helps you find and message engineers and recruiters on the specific Apple team you are aiming for, with a short proof link instead of a generic ask."}</p>
                 <Link to="/outreach" className="rpt-cta-mid-btn">{"Try Studojo Outreach →"}</Link>
               </div>
             </div>
@@ -477,9 +477,9 @@ export default function Report_AppleInternshipReport202627() {
               </div>
             </div>
             <div className="blist">
-              <div className="blist-item" key="Apply to teams, not to Apple">
+              <div className="blist-item" key="Apply to a track, write for a team">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>{"Apply to teams, not to Apple"}.</strong> {"Choose one lane and apply to several closely related postings with a resume tailored to each team's stated tools and problems."}</span>
+                <span style={{ color: "#3b0764" }}><strong>{"Apply to a track, write for a team"}.</strong> {"In the US, pick the pipeline posting for your discipline and degree level, then tailor your resume to the tools and problems of the teams you want. Outside the US, apply to the team postings that match your lane."}</span>
               </div>
               <div className="blist-item" key="Move early on rolling postings">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />

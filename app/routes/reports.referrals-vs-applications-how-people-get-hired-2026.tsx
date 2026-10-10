@@ -111,11 +111,11 @@ function initCharts() {
     new Chart(funnelConversionChartEl, {
       type: "bar",
       data: {
-        labels: ["Employee referrals", "Inbound (careers page, direct)", "Outbound sourced"],
+        labels: ["Employee referrals", "Outbound sourced", "Inbound applicants"],
         datasets: [{
           label: "Application-to-interview rate by channel (Ashby aggregate, 2021 to 2024)",
-          data: [40.0, 12.0, 8.0],
-          backgroundColor: ["#10b981", "#8B5CF6", "#737373"],
+          data: [40.0, 25.0, 3.0],
+          backgroundColor: ["#10b981", "#737373", "#8B5CF6"],
           borderRadius: 6,
           borderWidth: 0,
         }],
@@ -143,10 +143,10 @@ function initCharts() {
     new Chart(smbChannelDonutEl, {
       type: "doughnut",
       data: {
-        labels: ["Job boards (37% of hires)", "Company careers page (13%)", "Referrals (11%)", "Custom sources (9%)", "Other (30%)"],
+        labels: ["Job boards (37% of hires)", "Company careers page (23%)", "Custom sources (21%)", "Referrals (11%)", "Sponsored job ads (8%)"],
         datasets: [{
-          data: [37.0, 13.0, 11.0, 9.0, 30.0],
-          backgroundColor: ["#737373", "#8B5CF6", "#10b981", "#f59e0b", "#e5e5e5"],
+          data: [37.0, 23.0, 21.0, 11.0, 8.0],
+          backgroundColor: ["#737373", "#8B5CF6", "#f59e0b", "#10b981", "#e5e5e5"],
           borderColor: "#fff",
           borderWidth: 3,
           hoverOffset: 8,
@@ -356,7 +356,7 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
                 <div className="sec-sub">What Ashby and CareerPlug show about funnel efficiency, not brand awareness</div>
               </div>
             </div>
-            <p>Ashby's Talent Trends analysis (2021 to 2024) found referred candidates advanced from application to interview about 40% of the time, versus roughly 12% for inbound applicants and about 8% for outbound sourced candidates. Interview-to-offer rates also favoured referrals (about 16% of referred interviews receiving offers in their aggregate).</p>
+            <p>Ashby's Talent Trends data (January 2021 to December 2024) found 40% of referred candidates went from application to interview, compared with 25% of sourced candidates and just 3% of inbound applicants. Interview-to-offer rates also favoured referrals (about 16% of referred interviews receiving offers in their aggregate).</p>
             <p>CareerPlug's 2024 report on more than 10 million applications from 60,000+ small businesses echoed the pattern at a different scale: referrals were about 2% of applicants but 11% of hires, making a referred applicant roughly eleven times more likely to be hired than a typical job-board applicant in that sample. Job boards supplied about 60% of applications yet only about 37% of hires. The channel is loud at the top of the funnel and quieter at the bottom.</p>
 
             <div className="chart-wrap">
@@ -468,13 +468,13 @@ export default function Report_ReferralsVsApplicationsHowPeopleGetHired2026() {
                 <div className="sec-sub">Why "apply on our website" beats "apply on the aggregator" in the data</div>
               </div>
             </div>
-            <p>Company careers pages and marketing properties are the second-largest application source in Gem's data and a top hire source across CareerPlug's SMB sample (about 13% of hires from roughly 5% of applicants in the all-industry rollup). Candidates who apply directly signal intent and often see cleaner ATS routing.</p>
+            <p>Company careers pages and marketing properties are the second-largest application source in Gem's data and a top hire source across CareerPlug's SMB sample (about 23% of hires from roughly 12% of applicants in the all-industry rollup). Candidates who apply directly signal intent and often see cleaner ATS routing.</p>
             <p>Direct sourcing (recruiters proactively finding people) is only about 2.5% of applications in Gem's benchmark but nearly 10% of hires. For candidates, the mirror image is proactive visibility: clear LinkedIn headline, public proof, and niche community presence so sourcers can find you without a posting.</p>
 
             <div className="highlight"><strong>Key insight:</strong> The careers page is a conversion channel, not a compliance footer. Treat it like a landing page you would optimise if you owned the product.</div>
 
             <div className="chart-wrap">
-              <div className="chart-label">Small-business hire mix: job boards vs high-conversion channels (CareerPlug 2023, all industries)</div>
+              <div className="chart-label">Small-business hire mix: job boards vs high-conversion channels (CareerPlug 2024 report, 2023 data, all industries)</div>
               <div style={{ height: 260 }}>
                 <canvas id="smbChannelDonut" />
               </div>

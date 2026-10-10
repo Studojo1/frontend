@@ -47,11 +47,11 @@ function initCharts() {
     new Chart(howGotJobChartEl, {
       type: "bar",
       data: {
-        labels: ["Direct application (no referral)", "Referred by friend, family, or colleague", "Recruiter or headhunter outreach", "Internal promotion or transfer", "Networking event or cold outreach"],
+        labels: ["Applied directly (36%)", ["Referred by someone", "inside the company (24%)"], ["Recruiter or headhunter", "contacted me (12%)"], "Other (8%)", ["Referred by an outside", "professional contact (7%)"], "Networking (7%)", "Staffing agency (3%)", ["Internal promotion", "or transfer (3%)"]],
         datasets: [{
-          label: "How workers secured their current or most recent role (Kickresume, 2024)",
-          data: [36.0, 24.0, 18.0, 12.0, 10.0],
-          backgroundColor: ["#737373", "#ef4444", "#8B5CF6", "#10b981", "#f59e0b"],
+          label: "How workers got their current or most recent job (Kickresume survey of 1,030 people, March 2026)",
+          data: [36.0, 24.0, 12.0, 8.0, 7.0, 7.0, 3.0, 3.0],
+          backgroundColor: ["#737373", "#ef4444", "#737373", "#737373", "#ef4444", "#ef4444", "#737373", "#737373"],
           borderRadius: 6,
           borderWidth: 0,
         }],
@@ -62,7 +62,10 @@ function initCharts() {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
+          tooltip: { callbacks: {
+            title: (items: any[]) => String(items[0]?.label ?? "").replace(/,/g, " "),
+            label: (ctx: any) => ` ${ctx.raw}%`,
+          } },
         },
         scales: {
           x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 40.0,
@@ -79,11 +82,11 @@ function initCharts() {
     new Chart(connectionTypeChartEl, {
       type: "bar",
       data: {
-        labels: ["Family member (relative hired them)", "Friend", "Former colleague or manager", "Alumni or school contact", "No connection (cold path only)"],
+        labels: ["By a relative (26.4%)", "By a friend (19.3%)"],
         datasets: [{
-          label: "Share of workers who got a job directly through each connection type (StandOut CV, 2024)",
-          data: [26.4, 19.3, 14.8, 9.7, 29.8],
-          backgroundColor: ["#ef4444", "#f97316", "#8B5CF6", "#10b981", "#737373"],
+          label: "Hired directly through a connection, among people who used their network to find a job (StandOut CV, July 2024)",
+          data: [26.4, 19.3],
+          backgroundColor: ["#ef4444", "#737373"],
           borderRadius: 6,
           borderWidth: 0,
         }],
@@ -97,7 +100,7 @@ function initCharts() {
           tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
         },
         scales: {
-          x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 32.0,
+          x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 30.0,
                ticks: { font: { size: 11 }, color: MUTED } },
           y: { grid: { display: false }, ticks: { font: { size: 12 }, color: INK } },
         },
@@ -302,11 +305,11 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             <div className="stat-card">
               <div className="sc-num">{"90%"}</div>
               <div className="sc-label">{"Workers who have witnessed a colleague hired mainly because of personal connections at least once"}</div>
-              <div className="sc-source">{"Kickresume global hiring survey, 2024 (n=1,000+)"}</div>
+              <div className="sc-source">{"Kickresume global hiring survey, March 2026 (n=1,030)"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"26%"}</div>
-              <div className="sc-label">{"Workers who received a job directly from a family member, the strongest single connection type in cross-market data"}</div>
+              <div className="sc-label">{"Of people who used their network to find a job, the share hired directly by a relative, ahead of the 19.3% hired directly by a friend"}</div>
               <div className="sc-source">{"StandOut CV nepotism survey, July 2024 (US, UK, Australia; n=1,406)"}</div>
             </div>
           </div>
@@ -321,13 +324,13 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
             <p>{"If you ask workers how they got their current role, connections outperform every other channel in recent surveys. MyPerfectResume's Networking Nation Report (May 2025, 1,000 U.S. workers) found 54% credit a personal or professional connection for at least one hire in their career. When asked what made the biggest difference in their most recent search, personal connections (27%) and professional connections (23%) together outranked job boards (13%) and staffing firms (8%) by a wide margin."}</p>
-            <p>{"Kickresume's 2024 global survey tells a similar story at the role level: 38% of respondents found their current job through referrals or networking, edging out the 36% who secured it through direct application alone. The gap is not huge, but the direction matters. The channel candidates treat as backup is, in aggregate, at least as effective as the channel they treat as default."}</p>
+            <p>{"Kickresume's March 2026 global survey tells a similar story at the role level: 38% of respondents found their current job through referrals or networking, edging out the 36% who secured it through direct application alone. The gap is not huge, but the direction matters. The channel candidates treat as backup is, in aggregate, at least as effective as the channel they treat as default."}</p>
 
             <div className="highlight">{"<strong>Key insight:</strong> Hiring through connections is not a fringe phenomenon. It is what a majority of workers describe when asked honestly about their own careers."}</div>
 
             <div className="chart-wrap">
-              <div className="chart-label">{"How workers secured their current or most recent role (Kickresume, 2024)"}</div>
-              <div style={{ height: 300 }}>
+              <div className="chart-label">{"How workers got their current or most recent job (Kickresume survey of 1,030 people, March 2026). Red bars are referrals and networking: 38% combined"}</div>
+              <div style={{ height: 400 }}>
                 <canvas id="howGotJobChart" />
               </div>
             </div>
@@ -357,11 +360,11 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
             <p>{"Nepotism technically means favouring relatives. In workplace surveys, workers use the term more broadly: any hire where personal ties mattered more than visible merit. Kickresume found 90% had witnessed a colleague hired mainly through connections, and 57% had seen it happen multiple times. Yet 49% said they would consider recommending an unqualified friend or family member, and 28% would happily use connections to jump ahead of a more qualified stranger."}</p>
-            <p>{"StandOut CV's July 2024 survey (1,406 adults across the U.S., UK, and Australia) sharpened the family angle: 70.2% had received a contact, interview, or job offer through personal connections, and 26.4% were hired directly by a relative. Friends accounted for another 19.3%. Family ties are not the majority path, but they are the single strongest connection type in the data."}</p>
+            <p>{"StandOut CV's July 2024 survey (1,406 adults across the U.S., UK, and Australia) sharpened the family angle: 70.2% had received a contact, interview, or job through a personal connection. Among people who used their network to find a job, 26.4% were hired directly by a relative and 19.3% by a friend. Family ties are not the majority path, but relatives were a more common source of a direct hire than friends."}</p>
 
             <div className="chart-wrap">
-              <div className="chart-label">{"Share of workers who got a job directly through each connection type (StandOut CV, 2024)"}</div>
-              <div style={{ height: 260 }}>
+              <div className="chart-label">{"Hired directly through a connection, among people who used their network to find a job (StandOut CV, July 2024)"}</div>
+              <div style={{ height: 150 }}>
                 <canvas id="connectionTypeChart" />
               </div>
             </div>
@@ -401,7 +404,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
             <div className="highlight">{"<strong>Key insight:</strong> Nepotism is not a scandal most workers discover once. It is background radiation in how they understand workplaces."}</div>
 
             <div className="chart-wrap">
-              <div className="chart-label">{"Workers who have seen nepotism influence a hire (Kickresume, 2024)"}</div>
+              <div className="chart-label">{"Workers who have seen nepotism influence a hire (Kickresume, 2026)"}</div>
               <div style={{ height: 260 }}>
                 <canvas id="witnessedNepotismChart" />
               </div>
@@ -443,11 +446,6 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
 
             <div className="highlight">{"<strong>Key insight:</strong> Formal referral programs are institutionalised connection hiring with compliance wrappers. They do not eliminate the advantage. They tax and track it."}</div>
 
-            <div className="pull-quote">
-              <p>{"\"We would rather pay a referral bonus than scroll through 400 identical resumes. The system is designed for introductions.\""}</p>
-              <span className="pq-source">{"HR director, global tech firm India (Economic Times interview synthesis, 2024)"}</span>
-            </div>
-
             <div className="blist">
 
               <div className="blist-item">
@@ -471,7 +469,7 @@ export default function Report_NepotismReportHowMuchHiringHappensThroughConnecti
               </div>
             </div>
             <p>{"India presents the nepotism story in its sharpest form. Unstop's 2024 Talent Report, drawing on 11,000+ students, universities, and HR practitioners, found 88% of HR professionals prefer skill-based hiring over academics, references, or experience. Students largely agree. Yet sector hiring in practice still runs heavily on networks: campus placement slots, alumni WhatsApp groups, professor intros, and employee referrals at firms where 25% to 50% of hires come through internal recommendation."}</p>
-            <p>{"Structural nepotism also shows up outside corporate HR. Research on Indian institutions documents 40% of IIT faculty with family alumni connections and promoter-family presence on 45% of top-100 company boards. Politics shows similar concentration: roughly 30% of Union Council of Ministers in a 2020 analysis had relatives in politics. These are not anecdotes about one bad hire. They are system-level concentration of access."}</p>
+            <p>{"Structural nepotism also shows up outside corporate HR. Politics is the clearest case: an Association for Democratic Reforms analysis of 5,203 sitting MPs, MLAs and MLCs (September 2025) found that 21% come from political families, rising to 31% in the Lok Sabha. These are not anecdotes about one bad hire. They are system-level concentration of access."}</p>
 
             <div className="highlight">{"<strong>Key insight:</strong> \"We hire on skills\" is the stated policy. \"We hire people someone already trusts\" is the observed mechanism. Both can be true at once."}</div>
 

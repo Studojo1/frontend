@@ -9,7 +9,7 @@ export function meta() {
     { title: "The Google Internship Report: Passing the Interviews Is Not the Offer | Studojo" },
     { name: "description", content: "At Google you can clear every technical round and still receive nothing, because no manager picked your profile out of the host matching pool. The stage nobody prepares for." },
     { name: "robots", content: "index, follow" },
-    { name: "keywords", content: "google internship, google STEP internship 2026, google internship host matching, google internship application timeline, how to get a google internship, internship at google" },
+    { name: "keywords", content: "google internship, google ASDI internship 2026, google STEP internship 2026, google internship host matching, google internship application timeline, how to get a google internship, internship at google" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/google-internship-report-2026` },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "The Google Internship Report: Passing the Interviews Is Not the Offer" },
@@ -211,7 +211,7 @@ export default function Report_GoogleInternshipReport2026() {
             <div className="rpt-meta">
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Scope</span>
-                <span className="rpt-meta-value">Global · Google student internships and the STEP programme · Engineering roles</span>
+                <span className="rpt-meta-value">Global · Google student internships and the early-degree programme (STEP, now ASDI in India) · Engineering roles</span>
               </div>
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Report type</span>
@@ -232,9 +232,9 @@ export default function Report_GoogleInternshipReport2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">Sept to Oct</div>
-              <div className="sc-label">when applications open for the following summer. Roles fill quickly, so late applications compete for what is left</div>
-              <div className="sc-source">Google careers application cycles, 2026</div>
+              <div className="sc-num">June to Sept</div>
+              <div className="sc-label">when Google's Summer 2027 Software Engineering Intern application windows opened and closed in India and the US. Roles fill quickly, so late applications compete for what is left</div>
+              <div className="sc-source">Google Careers postings, 2026</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">6 to 8 weeks</div>
@@ -243,8 +243,8 @@ export default function Report_GoogleInternshipReport2026() {
             </div>
             <div className="stat-card">
               <div className="sc-num">10 to 12 weeks</div>
-              <div className="sc-label">length of the STEP programme, Google's route for first and second year students</div>
-              <div className="sc-source">Google STEP programme structure, 2026</div>
+              <div className="sc-label">length of the Associate Software Developer Intern programme in India, formerly STEP, Google's route for students early in their degree</div>
+              <div className="sc-source">Google Careers, ASDI 2026 posting (India)</div>
             </div>
           </div>
 
@@ -278,12 +278,12 @@ export default function Report_GoogleInternshipReport2026() {
               <div className="sec-num" style={{ background: "#8B5CF6" }}>2</div>
               <div>
                 <div className="sec-title">Two doors, and most students only know about one</div>
-                <div className="sec-sub">STEP is the route for first and second year students</div>
+                <div className="sec-sub">The early-degree programme, long known as STEP, is the route for first and second year students</div>
               </div>
             </div>
-            <p>Google runs a separate programme for students early in their degree. STEP, the Student Training in Engineering Program, is aimed at first and second year undergraduates, runs 10 to 12 weeks, and is paid on terms similar to the standard intern package, frequently including housing assistance.</p>
+            <p>Google runs a separate programme for students early in their degree. Long known as STEP, the Student Training in Engineering Program, it is aimed at first and second year undergraduates, runs 10 to 12 weeks, and is paid on terms similar to the standard intern package, frequently including housing assistance. In India the 2026 posting carried a new title, Associate Software Developer Intern (ASDI), while Japan still used the STEP name.</p>
             <p>The standard software engineering internship targets students further along. The distinction matters because a first-year student applying to the standard posting is competing against people two or three years ahead of them, while a programme built for their stage exists and is less obvious.</p>
-            <p>You apply through Google's careers site by searching for STEP Intern or Student Training in Engineering Program and filtering by region. It is a genuinely different pipeline, not a lower tier of the same one.</p>
+            <p>You apply through Google's careers site. Search for both Associate Software Developer Intern and STEP, then filter by region. India's 2026 posting went up in mid-December 2025, and on 10 October 2026 neither title had a 2027 posting listed, so keep checking and set an alert for both. It is a genuinely different pipeline, not a lower tier of the same one.</p>
 
             <div className="chart-wrap">
               <div className="chart-label">How long each stage runs, in weeks</div>
@@ -292,9 +292,9 @@ export default function Report_GoogleInternshipReport2026() {
               </div>
             </div>
 
-            <div className="highlight">Key insight: if you are in your first or second year, applying to the standard engineering internship is the harder version of the same goal. Check STEP first.</div>
+            <div className="highlight">Key insight: if you are in your first or second year, applying to the standard engineering internship is the harder version of the same goal. Check for an ASDI or STEP posting first.</div>
 
-            <div className="callout-amber">Google receives tens of thousands of STEP applications globally and positions fill quickly. Applying in the first weeks of the window is worth more here than a marginally better resume sent in December.</div>
+            <div className="callout-amber">Google receives tens of thousands of applications for this programme globally and positions fill quickly. Applying in the first weeks of the window is worth more here than a marginally better resume sent weeks later.</div>
           </div>
 
           <div className="rpt-section">
@@ -302,14 +302,14 @@ export default function Report_GoogleInternshipReport2026() {
               <div className="sec-num" style={{ background: "#f59e0b" }}>3</div>
               <div>
                 <div className="sec-title">The calendar, and where the time actually goes</div>
-                <div className="sec-sub">Applications open in autumn for a summer eight months away</div>
+                <div className="sec-sub">For Summer 2027, the first postings opened in June and July 2026</div>
               </div>
             </div>
-            <p>Applications typically open in September and October for the following summer, with the strongest window running through those two months. Positions fill as they are matched, so a late application is competing for a shrinking set of open hosts rather than the full intake.</p>
+            <p>For Summer 2027, Google posted its Software Engineering Intern roles well before autumn. The India posting went up in mid-June 2026 and asked for applications before 28 June. The US posting opened for early consideration around 20 July 2026, reopened for the regular fall cycle, and was expected to close on 25 September 2026. Postings for students in Europe, the Middle East and Africa were still listed on 10 October 2026. Start watching careers.google.com in June and apply in the first week a posting appears. Positions fill as they are matched, so a late application is competing for a shrinking set of open hosts rather than the full intake.</p>
             <p>The stage lengths are worth internalising because they explain why the process feels unresponsive. The wait from application to a first response is commonly several weeks. The interview rounds themselves move relatively quickly. Then host matching, the stage that decides the outcome, is the longest one and the one with the least communication.</p>
             <p>The consequence is practical: your Google application is not a live prospect you should be organising your search around. Apply early, then run a full search elsewhere as though it does not exist, because for six to eight weeks you will have no information either way.</p>
 
-            <div className="highlight">Key insight: apply in September or October, then plan your year as if you had not applied. The stage that decides it gives you nothing to respond to.</div>
+            <div className="highlight">Key insight: apply in the first week a posting appears, then plan your year as if you had not applied. The stage that decides it gives you nothing to respond to.</div>
 
             <div className="pull-quote">
               <p>&quot;Sometimes you sit in the pool for weeks without a call. Keep your recruiter updated and reiterate your interest.&quot;</p>
@@ -347,7 +347,7 @@ export default function Report_GoogleInternshipReport2026() {
 
               <div className="blist-item">
                 <div className="blist-dot" />
-                <span><strong>Ask before the window closes.</strong> A referral in September is worth considerably more than the same referral in December, when most hosts have matched.</span>
+                <span><strong>Ask before the window closes.</strong> A referral in the first weeks a posting is live is worth considerably more than the same referral months later, when most hosts have matched.</span>
               </div>
             </div>
 
@@ -407,17 +407,17 @@ export default function Report_GoogleInternshipReport2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Plan for host matching, not just the interviews.</strong> Clearing the technical rounds puts your profile in a pool. If no manager picks it up you receive nothing, and nothing is the most common outcome at that stage.</span>
               </div>
-              <div className="blist-item" key="If you are in year one or two, check STEP first">
+              <div className="blist-item" key="If you are in year one or two, check for ASDI or STEP first">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>If you are in year one or two, check STEP first.</strong> It is a separate 10 to 12 week programme built for your stage, paid on similar terms, and far less obvious than the standard posting.</span>
+                <span style={{ color: "#3b0764" }}><strong>If you are in year one or two, check for ASDI or STEP first.</strong> It is a separate 10 to 12 week programme built for your stage, paid on similar terms, and far less obvious than the standard posting.</span>
               </div>
               <div className="blist-item" key="Get a referral early, from someone a year ahead">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Get a referral early, from someone a year ahead.</strong> Interns and apprentices can refer. A referral lifts you past the resume screen, which is where the large majority of applicants are removed.</span>
               </div>
-              <div className="blist-item" key="Apply in September, then plan as if you had not">
+              <div className="blist-item" key="Apply the week a posting opens, then plan as if you had not">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Apply in September, then plan as if you had not.</strong> Six to eight weeks of host matching gives you no information. Students who treat it as a live prospect stop applying elsewhere at the worst moment.</span>
+                <span style={{ color: "#3b0764" }}><strong>Apply the week a posting opens, then plan as if you had not.</strong> Six to eight weeks of host matching gives you no information. Students who treat it as a live prospect stop applying elsewhere at the worst moment.</span>
               </div>
             </div>
           </div>

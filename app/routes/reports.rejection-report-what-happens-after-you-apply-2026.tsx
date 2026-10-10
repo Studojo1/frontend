@@ -106,11 +106,11 @@ function initCharts() {
     new Chart(responseTimeChartEl, {
       type: "bar",
       data: {
-        labels: ["By day 4 to 5", "By day 6 to 7 (median band)", "By day 8", "After day 14 (slow tail)", "No response within 45 days"],
+        labels: ["By day 4.5", "By day 6.7 (median)", "By day 8.1"],
         datasets: [{
-          label: "When employers respond at all (Careery 2025, % of responses arriving by day)",
-          data: [25.0, 50.0, 75.0, 12.0, 55.0],
-          backgroundColor: ["#10b981", "#f59e0b", "#8B5CF6", "#ef4444", "#737373"],
+          label: "When employers respond (Careery 2025, 1,000+ job seekers, interview-related emails only, cumulative % of responses received by day)",
+          data: [25.0, 50.0, 75.0],
+          backgroundColor: ["#10b981", "#f59e0b", "#8B5CF6"],
           borderRadius: 6,
           borderWidth: 0,
         }],
@@ -424,14 +424,14 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
                 <div className="sec-sub">Median replies, slow months, and the 45-day ghost line</div>
               </div>
             </div>
-            <p>Careery's 2025 response-time research on real application outcomes found a median first response around six to seven days when employers reply at all, with roughly a quarter hearing back within four to five days and most responses within about eight days. October tended slower; late spring somewhat faster in their dataset.</p>
+            <p>Careery's 2025 response-time research on real application outcomes found a median first response around six to seven days when employers reply at all, with roughly a quarter hearing back within four to five days and most responses within about eight days. Very few responses came after two weeks. October tended slower; late spring somewhat faster in their dataset.</p>
             <p>Practical rule used by many recruiters: if nothing in two to three weeks on a cold apply, the req is not active for you. Careery and candidate-advocacy sources often treat 45 days without contact as functionally ghosted. Waiting six weeks for dignity closure burns calendar time you could spend on warm paths.</p>
 
             <div className="highlight"><strong>Key insight:</strong> Calendar rules protect your psychology. Companies that want you will move inside two weeks for most corporate roles, often faster for intern cycles.</div>
 
             <div className="chart-wrap">
-              <div className="chart-label">When employers respond at all (Careery 2025, % of responses arriving by day)</div>
-              <div style={{ height: 260 }}>
+              <div className="chart-label">When employers respond (Careery 2025, 1,000+ job seekers, interview-related emails only, cumulative % of responses received by day)</div>
+              <div style={{ height: 240 }}>
                 <canvas id="responseTimeChart" />
               </div>
             </div>

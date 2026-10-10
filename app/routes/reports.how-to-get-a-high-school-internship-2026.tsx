@@ -72,38 +72,6 @@ function initCharts() {
       },
     });
   }
-
-  const deadlineChartEl = document.getElementById("deadlineChart") as HTMLCanvasElement | null;
-  if (deadlineChartEl && !deadlineChartEl.dataset.rendered) {
-    deadlineChartEl.dataset.rendered = "1";
-    new Chart(deadlineChartEl, {
-      type: "bar",
-      data: {
-        labels: ["Bank of America Student Leaders, US, mid-January", "NIH high school programme, US, early February", "NASA OSTEM summer, US, late February", "When most students start looking, May"],
-        datasets: [{
-          label: "How far ahead of the summer applications close, in months",
-          data: [4.5, 4.0, 3.1, 1.0],
-          backgroundColor: ["#10b981", "#10b981", "#10b981", "#ef4444"],
-          borderRadius: 6,
-          borderWidth: 0,
-        }],
-      },
-      options: {
-        indexAxis: "y" as const,
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw} months before summer` } },
-        },
-        scales: {
-          x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 6.0,
-               ticks: { font: { size: 11 }, color: MUTED } },
-          y: { grid: { display: false }, ticks: { font: { size: 12 }, color: INK } },
-        },
-      },
-    });
-  }
 }
 
 const reportCSS = `
@@ -262,16 +230,12 @@ export default function Report_HowToGetAHighSchoolInternship2026() {
                 <div className="sec-sub">Two minutes on the list, including the ones you are wrongly told to apply to</div>
               </div>
             </div>
-            <p>In the United States, Bank of America Student Leaders places juniors and seniors in paid summer roles and closes in mid-January. The NIH high school programme pays a stipend of $2,300 to $2,530 and closes in early February. NASA's OSTEM internships pay stipends, with the summer 2027 round closing on 26 February 2027.</p>
+            <p>In the United States, Bank of America Student Leaders now takes recent high school graduates, not current students. You must be 18, have finished high school within the last two years and have 12 to 18 college credits. The 2026 window ran from 9 February to 16 March, for a 6-week paid role at a local nonprofit at $17 an hour or local minimum wage, whichever is higher.</p>
+            <p>NIH has folded its high school programme into the general Summer Internship Program, and from school only graduating seniors can now apply. You need to be 18 by 1 June 2027, or to live within 40 miles of an NIH campus if you turn 18 after that but by 30 September 2027. It pays a monthly stipend set by education level, and applications for summer 2027 run from 13 October 2026 to 26 January 2027.</p>
+            <p>NASA's OSTEM internships pay a stipend but are aimed at college students. You must be 18 by the session's start date, and the only route in from school is to apply as a Grade 12 senior for the summer session right after you graduate. The summer 2027 deadline is 1 March 2027. If you are a sophomore or junior, look at SEES, the NASA-funded summer programme hosted by UT Austin for rising juniors and seniors, though UT Austin says future rounds depend on funding.</p>
+            <p>These rules are taken from each programme's own pages (Bank of America, the NIH Office of Intramural Training and Education, NASA, and UT Austin's Center for Space Research) as they stood in October 2026. They shift from one cycle to the next, so check before you plan around them.</p>
             <p>Elsewhere the same shape holds with different names. In the UK, Nuffield Research Placements are fully funded placements of four to six weeks, and In2STEM runs free for 16 and 17 year olds with travel and lunch covered. In India, RSI India runs cost-free at IISc Bengaluru, and the INSPIRE internship camp is free but nomination-based for students in the top one percent of their Class 10 boards. In Singapore, the A*STAR Science Awards attach secondary and junior college students to research institutes.</p>
             <p>One correction worth having, because Indian students are pointed at these constantly: NIUS, and the IISc and IISER summer internships, are undergraduate programmes. If you are in Class 11 or 12 you are not eligible, however strong your marks are, and no amount of applying will change that.</p>
-
-            <div className="chart-wrap">
-              <div className="chart-label">How far ahead of the summer applications close, in months</div>
-              <div style={{ height: 250 }}>
-                <canvas id="deadlineChart" />
-              </div>
-            </div>
 
             <div className="highlight">Whatever your country, the pattern is identical: applications close months before the programme runs, and most students start looking once the summer has already begun.</div>
 
