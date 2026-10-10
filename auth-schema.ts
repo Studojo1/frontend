@@ -21,6 +21,12 @@ export type TalentStore = {
     passed?: string[];
     /** Companies behind the roles they kept, offered as dream companies in the chat. */
     likedCompanies?: string[];
+    /** What the swipe brain concluded, in words, with the evidence. */
+    insights?: { kind: string; text: string; evidence: string }[];
+    /** Traits in the order they drive decisions, e.g. ["kind of work", "pay"]. */
+    matters?: string[];
+    /** Inferred from swipes when clear; the chat then skips asking. */
+    companyStage?: string | null;
   };
   /** Follow-ups from the /start chat. */
   chat?: {

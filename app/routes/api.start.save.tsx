@@ -98,6 +98,14 @@ export async function action({ request }: Route.ActionArgs) {
       liked: strs(p.liked, 40, 40),
       passed: strs(p.passed, 40, 40),
       likedCompanies: strs(p.likedCompanies, 60, 12),
+      insights: Array.isArray(p.insights)
+        ? p.insights
+            .map((x: any) => ({ kind: str(x?.kind, 20), text: str(x?.text, 160), evidence: str(x?.evidence, 200) }))
+            .filter((x: { text: string }) => x.text)
+            .slice(0, 10)
+        : [],
+      matters: strs(p.matters, 40, 6),
+      companyStage: str(p.companyStage, 40) || null,
     };
     talent.sources = { ...(talent.sources ?? {}), roles: "swipes", cities: "swipes", pay: "swipes" };
     talent.updatedAt = now;

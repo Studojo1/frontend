@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { authClient } from "~/lib/auth-client";
-import { ProfileChat, CHAT_QUESTIONS, type ChatAnswers } from "~/components/start/profile-chat";
-import { TalentGlobe, type GlobePin } from "~/components/profile/talent-globe";
+import { ProfileChat, type ChatAnswers } from "~/components/start/profile-chat";
+import { RoleMap, type MapPlace } from "~/components/start/role-map";
 import type { TalentStore } from "../../auth-schema";
 
 /**
@@ -121,22 +121,24 @@ export default function AppHome() {
   const chatCount = Object.values(chat).filter((v) => (Array.isArray(v) ? v.length : !!v)).length;
   const alreadyDone = !!t.chat && !done;
 
-  const known = [
-    prefs.clusters?.length ? `you're into ${prefs.clusters.slice(0, 2).join(" and ")}` : null,
-    prefs.cities?.length ? `you want to work in ${prefs.cities.slice(0, 3).join(", ")}` : null,
-    prefs.minMonthly ? `you're after ₹${Math.round(prefs.minMonthly / 1000)}k+ a month` : null,
-  ].filter(Boolean);
-  const summary = known.length
-    ? `From your resume and swipes I already know ${known.join(", ")}. I won't ask you that again.`
+  // Open with what the swipes taught us, in their words, so the chat never re-asks.
+  // One natural sentence from the strongest findings (kind of work, place, pay).
+  const pickKind = (k: string) => (prefs.insights ?? []).find((i) => i.kind === k && !/^Especially/.test(i.text));
+  const parts = ["work", "place", "pay", "company"]
+    .map(pickKind)
+    .filter((i): i is { kind: string; text: string; evidence: string } => !!i)
+    .slice(0, 3)
+    .map((i) => i.text.replace(/\.$/, "").replace(/, and you loved one$/, "").replace(/^You/, "you").replace(/^Pay/, "pay"));
+  const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0];
+  const summary = list
+    ? `From your swipes I learned ${list}.${prefs.cities?.length ? ` You'd work in ${prefs.cities.slice(0, 3).join(", ")}.` : ""} I won't ask about any of that again.`
     : "I've got your resume, so I won't ask you anything that's already on it.";
+  const inferredStage = prefs.companyStage ?? null;
 
-  const pins = useMemo<GlobePin[]>(() => {
-    if (!globe) return [];
-    const out: GlobePin[] = [];
-    if (globe.home) out.push({ id: "home", kind: "home", lat: globe.home.lat, lng: globe.home.lng });
-    globe.cities.forEach((c) => out.push({ id: c.name, kind: "target", lat: c.lat, lng: c.lng, kicker: `${c.openRoles} open`, text: c.name }));
-    return out;
-  }, [globe]);
+  const places = useMemo<MapPlace[]>(
+    () => (globe?.cities ?? []).map((c) => ({ name: c.name, lat: c.lat, lng: c.lng, count: c.openRoles, picked: true })),
+    [globe],
+  );
 
   const setup: { label: string; done: boolean; now?: boolean }[] = [
     { label: "Resume read", done: !!t.resume },
@@ -212,7 +214,7 @@ export default function AppHome() {
       <section className="ap-main">
         <div className="ap-top">
           <span style={{ fontSize: 15, fontWeight: 600 }}>Getting to know you</span>
-          <span className="ap-pill ap-mono" style={{ marginLeft: "auto" }}>{Math.min(chatCount, CHAT_QUESTIONS)}/{CHAT_QUESTIONS} answered</span>
+          <span className="ap-pill ap-mono" style={{ marginLeft: "auto" }}>{chatCount} answered</span>
           <span className="ap-pill ap-mono">{openRoles} open roles in your cities</span>
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
@@ -234,6 +236,8 @@ export default function AppHome() {
               suggestions={prefs.likedCompanies ?? []}
               onAnswer={setChat}
               onDone={save}
+              skip={inferredStage ? ["companyStage"] : []}
+              known={inferredStage ? { companyStage: inferredStage } : {}}
               doneActions={
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   <Link to="/outreach" className="ap-btn indigo" data-tour="app-next">Find people hiring for this →</Link>
@@ -303,17 +307,28 @@ export default function AppHome() {
             {chat.startWhen && <Row k="Starts" v={chat.startWhen} />}
             {chat.proud && <Row k="Proud of" v={chat.proud} />}
           </dl>
-          {chatCount < CHAT_QUESTIONS && !alreadyDone && (
+          {!done && !alreadyDone && (
             <p style={{ fontSize: 12, color: "var(--faint)", margin: "12px 0 0" }}>Answers from the chat appear here as you give them.</p>
           )}
         </div>
 
-        <div className="ap-card" style={{ padding: 12, background: "radial-gradient(120% 90% at 50% 0%, #2A2E78 0%, #15173A 50%, #0D0E24 100%)", border: 0 }}>
-          <div className="ap-label" style={{ color: "rgba(255,255,255,.55)", padding: "2px 4px" }}>Your map</div>
-          <div style={{ maxWidth: 260, margin: "0 auto" }}>
-            <TalentGlobe pins={pins} arcsFrom="home" focus={pins[1]?.id ?? "home"} tone="dark" />
-          </div>
+        <div className="ap-card" style={{ padding: 12 }}>
+          <div className="ap-label" style={{ padding: "2px 4px 8px" }}>Your cities</div>
+          <RoleMap home={globe?.home ?? null} places={places} height={190} />
         </div>
+        {!!prefs.insights?.length && (
+          <div className="ap-card" style={{ padding: 16 }}>
+            <div className="ap-label" style={{ marginBottom: 8 }}>Learned from your swipes</div>
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 }}>
+              {prefs.insights.slice(0, 5).map((i) => (
+                <li key={i.text} style={{ fontSize: 13 }}>
+                  <span style={{ fontWeight: 600 }}>{i.text}</span>
+                  <span style={{ display: "block", fontSize: 12, color: "var(--faint)" }}>{i.evidence}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </aside>
     </div>
   );

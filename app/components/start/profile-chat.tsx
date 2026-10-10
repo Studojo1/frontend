@@ -37,7 +37,6 @@ const splitList = (s: string) =>
     .map((x) => x.trim())
     .filter((x) => x.length > 1 && x.length < 40);
 
-export const CHAT_QUESTIONS = 5;
 
 export function ProfileChat({
   firstName,
@@ -46,6 +45,8 @@ export function ProfileChat({
   onAnswer,
   onDone,
   doneActions,
+  skip = [],
+  known = {},
 }: {
   firstName: string;
   summary: string;
@@ -54,8 +55,12 @@ export function ProfileChat({
   onDone: (a: ChatAnswers) => void;
   /** Shown under the last message once the chat is finished. */
   doneActions?: ReactNode;
+  /** Questions already answered elsewhere (e.g. company type from swipes). */
+  skip?: (keyof ChatAnswers)[];
+  /** Answers carried in from earlier steps, saved with the chat's own. */
+  known?: ChatAnswers;
 }) {
-  const questions: Question[] = [
+  const all: Question[] = [
     {
       key: "companyStage",
       ask: "First up: what kind of place do you want to work at?",
@@ -93,13 +98,14 @@ export function ProfileChat({
       ack: () => "That's a strong opener. Recruiters remember specifics like that.",
     },
   ];
+  const questions = all.filter((q) => !skip.includes(q.key));
 
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [qi, setQi] = useState(-1);
   const [typing, setTyping] = useState(true);
   const [picked, setPicked] = useState<string[]>([]);
   const [text, setText] = useState("");
-  const answers = useRef<ChatAnswers>({});
+  const answers = useRef<ChatAnswers>({ ...known });
   const scroller = useRef<HTMLDivElement>(null);
   const started = useRef(false);
   const finished = qi >= questions.length;
@@ -117,7 +123,7 @@ export function ProfileChat({
     (async () => {
       await say(`Welcome in, ${firstName}. Your account's set up.`);
       await say(summary);
-      await say("A few quick questions so I can find the right people to reach. About a minute.");
+      await say(`${questions.length} quick questions your swipes couldn't answer, so I can find the right people to reach.`);
       await say(questions[0].ask);
       setQi(0);
     })();

@@ -175,3 +175,13 @@ export function filledCount(r: QuickResume): { filled: number; total: number } {
   const fields = [r.name, r.email, r.college, r.course, r.gradYear, r.city];
   return { filled: fields.filter(Boolean).length + (r.skills.length ? 1 : 0), total: fields.length + 1 };
 }
+
+/** Known skills mentioned anywhere in a text (role titles and requirements). */
+export function skillsIn(text: string): string[] {
+  const out: string[] = [];
+  for (const s of KNOWN_SKILLS) {
+    const re = new RegExp(`(^|[^A-Za-z0-9+#.])${s.replace(/[.+*?^$()[\]{}|\\/]/g, "\\$&")}(?=$|[^A-Za-z0-9+#])`, "i");
+    if (re.test(text) && !out.some((o) => o.toLowerCase() === s.toLowerCase())) out.push(s);
+  }
+  return out;
+}

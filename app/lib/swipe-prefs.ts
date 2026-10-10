@@ -37,8 +37,9 @@ export type Cluster =
 
 const RULES: [Cluster, RegExp][] = [
   ["Analytics", /\b(data|analy[ts]|business intelligence|\bbi\b|insight|research analyst)/i],
-  ["Product", /\bproduct\b|\bpm\b/i],
+  // Design before Product: "Product Designer" is design work.
   ["Design", /\b(design|ui|ux|graphic|visual|motion|illustrat)/i],
+  ["Product", /\bproduct\b|\bpm\b/i],
   ["Engineering", /\b(engineer|developer|software|sde|frontend|backend|full[- ]?stack|devops|\bml\b|machine learning|ai\b|android|ios|web dev)/i],
   ["Finance", /\b(financ|account|investment|equity|audit|tax|treasury|credit|banking|\bca\b)/i],
   ["Consulting", /\b(consult|strategy|strategic)/i],
