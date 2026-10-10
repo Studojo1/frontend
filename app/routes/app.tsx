@@ -213,8 +213,8 @@ export default function AppHome() {
       {/* Conversation */}
       <section className="ap-main">
         <div className="ap-top">
-          <span style={{ fontSize: 15, fontWeight: 600 }}>Getting to know you</span>
-          <span className="ap-pill ap-mono" style={{ marginLeft: "auto" }}>{chatCount} answered</span>
+          <span style={{ fontSize: 15, fontWeight: 600 }}>{alreadyDone || done ? "Welcome to Studojo" : "Getting to know you"}</span>
+          <span className="ap-pill ap-mono" style={{ marginLeft: "auto" }}>{alreadyDone || done ? "profile complete" : `${chatCount} answered`}</span>
           <span className="ap-pill ap-mono">{openRoles} open roles in your cities</span>
         </div>
         <div style={{ flex: 1, minHeight: 0 }}>
@@ -222,7 +222,7 @@ export default function AppHome() {
             <div style={{ height: "100%", display: "grid", placeItems: "center", padding: 24, textAlign: "center" }}>
               <div>
                 <div style={{ fontSize: 22, fontWeight: 650 }}>You're all set, {firstName}.</div>
-                <p style={{ color: "var(--muted)", marginTop: 8 }}>Your profile is complete. Next, find the people hiring for it.</p>
+                <p style={{ color: "var(--muted)", marginTop: 8 }}>We learned everything we need from your resume and swipes. Next, find the people hiring for it.</p>
                 <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 16 }}>
                   <Link to="/outreach" className="ap-btn indigo">Find people hiring →</Link>
                   <Link to="/profile" className="ap-btn ghost">See my profile</Link>

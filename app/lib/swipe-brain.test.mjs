@@ -90,3 +90,34 @@ console.log("Asha learned:", say(asha));
 console.log("Dev deck:", dev.deck.map((p) => `${p.role.title} [${p.probe}]`).join(" → "));
 console.log("Dev learned:", say(dev));
 if (fail) process.exit(1);
+
+// ── Mixed deck: role cards plus quick cards, chat questions folded in ────────
+{
+  const { nextItem, learn: learn2 } = await import("./swipe-brain.ts");
+  const ctx = { homeCity: "Bengaluru", skills: ["SQL", "Excel", "Python"] };
+  const swipes = [], answers = {}, probes = [], kinds = [];
+  let lastQuick = false, since = 0;
+  for (let i = 0; i < 60; i++) {
+    const it = nextItem(rows, swipes, answers, ctx, probes, lastQuick, since);
+    if (!it) break;
+    kinds.push(it.kind === "role" ? "R" : it.quick.kind[0].toUpperCase());
+    if (it.kind === "role") {
+      probes.push(it.pick.probe);
+      swipes.push({ id: it.pick.role.id, verdict: it.pick.role.cluster === "Analytics" ? "like" : "pass", ms: 1500 });
+      lastQuick = false; since++;
+    } else {
+      answers[it.quick.id] = it.quick.kind === "city" ? (it.quick.city === "Mumbai" ? "right" : "left") : it.quick.id === "mode" ? "either" : "right";
+      lastQuick = true; since = 0;
+    }
+  }
+  const total = kinds.length;
+  const l = learn2(rows, swipes, ctx, answers);
+  ok("mixed deck is long", total >= 22, `${total}: ${kinds.join("")}`);
+  ok("quick cards are mixed in, never two in a row", /RRQ|RRC|RRD/.test(kinds.join("")) && !/[QCD]{2}/.test(kinds.join("").slice(0, swipes.length + 6)), kinds.join(""));
+  ok("chat questions answered by the deck", l.workMode === "Hybrid" && l.startWhen && l.companyStage, JSON.stringify([l.workMode, l.startWhen, l.companyStage]));
+  ok("dream companies asked about kept roles", l.dreamCompanies.length >= 1, JSON.stringify(l.dreamCompanies));
+  ok("city card answers shape the cities", l.cities.includes("Mumbai"), JSON.stringify(l.cities));
+  console.log("Mixed deck:", kinds.join(""), "→", l.insights.filter((i) => ["values", "plan"].includes(i.kind)).map((i) => i.text).join(" | "));
+}
+console.log(`${pass} passed, ${fail} failed (after mixed deck)`);
+if (fail) process.exit(1);

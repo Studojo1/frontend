@@ -211,8 +211,8 @@ const ADJACENT: Partial<Record<Cluster, Cluster[]>> = {
   HR: ["Operations"],
 };
 
-export const MIN_SWIPES = 10;
-export const MAX_SWIPES = 18;
+export const MIN_SWIPES = 14;
+export const MAX_SWIPES = 22;
 
 /** The next card to show, or null when we've learned enough (or run out). */
 export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbes: string[] = []): CardPick | null {
@@ -224,7 +224,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
   const left = pool.filter((r) => !shown.has(r.id));
   if (!left.length || swipes.length >= MAX_SWIPES) return null;
   const belief = believe(pool, swipes, ctx);
-  if (swipes.length >= MIN_SWIPES && confidence(belief, swipes) >= 0.88) return null;
+  if (swipes.length >= MIN_SWIPES && confidence(belief, swipes) >= 0.92) return null;
 
   const fresh = left.filter((r) => r.company.toLowerCase() !== lastCompany);
   const cand = fresh.length ? fresh : left;
@@ -328,7 +328,7 @@ export function nextCard(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, usedProbe
 
 // ── What we learned ──────────────────────────────────────────────────────────
 
-export type Insight = { kind: "work" | "place" | "pay" | "length" | "company" | "fit" | "speed" | "avoid"; text: string; evidence: string };
+export type Insight = { kind: "work" | "place" | "pay" | "length" | "company" | "fit" | "speed" | "avoid" | "values" | "plan"; text: string; evidence: string };
 
 const LABEL: Record<Dim, string> = { cluster: "kind of work", focus: "specialty", place: "location", city: "city", pay: "pay", length: "length", company: "company type", fit: "using your skills" };
 
@@ -341,12 +341,16 @@ export type Learned = {
   cities: string[];
   minMonthly: number | null;
   titles: string[];
-  companyStage: "Big company" | "Growing startup" | null;
+  companyStage: "Big company" | "Growing startup" | "Early-stage startup" | "No preference" | null;
+  /** From the quick cards, in the words the /app chat uses, so it can skip those questions. */
+  workMode: string | null;
+  startWhen: string | null;
+  dreamCompanies: string[];
   best: { role: BrainRole; match: number }[];
   fitCount: number;
 };
 
-export function learn(pool: BrainRole[], swipes: Swipe[], ctx: Ctx): Learned {
+export function learn(pool: BrainRole[], swipes: Swipe[], ctx: Ctx, answers: Answers = {}): Learned {
   const byId = new Map(pool.map((r) => [r.id, r]));
   const belief = believe(pool, swipes, ctx);
   const rows = swipes.map((s) => ({ s, r: byId.get(s.id)!, f: features(byId.get(s.id)!, ctx) })).filter((x) => x.r);
@@ -424,10 +428,17 @@ export function learn(pool: BrainRole[], swipes: Swipe[], ctx: Ctx): Learned {
   const fastest = [...fast.entries()].map(([c, ms]) => ({ c, avg: ms.reduce((a, b) => a + b, 0) / ms.length })).sort((a, b) => a.avg - b.avg)[0];
   if (fastest && fastest.avg < 2500 && kept.length >= 2) insights.push({ kind: "speed", text: `You said yes fastest to ${fastest.c} roles.`, evidence: `about ${(fastest.avg / 1000).toFixed(1)}s each, a strong signal` });
 
+  // Quick this-or-that cards.
+  const q = quickFindings(answers, ctx);
+  insights.push(...q.insights);
+  if (!companyStage && q.companyStage) companyStage = q.companyStage;
+
   const matters = importance(belief).filter((x) => x.spread >= 0.2).map((x) => LABEL[x.dim]);
   const unseen = pool.filter((r) => !swipes.some((s) => s.id === r.id));
   const scored = unseen.map((role) => ({ role, match: predict(role, belief, ctx) })).sort((a, b) => b.match - a.match);
-  const cities = [...new Set([...kept.map((x) => x.r.city).filter((c): c is string => !!c)])];
+  // Cities: where kept roles are, plus "yes, I'd move there" cards, minus "no" cards.
+  const cities = [...new Set([...kept.map((x) => x.r.city).filter((c): c is string => !!c), ...q.citiesYes])].filter((c) => !q.citiesNo.includes(c));
+  if (ctx.homeCity && !cities.includes(ctx.homeCity) && !q.citiesNo.includes(ctx.homeCity) && !(movedPassed.length === 0 && movedKept.length > 0 && homeKept.length === 0)) cities.unshift(ctx.homeCity);
 
   return {
     insights,
@@ -438,7 +449,125 @@ export function learn(pool: BrainRole[], swipes: Swipe[], ctx: Ctx): Learned {
     minMonthly,
     titles: [...new Set(kept.map((x) => x.r.title))].slice(0, 6),
     companyStage,
+    workMode: q.workMode,
+    startWhen: q.startWhen,
+    dreamCompanies: q.dreamCompanies,
     best: scored.slice(0, 3),
     fitCount: pool.filter((r) => predict(r, belief, ctx) >= 0.5).length,
   };
+}
+
+
+// ── Quick this-or-that cards ─────────────────────────────────────────────────
+//
+// Mixed into the deck between role cards to learn what roles alone can't
+// show: how they want to work, when they can start, what they value. Left
+// and right are the two options (↑ means "either is fine"); city cards ask
+// "would you move to X?" for places with open roles they haven't judged yet.
+
+export type Side = "left" | "right" | "either";
+export type Answers = Record<string, Side>;
+export type Quick = {
+  id: string;
+  kind: "quick" | "city" | "dream";
+  label: string;
+  question: string;
+  left: string;
+  right: string;
+  either?: string;
+  city?: string;
+  count?: number;
+};
+
+const QUICK: (Quick & { skip?: (l: Learned | null) => boolean })[] = [
+  { id: "stage", kind: "quick", label: "what kind of place", question: "Where would you rather start?", left: "A big company: structure, a known name", right: "An early startup: more ownership, more chaos", either: "No preference", skip: (l) => !!l?.companyStage },
+  { id: "learn_pay", kind: "quick", label: "a trade-off", question: "Which offer would you take?", left: "₹40k a month, routine work", right: "₹15k a month, building with the founders" },
+  { id: "mode", kind: "quick", label: "how you work", question: "Where do you want to work from?", left: "In the office, with the team", right: "Remote, from anywhere", either: "Hybrid works best" },
+  { id: "start", kind: "quick", label: "timing", question: "When could you start?", left: "Right away", right: "In a few months", either: "Just exploring for now" },
+  { id: "brand_work", kind: "quick", label: "what matters more", question: "Which matters more to you?", left: "A famous company name on my resume", right: "The work I'd actually be doing" },
+  { id: "mentor", kind: "quick", label: "how you learn", question: "You learn best…", left: "Figuring things out myself", right: "With a mentor checking in" },
+  { id: "outcome", kind: "quick", label: "the goal", question: "What do you want out of this internship?", left: "A full-time offer at the end", right: "Experience, then something new", either: "Either is fine" },
+  { id: "length", kind: "quick", label: "length", question: "How long would you intern?", left: "2 to 3 months", right: "6 months or more", either: "Depends on the role", skip: (l) => !!l?.insights.some((i) => i.kind === "length") },
+];
+
+function quickFindings(a: Answers, ctx: Ctx) {
+  const insights: Insight[] = [];
+  let companyStage: Learned["companyStage"] = null, workMode: string | null = null, startWhen: string | null = null;
+  const citiesYes: string[] = [], citiesNo: string[] = [], dreamCompanies: string[] = [];
+  const said = (id: string, l: string, r: string, e = "either") => (a[id] === "left" ? l : a[id] === "right" ? r : e);
+  if (a.stage) {
+    companyStage = a.stage === "left" ? "Big company" : a.stage === "right" ? "Early-stage startup" : "No preference";
+    if (a.stage !== "either") insights.push({ kind: "company", text: a.stage === "left" ? "You want structure and a known name." : "You want ownership, even if it's chaotic.", evidence: `picked "${said("stage", "a big company", "an early startup")}"` });
+  }
+  if (a.learn_pay && a.learn_pay !== "either") insights.push({ kind: "values", text: a.learn_pay === "right" ? "You'd take learning over a bigger stipend." : "A stronger stipend beats a scrappy setup for you.", evidence: `picked ${said("learn_pay", "₹40k routine work", "₹15k with the founders")}` });
+  if (a.mode) {
+    workMode = a.mode === "left" ? "In the office" : a.mode === "right" ? "Remote" : "Hybrid";
+    insights.push({ kind: "plan", text: a.mode === "left" ? "You want to be in the office with the team." : a.mode === "right" ? "You'd rather work remotely." : "Hybrid suits you best.", evidence: "from your this-or-that" });
+  }
+  if (a.start) {
+    startWhen = a.start === "left" ? "Right away" : a.start === "right" ? "Next semester" : "Just exploring";
+    insights.push({ kind: "plan", text: a.start === "left" ? "You can start right away." : a.start === "right" ? "You're planning for a few months out." : "You're exploring for now, no rush.", evidence: "from your this-or-that" });
+  }
+  if (a.brand_work && a.brand_work !== "either") insights.push({ kind: "values", text: a.brand_work === "right" ? "The work matters more to you than the logo." : "A known company name matters to you.", evidence: `picked ${said("brand_work", "the company name", "the work itself")}` });
+  if (a.mentor && a.mentor !== "either") insights.push({ kind: "values", text: a.mentor === "right" ? "You want a mentor, not to be thrown in the deep end." : "You like figuring things out on your own.", evidence: "from your this-or-that" });
+  if (a.outcome && a.outcome !== "either") insights.push({ kind: "plan", text: a.outcome === "left" ? "You're after a full-time offer." : "You want the experience, then to move on.", evidence: "from your this-or-that" });
+  for (const [id, side] of Object.entries(a)) {
+    if (!id.startsWith("city:")) continue;
+    const c = id.slice(5);
+    if (side === "right") citiesYes.push(c);
+    if (side === "left") citiesNo.push(c);
+  }
+  for (const [id, side] of Object.entries(a)) if (id.startsWith("dream:") && side === "right") dreamCompanies.push(id.slice(6));
+  if (dreamCompanies.length) insights.push({ kind: "values", text: `Dream companies: ${dreamCompanies.slice(0, 3).join(", ")}.`, evidence: "you said yes when we asked" });
+  if (citiesYes.length) insights.push({ kind: "place", text: `You'd move to ${citiesYes.slice(0, 3).join(", ")}.`, evidence: "said yes when we asked" });
+  if (citiesNo.length >= 2 && !citiesYes.length) insights.push({ kind: "place", text: `You'd rather not move${ctx.homeCity ? ` from ${ctx.homeCity}` : ""}.`, evidence: `said no to ${citiesNo.slice(0, 3).join(", ")}` });
+  return { insights, companyStage, workMode, startWhen, citiesYes, citiesNo, dreamCompanies };
+}
+
+/** The next quick card worth asking, or null. */
+export function nextQuick(pool: BrainRole[], swipes: Swipe[], answers: Answers, ctx: Ctx): Quick | null {
+  const learned = swipes.length ? learn(pool, swipes, ctx, answers) : null;
+  // City cards: busy places they haven't judged through a kept role or a card.
+  const byId = new Map(pool.map((r) => [r.id, r]));
+  const judged = new Set(swipes.filter((s) => s.verdict !== "pass").map((s) => byId.get(s.id)?.city).filter(Boolean) as string[]);
+  const counts = new Map<string, number>();
+  for (const r of pool) if (r.city && r.city !== ctx.homeCity) counts.set(r.city, (counts.get(r.city) ?? 0) + 1);
+  const cityAsked = Object.keys(answers).filter((k) => k.startsWith("city:")).length;
+  const city = cityAsked >= 3 ? undefined : [...counts.entries()].filter(([c, n]) => n >= 2 && !judged.has(c) && !(`city:${c}` in answers)).sort((a, b) => b[1] - a[1])[0];
+  const asked = Object.keys(answers).length;
+  const cityTurn = asked % 3 === 2; // every third quick card is a city
+  const general = QUICK.find((q) => !(q.id in answers) && !q.skip?.(learned));
+  if (city && (cityTurn || !general)) {
+    return { id: `city:${city[0]}`, kind: "city", label: "where you'd work", question: `Would you move to ${city[0]}?`, left: "No, not for now", right: "Yes, I'd move", city: city[0], count: city[1] };
+  }
+  // Dream companies: ask about the companies behind roles they kept, a few at most.
+  const keptCos = [...new Set(swipes.filter((s) => s.verdict !== "pass").map((s) => byId.get(s.id)?.company).filter(Boolean) as string[])];
+  const dreamAsked = Object.keys(answers).filter((k) => k.startsWith("dream:")).length;
+  const dream = keptCos.find((c) => !(`dream:${c}` in answers));
+  if (dream && dreamAsked < 3 && asked % 4 === 3) {
+    return { id: `dream:${dream}`, kind: "dream", label: "dream companies", question: `Is ${dream} a dream company for you?`, left: "Not really", right: "Yes, I'd love to work there" };
+  }
+  if (general) { const { skip: _s, ...q } = general; return q; }
+  if (dream && dreamAsked < 3) return { id: `dream:${dream}`, kind: "dream", label: "dream companies", question: `Is ${dream} a dream company for you?`, left: "Not really", right: "Yes, I'd love to work there" };
+  return null;
+}
+
+export type Item = { kind: "role"; pick: CardPick } | { kind: "quick"; quick: Quick };
+
+/**
+ * The deck: role cards, with a quick card after every two of them, until
+ * both the roles and the quick questions have nothing left to teach.
+ */
+export function nextItem(pool: BrainRole[], swipes: Swipe[], answers: Answers, ctx: Ctx, usedProbes: string[], lastWasQuick: boolean, rolesSinceQuick: number): Item | null {
+  // A question after every two roles, then after every role once we know the basics,
+  // so questions are spread through the deck instead of piling up at the end.
+  const gap = swipes.length >= 8 ? 1 : 2;
+  if (!lastWasQuick && rolesSinceQuick >= gap && swipes.length >= 2) {
+    const q = nextQuick(pool, swipes, answers, ctx);
+    if (q) return { kind: "quick", quick: q };
+  }
+  const pick = nextCard(pool, swipes, ctx, usedProbes);
+  if (pick) return { kind: "role", pick };
+  const q = nextQuick(pool, swipes, answers, ctx);
+  return q ? { kind: "quick", quick: q } : null;
 }

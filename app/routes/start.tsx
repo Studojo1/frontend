@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import type { QuickResume } from "~/lib/resume-quick-parse";
 import { type Cluster } from "~/lib/swipe-prefs";
-import { confidence, believe, learn, nextCard, predict, skillHits, type BrainRole, type CardPick, type Swipe, type Verdict, type Insight } from "~/lib/swipe-brain";
+import { confidence, believe, learn, nextItem, predict, skillHits, type Answers, type BrainRole, type Item, type Side, type Swipe, type Verdict, type Insight } from "~/lib/swipe-brain";
 import { SenseiBackdrop } from "~/components/start/sensei-backdrop";
 import { RoleMap, type MapPlace } from "~/components/start/role-map";
 import { COORDS } from "~/lib/geo";
@@ -32,7 +32,7 @@ export function meta() {
   ];
 }
 
-type Step = "drop" | "reading" | "verify" | "confirm" | "swipe" | "learned" | "cities" | "saving";
+type Step = "drop" | "reading" | "verify" | "confirm" | "swipe" | "proud" | "learned" | "cities" | "saving";
 
 const CONSENT_PENDING_KEY = "sj_consent_pending";
 const STASH_KEY = "sj_start_resume";
@@ -41,7 +41,7 @@ const STEPS: { key: Step[]; label: string }[] = [
   { key: ["drop", "reading"], label: "Drop your resume" },
   { key: ["verify"], label: "Verify your email" },
   { key: ["confirm"], label: "Check what we found" },
-  { key: ["swipe", "learned"], label: "Get to know you" },
+  { key: ["swipe", "proud", "learned"], label: "Get to know you" },
   { key: ["cities", "saving"], label: "Pick your cities" },
 ];
 
@@ -51,7 +51,7 @@ const CLUSTER_COLOR: Record<Cluster, string> = {
   Consulting: "#2A8C8C", Sales: "#B4801E", Content: "#C4477A", HR: "#5E9A2E", Operations: "#6B6E80", Other: "#8A8D9E",
 };
 const INSIGHT_TONE: Record<Insight["kind"], string> = {
-  work: "accent", avoid: "plain", place: "accent", pay: "mint", length: "amber", company: "rose", fit: "amber", speed: "mint",
+  work: "accent", avoid: "plain", place: "accent", pay: "mint", length: "amber", company: "rose", fit: "amber", speed: "mint", values: "rose", plan: "amber",
 };
 
 const CSS = `
@@ -180,7 +180,13 @@ export default function StartPage() {
   const [pool, setPool] = useState<BrainRole[]>([]);
   const [swipes, setSwipes] = useState<Swipe[]>([]);
   const [probes, setProbes] = useState<string[]>([]);
-  const [current, setCurrent] = useState<CardPick | null>(null);
+  const [item, setItem] = useState<Item | null>(null);
+  const [answers, setAnswers] = useState<Answers>({});
+  const [lastQuick, setLastQuick] = useState(false);
+  const [sinceQuick, setSinceQuick] = useState(0);
+  const [proud, setProud] = useState("");
+  const current = item?.kind === "role" ? item.pick : null;
+  const quick = item?.kind === "quick" ? item.quick : null;
   const [shownAt, setShownAt] = useState(0);
   const [drag, setDrag] = useState<{ x: number; start: number } | null>(null);
   const [fling, setFling] = useState<"left" | "right" | "up" | null>(null);
@@ -215,7 +221,8 @@ export default function StartPage() {
   const ctx = useMemo(() => ({ homeCity: d.city || null, skills: d.skills }), [d.city, d.skills]);
   const belief = useMemo(() => believe(pool, swipes, ctx), [pool, swipes, ctx]);
   const conf = Math.round(confidence(belief, swipes) * 100);
-  const learned = useMemo(() => (swipes.length ? learn(pool, swipes, ctx) : null), [pool, swipes, ctx]);
+  const learned = useMemo(() => (swipes.length ? learn(pool, swipes, ctx, answers) : null), [pool, swipes, ctx, answers]);
+  const answeredCount = swipes.length + Object.keys(answers).length;
   const fitNow = useCountUp(pool.length ? pool.filter((r) => predict(r, belief, ctx) >= 0.5).length : 0);
   const confShown = useCountUp(conf);
 
@@ -310,10 +317,11 @@ export default function StartPage() {
       setPool(list);
       setSwipes([]);
       setProbes([]);
-      const first = nextCard(list, [], { homeCity: d.city || null, skills: d.skills }, []);
-      setCurrent(first);
+      setAnswers({});
+      const first = nextItem(list, [], {}, { homeCity: d.city || null, skills: d.skills }, [], false, 0);
+      setItem(first);
       setShownAt(performance.now());
-      setStep(first ? "swipe" : "learned");
+      setStep(first ? "swipe" : "proud");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't save. Try again.");
     } finally {
@@ -321,38 +329,55 @@ export default function StartPage() {
     }
   };
 
-  // ── 4. Swipe: every next card is chosen from what they've kept and passed ──
+  // ── 4. Swipe: every next card (role or question) is chosen from what they've said so far ──
+  const advance = (nextSwipes: Swipe[], nextAnswers: Answers, nextProbes: string[], wasQuick: boolean, since: number) => {
+    const before = learned?.insights.map((i) => i.text) ?? [];
+    const after = learn(pool, nextSwipes, ctx, nextAnswers).insights;
+    setJustLearned(after.find((i) => !before.includes(i.text)) ?? null);
+    setSwipes(nextSwipes);
+    setAnswers(nextAnswers);
+    setProbes(nextProbes);
+    setLastQuick(wasQuick);
+    setSinceQuick(since);
+    const n = nextItem(pool, nextSwipes, nextAnswers, ctx, nextProbes, wasQuick, since);
+    setItem(n);
+    setShownAt(performance.now());
+    setFling(null);
+    setDrag(null);
+    if (!n) setStep("proud");
+  };
+
   const decide = useCallback((verdict: Verdict) => {
     if (!current || fling) return;
     const ms = Math.round(performance.now() - shownAt);
     setFling(verdict === "pass" ? "left" : verdict === "love" ? "up" : "right");
-    setTimeout(() => {
-      const nextSwipes = [...swipes, { id: current.role.id, verdict, ms }];
-      const nextProbes = [...probes, current.probe];
-      const before = learned?.insights.map((i) => i.text) ?? [];
-      const after = learn(pool, nextSwipes, ctx).insights;
-      setJustLearned(after.find((i) => !before.includes(i.text)) ?? null);
-      setSwipes(nextSwipes);
-      setProbes(nextProbes);
-      const n = nextCard(pool, nextSwipes, ctx, nextProbes);
-      setCurrent(n);
-      setShownAt(performance.now());
-      setFling(null);
-      setDrag(null);
-      if (!n) setStep("learned");
-    }, 220);
-  }, [current, fling, shownAt, swipes, probes, pool, ctx, learned]);
+    setTimeout(() => advance([...swipes, { id: current.role.id, verdict, ms }], answers, [...probes, current.probe], false, sinceQuick + 1), 220);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, fling, shownAt, swipes, probes, pool, ctx, learned, answers, sinceQuick]);
+
+  const answerQuick = useCallback((side: Side) => {
+    if (!quick || fling) return;
+    setFling(side === "left" ? "left" : side === "right" ? "right" : "up");
+    setTimeout(() => advance(swipes, { ...answers, [quick.id]: side }, probes, true, 0), 200);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quick, fling, swipes, probes, pool, ctx, learned, answers]);
 
   useEffect(() => {
     if (step !== "swipe") return;
     const onKey = (e: KeyboardEvent) => {
+      if (quick) {
+        if (e.key === "ArrowLeft") answerQuick("left");
+        if (e.key === "ArrowRight") answerQuick("right");
+        if (e.key === "ArrowUp") answerQuick("either");
+        return;
+      }
       if (e.key === "ArrowRight") decide("like");
       if (e.key === "ArrowLeft") decide("pass");
       if (e.key === "ArrowUp") decide("love");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [step, decide]);
+  }, [step, decide, answerQuick, quick]);
 
   // ── 5. Cities ──
   const toCities = () => {
@@ -383,6 +408,15 @@ export default function StartPage() {
           likedCompanies: [...new Set(swipes.filter((s) => s.verdict !== "pass").map((s) => byId.get(s.id)?.company).filter(Boolean))],
           insights: l?.insights ?? [], matters: l?.matters ?? [], companyStage: l?.companyStage ?? null,
         },
+      }),
+    }).catch(() => {});
+    // Everything the old "tell us more" chat asked is answered by the deck.
+    await fetch("/api/start/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        step: "chat",
+        chat: { companyStage: l?.companyStage ?? undefined, dreamCompanies: l?.dreamCompanies ?? [], workMode: l?.workMode ?? undefined, startWhen: l?.startWhen ?? undefined, proud: proud.trim() || undefined },
       }),
     }).catch(() => {});
     navigate("/app?welcome=1");
@@ -447,7 +481,7 @@ export default function StartPage() {
 
         <main className="panel" style={{ width: "100%", maxWidth: 760, marginTop: 28 }} data-tour="main">
           <Bar right={<><span className="dot" />{STEPS[stepIndex]?.label.toLowerCase()}</>}>
-            {step === "swipe" || step === "learned" ? `getting to know ${d.name.split(" ")[0]?.toLowerCase() || "you"} · ${swipes.length} answers` : `studojo.com/start · step ${stepIndex + 1} of ${STEPS.length}`}
+            {step === "swipe" || step === "learned" || step === "proud" ? `getting to know ${d.name.split(" ")[0]?.toLowerCase() || "you"} · ${answeredCount} answers` : `studojo.com/start · step ${stepIndex + 1} of ${STEPS.length}`}
           </Bar>
           <div style={{ padding: "30px 32px 32px", display: "grid", gap: 22 }}>
             {/* 1. Drop */}
@@ -619,10 +653,10 @@ export default function StartPage() {
             )}
 
             {/* 4. Swipe */}
-            {step === "swipe" && current && (
+            {step === "swipe" && item && (
               <div style={{ display: "grid", gap: 16 }}>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
-                  <h1>Would you <em>take this?</em></h1>
+                  <h1>{quick ? (quick.kind === "city" ? <>Would you <em>move?</em></> : quick.kind === "dream" ? <>Dream <em>company?</em></> : <>This <em>or that?</em></>) : <>Would you <em>take this?</em></>}</h1>
                   <div style={{ minWidth: 200 }} data-tour="confidence">
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                       <span className="label">how well we know you</span>
@@ -634,12 +668,42 @@ export default function StartPage() {
                   </div>
                 </div>
 
-                <div key={current.role.id} className="fade" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12, background: "var(--accent-soft)", border: "1px solid var(--accent-line)" }} data-tour="reason">
-                  <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--accent-deep)" }}>{current.probe === "open" ? "starting" : current.probe.startsWith("explore") ? "exploring" : current.probe === "confirm" ? "checking fit" : "testing"}</span>
-                  <span style={{ fontSize: 14.5, color: "var(--ink)" }}>{current.reason.replace(/^(Exploring|Checking|Testing): /, "")}</span>
-                </div>
+                {current && (
+                  <div key={current.role.id} className="fade" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12, background: "var(--accent-soft)", border: "1px solid var(--accent-line)" }} data-tour="reason">
+                    <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--accent-deep)" }}>{current.probe === "open" ? "starting" : current.probe.startsWith("explore") ? "exploring" : current.probe === "confirm" ? "checking fit" : "testing"}</span>
+                    <span style={{ fontSize: 14.5, color: "var(--ink)" }}>{current.reason.replace(/^(Exploring|Checking|Testing): /, "")}</span>
+                  </div>
+                )}
+                {quick && (
+                  <div key={quick.id} className="fade" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12, background: "var(--rose-soft)", border: "1px solid rgba(196,71,122,.3)" }} data-tour="reason">
+                    <span className="mono" style={{ fontSize: 10.5, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--rose)" }}>quick one</span>
+                    <span style={{ fontSize: 14.5, color: "var(--ink)" }}>{quick.label}: swipe to pick a side</span>
+                  </div>
+                )}
 
-                <div style={{ position: "relative", height: 268, userSelect: "none" }} data-tour="deck">
+                {quick && (
+                  <div key={`q-${quick.id}`} className="tile fade" data-quick={quick.id} data-tour="quick"
+                    style={{ height: 268, padding: 22, display: "flex", flexDirection: "column", boxShadow: "var(--sh-md)", transform: fling === "left" ? "translateX(-480px) rotate(-6deg)" : fling === "right" ? "translateX(480px) rotate(6deg)" : fling === "up" ? "translateY(-360px)" : "none", opacity: fling ? 0 : 1, transition: "transform .2s var(--ease), opacity .2s var(--ease)" }}>
+                    <div style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-.03em", lineHeight: 1.2 }}>{quick.question}</div>
+                    {quick.kind === "city" && quick.count ? <div className="mono" style={{ marginTop: 6, fontSize: 12, color: "var(--text-3)" }}>{quick.count} open roles there right now</div> : null}
+                    <div style={{ marginTop: "auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      {(["left", "right"] as const).map((side) => (
+                        <button key={side} type="button" onClick={() => answerQuick(side)} data-tour={`quick-${side}`}
+                          style={{ textAlign: "left", padding: "16px 16px", borderRadius: 14, border: "1px solid var(--border-2)", background: "#fff", cursor: "pointer", font: "inherit", transition: "border-color .15s, background .15s" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.background = "var(--accent-soft)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-2)"; e.currentTarget.style.background = "#fff"; }}>
+                          <span className="mono" style={{ display: "block", fontSize: 11, color: "var(--text-3)" }}>{side === "left" ? "← swipe left" : "swipe right →"}</span>
+                          <span style={{ display: "block", marginTop: 4, fontSize: 15.5, fontWeight: 500, lineHeight: 1.35 }}>{quick[side]}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {quick.either && (
+                      <button type="button" className="link" onClick={() => answerQuick("either")} style={{ marginTop: 10, alignSelf: "center", fontSize: 13.5 }} data-tour="quick-either">↑ {quick.either}</button>
+                    )}
+                  </div>
+                )}
+
+                {current && <div style={{ position: "relative", height: 268, userSelect: "none" }} data-tour="deck">
                   {[2, 1].map((depth) => (
                     <div key={depth} aria-hidden="true" className="tile" style={{ position: "absolute", inset: 0, transform: `translateY(${depth * 8}px) scale(${1 - depth * 0.03})`, opacity: 1 - depth * 0.25 }} />
                   ))}
@@ -690,16 +754,18 @@ export default function StartPage() {
                       </div>
                     );
                   })()}
-                </div>
+                </div>}
 
-                <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-                  <button type="button" className="btn btn--ghost" onClick={() => decide("pass")} data-tour="pass" style={{ minWidth: 140 }}>Not for me</button>
-                  <button type="button" className="btn btn--ghost" onClick={() => decide("love")} data-tour="love" style={{ minWidth: 120, color: "var(--amber)", borderColor: "rgba(180,128,30,.35)", background: "var(--amber-soft)" }}>★ Love it</button>
-                  <button type="button" className="btn btn--dark" onClick={() => decide("like")} data-tour="like" style={{ minWidth: 140 }}>Interested</button>
-                </div>
+                {current && (
+                  <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+                    <button type="button" className="btn btn--ghost" onClick={() => decide("pass")} data-tour="pass" style={{ minWidth: 140 }}>Not for me</button>
+                    <button type="button" className="btn btn--ghost" onClick={() => decide("love")} data-tour="love" style={{ minWidth: 120, color: "var(--amber)", borderColor: "rgba(180,128,30,.35)", background: "var(--amber-soft)" }}>★ Love it</button>
+                    <button type="button" className="btn btn--dark" onClick={() => decide("like")} data-tour="like" style={{ minWidth: 140 }}>Interested</button>
+                  </div>
+                )}
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 8, fontSize: 13, color: "var(--text-3)" }}>
-                  <span><span className="mono" style={{ fontSize: 11.5 }}>← ↑ →</span> or drag · {swipes.length} answered · {fitNow} roles fit so far</span>
-                  {swipes.length >= 6 && <button type="button" className="link" onClick={() => setStep("learned")}>That's enough, show me →</button>}
+                  <span><span className="mono" style={{ fontSize: 11.5 }}>← ↑ →</span> or drag · {answeredCount} answered · {fitNow} roles fit so far</span>
+                  {answeredCount >= 12 && <button type="button" className="link" onClick={() => setStep("proud")}>That's enough, show me →</button>}
                 </div>
                 {justLearned && (
                   <div key={justLearned.text} className="fade" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12, background: "var(--mint-soft)", border: "1px solid rgba(30,158,110,.25)" }} data-tour="just-learned">
@@ -711,11 +777,32 @@ export default function StartPage() {
               </div>
             )}
 
-            {/* 4b. What we learned */}
+            {/* 4b. One line they're proud of (the only typing in the whole flow) */}
+            {step === "proud" && (
+              <div style={{ display: "grid", gap: 18 }} className="fade" data-tour="proud">
+                <div>
+                  <span className="tag rose">last one · optional</span>
+                  <h1 style={{ marginTop: 14 }}>One thing you're <em>proud of?</em></h1>
+                  <p className="lead">Something you built or did, in a line or two. It becomes the opening line of your outreach.</p>
+                </div>
+                <form onSubmit={(e) => { e.preventDefault(); setStep("learned"); }} style={{ display: "grid", gap: 12 }}>
+                  <label htmlFor="start-proud" className="sr-only">One thing you're proud of</label>
+                  <textarea id="start-proud" value={proud} onChange={(e) => setProud(e.target.value.slice(0, 300))} rows={3} autoFocus
+                    placeholder={d.experience[0] ? `e.g. As ${d.experience[0].title} at ${d.experience[0].company}, I built…` : "e.g. Built a dashboard my college club still uses"}
+                    style={{ width: "100%", border: "1px solid var(--border-2)", borderRadius: 14, padding: "12px 14px", font: "400 15px var(--sans)", color: "var(--ink)", resize: "vertical", outline: "none" }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <button type="submit" className="btn btn--dark" data-tour="proud-next">{proud.trim() ? "Save and see what we learned" : "Skip"} <span aria-hidden="true">→</span></button>
+                    <span className="mono" style={{ fontSize: 11.5, color: "var(--text-3)" }}>{proud.length}/300</span>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* 4c. What we learned */}
             {step === "learned" && (
               <div style={{ display: "grid", gap: 20 }} data-tour="learned" className="fade">
                 <div>
-                  <span className="tag mint">{swipes.length} swipes · {conf}% sure</span>
+                  <span className="tag mint">{answeredCount} answers · {conf}% sure</span>
                   <h1 style={{ marginTop: 14 }}>Here's what we <em>learned</em> about you.</h1>
                   {learned?.matters.length ? (
                     <p className="lead">What decides it for you: {learned.matters.map((m, i) => <span key={m}>{i > 0 && <span style={{ color: "var(--text-4)" }}> › </span>}<span style={{ color: "var(--ink)", fontWeight: 500 }}>{m}</span></span>)}</p>
@@ -724,7 +811,7 @@ export default function StartPage() {
                 <div className="tile" style={{ overflow: "hidden" }}>
                   {(learned?.insights ?? []).map((i) => (
                     <div key={i.text} className="row" style={{ alignItems: "flex-start" }}>
-                      <span className={`tag ${INSIGHT_TONE[i.kind]}`} style={{ marginTop: 2, minWidth: 84, justifyContent: "center", flexShrink: 0 }}>{i.kind === "avoid" ? "not for you" : i.kind}</span>
+                      <span className={`tag ${INSIGHT_TONE[i.kind]}`} style={{ marginTop: 2, minWidth: 84, justifyContent: "center", flexShrink: 0 }}>{i.kind === "avoid" ? "not for you" : i.kind === "values" ? "values" : i.kind === "plan" ? "plans" : i.kind}</span>
                       <span style={{ minWidth: 0 }}>
                         <span style={{ display: "block", fontSize: 15, fontWeight: 500 }}>{i.text}</span>
                         <span className="mono" style={{ display: "block", fontSize: 11.5, color: "var(--text-3)", marginTop: 2 }}>{i.evidence}</span>
@@ -753,7 +840,7 @@ export default function StartPage() {
                 )}
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16 }}>
                   <button type="button" className="btn btn--dark" onClick={toCities} data-tour="to-cities">Looks like me <span aria-hidden="true">→</span></button>
-                  {current && <button type="button" className="link" onClick={() => setStep("swipe")}>Not quite, keep swiping</button>}
+                  {item && <button type="button" className="link" onClick={() => setStep("swipe")}>Not quite, keep swiping</button>}
                 </div>
               </div>
             )}
@@ -780,7 +867,7 @@ export default function StartPage() {
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 14 }}>
                   <button type="button" className="btn btn--dark" onClick={finish} disabled={step === "saving"} data-tour="finish">{step === "saving" ? "Setting up…" : "Finish signup"} <span aria-hidden="true">→</span></button>
-                  <span style={{ fontSize: 14, color: "var(--text-3)" }}>Next, a one-minute chat in your Studojo app.</span>
+                  <span style={{ fontSize: 14, color: "var(--text-3)" }}>That's it. Your profile is complete.</span>
                 </div>
               </div>
             )}
