@@ -163,8 +163,8 @@ export function SenseiBackdrop() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden" style={{ background: "radial-gradient(rgba(22,22,42,.045) 1px, transparent 1px) 0 0/24px 24px, #FBFBFD" }}>
       <style>{`
-        @font-face { font-family: "Geist Mono"; src: url(/fonts/geist/GeistMono-Variable.woff2) format("woff2"); font-weight: 100 900; font-display: swap; }
-        .sb-lab { position: absolute; transform: translate(-50%, -100%); font: 11px/1.4 "Geist Mono", ui-monospace, Menlo, monospace; letter-spacing: .02em; padding: 2px 7px;
+        @font-face { font-family: "JetBrains Mono"; src: url(/fonts/sensei/JetBrainsMono-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+        .sb-lab { position: absolute; transform: translate(-50%, -100%); font: 11px/1.4 "JetBrains Mono", ui-monospace, Menlo, monospace; letter-spacing: .02em; padding: 2px 7px;
           background: rgba(255,255,255,.9); border: 1px solid rgba(22,22,40,.16); color: #585B6C; white-space: nowrap; opacity: 0; transition: opacity .6s ease; }
         .sb-lab.on { opacity: 1 }
         .sb-lab.hl { color: #4148C6; border-color: rgba(91,99,232,.4); background: #F3F3FE }

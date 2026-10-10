@@ -127,8 +127,8 @@ export function RoleMap({
     }
     const focusCountry = [...tally.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
 
-    // Dot-matrix land.
-    const step = compact ? 5 : 6.5;
+    // Dot-matrix land: fine, quiet dots; the country with most roles in soft indigo.
+    const step = compact ? 4 : 5;
     const dark = tone === "dark";
     const visible = countries.filter((c) => c.box[2] >= lng0 && c.box[0] <= lng1 && c.box[3] >= lat0 && c.box[1] <= lat1);
     for (let y = step / 2; y < H; y += step) {
@@ -138,9 +138,9 @@ export function RoleMap({
         const c = countryAt(visible, lng, lat);
         if (!c) continue;
         const focus = c.c === focusCountry;
-        ctx.fillStyle = focus ? (dark ? "rgba(155,163,255,.75)" : "rgba(91,99,232,.55)") : dark ? "rgba(255,255,255,.18)" : "rgba(120,114,160,.28)";
+        ctx.fillStyle = focus ? (dark ? "rgba(155,163,255,.6)" : "rgba(91,99,232,.48)") : dark ? "rgba(255,255,255,.14)" : "rgba(22,22,40,.15)";
         ctx.beginPath();
-        ctx.arc(x, y, focus ? 1.45 : 1.15, 0, Math.PI * 2);
+        ctx.arc(x, y, focus ? (compact ? 0.95 : 1.25) : compact ? 0.8 : 1, 0, Math.PI * 2);
         ctx.fill();
       }
     }
@@ -148,9 +148,8 @@ export function RoleMap({
     // Arcs from home to picked cities.
     const homeXY = home ? { x: px(home.lng), y: py(home.lat) } : null;
     if (homeXY) {
-      ctx.strokeStyle = dark ? "rgba(255,196,80,.85)" : "rgba(91,99,232,.8)";
-      ctx.lineWidth = 1.6;
-      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = dark ? "rgba(255,196,80,.7)" : "rgba(91,99,232,.55)";
+      ctx.lineWidth = 1.25;
       for (const p of places) {
         if (!p.picked) continue;
         const x = px(p.lng), y = py(p.lat);
@@ -161,7 +160,6 @@ export function RoleMap({
         ctx.quadraticCurveTo(mx, my, x, y);
         ctx.stroke();
       }
-      ctx.setLineDash([]);
     }
 
     // City markers, biggest first so small ones stay on top.
@@ -171,29 +169,32 @@ export function RoleMap({
     for (const p of [...places].sort((a, b) => b.count - a.count)) {
       const x = px(p.lng), y = py(p.lat);
       if (x < -20 || x > W + 20 || y < -20 || y > H + 20) continue;
-      const r = (compact ? 3 : 4.5) + Math.sqrt(p.count / maxCount) * (compact ? 6 : 11);
-      ctx.beginPath();
-      ctx.arc(x, y, r + (p.picked ? 5 : 0), 0, Math.PI * 2);
-      ctx.fillStyle = p.picked ? (dark ? "rgba(255,196,80,.22)" : "rgba(91,99,232,.16)") : "transparent";
-      ctx.fill();
+      const r = (compact ? 2.5 : 3.5) + Math.sqrt(p.count / maxCount) * (compact ? 3.5 : 6);
+      if (p.picked) {
+        ctx.beginPath();
+        ctx.arc(x, y, r + 6, 0, Math.PI * 2);
+        ctx.fillStyle = dark ? "rgba(255,196,80,.18)" : "rgba(91,99,232,.12)";
+        ctx.fill();
+      }
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fillStyle = p.picked ? (dark ? "#FFC450" : "#5B63E8") : dark ? "rgba(13,14,36,.85)" : "#FFFFFF";
+      ctx.fillStyle = p.picked ? (dark ? "#FFC450" : "#5B63E8") : dark ? "rgba(13,14,36,.9)" : "#FFFFFF";
       ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = p.picked ? (dark ? "#fff" : "#fff") : dark ? "#9EA8FF" : "#5B63E8";
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = p.picked ? "#FFFFFF" : dark ? "rgba(158,168,255,.8)" : "rgba(91,99,232,.55)";
       ctx.stroke();
       hitList.push({ name: p.name, x, y, r: Math.max(r, 10) });
       lab.push({ name: p.name, x, y: y - r - 4, count: p.count, picked: !!p.picked });
     }
     if (homeXY) {
-      ctx.save();
-      ctx.translate(homeXY.x, homeXY.y);
-      ctx.rotate(Math.PI / 4);
+      ctx.beginPath();
+      ctx.arc(homeXY.x, homeXY.y, 5, 0, Math.PI * 2);
       ctx.fillStyle = dark ? "#fff" : "#16161E";
-      ctx.fillRect(-5, -5, 10, 10);
-      ctx.restore();
-      lab.push({ name: home!.name, x: homeXY.x, y: homeXY.y - 10, count: 0, picked: false, home: true });
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.stroke();
+      lab.push({ name: home!.name, x: homeXY.x, y: homeXY.y - 9, count: 0, picked: false, home: true });
     }
     hits.current = hitList;
     setAway(places.filter((p) => { const x = px(p.lng), y = py(p.lat); return x < 0 || x > W || y < 0 || y > H; }));
@@ -201,10 +202,11 @@ export function RoleMap({
     // Drop labels that would overlap a bigger one.
     const kept: typeof labels = [];
     for (const l of lab.sort((a, b) => Number(!!b.home) - Number(!!a.home) || Number(b.picked) - Number(a.picked) || b.count - a.count)) {
-      const w = l.name.length * 6.5 + 34, h = 18;
-      if (kept.some((o) => Math.abs(o.x - l.x) < (w + o.name.length * 6.5 + 34) / 2 && Math.abs(o.y - l.y) < h)) continue;
+      const w = l.name.length * 6.8 + 40, h = 18;
+      if (kept.some((o) => Math.abs(o.x - l.x) < (w + o.name.length * 6.8 + 40) / 2 && Math.abs(o.y - l.y) < h)) continue;
+      if (compact && !l.home && !l.picked) continue; // the mini map only names home and picks
       kept.push(l);
-      if (compact && kept.length >= 4) break;
+      if (compact && kept.length >= 3) break;
     }
     setLabels(kept);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,15 +230,14 @@ export function RoleMap({
         aria-label={`Map of ${places.length} cities with open roles`}
         role="img"
       />
-      {!countries && <div className="absolute inset-0 animate-pulse rounded-xl bg-neutral-100/60" />}
+
       {away.length > 0 && !compact && (
-        <div className="absolute bottom-2 left-2 right-2 flex flex-wrap items-center gap-1.5 font-['Satoshi'] text-[11px]">
-          <span className={`font-bold ${dark ? "text-white/70" : "text-neutral-500"}`}>Also hiring further away:</span>
+        <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center gap-1.5" style={{ font: '10.5px/1.4 "JetBrains Mono", ui-monospace, Menlo, monospace' }}>
+          <span style={{ color: "#8A8D9E", textTransform: "uppercase", letterSpacing: ".04em" }}>further away</span>
           {away.map((p) => (
             <button key={p.name} type="button" onClick={() => onToggle?.(p.name)} disabled={!onToggle}
-              className="rounded-md px-1.5 py-0.5 font-bold"
-              style={{ background: p.picked ? "#5B63E8" : "rgba(255,255,255,.92)", color: p.picked ? "#fff" : "#16161E", border: p.picked ? "1px solid transparent" : "1px solid rgba(22,22,40,.15)" }}>
-              {p.picked ? "✓ " : ""}{p.name} · {p.count}
+              style={{ padding: "2px 7px", background: p.picked ? "#F3F3FE" : "rgba(255,255,255,.92)", color: p.picked ? "#4148C6" : "#585B6C", border: `1px solid ${p.picked ? "rgba(91,99,232,.4)" : "rgba(22,22,40,.16)"}`, cursor: onToggle ? "pointer" : "default" }}>
+              {p.name.toLowerCase()} · {p.count}
             </button>
           ))}
         </div>
@@ -247,17 +248,20 @@ export function RoleMap({
           type="button"
           tabIndex={onToggle && !l.home ? 0 : -1}
           onClick={() => onToggle && !l.home && onToggle(l.name)}
-          className="absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md px-1.5 py-0.5 font-['Satoshi'] text-[11px] font-bold leading-tight transition-colors"
+          className="absolute -translate-x-1/2 -translate-y-full whitespace-nowrap"
           style={{
             left: l.x,
             top: l.y,
             pointerEvents: onToggle && !l.home ? "auto" : "none",
-            background: l.home ? (dark ? "#fff" : "#16161E") : l.picked ? (dark ? "#FFC450" : "#5B63E8") : dark ? "rgba(255,255,255,.12)" : "rgba(255,255,255,.92)",
-            color: l.home ? (dark ? "#16161E" : "#fff") : l.picked ? (dark ? "#16161E" : "#fff") : dark ? "#fff" : "#16161E",
-            border: l.picked || l.home ? "1px solid transparent" : `1px solid ${dark ? "rgba(255,255,255,.2)" : "rgba(22,22,40,.15)"}`,
+            font: `${compact ? 9.5 : 10.5}px/1.4 "JetBrains Mono", ui-monospace, Menlo, monospace`,
+            letterSpacing: ".02em",
+            padding: compact ? "1px 5px" : "2px 7px",
+            background: l.home ? "#16161E" : l.picked ? "#F3F3FE" : dark ? "rgba(255,255,255,.12)" : "rgba(255,255,255,.92)",
+            color: l.home ? "#fff" : l.picked ? "#4148C6" : dark ? "#fff" : "#585B6C",
+            border: `1px solid ${l.home ? "#16161E" : l.picked ? "rgba(91,99,232,.4)" : dark ? "rgba(255,255,255,.2)" : "rgba(22,22,40,.16)"}`,
           }}
         >
-          {l.home ? `You · ${l.name}` : `${l.name}${l.count ? ` · ${l.count}` : ""}`}
+          {l.home ? `you · ${l.name.toLowerCase()}` : `${l.name.toLowerCase()}${l.count ? ` · ${l.count}` : ""}`}
         </button>
       ))}
     </div>
