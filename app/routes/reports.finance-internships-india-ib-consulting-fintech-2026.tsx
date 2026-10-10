@@ -236,9 +236,9 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
               <div className="sc-source">Studojo sector-weighting synthesis, 2026</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">Jan-Mar</div>
-              <div className="sc-label">Peak offer window for most structured summer finance internships aligned with penultimate-year campus calendars at leading Indian universities</div>
-              <div className="sc-source">Studojo hiring-calendar synthesis, 2026</div>
+              <div className="sc-num">Jul-Nov</div>
+              <div className="sc-label">Main hiring window for structured summer finance internships at leading Indian campuses, the year before the internship. Goldman Sachs India opens Summer Analyst applications on 1 July, and IIM Ahmedabad's 2025-27 batch got its summer offers between 28 Oct and 3 Nov 2025</div>
+              <div className="sc-source">Goldman Sachs India Summer Analyst Program page; IIM Ahmedabad summer placement release, 17 Nov 2025</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">2x</div>
@@ -399,7 +399,7 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
                 <div className="sec-sub">Summer windows dominate, but rolling lateral hires reward preparation</div>
               </div>
             </div>
-            <p>Most high-visibility finance intern hiring aligns with penultimate-year calendars, with offer spikes between January and March for May and June start dates and a smaller autumn window for six-month or off-cycle programmes.</p>
+            <p>Most high-visibility finance intern hiring happens between July and November of the year before the internship. Goldman Sachs India opens Summer Analyst applications on 1 July, and IIM Ahmedabad's 2025-27 batch received all 410 summer offers between 28 Oct and 3 Nov 2025, a quarter of them from BFSI firms (IIMA, Nov 2025).</p>
             <p>LinkedIn remains the default discovery layer for India finance hiring. Profiles that link one flagship model, sector memo, or competition write-up get more serious passes than buzzword summaries.</p>
             <p>When you message an associate, VP, or campus recruiter, lead with a specific problem you investigated and one recommendation, not admiration for the brand. Busy managers forward messages that make them look sharp, not long essays.</p>
 

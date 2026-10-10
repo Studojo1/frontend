@@ -41,33 +41,6 @@ function initCharts() {
   const INK    = "#171717";
   const gridOpts = { color: "#f0f0ee", lineWidth: 1 };
 
-  const offerSourceMixChartEl = document.getElementById("offerSourceMixChart") as HTMLCanvasElement | null;
-  if (offerSourceMixChartEl && !offerSourceMixChartEl.dataset.rendered) {
-    offerSourceMixChartEl.dataset.rendered = "1";
-    new Chart(offerSourceMixChartEl, {
-      type: "doughnut",
-      data: {
-        labels: ["Formal placement-cell drives", "Off-campus self-apply and outreach", "Internship or PPO conversion", "Referrals and alumni intros", "Higher study or family business", "Unplaced at graduation"],
-        datasets: [{
-          data: [38.0, 22.0, 18.0, 12.0, 6.0, 4.0],
-          backgroundColor: ["#8B5CF6", "#a78bfa", "#10b981", "#f59e0b", "#737373", "#ef4444"],
-          borderColor: "#fff",
-          borderWidth: 3,
-          hoverOffset: 8,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "62%",
-        plugins: {
-          legend: { position: "bottom" as const, labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
-        },
-      },
-    });
-  }
-
   const placementCellScopeChartEl = document.getElementById("placementCellScopeChart") as HTMLCanvasElement | null;
   if (placementCellScopeChartEl && !placementCellScopeChartEl.dataset.rendered) {
     placementCellScopeChartEl.dataset.rendered = "1";
@@ -150,7 +123,7 @@ const reportCSS = `
   .rpt-meta-label { font-size: 10px; font-weight: 700; color: #525252; text-transform: uppercase; letter-spacing: 1.5px; }
   .rpt-meta-value { font-size: 14px; font-weight: 600; color: #a3a3a3; }
   .rpt-body { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; display: flex; flex-direction: column; gap: 20px; }
-  .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .stat-bar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
   @media (max-width: 640px) { .stat-bar { grid-template-columns: 1fr; } .rpt-hero h1 { font-size: 32px; } }
   .stat-card { background: #fff; border: 2px solid #171717; border-radius: 16px; box-shadow: 4px 4px 0 #171717; padding: 24px 26px; }
   .stat-card .sc-num { font-size: 42px; font-weight: 700; color: #8B5CF6; letter-spacing: -2px; line-height: 1; margin-bottom: 6px; }
@@ -268,11 +241,6 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               <div className="sc-source">{"Studojo campus placement synthesis, 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"1:400+"}</div>
-              <div className="sc-label">{"Typical student-to-placement-staff ratio at large Indian engineering colleges during peak season, before counting training partners and volunteers"}</div>
-              <div className="sc-source">{"Studojo placement-office survey synthesis, 2025 to 2026"}</div>
-            </div>
-            <div className="stat-card">
               <div className="sc-num">{"3 layers"}</div>
               <div className="sc-label">{"What most placement cells actually manage: employer relationships, process compliance, and student eligibility, not individual career coaching at scale"}</div>
               <div className="sc-source">{"Studojo placement-cell framework, 2026"}</div>
@@ -289,10 +257,10 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
             <p>{"In India, the placement cell (or training and placement office) sits between graduating batches and employers who agree to run campus drives. Its core job is coordination: register companies, publish schedules, collect resumes, run aptitude rounds, enforce slot caps, and keep offer letters documented for accreditation and alumni statistics."}</p>
-            <p>{"Students often imagine a placement officer personally lobbying for them. At scale that is rare. A single coordinator may cover hundreds of students across multiple branches. The office optimises for process integrity and employer satisfaction, not bespoke career strategy for every candidate."}</p>
+            <p>{"Students often imagine a placement officer personally lobbying for them. At scale that is rare. At large Indian engineering colleges, a small placement team usually handles the whole graduating batch in peak season, so one-to-one attention is scarce. The office optimises for process integrity and employer satisfaction, not bespoke career strategy for every candidate."}</p>
             <p>{"US and UK equivalents (career centers, Handshake admins, OCR coordinators) play a similar role with different branding: calendars, employer events, and system access, not guaranteed outcomes."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Treat the placement cell as infrastructure you plug into, not a concierge that shops roles on your behalf."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Treat the placement cell as infrastructure you plug into, not a concierge that shops roles on your behalf.</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"What placement cells handle vs what students must own (responsibility index, 0 to 10)"}</div>
@@ -314,7 +282,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Mental model:</strong> Airport control tower, not the airline booking your seat. They sequence traffic. You still need a ticket (skills, proof, fit) and you still choose your destination."}</div>
+            <div className="callout"><strong>Mental model:</strong> Airport control tower, not the airline booking your seat. They sequence traffic. You still need a ticket (skills, proof, fit) and you still choose your destination.</div>
           </div>
 
           <div className="rpt-section">
@@ -328,15 +296,9 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <p>{"Placement cells open doors to employers who only hire through campus pipelines. Large IT services firms, GCCs, banks, and consulting cohorts often post drives exclusively via registered colleges. You get a structured path: pre-placement talk, test, technical round, HR round, offer documentation."}</p>
             <p>{"They enforce rules that protect students: slot limits so one candidate cannot hoard offers, renege policies, minimum stipend or CTC floors at many institutes, and blocks on zero-pay corporate internships for credit. When an employer ghosts or delays joining letters, the office sometimes has a relationship manager to escalate."}</p>
             <p>{"They also maintain institutional memory: which firms actually joined last year, which roles were real versus vanity drives, and which recruiters respond when batches complain collectively."}</p>
+            <p>{"Access still does not guarantee an offer. AICTE data shows that of the roughly 3.43 million students enrolled in undergraduate engineering programmes between 2019-20 and 2022-23, only 47.7% secured placements (reported by ThePrint, March 2025). Even at the IITs, about 38% of the 21,500 students who registered for placements in 2024 were still unplaced (RTI data reported by Outlook India, May 2024)."}</p>
 
-            <div className="chart-wrap">
-              <div className="chart-label">{"Where final-year offers come from at typical Indian campuses (illustrative mix, %)"}</div>
-              <div style={{ height: 280 }}>
-                <canvas id="offerSourceMixChart" />
-              </div>
-            </div>
-
-            <div className="highlight">{"<strong>Key insight:</strong> The placement cell's superpower is legitimate access to employers who refuse open-market chaos. Use it when those employers match your goals."}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" The placement cell's superpower is legitimate access to employers who refuse open-market chaos. Use it when those employers match your goals."}</div>
 
             <div className="pull-quote">
               <p>{"\"We can get the recruiter on campus. We cannot get you through the technical round if your projects are empty.\""}</p>
@@ -356,7 +318,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Get from your office early:</strong> Placement policy PDF, slot and renege rules, eligible company list from last two years, and the official resume format. Read before dream-company season, not after you are disqualified."}</div>
+            <div className="callout-green"><strong>Get from your office early:</strong> Placement policy PDF, slot and renege rules, eligible company list from last two years, and the official resume format. Read before dream-company season, not after you are disqualified.</div>
           </div>
 
           <div className="rpt-section">
@@ -371,7 +333,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <p>{"They cannot override employer hiring bars. Low GPA cutoffs, branch restrictions, backlog rules, and aptitude thresholds are set by recruiters. Officers may negotiate batch size or dates; they rarely negotiate individual exceptions without a strong referral or exceptional proof."}</p>
             <p>{"They cannot interview for you, build your GitHub, or fix a generic resume. They also cannot force employers to wait while you explore off-campus options if slot policies require you to accept or release offers on a deadline."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> The placement cell controls process, not outcomes. Passing the aptitude test still leaves technical, HR, and fit screens entirely on you."}</div>
+            <div className="highlight"><strong>Key insight:</strong> The placement cell controls process, not outcomes. Passing the aptitude test still leaves technical, HR, and fit screens entirely on you.</div>
 
             <div className="pull-quote">
               <p>{"\"Students blame us when they fail GD rounds. We brought the company. We did not write their answers.\""}</p>
@@ -391,7 +353,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout-red">{"<strong>Common myths:</strong> \"The TPO will push my profile\" (only if the employer asks for a shortlist and you are already on it). \"Campus means safe offer\" (startups and third-party staffing still flake). \"One offer is enough\" (role scope may be wrong; read the letter)."}</div>
+            <div className="callout-red"><strong>Common myths:</strong>{" \"The TPO will push my profile\" (only if the employer asks for a shortlist and you are already on it). \"Campus means safe offer\" (startups and third-party staffing still flake). \"One offer is enough\" (role scope may be wrong; read the letter)."}</div>
           </div>
 
           <div className="rpt-section">
@@ -413,7 +375,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Judge your placement cell by the employer graph it actually has, not the brochure from a sibling college."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Judge your placement cell by the employer graph it actually has, not the brochure from a sibling college.</div>
 
             <div className="blist">
 
@@ -428,7 +390,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Ask your seniors:</strong> Which drives were real jobs versus attendance theater? Which offers had bonds or training deposits? Which firms returned three years in a row?"}</div>
+            <div className="callout-amber"><strong>Ask your seniors:</strong> Which drives were real jobs versus attendance theater? Which offers had bonds or training deposits? Which firms returned three years in a row?</div>
           </div>
 
           <div className="rpt-section">
@@ -451,7 +413,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> High performers treat campus drives as one channel in a portfolio. They do not pause other channels until placement season ends."}</div>
+            <div className="highlight"><strong>Key insight:</strong> High performers treat campus drives as one channel in a portfolio. They do not pause other channels until placement season ends.</div>
 
             <div className="pull-quote">
               <p>{"\"The students who stressed less treated placement season like exam season: calendar, mocks, and backups. The ones who waited for us to call them daily got surprised.\""}</p>
@@ -471,7 +433,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Weekly habit during season:</strong> Monday: check drive calendar. Tuesday: one off-campus outreach. Wednesday: aptitude or technical prep. Thursday: follow up pending applications. Friday: talk to one senior about employer reality."}</div>
+            <div className="callout"><strong>Weekly habit during season:</strong> Monday: check drive calendar. Tuesday: one off-campus outreach. Wednesday: aptitude or technical prep. Thursday: follow up pending applications. Friday: talk to one senior about employer reality.</div>
           </div>
 
           <div className="rpt-section">
@@ -486,7 +448,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
             <p>{"Legitimate off-campus paths include LinkedIn and Naukri with tailoring, alumni WhatsApp and Slack groups, professor referrals, prior internship conversions, hackathon networks, and direct outreach to hiring managers. Many strong offers never touch the placement cell, even at colleges with active offices."}</p>
             <p>{"Stay compliant: read whether your institute requires offer disclosure, whether off-campus offers count toward placement stats, and whether signing an outside offer triggers renege penalties. Work the system; do not get disqualified on a technicality."}</p>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> Placement cells run the on-campus railroad. You still need a map for the territory outside the tracks."}</div>
+            <div className="highlight"><strong>Summary insight:</strong> Placement cells run the on-campus railroad. You still need a map for the territory outside the tracks.</div>
 
             <div className="pull-quote">
               <p>{"\"My offer came from a founder DM. I told placement office after signing so they could update records. Both paths can coexist.\""}</p>
@@ -511,7 +473,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>90-day parallel plan:</strong> Month 1: fix proof and policy literacy. Month 2: register all viable drives plus ten off-campus outreaches per week. Month 3: decide using role fit and joining certainty, not panic or peer pressure."}</div>
+            <div className="callout-amber"><strong>90-day parallel plan:</strong> Month 1: fix proof and policy literacy. Month 2: register all viable drives plus ten off-campus outreaches per week. Month 3: decide using role fit and joining certainty, not panic or peer pressure.</div>
           </div>
 
           <div className="takeaway-section">

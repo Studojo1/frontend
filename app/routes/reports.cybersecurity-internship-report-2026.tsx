@@ -72,33 +72,6 @@ function initCharts() {
       },
     });
   }
-
-  const certChartEl = document.getElementById("certChart") as HTMLCanvasElement | null;
-  if (certChartEl && !certChartEl.dataset.rendered) {
-    certChartEl.dataset.rendered = "1";
-    new Chart(certChartEl, {
-      type: "doughnut",
-      data: {
-        labels: ["Certificates beyond the first one", "Coursework already covered by the degree", "A documented home lab and write-ups", "Applying outside technology companies"],
-        datasets: [{
-          data: [45.0, 30.0, 18.0, 7.0],
-          backgroundColor: ["#ef4444", "#f59e0b", "#10b981", "#10b981"],
-          borderColor: "#fff",
-          borderWidth: 3,
-          hoverOffset: 8,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "62%",
-        plugins: {
-          legend: { position: "bottom" as const, labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
-        },
-      },
-    });
-  }
 }
 
 const reportCSS = `
@@ -243,8 +216,8 @@ export default function Report_CybersecurityInternshipReport2026() {
             </div>
             <div className="stat-card">
               <div className="sc-num">55%</div>
-              <div className="sc-label">of hiring managers now use internships specifically to build their talent pipeline, which makes the internship the main door in</div>
-              <div className="sc-source">Employer hiring intent surveys, 2026</div>
+              <div className="sc-label">of cybersecurity hiring managers said internships are an effective way to find early-career talent, just behind job postings and staffing firms at 57% each</div>
+              <div className="sc-source">ISC2 Cybersecurity Hiring Trends, June 2025 (929 hiring managers in six countries, surveyed December 2024)</div>
             </div>
           </div>
 
@@ -284,13 +257,6 @@ export default function Report_CybersecurityInternshipReport2026() {
             <p>The consistent finding across 2026 hiring guidance is that demonstrable skill, meaning a home lab plus a documented portfolio, outperforms certifications alone. That phrase is doing a lot of work and most students only hear the first half.</p>
             <p>A home lab on its own proves nothing to a stranger, because they cannot see it. What converts is the documentation: a short write-up of what you built, what you were trying to detect or break, what happened, and what you concluded. Ten of those is a portfolio. It is also the only thing in your application that a hiring manager cannot get from anyone else, because everyone else has the same certificate.</p>
             <p>The tooling expectation at entry level is modest and specific. Familiarity with Wireshark, a Linux distribution such as Kali, and enough scripting to automate something small. You are not expected to arrive expert. You are expected to have actually touched the tools.</p>
-
-            <div className="chart-wrap">
-              <div className="chart-label">Where a student's first year of effort is usually spent, against where it pays off</div>
-              <div style={{ height: 300 }}>
-                <canvas id="certChart" />
-              </div>
-            </div>
 
             <div className="highlight">Key insight: the lab is the work, the write-up is the evidence. A lab nobody can read about does not exist as far as your application is concerned.</div>
 
@@ -351,10 +317,10 @@ export default function Report_CybersecurityInternshipReport2026() {
               </div>
             </div>
             <p>Cybersecurity interns in the United States average around $57,115 a year, and entry-level security roles land roughly between $50,000 and $85,000 depending on the role, the metro and whether a clearance is involved. Intern pay generally sits below the entry-level band, as it does in most fields.</p>
-            <p>The number that should matter more to you is that 55 percent of hiring managers now use internships specifically to build their talent pipeline. That reframes the internship from a summer of experience into the primary hiring channel for the field.</p>
+            <p>The number that should matter more to you comes from ISC2's 2025 Cybersecurity Hiring Trends study (929 hiring managers in the US, UK, Canada, Germany, India and Japan, surveyed in December 2024 and published in June 2025): 55 percent said internships are an effective way to find early-career talent, just behind job postings and staffing firms at 57 percent each. An internship is one of the strongest ways in, not the only one.</p>
             <p>Clearance is worth understanding early if you are in the United States. Roles requiring one pay at the top of the band, partly because the pool of cleared candidates is small and slow to grow. An internship in a government agency or a cleared contractor can start that process years before it would otherwise begin.</p>
 
-            <div className="highlight">Key insight: if more than half of hiring managers use internships as their pipeline, then the internship is not a step toward the career. It is the entrance.</div>
+            <div className="highlight">Key insight: more than half of hiring managers rate internships as an effective way to find early-career talent, just behind job postings and staffing firms. Treat the internship as one of your best routes in, and keep the other routes open.</div>
 
             <div className="callout">Compare offers on what you will touch, not only on the rate. A summer with real incident exposure at a hospital is worth more to your second job than a higher-paying summer writing documentation.</div>
           </div>
@@ -368,7 +334,7 @@ export default function Report_CybersecurityInternshipReport2026() {
               </div>
             </div>
             <p>The sequence matters more than the intensity. One baseline certificate, then a lab, then write-ups, then applications aimed outside the obvious employers. Doing these in a different order is what produces a student with three certificates and no interviews.</p>
-            <p>Most entry-level postings also expect enrolment in a relevant programme and foundational knowledge of networking and operating systems. If your degree already covers those, do not re-learn them through a paid course. That is the second most common way students spend a term on something that changes nothing.</p>
+            <p>Most entry-level postings also expect enrolment in a relevant programme and foundational knowledge of networking and operating systems. If your degree already covers those, do not re-learn them through a paid course. That is another way to spend a term on something that changes nothing.</p>
 
             <div className="highlight">Key insight: a student with one certificate and ten written-up investigations beats a student with three certificates and nothing to show, essentially every time.</div>
 
@@ -419,9 +385,9 @@ export default function Report_CybersecurityInternshipReport2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Apply where nobody else does.</strong> Hospitals, utilities, banks, government and retail all run security functions. Almost every student application goes to technology companies instead.</span>
               </div>
-              <div className="blist-item" key="Treat the internship as the entrance">
+              <div className="blist-item" key="Treat the internship as one of the strongest ways in">
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
-                <span style={{ color: "#3b0764" }}><strong>Treat the internship as the entrance.</strong> 55 percent of hiring managers use internships to build their pipeline, which makes it the main hiring channel rather than a stepping stone.</span>
+                <span style={{ color: "#3b0764" }}><strong>Treat the internship as one of the strongest ways in.</strong> 55 percent of hiring managers told ISC2 that internships are an effective way to find early-career talent, just behind job postings and staffing firms at 57 percent each. It is a strong door, not the only one.</span>
               </div>
             </div>
           </div>

@@ -7,13 +7,13 @@ const BASE_URL = "https://studojo.com";
 export function meta() {
   return [
     { title: "Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai | Studojo" },
-    { name: "description", content: "India tier 2 hiring in 2026: which jobs are moving out of Bangalore and Mumbai, top cities (Pune, Hyderabad, Chennai), INR pay bands, and how to search." },
+    { name: "description", content: "India tier 2 hiring in 2026: which jobs are moving out of Bangalore and Mumbai, the emerging hubs (Coimbatore, Kochi, Vadodara), INR pay bands, and how to search." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "tier 2 cities jobs India 2026, jobs leaving Bangalore Mumbai, Pune Hyderabad Chennai hiring, GCC jobs tier 2 India, relocate India tech jobs, tier 2 salary vs Bangalore" },
     { tagName: "link", rel: "canonical", href: `${BASE_URL}/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026` },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai" },
-    { property: "og:description", content: "Jobs are not leaving metros overnight, but hiring lanes are shifting to Pune, Hyderabad, Chennai, and more. This report maps what's moving, pay tradeoffs, and how to hunt." },
+    { property: "og:description", content: "Jobs are not leaving Bangalore and Mumbai overnight, but hiring lanes are shifting to Hyderabad, Pune, Chennai, and emerging cities like Coimbatore. This report maps what's moving, pay tradeoffs, and how to hunt." },
     { property: "og:url", content: `${BASE_URL}/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026` },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: `${BASE_URL}/og-reports.png` },
@@ -40,33 +40,6 @@ function initCharts() {
   const MUTED  = "#737373";
   const INK    = "#171717";
   const gridOpts = { color: "#f0f0ee", lineWidth: 1 };
-
-  const tier2CityMixChartEl = document.getElementById("tier2CityMixChart") as HTMLCanvasElement | null;
-  if (tier2CityMixChartEl && !tier2CityMixChartEl.dataset.rendered) {
-    tier2CityMixChartEl.dataset.rendered = "1";
-    new Chart(tier2CityMixChartEl, {
-      type: "doughnut",
-      data: {
-        labels: ["Pune", "Hyderabad", "Chennai", "Ahmedabad", "Kochi and Trivandrum", "Jaipur, Indore, and other"],
-        datasets: [{
-          data: [28.0, 24.0, 20.0, 12.0, 9.0, 7.0],
-          backgroundColor: ["#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#115e59", "#737373"],
-          borderColor: "#fff",
-          borderWidth: 3,
-          hoverOffset: 8,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "62%",
-        plugins: {
-          legend: { position: "bottom" as const, labels: { font: { size: 11 }, boxWidth: 12, padding: 14 } },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
-        },
-      },
-    });
-  }
 
   const jobsShiftingChartEl = document.getElementById("jobsShiftingChart") as HTMLCanvasElement | null;
   if (jobsShiftingChartEl && !jobsShiftingChartEl.dataset.rendered) {
@@ -207,7 +180,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
         "@context": "https://schema.org",
         "@type": "Article",
         "headline": "Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai",
-        "description": "India tier 2 hiring in 2026: which jobs are moving out of Bangalore and Mumbai, top cities (Pune, Hyderabad, Chennai), INR pay bands, and how to search.",
+        "description": "India tier 2 hiring in 2026: which jobs are moving out of Bangalore and Mumbai, the emerging hubs (Coimbatore, Kochi, Vadodara), INR pay bands, and how to search.",
         "url": `${BASE_URL}/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026`,
         "datePublished": "2026-05-30T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
@@ -238,7 +211,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               <span>{"Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai"}</span>
             </nav>
             <h1 dangerouslySetInnerHTML={{ __html: "Tier 2 Cities Are Hiring:<br /><em>The Jobs Leaving Bangalore and Mumbai</em>" }} />
-            <p className="rpt-hero-sub">{"Not every role is leaving the metros. But in 2026, a growing share of engineering, operations, analytics, and shared-services hiring is landing in Pune, Hyderabad, Chennai, and other tier 2 cities where employers save cost, hire faster, and keep retention higher. This report shows which lanes are shifting, what INR pay really looks like, who is posting reqs, and how to build a city strategy that is data, not nostalgia."}</p>
+            <p className="rpt-hero-sub">{"Not every role is leaving Bangalore and Mumbai. But in 2026, a growing share of engineering, operations, analytics, and shared-services hiring is landing in other tier 1 hubs such as Pune, Hyderabad, and Chennai, and in emerging cities such as Coimbatore, Kochi, and Vadodara, where employers save cost, hire faster, and keep retention higher. This report shows which lanes are shifting, what INR pay really looks like, who is posting reqs, and how to build a city strategy that is data, not nostalgia."}</p>
             <div className="rpt-meta">
               <div className="rpt-meta-item">
                 <span className="rpt-meta-label">Scope</span>
@@ -263,14 +236,14 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">{"~35%"}</div>
-              <div className="sc-label">{"Illustrative share of new GCC and captives capacity added outside Bangalore and Mumbai in Studojo's 2026 India employer map"}</div>
-              <div className="sc-source">{"Studojo GCC and labour-market synthesis, 2026"}</div>
+              <div className="sc-num">{"~5%"}</div>
+              <div className="sc-label">{"Share of India's new GCC units set up in the past year that went to emerging cities. Two thirds of new GCCs in the past two years chose tier 1 cities, and Bangalore alone holds 29% of all units"}</div>
+              <div className="sc-source">{"nasscom-Zinnov India GCC Landscape Report, May 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"6 cities"}</div>
-              <div className="sc-label">{"Highest visible hiring momentum in tier 2: Pune, Hyderabad, Chennai, Ahmedabad, Kochi, and Jaipur (plus Chandigarh and Indore for select lanes)"}</div>
-              <div className="sc-source">{"Studojo city hiring index, 2026"}</div>
+              <div className="sc-num">{"5 cities"}</div>
+              <div className="sc-label">{"Emerging GCC hubs with the most units: Coimbatore (60+), Ahmedabad and Kolkata (45+ each), and Vadodara and Kochi (35+ each). Pune, Hyderabad and Chennai are tier 1 hubs, not tier 2"}</div>
+              <div className="sc-source">{"nasscom-Zinnov India GCC Landscape Report, May 2026"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"~15-25%"}</div>
@@ -291,7 +264,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
             <p>{"Headlines sound like an exodus. The labour market is more precise. Core product invention, venture-backed founding teams, front-office finance, and top-tier consulting partnership tracks still cluster in Bangalore, Mumbai, Gurgaon, and Hyderabad's established corridors. What spreads to tier 2 cities are scale lanes: GCC engineering pods, IT services delivery, analytics and shared services, inside sales, customer operations, and regional commercial teams."}</p>
             <p>{"Employers chase three wins: lower office and salary cost, faster hiring from local colleges, and retention when commute and housing stress drop. Candidates chase rent relief and manager access. Neither side is pretending the metro brand disappeared. They are optimizing where each role type should sit."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Ask \"which lane is my target role in?\" before you ask \"which city is fashionable.\""}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" Ask \"which lane is my target role in?\" before you ask \"which city is fashionable.\""}</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"Job lanes with the most tier 2 expansion (momentum index, 0 to 10)"}</div>
@@ -313,28 +286,22 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               </div>
             </div>
 
-            <div className="callout">{"<strong>Stays metro-heavy:</strong> VC-backed product manager at 50-person startup, MBB consulting, sell-side research, elite fintech trading, and many design-led consumer roles.<br /><br /><strong>Shifts tier 2 faster:</strong> GCC software, testing and SRE at scale, BPO and KPO upgrades, captive analytics, and inside sales for India market."}</div>
+            <div className="callout"><strong>Stays metro-heavy:</strong> VC-backed product manager at 50-person startup, MBB consulting, sell-side research, elite fintech trading, and many design-led consumer roles.<br /><br /><strong>Shifts tier 2 faster:</strong> GCC software, testing and SRE at scale, BPO and KPO upgrades, captive analytics, and inside sales for India market.</div>
           </div>
 
           <div className="rpt-section">
             <div className="sec-header">
               <div className="sec-num" style={{ background: "#0d9488" }}>{"2"}</div>
               <div>
-                <div className="sec-title">{"Which tier 2 cities win which sectors"}</div>
-                <div className="sec-sub">{"Pune, Hyderabad, Chennai, and the specialists"}</div>
+                <div className="sec-title">{"Which cities win which sectors"}</div>
+                <div className="sec-sub">{"Tier 1 hubs Pune, Hyderabad, and Chennai, plus the emerging specialists"}</div>
               </div>
             </div>
-            <p>{"Pune picks up automotive tech, manufacturing IT, GCC expansions, and Bangalore overflow engineering. Hyderabad already behaves like a metro for tech but still absorbs GCC and cloud operations at lower land cost. Chennai leads automotive, electronics, and industrial IT services with strong campus pipelines. Ahmedabad and Gandhinagar grow fintech back office, pharma analytics, and government-linked digital projects. Kochi and Thiruvananthapuram host IT services and GCC support functions with quality-of-life positioning."}</p>
-            <p>{"Jaipur, Indore, Chandigarh, Coimbatore, and Visakhapatnam show up in employer plans, but with narrower employer sets. Your city pick should follow sector fit, not a generic \"tier 2 is hot\" post."}</p>
+            <p>{"First, the labels. Pune, Hyderabad, and Chennai are tier 1 hubs, not tier 2. Together with Bangalore, NCR, and Mumbai they hold nearly all of India's GCC scale. The emerging GCC hubs with the most units are Coimbatore (60+), Ahmedabad and Kolkata (45+ each), and Vadodara and Kochi (35+ each), according to the nasscom-Zinnov India GCC Landscape Report (May 2026)."}</p>
+            <p>{"Pune picks up automotive tech, manufacturing IT, GCC expansions, and Bangalore overflow engineering. Hyderabad is already a metro for tech but still absorbs GCC and cloud operations at lower land cost. Chennai leads automotive, electronics, and industrial IT services with strong campus pipelines. Ahmedabad and Gandhinagar grow fintech back office, pharma analytics, and government-linked digital projects. Kochi and Thiruvananthapuram host IT services and GCC support functions with quality-of-life positioning."}</p>
+            <p>{"Jaipur, Indore, Chandigarh, and Visakhapatnam show up in employer plans, but with narrower employer sets. Your city pick should follow sector fit, not a generic \"tier 2 is hot\" post."}</p>
 
-            <div className="chart-wrap">
-              <div className="chart-label">{"Where tier 2 hiring activity concentrates (illustrative share of net new roles, %)"}</div>
-              <div style={{ height: 280 }}>
-                <canvas id="tier2CityMixChart" />
-              </div>
-            </div>
-
-            <div className="highlight">{"<strong>Key insight:</strong> Match city to sector gravity. One strong employer in the right city beats five weak applies in a trendy one."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Match city to sector gravity. One strong employer in the right city beats five weak applies in a trendy one.</div>
 
             <div className="pull-quote">
               <p>{"\"We opened forty seats in Pune because Bangalore hiring time doubled and offer acceptance fell. Same stack, different city.\""}</p>
@@ -373,7 +340,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Compare savings, not sticker CTC. Ask take-home, rent, and office-day count."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Compare savings, not sticker CTC. Ask take-home, rent, and office-day count.</div>
 
             <div className="blist">
 
@@ -388,7 +355,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Illustrative annual CTC ranges (2026, early-career, varies by employer):</strong><br />GCC / IT services engineer (0 to 2y): tier 2 often ₹6-12 LPA, Bangalore often ₹8-14 LPA.<br />Data and analytics (1 to 3y): tier 2 often ₹8-14 LPA, Bangalore often ₹10-18 LPA.<br />Inside sales / SDR: tier 2 often ₹5-9 LPA fixed + variable, metros slightly higher base."}</div>
+            <div className="callout-green"><strong>Illustrative annual CTC ranges (2026, early-career, varies by employer):</strong><br />IT services engineer (0 to 2y): mass hiring tracks pay about ₹3 to 4.5 LPA wherever you sit (TCS Ninja starts at ₹3.36 LPA in the 2026 NQT), and premium tracks such as TCS Digital pay about ₹7.1 LPA. GCC engineering roles usually pay more than IT services, and Bangalore sits at the top of the range. Sources: TCS NQT 2026 pay bands; People Matters, Feb 2026.<br />Data and analytics (1 to 3y): tier 2 often ₹8-14 LPA, Bangalore often ₹10-18 LPA.<br />Inside sales / SDR: tier 2 often ₹5-9 LPA fixed + variable, metros slightly higher base.</div>
           </div>
 
           <div className="rpt-section">
@@ -402,7 +369,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
             <p>{"Global capability centres and captives lead visible hiring: engineering, cloud, cybersecurity, ERP, and business operations. IT services majors continue large intake from tier 2 campuses with training hubs. Indian product companies use tier 2 for support engineering, QA, analytics, and regional sales, while keeping core product leadership in metros."}</p>
             <p>{"Pharma, automotive, and industrial conglomerates hire analysts and digital ops in Ahmedabad, Chennai, and Pune. Fintech compliance and operations pods grow in Gujarat and Kerala. Do not expect every unicorn to clone its Bangalore office; expect function-specific pods."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Search employer name + city on the careers site. Aggregators often tag Bangalore while the req sits in Pune."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Search employer name + city on the careers site. Aggregators often tag Bangalore while the req sits in Pune.</div>
 
             <div className="blist">
 
@@ -417,7 +384,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Weekly search strings:</strong> \"GCC Pune,\" \"Hyderabad captive,\" \"Chennai automotive digital,\" \"Ahmedabad fintech operations,\" plus your skill (data, Java, Salesforce, etc.)."}</div>
+            <div className="callout-amber"><strong>Weekly search strings:</strong>{" \"GCC Pune,\" \"Hyderabad captive,\" \"Chennai automotive digital,\" \"Ahmedabad fintech operations,\" plus your skill (data, Java, Salesforce, etc.)."}</div>
           </div>
 
           <div className="rpt-section">
@@ -439,7 +406,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> City strategy is a five-year cash and skills plan. Optimize for the work you want to be known for, then pick the map pin."}</div>
+            <div className="highlight"><strong>Key insight:</strong> City strategy is a five-year cash and skills plan. Optimize for the work you want to be known for, then pick the map pin.</div>
 
             <div className="blist">
 
@@ -454,7 +421,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               </div>
             </div>
 
-            <div className="callout">{"<strong>Three questions before you relocate:</strong> (1) Is my lane growing here? (2) Does pay survive rent and family costs? (3) Can I switch back to a metro team later without a title reset?"}</div>
+            <div className="callout"><strong>Three questions before you relocate:</strong> (1) Is my lane growing here? (2) Does pay survive rent and family costs? (3) Can I switch back to a metro team later without a title reset?</div>
           </div>
 
           <div className="rpt-section">
@@ -465,10 +432,10 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
                 <div className="sec-sub">{"Targets, proof, and channel mix"}</div>
               </div>
             </div>
-            <p>{"Week 1: pick two cities and two sectors (example: Pune + GCC, Chennai + automotive IT). Build a list of 40 employers with careers pages. Week 2: tailor resume to lane language (platform, captive, delivery centre). Week 3: ten outreach messages to recruiters and hiring managers citing city and skill. Week 4: track screens per channel; double down where replies appear."}</p>
+            <p>{"Week 1: pick two cities and two sectors (example: Coimbatore + GCC, Kochi + IT services). Build a list of 40 employers with careers pages. Week 2: tailor resume to lane language (platform, captive, delivery centre). Week 3: ten outreach messages to recruiters and hiring managers citing city and skill. Week 4: track screens per channel; double down where replies appear."}</p>
             <p>{"Pair tier 2 applies with two metro backup targets in the same sector so you are not hostage to one geography. Measure interview rate per ten serious attempts, not apply count."}</p>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> Tier 2 hiring is a lane shift, not a downgrade by default. The winners treat city as part of sector strategy."}</div>
+            <div className="highlight"><strong>Summary insight:</strong> Tier 2 hiring is a lane shift, not a downgrade by default. The winners treat city as part of sector strategy.</div>
 
             <div className="pull-quote">
               <p>{"\"I moved the search to Pune and closed an offer in six weeks. Same skills, half the rent, manager I actually meet.\""}</p>
@@ -488,7 +455,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
               </div>
             </div>
 
-            <div className="callout">{"<strong>Resume line that helps:</strong> \"Open to Bangalore, Pune, or Hyderabad for GCC platform roles\" beats hiding location until the last call."}</div>
+            <div className="callout"><strong>Resume line that helps:</strong>{" \"Open to Bangalore, Pune, or Hyderabad for GCC platform roles\" beats hiding location until the last call."}</div>
           </div>
 
           <div className="takeaway-section">

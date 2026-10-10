@@ -68,17 +68,17 @@ function initCharts() {
     });
   }
 
-  const managerEvalFactorsChartEl = document.getElementById("managerEvalFactorsChart") as HTMLCanvasElement | null;
-  if (managerEvalFactorsChartEl && !managerEvalFactorsChartEl.dataset.rendered) {
-    managerEvalFactorsChartEl.dataset.rendered = "1";
-    new Chart(managerEvalFactorsChartEl, {
+  const employerAttributesChartEl = document.getElementById("employerAttributesChart") as HTMLCanvasElement | null;
+  if (employerAttributesChartEl && !employerAttributesChartEl.dataset.rendered) {
+    employerAttributesChartEl.dataset.rendered = "1";
+    new Chart(employerAttributesChartEl, {
       type: "bar",
       data: {
-        labels: ["Follow-through without reminders", "Clear written updates", "Quality of final deliverable", "Asks smart questions early", "Easy to staff on future work", "Hours logged or face time alone", "Polished deck with weak Q&A"],
+        labels: ["Problem-solving skills", "Ability to work in a team", "Written communication skills", "Initiative", "Strong work ethic", "Technical skills"],
         datasets: [{
-          label: "What managers rank in intern evaluations (index 0 to 10)",
-          data: [9.3, 9.0, 8.8, 8.2, 8.0, 3.5, 2.8],
-          backgroundColor: ["#6366f1", "#6366f1", "#818cf8", "#8b5cf6", "#a855f7", "#737373", "#ef4444"],
+          label: "Top six attributes employers seek on a college candidate's resume (NACE Job Outlook 2025, % of employers)",
+          data: [88.3, 81.0, 77.1, 73.7, 73.2, 73.2],
+          backgroundColor: ["#6366f1", "#6366f1", "#818cf8", "#8b5cf6", "#a855f7", "#a855f7"],
           borderRadius: 6,
           borderWidth: 0,
         }],
@@ -89,10 +89,10 @@ function initCharts() {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}/10` } },
+          tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}%` } },
         },
         scales: {
-          x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 10.0,
+          x: { grid: gridOpts, border: { dash: [4,4] }, min: 0.0, max: 100.0,
                ticks: { font: { size: 11 }, color: MUTED } },
           y: { grid: { display: false }, ticks: { font: { size: 12 }, color: INK } },
         },
@@ -263,9 +263,9 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">{"~40 to 65%"}</div>
-              <div className="sc-label">{"Illustrative return-offer rate at large structured intern programmes in tech and consulting when headcount is stable (drops sharply during hiring freezes)"}</div>
-              <div className="sc-source">{"NACE intern conversion surveys and employer cohort data, synthesised 2026"}</div>
+              <div className="sc-num">{"62 to 72%"}</div>
+              <div className="sc-label">{"Share of interns offered a full-time job by their employer in NACE's two latest cohorts: 61.9% of 2023-24 interns, the lowest of the past five years, and 71.8% of 2024-25 interns"}</div>
+              <div className="sc-source">{"NACE 2026 Internship & Co-op Survey (284 employers), April 2026"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"Week 4-5"}</div>
@@ -292,7 +292,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
             <p>{"Two interns can ship similar deliverables. One gets a pre-placement offer (PPO). One gets praise and a LinkedIn recommendation. The difference is often visibility, fit, project timing, and whether the manager had political capital to spend on a new grad line. None of that appears on the intern project rubric students imagine."}</p>
             <p>{"This is not cynicism. It is how organisations convert interns when conversion is optional. Understanding the full stack helps you optimize what you control instead of rage-applying after a polite rejection."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Return offers are hiring decisions with an internship audition attached, not graduation prizes for the best slide deck."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Return offers are hiring decisions with an internship audition attached, not graduation prizes for the best slide deck.</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"What drives return-offer outcomes (illustrative manager-reported mix, %)"}</div>
@@ -314,7 +314,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Reframe:</strong> Ask in week one: \"How are return offers decided on this team?\" If no one can answer, treat conversion as uncertain regardless of your effort."}</div>
+            <div className="callout"><strong>Reframe:</strong>{" Ask in week one: \"How are return offers decided on this team?\" If no one can answer, treat conversion as uncertain regardless of your effort."}</div>
           </div>
 
           <div className="rpt-section">
@@ -325,18 +325,18 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
                 <div className="sec-sub">{"Deliverables matter, but so does being low-friction to manage"}</div>
               </div>
             </div>
-            <p>{"Managers consistently rank follow-through and communication near the top of intern evaluations in Studojo's 2025 to 2026 synthesis. The intern who closes loops, writes crisp updates, and surfaces blockers early reads as future headcount worth buying. The intern who disappears until demo day forces rescue work."}</p>
+            <p>{"Employers put problem-solving, teamwork and written communication at the top of what they look for in students: 88.3%, 81.0% and 77.1% of employers in NACE's Job Outlook 2025 survey. The intern who closes loops, writes crisp updates, and surfaces blockers early reads as future headcount worth buying. The intern who disappears until demo day forces rescue work."}</p>
             <p>{"Deliverable quality still matters, but managers parse quality differently than professors. They weight judgment under ambiguity: did you pick the right metric, flag the risky assumption, and simplify for the audience? A beautiful chart with wrong conclusions loses to an ugly spreadsheet with a correct recommendation."}</p>
             <p>{"Collaboration signals show up in peer feedback more than interns expect. Teams remember who shared credit, who reviewed drafts, and who created cleanup work. Return offers are team bets, not solo awards."}</p>
 
             <div className="chart-wrap">
-              <div className="chart-label">{"What managers rank in intern evaluations (index 0 to 10)"}</div>
+              <div className="chart-label">{"Top six attributes employers seek on a college candidate's resume (NACE Job Outlook 2025, % of employers)"}</div>
               <div style={{ height: 300 }}>
-                <canvas id="managerEvalFactorsChart" />
+                <canvas id="employerAttributesChart" />
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Managers hire interns they can imagine staffing again without dread. Reliability is a form of performance."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Managers hire interns they can imagine staffing again without dread. Reliability is a form of performance.</div>
 
             <div className="pull-quote">
               <p>{"\"I gave the return offer to the intern who sent me a one-page Friday update for eight weeks straight. The other candidate had a flashier final deck but I spent half the summer chasing them.\""}</p>
@@ -356,7 +356,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>Weekly update template:</strong> Done → Learned → Blocker → Next week ask. Five lines in Slack every Friday. Managers forward interns who make them look organized."}</div>
+            <div className="callout-green"><strong>Weekly update template:</strong> Done → Learned → Blocker → Next week ask. Five lines in Slack every Friday. Managers forward interns who make them look organized.</div>
           </div>
 
           <div className="rpt-section">
@@ -378,7 +378,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Treat headcount reality as weather. You cannot control it. You can decide whether to build parallel options."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Treat headcount reality as weather. You cannot control it. You can decide whether to build parallel options.</div>
 
             <div className="pull-quote">
               <p>{"\"We loved two interns. We had one full-time slot. Both did great work. That is the normal tragedy no one warns students about.\""}</p>
@@ -398,7 +398,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               </div>
             </div>
 
-            <div className="callout-red">{"<strong>Early warning signs:</strong> Conversion criteria \"under review,\" mentor on leave without backup, project descoped in week three, or full-time reqs pulled from the internal jobs page."}</div>
+            <div className="callout-red"><strong>Early warning signs:</strong>{" Conversion criteria \"under review,\" mentor on leave without backup, project descoped in week three, or full-time reqs pulled from the internal jobs page."}</div>
           </div>
 
           <div className="rpt-section">
@@ -413,7 +413,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
             <p>{"Advocacy is easier when you make your manager successful. Forwardable summaries, clean handoff docs, and offers to take the boring follow-up task all reduce the social cost of vouching for you. Managers stake reputation when they request headcount."}</p>
             <p>{"Skip-level exposure should be structured, not performative. Volunteer for a five-minute demo, ask your manager to include your metric in their staff meeting, or write a one-pager the team can circulate. Random hallway small talk with executives rarely converts alone."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Return offers need witnesses. Private excellence loses to public clarity when committees compare interns."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Return offers need witnesses. Private excellence loses to public clarity when committees compare interns.</div>
 
             <div className="blist">
 
@@ -428,7 +428,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Visibility ladder:</strong> Week 2: share draft with mentor. Week 4: present progress in team standup. Week 6: cross-functional readout or doc in shared drive. Week 8: final demo with metrics and next-step recommendations."}</div>
+            <div className="callout-amber"><strong>Visibility ladder:</strong> Week 2: share draft with mentor. Week 4: present progress in team standup. Week 6: cross-functional readout or doc in shared drive. Week 8: final demo with metrics and next-step recommendations.</div>
           </div>
 
           <div className="rpt-section">
@@ -451,7 +451,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
             </div>
             <p>{"Fit is subjective but real. Teams optimize for communication style, time-zone overlap, appetite for ambiguity, and willingness to do unglamorous work. A great engineer on a client-facing team might lose to a good engineer who presents calmly to stakeholders."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> The final demo is the closing argument, not the trial. Most jurors decided earlier."}</div>
+            <div className="highlight"><strong>Key insight:</strong> The final demo is the closing argument, not the trial. Most jurors decided earlier.</div>
 
             <div className="pull-quote">
               <p>{"\"By July we knew who we wanted. August was paperwork and letting the others down gently.\""}</p>
@@ -471,7 +471,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Mid-internship check-in script:</strong> \"What would make me a strong return-offer candidate from your view? What should I stop doing or start doing in the next three weeks?\""}</div>
+            <div className="callout"><strong>Mid-internship check-in script:</strong>{" \"What would make me a strong return-offer candidate from your view? What should I stop doing or start doing in the next three weeks?\""}</div>
           </div>
 
           <div className="rpt-section">
@@ -485,7 +485,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
             <p>{"Week 1: clarify conversion process, success metrics, and communication norms. Set a recurring Friday update. Week 2: deliver a small visible win. Week 3: request specific feedback. Week 4: mid-internship check-in with manager on return-offer criteria. Weeks 5-6: cross-functional visibility and documented impact. Week 7: parallel job or internship pipeline active regardless of vibes. Week 8: final demo focused on decisions enabled, not activity logged."}</p>
             <p>{"Throughout: keep a brag doc with metrics, quotes, and artifacts. If you get a return offer, negotiate role scope and start date. If you do not, ask what would have changed the outcome and request a referral to adjacent teams. Exit with relationships intact."}</p>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> Win return offers by combining strong work, low-friction management, visible impact, and parallel options when headcount is not yours to command."}</div>
+            <div className="highlight"><strong>Summary insight:</strong> Win return offers by combining strong work, low-friction management, visible impact, and parallel options when headcount is not yours to command.</div>
 
             <div className="pull-quote">
               <p>{"\"I did not get the return offer but my manager introduced me to her former colleague. That full-time role was a better fit anyway.\""}</p>
@@ -510,7 +510,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>If you do not convert:</strong> Thank your manager, ask for a LinkedIn recommendation with specifics, request intros to one or two teams, and activate off-cycle applications within two weeks. Momentum decays fast."}</div>
+            <div className="callout-amber"><strong>If you do not convert:</strong> Thank your manager, ask for a LinkedIn recommendation with specifics, request intros to one or two teams, and activate off-cycle applications within two weeks. Momentum decays fast.</div>
           </div>
 
           <div className="takeaway-section">

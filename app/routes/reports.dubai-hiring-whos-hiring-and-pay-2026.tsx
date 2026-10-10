@@ -435,7 +435,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
             </div>
             <p>Be cautious of employers who will not put base, allowance split, and probation in writing. Verbal ranges evaporate when paperwork arrives.</p>
             <p>Unpaid trial periods that look like full work product are a pattern in every market, including Dubai. Test tasks should be bounded, paid, or clearly minimal.</p>
-            <p>If an offer requires large upfront fees for visa processing outside documented government costs, pause and verify through official channels or trusted legal counsel.</p>
+            <p>Under UAE labour law (Federal Decree-Law No. 33 of 2021, Article 6), your employer must pay recruitment and employment costs, including visa issuance, medical tests and your residency permit, and cannot charge them to you directly or through salary deductions. DIFC roles sit under the DIFC Employment Law instead, which also makes the employer obtain your visa at its own cost. Any request to pay these, large or small, is a red flag. Check with the Ministry of Human Resources and Emiratisation (MOHRE), or the DIFC Authority for a DIFC role, before paying anything.</p>
 
             <div className="highlight"><strong>Summary insight:</strong> Dubai rewards prepared candidates who understand hub economics, visa mechanics, and specific proof. Optimism without paperwork discipline burns time.</div>
 

@@ -263,14 +263,14 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
         <div className="rpt-body">
           <div className="stat-bar">
             <div className="stat-card">
-              <div className="sc-num">{"~47%"}</div>
-              <div className="sc-label">{"Illustrative share of intern job posts in Studojo's 2026 synthesis that mention AI tools, automation, or AI-assisted workflows in requirements or nice-to-haves"}</div>
-              <div className="sc-source">{"Studojo job-posting scrape synthesis, 2026"}</div>
+              <div className="sc-num">{"10%+"}</div>
+              <div className="sc-label">{"Share of active internships on Handshake that mention AI keywords as of March 2026, against 4.2% of full-time postings, a share that nearly doubled in a year"}</div>
+              <div className="sc-source">{"Handshake, AI and the Workforce Ahead (Class of 2026 report), April 2026"}</div>
             </div>
             <div className="stat-card">
-              <div className="sc-num">{"2.4x"}</div>
-              <div className="sc-label">{"Typical lift in positive manager feedback when an intern documents how they used AI in a deliverable versus submitting unexplained polished output"}</div>
-              <div className="sc-source">{"Studojo hiring-manager interview synthesis, 2025 to 2026"}</div>
+              <div className="sc-num">{"13 studies"}</div>
+              <div className="sc-label">{"Experiments with more than 5,000 participants in which people who disclosed their AI use were trusted less than those who did not. Being exposed for using it covertly hurt trust even more, so show how you used AI before someone else finds out"}</div>
+              <div className="sc-source">{"Schilke and Reimann, Organizational Behavior and Human Decision Processes, 2025"}</div>
             </div>
             <div className="stat-card">
               <div className="sc-num">{"60 days"}</div>
@@ -291,7 +291,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
             <p>{"Every few months a thread claims AI killed the intern. In 2026 the reality is messier. Companies still run summer cohorts, campus pipelines, and project-based internships because someone has to do the unglamorous work: research sprints, first drafts, competitor scans, data cleanup, slide builds, and customer support triage. AI compresses pieces of that work. It does not remove the need for a human who can be coached, accountable, and cheap enough to experiment with."}</p>
             <p>{"What did change is throughput. One manager can now expect three interns to produce what two used to, if those three know how to use AI without creating rework. That is why the fear is mislabeled. The threat is not robots taking intern desks. It is another intern taking your desk because they ship faster with the same judgment."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> AI did not delete intern roles. It raised the productivity floor. Managers still hire interns; they just hire fewer slow ones."}</div>
+            <div className="highlight"><strong>Key insight:</strong> AI did not delete intern roles. It raised the productivity floor. Managers still hire interns; they just hire fewer slow ones.</div>
 
             <div className="chart-wrap">
               <div className="chart-label">{"How interns actually use AI at work (illustrative mix, %)"}</div>
@@ -313,7 +313,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Reframe the anxiety:</strong> You are not competing with ChatGPT. You are competing with the intern who uses ChatGPT and still checks facts, cites sources, and explains tradeoffs in standup."}</div>
+            <div className="callout"><strong>Reframe the anxiety:</strong> You are not competing with ChatGPT. You are competing with the intern who uses ChatGPT and still checks facts, cites sources, and explains tradeoffs in standup.</div>
           </div>
 
           <div className="rpt-section">
@@ -334,7 +334,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Managers do not reward \"I used AI.\" They reward \"I used AI, here is what I checked, and here is what I changed because it was wrong.\""}</div>
+            <div className="highlight"><strong>Key insight:</strong>{" Managers do not reward \"I used AI.\" They reward \"I used AI, here is what I checked, and here is what I changed because it was wrong.\""}</div>
 
             <div className="pull-quote">
               <p>{"\"I don't care if they used AI. I care if they can explain what's wrong with the output when I poke it.\""}</p>
@@ -354,7 +354,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Interview tell:</strong> When asked about a project, strong candidates walk through prompt, output, verification, and final edit. Weak candidates describe the tool like it is a personality trait."}</div>
+            <div className="callout-amber"><strong>Interview tell:</strong> When asked about a project, strong candidates walk through prompt, output, verification, and final edit. Weak candidates describe the tool like it is a personality trait.</div>
           </div>
 
           <div className="rpt-section">
@@ -368,7 +368,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
             <p>{"The highest-leverage uses cluster around research acceleration, first-draft generation, and repetitive formatting. Interns who excel use AI to build a landscape map of competitors in an afternoon, draft ten outreach variants for manager review, summarize fifty-page PDFs into decision memos, or unblock coding tasks with suggested fixes they still test locally."}</p>
             <p>{"Across functions the pattern holds. Consulting and strategy interns synthesize interview notes faster. Product interns generate user-story drafts and edge-case lists. Finance interns build first-pass models and scenario tables. Design interns explore mood boards and copy variants. Sales interns personalize sequences at scale. In each case the intern's value is curation, not generation."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> AI is best at shrinking the blank page. Your job starts where the blank page ends."}</div>
+            <div className="highlight"><strong>Key insight:</strong> AI is best at shrinking the blank page. Your job starts where the blank page ends.</div>
 
             <div className="blist">
 
@@ -383,7 +383,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
               </div>
             </div>
 
-            <div className="callout-green">{"<strong>High-ROI workflows:</strong> (1) Research brief: AI draft → manual source check → one-page memo. (2) Slide deck: AI outline → you pick narrative → you design key charts. (3) Code: AI suggestion → you run tests → you document assumptions."}</div>
+            <div className="callout-green"><strong>High-ROI workflows:</strong> (1) Research brief: AI draft → manual source check → one-page memo. (2) Slide deck: AI outline → you pick narrative → you design key charts. (3) Code: AI suggestion → you run tests → you document assumptions.</div>
           </div>
 
           <div className="rpt-section">
@@ -397,7 +397,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
             <p>{"The failure modes are predictable. Paste-only cover letters that reference the wrong company. Research memos with invented statistics. Code that runs once and breaks in production. Slides with confident nonsense in the executive summary. Managers have seen enough to spot synthetic polish without substance."}</p>
             <p>{"AI also creates a social risk: teammates resent interns who appear to do half the work for the same credit. The fix is transparency. Share your process in Slack or standup. Ask for review early. Make it obvious you are using time saved to go deeper, not to disappear."}</p>
 
-            <div className="highlight">{"<strong>Key insight:</strong> The fastest way to lose trust is submitting AI output you have not read. The second fastest is hiding that you used it."}</div>
+            <div className="highlight"><strong>Key insight:</strong> The fastest way to lose trust is submitting AI output you have not read. The second fastest is hiding that you used it.</div>
 
             <div className="pull-quote">
               <p>{"\"We sent an intern back to the drawing board after a client caught a stat that didn't exist. The deck looked great. That made it worse.\""}</p>
@@ -417,7 +417,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
               </div>
             </div>
 
-            <div className="callout-red">{"<strong>Red flags managers report:</strong> Wrong company names in outreach. Citations that do not exist. Identical paragraph structures across sections. Inability to explain a number on your own slide."}</div>
+            <div className="callout-red"><strong>Red flags managers report:</strong> Wrong company names in outreach. Citations that do not exist. Identical paragraph structures across sections. Inability to explain a number on your own slide.</div>
           </div>
 
           <div className="rpt-section">
@@ -446,7 +446,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
               </div>
             </div>
 
-            <div className="highlight">{"<strong>Key insight:</strong> Return offers follow visible impact. AI is a multiplier only if your manager can see what you multiplied."}</div>
+            <div className="highlight"><strong>Key insight:</strong> Return offers follow visible impact. AI is a multiplier only if your manager can see what you multiplied.</div>
 
             <div className="blist">
 
@@ -461,7 +461,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
               </div>
             </div>
 
-            <div className="callout">{"<strong>Weekly update template:</strong> Done this week → Used AI for X → Verified Y → Blockers → Next week ask. One Slack message, five lines."}</div>
+            <div className="callout"><strong>Weekly update template:</strong> Done this week → Used AI for X → Verified Y → Blockers → Next week ask. One Slack message, five lines.</div>
           </div>
 
           <div className="rpt-section">
@@ -475,7 +475,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
             <p>{"Days 1-15: pick one domain problem (market map, user research synthesis, small automation, outreach campaign analysis). Use AI for first drafts only. Build a one-page memo with sourced bullets and a short \"what I checked\" section. Days 16-35: apply to 15 tailored roles and send ten outreaches with that memo linked. Mention AI as workflow, not identity. Days 36-60: mock a manager review. Can you explain every claim? Cut anything you cannot defend."}</p>
             <p>{"During the internship itself, run the same loop on every assignment: define success, AI-assist the first pass, verify, edit for audience, document in your weekly update. After eight weeks you should have two artifacts you can show in future interviews: a deliverable and a process write-up."}</p>
 
-            <div className="highlight">{"<strong>Summary insight:</strong> AI won't replace interns. But interns who combine AI speed with human judgment will replace interns who bring neither."}</div>
+            <div className="highlight"><strong>Summary insight:</strong>{" AI won't replace interns. But interns who combine AI speed with human judgment will replace interns who bring neither."}</div>
 
             <div className="pull-quote">
               <p>{"\"The intern we kept used AI to get to v1 by Tuesday, then spent Wednesday talking to customers and fixing the story. Everyone else was still formatting slides.\""}</p>
@@ -500,7 +500,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
               </div>
             </div>
 
-            <div className="callout-amber">{"<strong>Portfolio minimum:</strong> One verified research memo, one deck or repo with a README explaining your AI-assisted steps, one LinkedIn post or case write-up that shows judgment. No buzzwords required."}</div>
+            <div className="callout-amber"><strong>Portfolio minimum:</strong> One verified research memo, one deck or repo with a README explaining your AI-assisted steps, one LinkedIn post or case write-up that shows judgment. No buzzwords required.</div>
           </div>
 
           <div className="takeaway-section">
