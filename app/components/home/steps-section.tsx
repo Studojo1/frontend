@@ -18,7 +18,7 @@ const STEPS = [
     circleClass: "bg-amber-400",
     title: "Replies land in your inbox",
     description:
-      "Personal emails sent from your own Gmail. About 4 in 10 students hear back in their first week.",
+      "Personal emails sent from your own Gmail.",
   },
 ] as const;
 
