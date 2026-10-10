@@ -388,6 +388,7 @@ export default function App() {
   // off the routes where signing up is the only thing we need the user to finish.
   const onAuth =
     location.pathname.startsWith("/auth") ||
+    location.pathname.startsWith("/start") ||
     location.pathname.startsWith("/forgot-password") ||
     location.pathname.startsWith("/reset-password");
   const hideGlobalChat =
