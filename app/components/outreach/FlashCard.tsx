@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FiLinkedin, FiExternalLink } from "react-icons/fi";
 import { capturePostHog } from "~/lib/posthog";
+import { cleanIndustry } from "~/lib/outreach/industry";
 import type { Lead } from "~/lib/outreach/types";
 
 interface FlashCardProps {
@@ -76,6 +77,7 @@ function CompanyLogo({ domain, name, size = 48 }: { domain: string | null; name:
 
 export function FlashCard({ lead, onSelect, actionLabel, notePending = false }: FlashCardProps) {
   const company = cleanCo(lead.company);
+  const industry = cleanIndustry(lead.industry);
 
   // LinkedIn profile (the "id"), show it on the card and make it clickable.
   const liUrl = lead.linkedin_url || "";
@@ -134,7 +136,7 @@ export function FlashCard({ lead, onSelect, actionLabel, notePending = false }: 
         )}
         {lead.location && <span className="text-xs text-studojo-muted truncate font-satoshi">· {lead.location}</span>}
       </div>
-      {lead.industry && <p className="text-xs text-studojo-muted mt-0.5 truncate font-satoshi">{lead.industry}</p>}
+      {industry && <p className="text-xs text-studojo-muted mt-0.5 truncate font-satoshi">{industry}</p>}
       {about && <p className="text-xs text-studojo-muted mt-0.5 line-clamp-2 font-satoshi">{about}</p>}
 
       {liUrl && (

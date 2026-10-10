@@ -15,6 +15,7 @@ import type { TierPricing } from "~/lib/outreach/types";
 import { RealNumbers } from "~/components/outreach/RealNumbers";
 import { recallCoupon, sessionStore } from "~/lib/outreach/coupon";
 import { tierMatch, leadHeadline, packOffered, packNotOfferedReason, sampleEmailLine, type SampleEmail } from "~/lib/outreach/tier-match";
+import { paymentConfirmedProps } from "~/lib/outreach/payment-confirmed";
 import { consentForServer } from "~/lib/consent";
 
 declare global {
@@ -270,7 +271,7 @@ export default function EnrichmentPage() {
     // a Purchase for them would invent revenue and corrupt ROAS.
     track(
       "payment_confirmed",
-      { tier, currency, amount_cents: amountCents, money_moved: moneyMoved },
+      paymentConfirmedProps(tier, currency, amountCents, moneyMoved),
       moneyMoved
         ? {
             // Meta wants major units; the pricing API speaks cents.

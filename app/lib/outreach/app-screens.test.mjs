@@ -188,7 +188,44 @@ assert.match(sampleEmailLine({ masked: "\u2022\u2022\u2022@acme.com", kind: "dom
   assert.equal(seeLeadsLabel({ lead_count: 0 }), "See my hiring managers");
   assert.equal(seeLeadsLabel(null), "See my hiring managers");
   const landing = readFileSync(`${APP}routes/outreach._index.tsx`, "utf8");
-  assert.match(landing, /label: seeLeadsLabel\(nextStep\)/, "/outreach's unpaid-with-leads button must use seeLeadsLabel");
+  assert.match(landing, /landingCtas\(nextStep, signedIn\)/, "/outreach's buttons must come from landingCtas");
+}
+
+// ── /outreach (10 Oct): a signed-in student with leads gets them first ───────
+// Students come back to /outreach for their list. Every other state, signed-out
+// ad traffic included, must keep its buttons.
+{
+  const { landingCtas } = await import("./next-step.ts");
+  const SEARCH = { label: "Find the right hiring managers", to: "/outreach/onboarding/upload" };
+  const CAMPAIGNS = { label: "View My Campaigns", to: "/outreach/orders" };
+  const withLeads = step("not_paid", { path: "/leads/results", candidate_id: 42, lead_count: 800 });
+  assert.deepEqual(landingCtas(withLeads, true), {
+    primary: { label: "See your 800 hiring managers", to: "/outreach/leads/results", candidateId: 42 },
+    secondary: { label: "Start a new search", to: "/outreach/onboarding/upload" },
+  });
+  // Signed out, or the session still loading: the ad landing page.
+  assert.deepEqual(landingCtas(null, false), { primary: SEARCH, secondary: null });
+  assert.deepEqual(landingCtas(withLeads, false), { primary: SEARCH, secondary: null }, "never the leads button without a session");
+  // Signed in, next step not loaded yet or the lookup failed.
+  assert.deepEqual(landingCtas(null, true), { primary: SEARCH, secondary: null });
+  // Unpaid with no leads: a search, and their orders when they have one.
+  assert.deepEqual(landingCtas(step("not_paid"), true), { primary: SEARCH, secondary: CAMPAIGNS });
+  assert.deepEqual(landingCtas(step("not_paid", { order_id: null }), true), { primary: SEARCH, secondary: null });
+  // Paid, not launched: the step that blocks Launch, never upload.
+  assert.deepEqual(landingCtas(step("connect_gmail", { path: "/connect/gmail", available_credits: 200 }), true), {
+    primary: { label: "Connect Gmail to launch", to: "/outreach/connect/gmail" },
+    secondary: CAMPAIGNS,
+  });
+  // Running campaign.
+  assert.deepEqual(landingCtas(step("campaign_active", { path: "/campaign/dashboard", order_id: null, has_launched: true }), true), {
+    primary: { label: "Go to my campaign", to: "/outreach/campaign/dashboard" },
+    secondary: CAMPAIGNS,
+  });
+  // Every button stores the candidate before opening the list, as
+  // /outreach/results does, so a newer resume with no leads cannot hide it.
+  const landing = read("routes/outreach._index.tsx");
+  assert.match(landing, /setCandidateId\(cta\.candidateId\)/);
+  assert.doesNotMatch(landing, /navigate\((primary|secondary)Cta\.to\)/, "a hero button skips go() and the candidate");
 }
 
 // ── IN-N01 (recon 30 Sep): the two prod frontend pods must not share a node ──
@@ -201,4 +238,40 @@ assert.match(sampleEmailLine({ masked: "\u2022\u2022\u2022@acme.com", kind: "dom
   assert.equal(c.whenUnsatisfiable, "ScheduleAnyway", "must never block a rollout");
   assert.deepEqual(c.labelSelector.matchLabels, { app: "frontend" });
   assert.ok(wf.indexOf("topologySpreadConstraints") < wf.indexOf("kubectl set image"), "spread before the new image rolls out");
+}
+
+// ── Lead cards (10 Oct): the industry line drops the research citation ──────
+{
+  const { cleanIndustry } = await import("./industry.ts");
+  // Real values from production leads.
+  for (const raw of [
+    "Accounting software ([en.wikipedia.org](https://en.wikipedia.org/wiki/Tally_Solutions))",
+    "AdTech ([builtin.com](https://builtin.com/company/responsiveads))",
+    "Advertising & Marketing ([zoominfo.com](https://www.zoominfo.com/c/viral-groww/482281645))",
+    "advertising ([raagnaaiads.com](https://raagnaaiads.com/))",
+    "Aesthetic Medicine ([datanyze.com](https://www.datanyze.com/companies/aayna-clinic/370747005))",
+  ]) {
+    assert.equal(cleanIndustry(raw), raw.slice(0, raw.indexOf(" ([")), raw);
+  }
+  for (const clean of ["Information Technology & Services", "Retail", "Other business activities n.e.c."]) {
+    assert.equal(cleanIndustry(clean), clean, "a clean value passes through unchanged");
+  }
+  // The other shapes production holds: a full stop before the link, no space,
+  // doubled brackets, a bracket of its own.
+  assert.equal(cleanIndustry("Ecommerce. ([example.com](https://www.example.com/))"), "Ecommerce");
+  assert.equal(cleanIndustry("Public Relations([example.com](https://example.com/company/x/))"), "Public Relations");
+  assert.equal(cleanIndustry("Industrial Machinery (([example.com](https://example.com/x-profile)))"), "Industrial Machinery");
+  assert.equal(cleanIndustry("Travel (DMC). ([example.com](https://www.example.com/about-us))"), "Travel (DMC)");
+  assert.equal(cleanIndustry("Footwear ([en.wikipedia.org](https://en.wikipedia.org/wiki/On_(company)))"), "Footwear");
+  // Any other markdown link keeps its text; bare URLs go.
+  assert.equal(cleanIndustry("[Fintech](https://example.com/fintech) and payments"), "Fintech and payments");
+  assert.equal(cleanIndustry("SaaS, https://example.com/about"), "SaaS");
+  assert.equal(cleanIndustry("Retail (www.example.com)"), "Retail");
+  // Nothing left.
+  assert.equal(cleanIndustry("([example.com](https://example.com/))"), "");
+  assert.equal(cleanIndustry("  "), "");
+  assert.equal(cleanIndustry(null), "");
+  const card = read("components/outreach/FlashCard.tsx");
+  assert.match(card, /cleanIndustry\(lead\.industry\)/, "the card shows the cleaned industry");
+  assert.doesNotMatch(card, /\{lead\.industry\}/, "the card never prints the raw industry");
 }
