@@ -16,9 +16,23 @@ export function metaExcludedPath(pathname: string): boolean {
 
 /** URLs Meta must never see: the Gmail connect return carries a one-time
  * code and state in the query string, and every pixel event sends the full
- * page URL (audit 10 Oct 2026). Pure, for tests. */
+ * page URL (audit 10 Oct 2026). A signed-out visitor is bounced to
+ * /auth?redirect= with that query string percent-encoded inside it, so the
+ * check also looks through encoded layers. Pure, for tests. */
 export function metaExcludedSearch(search: string): boolean {
-  return /[?&](gmail_code|gmail_state)=/i.test(search);
+  let s = search;
+  for (let i = 0; i < 3; i++) {
+    if (/[?&]gmail_(code|state)=/i.test(s)) return true;
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(s);
+    } catch {
+      return /gmail(_|%5F)(code|state)/i.test(s);
+    }
+    if (decoded === s) return false;
+    s = decoded;
+  }
+  return /gmail(_|%5F)(code|state)/i.test(s);
 }
 
 /** Every Meta call checks this: a production host, the visitor's consent
@@ -81,6 +95,17 @@ function newEventId(): string {
  */
 export function bootPixel(pixelId: string): boolean {
   try {
+    // fbevents.js also sends a PageView when a page comes back from the
+    // back/forward cache, and that one ignores disablePushState. Registered
+    // before the script loads, this runs first and stops it on a page Meta
+    // must not see.
+    window.addEventListener(
+      "pageshow",
+      (e) => {
+        if (e.persisted && !metaAllowed()) e.stopImmediatePropagation();
+      },
+      true,
+    );
     /* eslint-disable */
     // Standard Meta bootstrap snippet, inlined so no extra network request is needed
     // before fbevents.js itself loads.
@@ -105,7 +130,12 @@ export function bootPixel(pixelId: string): boolean {
     const q = fbq();
     if (!q) return false;
     // Must be set before init, or the first history change still slips out.
-    (q as unknown as { disablePushState?: boolean }).disablePushState = true;
+    // fbevents.js drops every explicit PageView after the first in a document
+    // unless allowDuplicatePageViews is set; with its history listener off,
+    // trackMetaPageView is the only PageView a client-side route change gets.
+    const flags = q as unknown as { disablePushState?: boolean; allowDuplicatePageViews?: boolean };
+    flags.disablePushState = true;
+    flags.allowDuplicatePageViews = true;
     // autoConfig off: we fire every event explicitly so the funnel stays auditable.
     q("set", "autoConfig", false, pixelId);
     q("init", pixelId);
@@ -188,11 +218,18 @@ export function trackMeta(
 /** PageView on the first load and on every client-side route change. This is
  * the only source of PageViews: fbevents' own history listener is switched off
  * in bootPixel, so each one passes metaAllowed. */
+let lastPageViewUrl = "";
+
 export function trackMetaPageView() {
   if (typeof window === "undefined" || !metaAllowed()) return;
   // A visit that began on an excluded page, or before consent, never ran init.
   initMetaPixel();
   if (!isInitialized) return;
+  // Duplicates are allowed through fbevents now, so a consent change on a page
+  // that already sent its PageView must not send a second one.
+  const url = `${window.location.pathname}${window.location.search}`;
+  if (url === lastPageViewUrl) return;
+  lastPageViewUrl = url;
   try {
     fbq()?.("track", "PageView");
   } catch {
