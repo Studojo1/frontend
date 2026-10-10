@@ -20,8 +20,7 @@ export function Hero() {
 
           {/* Subtext */}
           <p className="font-['Satoshi'] text-base font-normal leading-7 text-neutral-700 md:text-lg md:leading-8">
-            We find people who can hire you, write them a personal email, and send it as you.{" "}
-            <strong className="font-semibold text-neutral-900">About 4 in 10 students hear back in their first week.</strong>
+            We find people who can hire you, write them a personal email, and send it as you.
           </p>
 
           {/* CTAs */}

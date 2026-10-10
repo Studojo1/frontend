@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { FiArrowRight } from "react-icons/fi";
 import { Header } from "~/components/common/header";
-import { REAL_NUMBERS, WEEK_ONE_LINE } from "~/components/outreach/RealNumbers";
+import { REAL_NUMBERS } from "~/components/outreach/RealNumbers";
 
 // /start: the page paid ads point at (audit VS-V06). /outreach is a 6-screen
 // marketing page with dozens of links; ad visitors need one screen and one
@@ -53,7 +53,7 @@ export default function Start() {
           Find my hiring managers <FiArrowRight className="h-5 w-5" />
         </Link>
         <p className="text-center font-satoshi text-sm text-studojo-muted">
-          {REAL_NUMBERS.students} students signed up. {WEEK_ONE_LINE}
+          {REAL_NUMBERS.students} students signed up.
         </p>
       </main>
     </div>
