@@ -5,13 +5,13 @@ import { Header, Footer } from "~/components";
 export function meta() {
   return [
     { title: "Job Boards Are Dead: How Students Actually Get Hired in 2026 | Studojo" },
-    { name: "description", content: "Job board callback rates sit at 2-7%. 70-80% of roles are never publicly posted. Referrals are 5x more effective. Here is the data on what actually works in 2026 and a system to replace the spray-and-pray approach." },
+    { name: "description", content: "Job board callback rates sit at 2-7%. In a LinkedIn survey, 70% of people hired in 2016 joined a company where they already had a connection. Referrals are 5x more effective. Here is the data on what actually works in 2026 and a system to replace the spray-and-pray approach." },
     { name: "robots", content: "index, follow" },
     { name: "keywords", content: "job search 2026, job boards dead, how to find a job 2026, referrals job search, linkedin job search strategy, hidden job market, cold outreach jobs, internship search strategy" },
     { tagName: "link", rel: "canonical", href: "https://studojo.com/reports/job-search-2026" },
     { property: "og:type", content: "article" },
     { property: "og:title", content: "Job Boards Are Dead: How Students Actually Get Hired in 2026" },
-    { property: "og:description", content: "Job board callback rates: 2-7%. 70-80% of roles never posted publicly. Referrals 5x more effective. The data on what actually works for students in 2026." },
+    { property: "og:description", content: "Job board callback rates: 2-7%. 70% of people hired in 2016 joined a company where they already had a connection. Referrals 5x more effective. The data on what actually works for students in 2026." },
     { property: "og:url", content: "https://studojo.com/reports/job-search-2026" },
     { property: "og:site_name", content: "Studojo" },
     { property: "og:image", content: "https://studojo.com/og-reports.png" },
@@ -22,7 +22,7 @@ export function meta() {
     { property: "article:author", content: "Studojo" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "Job Boards Are Dead: What Actually Works for Students in 2026 | Studojo" },
-    { name: "twitter:description", content: "2-7% callback rate on job boards. 70-80% of jobs never posted. Here is what actually gets students hired in 2026." },
+    { name: "twitter:description", content: "2-7% callback rate on job boards. 70% of people hired in 2016 joined a company where they already had a connection. Here is what actually gets students hired in 2026." },
     { name: "twitter:image", content: "https://studojo.com/og-reports.png" },
     { name: "twitter:site", content: "" },
   ];
@@ -72,27 +72,6 @@ function initCharts() {
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0, color: MUTED } },
         y: { grid, border: { dash: [4, 4] }, min: 0, max: 50, ticks: { font: { size: 11 }, color: MUTED, callback: (v: any) => v + "%" } },
-      },
-    },
-  });
-
-  // Chart 2: Job market visibility: posted vs hidden
-  make("hiddenChart", {
-    type: "doughnut",
-    data: {
-      labels: ["Publicly posted on job boards", "Hidden market (referrals, direct outreach, internal moves, unadvertised roles)"],
-      datasets: [{
-        data: [25, 75],
-        backgroundColor: [VIO3, VIO],
-        borderWidth: 3,
-        borderColor: "#fff",
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: "bottom", labels: { font: { size: 12 }, padding: 18, boxWidth: 14 } },
-        tooltip: { callbacks: { label: (ctx: any) => ` ${ctx.raw}% of roles` } },
       },
     },
   });
@@ -179,7 +158,7 @@ export default function JobSearchReport() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Job Boards Are Dead: How Students Actually Get Hired in 2026", "description": "Job board callback rates sit at 2-7%. 70-80% of roles are never publicly posted. Referrals are 5x more effective. Here is the data on what actually works in 2026.", "url": "https://studojo.com/reports/job-search-2026", "datePublished": "2026-04-22T00:00:00+05:30", "dateModified": "2026-04-22T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/job-search-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Job Boards Are Dead: How Students Actually Get Hired in 2026", "description": "Job board callback rates sit at 2-7%. In a LinkedIn survey, 70% of people hired in 2016 joined a company where they already had a connection. Referrals are 5x more effective. Here is the data on what actually works in 2026.", "url": "https://studojo.com/reports/job-search-2026", "datePublished": "2026-04-22T00:00:00+05:30", "dateModified": "2026-04-22T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/job-search-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Job Search 2026", "item": "https://studojo.com/reports/job-search-2026"}]}` }} />
 
       <Header />
@@ -197,11 +176,11 @@ export default function JobSearchReport() {
             </nav>
             <h1 className="rpt-h1">Job Boards Are Dead.<br /><em>Here Is What Actually Works.</em></h1>
             <p className="rpt-hero-sub">
-              The average job board application has a 2-7% callback rate. Most of the roles worth having were never posted publicly. And a single referral outperforms 20 cold applications. This report breaks down the data and builds the system.
+              The average job board application has a 2-7% callback rate. In a LinkedIn survey, 70% of people hired in 2016 joined a company where they already had a connection. And a single referral outperforms 20 cold applications. This report breaks down the data and builds the system.
             </p>
             <div className="rpt-hero-stats">
               <div className="rpt-hero-stat"><div className="rpt-hval">2-7%</div><div className="rpt-hlbl">Callback rate for cold job board applications (Jobvite / LinkedIn Talent, 2025)</div></div>
-              <div className="rpt-hero-stat"><div className="rpt-hval">~70-80%</div><div className="rpt-hlbl">Estimated share of roles filled through referrals, direct outreach, and unadvertised openings (industry estimate)</div></div>
+              <div className="rpt-hero-stat"><div className="rpt-hval">70%</div><div className="rpt-hlbl">People hired in 2016 who joined a company where they already had a connection (LinkedIn survey of 15,905 members, June 2017)</div></div>
               <div className="rpt-hero-stat"><div className="rpt-hval">8 findings</div><div className="rpt-hlbl">Callback data, the hidden market, referral strategy, cold outreach, LinkedIn, and a weekly system</div></div>
             </div>
           </div>
@@ -244,13 +223,8 @@ export default function JobSearchReport() {
           <div className="rpt-finding">
             <div className="rpt-finding-header">
               <span className="rpt-finding-num">Finding 02</span>
-              <h2 className="rpt-h2">The majority of roles are filled without ever being publicly posted. The "hidden job market" is not a myth. It is where most hiring actually happens.</h2>
-              <p className="rpt-lead">This is the most consistently misunderstood fact about job markets. The majority of roles at most organisations are filled before they reach a job board. Understanding why changes how you search.</p>
-            </div>
-
-            <div className="rpt-card">
-              <div className="rpt-card-label">Estimated share of roles by how they are filled (widely cited industry estimate; exact figures vary by sector and company size)</div>
-              <div className="rpt-chart-wrap" style={{ height: 300 }}><canvas id="hiddenChart"></canvas></div>
+              <h2 className="rpt-h2">70% of people hired in 2016 joined a company where they already had a connection. The "hidden job market" is not a myth. It runs on who you know.</h2>
+              <p className="rpt-lead">That 70% measures connections, not unposted jobs. Most openings do get posted: Georgetown University's Center on Education and the Workforce estimated in 2014 that 60 to 70% of US job openings were posted online, rising to 80 to 90% of openings that need at least a bachelor's degree. Understanding why connections still carry so much weight changes how you search.</p>
             </div>
 
             <div className="rpt-two-col" style={{ marginTop: 20 }}>
@@ -302,7 +276,7 @@ export default function JobSearchReport() {
               <div className="rpt-cl">The timing problem with job boards</div>
               <p>By the time a role appears on a job board, the hiring manager has usually already shared it with 2-3 people they know. Those candidates are pre-screened, pre-trusted, and often interviewed before the job board posting even goes live. The public posting is often a formality to satisfy HR policy. Applying on day one of a job board posting still means you are behind the people who got it through a referral 3 days earlier. This is not cynicism. It is how most managers hire, across every industry.</p>
             </div>
-            <p className="rpt-source">Source: LinkedIn Economic Graph hidden job market analysis 2024, Harvard Business Review "Getting the Job" 2025, SHRM Talent Acquisition survey 2025, Gartner hiring process research 2025</p>
+            <p className="rpt-source">Source: LinkedIn global survey of 15,905 members in 17 countries, published June 2017; Georgetown University Center on Education and the Workforce, The Online College Labor Market, April 2014</p>
           </div>
 
           {/* CTA 1 */}
