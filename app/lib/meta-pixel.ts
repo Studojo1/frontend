@@ -14,11 +14,20 @@ export function metaExcludedPath(pathname: string): boolean {
   return pathname.startsWith("/reports/") && pathname.includes("high-school");
 }
 
+/** URLs Meta must never see: the Gmail connect return carries a one-time
+ * code and state in the query string, and every pixel event sends the full
+ * page URL (audit 10 Oct 2026). Pure, for tests. */
+export function metaExcludedSearch(search: string): boolean {
+  return /[?&](gmail_code|gmail_state)=/i.test(search);
+}
+
 /** Every Meta call checks this: a production host, the visitor's consent
- * where it is needed (EU/UK), and not a page minors read. */
+ * where it is needed (EU/UK), not a page minors read, and no secret in the
+ * URL. */
 function metaAllowed(): boolean {
   if (!isTrackableHost()) return false;
   if (!trackingAllowed()) return false;
+  if (metaExcludedSearch(window.location.search ?? "")) return false;
   return !metaExcludedPath(window.location.pathname ?? "");
 }
 
@@ -59,12 +68,18 @@ function newEventId(): string {
   return `evt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function initMetaPixel() {
-  if (typeof window === "undefined") return;
-  if (!PIXEL_ID) return;
-  if (isInitialized) return;
-  if (!metaAllowed()) return;
-
+/**
+ * Load fbevents.js and initialise the pixel. Exported for tests.
+ *
+ * disablePushState matters: left alone, fbevents.js listens for every
+ * pushState / replaceState and sends its own PageView for the new URL. Those
+ * automatic PageViews never pass through metaAllowed, so clicking from
+ * /reports into a high-school report told Meta about a minor's visit even
+ * though a direct load was correctly excluded, and ad-tagged visitors got a
+ * second PageView on /auth (audit 10 Oct 2026). With it off, the only
+ * PageViews are the ones trackMetaPageView sends, and every one is gated.
+ */
+export function bootPixel(pixelId: string): boolean {
   try {
     /* eslint-disable */
     // Standard Meta bootstrap snippet, inlined so no extra network request is needed
@@ -88,14 +103,25 @@ export function initMetaPixel() {
     /* eslint-enable */
 
     const q = fbq();
-    if (!q) return;
+    if (!q) return false;
+    // Must be set before init, or the first history change still slips out.
+    (q as unknown as { disablePushState?: boolean }).disablePushState = true;
     // autoConfig off: we fire every event explicitly so the funnel stays auditable.
-    q("set", "autoConfig", false, PIXEL_ID);
-    q("init", PIXEL_ID);
-    isInitialized = true;
+    q("set", "autoConfig", false, pixelId);
+    q("init", pixelId);
+    return true;
   } catch {
     // Silently fail: analytics must never break the app
+    return false;
   }
+}
+
+export function initMetaPixel() {
+  if (typeof window === "undefined") return;
+  if (!PIXEL_ID) return;
+  if (isInitialized) return;
+  if (!metaAllowed()) return;
+  if (bootPixel(PIXEL_ID)) isInitialized = true;
 }
 
 /**
@@ -159,7 +185,9 @@ export function trackMeta(
   return eventId;
 }
 
-/** PageView on every client-side route change. Meta only auto-fires it on hard loads. */
+/** PageView on the first load and on every client-side route change. This is
+ * the only source of PageViews: fbevents' own history listener is switched off
+ * in bootPixel, so each one passes metaAllowed. */
 export function trackMetaPageView() {
   if (typeof window === "undefined" || !metaAllowed()) return;
   // A visit that began on an excluded page, or before consent, never ran init.

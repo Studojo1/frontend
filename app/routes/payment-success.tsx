@@ -66,10 +66,14 @@ export default function PaymentSuccess() {
           setStatus("paid");
           // sessionId is the same value outreach.enrichment.tsx passes, so if a
           // user is confirmed by both routes Meta sees one Purchase, not two.
+          // For outreach the server reports the Purchase with the real amount
+          // under this same id. This page does not know the amount, and a
+          // browser copy without a value could be the one Meta keeps, losing
+          // that sale's revenue. So outreach goes to PostHog only from here.
           track(
             "payment_confirmed",
             { job_type: jobType, session_id: sessionId },
-            { eventId: sessionId ?? undefined }
+            { eventId: sessionId ?? undefined, ...(jobType === "outreach" ? { meta: false } : {}) }
           );
           return;
         }
