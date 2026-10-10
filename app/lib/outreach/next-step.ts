@@ -77,6 +77,52 @@ export function nextStepSummary(step: NextStep): string {
   return `You've paid and ${step.available_credits} email credits are waiting. Nothing has been sent yet.`;
 }
 
+/** A /outreach hero button. */
+export interface LandingCta {
+  label: string;
+  to: string;
+  /** Put in the store before navigating: the candidate whose leads `to` opens. */
+  candidateId?: number | null;
+}
+
+/**
+ * The /outreach hero buttons.
+ *
+ * A signed-in, unpaid student who already has leads gets them as the main
+ * button and a new search as the second. Students come back to this page for
+ * their list (the 10 Oct "your leads are ready" emails link here), so it must
+ * not sit behind a button that restarts upload; on a phone the second button
+ * stacks under the first. Signed-out visitors, the ad traffic, never get the
+ * leads button.
+ */
+export function landingCtas(
+  step: NextStep | null | undefined,
+  signedIn: boolean,
+): { primary: LandingCta; secondary: LandingCta | null } {
+  if (signedIn && step?.state === "not_paid" && step.path) {
+    return {
+      primary: { label: seeLeadsLabel(step), to: `/outreach${step.path}`, candidateId: step.candidate_id },
+      secondary: { label: "Start a new search", to: "/outreach/onboarding/upload" },
+    };
+  }
+  // A signed-in user who has paid and not launched must never be sent back to
+  // resume upload from here. One who paid Rs 3,465 followed "Find My Hiring
+  // Managers" and re-uploaded her resume three times without reaching Launch.
+  const paid = isPaidNotLaunched(step) ? step : null;
+  const primary = paid
+    ? { label: nextStepLabel(paid), to: `/outreach${paid.path}` }
+    : step?.state === "campaign_active"
+      ? { label: "Go to my campaign", to: "/outreach/campaign/dashboard" }
+      : { label: "Find the right hiring managers", to: "/outreach/onboarding/upload" };
+  // Only for someone who has something to go back to: an order or a launched
+  // campaign, not every signed-in visitor (audit VS-V05).
+  const secondary =
+    signedIn && (step?.order_id || step?.has_launched || step?.state === "campaign_active")
+      ? { label: "View My Campaigns", to: "/outreach/orders" }
+      : null;
+  return { primary, secondary };
+}
+
 /**
  * Where /outreach/results sends someone (audit NEW-07).
  *

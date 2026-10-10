@@ -7,8 +7,9 @@ import { Header } from "~/components/common/header";
 import { Footer } from "~/components/common/footer";
 import { TrustStrip } from "~/components";
 import { RealNumbers } from "~/components/outreach/RealNumbers";
-import { useNextStep, isPaidNotLaunched, nextStepLabel, nextStepSummary } from "~/lib/outreach/hooks";
-import { seeLeadsLabel } from "~/lib/outreach/next-step";
+import { useNextStep, isPaidNotLaunched, nextStepSummary } from "~/lib/outreach/hooks";
+import { landingCtas, type LandingCta } from "~/lib/outreach/next-step";
+import { useOutreachStore } from "~/lib/outreach/store";
 
 const STEPS = [
   {
@@ -102,32 +103,17 @@ export default function OutreachLanding() {
   // hidden through the first render rather than letting it flash in and out.
   const { data: session, isPending } = authClient.useSession();
   const nextStep = useNextStep();
-  // A ?coupon= from an email link is kept by the outreach layout (NEW-07).
-  // Only for someone who has something to go back to: leads, an order or a
-  // launched campaign, not every signed-in visitor (audit VS-V05).
   const signedIn = !isPending && !!session;
-  const secondaryCta = !signedIn
-    ? null
-    : nextStep?.state === "not_paid" && nextStep.path
-      // Unpaid but already has leads: keep them one tap away, so a new search
-      // never hides the list they have behind a new resume (audit OP-N03).
-      ? { label: seeLeadsLabel(nextStep), to: `/outreach${nextStep.path}` }
-      : nextStep?.order_id || nextStep?.has_launched || nextStep?.state === "campaign_active"
-        ? { label: "View My Campaigns", to: "/outreach/orders" }
-        : null;
-
-  // A signed-in user who has paid and not launched must never be sent back to
-  // resume upload from here. One who paid Rs 3,465 followed "Find My Hiring
-  // Managers" and re-uploaded her resume three times without reaching Launch.
+  const { primary: primaryCta, secondary: secondaryCta } = landingCtas(nextStep, signedIn);
   const paidNotLaunched = isPaidNotLaunched(nextStep) ? nextStep : null;
-  const primaryCta = paidNotLaunched
-    ? {
-        label: nextStepLabel(paidNotLaunched),
-        to: `/outreach${paidNotLaunched.path}`,
-      }
-    : nextStep?.state === "campaign_active"
-      ? { label: "Go to my campaign", to: "/outreach/campaign/dashboard" }
-      : { label: "Find the right hiring managers", to: "/outreach/onboarding/upload" };
+
+  // A ?coupon= from an email link is kept by the outreach layout (NEW-07).
+  const go = (cta: LandingCta) => {
+    // The candidate that holds their leads, not whatever this browser last
+    // uploaded (a newer resume with none hid them, OP-N03).
+    if (cta.candidateId) useOutreachStore.getState().setCandidateId(cta.candidateId);
+    navigate(cta.to);
+  };
 
   // Ad traffic lands here. This is the audience the retargeting campaigns are
   // built from, so it needs its own event rather than a bare PageView.
@@ -160,14 +146,14 @@ export default function OutreachLanding() {
             )}
             <div className="flex flex-col gap-4 md:flex-row md:flex-wrap">
               <button
-                onClick={() => navigate(primaryCta.to)}
+                onClick={() => go(primaryCta)}
                 className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-white text-studojo-ink font-satoshi font-bold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
               >
                 {primaryCta.label} <FiArrowRight className="w-5 h-5 ml-2" />
               </button>
               {secondaryCta && (
                 <button
-                  onClick={() => navigate(secondaryCta.to)}
+                  onClick={() => go(secondaryCta)}
                   className="inline-flex items-center justify-center h-12 px-6 rounded-2xl bg-transparent text-white font-satoshi font-medium text-base border-2 border-white/40 shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:border-white/70 hover:shadow-none"
                 >
                   {secondaryCta.label} <FiClipboard className="w-5 h-5 ml-2" />
@@ -292,7 +278,7 @@ export default function OutreachLanding() {
             Takes 2 minutes to set up.
           </p>
           <button
-            onClick={() => navigate(primaryCta.to)}
+            onClick={() => go(primaryCta)}
             className="inline-flex items-center justify-center h-14 px-8 rounded-2xl bg-white text-studojo-ink font-satoshi font-bold text-base border-2 border-studojo-ink shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
           >
             {primaryCta.label} <FiArrowRight className="w-5 h-5 ml-2" />
