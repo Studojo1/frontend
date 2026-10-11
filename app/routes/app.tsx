@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { ProfileChat, type ChatAnswers } from "~/components/start/profile-chat";
-import { RoleMap, type MapPlace } from "~/components/start/role-map";
+import { ReachRings, type ReachPlace as MapPlace } from "~/components/start/reach-rings";
 import type { TalentStore } from "../../auth-schema";
 
 /**
@@ -328,7 +328,7 @@ export default function AppHome() {
 
         <div className="ap-card" style={{ padding: 12 }}>
           <div className="ap-label" style={{ padding: "2px 4px 8px" }}>Your cities</div>
-          <RoleMap home={globe?.home ?? null} places={places} height={190} />
+          <ReachRings home={globe?.home ?? null} places={places} compact />
         </div>
         {!!prefs.insights?.length && (
           <div className="ap-card" style={{ padding: 16 }}>

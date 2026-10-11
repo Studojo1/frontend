@@ -6,7 +6,7 @@ import type { QuickResume } from "~/lib/resume-quick-parse";
 import { type Cluster } from "~/lib/swipe-prefs";
 import { confidence, believe, learn, nextItem, predict, skillHits, type Answers, type BrainRole, type Item, type Side, type Swipe, type Verdict, type Insight } from "~/lib/swipe-brain";
 import { SenseiBackdrop } from "~/components/start/sensei-backdrop";
-import { RoleMap, type MapPlace } from "~/components/start/role-map";
+import { ReachRings, type ReachPlace as MapPlace } from "~/components/start/reach-rings";
 import { COORDS } from "~/lib/geo";
 import { SENSEI_CSS as CSS } from "~/components/start/sensei-style";
 
@@ -378,6 +378,7 @@ export default function StartPage() {
       return at ? { name: c, lat: at[0], lng: at[1], count: n, picked: step === "cities" || step === "saving" ? cities.includes(c) : keptCities.has(c) } : null;
     })
     .filter((p): p is MapPlace => !!p);
+  const remoteCount = pool.filter((r) => !r.city).length;
   const homeAt = shown.city ? coordsOf(shown.city) : undefined;
   const home = homeAt ? { name: shown.city, lat: homeAt[0], lng: homeAt[1] } : null;
 
@@ -806,10 +807,10 @@ export default function StartPage() {
               <div data-tour="cities" style={{ display: "grid", gap: 18 }} className="fade">
                 <div>
                   <h1>Where would you <em>work?</em></h1>
-                  <p className="lead">{cities.length ? "Picked from the roles you kept. Tap a city on the map or below to add or remove it." : "Tap the cities you'd work in."}</p>
+                  <p className="lead">{cities.length ? "Picked from the roles you kept. You're in the middle; the further out, the bigger the move. Tap a city to add or remove it." : "You're in the middle; the further out, the bigger the move. Tap the cities you'd work in."}</p>
                 </div>
                 <div className="tile" style={{ overflow: "hidden", background: "var(--bg)" }}>
-                  <RoleMap home={home} places={places} onToggle={toggleCity} height={340} />
+                  <div style={{ padding: "12px 10px 4px" }}><ReachRings home={home} places={places} remote={remoteCount} onToggle={toggleCity} /></div>
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {cityCounts.slice(0, 10).map(([c, n]) => {
@@ -855,7 +856,7 @@ export default function StartPage() {
             </div>
           </div>
           <div style={{ width: 220, borderLeft: "1px solid var(--border)", background: "var(--bg)" }} title="Your map">
-            <RoleMap home={home} places={places} height={104} compact />
+            <div style={{ padding: "4px 6px" }}><ReachRings home={home} places={places} compact /></div>
           </div>
         </div>
       </div>
