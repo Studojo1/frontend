@@ -3,7 +3,7 @@ import { getSessionFromRequest } from "~/lib/onboarding.server";
 import db from "~/lib/db";
 import { userProfile, user } from "../../auth-schema";
 import { normalizeLinks } from "~/lib/talent-profile";
-import type { ProfileLinks } from "../../auth-schema";
+import type { ProfileLinks, TalentStore } from "../../auth-schema";
 import type { Route } from "./+types/api.user.profile";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -89,6 +89,16 @@ export async function action({ request }: Route.ActionArgs) {
     name?: string;
   };
 
+  // About is optional free text kept in the talent store; an empty string clears it.
+  const rawAbout = (body as { about?: unknown })?.about;
+  if (rawAbout !== undefined && (typeof rawAbout !== "string" || rawAbout.length > 600)) {
+    return new Response(JSON.stringify({ error: "Keep your about to 600 characters." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  const about = typeof rawAbout === "string" ? rawAbout.trim() : undefined;
+
   // Links are optional; when sent, the whole set is replaced (empty clears one).
   let links: ProfileLinks | undefined;
   const rawLinks = (body as { links?: unknown })?.links;
@@ -127,6 +137,7 @@ export async function action({ request }: Route.ActionArgs) {
         yearOfStudy?: string;
         course?: string;
         links?: ProfileLinks;
+        talent?: TalentStore;
         updatedAt: Date;
       } = { updatedAt: new Date() };
 
@@ -135,6 +146,11 @@ export async function action({ request }: Route.ActionArgs) {
       if (yearOfStudy !== undefined) updateData.yearOfStudy = yearOfStudy.trim() || "Not specified";
       if (course !== undefined) updateData.course = course.trim() || "Not specified";
       if (links !== undefined) updateData.links = links;
+      if (about !== undefined) {
+        const t = { ...(existingProfile.talent ?? {}) };
+        if (about) t.about = about; else delete t.about;
+        updateData.talent = t;
+      }
 
       await db
         .update(userProfile)
@@ -151,6 +167,7 @@ export async function action({ request }: Route.ActionArgs) {
         yearOfStudy: yearOfStudy?.trim() || "Not specified",
         course: course?.trim() || "Not specified",
         links: links ?? null,
+        talent: about ? { about } : null,
       });
     }
 

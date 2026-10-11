@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { ProfileChat, type ChatAnswers } from "~/components/start/profile-chat";
-import { ReachRings, type ReachPlace as MapPlace } from "~/components/start/reach-rings";
 import type { TalentStore } from "../../auth-schema";
 
 /**
@@ -135,10 +134,6 @@ export default function AppHome() {
     : "I've got your resume, so I won't ask you anything that's already on it.";
   const inferredStage = prefs.companyStage ?? null;
 
-  const places = useMemo<MapPlace[]>(
-    () => (globe?.cities ?? []).map((c) => ({ name: c.name, lat: c.lat, lng: c.lng, count: c.openRoles, picked: true })),
-    [globe],
-  );
 
   const setup: { label: string; done: boolean; now?: boolean }[] = [
     { label: "Resume read", done: !!t.resume },
@@ -326,10 +321,6 @@ export default function AppHome() {
           )}
         </div>
 
-        <div className="ap-card" style={{ padding: 12 }}>
-          <div className="ap-label" style={{ padding: "2px 4px 8px" }}>Your cities</div>
-          <ReachRings home={globe?.home ?? null} places={places} compact />
-        </div>
         {!!prefs.insights?.length && (
           <div className="ap-card" style={{ padding: 16 }}>
             <div className="ap-label" style={{ marginBottom: 8 }}>Learned from your swipes</div>

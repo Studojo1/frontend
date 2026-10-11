@@ -6,8 +6,6 @@ import type { QuickResume } from "~/lib/resume-quick-parse";
 import { type Cluster } from "~/lib/swipe-prefs";
 import { confidence, believe, learn, nextItem, predict, skillHits, type Answers, type BrainRole, type Item, type Side, type Swipe, type Verdict, type Insight } from "~/lib/swipe-brain";
 import { SenseiBackdrop } from "~/components/start/sensei-backdrop";
-import { ReachRings, type ReachPlace as MapPlace } from "~/components/start/reach-rings";
-import { COORDS } from "~/lib/geo";
 import { SENSEI_CSS as CSS } from "~/components/start/sensei-style";
 
 /**
@@ -42,8 +40,7 @@ const STEPS: { key: Step[]; label: string }[] = [
   { key: ["drop", "reading"], label: "Drop your resume" },
   { key: ["verify"], label: "Verify your email" },
   { key: ["confirm"], label: "Check what we found" },
-  { key: ["swipe", "proud", "learned"], label: "Get to know you" },
-  { key: ["cities", "saving"], label: "Pick your cities" },
+  { key: ["swipe", "proud", "learned", "saving"], label: "Get to know you" },
 ];
 
 // Solid initial squares, as in Sensei's company rows.
@@ -78,7 +75,6 @@ function draftFrom(r: QuickResume | null): Draft {
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const coordsOf = (city: string) => COORDS[city.toLowerCase()] ?? (city === "Bengaluru" ? COORDS.bangalore : undefined);
 const initials = (s: string) => s.replace(/[^A-Za-z0-9 ]/g, "").split(" ").filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
 const Tick = ({ c = "currentColor" }: { c?: string }) => (
   <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3 3 7-7" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -327,11 +323,12 @@ export default function StartPage() {
   }, [step, decide, answerQuick, quick]);
 
   // ── 5. Cities ──
-  const toCities = () => {
-    const kept = learned?.cities ?? [];
-    setCities(kept.length ? kept : d.city ? [d.city] : []);
-    setStep("cities");
-  };
+  // Cities come from the swipes; the results screen lets them edit the list.
+  useEffect(() => {
+    if (step !== "learned") return;
+    setCities((x) => (x.length ? x : learned?.cities.length ? learned.cities : d.city ? [d.city] : []));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
   const cityCounts = useMemo(() => {
     const n = new Map<string, number>();
     for (const r of pool) if (r.city) n.set(r.city, (n.get(r.city) ?? 0) + 1);
@@ -369,18 +366,6 @@ export default function StartPage() {
     }).catch(() => {});
     navigate("/profile?welcome=1");
   };
-
-  // Map places: cities with open roles; kept / picked ones highlighted.
-  const keptCities = new Set(learned?.cities ?? []);
-  const places: MapPlace[] = cityCounts
-    .map(([c, n]): MapPlace | null => {
-      const at = coordsOf(c);
-      return at ? { name: c, lat: at[0], lng: at[1], count: n, picked: step === "cities" || step === "saving" ? cities.includes(c) : keptCities.has(c) } : null;
-    })
-    .filter((p): p is MapPlace => !!p);
-  const remoteCount = pool.filter((r) => !r.city).length;
-  const homeAt = shown.city ? coordsOf(shown.city) : undefined;
-  const home = homeAt ? { name: shown.city, lat: homeAt[0], lng: homeAt[1] } : null;
 
   const stepIndex = STEPS.findIndex((s) => s.key.includes(step));
   const dx = fling === "right" ? 520 : fling === "left" ? -520 : drag?.x ?? 0;
@@ -747,7 +732,7 @@ export default function StartPage() {
             )}
 
             {/* 4c. What we learned */}
-            {step === "learned" && (
+            {(step === "learned" || step === "saving") && (
               <div style={{ display: "grid", gap: 20 }} data-tour="learned" className="fade">
                 <div>
                   <span className="tag mint">{answeredCount} answers · {conf}% sure</span>
@@ -786,8 +771,22 @@ export default function StartPage() {
                     </div>
                   </div>
                 )}
+                <div data-tour="cities">
+                  <div className="label" style={{ marginBottom: 8 }}>where you'd work · tap to change</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {[...cities, ...cityCounts.map(([c]) => c).filter((c) => !cities.includes(c))].slice(0, Math.max(cities.length + 4, 6)).map((c) => {
+                      const on = cities.includes(c);
+                      const n = cityCounts.find(([k]) => k === c)?.[1];
+                      return (
+                        <button key={c} type="button" className={`chip${on ? " on" : ""}`} onClick={() => toggleCity(c)}>
+                          {on ? <Tick /> : <span aria-hidden="true">+</span>}{c}{n ? <span className="mono" style={{ fontSize: 11, opacity: 0.7 }}>{n}</span> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16 }}>
-                  <button type="button" className="btn btn--dark" onClick={toCities} data-tour="to-cities">Looks like me <span aria-hidden="true">→</span></button>
+                  <button type="button" className="btn btn--dark" onClick={finish} disabled={step === "saving"} data-tour="finish">{step === "saving" ? "Setting up…" : "Looks like me · finish"} <span aria-hidden="true">→</span></button>
                   <button type="button" className="link" style={{ fontSize: 13.5, color: "var(--text-3)" }} data-tour="continue-test"
                     onClick={() => {
                       // Six more role cards beyond where the deck stopped.
@@ -802,37 +801,11 @@ export default function StartPage() {
               </div>
             )}
 
-            {/* 5. Cities */}
-            {(step === "cities" || step === "saving") && (
-              <div data-tour="cities" style={{ display: "grid", gap: 18 }} className="fade">
-                <div>
-                  <h1>Where would you <em>work?</em></h1>
-                  <p className="lead">{cities.length ? "Picked from the roles you kept. You're in the middle; the further out, the bigger the move. Tap a city to add or remove it." : "You're in the middle; the further out, the bigger the move. Tap the cities you'd work in."}</p>
-                </div>
-                <div className="tile" style={{ overflow: "hidden", background: "var(--bg)" }}>
-                  <div style={{ padding: "12px 10px 4px" }}><ReachRings home={home} places={places} remote={remoteCount} onToggle={toggleCity} /></div>
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {cityCounts.slice(0, 10).map(([c, n]) => {
-                    const on = cities.includes(c);
-                    return (
-                      <button key={c} type="button" className={`chip${on ? " on" : ""}`} onClick={() => toggleCity(c)}>
-                        {on && <Tick />}{c} <span className="mono" style={{ fontSize: 11, opacity: 0.7 }}>{n}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 14 }}>
-                  <button type="button" className="btn btn--dark" onClick={finish} disabled={step === "saving"} data-tour="finish">{step === "saving" ? "Setting up…" : "Finish signup"} <span aria-hidden="true">→</span></button>
-                  <span style={{ fontSize: 14, color: "var(--text-3)" }}>Next: your profile, built from all of this.</span>
-                </div>
-              </div>
-            )}
           </div>
         </main>
 
-        {/* Profile strip with a live map */}
-        <div className="panel" style={{ width: "100%", maxWidth: 760, marginTop: 16, display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", boxShadow: "var(--sh-md)" }} data-tour="card">
+        {/* Profile strip */}
+        <div className="panel" style={{ width: "100%", maxWidth: 760, marginTop: 16, boxShadow: "var(--sh-md)" }} data-tour="card">
           <div style={{ padding: "16px 18px", minWidth: 0, display: "grid", gap: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span className="sq" style={{ background: shown.name ? "var(--accent)" : "var(--bg-2)", color: shown.name ? "#fff" : "var(--text-4)" }}>{shown.name ? initials(shown.name) : "?"}</span>
@@ -854,9 +827,6 @@ export default function StartPage() {
               {(learned?.clusters ?? []).slice(0, 2).map((c) => <span key={c} className="tag">{c.toLowerCase()}</span>)}
               {learned?.minMonthly ? <span className="tag mint">₹{Math.round(learned.minMonthly / 1000)}k+</span> : null}
             </div>
-          </div>
-          <div style={{ width: 220, borderLeft: "1px solid var(--border)", background: "var(--bg)" }} title="Your map">
-            <div style={{ padding: "4px 6px" }}><ReachRings home={home} places={places} compact /></div>
           </div>
         </div>
       </div>

@@ -30,6 +30,8 @@ export type TalentStore = {
     /** Top unseen roles when signup finished, with match scores (0-100). */
     best?: { title: string; company: string; slug: string; city: string | null; cluster: string; match: number }[];
   };
+  /** Their own short bio, in their words. Absent until they write or keep one. */
+  about?: string;
   /** Follow-ups from the /start chat. */
   chat?: {
     companyStage?: string;

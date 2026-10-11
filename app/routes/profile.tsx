@@ -13,12 +13,11 @@ import { EMPTY_SIGNALS, mergeSignals, signalsFromCandidate, signalsFromTalent, t
 import type { ProfileLinks, TalentStore } from "../../auth-schema";
 
 /**
- * /profile: the student's talent sheet, shown the way a recruiter would see
- * them in Sensei: identity with what's verified, a "why talk to them" note
- * written from their answers, signals and top matches, then the detail as
- * rows, in the sensei.studojo.com style used by /start. Everything comes from what
- * signup learned (resume, swipes, question cards) plus the outreach profile.
- * After signup (?welcome=1) it leads straight on to the agent chat in /app.
+ * /profile: the student's profile as one quiet column. Name, headline and
+ * status, then labelled rows: About (theirs, or a first-person draft from
+ * signup), Experience, Education, Skills, what they're looking for, code and
+ * links. Below it, the private part: the agent and activity. After signup
+ * (?welcome=1) it leads on to the agent chat in /app.
  */
 
 type UserProfile = {
@@ -37,21 +36,38 @@ const filled = (v: string | null | undefined) => (v && v.trim() && v !== "Not sp
 const initials = (s: string) => s.replace(/[^A-Za-z0-9 ]/g, "").split(" ").filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
 const SQ_COLORS = ["#5B63E8", "#C4477A", "#1E9E6E", "#C9822B", "#16161E", "#2A8C8C", "#9B59C9"];
 const colorFor = (s: string) => SQ_COLORS[[...s].reduce((n, c) => n + c.charCodeAt(0), 0) % SQ_COLORS.length];
-const TAG_TONE: Record<string, string> = { work: "", avoid: "plain", place: "", pay: "mint", length: "amber", company: "rose", fit: "amber", speed: "mint", values: "rose", plan: "amber" };
-
 const PROFILE_CSS = `
-.ss .sec { background:#fff; border:1px solid var(--border); border-radius:20px; box-shadow:var(--sh-md); }
-.ss .sec__head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:20px 22px 0; }
-.ss .sec__head h2 { font-size:1.35rem; letter-spacing:-.025em; font-weight:600; margin:0; }
-.ss .sec__head h2 em { font-family:var(--serif); font-style:italic; font-weight:400; color:var(--accent); }
-.ss .sec__body { padding:16px 22px 22px; }
+.ss .pf-col { max-width:680px; margin-left:auto; margin-right:auto; }
+.ss .pf-nav { max-width:680px; margin:0 auto; display:flex; align-items:center; gap:14px; padding:7px 7px 7px 14px; border-radius:999px; background:rgba(255,255,255,.82); backdrop-filter:blur(14px); border:1px solid var(--border); }
+.ss .pf-card { background:#fff; border:1px solid var(--border); border-radius:20px; box-shadow:var(--sh-md); }
+.ss main.pf-card { margin-top:20px; padding:36px 40px 12px; }
+.ss .pf-meta { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--text-3); }
+.ss .pf-row { display:grid; grid-template-columns:118px 1fr; gap:6px 20px; padding:22px 0; border-top:1px solid var(--border); font-size:15px; line-height:1.6; }
+.ss header + .pf-row { margin-top:28px; }
+.ss .pf-row > h2 { margin:0; font:500 12px/1.9 var(--mono); color:var(--text-3); letter-spacing:0; }
+.ss .pf-row > div { min-width:0; }
+.ss .pf-note { display:block; margin-top:8px; font-size:13px; }
+.ss .pf-item { display:flex; justify-content:space-between; align-items:baseline; gap:16px; }
+.ss .pf-date { flex-shrink:0; font-size:12px; color:var(--text-3); }
+.ss .pf-dl { margin:0; display:grid; gap:6px; }
+.ss .pf-dl > div { display:grid; grid-template-columns:64px 1fr; gap:12px; }
+.ss .pf-dl dt { font-size:12px; line-height:1.9; color:var(--text-3); }
+.ss .pf-dl dd { margin:0; }
+.ss .pf-link { display:grid; grid-template-columns:64px 1fr; gap:12px; color:var(--ink); text-decoration:none; }
+.ss .pf-link .mono { font-size:12px; line-height:1.9; color:var(--text-3); }
+.ss .pf-link:hover span:last-child { color:var(--accent); }
+@media (max-width:560px) {
+  .ss main.pf-card { padding:26px 20px 6px; }
+  .ss .pf-row { grid-template-columns:1fr; }
+}
 `;
 
-function Section({ title, right, children, tour }: { title: ReactNode; right?: ReactNode; children: ReactNode; tour?: string }) {
+/** One labelled section of the profile: small mono label left, content right. */
+function PfRow({ label, children, tour }: { label: string; children: ReactNode; tour?: string }) {
   return (
-    <section className="sec" data-tour={tour} style={{ minWidth: 0, overflow: "hidden" }}>
-      <div className="sec__head"><h2>{title}</h2>{right}</div>
-      <div className="sec__body">{children}</div>
+    <section className="pf-row" data-tour={tour}>
+      <h2>{label}</h2>
+      <div>{children}</div>
     </section>
   );
 }
@@ -74,12 +90,14 @@ export default function ProfilePage() {
   const [candidateSignals, setCandidateSignals] = useState<TalentSignals>(EMPTY_SIGNALS);
   const [tab, setTab] = useState<"outreach" | "applications" | "resumes" | "support">("outreach");
   const [showAllExp, setShowAllExp] = useState(false);
+  // GitHub contributions this year; the Code row hides when it is 0 or fails.
+  const [ghTotal, setGhTotal] = useState<number | null | undefined>(undefined);
 
   // edit
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
-  const [form, setForm] = useState({ fullName: "", college: "", yearOfStudy: "", course: "", github: "", linkedin: "", portfolio: "" });
+  const [form, setForm] = useState({ about: "", fullName: "", college: "", yearOfStudy: "", course: "", github: "", linkedin: "", portfolio: "" });
 
   useEffect(() => setMounted(true), []);
   useEffect(() => {
@@ -126,7 +144,6 @@ export default function ProfilePage() {
   const emailPrefix = (user?.email ?? "").split("@")[0].toLowerCase();
   const accountName = user?.name && !user.name.includes("@") && user.name.trim().toLowerCase() !== emailPrefix ? user.name.trim() : null;
   const name = filled(profile?.fullName) ?? accountName ?? resumeProfile?.name ?? "Your profile";
-  const [first] = name.split(" ");
   const college = filled(profile?.college) ?? resumeProfile?.college ?? null;
   const course = filled(profile?.course) ?? resumeProfile?.course ?? null;
   const year = filled(profile?.yearOfStudy) ?? resumeProfile?.yearOfStudy ?? null;
@@ -135,11 +152,10 @@ export default function ProfilePage() {
   const lookingFor = role ? role.replace(/\s*intern(ship)?$/i, "") : prefs.clusters?.[0] ? `${prefs.clusters[0]} roles` : null;
   const exp = signals.experience;
   const links = profile?.links ?? null;
-  const verified = !!user?.emailVerified;
 
   const openEdit = () => {
     setForm({
-      fullName: name === "Your profile" ? "" : name, college: college ?? "", yearOfStudy: year ?? "", course: course ?? "",
+      about: t.about ?? "", fullName: name === "Your profile" ? "" : name, college: college ?? "", yearOfStudy: year ?? "", course: course ?? "",
       github: links?.github ?? "", linkedin: links?.linkedin ?? "", portfolio: links?.portfolio ?? "",
     });
     setSaveError("");
@@ -183,221 +199,156 @@ export default function ProfilePage() {
     );
   }
 
-  const insights = (prefs.insights ?? []).filter((i) => i.kind !== "speed");
-  // "Why talk to them", written in the third person from what signup learned.
-  const third = (x: string) => x.replace(/^You'd /, `${first} would `).replace(/^You're /, `${first} is `).replace(/^You /, `${first} `).replace(/\byou\b/g, "them").replace(/\byour\b/g, "their");
-  const values = insights.find((i) => i.kind === "values" && !/^Dream/.test(i.text));
-  const pitch = [
-    exp[0] ? `${exp[0].title}${exp[0].company ? ` at ${exp[0].company}` : ""}.` : course && college ? `${course} at ${college}.` : null,
+  // About: what they wrote, or a first-person draft from what signup learned.
+  const where = prefs.cities?.length ? ` in ${prefs.cities.slice(0, 2).join(" or ")}` : "";
+  const draftAbout = [
+    course && college ? `I'm studying ${course} at ${college}.` : college ? `I'm a student at ${college}.` : null,
+    exp[0] ? `Most recently I was ${/^[aeiou]/i.test(exp[0].title) ? "an" : "a"} ${exp[0].title}${exp[0].company ? ` at ${exp[0].company}` : ""}.` : null,
     chat.proud ? `${chat.proud.replace(/\.$/, "")}.` : null,
-    lookingFor ? `Wants ${lookingFor.toLowerCase()} roles${prefs.cities?.length ? ` in ${prefs.cities.slice(0, 2).join(" or ")}` : ""}${chat.workMode ? `, ${chat.workMode.toLowerCase()}` : ""}${chat.startWhen ? `, ${chat.startWhen === "Right away" ? "can start right away" : `starting ${chat.startWhen.toLowerCase()}`}` : ""}.` : null,
-    values ? third(values.text) : null,
-  ].filter(Boolean).join(" ") || "Finish signup and this fills in from your resume and swipes.";
-  const signalTags: [string, string][] = [
-    ...(prefs.clusters?.[0] ? [[`into ${prefs.clusters[0].toLowerCase()}`, ""] as [string, string]] : []),
-    ...(insights.some((i) => /move for the right role|move to/.test(i.text)) ? [["would relocate", ""] as [string, string]] : insights.some((i) => /rather stay/.test(i.text)) ? [["stays local", "plain"] as [string, string]] : []),
-    ...(chat.companyStage ? [[chat.companyStage.toLowerCase(), "rose"] as [string, string]] : []),
-    ...(prefs.minMonthly ? [[`₹${Math.round(prefs.minMonthly / 1000)}k+ / month`, "mint"] as [string, string]] : insights.some((i) => /work matters more to you than the stipend/.test(i.text)) ? [["work over stipend", "mint"] as [string, string]] : []),
-    ...(chat.startWhen ? [[chat.startWhen.toLowerCase(), "amber"] as [string, string]] : []),
-    ...(insights.some((i) => /mentor/.test(i.text)) ? [["wants a mentor", "rose"] as [string, string]] : []),
-  ];
-  const workRows = insights.filter((i) => ["work", "avoid", "fit"].includes(i.kind));
-  const lifeRows = insights.filter((i) => !["work", "avoid", "fit"].includes(i.kind));
+    lookingFor ? `Now looking for ${lookingFor.toLowerCase()} internships${where}.` : null,
+  ].filter(Boolean).join(" ");
+  const about = t.about?.trim() || draftAbout;
+  const isDraft = !t.about?.trim() && !!draftAbout;
+  const headline = exp[0] ? `${exp[0].title}${exp[0].company ? ` at ${exp[0].company}` : ""}` : course ?? (lookingFor ? `Aspiring ${lookingFor.toLowerCase()}` : null);
   const skills = (t.resume?.skills?.length ? t.resume.skills : signals.skills) ?? [];
+  const startLabel = chat.startWhen ? (chat.startWhen === "Right away" ? "can start now" : `from ${chat.startWhen.toLowerCase()}`) : null;
+  const wants: [string, string | null | undefined][] = [
+    ["Roles", (prefs.titles ?? []).slice(0, 3).join(", ") || lookingFor],
+    ["Where", [...(prefs.cities ?? []), chat.workMode].filter(Boolean).join(", ")],
+    ["Start", chat.startWhen],
+    ["Teams", chat.companyStage ?? prefs.companyStage],
+    ["Dream", chat.dreamCompanies?.join(", ")],
+  ];
+  const linkRows: [string, string, string][] = [
+    ...(links?.github ? [["GitHub", `github.com/${links.github}`, `https://github.com/${links.github}`] as [string, string, string]] : []),
+    ...(links?.linkedin ? [["LinkedIn", links.linkedin.replace(/^https?:\/\/(www\.)?/, ""), links.linkedin.startsWith("http") ? links.linkedin : `https://${links.linkedin}`] as [string, string, string]] : []),
+    ...(links?.portfolio ? [["Website", links.portfolio.replace(/^https?:\/\/(www\.)?/, ""), links.portfolio.startsWith("http") ? links.portfolio : `https://${links.portfolio}`] as [string, string, string]] : []),
+  ];
 
   return (
     <div className="ss" style={{ position: "relative", minHeight: "100vh" }}>
       <style>{SENSEI_CSS + PROFILE_CSS}</style>
       <SenseiBackdrop trees={false} />
 
-      <div style={{ position: "relative", zIndex: 1, padding: "14px 16px 64px" }}>
-        {/* Nav pill */}
-        <nav style={{ maxWidth: 1040, margin: "0 auto", display: "flex", alignItems: "center", gap: 14, padding: "8px 8px 8px 16px", borderRadius: 999, background: "rgba(255,255,255,.82)", backdropFilter: "blur(14px)", border: "1px solid var(--border)", boxShadow: "0 12px 40px -24px rgba(18,20,45,.45)" }}>
+      <div style={{ position: "relative", zIndex: 1, padding: "14px 16px 72px" }}>
+        <nav className="pf-nav">
           <Link to="/" style={{ display: "flex", alignItems: "center", gap: 9, color: "var(--ink)", textDecoration: "none" }}>
             <span style={{ width: 28, height: 28, borderRadius: 8, background: "var(--ink)", color: "#fff", display: "grid", placeItems: "center", fontWeight: 600, fontSize: 13 }}>S</span>
             <span style={{ fontWeight: 600, fontSize: 16, letterSpacing: "-.02em" }}>studojo</span>
           </Link>
-          <span className="mono" style={{ fontSize: 11.5, color: "var(--text-3)" }}>· profile</span>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-            <button type="button" className="btn btn--ghost" style={{ padding: "9px 16px", fontSize: 14 }} onClick={openEdit} data-tour="edit">Edit</button>
-            <Link to="/app" className="btn btn--dark" style={{ padding: "9px 16px", fontSize: 14 }} data-tour="to-agent">Talk to your agent →</Link>
+            <button type="button" className="btn btn--ghost" style={{ padding: "8px 15px", fontSize: 14 }} onClick={openEdit} data-tour="edit">Edit</button>
+            <Link to="/app" className="btn btn--dark" style={{ padding: "8px 15px", fontSize: 14 }} data-tour="to-agent">Your agent →</Link>
           </div>
         </nav>
 
-        {/* Welcome after signup: profile first, then the agent */}
         {welcome && (
-          <div className="fade" style={{ maxWidth: 1040, margin: "16px auto 0", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 14, padding: "14px 18px", borderRadius: 16, background: "var(--accent-soft)", border: "1px solid var(--accent-line)" }} data-tour="welcome">
-            <span className="dot" />
-            <span style={{ fontSize: 15 }}><strong style={{ fontWeight: 600 }}>Your profile is ready.</strong> This is what recruiters see. Next, your agent finds the people hiring for it.</span>
-            <Link to="/app" className="btn btn--accent" style={{ marginLeft: "auto", padding: "10px 18px", fontSize: 14 }}>Meet your agent →</Link>
+          <div className="fade pf-col" style={{ marginTop: 16, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, padding: "13px 16px", borderRadius: 14, background: "var(--accent-soft)", border: "1px solid var(--accent-line)" }} data-tour="welcome">
+            <span style={{ fontSize: 14.5, flex: 1, minWidth: 220 }}><strong style={{ fontWeight: 600 }}>Your profile is ready.</strong> Read it over, then your agent starts finding people who are hiring.</span>
+            <Link to="/app" className="btn btn--accent" style={{ padding: "9px 16px", fontSize: 14 }}>Meet your agent →</Link>
           </div>
         )}
 
-        {/* Talent sheet: how a recruiter sees them in Sensei */}
-        <main className="panel fade" style={{ maxWidth: 1040, margin: "24px auto 0" }} data-tour="sheet">
-          <div className="panel__bar">
-            <span style={{ display: "flex", gap: 5 }} aria-hidden="true">{[0, 1, 2].map((i) => <span key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: "#DCDCE6" }} />)}</span>
-            <span style={{ marginLeft: 6 }}>studojo · talent sheet · {name.toLowerCase().replace(/\s+/g, "-")}</span>
-            <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 7 }}><span className="dot" />live</span>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 330px), 1fr))" }}>
-            {/* Identity */}
-            <div style={{ padding: 26, borderRight: "1px solid var(--border)", display: "grid", gap: 18, alignContent: "start" }} data-tour="identity">
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                {user.image ? (
-                  <img src={user.image} alt="" referrerPolicy="no-referrer" style={{ width: 84, height: 84, borderRadius: 20, objectFit: "cover", boxShadow: "var(--sh-md)" }} />
-                ) : (
-                  <span style={{ width: 84, height: 84, borderRadius: 20, display: "grid", placeItems: "center", flexShrink: 0, color: "#fff", fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 40,
-                    background: "radial-gradient(120% 100% at 25% 15%, #8E95F5 0%, #5B63E8 50%, #3A3FB0 100%)", boxShadow: "var(--sh-md)" }}>{initials(name)}</span>
-                )}
-                <div style={{ minWidth: 0 }}>
-                  <h1 style={{ fontSize: "clamp(1.7rem, 3.4vw, 2.2rem)" }}>{name}</h1>
-                  {lookingFor && <div style={{ fontSize: 17, marginTop: 2 }}>Aspiring <em className="em">{lookingFor.toLowerCase()}</em></div>}
-                </div>
+        <main className="pf-col pf-card fade" data-tour="sheet">
+          {/* Identity */}
+          <header style={{ display: "grid", gap: 14 }} data-tour="identity">
+            {user.image ? (
+              <img src={user.image} alt="" referrerPolicy="no-referrer" style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover" }} />
+            ) : (
+              <span aria-hidden="true" style={{ width: 64, height: 64, borderRadius: "50%", display: "grid", placeItems: "center", color: "var(--accent-deep)", background: "var(--accent-soft)", fontFamily: "var(--serif)", fontStyle: "italic", fontSize: 28 }}>{initials(name)}</span>
+            )}
+            <div>
+              <h1 style={{ fontSize: "clamp(1.6rem, 4vw, 2rem)", margin: 0 }}>{name}</h1>
+              {headline && <p style={{ margin: "4px 0 0", fontSize: 16.5, color: "var(--text-2)" }}>{headline}</p>}
+            </div>
+            <div className="mono pf-meta">
+              {[city, college].filter(Boolean).join("  ·  ")}
+            </div>
+            {lookingFor && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }} data-tour="status">
+                <span className="dot" />
+                <span>Open to {lookingFor.toLowerCase()} internships{startLabel ? `, ${startLabel}` : ""}</span>
               </div>
-              <div className="mono" style={{ fontSize: 12, color: "var(--text-3)", lineHeight: 1.7 }}>
-                {[course, college, year].filter(Boolean).join(" · ").toLowerCase()}
-                {city && <><br />based in {city.toLowerCase()}</>}
-              </div>
-              <div className="tile" style={{ overflow: "hidden" }} data-tour="verified">
-                {[
-                  ["email", user.email, verified ? "verified" : "unverified", verified ? "mint" : "amber"],
-                  ["resume", t.resume ? "read at signup" : "not uploaded", t.resume ? "read" : "missing", t.resume ? "" : "amber"],
-                  ["answers", `${(prefs.liked?.length ?? 0) + (prefs.passed?.length ?? 0)} roles judged`, insights.length ? "learned" : "pending", insights.length ? "" : "plain"],
-                  ["github", links?.github ? `@${links.github}` : "not linked", links?.github ? "linked" : "add", links?.github ? "" : "plain"],
-                ].map(([k, v, status, tone]) => (
-                  <div key={k as string} className="row" style={{ padding: "10px 14px", gap: 10 }}>
-                    <span className="label" style={{ width: 62 }}>{k}</span>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v}</span>
-                    {status === "add" ? <button type="button" className="link" style={{ fontSize: 12.5 }} onClick={openEdit}>add</button> : <span className={`tag ${tone}`}>{status}</span>}
+            )}
+          </header>
+
+          <PfRow label="About" tour="about">
+            {about ? (
+              <>
+                <p style={{ margin: 0, whiteSpace: "pre-line" }}>{about}</p>
+                {isDraft && <button type="button" className="link pf-note" onClick={openEdit}>We drafted this from your signup. Make it yours →</button>}
+              </>
+            ) : <button type="button" className="link" onClick={openEdit}>Write a few lines about yourself</button>}
+          </PfRow>
+
+          <PfRow label="Experience" tour="experience">
+            {exp.length ? (
+              <div style={{ display: "grid", gap: 14 }}>
+                {(showAllExp ? exp : exp.slice(0, 4)).map((e, i) => (
+                  <div key={i} className="pf-item">
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 500 }}>{e.title || e.company}</div>
+                      {e.title && e.company && <div style={{ color: "var(--text-2)" }}>{e.company}</div>}
+                    </div>
+                    {e.duration && <span className="mono pf-date">{e.duration}</span>}
                   </div>
                 ))}
+                {exp.length > 4 && <button type="button" className="link" style={{ justifySelf: "start" }} onClick={() => setShowAllExp((x) => !x)}>{showAllExp ? "Show less" : `Show ${exp.length - 4} more`}</button>}
               </div>
-            </div>
+            ) : <span style={{ color: "var(--text-3)" }}>No roles yet.</span>}
+          </PfRow>
 
-            {/* Why talk to them + matches */}
-            <div style={{ padding: 26, display: "grid", gap: 18, alignContent: "start" }}>
-              <div style={{ padding: "16px 18px", borderRadius: 14, background: "var(--accent-soft)", border: "1px solid var(--accent-line)" }} data-tour="why">
-                <div className="label" style={{ color: "var(--accent-deep)" }}>why talk to {first?.toLowerCase()}</div>
-                <p style={{ margin: "6px 0 0", fontSize: 15.5, lineHeight: 1.55 }}>{pitch}</p>
+          <PfRow label="Education" tour="education">
+            {college ? (
+              <div className="pf-item">
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 500 }}>{college}</div>
+                  {course && <div style={{ color: "var(--text-2)" }}>{course}</div>}
+                </div>
+                {year && <span className="mono pf-date">{year}</span>}
               </div>
-              {!!signalTags.length && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} data-tour="signals">
-                  {signalTags.map(([text, tone]) => <span key={text} className={`tag ${tone}`}>{text}</span>)}
-                </div>
-              )}
-              {!!prefs.best?.length && (
-                <div>
-                  <div className="label" style={{ marginBottom: 8 }}>top matches for {first?.toLowerCase()}</div>
-                  <div className="tile" style={{ overflow: "hidden" }} data-tour="matches">
-                    {prefs.best.map((m) => (
-                      <a key={m.slug} href={`/internships/${m.slug}`} target="_blank" rel="noopener" className="row" style={{ textDecoration: "none", color: "inherit" }}>
-                        <span className="sq" style={{ background: colorFor(m.company) }}>{initials(m.company)}</span>
-                        <span style={{ minWidth: 0, flex: 1 }}>
-                          <span style={{ display: "block", fontWeight: 500, fontSize: 14.5 }}>{m.title}</span>
-                          <span className="mono" style={{ display: "block", fontSize: 11.5, color: "var(--text-3)" }}>{m.company} · {(m.city ?? "remote").toLowerCase()}</span>
-                        </span>
-                        <span style={{ fontWeight: 600, fontSize: 17 }}>{m.match}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
+            ) : <button type="button" className="link" onClick={openEdit}>Add your college</button>}
+          </PfRow>
+
+          {!!skills.length && <PfRow label="Skills" tour="stack"><p style={{ margin: 0 }}>{skills.slice(0, 14).join(", ")}</p></PfRow>}
+
+          {wants.some(([, v]) => v) && (
+            <PfRow label="Looking for" tour="wants">
+              <dl className="pf-dl">
+                {wants.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt className="mono">{k}</dt><dd>{v}</dd></div>)}
+              </dl>
+            </PfRow>
+          )}
+
+          {links?.github && (
+            <div hidden={!ghTotal}>
+              <PfRow label="Code" tour="github"><GithubGraph handle={links.github} onTotal={setGhTotal} /></PfRow>
             </div>
-          </div>
+          )}
+
+          <PfRow label="Links" tour="links">
+            {linkRows.length ? (
+              <div style={{ display: "grid", gap: 6 }}>
+                {linkRows.map(([k, text, href]) => (
+                  <a key={k} href={href} target="_blank" rel="noopener noreferrer" className="pf-link"><span className="mono">{k}</span><span>{text} ↗</span></a>
+                ))}
+              </div>
+            ) : <button type="button" className="link" onClick={openEdit}>Add GitHub, LinkedIn or a website</button>}
+          </PfRow>
         </main>
 
-        {/* The sheet's detail, as rows */}
-        <div style={{ maxWidth: 1040, margin: "20px auto 0", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 20, alignItems: "start" }}>
-          <div style={{ display: "grid", gap: 20, minWidth: 0 }}>
-            <Section title="Wants" tour="wants">
-              <div className="tile" style={{ overflow: "hidden" }}>
-                {[
-                  ["roles", (prefs.titles ?? []).slice(0, 3).join(", ") || lookingFor],
-                  ["cities", (prefs.cities ?? []).join(", ")],
-                  ["works", chat.workMode],
-                  ["starts", chat.startWhen],
-                  ["company", chat.companyStage ?? prefs.companyStage],
-                  ["stipend", prefs.minMonthly ? `₹${Math.round(prefs.minMonthly / 1000)}k+ a month` : null],
-                  ["dream", chat.dreamCompanies?.join(", ")],
-                ].filter(([, v]) => v).map(([k, v]) => (
-                  <div key={k as string} className="row" style={{ padding: "11px 14px" }}>
-                    <span className="label" style={{ width: 70, flexShrink: 0 }}>{k}</span>
-                    <span style={{ fontSize: 14.5 }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-            </Section>
+        {/* Private: only the student sees this part */}
+        <div className="pf-col" style={{ marginTop: 40 }}>
+          <div className="mono" style={{ fontSize: 11.5, color: "var(--text-3)", margin: "0 0 12px 2px" }}>Only you can see this</div>
+          <section className="pf-card" style={{ padding: "18px 20px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 14 }} data-tour="next">
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ fontWeight: 600, fontSize: 16 }}>Your agent has read this profile</div>
+              <div style={{ color: "var(--text-2)", fontSize: 14.5, marginTop: 2 }}>Tell it where to start and it finds the people hiring.</div>
+            </div>
+            <Link to="/app" className="btn btn--dark" style={{ padding: "9px 16px", fontSize: 14 }}>Open your agent →</Link>
+          </section>
 
-            {!!(workRows.length + lifeRows.length) && (
-              <Section title={<>What we <em>learned</em></>} right={<span className="mono" style={{ fontSize: 11.5, color: "var(--text-3)" }}>{prefs.liked?.length ?? 0} kept · {prefs.passed?.length ?? 0} passed</span>} tour="learned">
-                <div className="tile" style={{ overflow: "hidden" }}>
-                  {[...workRows, ...lifeRows].map((i) => (
-                    <div key={i.text} className="row" style={{ alignItems: "flex-start", padding: "11px 14px" }}>
-                      <span style={{ width: 84, flexShrink: 0 }}><span className={`tag ${TAG_TONE[i.kind] ?? ""}`}>{i.kind === "avoid" ? "not for you" : i.kind === "plan" ? "plans" : i.kind}</span></span>
-                      <span style={{ minWidth: 0 }}>
-                        <span style={{ display: "block", fontSize: 14.5, fontWeight: 500 }}>{i.text}</span>
-                        <span className="mono" style={{ display: "block", fontSize: 11.5, color: "var(--text-3)" }}>{i.evidence}</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Section>
-            )}
-          </div>
-
-          <div style={{ display: "grid", gap: 20, minWidth: 0 }}>
-            <Section title="Experience" tour="experience">
-              <div className="tile" style={{ overflow: "hidden" }}>
-                {exp.length ? (showAllExp ? exp : exp.slice(0, 4)).map((e, i) => (
-                  <div key={i} className="row" style={{ padding: "11px 14px" }}>
-                    <span className="sq" style={{ width: 32, height: 32, borderRadius: 9, fontSize: 11.5, background: colorFor(e.company || e.title) }}>{initials(e.company || e.title)}</span>
-                    <span style={{ minWidth: 0, flex: 1 }}>
-                      <span style={{ display: "block", fontWeight: 500, fontSize: 14.5 }}>{e.title}</span>
-                      <span className="mono" style={{ display: "block", fontSize: 11.5, color: "var(--text-3)" }}>{(e.company || "").toLowerCase()}{e.duration ? ` · ${e.duration.toLowerCase()}` : ""}</span>
-                    </span>
-                  </div>
-                )) : <div className="row" style={{ color: "var(--text-3)", fontSize: 14 }}>None yet. Your first role is what we're here for.</div>}
-                {exp.length > 4 && <div className="row"><button type="button" className="link" onClick={() => setShowAllExp((x) => !x)}>{showAllExp ? "Show less" : `Show ${exp.length - 4} more`}</button></div>}
-              </div>
-            </Section>
-
-            <Section title="Education" tour="education">
-              <div className="tile" style={{ overflow: "hidden" }}>
-                <div className="row" style={{ padding: "11px 14px" }}>
-                  <span className="sq" style={{ width: 32, height: 32, borderRadius: 9, fontSize: 11.5, background: colorFor(college ?? "c") }}>{initials(college ?? "?")}</span>
-                  <span style={{ minWidth: 0, flex: 1 }}>
-                    <span style={{ display: "block", fontWeight: 500, fontSize: 14.5 }}>{college ?? "Add your college"}</span>
-                    <span className="mono" style={{ display: "block", fontSize: 11.5, color: "var(--text-3)" }}>{[course, year].filter(Boolean).join(" · ").toLowerCase()}</span>
-                  </span>
-                </div>
-              </div>
-            </Section>
-
-            {!!skills.length && (
-              <Section title="Skills" tour="stack">
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {skills.map((s) => <span key={s} className="tag plain" style={{ fontSize: 11.5, padding: "4px 10px" }}>{s.toLowerCase()}</span>)}
-                </div>
-              </Section>
-            )}
-
-            {links?.github && <Section title={<>Recent <em>work</em></>} tour="github"><GithubGraph handle={links.github} /></Section>}
-          </div>
-        </div>
-
-        {/* Next: the agent */}
-        <section className="sec" style={{ maxWidth: 1040, margin: "28px auto 0", padding: "26px 26px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 18, background: "linear-gradient(120deg, #fff 0%, #F3F3FE 100%)" }} data-tour="next">
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div className="label">next</div>
-            <div style={{ fontSize: 24, fontWeight: 600, letterSpacing: "-.03em", marginTop: 4 }}>Your agent finds the people <em style={{ fontFamily: "var(--serif)", fontStyle: "italic", fontWeight: 400, color: "var(--accent)" }}>hiring for this.</em></div>
-            <p style={{ margin: "6px 0 0", color: "var(--text-2)", fontSize: 15 }}>It already knows everything on this page, so you just tell it where to start.</p>
-          </div>
-          <Link to="/app" className="btn btn--dark">Talk to your agent →</Link>
-        </section>
-
-        {/* Activity */}
-        <section className="sec" style={{ maxWidth: 1040, margin: "20px auto 0", overflow: "hidden" }} data-tour="activity">
+          <section className="pf-card" style={{ marginTop: 14, padding: 0, overflow: "hidden" }} data-tour="activity">
           <div className="panel__bar" style={{ gap: 4, padding: "6px 8px" }} role="tablist">
             {([["outreach", "Outreach", orders?.length], ["applications", "Applications", applications?.length], ["resumes", "Resumes", resumes?.length], ["support", "Support", undefined]] as const).map(([k, label, n]) => (
               <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
@@ -439,6 +390,7 @@ export default function ProfilePage() {
             {tab === "support" && <div style={{ padding: 18 }}><ProfileTickets /></div>}
           </div>
         </section>
+        </div>
       </div>
 
       {/* Edit */}
@@ -447,12 +399,16 @@ export default function ProfilePage() {
           <div className="panel fade" style={{ width: "100%", maxWidth: 560 }}>
             <div className="panel__bar"><span>edit profile</span><button type="button" className="link" style={{ marginLeft: "auto", fontSize: 12 }} onClick={() => setEditing(false)}>close</button></div>
             <form style={{ padding: 22, display: "grid", gap: 12 }} onSubmit={(e) => { e.preventDefault(); void save(); }}>
-              {([["fullName", "Full name"], ["college", "College"], ["course", "Course"], ["yearOfStudy", "Year"], ["github", "GitHub username"], ["linkedin", "LinkedIn"], ["portfolio", "Portfolio"]] as [keyof typeof form, string][]).map(([k, label]) => (
+              {([["fullName", "Full name"], ["college", "College"], ["course", "Course"], ["yearOfStudy", "Year"], ["github", "GitHub username"], ["linkedin", "LinkedIn"], ["portfolio", "Portfolio"]] as [Exclude<keyof typeof form, "about">, string][]).map(([k, label]) => (
                 <label key={k} style={{ display: "grid", gap: 4 }}>
                   <span className="label">{label}</span>
                   <input id={`edit-${k}`} className="field" value={form[k]} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))} />
                 </label>
               ))}
+              <label style={{ display: "grid", gap: 4 }}>
+                <span className="label">About</span>
+                <textarea id="edit-about" className="field" rows={4} maxLength={600} value={form.about} placeholder={draftAbout || "A few lines in your own words"} onChange={(e) => setForm((f) => ({ ...f, about: e.target.value }))} style={{ resize: "vertical", fontFamily: "inherit" }} />
+              </label>
               {saveError && <p style={{ margin: 0, color: "var(--rose)", fontSize: 14 }}>{saveError}</p>}
               <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
                 <button type="submit" className="btn btn--dark" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
