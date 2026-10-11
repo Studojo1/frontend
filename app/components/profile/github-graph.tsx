@@ -5,8 +5,11 @@ type Data = { handle: string; total: number; weeks: number[][]; start: string | 
 const LEVEL = ["bg-neutral-100", "bg-emerald-200", "bg-emerald-400", "bg-emerald-600", "bg-emerald-800"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-/** Public GitHub contribution graph for a handle, via /api/profile/github. */
-export function GithubGraph({ handle }: { handle: string }) {
+/**
+ * Public GitHub contribution graph for a handle, via /api/profile/github.
+ * onTotal gets the year's contribution count, or null if it couldn't load.
+ */
+export function GithubGraph({ handle, onTotal }: { handle: string; onTotal?: (total: number | null) => void }) {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,13 +21,19 @@ export function GithubGraph({ handle }: { handle: string }) {
       .then(async (r) => {
         const d = await r.json().catch(() => ({}));
         if (cancelled) return;
+        onTotal?.(r.ok ? (d as Data).total ?? 0 : null);
         if (r.ok) setData(d as Data);
         else setError(r.status === 404 ? `No GitHub user called @${handle}.` : "GitHub didn't answer. Try again later.");
       })
-      .catch(() => !cancelled && setError("GitHub didn't answer. Try again later."));
+      .catch(() => {
+        if (cancelled) return;
+        onTotal?.(null);
+        setError("GitHub didn't answer. Try again later.");
+      });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onTotal is a callback, refetch only per handle
   }, [handle]);
 
   // Month label above the first week that starts in a new month.

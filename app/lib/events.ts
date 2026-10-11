@@ -75,7 +75,7 @@ export async function publishEmailEventFromClient(
 export async function sendTemplateEmail(
   to: string,
   template: string,
-  fields: { user_name?: string; action_url?: string } = {}
+  fields: { user_name?: string; action_url?: string; code?: string } = {}
 ): Promise<void> {
   try {
     const secret =

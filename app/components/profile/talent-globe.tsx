@@ -22,13 +22,31 @@ export type GlobePin = {
   text?: string;
 };
 
-const COLORS: Record<GlobePin["kind"], [number, number, number]> = {
-  home: [0.43, 0.16, 0.85], // studojo purple-strong
-  target: [0.96, 0.62, 0.04], // amber
-  applied: [0.06, 0.73, 0.51], // emerald
-  hub: [0.96, 0.62, 0.04],
+type RGB = [number, number, number];
+const PALETTES: Record<"light" | "dark", { pins: Record<GlobePin["kind"], RGB>; globe: Record<string, unknown>; arc: RGB }> = {
+  light: {
+    pins: {
+      home: [0.43, 0.16, 0.85], // studojo purple-strong
+      target: [0.96, 0.62, 0.04], // amber
+      applied: [0.06, 0.73, 0.51], // emerald
+      hub: [0.96, 0.62, 0.04],
+    },
+    globe: { dark: 0, diffuse: 1.15, mapBrightness: 5, mapBaseBrightness: 0.02, baseColor: [1, 1, 1], glowColor: [0.94, 0.91, 1], opacity: 0.95 },
+    arc: [0.55, 0.36, 0.96],
+  },
+  // Night globe for the Sensei-style panels: indigo glow, bright pins.
+  dark: {
+    pins: {
+      home: [0.62, 0.66, 1], // indigo, light
+      target: [1, 0.72, 0.25], // amber
+      applied: [0.2, 0.86, 0.6], // emerald
+      hub: [0.5, 0.55, 0.85], // muted indigo: where roles are, not chosen
+    },
+    globe: { dark: 1, diffuse: 1.6, mapBrightness: 7, mapBaseBrightness: 0.04, baseColor: [0.3, 0.32, 0.5], glowColor: [0.3, 0.33, 0.85], opacity: 0.92 },
+    arc: [1, 0.72, 0.25],
+  },
 };
-const SIZES: Record<GlobePin["kind"], number> = { home: 0.09, target: 0.07, applied: 0.045, hub: 0.06 };
+const SIZES: Record<GlobePin["kind"], number> = { home: 0.09, target: 0.07, applied: 0.045, hub: 0.045 };
 const RADIUS = 0.8; // cobe's globe radius in clip space
 
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -59,10 +77,24 @@ function shortestAngle(from: number, to: number): number {
   return from + (d > Math.PI ? d - 2 * Math.PI : d < -Math.PI ? d + 2 * Math.PI : d);
 }
 
+function markersAndArcs(list: GlobePin[], arcsFrom: string | undefined, tone: "light" | "dark") {
+  const pal = PALETTES[tone];
+  const from = list.find((p) => p.id === arcsFrom);
+  return {
+    markers: list.map((p) => ({ location: [p.lat, p.lng] as [number, number], size: SIZES[p.kind], color: pal.pins[p.kind] })),
+    arcs: from
+      ? list
+          .filter((p) => p.kind === "target" && Math.abs(p.lat - from.lat) + Math.abs(p.lng - from.lng) > 0.5)
+          .map((p) => ({ from: [from.lat, from.lng] as [number, number], to: [p.lat, p.lng] as [number, number] }))
+      : [],
+  };
+}
+
 export function TalentGlobe({
   pins,
   arcsFrom,
   focus,
+  tone = "light",
   className = "",
 }: {
   pins: GlobePin[];
@@ -70,11 +102,14 @@ export function TalentGlobe({
   arcsFrom?: string;
   /** Pin id to turn towards; changes animate. */
   focus?: string | null;
+  /** "dark" for the night globe used on dark panels. */
+  tone?: "light" | "dark";
   className?: string;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
   const pinsRef = useRef(pins);
+  const globeRef = useRef<{ destroy: () => void; update: (s: Record<string, unknown>) => void } | null>(null);
   const focusRef = useRef<string | null | undefined>(focus);
   pinsRef.current = pins;
   focusRef.current = focus;
@@ -184,41 +219,32 @@ export function TalentGlobe({
     import("cobe").then(({ default: createGlobe }) => {
       if (destroyed) return;
       const { w, dpr } = size();
-      const list = pinsRef.current;
-      const from = list.find((p) => p.id === arcsFrom);
+      const pal = PALETTES[tone];
       globe = createGlobe(canvas, {
+        // cobe multiplies width and height by devicePixelRatio itself, so these are CSS pixels.
         devicePixelRatio: dpr,
-        width: w * dpr,
-        height: w * dpr,
+        width: w,
+        height: w,
         phi,
         theta,
-        dark: 0,
-        diffuse: 1.15,
-        mapSamples: 16000,
-        mapBrightness: 5,
-        mapBaseBrightness: 0.02,
-        baseColor: [1, 1, 1],
-        markerColor: COLORS.home,
-        glowColor: [0.94, 0.91, 1],
-        opacity: 0.95,
+        ...pal.globe,
+        mapSamples: tone === "dark" ? 24000 : 16000,
+        markerColor: pal.pins.home,
         markerElevation: 0.01,
-        markers: list.map((p) => ({ location: [p.lat, p.lng], size: SIZES[p.kind], color: COLORS[p.kind] })),
-        arcs: from
-          ? list
-              .filter((p) => p.kind === "target" && Math.abs(p.lat - from.lat) + Math.abs(p.lng - from.lng) > 0.5)
-              .map((p) => ({ from: [from.lat, from.lng] as [number, number], to: [p.lat, p.lng] as [number, number] }))
-          : [],
-        arcColor: [0.55, 0.36, 0.96],
-        arcWidth: 0.6,
-        arcHeight: 0.25,
-      }) as typeof globe;
+        ...markersAndArcs(pinsRef.current, arcsFrom, tone),
+        arcColor: pal.arc,
+        arcWidth: 0.8,
+        arcHeight: 0.28,
+      } as Parameters<typeof createGlobe>[1]) as typeof globe;
+      globeRef.current = globe;
       canvas.style.opacity = "1";
       raf = requestAnimationFrame(tick);
     });
 
     const ro = new ResizeObserver(() => {
-      const { w, dpr } = size();
-      globe?.update({ width: w * dpr, height: w * dpr });
+      // update() multiplies by devicePixelRatio itself; passing w * dpr rendered 4x the pixels on retina.
+      const { w } = size();
+      globe?.update({ width: w, height: w });
     });
     ro.observe(host);
 
@@ -230,8 +256,16 @@ export function TalentGlobe({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       globe?.destroy();
+      globeRef.current = null;
       host.replaceChildren();
     };
+    // Built once per mount; pin changes are applied by the effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tone]);
+
+  // New or changed pins update the running globe in place (no rebuild, no flicker).
+  useEffect(() => {
+    globeRef.current?.update(markersAndArcs(pins, arcsFrom, tone));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pinKey]);
 
@@ -245,7 +279,11 @@ export function TalentGlobe({
             <div
               key={p.id}
               data-pin={p.id}
-              className="absolute -translate-x-1/2 -translate-y-[calc(100%+10px)] whitespace-nowrap rounded-xl border-2 border-neutral-900 bg-white px-2.5 py-1.5 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-[opacity,filter] duration-200"
+              className={`absolute -translate-x-1/2 -translate-y-[calc(100%+10px)] whitespace-nowrap px-2.5 py-1.5 transition-[opacity,filter] duration-200 ${
+                tone === "dark"
+                  ? "rounded-lg border border-white/15 bg-white/95 shadow-[0_6px_20px_rgba(0,0,0,.35)] backdrop-blur"
+                  : "rounded-xl border-2 border-neutral-900 bg-white shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
+              }`}
               style={{ opacity: 0 }}
             >
               {p.kicker && (

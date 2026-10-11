@@ -1,6 +1,7 @@
 import { passkeyClient } from "@better-auth/passkey/client";
 import {
   adminClient,
+  emailOTPClient,
   jwtClient,
   lastLoginMethodClient,
   phoneNumberClient,
@@ -59,6 +60,7 @@ export const authClient = createAuthClient({
     adminClient(),
     passkeyClient(),
     phoneNumberClient(),
+    emailOTPClient(),
     twoFactorClient({
       onTwoFactorRedirect: () => {
         if (typeof window !== "undefined") {
