@@ -21,6 +21,10 @@ export type TalentStore = {
     passed?: string[];
     /** Companies behind the roles they kept, offered as dream companies in the chat. */
     likedCompanies?: string[];
+    /** Industries the swipes kept choosing, strongest first. */
+    industries?: string[];
+    /** Kinds of task they kept choosing, e.g. "working with numbers and data". */
+    workStyle?: string[];
     /** What the swipe brain concluded, in words, with the evidence. */
     insights?: { kind: string; text: string; evidence: string }[];
     /** Traits in the order they drive decisions, e.g. ["kind of work", "pay"]. */

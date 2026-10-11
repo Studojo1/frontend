@@ -177,3 +177,84 @@ if (fail) process.exit(1);
 }
 console.log(`${pass} passed, ${fail} failed (after mixed deck)`);
 if (fail) process.exit(1);
+
+// ── v2: what the work is, industry, why, clashes, answers that count ────────
+{
+  const { nextItem, nextCard: nc, learn: learn5, believe, predict, taskOf, doesOf, domainOf } = await import("./swipe-brain.ts");
+  const ctx = { homeCity: "Bengaluru", skills: ["SQL", "Excel", "Python"] };
+
+  // Every card can say what the work is.
+  ok("every role has a task line", rows.every((r) => r.task.length > 20), rows.find((r) => r.task.length <= 20)?.title);
+  ok("task from the listing when it says enough", !taskOf("Data analytics", "Analytics", "Responsibilities: Build weekly dashboards for the city ops team. Work with SQL.").typical);
+  ok("typical task when the listing is empty", taskOf("Data analytics", "Analytics", "d").typical);
+  ok("kind of task crosses kinds of work", doesOf("Growth Analyst") === "numbers" && doesOf("Data Analyst Intern") === "numbers" && doesOf("Business Development Intern") === "people");
+  ok("industry from the company", domainOf("Zerodha") === "Fintech" && domainOf("Swiggy") === "Food & delivery" && domainOf("Tiny Studio") === "other");
+
+  const play = (verdictFor, answerFor, max = 90) => {
+    const swipes = [], answers = {}, probes = [], seq = [];
+    let lastQuick = false, since = 0;
+    for (let i = 0; i < max; i++) {
+      const it = nextItem(rows, swipes, answers, ctx, probes, lastQuick, since);
+      if (!it) break;
+      if (it.kind === "role") {
+        seq.push(`R:${it.pick.probe}`);
+        probes.push(it.pick.probe);
+        swipes.push({ id: it.pick.role.id, verdict: verdictFor(it.pick.role, swipes.length), ms: 1500, shows: it.pick.shows });
+        lastQuick = false; since++;
+      } else {
+        seq.push(`Q:${it.quick.id}`);
+        answers[it.quick.id] = answerFor(it.quick, answers);
+        lastQuick = true; since = 0;
+      }
+    }
+    return { seq, swipes, answers, probes, l: learn5(rows, swipes, ctx, answers) };
+  };
+
+  // Analytics person who loves product analytics and passes on PhonePe for the company.
+  const a = play(
+    (r) => (r.company === "PhonePe" ? "pass" : r.cluster === "Analytics" ? (r.focus === "Product analytics" ? "love" : "like") : "pass"),
+    (q) => (q.id.startsWith("why:") ? "right" : q.id.startsWith("wow:") ? "right" : q.id === "stage" ? "right" : q.id.startsWith("city:") ? "left" : "either"),
+  );
+  ok("digs into a specialty of their kind of work", a.probes.includes("specialty"), a.seq.join(" "));
+  ok("a love asks what did it, once", a.seq.filter((x) => x.startsWith("Q:wow:")).length === 1, a.seq.join(" "));
+  ok("'the company' after a love makes it a dream company", a.l.dreamCompanies.length >= 1, JSON.stringify(a.l.dreamCompanies));
+  ok("no dream question about a company already loved", a.seq.filter((x) => x.startsWith("Q:dream:")).every((x) => !a.l.dreamCompanies.slice(0, 1).some((c) => x === `Q:dream:${c}`) || !a.answers[`wow:${a.swipes.find((s) => rows.find((r) => r.id === s.id).company === c)?.id}`]));
+  ok("follow-ups come straight after the swipe that opened them", a.seq.every((x, i) => !x.startsWith("Q:wow:") || a.seq[i - 1].startsWith("R:")), a.seq.join(" "));
+  ok("no question asked twice (v2)", (() => { const qs = a.seq.filter((x) => x.startsWith("Q:")); return new Set(qs).size === qs.length; })());
+  ok("said startup: no company check cards after that", a.seq.slice(a.seq.indexOf("Q:stage") + 1).every((x) => x !== "R:company" && x !== "R:gain:company"), a.seq.join(" "));
+  ok("said startup: no 'famous name vs the work' repeat", !a.seq.includes("Q:brand_work"), a.seq.join(" "));
+  ok("kind-of-task insight", /happiest working with numbers/.test(a.l.insights.map((i) => i.text).join(" | ")), a.l.insights.map((i) => i.text).join(" | "));
+
+  // A surprise pass gets "what put you off?", and "the company" keeps the work in.
+  const swipes = [];
+  const analytics = rows.filter((r) => r.cluster === "Analytics");
+  for (const r of analytics.slice(0, 5)) swipes.push({ id: r.id, verdict: "like", ms: 1200, shows: [] });
+  const target = analytics[5];
+  swipes.push({ id: target.id, verdict: "pass", ms: 1500, shows: [] });
+  const it = nextItem(rows, swipes, {}, ctx, ["open"], false, 0);
+  ok("surprise pass: 'what put you off?' comes next", it?.kind === "quick" && it.quick.id === `why:${target.id}`, JSON.stringify(it?.quick ?? it?.pick?.probe));
+  const blamed = predict(analytics[6], believe(rows, swipes, ctx, {}), ctx);
+  const shielded = predict(analytics[6], believe(rows, swipes, ctx, { [`why:${target.id}`]: "right" }), ctx);
+  ok("'the company' shields the work from the pass", shielded > blamed, `${blamed} vs ${shielded}`);
+  const l2 = learn5(rows, swipes, ctx, { [`why:${target.id}`]: "right" });
+  ok("company that put them off is out of the best matches", !l2.best.some((b) => b.role.company === target.company));
+
+  // Said startups, kept two big names: ask once which is right.
+  const big = rows.filter((r) => r.big && r.cluster === "Analytics").slice(0, 2);
+  const s3 = [...rows.filter((r) => r.cluster === "Analytics" && !r.big).slice(0, 2).map((r) => ({ id: r.id, verdict: "like", ms: 1200, shows: [] })), ...big.map((r) => ({ id: r.id, verdict: "like", ms: 1200, shows: ["company"] }))];
+  const clash = nextItem(rows, s3, { stage: "right" }, ctx, ["open"], false, 0);
+  ok("answer vs swipes clash: asks which is right", clash?.kind === "quick" && clash.quick.id === "check:company", JSON.stringify(clash?.quick?.id ?? clash?.pick?.probe));
+  ok("the check answer replaces the first one", learn5(rows, s3, ctx, { stage: "right", "check:company": "left" }).companyStage === "Big company");
+
+  // Answers count: "won't move" and a "no" city never show up in best matches.
+  const stay = learn5(rows, swipes, ctx, { "city:Mumbai": "left", move_any: "left" });
+  ok("best matches respect 'won't move'", stay.best.every((b) => !b.role.city || b.role.city === "Bengaluru"), JSON.stringify(stay.best.map((b) => b.role.city)));
+  const floor = learn5(rows, swipes, ctx, { pay_matters: "right", pay_floor: "right" });
+  ok("best matches respect the pay floor", floor.best.every((b) => b.role.monthly === null || b.role.monthly >= 30000), JSON.stringify(floor.best.map((b) => b.role.stipend)));
+  ok("an answer seeds the beliefs", predict(rows.find((r) => r.big), believe(rows, [], ctx, { stage: "left" }), ctx) > predict(rows.find((r) => r.big), believe(rows, [], ctx, {}), ctx));
+
+  console.log("v2 deck:", a.seq.join(" "));
+  console.log("v2 learned:", a.l.insights.map((i) => i.text).join(" | "));
+}
+console.log(`${pass} passed, ${fail} failed (after v2)`);
+if (fail) process.exit(1);

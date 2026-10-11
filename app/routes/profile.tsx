@@ -205,6 +205,7 @@ export default function ProfilePage() {
     course && college ? `I'm studying ${course} at ${college}.` : college ? `I'm a student at ${college}.` : null,
     exp[0] ? `Most recently I was ${/^[aeiou]/i.test(exp[0].title) ? "an" : "a"} ${exp[0].title}${exp[0].company ? ` at ${exp[0].company}` : ""}.` : null,
     chat.proud ? `${chat.proud.replace(/\.$/, "")}.` : null,
+    prefs.workStyle?.[0] ? `I'm happiest ${prefs.workStyle[0]}${prefs.industries?.[0] ? `, especially in ${prefs.industries[0].toLowerCase()}` : ""}.` : null,
     lookingFor ? `Now looking for ${lookingFor.toLowerCase()} internships${where}.` : null,
   ].filter(Boolean).join(" ");
   const about = t.about?.trim() || draftAbout;
@@ -216,6 +217,7 @@ export default function ProfilePage() {
     ["Roles", (prefs.titles ?? []).slice(0, 3).join(", ") || lookingFor],
     ["Where", [...(prefs.cities ?? []), chat.workMode].filter(Boolean).join(", ")],
     ["Start", chat.startWhen],
+    ["Industry", prefs.industries?.join(", ")],
     ["Teams", chat.companyStage ?? prefs.companyStage],
     ["Dream", chat.dreamCompanies?.join(", ")],
   ];

@@ -163,7 +163,7 @@ export default function StartPage() {
   }, [mounted, isPending, signedIn, auth]);
 
   const ctx = useMemo(() => ({ homeCity: d.city || null, skills: d.skills }), [d.city, d.skills]);
-  const belief = useMemo(() => believe(pool, swipes, ctx), [pool, swipes, ctx]);
+  const belief = useMemo(() => believe(pool, swipes, ctx, answers), [pool, swipes, ctx, answers]);
   const conf = Math.round(confidence(belief, swipes) * 100);
   const learned = useMemo(() => (swipes.length ? learn(pool, swipes, ctx, answers) : null), [pool, swipes, ctx, answers]);
   const answeredCount = swipes.length + Object.keys(answers).length;
@@ -349,6 +349,8 @@ export default function StartPage() {
         prefs: {
           clusters: l?.clusters ?? [], avoid: l?.avoid ?? [], cities, minMonthly: l?.minMonthly ?? null, titles: l?.titles ?? [],
           liked: swipes.filter((s) => s.verdict !== "pass").map((s) => s.id), passed: swipes.filter((s) => s.verdict === "pass").map((s) => s.id),
+          industries: l?.domains ?? [],
+          workStyle: l?.workStyle ?? [],
           likedCompanies: [...new Set(swipes.filter((s) => s.verdict !== "pass").map((s) => byId.get(s.id)?.company).filter(Boolean))],
           insights: l?.insights ?? [], matters: l?.matters ?? [], companyStage: l?.companyStage ?? null,
           best: (l?.best ?? []).map((b) => ({ title: b.role.title, company: b.role.company, slug: b.role.slug, city: b.role.city, cluster: b.role.cluster, match: Math.min(97, Math.round(b.match * 100)) })),
@@ -376,6 +378,7 @@ export default function StartPage() {
     if (shows.includes("place")) return { label: "location", value: !c.city ? "Remote" : c.city === d.city ? `${c.city} · near you` : `${c.city} · means moving${d.city ? ` from ${d.city}` : ""}` };
     if (shows.includes("company")) return { label: "company", value: c.big ? "A big, well-known company" : "A startup / smaller company" };
     if (shows.includes("length")) return { label: "length", value: c.duration };
+    if (shows.includes("domain")) return { label: "industry", value: c.domain };
     return null;
   };
 
@@ -635,7 +638,7 @@ export default function StartPage() {
                   </div>
                 )}
 
-                {current && <div style={{ position: "relative", height: 236, userSelect: "none" }} data-tour="deck">
+                {current && <div style={{ position: "relative", height: 292, userSelect: "none" }} data-tour="deck">
                   {[2, 1].map((depth) => (
                     <div key={depth} aria-hidden="true" className="tile" style={{ position: "absolute", inset: 0, transform: `translateY(${depth * 8}px) scale(${1 - depth * 0.03})`, opacity: 1 - depth * 0.25 }} />
                   ))}
@@ -668,7 +671,10 @@ export default function StartPage() {
                           <span className="tag" style={{ marginLeft: "auto" }}>{c.cluster.toLowerCase()}</span>
                         </div>
                         <div style={{ marginTop: 16, fontSize: 26, fontWeight: 600, letterSpacing: "-.03em", lineHeight: 1.15 }}>{c.title}</div>
-                        <div style={{ marginTop: 6, fontSize: 14, color: hits.length ? "var(--mint)" : "var(--text-3)" }}>
+                        <p style={{ margin: "8px 0 0", fontSize: 15, lineHeight: 1.45, color: "var(--text-2)" }} data-tour="task">
+                          <span className="mono" style={{ fontSize: 11, color: "var(--text-4)", marginRight: 8 }}>{c.typical ? "typically" : "you'd"}</span>{c.task}
+                        </p>
+                        <div style={{ marginTop: 6, fontSize: 13.5, color: hits.length ? "var(--mint)" : "var(--text-3)" }}>
                           {hits.length ? `Uses your ${hits.join(", ")}` : "Doesn't use your resume skills: a stretch"}
                         </div>
                         {(() => {

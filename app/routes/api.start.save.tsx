@@ -98,6 +98,8 @@ export async function action({ request }: Route.ActionArgs) {
       liked: strs(p.liked, 40, 40),
       passed: strs(p.passed, 40, 40),
       likedCompanies: strs(p.likedCompanies, 60, 12),
+      industries: strs(p.industries, 40, 5),
+      workStyle: strs(p.workStyle, 60, 4),
       insights: Array.isArray(p.insights)
         ? p.insights
             .map((x: any) => ({ kind: str(x?.kind, 20), text: str(x?.text, 160), evidence: str(x?.evidence, 200) }))
