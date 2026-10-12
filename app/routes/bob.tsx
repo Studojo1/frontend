@@ -878,18 +878,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     } catch (e) { onEnrichError(e); }
   };
 
-  // A delivered number the user says is wrong: the backend refunds its credit once and never serves that number for
-  // that person again. The row moves to Retry so the next Enrich looks for someone else.
-  const reportWrongNumber = async (rowId: number) => {
-    if (!confirm("Report this number as wrong? We refund its credit and never show this number for this person again. Click Retry afterwards to look for another contact.")) return;
-    try {
-      const d = await bobFetch<{ refunded: boolean }>(`/rows/${rowId}/wrong-number`, { method: "POST" });
-      setNotice(d.refunded ? "Thanks for reporting it. The credit is back in your balance." : "Thanks for reporting it. We won't show this number for this person again.");
-    } catch (e) { handleError(e); }
-    refreshTables();
-    loadCredits();
-  };
-
   const deleteRow = async (rowId: number) => {
     try {
       await bobFetch(`/rows/${rowId}`, { method: "DELETE" });
@@ -1389,7 +1377,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               onEnrichRow={enrichRow}
               onEnrichTable={enrichTable}
               onDeleteRow={deleteRow}
-              onWrongNumber={reportWrongNumber}
               coach={coach}
               onLever={send}
             />
@@ -1408,7 +1395,6 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               onEnrichRow={enrichRow}
               onEnrichTable={enrichTable}
               onDeleteRow={deleteRow}
-              onWrongNumber={reportWrongNumber}
               coach={coach}
               onLever={send}
             />
@@ -2521,7 +2507,7 @@ function ResultSummaryCard({ coach, onLever }: { coach: Coach; onLever: (message
   );
 }
 
-function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow, onWrongNumber, coach, onLever }: {
+function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, viewPref, onViewPref, onRowStatus, onEnrichRow, onEnrichTable, onDeleteRow, coach, onLever }: {
   tables: BobTable[];
   run: Run | null;
   widthPct: number;
@@ -2534,7 +2520,6 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
   onEnrichRow: (rowId: number) => void;
   onEnrichTable: (tableId: number) => void;
   onDeleteRow: (rowId: number) => void;
-  onWrongNumber: (rowId: number) => void;
   coach: Coach | null;
   onLever: (message: string) => void;
 }) {
@@ -2740,7 +2725,6 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
           onClose={() => setDetailRow(null)}
           onStatus={(s) => { rowStatusG(detailRow.id, s); setDetailRow({ ...detailRow, status: s }); }}
           onEnrich={() => enrichRowG(detailRow.id)}
-          onWrongNumber={() => { if (detailRow.id >= 0) onWrongNumber(detailRow.id); }}
           onDelete={() => { deleteRowG(detailRow.id); setDetailRow(null); }}
         />
       )}
@@ -3227,13 +3211,12 @@ const CONTACT_KEYS = ["contact_name", "contact_title", "contact_phone", "contact
 const EVIDENCE_KEYS = ["hiring_evidence", "evidence_url", "why_now", "signal_rationale"];
 const COMPANY_KEYS = ["website", "city", "size_band", "what_they_do", "funding", "fit_score"];
 
-function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onWrongNumber, onDelete }: {
+function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
   row: BobRow;
   columns: BobColumn[];
   onClose: () => void;
   onStatus: (s: string) => void;
   onEnrich: () => void;
-  onWrongNumber: () => void;
   onDelete: () => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
@@ -3278,15 +3261,6 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onWrongNumber, o
             </div>
             {["not_found", "no_phone", "error"].includes(contactStatus(row.cells)) && str(row.cells._contact_note) && (
               <p className="text-[11px] text-neutral-500 mt-1.5">{str(row.cells._contact_note)}</p>
-            )}
-            {contactStatus(row.cells) === "found" && str(row.cells.contact_phone) && (
-              <button
-                onClick={onWrongNumber}
-                title="Tell us this number is wrong. We refund its credit and look for someone else next time"
-                className="text-[11px] font-bold text-neutral-400 hover:text-red-600 mt-1.5 underline underline-offset-2"
-              >
-                Wrong number?
-              </button>
             )}
           </div>
           <button onClick={onClose} className="ml-auto w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900">
