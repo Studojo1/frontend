@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router";
 import { authClient } from "~/lib/auth-client";
 import { useOutreachStore } from "./store";
 import { outreachFetch } from "./api";
 import type { NextStep } from "./next-step";
+import { effectiveSession, recheckDelayMs, SESSION_RECHECKS } from "./session-check";
 
 /**
  * Auth hook for outreach pages.
@@ -11,8 +12,28 @@ import type { NextStep } from "./next-step";
  * Redirects to /auth (returning to the current page) if not authenticated.
  */
 export function useOutreachAuth(requireAuth = true) {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: liveSession, isPending, error, refetch } = authClient.useSession();
   const navigate = useNavigate();
+
+  // A failed session check keeps the last signed-in session and is retried;
+  // see effectiveSession for why (Android, returning from the file picker).
+  const lastSession = useRef(liveSession);
+  if (liveSession?.user) lastSession.current = liveSession;
+  const [rechecks, setRechecks] = useState(0);
+  const { session, checkFailed, signedOut, loading } = effectiveSession(
+    liveSession, lastSession.current, error, isPending, rechecks < SESSION_RECHECKS,
+  );
+  useEffect(() => {
+    if (!checkFailed || rechecks >= SESSION_RECHECKS) return;
+    const t = setTimeout(() => {
+      setRechecks((n) => n + 1);
+      void refetch();
+    }, recheckDelayMs(rechecks));
+    return () => clearTimeout(t);
+  }, [checkFailed, rechecks, refetch]);
+  useEffect(() => {
+    if (liveSession?.user) setRechecks(0);
+  }, [liveSession?.user]);
 
   const {
     orderId,
@@ -73,14 +94,14 @@ export function useOutreachAuth(requireAuth = true) {
 
   // Redirect if not authenticated after loading completes
   useEffect(() => {
-    if (!isPending && !session?.user && requireAuth) {
+    if (signedOut && requireAuth) {
       navigate(`/auth?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
     }
-  }, [isPending, session?.user, requireAuth, navigate]);
+  }, [signedOut, requireAuth, navigate]);
 
   return {
     user: session?.user ?? null,
-    loading: isPending,
+    loading,
     // True until persisted state is read and any active order has been
     // recovered. Decide "this user has no candidate" only after this is false.
     recovering: !hasHydrated || (!!session?.user && !recovered),
