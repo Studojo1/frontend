@@ -169,6 +169,11 @@ export default function OpsIndiaReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Operations Internship India 2026: Skill Gaps, Stipends and Hiring Data", "description": "12,400+ ops intern openings in India. Only 19% of applicants are work-ready. Excel, Notion and SOP gaps costing students offers across D2C, SaaS and logistics companies in 2026.", "url": "https://studojo.com/reports/ops-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/ops-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Operations Internship India 2026", "item": "https://studojo.com/reports/ops-india-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: reportCSS }} />
@@ -600,6 +605,31 @@ export default function OpsIndiaReport() {
           </div>
 
           {/* Final CTA */}
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/internships-15k-india-2026" className="related-card"><div className="rc-kicker">Pay</div><div className="rc-title">Roles That Land You Above ₹15k: The Internship Map India</div></Link>
+              <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First job</div><div className="rc-title">First Job Report India: What Entry-Level Looks Like</div></Link>
+              <Link to="/reports/internships-ai-india-2026" className="related-card"><div className="rc-kicker">AI and internships</div><div className="rc-title">How Internships Are Changing Post-AI</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find the ops roles this report is talking about: D2C, SaaS, logistics, and health tech internships across India, curated weekly.</p>
@@ -747,4 +777,34 @@ const reportCSS = `
     .rpt-hero-stats { gap: 20px; }
     .rpt-final-cta { padding: 32px 20px; }
   }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+  .faq-section .sec-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: #fff; font-size: 13px; font-weight: 700; border-radius: 50%; border: 2px solid #171717; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 24px; font-weight: 700; color: #171717; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 4px; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; font-weight: 500; }
+  .rpt-content .faq-section { margin-top: 64px; }
+  .rpt-content .related { margin-top: 20px; }
 `;
+
+const FAQ = [
+  { q: "How many operations internships are open in India?", a: "The report counts 12,400+ operations intern and trainee openings across India, up 38% versus 2024. About 73% are at startups and SMEs, and four cities hold 88% of openings: Bengaluru, Mumbai, Delhi NCR, and Pune. D2C brands, B2B SaaS, logistics tech, and health tech are where most of the hiring happens." },
+  { q: "What skills do operations internships require in India?", a: "Excel or Google Sheets leads, appearing in 84% of ops intern job descriptions, followed by data analysis at 72% and communication at 68%. SOP writing shows up in 63%, SQL in 54%, tools like Notion or Airtable in 44%, AI tools in 41%, and Zapier or Make in 38%. Advanced Excel now means pivot tables and SUMIFS, not just basic formulas." },
+  { q: "How much do ops interns earn in India?", a: "It depends on your skill stack. Median monthly stipends in the report run from ₹9,000 for Excel only, to ₹17,000 for Excel plus SQL, ₹24,000 with Notion or Airtable added, and ₹31,000 for a full stack including AI fluency. The median at Series B+ startups is ₹35,000." },
+  { q: "Why do ops intern candidates get rejected after shortlisting?", a: "The top reason is that 71% cannot build a functional spreadsheet independently. Another 58% have no process documentation experience and 52% are unfamiliar with tools like Notion, Airtable, ClickUp, or Asana. Hiring managers rated only 19% of applicants as work ready on day one." },
+  { q: "What is an SOP and how do I practise writing one?", a: "An SOP, or standard operating procedure, documents a process step by step, and 63% of ops job descriptions mention SOP writing or process documentation. Pick any process you run, such as a study group schedule or a college event, and write it up with objective, scope, steps, owner, and exceptions. One well-written SOP in your portfolio does more work than bullet points about coordinating things." },
+  { q: "What is the best skill to learn before applying for an ops internship?", a: "SQL. The report says a basic SQL course takes 10 to 15 hours and lets you pull your own data without asking engineering, which most ops interns cannot do. Pair it with one Notion workflow and one Zapier automation you can describe in terms of what it saved." },
+];

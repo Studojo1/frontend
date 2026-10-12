@@ -168,6 +168,15 @@ function initCharts() {
   }
 }
 
+const FAQ = [
+  { q: "What is the average starting salary for a finance graduate in India in 2026?", a: "It depends on who hires you. Median starting pay is about 20 LPA at global banks, 9.5 LPA at funded fintechs, 7 LPA at Big 4, 6 LPA at Indian private banks, 5 LPA at NBFCs and insurance, and 4.2 LPA at PSU banks and government finance. Global banks pay most but hire very few people, so most graduates land in the lower columns." },
+  { q: "How many entry-level finance jobs are there in India right now?", a: "The report counts 1,416 entry-level finance openings across India, and BFSI hiring rose 27% in the first half of 2025 compared to the same period in 2024. About 78% of all roles sit in just four cities: Mumbai, Bengaluru, Delhi and Pune. Mumbai alone has 1,020 roles." },
+  { q: "Which skills do I need to get an entry-level finance job in India?", a: "Excel and financial modeling come first, required in 95% of the 800+ job descriptions analysed, followed by communication at 82% and accounting fundamentals at 74%. Python appears in 61% and SQL in 54%, and Python adds 2 to 4 LPA. Median year-1 pay rises from 5.5 LPA for Excel only to 11.5 LPA for Excel, Python and SQL." },
+  { q: "Is CFA Level 1 worth it for a fresher, or is an internship better?", a: "An internship is the better first move. CFA Level 1 adds about 2 LPA on average at entry level, while a relevant internship of six months or more adds about 3.5 LPA. The report's advice is to get the internship first, then the certification, because the internship gives you stories to tell in every interview." },
+  { q: "Why do finance graduates get rejected after being shortlisted?", a: "Only 22% of graduates are job-ready on arrival, according to hiring manager assessments across 40 firms. The top rejection reasons are not being able to explain their own resume (68%), a weak financial modeling test (54%) and no awareness of current markets (48%). Recruiters also cite poor communication of financial concepts as the number one reason to reject finalists." },
+  { q: "Can I work remotely in a finance job in India as a fresher?", a: "Mostly no. 64% of entry-level finance roles are fully on-site, 27% are hybrid and only 9% are remote. The remote roles that exist cluster in financial research writing, equity report editing, credit analysis for NBFCs and remote bookkeeping for international clients." },
+];
+
 export default function FinanceIndiaReport() {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -185,6 +194,11 @@ export default function FinanceIndiaReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Entry-Level Finance Jobs India 2026: Salary Benchmarks and Skill Gaps", "description": "1,400+ entry-level finance openings across global banks, Big 4 and fintechs. Salary ranges, the skills gap screening 75% of applicants, and where the real opportunities are in India in 2026.", "url": "https://studojo.com/reports/finance-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/finance-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Finance Jobs India 2026", "item": "https://studojo.com/reports/finance-india-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: reportCSS }} />
@@ -588,6 +602,31 @@ export default function FinanceIndiaReport() {
             <p className="rpt-source">Source: Naukri work mode filters, LinkedIn Jobs remote filter analysis, April 2026</p>
           </div>
 
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+                <Link to="/reports/finance-internships-india-ib-consulting-fintech-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">Finance internships in India: IB, consulting and fintech</div></Link>
+                <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First job</div><div className="rc-title">First job in India: what entry-level looks like</div></Link>
+                <Link to="/reports/christ-university-finance-2026" className="related-card"><div className="rc-kicker">Colleges</div><div className="rc-title">Christ University and finance roles</div></Link>
+            </div>
+          </div>
+
           {/* Final CTA block */}
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
@@ -889,4 +928,24 @@ const reportCSS = `
     .rpt-hero-stats { gap: 20px; }
     .rpt-final-cta { padding: 32px 20px; }
   }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .faq-section .sec-num { width: 36px; height: 36px; border-radius: 10px; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 20px; font-weight: 700; color: #171717; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; }
 `;

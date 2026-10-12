@@ -131,7 +131,31 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Which certificate should you get first for a cybersecurity internship?", a: "Get CompTIA Security+ or ISC2 Certified in Cybersecurity (CC), not both. Security+ is the most common baseline requirement across entry and mid-level security postings, and either one clears the screening filter. After that, extra certificates have sharply diminishing returns." },
+  { q: "Do you need CISSP or OSCP to get a cybersecurity internship?", a: "No. CISSP, CISM and OSCP are not entry level certificates and do not help you get an internship. CISSP carries a multi-year professional experience requirement, and OSCP is a demanding practical exam aimed at working penetration testers." },
+  { q: "What beats a certificate when applying for a security internship?", a: "A home lab plus a documented portfolio. The consistent finding across 2026 entry level hiring guidance is that demonstrable skill outperforms certifications alone. The lab is the work and the write-up is the evidence, so aim for eight to ten short investigations that include what you got wrong." },
+  { q: "How much do cybersecurity interns get paid in the US?", a: "The average is around $57,115 a year for a cybersecurity intern in the United States. Entry level security roles run roughly $50,000 to $85,000 depending on the role, the metro and whether a clearance is involved. Intern pay generally sits below the entry level band." },
+  { q: "Where should you apply for cybersecurity internships besides tech companies?", a: "Apply to hospitals, government agencies, banks, insurers, utilities and large retailers. Every industry has a security function, and these employers get far fewer student applications than technology companies and security vendors. Searching job boards for 'security analyst intern' surfaces them." },
+  { q: "How long does it take to become internship-ready in cybersecurity?", a: "About twelve weeks if you follow the right order. Spend weeks 1 to 6 on one baseline certificate, weeks 3 to 10 building a lab, weeks 6 to 12 writing up eight to ten investigations, and apply from week 10 onward to employers outside the obvious list." },
+];
 
 export default function Report_CybersecurityInternshipReport2026() {
   useEffect(() => {
@@ -152,6 +176,7 @@ export default function Report_CybersecurityInternshipReport2026() {
         "description": "Security+ is the right first certificate. CISSP and OSCP are not entry level and buying them early wastes money. What actually gets a cybersecurity intern hired in 2026.",
         "url": `${BASE_URL}/reports/cybersecurity-internship-report-2026`,
         "datePublished": "2026-09-27T00:00:00Z",
+        "dateModified": "2026-09-27T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -166,6 +191,11 @@ export default function Report_CybersecurityInternshipReport2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Cybersecurity Internship Report: Stop Collecting Certificates", "item": `${BASE_URL}/reports/cybersecurity-internship-report-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -389,6 +419,31 @@ export default function Report_CybersecurityInternshipReport2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Treat the internship as one of the strongest ways in.</strong> 55 percent of hiring managers told ISC2 that internships are an effective way to find early-career talent, just behind job postings and staffing firms at 57 percent each. It is a strong door, not the only one.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/data-ai-internships-entry-level-reality-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">Data and AI internships 2026: entry-level reality</div></Link>
+              <Link to="/reports/degree-vs-skills-2026" className="related-card"><div className="rc-kicker">Skills</div><div className="rc-title">Degree vs skills: what hirers look at in 2026</div></Link>
+              <Link to="/reports/cs-india-2026" className="related-card"><div className="rc-kicker">Tech</div><div className="rc-title">CS in India: what freshers are getting into</div></Link>
             </div>
           </div>
 

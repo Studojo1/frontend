@@ -157,7 +157,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #f59e0b; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "When do finance internship applications open in India?", a: "Most high-visibility finance intern hiring happens between July and November of the year before the internship. Goldman Sachs India opens Summer Analyst applications on 1 July, and IIM Ahmedabad's 2025-27 batch received all 410 summer offers between 28 Oct and 3 Nov 2025. Build a personal hiring calendar per target firm so overlapping final rounds do not surprise you." },
+  { q: "Which employers hire finance interns in India?", a: "Hiring clusters in three lanes: investment banking and markets, management consulting and deal advisory, and fintech. Private equity, venture, Big 4 transaction services, and corporate finance teams also hire. Mumbai anchors banking and advisory, while Bangalore and Gurgaon host fintech and GCC finance tracks." },
+  { q: "How much do finance interns get paid in India?", a: "The report shows relative bands rather than fixed rupee figures. Bulge-bracket IB and top-tier consulting summer analyst tracks sit at the top, scaled fintech programmes sit in the middle, and Big 4 and early-stage fintech roles sit lower. Always clarify gross stipend, tax handling, and internship agreement duration before you accept." },
+  { q: "Do I need a referral to land an IB or consulting internship?", a: "Referrals carry a lot of weight, but a strong artefact can open doors without one. A campus recruiting lead in the report says a meaningful share of summer analyst seats fill from referrals and alumni intros before the public form goes live. Make it easy for a contact to vouch for you with a short paste-ready paragraph covering lane, city flexibility, internship window, and one flagship link." },
+  { q: "What should I show to stand out for a finance internship?", a: "Lead with one bounded piece of work, such as a three-statement mini model, a comps table, or a sector one-pager with assumptions labelled. Keep it under five pages and be ready to defend it in a twenty-minute grill. For consulting, five deep cases with written takeaways help more than ten shallow ones." },
+  { q: "How do I spot a bad finance internship offer?", a: "Be cautious if the employer will not put stipend, duration, reporting manager, and evaluation criteria in a written internship agreement. Other red flags are take-home cases that look like full client or deal work for free, and aggressive pre-placement offer promises that HR cannot explain. Keep a parallel pipeline running until the paperwork is signed." },
+];
 
 export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() {
   useEffect(() => {
@@ -178,6 +202,7 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
         "description": "A 2026 snapshot of finance internships in India across investment banking, consulting, and fintech: who hires, INR stipend bands, hiring windows, and how students break in beyond job boards.",
         "url": `${BASE_URL}/reports/finance-internships-india-ib-consulting-fintech-2026`,
         "datePublished": "2026-06-04T00:00:00Z",
+        "dateModified": "2026-06-04T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -192,6 +217,11 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Finance Internships India 2026: IB, Consulting, and Fintech", "item": `${BASE_URL}/reports/finance-internships-india-ib-consulting-fintech-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -482,6 +512,31 @@ export default function Report_FinanceInternshipsIndiaIbConsultingFintech2026() 
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Run a dual-track search.</strong> Keep campus and portal alerts, and run referrals plus direct recruiter outreach weekly. Tag outcomes by channel so you know what actually works for your profile in India.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/finance-india-2026" className="related-card"><div className="rc-kicker">Finance</div><div className="rc-title">Finance in India: What Graduates Actually Face</div></Link>
+              <Link to="/reports/mba-internship-market-india-2026" className="related-card"><div className="rc-kicker">MBA</div><div className="rc-title">The MBA Internship Market India 2026</div></Link>
+              <Link to="/reports/hiring-calendar-india-2026" className="related-card"><div className="rc-kicker">Calendar</div><div className="rc-title">India Hiring Calendar 2026: Which Companies Hire in Which Month</div></Link>
             </div>
           </div>
 

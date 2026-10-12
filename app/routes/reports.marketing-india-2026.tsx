@@ -173,6 +173,15 @@ function initCharts() {
   });
 }
 
+const FAQ = [
+  { q: "How much do marketing interns get paid in India in 2026?", a: "The median listed stipend on Internshala is ₹8,000 per month, but the spread is about 6x. Funded startup roles (Series A to C) have a median of ₹15,000, and B2B SaaS or growth-stage companies in Bengaluru and Mumbai reach ₹40,000. Roughly 28% of marketing intern posts on Internshala pay under ₹5,000." },
+  { q: "Which marketing internship roles are growing fastest in India?", a: "Growth and performance marketing listings grew 52% year-on-year, content strategy and SEO grew 41%, product marketing grew 38% and community marketing grew 34%. Generic social media roles grew only 8%, and traditional marketing listings fell 11%. The fastest-growing roles are also the least applied to." },
+  { q: "What skills do I need for a marketing internship in India?", a: "Content creation appears in 88% of listings, SEO in 63%, basic Meta or Google Ads in 58%, Canva or Figma in 54% and analytics (GA4 or Mixpanel) in 49%. The most common rejection reason in hiring manager conversations was inability to interpret basic analytics. GA4 basics take about two days to learn." },
+  { q: "Which Indian cities have the most marketing internships?", a: "Bengaluru and Mumbai together hold 43% of listings, and Delhi NCR adds another 18%. 34% of listings now allow remote or hybrid work, up from 21% in 2024. That makes content, SEO, email and performance marketing roles increasingly reachable without relocating." },
+  { q: "Do marketing internships turn into full-time jobs in India?", a: "It depends heavily on the employer. Studojo's 2025 data shows 78% intern-to-offer conversion at funded startups (Series A to C), 31% at marketing agencies and 22% at MNCs and large companies. Interns who got converted owned a measurable metric, such as organic visits driven by their blog posts." },
+  { q: "Why am I not getting callbacks for marketing internships?", a: "You may be applying to the most crowded listings. Generic social media intern roles at big companies draw roughly 300 applications per role and a 3% callback rate, while niche growth or product marketing roles see a 22% callback rate and founder LinkedIn posts 41%. ATS screening also matters: 64% of applications at companies with more than 50 employees are screened by an ATS, so mirror the exact language of the job description." },
+];
+
 export default function MarketingIndiaReport() {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -187,6 +196,11 @@ export default function MarketingIndiaReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Marketing Internship Stipend India 2026: Which Roles Pay and Which Don't", "description": "22,000+ marketing internship listings in India. Stipends range from Rs 5,000 to Rs 40,000 per month. The 6x gap explained by company type, niche role categories, and what actually gets students hired.", "url": "https://studojo.com/reports/marketing-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/marketing-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Marketing Internship Stipend India 2026", "item": "https://studojo.com/reports/marketing-india-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -576,6 +590,31 @@ export default function MarketingIndiaReport() {
             <p className="rpt-source">Source: Studojo resume analysis data 2025-2026, Jobscan ATS research, Greenhouse applicant tracking research</p>
           </div>
 
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+                <Link to="/reports/growth-marketing-jobs-skills-pay-hiring-2026" className="related-card"><div className="rc-kicker">Growth marketing</div><div className="rc-title">Growth marketing jobs 2026: skills, pay and who is hiring</div></Link>
+                <Link to="/reports/flame-marketing-2026" className="related-card"><div className="rc-kicker">Colleges</div><div className="rc-title">Flame University and marketing roles</div></Link>
+                <Link to="/reports/internships-15k-india-2026" className="related-card"><div className="rc-kicker">Pay</div><div className="rc-title">Roles that land you above ₹15k</div></Link>
+            </div>
+          </div>
+
           {/* Final CTA */}
           <div className="rpt-final-cta rpt-final-cta-green">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
@@ -694,4 +733,24 @@ const rptCSS = `
     .rpt-inline-cta-inner{flex-direction:column;align-items:flex-start;}
     .rpt-hero-stats{gap:20px;} .rpt-final-cta{padding:32px 20px;}
   }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .faq-section .sec-num { width: 36px; height: 36px; border-radius: 10px; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 20px; font-weight: 700; color: #171717; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; }
 `;
