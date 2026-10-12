@@ -122,4 +122,5 @@ export default [
   route("reports/gap-year-report-how-recruiters-view-career-breaks-2026", "routes/reports.gap-year-report-how-recruiters-view-career-breaks-2026.tsx"),
   route("reports/government-vs-private-job-report-why-crores-apply-2026", "routes/reports.government-vs-private-job-report-why-crores-apply-2026.tsx"),
   route("reports/remote-jobs-report-who-hires-remote-freshers-2026", "routes/reports.remote-jobs-report-who-hires-remote-freshers-2026.tsx"),
+  route("reports/job-scam-report-fake-internships-task-scams-students-2026", "routes/reports.job-scam-report-fake-internships-task-scams-students-2026.tsx"),
 ] satisfies RouteConfig;
