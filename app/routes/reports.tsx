@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "ctc-illusion-report-what-12-lpa-pays-in-hand-2026",
+    publishDate: "2026-10-12",
+    title: "The CTC Illusion Report: What a 12 LPA Offer Actually Pays In Hand",
+    subtitle: "The CTC Illusion Report · 2026",
+    excerpt: "A 12 LPA offer pays about 74,000 a month, not 1 lakh. An 18 LPA product offer and a 20 LPA startup offer pay almost the same monthly cash. We broke five common Indian offer structures into PF, gratuity, variable pay, joining bonuses, ESOPs and tax, including the 12 lakh rebate cliff that can take 44% of a bonus.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "job-scam-report-fake-internships-task-scams-students-2026",
     publishDate: "2026-10-18",
     title: "The Job Scam Report: Fake Internships, Pay-to-Join Offers and Task Scams Targeting Students",
@@ -104,18 +116,6 @@ const REPORTS = [
     title: "The Salary Negotiation Report: Do Freshers Who Negotiate Actually Get More?",
     subtitle: "The Salary Negotiation Report · 2026",
     excerpt: "Two freshers from the same batch join the same IT company. One earns 3.36 LPA, the other 7 LPA, and neither of them negotiated. This report maps where Indian fresher pay is really decided, which offers move when you ask, which never do, and what actually gets an offer withdrawn.",
-    category: "Career",
-    type: "Sector" as ReportType,
-    date: "October 2026",
-    findings: 6,
-    badge: "New",
-  },
-  {
-    slug: "ctc-illusion-report-what-12-lpa-pays-in-hand-2026",
-    publishDate: "2026-10-12",
-    title: "The CTC Illusion Report: What a 12 LPA Offer Actually Pays In Hand",
-    subtitle: "The CTC Illusion Report · 2026",
-    excerpt: "A 12 LPA offer pays about 74,000 a month, not 1 lakh. An 18 LPA product offer and a 20 LPA startup offer pay almost the same monthly cash. We broke five common Indian offer structures into PF, gratuity, variable pay, joining bonuses, ESOPs and tax, including the 12 lakh rebate cliff that can take 44% of a bonus.",
     category: "Career",
     type: "Sector" as ReportType,
     date: "October 2026",

@@ -63,13 +63,13 @@ export async function loader() {
     { loc: "/reports/cybersecurity-internship-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/google-internship-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/apple-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/service-vs-product-company-report-5-years-later-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/gap-year-report-how-recruiters-view-career-breaks-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/government-vs-private-job-report-why-crores-apply-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/remote-jobs-report-who-hires-remote-freshers-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/job-scam-report-fake-internships-task-scams-students-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other. Only URLs that return 200 and robots.txt allows
     // (no /auth, no /careers, which 301s to /).
     { loc: "/outreach", priority: "0.9", changefreq: "weekly" },
@@ -168,13 +168,13 @@ export async function loader() {
     "/reports/cybersecurity-internship-report-2026": "2026-09-27",
     "/reports/google-internship-report-2026": "2026-09-27",
     "/reports/apple-internship-report-2026-27": "2026-09-26",
-    "/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026": "2026-10-12",
     "/reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026": "2026-10-13",
     "/reports/service-vs-product-company-report-5-years-later-2026": "2026-10-14",
     "/reports/gap-year-report-how-recruiters-view-career-breaks-2026": "2026-10-15",
     "/reports/government-vs-private-job-report-why-crores-apply-2026": "2026-10-16",
     "/reports/remote-jobs-report-who-hires-remote-freshers-2026": "2026-10-17",
     "/reports/job-scam-report-fake-internships-task-scams-students-2026": "2026-10-18",
+    "/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026": "2026-10-12",
   };
 
   const urls = [
