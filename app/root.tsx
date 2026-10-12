@@ -396,7 +396,7 @@ export default function App() {
     location.pathname.startsWith("/forgot-password") ||
     location.pathname.startsWith("/reset-password");
   const hideGlobalChat =
-    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || location.pathname.startsWith("/jernew") || onSensei || onAuth;
+    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || location.pathname.startsWith("/jernew") || location.pathname.startsWith("/b2cnew") || onSensei || onAuth;
 
   return (
     <>
