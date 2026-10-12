@@ -12,7 +12,7 @@ import { effectiveSession, recheckDelayMs, SESSION_RECHECKS } from "./session-ch
  * Redirects to /auth (returning to the current page) if not authenticated.
  */
 export function useOutreachAuth(requireAuth = true) {
-  const { data: liveSession, isPending, error, refetch } = authClient.useSession();
+  const { data: liveSession, isPending, isRefetching, error, refetch } = authClient.useSession();
   const navigate = useNavigate();
 
   // A failed session check keeps the last signed-in session and is retried;
@@ -20,9 +20,10 @@ export function useOutreachAuth(requireAuth = true) {
   const lastSession = useRef(liveSession);
   if (liveSession?.user) lastSession.current = liveSession;
   const [rechecks, setRechecks] = useState(0);
-  const { session, checkFailed, signedOut, loading } = effectiveSession(
-    liveSession, lastSession.current, error, isPending, rechecks < SESSION_RECHECKS,
+  const { session, checkFailed, answeredNo, signedOut, loading } = effectiveSession(
+    liveSession, lastSession.current, error, isPending, isRefetching, rechecks < SESSION_RECHECKS,
   );
+  if (answeredNo) lastSession.current = null;
   useEffect(() => {
     if (!checkFailed || rechecks >= SESSION_RECHECKS) return;
     const t = setTimeout(() => {
