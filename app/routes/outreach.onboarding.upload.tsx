@@ -16,6 +16,8 @@ import { track } from "~/lib/analytics";
 import type { ResumePreview } from "~/lib/outreach/types";
 import { getSessionFromRequest } from "~/lib/onboarding.server";
 import { MAX_RESUME_BYTES, isResumeFile, loadResumeDraft, clearResumeDraft } from "~/lib/outreach/resume-draft";
+import { pickerLooksStuck, pickerNote, reloadedWhilePicking, type PickHint } from "~/lib/outreach/resume-picker";
+import { chromeIntentUrl, detectInAppBrowser, isAndroid } from "~/lib/in-app-browser";
 import type { Route } from "./+types/outreach.onboarding.upload";
 
 // Meta ads land here. Logged-out visitors used to load the whole page and
@@ -34,12 +36,40 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 const TOO_BIG = "That file is over 10MB. Please upload a smaller PDF or DOCX, or export your resume again with smaller images.";
 
+/** Two taps in a row brought nothing back: the picker did not open. In the
+ * Instagram and Facebook in-app browsers that happens often enough to offer
+ * the way out to the phone's own browser. Rendered only after a tap, so the
+ * user agent is always there to read. */
+function PickerStuckHint() {
+  const ua = typeof navigator === "undefined" ? "" : navigator.userAgent;
+  const inApp = detectInAppBrowser(ua);
+  if (!inApp) {
+    return <>If the file picker is not opening, tap once and wait a moment. If it still does not open, try another browser.</>;
+  }
+  const appName = inApp === "instagram" ? "Instagram" : "Facebook";
+  return (
+    <>
+      The file picker is not opening in {appName}&apos;s built in browser.{" "}
+      {isAndroid(ua) ? (
+        <a href={chromeIntentUrl(window.location.href)} className="font-semibold underline underline-offset-2">
+          Open this page in Chrome
+        </a>
+      ) : (
+        "Tap the menu and choose Open in external browser"
+      )}
+      , sign in there, and pick your resume.
+    </>
+  );
+}
+
 export default function UploadPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useOutreachAuth();
   const { setCandidateId, setCurrentStep, clearChatHistory } = useOutreachStore();
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pickHint, setPickHint] = useState<PickHint>(null);
+  const lastPickerOpen = useRef(0);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<ResumePreview | null>(null);
   const [error, setError] = useState("");
@@ -76,10 +106,12 @@ export default function UploadPage() {
   // here with advice the student can act on.
   const acceptFile = useCallback(async (f: File | undefined) => {
     if (!f || !isResumeFile(f)) {
+      if (f) capturePostHog("resume_pick_rejected", { reason: "type", file_type: f.type || "unknown", file_size: f.size });
       setError("Please upload a PDF or DOCX file");
       return;
     }
     if (f.size > MAX_RESUME_BYTES) {
+      capturePostHog("resume_pick_rejected", { reason: "size", file_type: f.type || "unknown", file_size: f.size });
       setError(TOO_BIG);
       return;
     }
@@ -107,8 +139,61 @@ export default function UploadPage() {
     // Cleared so picking the same file again (after an error) still fires.
     e.target.value = "";
     if (!f) return;
+    pickerNote.clear();
+    lastPickerOpen.current = 0;
+    setPickHint(null);
     void acceptFile(f);
   };
+
+  // The picker step on phones (see resume-picker.ts). The open is noted where
+  // it survives a reload of the tab, so a tab Chrome discarded while the
+  // picker was open is recognised when the page loads again.
+  const notePickerOpen = () => {
+    const now = Date.now();
+    if (pickerLooksStuck(lastPickerOpen.current, now)) {
+      setPickHint("stuck");
+      capturePostHog("resume_picker_stuck", {});
+    }
+    lastPickerOpen.current = now;
+    pickerNote.write(now);
+    capturePostHog("resume_picker_opened", {});
+  };
+
+  const attachFileInput = useCallback((el: HTMLInputElement | null) => {
+    fileInputRef.current = el;
+    if (!el) return;
+    const onCancel = () => {
+      pickerNote.clear();
+      lastPickerOpen.current = 0;
+      setPickHint("cancelled");
+      capturePostHog("resume_picker_cancelled", {});
+    };
+    el.addEventListener("cancel", onCancel);
+    return () => {
+      el.removeEventListener("cancel", onCancel);
+      fileInputRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (reloadedWhilePicking(pickerNote.read(), Date.now())) {
+      setPickHint("reloaded");
+      capturePostHog("resume_picker_page_reloaded", {});
+    }
+    pickerNote.clear();
+    // Back from the picker with the page still alive: the note has done its
+    // job, whether or not this browser reports a cancel.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      timer = setTimeout(() => pickerNote.clear(), 1500);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
 
   const handleUpload = async (picked: File | null = file) => {
     const file = picked;
@@ -289,10 +374,11 @@ export default function UploadPage() {
               {/* The whole box is the control: a label tied to the input, so a
                   tap anywhere on it opens the file picker without any script. */}
               <input
-                ref={fileInputRef}
+                ref={attachFileInput}
                 id="file-input"
                 type="file"
                 accept=".pdf,.docx"
+                onClick={notePickerOpen}
                 onChange={handleFileSelect}
                 className="peer sr-only"
               />
@@ -322,6 +408,16 @@ export default function UploadPage() {
                     {(file.size / 1024).toFixed(0)} KB
                   </span>
                 </div>
+              )}
+
+              {pickHint && !file && (
+                <p className="text-sm text-studojo-ink mt-4 p-3 rounded-xl bg-studojo-surface-muted border-2 border-studojo-ink/20 font-satoshi" role="status">
+                  {pickHint === "reloaded" &&
+                    "Your phone closed this page while you were choosing a file, so the file did not come through. Please pick it again."}
+                  {pickHint === "cancelled" &&
+                    "No file was chosen. If your resume is a Google Doc, download it as a PDF first, then pick it from your Downloads."}
+                  {pickHint === "stuck" && <PickerStuckHint />}
+                </p>
               )}
 
               {error && <p className="text-sm text-red-600 mt-4 font-satoshi">{error}</p>}
