@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "gap-year-report-how-recruiters-view-career-breaks-2026",
+    publishDate: "2026-10-15",
+    title: "The Gap Year Report: How Recruiters Really View Career Breaks and Drop Years",
+    subtitle: "The Gap Year Report · 2026",
+    excerpt: "Each year around 10 lakh people sit UPSC prelims for under 1,000 posts, and lakhs more take drop years for CAT, GATE and railway exams. Gaps are common, but the stigma is real: 77% of Indian working women who took a break say it set them back. We map how recruiters read different kinds of gaps and how to explain yours so it becomes a story rather than a hole.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "service-vs-product-company-report-5-years-later-2026",
     publishDate: "2026-10-14",
     title: "The Service vs Product Company Report: IT Services vs Startups vs Product Firms, 5 Years Later",
@@ -104,18 +116,6 @@ const REPORTS = [
     title: "The Government vs Private Job Report: Why 1.2 Crore People Applied for 8,900 Railway Jobs",
     subtitle: "The Government vs Private Job Report · 2026",
     excerpt: "RRB NTPC 2025 drew over 1.2 crore applications for about 8,900 posts, roughly 1,370 people per seat. The usual explanation is that Indians over-value security. Our pay comparison shows a simpler reason: at entry level, many government jobs simply pay more than private ones. The real problem is not the prize. It is the odds and the years spent chasing them.",
-    category: "Career",
-    type: "Sector" as ReportType,
-    date: "October 2026",
-    findings: 6,
-    badge: "New",
-  },
-  {
-    slug: "gap-year-report-how-recruiters-view-career-breaks-2026",
-    publishDate: "2026-10-15",
-    title: "The Gap Year Report: How Recruiters Really View Career Breaks and Drop Years",
-    subtitle: "The Gap Year Report · 2026",
-    excerpt: "Each year around 10 lakh people sit UPSC prelims for under 1,000 posts, and lakhs more take drop years for CAT, GATE and railway exams. Gaps are common, but the stigma is real: 77% of Indian working women who took a break say it set them back. We map how recruiters read different kinds of gaps and how to explain yours so it becomes a story rather than a hole.",
     category: "Career",
     type: "Sector" as ReportType,
     date: "October 2026",
