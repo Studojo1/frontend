@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "government-vs-private-job-report-why-crores-apply-2026",
+    publishDate: "2026-10-16",
+    title: "The Government vs Private Job Report: Why 1.2 Crore People Applied for 8,900 Railway Jobs",
+    subtitle: "The Government vs Private Job Report · 2026",
+    excerpt: "RRB NTPC 2025 drew over 1.2 crore applications for about 8,900 posts, roughly 1,370 people per seat. The usual explanation is that Indians over-value security. Our pay comparison shows a simpler reason: at entry level, many government jobs simply pay more than private ones. The real problem is not the prize. It is the odds and the years spent chasing them.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "gap-year-report-how-recruiters-view-career-breaks-2026",
     publishDate: "2026-10-15",
     title: "The Gap Year Report: How Recruiters Really View Career Breaks and Drop Years",
@@ -104,18 +116,6 @@ const REPORTS = [
     title: "The Remote Jobs Report: Who Is Still Hiring Remote Freshers, and for What",
     subtitle: "The Remote Jobs Report · 2026",
     excerpt: "Only about 9% of Indian job postings mention remote work, and the biggest fresher employers have pulled people back to the office. But the remote share is rising again, and it clusters in specific roles, company types and global contractor setups. We map where remote fresher work actually exists, how to get paid by a foreign company legally, and the scams that pose as remote jobs.",
-    category: "Career",
-    type: "Sector" as ReportType,
-    date: "October 2026",
-    findings: 6,
-    badge: "New",
-  },
-  {
-    slug: "government-vs-private-job-report-why-crores-apply-2026",
-    publishDate: "2026-10-16",
-    title: "The Government vs Private Job Report: Why 1.2 Crore People Applied for 8,900 Railway Jobs",
-    subtitle: "The Government vs Private Job Report · 2026",
-    excerpt: "RRB NTPC 2025 drew over 1.2 crore applications for about 8,900 posts, roughly 1,370 people per seat. The usual explanation is that Indians over-value security. Our pay comparison shows a simpler reason: at entry level, many government jobs simply pay more than private ones. The real problem is not the prize. It is the odds and the years spent chasing them.",
     category: "Career",
     type: "Sector" as ReportType,
     date: "October 2026",
