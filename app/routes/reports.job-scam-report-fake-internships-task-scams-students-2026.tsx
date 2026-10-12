@@ -130,7 +130,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #ef4444; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "How do task scams work?", a: "A WhatsApp or Telegram message offers part-time work like liking videos or rating hotels. The first tasks pay small real amounts, such as 150 or 300 rupees, to build trust. Then you are asked to deposit money to unlock bigger tasks, and withdrawals are blocked until you pay more, which is how victims end up losing lakhs." },
+  { q: "How can I tell if an internship offer is fake?", a: "Run the 7-point check: did you apply, was there a real interview, is the email from the company domain, is the role on the official careers page, can you find the recruiter on LinkedIn, is anyone asking for money, and is the pay believable. One failed check is enough reason to stop. Unsolicited offers for jobs you never applied to are the biggest single warning sign." },
+  { q: "Should I ever pay a registration or training fee for an internship?", a: "No. Legitimate employers, including small startups, pay you and do not charge you to join. Fees for registration, training, certificates, ID cards, background checks, equipment or deposits are all red flags. Some are outright fraud and others are paid courses with a misleading name." },
+  { q: "What should I do in the first hour after being scammed?", a: "Call the national cyber fraud helpline 1930 or file a complaint at cybercrime.gov.in as soon as possible. Then call your bank to block further transactions and save every screenshot, chat, UPI ID and account number. Government data shows more than 5,489 crore was stopped from reaching fraudsters in 2024, and fast reporting is what lets banks freeze money." },
+  { q: "How big is job and cyber fraud in India?", a: "Indians lost 22,845 crore to cyber fraud in 2024, around 62 crore every day, up 206% on 2023. There were 36.4 lakh complaints, up from 24.4 lakh the year before. That covers all cyber fraud, but fake jobs and part-time task schemes are among the most common entry points." },
+  { q: "Why are students the main target for job scams?", a: "Students want income and experience quickly, have never seen a real hiring process, are used to paying fees for exams and courses, and are comfortable on WhatsApp, Telegram and UPI. Many also feel embarrassed to report losses. After a run of rejections, a fast easy offer feels like a lucky break, which is exactly how the scam is designed." },
+];
 
 export default function Report_JobScamReportFakeInternshipsTaskScamsStudents2026() {
   useEffect(() => {
@@ -151,6 +175,7 @@ export default function Report_JobScamReportFakeInternshipsTaskScamsStudents2026
         "description": "Indians lost 22,845 crore to cyber fraud in 2024, and fake jobs are a top hook. How task scams and pay-to-join internships work, and how to verify any offer.",
         "url": `${BASE_URL}/reports/job-scam-report-fake-internships-task-scams-students-2026`,
         "datePublished": "2026-10-18T00:00:00Z",
+        "dateModified": "2026-10-18T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -165,6 +190,11 @@ export default function Report_JobScamReportFakeInternshipsTaskScamsStudents2026
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Job Scam Report: Fake Internships, Pay-to-Join Offers and Task Scams Targeting Students", "item": `${BASE_URL}/reports/job-scam-report-fake-internships-task-scams-students-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -401,6 +431,31 @@ export default function Report_JobScamReportFakeInternshipsTaskScamsStudents2026
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Report within the hour"}.</strong> {"Call 1930 or use cybercrime.gov.in immediately. Speed is what lets banks freeze money."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/remote-jobs-report-who-hires-remote-freshers-2026" className="related-card"><div className="rc-kicker">Remote</div><div className="rc-title">Who Hires Remote Freshers</div></Link>
+              <Link to="/reports/unpaid-internship-trap-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">Is an Unpaid Internship Ever Worth It?</div></Link>
+              <Link to="/reports/remote-internships-2026" className="related-card"><div className="rc-kicker">Remote</div><div className="rc-title">Which Remote Internships Are Real</div></Link>
             </div>
           </div>
 

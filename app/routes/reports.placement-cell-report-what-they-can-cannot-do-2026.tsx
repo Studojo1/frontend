@@ -162,7 +162,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What does a college placement cell actually do?", a: "A placement cell is operations, not magic. It registers companies, publishes drive schedules, collects resumes, runs aptitude rounds, enforces slot caps and keeps offer letters documented. It manages employer relationships, process compliance and student eligibility, but does not provide individual career coaching at scale." },
+  { q: "Can a placement cell guarantee me a job?", a: "No. AICTE data reported by ThePrint (March 2025) shows only 47.7% of roughly 3.43 million undergraduate engineering students enrolled between 2019-20 and 2022-23 secured placements. Even at the IITs, about 38% of the 21,500 students who registered in 2024 were still unplaced." },
+  { q: "What can't a placement cell do for me?", a: "It cannot place you at a company outside its network, override recruiter cutoffs such as GPA or backlog rules, interview for you, or fix a weak resume. Product firms, niche startups, media houses and many foreign roles never run traditional drives at mid-tier campuses." },
+  { q: "Does my college tier change how much the placement cell can help?", a: "Yes. Top-tier campuses attract recruiters who skip smaller colleges entirely, while newer institutes may have enthusiastic staff but thin employer lists. Judge your cell by the employer graph it actually has, and ask seniors which drives led to real jobs and which firms returned three years in a row." },
+  { q: "Should I apply off-campus if my college has a placement cell?", a: "Yes, run both lanes in parallel. Go off-campus when your target employers are not on the official list, when you want startup or niche roles, or when you have a warm intro. Check your institute's rules on offer disclosure, slot limits and renege penalties so you do not get disqualified on a technicality." },
+  { q: "What should I get from my placement office before placement season?", a: "Ask for the placement policy PDF, slot and renege rules, the eligible company list from the last two years, and the official resume format. Read them before dream-company season. Then build a tracker of drive dates and register for every viable drive, even as a backup." },
+];
 
 export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
   useEffect(() => {
@@ -183,6 +207,7 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
         "description": "What college placement cells can and cannot do in 2026: campus drives, policy rules, employer access, and what students must handle themselves off the official schedule.",
         "url": `${BASE_URL}/reports/placement-cell-report-what-they-can-cannot-do-2026`,
         "datePublished": "2026-06-06T00:00:00Z",
+        "dateModified": "2026-06-06T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -197,6 +222,11 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Placement Cell Report: What Placement Cells Can and Cannot Actually Do", "item": `${BASE_URL}/reports/placement-cell-report-what-they-can-cannot-do-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -505,6 +535,31 @@ export default function Report_PlacementCellReportWhatTheyCanCannotDo2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Stay compliant when going off-campus"}.</strong> {"Disclose offers if required, avoid slot violations, and report bad employers with evidence so the office can protect the next batch."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/tier-2-college-to-top-company-conversion-2026" className="related-card"><div className="rc-kicker">Tier 2 Colleges</div><div className="rc-title">Tier 2 College to Top Company: The Real Conversion Rate</div></Link>
+              <Link to="/reports/hidden-job-market-70-percent-never-posted-2026" className="related-card"><div className="rc-kicker">Hidden Jobs</div><div className="rc-title">The Hidden Job Market: Roles Filled Through Referrals</div></Link>
+              <Link to="/reports/degree-vs-skills-2026" className="related-card"><div className="rc-kicker">Skills</div><div className="rc-title">Degree vs Skills: What Hirers Look At</div></Link>
             </div>
           </div>
 

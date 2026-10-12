@@ -130,7 +130,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #f59e0b; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Why do so many people apply for government jobs in India?", a: "The rush is more rational than it looks. Under the 7th Pay Commission, a Level 5 railway post grosses about 61,200 a month, compared with about 27,500 for an IT services fresher on 3.6 LPA. That is 2.2x the pay, before counting job security and pension." },
+  { q: "How many people applied for RRB NTPC 2025?", a: "RRB NTPC 2025 received about 1.22 crore applications for around 8,900 posts, which is roughly 1,370 applicants per seat. That includes 58.4 lakh for graduate-level posts and 63.3 lakh for undergraduate-level posts. UPSC Civil Services ran at about 1,000 candidates per vacancy in 2025." },
+  { q: "Does a government job really pay more than a private fresher job?", a: "At entry level, often yes. Level 5 grosses about 61,200 a month and Level 6 about 73,000, using DA at 60%, HRA at 30% in X-class cities and transport allowance. Even Level 1 grosses about 36,400 in a big city, while an elite-track 7 LPA private offer grosses about 48,100." },
+  { q: "What is the real cost of preparing for government exams full time?", a: "The cost is years, not rupees. Three years of full-time preparation gives up around 11 to 12 lakh of CTC even at an IT services entry salary, plus three years of experience. If you are not selected, you re-enter the private market as a fresher at 25 or 26." },
+  { q: "When do private jobs beat government jobs?", a: "Private careers win on speed, ceiling and mobility. Government pay rises on fixed scales, while a private employee who switches well, or moves from services to product, can outpace a Level 6 salary within a few years. Senior private roles also pay far more than any government grade." },
+  { q: "How can I prepare for a government job without risking everything?", a: "Prepare in parallel and set limits. Decide in advance how many attempts or years you will give it, apply across exams that share a syllabus such as SSC, banking and railways, and keep one private-market skill alive through an internship or freelance project. Track your mock scores and stage results, since they are the only honest signal of whether to continue." },
+];
 
 export default function Report_GovernmentVsPrivateJobReportWhyCroresApply2026() {
   useEffect(() => {
@@ -151,6 +175,7 @@ export default function Report_GovernmentVsPrivateJobReportWhyCroresApply2026() 
         "description": "RRB NTPC 2025 drew 1.2 crore applications for about 8,900 posts. A Level 5 railway job pays over twice an IT services fresher. The real maths behind the queue.",
         "url": `${BASE_URL}/reports/government-vs-private-job-report-why-crores-apply-2026`,
         "datePublished": "2026-10-16T00:00:00Z",
+        "dateModified": "2026-10-16T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -165,6 +190,11 @@ export default function Report_GovernmentVsPrivateJobReportWhyCroresApply2026() 
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Government vs Private Job Report: Why 1.2 Crore People Applied for 8,900 Railway Jobs", "item": `${BASE_URL}/reports/government-vs-private-job-report-why-crores-apply-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -363,6 +393,31 @@ export default function Report_GovernmentVsPrivateJobReportWhyCroresApply2026() 
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Prepare in parallel"}.</strong> {"Keep a private-market skill and some income going so a failed attempt is a setback, not a restart."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/gap-year-report-how-recruiters-view-career-breaks-2026" className="related-card"><div className="rc-kicker">Careers</div><div className="rc-title">How Recruiters View Career Breaks</div></Link>
+              <Link to="/reports/first-1-lakh-month-report-fastest-paths-students-2026" className="related-card"><div className="rc-kicker">Pay</div><div className="rc-title">The Fastest Paths to 1 Lakh a Month</div></Link>
+              <Link to="/reports/service-vs-product-company-report-5-years-later-2026" className="related-card"><div className="rc-kicker">Careers</div><div className="rc-title">IT Services vs Product Firms, 5 Years Later</div></Link>
             </div>
           </div>
 

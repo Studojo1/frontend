@@ -157,7 +157,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #f59e0b; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "How much do you actually get in hand on a 12 LPA salary?", a: "A typical 12 LPA fresher offer pays about 73,900 a month in hand, roughly 74% of the 1 lakh a month the headline implies. The model assumes 10.5 lakh fixed, 1 lakh variable and a 50,000 joining bonus, with the new tax regime and Bengaluru professional tax. Your own offer will differ, so use the method rather than just the numbers." },
+  { q: "Why is my in-hand salary lower than CTC divided by 12?", a: "CTC is the total the company budgets for you, not your monthly salary. It includes employer PF, a gratuity provision, insurance premiums, variable pay and often a one-time joining bonus. About a quarter of a 12 LPA offer is money that is saved for you, conditional or one-time, and only the monthly credit is guaranteed cash." },
+  { q: "How did the new labour codes change take-home pay?", a: "Under the labour codes in force from 21 November 2025, wages (basic plus DA) must be at least 50% of total pay. A higher basic means a higher PF deduction and a higher employer PF charge inside the same CTC. Business Today's calculator showed annual in-hand at a 15 lakh CTC falling from about 12.43 lakh to about 11.79 lakh, with the difference moving into PF and gratuity." },
+  { q: "Is variable pay taxed heavily on a 20 LPA offer?", a: "It can be. Under the new regime, taxable income up to 12 lakh gets effectively zero tax through the Section 87A rebate. In the report's 20 LPA startup model, a 2 lakh variable payout pushes taxable income to about 14.07 lakh and adds about 87,000 of tax, so 44% of that bonus goes to tax." },
+  { q: "Do ESOPs and joining bonuses count as salary?", a: "No. A joining bonus is one-time and often carries a clawback if you leave within about 12 months. ESOPs usually vest over four years with a one-year cliff, so nothing vests in your first year. In the 20 LPA startup model, guaranteed monthly in-hand is about 99,000, or 59% of the 1.67 lakh a month the headline implies." },
+  { q: "How should I compare two job offers?", a: "Convert each offer to guaranteed monthly in-hand pay before comparing. Ask for the annexure that lists every component, then work down from monthly gross, minus your PF, professional tax and estimated TDS. Treat variable pay, the joining bonus and ESOPs as separate bets, because two offers 2 lakh apart on paper can pay almost the same each month." },
+];
 
 export default function Report_CtcIllusionReportWhat12LpaPaysInHand2026() {
   useEffect(() => {
@@ -178,6 +202,7 @@ export default function Report_CtcIllusionReportWhat12LpaPaysInHand2026() {
         "description": "A 12 LPA offer pays about 74,000 a month in hand. We break down PF, gratuity, variable pay, joining bonuses, ESOPs and tax across five offer types.",
         "url": `${BASE_URL}/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026`,
         "datePublished": "2026-10-12T00:00:00Z",
+        "dateModified": "2026-10-12T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -192,6 +217,11 @@ export default function Report_CtcIllusionReportWhat12LpaPaysInHand2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The CTC Illusion Report: What a 12 LPA Offer Actually Pays In Hand", "item": `${BASE_URL}/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -449,6 +479,31 @@ export default function Report_CtcIllusionReportWhat12LpaPaysInHand2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Remember the money that is still yours"}.</strong> {"PF and gratuity are not lost. They are deferred. Count them as savings, not salary."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026" className="related-card"><div className="rc-kicker">Pay</div><div className="rc-title">Do Freshers Who Negotiate Get More?</div></Link>
+              <Link to="/reports/service-vs-product-company-report-5-years-later-2026" className="related-card"><div className="rc-kicker">Careers</div><div className="rc-title">IT Services vs Product Firms, 5 Years Later</div></Link>
+              <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First job</div><div className="rc-title">What Entry-Level Actually Looks Like</div></Link>
             </div>
           </div>
 

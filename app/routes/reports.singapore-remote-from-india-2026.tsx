@@ -238,7 +238,31 @@ const reportCSS = `
   .co-block.cyan .co-cat   { color: #06b6d4; }
   .co-list { font-size: 14px; font-weight: 600; color: #171717; letter-spacing: -0.2px; line-height: 1.45; }
   .co-list .dim { color: #a3a3a3; font-weight: 500; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Can I work remotely for a Singapore company from India?", a: "Yes, but very few listings allow it. In a May 2026 scan of 400 Singapore-tagged remote listings, only 41 explicitly accepted candidates outside Singapore, and about 90% of such listings are not open to India-based applicants. Green flag phrases include APAC remote, open to India, hiring globally, and EOR supported." },
+  { q: "How much do Singapore remote jobs pay for India-based workers?", a: "Typically two to three times the Indian market for the same work. A mid-level software engineer in Singapore earns roughly SGD 7,000 to 12,000 per month, and India remote hires are often paid 50 to 70 percent of that, around SGD 5,000 to 8,000 per month. That is roughly INR 3.0 to 5.0 lakh per month, versus INR 1.2 to 2.0 lakh at the median Indian product company." },
+  { q: "Which roles can be done remotely for a Singapore company from India?", a: "Software engineering, DevOps, and SRE are the most remote-friendly because the work is async and text-based. Customer success and growth marketing are hard because of time-zone and relationship overlap. Below three years of experience, Singapore companies almost always hire local, while above five years with a specific stack story, India remote becomes a default option." },
+  { q: "How do Singapore companies pay India remote employees?", a: "Four structures are common: an Employer of Record (EOR), an Indian subsidiary contract, direct USD or SGD remittance, and a contractor or freelance invoice. EOR is the most common, with roughly 52 percent of India remote hires by SG companies routed through it. Ask on the offer call which structure applies, since it shapes your tax, benefits, and stability." },
+  { q: "Where do Singapore remote jobs for India candidates get posted first?", a: "LinkedIn is the last place they show up. Glints, Tech in Asia, and VC portfolio jobs pages surface roughly two thirds of India-open Singapore remote roles first. Searching LinkedIn for founder posts that say we are hiring in Singapore from the past 7 days also finds roles before careers pages list them." },
+  { q: "Do I pay Indian tax on Singapore remote income?", a: "Yes. If you spend more than 182 days in India in the financial year, your worldwide income is taxable in India. An EOR deducts TDS like any Indian employer, while contractors may need GST registration above INR 20 lakh turnover, an LUT, and quarterly advance tax. The India-Singapore DTAA prevents double taxation but does not remove your Indian liability, and after 30 to 35 percent effective tax the pay is still about 1.7 to 2.2 times Indian peers." },
+];
 
 export default function Report_SingaporeRemoteFromIndia2026() {
   useEffect(() => {
@@ -259,6 +283,7 @@ export default function Report_SingaporeRemoteFromIndia2026() {
         "description": "Most Singapore remote jobs are not actually open to India based applicants. The ones that are pay two to three times the Indian market. Roles, companies, payment structures, and the channels that actually surface these jobs.",
         "url": `${BASE_URL}/reports/singapore-remote-from-india-2026`,
         "datePublished": "2026-05-23T00:00:00Z",
+        "dateModified": "2026-05-23T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -273,6 +298,11 @@ export default function Report_SingaporeRemoteFromIndia2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Singapore Remote Jobs from India 2026: The Real Map", "item": `${BASE_URL}/reports/singapore-remote-from-india-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -656,6 +686,31 @@ export default function Report_SingaporeRemoteFromIndia2026() {
                 <div className="blist-dot" style={{ background: "#047857" }} />
                 <span style={{ color: "#064e3b" }}><strong>Replace volume with targeted outreach.</strong> Twenty tailored DMs to hiring managers will outperform two hundred LinkedIn applies. Founders read specific pitches. ATS systems do not.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/internships-singapore-what-gets-you-hired-2026" className="related-card"><div className="rc-kicker">Singapore</div><div className="rc-title">Internships in Singapore 2026: What Gets You Hired</div></Link>
+              <Link to="/reports/remote-internships-2026" className="related-card"><div className="rc-kicker">Remote</div><div className="rc-title">Remote Internships 2026: Which Ones Are Real</div></Link>
+              <Link to="/reports/cold-outreach-what-gets-reply-2026" className="related-card"><div className="rc-kicker">Outreach</div><div className="rc-title">Cold Outreach: What Actually Gets a Reply</div></Link>
             </div>
           </div>
 
