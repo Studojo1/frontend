@@ -173,6 +173,11 @@ export default function InternshipsAIIndiaReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "How AI Is Changing Internships in India 2026: Pay, Ghosting and What Is Shifting", "description": "48% of applicants are ghosted after applying. AI and ML intern stipends now run 3x higher than traditional roles. Which internship categories are growing, which are collapsing, and what the 2026 intern looks like.", "url": "https://studojo.com/reports/internships-ai-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/internships-ai-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "How AI Is Changing Internships India 2026", "item": "https://studojo.com/reports/internships-ai-india-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: reportCSS }} />
@@ -537,6 +542,31 @@ export default function InternshipsAIIndiaReport() {
           </div>
 
           {/* Final CTA */}
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/skills-ai-entry-level-2026" className="related-card"><div className="rc-kicker">AI skills</div><div className="rc-title">Breaking Into AI in 2026: Skills, Roles and Hiring Reality</div></Link>
+              <Link to="/reports/application-response-rate-2026" className="related-card"><div className="rc-kicker">Applications</div><div className="rc-title">Why 80% of Applications Get No Response</div></Link>
+              <Link to="/reports/data-ai-internships-entry-level-reality-2026" className="related-card"><div className="rc-kicker">Data and AI</div><div className="rc-title">Data and AI Internships 2026: Entry-Level Reality</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-final-cta" style={{ background: "#f59e0b" }}>
             <div className="rpt-final-cta-title" style={{ color: "#171717" }}>Work on things that matter.</div>
             <div className="rpt-final-cta-sub" style={{ color: "rgba(23,23,23,0.75)" }}>
@@ -651,4 +681,34 @@ const reportCSS = `
   .rpt-inline-cta-inner{flex-direction:column;align-items:flex-start;}
   .rpt-hero-stats{gap:20px;} .rpt-final-cta{padding:32px 20px;}
 }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+  .faq-section .sec-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: #fff; font-size: 13px; font-weight: 700; border-radius: 50%; border: 2px solid #171717; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 24px; font-weight: 700; color: #171717; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 4px; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; font-weight: 500; }
+  .rpt-content .faq-section { margin-top: 64px; }
+  .rpt-content .related { margin-top: 20px; }
 `;
+
+const FAQ = [
+  { q: "Is AI replacing internships in India?", a: "Not uniformly. AI, ML, and data internships are surging while repetitive roles such as data entry, manual QA, BPO process work, and content moderation are contracting. NASSCOM has warned that 10 to 15% of routine IT and BPO jobs could vanish annually, with 1.2 million positions at risk by 2030." },
+  { q: "How much do AI and ML interns earn in India?", a: "AI and ML intern stipends at specialist tech companies run between Rs 30,000 and Rs 80,000 per month. Traditional operations and data entry internships pay Rs 5,000 to Rs 10,000. The report puts the premium at roughly 3x for an AI intern versus a traditional intern at the same company size." },
+  { q: "Why am I being ghosted after applying for internships?", a: "Employers ignored 48% of applicants in 2025, up from 38% in 2024, according to Criteria Corp. AI has made applying cheap, so 90% of hiring managers report more low-effort applications, and 70% of companies now use AI somewhere in hiring. Generic applications get filtered out before a human reads them." },
+  { q: "How many internship applications should I send?", a: "Fewer, and better. The report says a student who sends 15 tailored, research-backed applications outperforms one who sends 150 AI-generated ones. Research each company, write one paragraph that proves you know what they are building, and make the first three lines of your cover letter something an AI could not have written." },
+  { q: "What do companies test interns on now?", a: "Judgment and AI collaboration more than recall. In the report's comparison, 2026 assessments weight AI tool collaboration at 82%, applied case work at 75%, critical thinking at 70%, and communication at 65%, while recall and syntax has dropped to 22%. Practise open-ended case work with AI assistance." },
+  { q: "Which internships hold up best in the AI era?", a: "Roles that combine domain depth with tool fluency: AI plus a second domain, product and growth, climate or impact tech, B2B SaaS operations, and research and insight. Aim to use two to three AI tools confidently, such as ChatGPT, Cursor, or Notion AI. If you take a BPO or manual testing internship, treat it as a financial bridge and do not stay more than one cycle." },
+];

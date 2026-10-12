@@ -175,6 +175,15 @@ function initCharts() {
   });
 }
 
+const FAQ = [
+  { q: "When do companies in India open internship applications?", a: "Hiring runs in three waves. Wave 1 (January to March) covers FMCG, consulting, banking and Big Tech summer programs, Wave 2 (August to October) is campus placement season and peak time for unicorns and startups, and Wave 3 (November to December) is PPO conversions and new graduate programs. Lead times range from about 8 months before the start date for FMCG to 1 month for agencies and SMEs." },
+  { q: "When does HUL open internship applications in India?", a: "The HUL MBA Summer Internship opens in November and closes in January for an April to June internship. The Madhuri undergraduate internship opens in January and closes in February for May to July. HUL runs each program once a year with no second batch, so a missed window means waiting a year." },
+  { q: "When does Goldman Sachs India open summer analyst applications?", a: "Goldman Sachs India opens in August and closes around October to November for a March to May internship, roughly 7 months ahead of the start. Typical windows at Goldman Sachs, McKinsey and BCG run only 3 to 4 weeks. The timing collides with the start of Semester 5, so set a reminder in April." },
+  { q: "Which month is best for off-campus internship applications in India?", a: "October has one of the highest off-campus callback rates of the year, while hiring activity peaks in September. May and June are the dead zones because companies are running summer internships, not hiring for them. Many students skip October because of mid-semester exams, which means less competition." },
+  { q: "When does Google India open internship applications?", a: "Google India's Associate Software Developer Intern (formerly STEP) 2026 cycle was posted in mid-December 2025. The Software Engineering Intern 2027 cycle was posted in mid-June 2026 with a deadline before 28 June 2026. At the time of writing, no 2027 ASDI posting had gone up yet." },
+  { q: "Which companies convert interns into full-time employees most often?", a: "Funded Series A to C startups lead with a 78% pre-placement offer (PPO) conversion rate, followed by B2B SaaS at 72%, FMCG at 65%, global consulting at 60%, investment banking at 55%, Indian MNCs at 40% and marketing agencies at 31%. Most summer internship PPOs are communicated in August, and most PPO deadlines fall in November." },
+];
+
 export default function HiringCalendarReport() {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -189,6 +198,11 @@ export default function HiringCalendarReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "India Internship and Fresher Hiring Calendar 2026: When Every Company Opens Applications", "description": "HUL opens 8 months before joining. Goldman Sachs opens in August for March. 80+ companies mapped with exact application windows across 3 annual hiring waves. Miss the window and you wait a year.", "url": "https://studojo.com/reports/hiring-calendar-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/hiring-calendar-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "India Hiring Calendar 2026", "item": "https://studojo.com/reports/hiring-calendar-india-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -1065,6 +1079,31 @@ export default function HiringCalendarReport() {
             </div>
           </div>
 
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+                <Link to="/reports/return-offer-report-why-some-interns-get-hired-2026" className="related-card"><div className="rc-kicker">Return offers</div><div className="rc-title">Why some interns get hired and others do not</div></Link>
+                <Link to="/reports/hidden-job-market-70-percent-never-posted-2026" className="related-card"><div className="rc-kicker">Hidden jobs</div><div className="rc-title">The hidden job market</div></Link>
+                <Link to="/reports/job-search-2026" className="related-card"><div className="rc-kicker">Job search</div><div className="rc-title">How students actually get hired in 2026</div></Link>
+            </div>
+          </div>
+
           {/* Final CTA */}
           <div className="rpt-final-cta rpt-final-cta-orange">
             <div className="rpt-final-cta-title">You know the calendar. Now use it.</div>
@@ -1180,4 +1219,24 @@ const rptCSS = `
     .rpt-hero-stats{gap:20px;} .rpt-final-cta{padding:32px 20px;}
     .rpt-table{font-size:12px;} .rpt-table th,.rpt-table td{padding:8px 10px;}
   }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .faq-section .sec-num { width: 36px; height: 36px; border-radius: 10px; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 20px; font-weight: 700; color: #171717; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; }
 `;

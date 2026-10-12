@@ -183,7 +183,32 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Why do I never hear back after applying for jobs?", a: "Most applications fail for structural reasons, not because you are unqualified. Jobscan data cited in this report says 75% of resumes are filtered by an ATS before a human reads them, and a typical corporate posting gets 250+ applications. Ghost jobs, late timing and referral hiring explain much of the rest." },
+  { q: "What percentage of resumes does an ATS reject?", a: "About 75% are rejected before a recruiter opens them, per a 2024 Jobscan study. The usual cause is keyword mismatch, for example writing 'managed social media' when the job says 'social media management'. Tables, columns and text boxes can also break parsing." },
+  { q: "How many applications does it take to get one offer?", a: "Out of every 100 applications, this report estimates roughly 25 pass the ATS, 18 get seen by a human, 8 get a callback, 3 reach interview stage and 1 becomes an offer. It is a funnel built to eliminate efficiently, so volume alone is a weak strategy." },
+  { q: "Does applying early actually improve my chances?", a: "Yes. Applying on day one of a posting gives a callback rate roughly 17x higher than applying after day 30. Set job alerts and apply within 24 to 48 hours, and focus on listings under 7 days old." },
+  { q: "Are ghost jobs part of why I get no response?", a: "Yes. A 2023 ResumeBuilder survey found 1 in 3 companies admitted to posting jobs they were not actively trying to fill. You cannot spot one from the outside, but roles listed for more than 21 days have meaningfully lower response rates." },
+  { q: "What can I do differently so my applications get seen?", a: "Rewrite your resume for each job by mirroring the job description's language, which takes about 15 minutes. Apply early, and reach hiring managers or founders directly, which skips the ATS, the volume problem and the timing decay in one move. A low response rate is a system problem, not a personal verdict." },
+];
+
 
 export default function ApplicationResponseRateReport() {
   useEffect(() => {
@@ -204,6 +229,7 @@ export default function ApplicationResponseRateReport() {
         "description": "75% of resumes are filtered before a human sees them. A documented breakdown of every reason applications go unanswered.",
         "url": `${BASE_URL}/reports/application-response-rate-2026`,
         "datePublished": "2026-05-01T00:00:00Z",
+        "dateModified": "2026-05-01T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/application-response-rate-2026` },
@@ -217,6 +243,11 @@ export default function ApplicationResponseRateReport() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Application Response Rate 2026", "item": `${BASE_URL}/reports/application-response-rate-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -528,6 +559,31 @@ export default function ApplicationResponseRateReport() {
           </div>
 
           {/* CTA */}
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/rejection-report-what-happens-after-you-apply-2026" className="related-card"><div className="rc-kicker">Rejections</div><div className="rc-title">The Rejection Report: What Happens After You Apply</div></Link>
+              <Link to="/reports/ghost-jobs-2026" className="related-card"><div className="rc-kicker">Ghost jobs</div><div className="rc-title">Why Companies Post Jobs Without Planning to Hire</div></Link>
+              <Link to="/reports/referrals-vs-applications-how-people-get-hired-2026" className="related-card"><div className="rc-kicker">Referrals</div><div className="rc-title">Referrals vs Applications: How People Get Hired</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Stop applying into the void.</h3>

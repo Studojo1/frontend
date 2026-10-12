@@ -240,7 +240,33 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Do MNCs pay more than startups for freshers in India?", a: "Yes at entry level. MNCs typically offer ₹6 to 14 LPA against ₹3 to 8 LPA at Seed or Series A startups, so the gap is 1.5x to 2x. It narrows by Year 3 and often reverses by Year 5 if the startup does well, and Series B and C startups close most of the gap." },
+  { q: "Do you learn faster at a startup or an MNC?", a: "Startups teach breadth faster and MNCs teach domain depth. Startups give ownership from day one, direct feedback and a generalist role. MNCs offer a specialist track, formal mentorship and an L&D budget. Which compounds better depends on the career you want." },
+  { q: "Which is better for brand name, a startup or an MNC?", a: "An MNC name travels furthest in structured pipelines such as large-company hiring, MBA admissions, government roles and international applications. A startup name only helps if the startup is known, like Zepto, Razorpay or Meesho. The brand buys the first read, and by Year 3 to 5 what you built matters more." },
+  { q: "Is a startup job riskier than an MNC job?", a: "Both are riskier than they look. 90% of startups fail within 10 years, but median tenure at a Seed to Series A startup is under two years, so most early-career hires leave before failure. MNCs have also restructured heavily, with large layoffs at IBM, Wipro and Accenture in India since 2022. Portable skills are the real hedge." },
+  { q: "How quickly do you get promoted at a startup versus an MNC?", a: "Startups reach a first management role in about 2 to 3 years if the company grows, against 4 to 6 years minimum at an MNC. The startup advantage only exists if the company is growing alongside you. MNC paths are slower but legible, with documented criteria and defined pay bands." },
+  { q: "Should my first job be at a startup or an MNC?", a: "It depends on your constraint. If money is tight, choose the MNC. If learning is the priority, choose a startup that is already growing. The report suggests that often the best outcome is sequential: a well-known MNC for 18 to 24 months, then a well-funded startup." },
+];
+
 
 export default function StartupVsMncReport() {
   useEffect(() => {
@@ -261,6 +287,7 @@ export default function StartupVsMncReport() {
         "description": "Salary, learning speed, brand name, job security, and career velocity: a data-backed comparison of startups vs MNCs for early-career candidates in 2026.",
         "url": `${BASE_URL}/reports/startup-vs-mnc-2026`,
         "datePublished": "2026-05-03T00:00:00Z",
+        "dateModified": "2026-05-03T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/startup-vs-mnc-2026` },
@@ -274,6 +301,11 @@ export default function StartupVsMncReport() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Startup vs MNC 2026", "item": `${BASE_URL}/reports/startup-vs-mnc-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -602,6 +634,31 @@ export default function StartupVsMncReport() {
           </div>
 
           {/* CTA */}
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First job</div><div className="rc-title">First Job Report India 2026</div></Link>
+              <Link to="/reports/first-1-lakh-month-report-fastest-paths-students-2026" className="related-card"><div className="rc-kicker">Pay</div><div className="rc-title">The First ₹1 Lakh/Month Report</div></Link>
+              <Link to="/reports/job-search-2026" className="related-card"><div className="rc-kicker">Job search</div><div className="rc-title">Job Boards Are Dead: How Students Actually Get Hired</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Find the roles worth choosing between.</h3>

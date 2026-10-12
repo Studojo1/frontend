@@ -226,6 +226,11 @@ export default function CSIndiaReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Fresher CS Salaries India 2026: Salary Data, Skill Gaps and Hiring Trends", "description": "135,000 IT hires projected for FY26. TCS pays 3.6 LPA, product startups pay 20 LPA+. The 12x salary gap, DSA skill gaps, and what CS freshers actually face in India.", "url": "https://studojo.com/reports/cs-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/cs-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Fresher CS Salaries India 2026", "item": "https://studojo.com/reports/cs-india-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -620,6 +625,31 @@ export default function CSIndiaReport() {
           </div>
 
           {/* Final CTA */}
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/data-ai-internships-entry-level-reality-2026" className="related-card"><div className="rc-kicker">Data and AI</div><div className="rc-title">Data and AI Internships 2026: Entry-Level Reality</div></Link>
+              <Link to="/reports/skills-ai-entry-level-2026" className="related-card"><div className="rc-kicker">AI skills</div><div className="rc-title">Breaking Into AI in 2026: Skills, Roles and Hiring Reality</div></Link>
+              <Link to="/reports/startup-vs-mnc-2026" className="related-card"><div className="rc-kicker">Startup vs MNC</div><div className="rc-title">Startup vs MNC: A Real Comparison for Early-Career Talent</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Use the Studojo Outreach tool to find SWE, AI/ML, and product company roles across India. Build a resume that shows real skills, not just a degree.</p>
@@ -729,4 +759,34 @@ const rptCSS = `
     .rpt-inline-cta-inner{flex-direction:column;align-items:flex-start;}
     .rpt-hero-stats{gap:20px;} .rpt-final-cta{padding:32px 20px;}
   }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+  .faq-section .sec-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: #fff; font-size: 13px; font-weight: 700; border-radius: 50%; border: 2px solid #171717; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 24px; font-weight: 700; color: #171717; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 4px; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; font-weight: 500; }
+  .rpt-content .faq-section { margin-top: 64px; }
+  .rpt-content .related { margin-top: 20px; }
 `;
+
+const FAQ = [
+  { q: "How many fresher CS and IT jobs are there in India in 2026?", a: "NASSCOM projects 135,000 net new IT-BPM hires for FY26, and fresher hiring is driving the growth. Naukri JobSpeak showed fresher hiring up 39% year on year in January 2026. TCS, Infosys, Wipro, and HCL alone have confirmed 77,000+ fresher seats." },
+  { q: "How much does a CS fresher earn in India?", a: "It depends almost entirely on the company. A TCS Ninja earns 3.4 LPA, Infosys tracks run from SE at 3.6 LPA to DSE at 6.25 LPA and SP at 7.1 to 11.7 LPA, and Google India L3 has a median total comp of 40.5 LPA (Levels.fyi, 2026). That is the 12x gap the report describes, from the same B.Tech degree." },
+  { q: "What is the difference between IT services and product company hiring?", a: "IT services test aptitude, easy to medium DSA, and OOP, DBMS, and OS basics, and they recruit from any college tier. Product companies and GCCs run 2 to 4 rounds of medium to hard DSA plus system design, projects, and a GitHub portfolio. By year 5 the product path reaches 28 to 45 LPA against 8 to 14 LPA in services, or 14 to 22 LPA after a lateral move." },
+  { q: "Why do CS freshers fail interviews after being shortlisted?", a: "The top reason, at 74%, is not being able to solve LeetCode medium problems under time pressure. Next are no real project to discuss at 68%, weak OOP, DBMS, and OS fundamentals at 61%, and no Git or cloud exposure at 54%. Only 5.5% of engineering graduates have functional programming ability for industry use, per Aspiring Minds." },
+  { q: "What skills should a CS fresher learn first?", a: "DSA, which appears in 91% of fresher CS job descriptions, then Git at 74% and cloud basics at 61%. The report suggests solving LeetCode 150 at 2 to 3 problems a day over 3 to 4 months, then pushing two projects to GitHub and deploying one. Narrate your thinking out loud while you solve problems." },
+  { q: "When should I move from IT services to a product company?", a: "The report puts the best window at Year 2 to 3, once your DSA is solid and you have one or two real projects. At that point you can clear resume screens while your salary is still low enough for product companies to make a competitive offer. After Year 4 to 5, a services salary expectation can become a mismatch." },
+];

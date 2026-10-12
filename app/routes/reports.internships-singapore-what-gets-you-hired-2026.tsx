@@ -157,7 +157,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #0d9488; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Which industries hire the most interns in Singapore?", a: "Banking and corporate finance, fintech and payments, and enterprise software lead the mix in this report's illustrative breakdown. Consumer platforms, biomedical and deep tech, and logistics run smaller but selective programmes. Many roles sit inside regional headquarters, so expect cross-border teams." },
+  { q: "What gets you hired as an intern in Singapore?", a: "Artefacts that survive a ten-second screen. A relevant project or case write-up with metrics, a referral with a forwardable blurb, and a prior internship with clear ownership ranked highest in the report's signal index. A generic club list or a mass template email ranked lowest." },
+  { q: "How long are Singapore internships?", a: "Formal summer or term-break programmes at large employers typically run 10 to 12 weeks. Boutique teams may run shorter but higher-touch stints. Off-cycle roles also exist for thesis work, part-time research, and return offers." },
+  { q: "Do I need a visa or special pass to intern in Singapore as an international student?", a: "It depends on your school arrangement and the employer's scheme, so verify early. The report treats the Ministry of Manpower and your school career office as the binding sources, since pass categories and timelines change. Ask both before paying for travel or housing deposits." },
+  { q: "Does cold outreach work for Singapore internships?", a: "Yes, when it is short, specific, and easy to forward. Lead with a hypothesis tied to the team's roadmap, link one flagship project, and attach a blurb your contact can paste into an internal channel. Follow up only with new information." },
+  { q: "Does tailoring my resume actually help?", a: "Somewhat. In Huntr's Q2 2026 data across 1.99 million tracked applications, job-tailored resumes recorded interviews at 5.71% against 3.09% without one, about 1.85x. That data is self-reported and not Singapore-specific, so treat it as a direction, not a guarantee." },
+];
 
 export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
   useEffect(() => {
@@ -178,6 +202,7 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
         "description": "A 2026 guide to landing internships in Singapore: which sectors hire, what managers screen for, timelines, channels that still work, and how to stand out without spray-and-pray applications.",
         "url": `${BASE_URL}/reports/internships-singapore-what-gets-you-hired-2026`,
         "datePublished": "2026-05-12T00:00:00Z",
+        "dateModified": "2026-05-12T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -192,6 +217,11 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Internships in Singapore 2026: What Gets You Hired", "item": `${BASE_URL}/reports/internships-singapore-what-gets-you-hired-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -480,6 +510,31 @@ export default function Report_InternshipsSingaporeWhatGetsYouHired2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Run a dual-track search.</strong> Keep fairs and portals active, and run referrals plus direct manager outreach weekly. Tag outcomes by channel so you know what works for your profile in Singapore.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/singapore-remote-from-india-2026" className="related-card"><div className="rc-kicker">Singapore</div><div className="rc-title">Singapore Remote Jobs from India 2026: The Real Map</div></Link>
+              <Link to="/reports/internships-uk-2026" className="related-card"><div className="rc-kicker">Pay and law</div><div className="rc-title">Do Interns in the UK Get Paid? NLW Rules and Sector Rates</div></Link>
+              <Link to="/reports/return-offer-report-why-some-interns-get-hired-2026" className="related-card"><div className="rc-kicker">Return offers</div><div className="rc-title">The Return Offer Report: Why Some Interns Get Hired</div></Link>
             </div>
           </div>
 
