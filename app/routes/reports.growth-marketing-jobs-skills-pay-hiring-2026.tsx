@@ -189,7 +189,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #f59e0b; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What does a growth marketing job actually involve?", a: "Growth marketing is a bundle of paid acquisition, landing-page conversion, lifecycle email, experimentation, and reporting under one messy title. Early-career hires are rarely hired to own growth. They run one measurable slice, such as one channel, one funnel step, or one experiment backlog." },
+  { q: "What skills do growth marketing employers screen for?", a: "Four clusters repeat in job posts: analytics literacy (SQL or spreadsheet depth), paid or organic acquisition basics, experiment design, and clear writing for landing pages and ads. SQL is worth about two weeks of focused study, and one documented experiment beats ten buzzwords on a resume." },
+  { q: "How much do entry-level growth marketers earn in the US?", a: "Entry-level growth or performance marketing base salaries typically range from about $58K to $78K in major metros, and associates with zero to one year of experience often see about $55K to $75K. Interns often land around $22 to $32 per hour, and marketers with one to three years often sit between about $75K and $105K base. In India, early roles for US companies are roughly ₹6 to 15 LPA, highly employer-dependent." },
+  { q: "Who is hiring growth marketers right now?", a: "B2B SaaS is the largest bucket, with about 38% of growth-titled roles in the report's illustrative map tied to B2B SaaS and fintech. Consumer apps and DTC brands hire for Meta, TikTok, and influencer-led tests. Marketplaces and agencies also staff growth pods." },
+  { q: "How do I get a growth marketing job without a famous brand on my resume?", a: "Show proof instead of a logo: a case study with screenshots and numbers, a live landing page you wrote and tested, or a small paid campaign you funded yourself ($50 to $100 is enough to learn). Structure it as context, goal metric, what you tried, numbers, what failed, and what you would test next. Then message growth leads directly with one link and one ask." },
+  { q: "What does a realistic 30-day growth marketing job search plan look like?", a: "In week 1, pick B2B or B2C and finish one case study. In week 2, build a list of 30 targets and apply to 5 tailored roles. In week 3, send 10 short outreaches to growth leads and run one small live test. In week 4, prepare for interviews on metrics like CAC, CPA, ROAS, activation, and retention." },
+];
 
 export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
   useEffect(() => {
@@ -210,6 +234,7 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
         "description": "Growth marketing jobs in 2026: must-have skills, US pay bands by level, who's hiring (SaaS, DTC, fintech), and how to break in with proof not buzzwords.",
         "url": `${BASE_URL}/reports/growth-marketing-jobs-skills-pay-hiring-2026`,
         "datePublished": "2026-05-30T00:00:00Z",
+        "dateModified": "2026-05-30T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -224,6 +249,11 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Growth Marketing Jobs 2026: Skills, Pay, and Who's Hiring", "item": `${BASE_URL}/reports/growth-marketing-jobs-skills-pay-hiring-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -518,6 +548,31 @@ export default function Report_GrowthMarketingJobsSkillsPayHiring2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Hunt where growth teams live.</strong> B2B SaaS, DTC, fintech, and agencies hire most growth-titled roles. Use careers pages plus tight outreach, not boards alone.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/marketing-india-2026" className="related-card"><div className="rc-kicker">Marketing</div><div className="rc-title">Marketing Internships in India: Where the Good Roles Are</div></Link>
+              <Link to="/reports/cold-outreach-what-gets-reply-2026" className="related-card"><div className="rc-kicker">Outreach</div><div className="rc-title">Cold Outreach: What Actually Gets a Reply</div></Link>
+              <Link to="/reports/degree-vs-skills-2026" className="related-card"><div className="rc-kicker">Skills</div><div className="rc-title">Degree vs Skills: What Hirers Look at in 2026</div></Link>
             </div>
           </div>
 

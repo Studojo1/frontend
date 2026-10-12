@@ -205,6 +205,37 @@ export async function loader({ params }: Route.LoaderArgs) {
   }
 }
 
+// Build FAQPage JSON-LD from question-style subheadings in the post body, so
+// answer engines (Google AI Overviews, Perplexity, ChatGPT) can lift the Q and A
+// directly. A heading (h2 or h3) whose text ends in a question mark, followed by
+// body copy, becomes one Question. Nothing is emitted unless at least two real
+// pairs exist, so a post without a genuine FAQ is never given fake FAQ markup.
+function buildFaqJsonLd(html: string, url: string): Record<string, unknown> | null {
+  if (!html) return null;
+  const stripTags = (s: string) => s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const items: { q: string; a: string }[] = [];
+  const re = /<(h[23])[^>]*>([\s\S]*?)<\/\1>([\s\S]*?)(?=<h[23][\s>]|$)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const q = stripTags(m[2]);
+    if (!q.endsWith("?") || q.length < 10 || q.length > 180) continue;
+    const a = stripTags(m[3]);
+    if (a.length < 40) continue;
+    items.push({ q, a: a.slice(0, 600) });
+  }
+  if (items.length < 2) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "url": url,
+    "mainEntity": items.slice(0, 10).map((f) => ({
+      "@type": "Question",
+      "name": f.q,
+      "acceptedAnswer": { "@type": "Answer", "text": f.a },
+    })),
+  };
+}
+
 export default function BlogPost() {
   const loaderData = useLoaderData() as { post: BlogPost } | undefined;
   const post = loaderData?.post;
@@ -258,6 +289,9 @@ export default function BlogPost() {
     ],
   };
 
+  // FAQPage schema, emitted only when the post body has real question subheadings.
+  const faqJsonLd = buildFaqJsonLd(post.content, canonicalUrl);
+
   return (
     <article className="min-h-screen bg-white">
       {/* JSON-LD structured data */}
@@ -269,6 +303,12 @@ export default function BlogPost() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
 
       <Header />
 

@@ -189,7 +189,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #6366f1; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What do data and AI interns actually do in 2026?", a: "Most data and AI interns do data work, not frontier model training. In the report's illustrative mix, analytics and BI (SQL, dashboards) is 34% of the work, data engineering lite is 22%, applied ML is 18%, and GenAI product support is 14%. Research-style ML is rarer at intern level, at 6%." },
+  { q: "What skills do I need for a data science or AI internship?", a: "SQL and Python in notebooks come first, followed by statistics and experimentation, visualization, basic ML, and LLM or API familiarity. In the report's skill index, SQL scores 9.5 out of 10 and Python 9.2. One end-to-end project (question, data, analysis, decision) beats listing sklearn on your resume without context." },
+  { q: "How much do data and AI interns get paid?", a: "In the US, large tech and finance data interns often land roughly $35 to $55 per hour in major metros. In India, structured tech and GCC data interns often see roughly ₹25K to ₹80K per month for summer programmes, highly employer-dependent. Confirm the number in your offer letter, and treat unpaid or stipend-TBD roles at for-profit firms as a red flag." },
+  { q: "Do I need to build or fine-tune an LLM to get an AI internship?", a: "No. Training foundation models from scratch is rare at intern level outside a handful of research labs. For GenAI-facing roles, show prompt evaluation, RAG basics, or failure analysis on a small corpus, and prove you can define success, measure it, and iterate." },
+  { q: "What does a data or ML intern interview look like?", a: "A typical loop is a SQL screen, statistics and product sense questions, a take-home analysis with a deck, and behavioral questions on ambiguity. ML-leaning roles may add Python coding or model metric questions. Take-homes should be time-boxed to 2 to 4 hours of real work, so decline or negotiate if an employer assigns a week of unpaid labor." },
+  { q: "How can I break into data and AI internships in 60 days?", a: "Spend days 1 to 20 finishing SQL and one portfolio project with a README and slides. Use days 21 to 40 to apply to 15 tailored roles across large tech or finance, India GCC or product firms, and startups. In days 41 to 60, send ten outreaches to data managers with your project link and run mock SQL twice a week." },
+];
 
 export default function Report_DataAiInternshipsEntryLevelReality2026() {
   useEffect(() => {
@@ -210,6 +234,7 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
         "description": "Data and AI internships in 2026: what entry-level roles actually are, skills that get interviews, pay bands, who's hiring, and how to break in without hype.",
         "url": `${BASE_URL}/reports/data-ai-internships-entry-level-reality-2026`,
         "datePublished": "2026-06-01T00:00:00Z",
+        "dateModified": "2026-06-01T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -224,6 +249,11 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Data and AI Internships 2026: Entry-Level Reality", "item": `${BASE_URL}/reports/data-ai-internships-entry-level-reality-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -518,6 +548,31 @@ export default function Report_DataAiInternshipsEntryLevelReality2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Practice SQL and communication"}.</strong> {"Screens are often SQL + case + take-home. Present tradeoffs clearly; time-box unpaid homework and walk if abused."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/skills-ai-entry-level-2026" className="related-card"><div className="rc-kicker">AI careers</div><div className="rc-title">Breaking Into AI in 2026: Skills and Hiring Reality</div></Link>
+              <Link to="/reports/cs-india-2026" className="related-card"><div className="rc-kicker">Tech careers</div><div className="rc-title">CS in India: What Freshers Are Actually Getting Into</div></Link>
+              <Link to="/reports/internships-15k-india-2026" className="related-card"><div className="rc-kicker">Pay</div><div className="rc-title">Roles That Land You Above ₹15k: The Internship Map India 2026</div></Link>
             </div>
           </div>
 

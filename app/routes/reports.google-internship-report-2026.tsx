@@ -158,7 +158,31 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Can you pass every Google interview and still not get the internship?", a: "Yes. After the technical rounds your profile goes into a host matching pool, and you only get an offer if an engineering manager picks you. Candidates report sitting in that pool for weeks, and some are never picked at all, with no rejection to point at." },
+  { q: "What is Google host matching?", a: "Host matching is the stage after the interviews where engineering managers (hosts) browse the pool and reach out for 15 to 30 minute fit conversations. If the host likes you and you like the project, you match and the offer follows. It tests whether one manager wants you on one project, not whether you can do the work." },
+  { q: "How long does the Google internship process take?", a: "Roughly 4 weeks from application to first response, about 3 weeks of technical interviews, 6 to 8 weeks in the host matching pool, and about 1 week from match to written offer. Host matching is the longest and quietest stage, so apply early and keep searching elsewhere in the meantime." },
+  { q: "What is the difference between Google STEP and ASDI?", a: "They are the same early-degree route under different names. STEP is the Student Training in Engineering Program for first and second year undergraduates, and in India the 2026 posting was titled Associate Software Developer Intern (ASDI). It runs 10 to 12 weeks and is a separate pipeline from the standard software engineering internship." },
+  { q: "When should you apply for Google's Summer 2027 internship?", a: "Apply in the first week a posting opens. The India posting went up in mid-June 2026 and the US posting opened for early consideration around 20 July 2026. Positions fill as hosts match, so a late application competes for a shrinking set of open projects." },
+  { q: "Does a referral help you get a Google internship?", a: "Yes, a referral from a current Google employee, intern or apprentice meaningfully improves your chances of passing the resume screen, which removes most applicants. It does not carry you through host matching, which a manager who has never met your referrer decides. Ask someone a year ahead of you who interned recently." },
+];
 
 export default function Report_GoogleInternshipReport2026() {
   useEffect(() => {
@@ -179,6 +203,7 @@ export default function Report_GoogleInternshipReport2026() {
         "description": "At Google you can clear every technical round and still receive nothing, because no manager picked your profile out of the host matching pool. The stage nobody prepares for.",
         "url": `${BASE_URL}/reports/google-internship-report-2026`,
         "datePublished": "2026-09-27T00:00:00Z",
+        "dateModified": "2026-09-27T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -193,6 +218,11 @@ export default function Report_GoogleInternshipReport2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Google Internship Report: Passing the Interviews Is Not the Offer", "item": `${BASE_URL}/reports/google-internship-report-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -419,6 +449,31 @@ export default function Report_GoogleInternshipReport2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Apply the week a posting opens, then plan as if you had not.</strong> Six to eight weeks of host matching gives you no information. Students who treat it as a live prospect stop applying elsewhere at the worst moment.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/return-offer-report-why-some-interns-get-hired-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">The Return Offer Report: why some interns get hired</div></Link>
+              <Link to="/reports/referrals-vs-applications-how-people-get-hired-2026" className="related-card"><div className="rc-kicker">Referrals</div><div className="rc-title">Referrals vs applications: how people get hired</div></Link>
+              <Link to="/reports/data-ai-internships-entry-level-reality-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">Data and AI internships 2026: entry-level reality</div></Link>
             </div>
           </div>
 

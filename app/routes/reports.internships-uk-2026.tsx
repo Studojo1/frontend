@@ -188,6 +188,11 @@ export default function UKInternshipsReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "UK Internship Pay 2026: What Interns Actually Earn and When You Must Be Paid", "description": "UK National Living Wage is £12.21/hour but unpaid internships are still common. Goldman Sachs pays £5,000/month. Spring weeks, milk round culture, and how international students qualify explained.", "url": "https://studojo.com/reports/internships-uk-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/internships-uk-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "UK Internships 2026", "item": "https://studojo.com/reports/internships-uk-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -618,6 +623,29 @@ export default function UKInternshipsReport() {
           </div>
 
           {/* Final CTA */}
+          <div className="faq-section">
+            <div className="rpt-finding-header">
+              <span className="rpt-finding-num">FAQ</span>
+              <h2 className="rpt-h2">Frequently Asked Questions</h2>
+              <p className="rpt-lead">The questions students ask most about this, answered directly</p>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/internships-germany-2026" className="related-card"><div className="rc-kicker">Germany</div><div className="rc-title">Do Interns in Germany Get Paid?</div></Link>
+              <Link to="/reports/internships-australia-2026" className="related-card"><div className="rc-kicker">Australia</div><div className="rc-title">Do Interns in Australia Get Paid?</div></Link>
+              <Link to="/reports/unpaid-internship-report-where-legal-2026" className="related-card"><div className="rc-kicker">Pay and law</div><div className="rc-title">The Unpaid Internship Report: Where It's Legal</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find paid internships in the UK, Europe, and beyond. Build a clean, ATS-ready CV in 5 minutes. Free.</p>
@@ -721,4 +749,33 @@ const rptCSS = `
     .rpt-inline-cta-inner{flex-direction:column;align-items:flex-start;}
     .rpt-hero-stats{gap:20px;} .rpt-final-cta{padding:32px 20px;}
   }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section { margin-top: 64px; margin-bottom: 20px; }
+  .related { margin-top: 0; }
+  .faq-section .rpt-finding-header { margin-bottom: 20px; }
 `;
+
+const FAQ = [
+  { q: "Do interns get paid in the UK?", a: "Yes, in most cases. If you do productive work, you count as a worker and must be paid at least the National Minimum Wage, which is £12.21/hour for ages 21+ from April 2025 and rises to £12.71 from April 2026. Unpaid is legal only for genuine voluntary work, pure shadowing, mandatory placements on an accredited UK course lasting under 1 year, and a few narrow family business cases." },
+  { q: "How much do UK interns earn by sector?", a: "Sector matters more than city. Investment banks pay around £4,500/month, MBB consulting about £3,584/month, tech £3,100 to £3,750/month, and general finance roughly £2,001/month. Marketing and media sit near £1,100 to £1,200/month, and NGO roles are often unpaid. The UK average across all sectors is about £24,500 a year." },
+  { q: "What is a spring week and when should I apply?", a: "A spring week is a 1 to 2 week paid insight programme at investment banks and law firms, aimed at penultimate-year students. It runs March to April and applications open October to November of the year before. At most banks it feeds into a summer internship offer, which then feeds into a graduate offer. Pay is £400 to £1,200 for the week." },
+  { q: "Can international students do internships in the UK?", a: "Yes. On a Student visa you can work 20 hours a week in term (degree-level) and unlimited hours during official course breaks. After your degree, the Graduate Route gives 2 years of open work rights, dropping to 18 months for undergrad and master's graduates from 1 January 2027. Apply within the final 3 months of your student visa." },
+  { q: "How hard is it to get a Goldman Sachs or JPMorgan summer internship?", a: "Very hard. Estimated acceptance rates are under 1% at Goldman Sachs and JPMorgan, and around 1.5% at McKinsey, BCG and Bain. The written application screens out roughly 80% of applicants before any interview, so strong commercial awareness and early preparation are where you gain the most." },
+  { q: "Is a London internship worth it compared with Manchester?", a: "Only for specific sectors. London pays 12 to 13% more than Manchester, but a £29,000/yr London internship leaves roughly £500/month after rent and travel, often less than a Manchester role at £23,500/yr. Investment banking, Magic Circle law and MBB internships are London only, so for those you have no choice." },
+];
+

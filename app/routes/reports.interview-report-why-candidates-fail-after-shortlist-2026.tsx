@@ -157,7 +157,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Why do candidates fail interviews after being shortlisted?", a: "Mostly for performance reasons, not identity reasons. The common themes are answers that wander, examples without outcomes, no sign you read the role or team, and generic enthusiasm. Hiring managers say they rarely reject shortlisted candidates for not being smart enough, but because they cannot picture them on the team after forty-five minutes." },
+  { q: "What percentage of interviews lead to a job offer?", a: "Fewer than half. CareerPlug's 2025 report found a 27% interview-to-hire rate across 60,000+ small-business employers in 2024, meaning 73% of interviews did not end in a hire. NACE puts the campus interview-to-offer rate at 47.5%." },
+  { q: "Which interview round do most candidates fail?", a: "Round two. In Studojo's hiring-manager synthesis, drop-offs cluster at the manager round where depth questions expose whether you understand the role, your tradeoffs and what you learned from failure. Phone screens mostly filter for communication baseline and obvious mismatches." },
+  { q: "How should I structure my interview answers?", a: "Use context in one sentence, your action with one decision point, an outcome with a number, and one line on what you would do next time. Prepare sixty-second and two-minute versions of each core story. Structured interviews have the highest validity of selection methods reviewed (0.42, Sackett et al., 2022), so interviewers reward answers they can score." },
+  { q: "How should I prepare in the week before an interview?", a: "Decode the role into week one, four and twelve deliverables, build three stories with metrics, and mock one round out loud while recording yourself. Then prepare five questions specific to the team and one page of notes. Forty-five minutes a day beats a cram session the night before." },
+  { q: "What should I do after an interview rejection?", a: "Read the signal without spiralling. Run a ten-minute self-debrief within forty-eight hours covering your weakest question, where you rambled and which story landed. If you can ask for feedback, ask one specific question: was it depth on experience, communication, technical skill or team fit?" },
+];
 
 export default function Report_InterviewReportWhyCandidatesFailAfterShortlist2026() {
   useEffect(() => {
@@ -178,6 +202,7 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
         "description": "Why candidates fail interviews after being shortlisted: the real rejection reasons hiring managers cite, round-by-round drop-offs, and a prep playbook that protects your shortlist.",
         "url": `${BASE_URL}/reports/interview-report-why-candidates-fail-after-shortlist-2026`,
         "datePublished": "2026-06-04T00:00:00Z",
+        "dateModified": "2026-06-04T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -192,6 +217,11 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Interview Report: Why Candidates Fail After Getting Shortlisted", "item": `${BASE_URL}/reports/interview-report-why-candidates-fail-after-shortlist-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -480,6 +510,31 @@ export default function Report_InterviewReportWhyCandidatesFailAfterShortlist202
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Debrief and iterate within forty-eight hours"}.</strong> {"Note the weakest question, fix one thing, move on. Shortlist conversion is a repeatable skill, not a one-time personality test."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/rejection-report-what-happens-after-you-apply-2026" className="related-card"><div className="rc-kicker">Rejection</div><div className="rc-title">The Rejection Report: What Happens After You Apply</div></Link>
+              <Link to="/reports/google-internship-report-2026" className="related-card"><div className="rc-kicker">Interviews</div><div className="rc-title">The Google Internship Report: Passing Interviews Is Not the Offer</div></Link>
+              <Link to="/reports/application-response-rate-2026" className="related-card"><div className="rc-kicker">Applications</div><div className="rc-title">Why 80% of Applications Get No Response</div></Link>
             </div>
           </div>
 

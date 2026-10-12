@@ -152,7 +152,31 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Is it true that 70% of jobs are never posted?", a: "No, that is a misreading of the data. The 70% figure comes from a LinkedIn survey published in June 2017, which found that 70% of people hired in 2016 joined a company where they already had a connection. It measures connections, not unposted jobs. Georgetown University's Center on Education and the Workforce estimated in 2014 that 60 to 70% of US job openings were posted online." },
+  { q: "What is the hidden job market?", a: "It is the set of hiring channels that rarely show up in your job alerts: referrals, internal moves, recruiter-sourced pipelines, and confidential searches. A role can be half-filled through relationships before it ever becomes a polished public post. Job boards are still real, but they show only part of how hiring happens." },
+  { q: "Why do companies fill roles without posting them?", a: "Posting takes work, attracts volume, and adds compliance steps, so many managers first ask five people they trust who is strong. Confidential replacements and small-team searches also stay narrow because a public post can signal instability. Referrals lower perceived risk because someone the manager trusts vouches for you." },
+  { q: "How do I find unlisted jobs as a student?", a: "Run a second track alongside your applications. Pick one lane, publish one piece of work a recruiter can verify in sixty seconds, and send specific outreach tied to a team problem. Ask for an introduction to the right team or a ten-minute profile check, not a job. In the report's leverage chart, a warm intro scores 9.2 out of 10 while untargeted volume scores 3.0." },
+  { q: "Do referrals really improve your chances of an interview?", a: "Yes. The report's framework puts the typical lift at 4-5x in interview odds when a trusted person forwards your profile versus a cold portal apply alone. That is a Studojo estimate, not a measured universal rate. The mechanism is trust: a referral gives the hiring manager an implicit warranty that a PDF cannot." },
+  { q: "Should I stop applying on job boards?", a: "No. Keep your board alerts and apply with tailoring, but treat boards as half the map. The recommended weekly routine is one tailored application, one outreach message with a concrete proof link, and one follow-up on an existing relationship. Log whether each interview came from a board, referral, recruiter, or community so you can see which track works for you." },
+];
 
 export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
   useEffect(() => {
@@ -173,6 +197,7 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
         "description": "How much hiring stays off job boards in 2026, why roles never get posted, and what candidates can do to show up where decisions actually happen.",
         "url": `${BASE_URL}/reports/hidden-job-market-70-percent-never-posted-2026`,
         "datePublished": "2026-05-07T00:00:00Z",
+        "dateModified": "2026-05-07T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -187,6 +212,11 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Hidden Job Market: Why So Many Roles Are Filled Through Referrals", "item": `${BASE_URL}/reports/hidden-job-market-70-percent-never-posted-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -417,6 +447,31 @@ export default function Report_HiddenJobMarket70PercentNeverPosted2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Measure two funnels weekly.</strong> Track portal outcomes separately from intros and conversations. Double down on whichever channel produces real human replies for your profile.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/referrals-vs-applications-how-people-get-hired-2026" className="related-card"><div className="rc-kicker">Referrals</div><div className="rc-title">Referrals vs Applications: How People Actually Get Hired</div></Link>
+              <Link to="/reports/nepotism-report-how-much-hiring-happens-through-connections-2026" className="related-card"><div className="rc-kicker">Connections</div><div className="rc-title">The Nepotism Report: Hiring Through Connections</div></Link>
+              <Link to="/reports/cold-outreach-what-gets-reply-2026" className="related-card"><div className="rc-kicker">Cold outreach</div><div className="rc-title">Cold Outreach: What Actually Gets a Reply</div></Link>
             </div>
           </div>
 

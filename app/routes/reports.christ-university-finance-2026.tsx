@@ -181,6 +181,11 @@ export default function ChristUniversityFinanceReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Christ University Finance Roles 2026: Salaries, Companies and the Skills Gap", "description": "What Christ University finance graduates actually earn, where they land, and the skill gap separating a 4 LPA placement from a 10 LPA fintech role in Bangalore.", "url": "https://studojo.com/reports/christ-university-finance-2026", "datePublished": "2026-04-23T00:00:00+05:30", "dateModified": "2026-04-23T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/christ-university-finance-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Christ University Finance 2026", "item": "https://studojo.com/reports/christ-university-finance-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: reportCSS }} />
@@ -590,6 +595,29 @@ export default function ChristUniversityFinanceReport() {
           </div>
 
           {/* Final CTA block */}
+          <div className="faq-section">
+            <div className="rpt-finding-header">
+              <span className="rpt-finding-num">FAQ</span>
+              <h2 className="rpt-h2">Frequently Asked Questions</h2>
+              <p className="rpt-lead">The questions students ask most about this, answered directly</p>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/finance-internships-india-ib-consulting-fintech-2026" className="related-card"><div className="rc-kicker">Finance</div><div className="rc-title">Finance Internships India 2026: IB, Consulting, Fintech</div></Link>
+              <Link to="/reports/finance-india-2026" className="related-card"><div className="rc-kicker">Finance</div><div className="rc-title">Finance in India: What Graduates Actually Face</div></Link>
+              <Link to="/reports/placement-cell-report-what-they-can-cannot-do-2026" className="related-card"><div className="rc-kicker">Colleges</div><div className="rc-title">The Placement Cell Report: What They Can and Cannot Do</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">The gap between a 5 LPA campus placement and a 10 LPA fintech role is not talent. It is preparation, timing, and knowing where to apply. Studojo gives you all three.</p>
@@ -885,4 +913,33 @@ const reportCSS = `
     .rpt-hero-stats { gap: 20px; }
     .rpt-final-cta { padding: 32px 20px; }
   }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section { margin-top: 64px; margin-bottom: 20px; }
+  .related { margin-top: 0; }
+  .faq-section .rpt-finding-header { margin-bottom: 20px; }
 `;
+
+const FAQ = [
+  { q: "What do Christ University finance graduates earn in Bangalore?", a: "Typical Christ campus finance placements land at 4 to 6 LPA, with 4.8 LPA the typical figure at Big 4, NBFCs and private banks. Off-campus fintech and GCC hires for a similar profile start at 8 to 12 LPA, and top Bangalore fintechs have a median starting pay of 10 LPA. Goldman Sachs and JPMorgan Bangalore pay about 20 LPA but are very selective." },
+  { q: "Should Christ students rely on campus placements or apply off-campus?", a: "Do both in parallel. Use placement season for Big 4, NBFC and private bank interviews, which are campus-heavy. Zerodha, Groww and Razorpay hire mostly off-campus, and GCCs like HSBC and Barclays split roughly evenly, so a direct application there has real conversion chances." },
+  { q: "Which skills raise a finance graduate's starting salary in Bangalore?", a: "Python and SQL. Excel and financial modeling appear in 91% of Bangalore entry-level finance JDs, but Python carries a premium of 2 to 4 LPA and SQL is required at all GCCs and most fintechs. The report says adding Python and SQL moves a graduate from the 4 to 6 LPA bucket into the 8 to 11 LPA range." },
+  { q: "Why do Christ finance graduates get rejected after being shortlisted?", a: "The top reason is not being able to walk through a financial model under pressure, cited in 72% of cases. Next come no awareness of the current Bangalore fintech market (61%), a resume that does not reflect actual work done (54%) and weak Python or SQL basics (49%). Only 18% of graduates are considered job-ready on arrival." },
+  { q: "Does an internship matter more than CGPA for finance roles?", a: "Yes, once CGPA clears a basic threshold. A relevant internship raised shortlist probability by 2.4x versus 1.2x for a CGPA above 7.5, and most Bangalore fintechs filter out anything below 7. Fintech and startup finance internships showed the highest conversion, and the best ones fill 3 to 4 months before they start." },
+  { q: "Which Bangalore finance employers should Christ students target directly?", a: "Start with Zerodha (8 to 12 LPA), Groww (9 to 14 LPA) and Razorpay (10 to 14 LPA), then GCCs such as HSBC (6 to 9 LPA), BNY Mellon and Barclays. Bangalore has 600+ entry-level finance openings and 80+ GCCs with finance operations. Identify 10 to 15 companies and message the finance hiring manager directly before roles are posted." },
+];
+
