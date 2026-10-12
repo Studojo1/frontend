@@ -6,8 +6,7 @@
 import type { Route } from "./+types/api.resume-maker.chat";
 import { applyOps, compactResume, type Op } from "~/lib/jrs/coach";
 import { COACH_SCOPE_PROMPT, enforceCoachLimits } from "~/lib/jrs/coach-limits";
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+import { azureChatCompletions, azureOpenAIConfigured } from "~/lib/azure-openai.server";
 
 /**
  * Build a short human-readable reply from an ops list, used as a fallback
@@ -75,7 +74,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
-  if (!OPENAI_API_KEY) {
+  if (!azureOpenAIConfigured()) {
     return Response.json(
       { error: "Chat is temporarily unavailable. Try again later." },
       { status: 503 },
@@ -117,14 +116,8 @@ export async function action({ request }: Route.ActionArgs) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
+    const res = await azureChatCompletions(
+      {
         model: "gpt-4o-mini",
         temperature: 0.4,
         // Reply + ops is small. 500 tokens is plenty unless the LLM dumps a
@@ -132,13 +125,14 @@ export async function action({ request }: Route.ActionArgs) {
         max_tokens: 500,
         response_format: { type: "json_object" },
         messages: oaiMessages,
-      }),
-    });
+      },
+      { signal: controller.signal }
+    );
     clearTimeout(timeoutId);
 
     if (!res.ok) {
       const errBody = await res.text().catch(() => "");
-      console.error(`[jrs-chat] OpenAI error: ${res.status} ${errBody}`);
+      console.error(`[jrs-chat] Azure OpenAI error: ${res.status} ${errBody}`);
       return Response.json(
         { error: "Chat is temporarily unavailable. Try again in a moment." },
         { status: 502 },
@@ -206,7 +200,7 @@ export async function action({ request }: Route.ActionArgs) {
     return Response.json({ reply: cleanReply, ops: changed ? rawOps : [], data: next });
   } catch (error: any) {
     if (error?.name === "AbortError") {
-      console.error("[jrs-chat] OpenAI request timed out");
+      console.error("[jrs-chat] Azure OpenAI request timed out");
       return Response.json({ error: "Chat timed out. Try again." }, { status: 504 });
     }
     console.error("[jrs-chat] error:", error?.message);

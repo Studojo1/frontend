@@ -1,39 +1,33 @@
 // JRS AI writing help: small, fast assists for the editor.
-// One endpoint, switched on `task`. OpenAI gpt-4o-mini.
+// One endpoint, switched on `task`. gpt-4o-mini on Azure OpenAI.
 // Never invents facts: rewrites keep the user's content; suggestions are
 // clearly fill-in-the-blank templates or skill names to choose from.
 import type { Route } from "./+types/api.resume-maker.assist";
 import type { ResumeData } from "~/lib/jrs/types";
 import { resumeToText } from "~/lib/jrs/types";
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+import { azureChatCompletions, azureOpenAIConfigured } from "~/lib/azure-openai.server";
 
 async function chat(
   messages: { role: string; content: string }[],
   opts: { json?: boolean; maxTokens?: number } = {},
 ): Promise<string | null> {
-  if (!OPENAI_API_KEY) return null;
+  if (!azureOpenAIConfigured()) return null;
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 22000);
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
+    const res = await azureChatCompletions(
+      {
         model: "gpt-4o-mini",
         temperature: 0.4,
         max_tokens: opts.maxTokens ?? 220,
         ...(opts.json ? { response_format: { type: "json_object" } } : {}),
         messages,
-      }),
-    });
+      },
+      { signal: controller.signal }
+    );
     clearTimeout(timeoutId);
     if (!res.ok) {
-      console.error(`[jrs-assist] OpenAI ${res.status}`);
+      console.error(`[jrs-assist] Azure OpenAI ${res.status}`);
       return null;
     }
     const data = await res.json();

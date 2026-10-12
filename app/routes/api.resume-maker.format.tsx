@@ -1,11 +1,10 @@
 // JRS auto-format: rewrites a resume's wording with AI without inventing
-// facts. OpenAI gpt-4o-mini. Contact details, dates, ids and entry counts
+// facts. gpt-4o-mini on Azure OpenAI. Contact details, dates, ids and entry counts
 // are preserved server-side; the model only rephrases text.
 import type { Route } from "./+types/api.resume-maker.format";
 import type { ResumeData } from "~/lib/jrs/types";
 import { stripDashesDeep } from "~/lib/strip-dashes";
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+import { azureChatCompletions, azureOpenAIConfigured } from "~/lib/azure-openai.server";
 
 const SYSTEM = `You are an expert resume editor. Improve the WRITING QUALITY of a resume without inventing or removing facts.
 
@@ -19,18 +18,12 @@ Rules:
 - Return ONLY a JSON object in the same schema as the input. No commentary.`;
 
 async function callOpenAI(data: ResumeData): Promise<any | null> {
-  if (!OPENAI_API_KEY) return null;
+  if (!azureOpenAIConfigured()) return null;
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 28000);
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
+    const res = await azureChatCompletions(
+      {
         model: "gpt-4o-mini",
         temperature: 0.3,
         max_tokens: 2200,
@@ -39,8 +32,9 @@ async function callOpenAI(data: ResumeData): Promise<any | null> {
           { role: "system", content: SYSTEM },
           { role: "user", content: JSON.stringify(data) },
         ],
-      }),
-    });
+      },
+      { signal: controller.signal }
+    );
     clearTimeout(timeoutId);
     if (!res.ok) return null;
     const j = await res.json();
