@@ -13,6 +13,13 @@ export async function loader() {
     { loc: "/reports/amazon-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/fake-job-internship-scams-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/ai-job-search-tools-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/cover-letter-report-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/off-campus-placement-report-india-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/microsoft-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/it-services-hiring-report-tcs-infosys-wipro-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/proof-of-work-report-projects-github-portfolio-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/aptitude-coding-test-report-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/us-internships-international-students-2026", priority: "0.9", changefreq: "monthly" },
     // Reports: all 17
     { loc: "/reports/ops-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/internships-ai-india-2026", priority: "0.9", changefreq: "monthly" },
