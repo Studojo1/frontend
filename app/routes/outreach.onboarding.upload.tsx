@@ -39,6 +39,7 @@ export default function UploadPage() {
   const { user, loading: authLoading } = useOutreachAuth();
   const { setCandidateId, setCurrentStep, clearChatHistory } = useOutreachStore();
   const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<ResumePreview | null>(null);
   const [error, setError] = useState("");
@@ -103,6 +104,8 @@ export default function UploadPage() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
+    // Cleared so picking the same file again (after an error) still fires.
+    e.target.value = "";
     if (!f) return;
     void acceptFile(f);
   };
@@ -283,25 +286,33 @@ export default function UploadPage() {
                 </div>
               )}
 
-              <div
+              {/* The whole box is the control: a label tied to the input, so a
+                  tap anywhere on it opens the file picker without any script. */}
+              <input
+                ref={fileInputRef}
+                id="file-input"
+                type="file"
+                accept=".pdf,.docx"
+                onChange={handleFileSelect}
+                className="peer sr-only"
+              />
+              <label
+                htmlFor="file-input"
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                className="border-2 border-dashed border-studojo-ink/30 rounded-2xl p-12 text-center hover:border-studojo-purple hover:bg-studojo-purple-bg/50 transition-all cursor-pointer"
-                onClick={() => document.getElementById("file-input")?.click()}
+                className="block border-2 border-dashed border-studojo-ink/30 rounded-2xl p-12 text-center hover:border-studojo-purple hover:bg-studojo-purple-bg/50 transition-all cursor-pointer peer-focus-visible:ring-4 peer-focus-visible:ring-studojo-purple-strong/40"
               >
-                <FiUpload className="w-12 h-12 text-studojo-muted mx-auto mb-4" />
-                <p className="text-base text-studojo-ink font-satoshi mb-2">
-                  {file ? file.name : "Drop your resume here, or click to browse"}
-                </p>
-                <p className="text-sm text-studojo-muted font-satoshi">PDF or DOCX, up to 10MB</p>
-                <input
-                  id="file-input"
-                  type="file"
-                  accept=".pdf,.docx"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-              </div>
+                <FiUpload className="w-12 h-12 text-studojo-muted mx-auto mb-4" aria-hidden />
+                <span className="block text-base text-studojo-ink font-satoshi mb-2">
+                  {file ? file.name : (
+                    <>
+                      <span className="md:hidden">Tap here to choose your resume</span>
+                      <span className="hidden md:inline">Drop your resume here, or click to browse</span>
+                    </>
+                  )}
+                </span>
+                <span className="block text-sm text-studojo-muted font-satoshi">PDF or DOCX, up to 10MB</span>
+              </label>
 
               {file && (
                 <div className="flex items-center gap-4 mt-6 p-4 bg-studojo-surface-muted rounded-xl border-2 border-studojo-ink/20">
@@ -317,11 +328,13 @@ export default function UploadPage() {
 
               <div className="mt-6">
                 <button
-                  onClick={() => void handleUpload()}
-                  disabled={!file || uploading}
+                  // With no file yet this button picks one: a disabled main
+                  // button read as "upload does nothing" on phones.
+                  onClick={() => (file ? void handleUpload() : fileInputRef.current?.click())}
+                  disabled={uploading}
                   className="h-12 w-full md:w-auto px-5 rounded-xl bg-studojo-purple text-white text-sm font-satoshi font-medium border-2 border-studojo-ink shadow-brutal transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-50 disabled:pointer-events-none"
                 >
-                  {uploading ? "Analyzing..." : "Upload & Analyze"}
+                  {uploading ? "Analyzing..." : file ? "Upload & Analyze" : "Choose your resume"}
                 </button>
               </div>
             </div>
