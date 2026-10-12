@@ -173,6 +173,15 @@ function initCharts() {
   });
 }
 
+const FAQ = [
+  { q: "How many fresher jobs are there in Pune in 2026?", a: "The report counts 4,800+ active entry-level openings in Pune as of April 2026, up 22% on April 2025. IT and software services hold 38% of them, product startups and SaaS companies hold 19% (growing 44% year-on-year) and manufacturing and auto tech hold 13%." },
+  { q: "What is the average fresher salary in Pune?", a: "The median fresher CTC in Pune is 4.2 LPA across all sectors. Funded product startups and mid-sized SaaS companies typically pay 7 to 12 LPA, Big 4 consulting pays 6 to 12 LPA, and MNC IT services start at 3 to 3.6 LPA. Top-end fintech and startup offers reach 15 LPA or more but need a strong portfolio." },
+  { q: "Which areas of Pune have the most jobs for freshers?", a: "Hinjewadi has the largest concentration of jobs, mostly IT services (TCS, Infosys, Wipro, Cognizant). Kharadi has the better quality-to-volume mix, with BFSI tech and product companies such as Barclays, Deutsche Bank India and KPIT. Baner has fewer jobs but the highest ratio of product and AI roles, and suits portfolio-first applicants." },
+  { q: "What skills are Pune freshers missing?", a: "SQL, cloud and system design block most freshers. Written English is required in 82% of job descriptions but only 52% of freshers can show it credibly, and SQL is required in 72% while fewer than a third can write a non-trivial query. A documented set of solved SQL problems and one deployed project close most of that gap." },
+  { q: "Do I need a top college to get a good job in Pune?", a: "No. 71% of funded startup hires in Pune came from non-tier-1 colleges, up from 58% in 2024. Freshers with a deployed project see a 3.4x higher interview conversion rate than those without one, so what you build matters more than where you studied." },
+  { q: "Should I go for campus placement or apply off-campus in Pune?", a: "Do both. Campus placements convert at 91% but mostly at lower CTC in IT services, while internships at funded Pune startups convert to full-time at 64%. The report suggests treating campus as your floor and spending about 10 hours a week on off-campus applications to funded startups." },
+];
+
 export default function PuneJobsReport() {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -187,6 +196,11 @@ export default function PuneJobsReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Pune Jobs for Freshers 2026: Salary Data, Top Sectors and Hiring Trends", "description": "4,800+ entry-level openings in Pune. IT, product, ops and fintech are growing fastest. A 3x salary gap between role types. What freshers and students are actually walking into in Pune in 2026.", "url": "https://studojo.com/reports/pune-jobs-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/pune-jobs-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Pune Jobs for Freshers 2026", "item": "https://studojo.com/reports/pune-jobs-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -547,6 +561,31 @@ export default function PuneJobsReport() {
             <p className="rpt-source">Source: Studojo resume analysis data 2025-2026, Jobscan ATS research, Pune recruiter interviews Q1 2026</p>
           </div>
 
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+                <Link to="/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026" className="related-card"><div className="rc-kicker">Cities</div><div className="rc-title">Tier 2 cities are hiring</div></Link>
+                <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First job</div><div className="rc-title">First job in India: what entry-level looks like</div></Link>
+                <Link to="/reports/cs-india-2026" className="related-card"><div className="rc-kicker">Tech</div><div className="rc-title">CS in India: what freshers are getting into</div></Link>
+            </div>
+          </div>
+
           {/* Final CTA */}
           <div className="rpt-final-cta rpt-final-cta-blue">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
@@ -660,4 +699,24 @@ const rptCSS = `
   .rpt-btn-white:hover { background:#f5f5f5; }
   .rpt-btn-outline { font-family:'Satoshi',sans-serif; font-size:13px; font-weight:700; text-decoration:none; padding:10px 24px; border-radius:10px; border:2px solid rgba(255,255,255,0.4); background:rgba(255,255,255,0.1); color:#fff; }
   .rpt-btn-outline:hover { background:rgba(255,255,255,0.2); }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .faq-section .sec-num { width: 36px; height: 36px; border-radius: 10px; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 20px; font-weight: 700; color: #171717; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; }
 `;

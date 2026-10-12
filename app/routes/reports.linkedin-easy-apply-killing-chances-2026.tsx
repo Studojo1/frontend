@@ -152,7 +152,31 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Does LinkedIn Easy Apply actually work?", a: "It can, but mostly when you genuinely match the must-haves and tailor your resume first. Easy Apply lowers friction, so the pile per role grows and recruiters triage with blunt filters. Weak tailoring plus high volume is what produces bad outcomes." },
+  { q: "Why am I not getting replies from Easy Apply jobs?", a: "Thin applications read as low intent. Recruiters mostly see artefacts: text, links, structure, and timing. A one-click send with a stock resume looks like every other submission, and referrals or sourced profiles often sit in a higher-trust parallel queue." },
+  { q: "Is Easy Apply worse than applying on the company website?", a: "Not by itself. The button is neutral. The issue is that it makes it easy to skip the work of making your fit obvious. Following up outside the queue, through a message to the poster or a mutual connection, helps you become a named person instead of an anonymous row." },
+  { q: "How many Easy Apply applications should I send per day?", a: "Cap it at a number that forces tailoring. The report's weekly rule is that five deep applies beat fifty shallow ones. If you cannot customise the top third of your resume for a posting, you are not ready to spend the click." },
+  { q: "How do I make an Easy Apply application stand out?", a: "Rewrite the top third of your resume in the posting's language and lead with your closest win. Add a one-sentence note with a concrete outcome if the flow allows it, or make your headline and featured section carry the proof. Then add a human route with a short message or intro request." },
+  { q: "How do I know if Easy Apply is working for me?", a: "Track reply rate by bucket: Easy Apply only, Easy Apply plus note, tailored resume, referral-assisted, and direct outreach. If your Easy Apply reply rate is near zero after thirty serious attempts, the problem is usually packaging or targeting, not fate." },
+];
 
 export default function Report_LinkedinEasyApplyKillingChances2026() {
   useEffect(() => {
@@ -173,6 +197,7 @@ export default function Report_LinkedinEasyApplyKillingChances2026() {
         "description": "Why LinkedIn Easy Apply can tank your reply rate in 2026: volume traps, weak signals, recruiter triage, and what to do instead without abandoning the platform.",
         "url": `${BASE_URL}/reports/linkedin-easy-apply-killing-chances-2026`,
         "datePublished": "2026-05-07T00:00:00Z",
+        "dateModified": "2026-05-07T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -187,6 +212,11 @@ export default function Report_LinkedinEasyApplyKillingChances2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Why LinkedIn Easy Apply Is Killing Your Chances", "item": `${BASE_URL}/reports/linkedin-easy-apply-killing-chances-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -416,6 +446,31 @@ export default function Report_LinkedinEasyApplyKillingChances2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Protect a deep-apply budget.</strong> Cap daily Easy Apply so tailoring stays non-negotiable. Five sharp applications usually beat fifty generic ones.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/application-response-rate-2026" className="related-card"><div className="rc-kicker">Applications</div><div className="rc-title">Why 80% of Applications Get No Response</div></Link>
+              <Link to="/reports/linkedin-profile-2026" className="related-card"><div className="rc-kicker">LinkedIn</div><div className="rc-title">The LinkedIn Profile Report: What Hiring Managers Look At</div></Link>
+              <Link to="/reports/ghost-jobs-2026" className="related-card"><div className="rc-kicker">Job posts</div><div className="rc-title">Why Companies Post Jobs Without Planning to Hire</div></Link>
             </div>
           </div>
 

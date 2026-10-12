@@ -157,7 +157,31 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Is an unpaid internship worth it?", a: "Only if it creates signal you can show to the next gate. The report's four filters are scoped outputs, real mentorship, a fixed end date, and a credible path to the next opportunity. If the role fails any one, negotiate to fix it or walk away." },
+  { q: "Do unpaid internships lead to more job offers?", a: "Less often than paid ones. In NACE's 2022 Student Survey of US four-year college students, paid interns averaged 1.61 job offers, unpaid interns 0.94, and students with no internship 0.77. An unpaid role barely beat having no internship at all." },
+  { q: "How do I tell a real internship from free labor?", a: "If the company cannot define outputs, mentorship, and an end date, it is not an internship. Ask what you will ship by week 2 and week 6, who reviews your work, and whether they can commit 30 minutes a week. If you cannot answer those, the role is not designed to develop you." },
+  { q: "What hidden costs should I count before accepting unpaid work?", a: "Two kinds: direct costs such as transport, meals, equipment, and lost part-time income, and opportunity costs, meaning better work you could do with the same hours. Compare against a paid internship application, a portfolio project you own end to end, or a small paid contract." },
+  { q: "How do I negotiate an unpaid internship?", a: "Ask for the deliverables, feedback cadence, and end date in writing, plus clarity on reimbursements and a reference at completion based on agreed criteria. The report also suggests capping weekly hours and reserving time for your own applications and portfolio. If the role is full-time and open-ended, treat it as high-risk." },
+  { q: "Are unpaid internships legal?", a: "It depends on the country and the role, and this report covers the decision, not the law. Studojo's companion report on unpaid internships lays out where they are legal and where they are not. Check that one before you accept an unpaid offer." },
+];
 
 export default function Report_UnpaidInternshipTrap2026() {
   useEffect(() => {
@@ -178,6 +202,7 @@ export default function Report_UnpaidInternshipTrap2026() {
         "description": "A 2026 decision framework for unpaid internships: when they can accelerate skills and signal, when they are exploitation, and how to protect your time, money, and future options.",
         "url": `${BASE_URL}/reports/unpaid-internship-trap-2026`,
         "datePublished": "2026-05-05T00:00:00Z",
+        "dateModified": "2026-05-05T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -192,6 +217,11 @@ export default function Report_UnpaidInternshipTrap2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Unpaid Internship Trap: Is It Ever Worth It?", "item": `${BASE_URL}/reports/unpaid-internship-trap-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -405,6 +435,31 @@ export default function Report_UnpaidInternshipTrap2026() {
             <strong>Related report:</strong> Is the unpaid role you were offered even legal where you are? 
             <Link to="/reports/unpaid-internship-report-where-legal-2026" style={{ color: "#6d28d9", fontWeight: 600, textDecoration: "underline" }}>Unpaid internships: where they are legal and where they are not</Link>
           </p>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/unpaid-internship-report-where-legal-2026" className="related-card"><div className="rc-kicker">Pay and law</div><div className="rc-title">Unpaid Internships: Where They Are Legal and Where They Are Not</div></Link>
+              <Link to="/reports/return-offer-report-why-some-interns-get-hired-2026" className="related-card"><div className="rc-kicker">Return offers</div><div className="rc-title">The Return Offer Report: Why Some Interns Get Hired</div></Link>
+              <Link to="/reports/internships-15k-india-2026" className="related-card"><div className="rc-kicker">Paid roles</div><div className="rc-title">Roles That Land You Above ₹15k: The Internship Map India</div></Link>
+            </div>
+          </div>
 
           <div className="rpt-cta">
             <div className="rpt-cta-left">

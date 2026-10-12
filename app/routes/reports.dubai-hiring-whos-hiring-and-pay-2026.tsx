@@ -157,7 +157,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #10b981; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What is the average entry-level salary in Dubai?", a: "Early-career gross monthly base salaries for non-executive professional roles often sit between roughly 8,000 AED and 22,000 AED. Technology and strong finance paths skew higher, and some hospitality management trainee roles start lower before service charge and allowances. Total reward may include housing, flights, and bonuses." },
+  { q: "Which sectors are hiring in Dubai in 2026?", a: "Finance, fintech, and professional services in DIFC lead, followed by technology and digital product, aviation, travel, and logistics, hospitality and retail, real estate and engineering, and semi-government digital programmes. Many roles exist because companies chose Dubai as a regional hub." },
+  { q: "Does my employer have to pay for my UAE work visa?", a: "Yes. Under UAE labour law (Federal Decree-Law No. 33 of 2021, Article 6), the employer must pay recruitment and employment costs, including visa issuance, medical tests, and your residency permit. DIFC roles fall under the DIFC Employment Law, which also puts the visa cost on the employer. Any request for you to pay is a red flag." },
+  { q: "How do people actually find jobs in Dubai?", a: "LinkedIn is the default discovery layer, but mid-tier professional hiring still routes through recruiters, referrals, alumni groups, and founder circles. In the report's example, a talent lead filled two of three approved roles from referrals before the job descriptions were published." },
+  { q: "Why do Dubai job offers take so long?", a: "Work permits, medical checks, employer quota logic, and approval steps all add time. Candidates who can start faster or transfer cleanly from an existing visa often win tight races. Ramadan hours, summer travel, and year-end budgeting can also slow decisions." },
+  { q: "What should I confirm before accepting a Dubai job offer?", a: "Currency, base salary versus allowances, probation length, visa sponsor name, job title on the paperwork, notice period, and annual leave. Confirm whether figures are monthly gross base or a total package. A verbal yes is not a visa stamp." },
+];
 
 export default function Report_DubaiHiringWhosHiringAndPay2026() {
   useEffect(() => {
@@ -178,6 +202,7 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
         "description": "A 2026 snapshot of Dubai hiring: which sectors are adding headcount, how pay bands look in AED for early-career roles, and what actually moves interviews in a visa-aware market.",
         "url": `${BASE_URL}/reports/dubai-hiring-whos-hiring-and-pay-2026`,
         "datePublished": "2026-05-08T00:00:00Z",
+        "dateModified": "2026-05-08T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -192,6 +217,11 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Dubai Hiring Report 2026: Who's Actually Hiring and What They Pay", "item": `${BASE_URL}/reports/dubai-hiring-whos-hiring-and-pay-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -480,6 +510,31 @@ export default function Report_DubaiHiringWhosHiringAndPay2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Run a dual-track search.</strong> Keep board alerts, and run referrals plus recruiter relationships weekly. Tag outcomes by channel so you know what actually works for your profile in Dubai.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/unpaid-internship-report-where-legal-2026" className="related-card"><div className="rc-kicker">Pay and law</div><div className="rc-title">The Unpaid Internship Report: Where It Is Legal and Where It Is Not</div></Link>
+              <Link to="/reports/singapore-remote-from-india-2026" className="related-card"><div className="rc-kicker">Cities</div><div className="rc-title">Singapore Remote Jobs from India 2026: The Real Map</div></Link>
+              <Link to="/reports/referrals-vs-applications-how-people-get-hired-2026" className="related-card"><div className="rc-kicker">Referrals</div><div className="rc-title">Referrals vs Applications: How People Actually Get Hired</div></Link>
             </div>
           </div>
 

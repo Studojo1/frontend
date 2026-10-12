@@ -131,7 +131,31 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "How do you get a high school internship if you are under 18?", a: "Email local organisations directly and propose a placement, because most high school internships are created rather than advertised. A dental practice, university lab, local newspaper or food bank will often say yes to a specific, polite, organised student who asks for a few weeks of real work. Send a short personalised email to a named person at about fifteen organisations." },
+  { q: "How many organisations should you email for a high school internship?", a: "About fifteen, not two hundred. Campaigns under fifty recipients reply at 5.8 percent, against 2.1 percent for large blasts, because nobody can write a real personalised second paragraph two hundred times. Fifteen careful emails with one follow-up each is a realistic path to one or two yeses." },
+  { q: "What should a high school internship email say?", a: "State your age, year and school in line one, show you read something specific about their work, and ask for something small like a few weeks in July helping with a named task. Then answer their objections up front: you are not asking to be paid, you can bring any paperwork, and you would happily start with a single day of shadowing. Send it to a named person, never an info address." },
+  { q: "Should you follow up if nobody replies to your internship email?", a: "Yes, once, after about seven days. A single follow-up lifts reply rates by about 66 percent, and most students never send one. Reply on the same thread in three sentences, then stop." },
+  { q: "Who says yes to high school interns most easily?", a: "Nonprofits, charities, public institutions, schools, hospitals in a shadowing capacity and university labs say yes fastest. They can accept a student without the employment questions a private company has to think about. Hazardous work such as machinery or construction is closed under 18 in the US, India and the UK." },
+  { q: "Can Indian students in Class 11 or 12 apply to IISc or IISER summer internships?", a: "No. NIUS and the IISc and IISER summer internships are undergraduate programmes, so Class 11 and 12 students are not eligible however strong their marks are. The practical route for most Indian school students is a small local enterprise or a clinic near school, or the free RSI India programme at IISc Bengaluru." },
+];
 
 export default function Report_HowToGetAHighSchoolInternship2026() {
   useEffect(() => {
@@ -152,6 +176,7 @@ export default function Report_HowToGetAHighSchoolInternship2026() {
         "description": "The famous programmes take a few hundred students a year and close months early. This is the other route, and it works in any country: the email that gets a local organisation to say yes.",
         "url": `${BASE_URL}/reports/how-to-get-a-high-school-internship-2026`,
         "datePublished": "2026-09-27T00:00:00Z",
+        "dateModified": "2026-09-27T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -166,6 +191,11 @@ export default function Report_HowToGetAHighSchoolInternship2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "How to Get a High School Internship", "item": `${BASE_URL}/reports/how-to-get-a-high-school-internship-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -431,6 +461,31 @@ export default function Report_HowToGetAHighSchoolInternship2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Follow up once, and answer every no.</strong> One follow-up lifts replies by roughly 66 percent. A no deserves one reply asking for twenty minutes, which often produces a referral.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/cold-outreach-what-gets-reply-2026" className="related-card"><div className="rc-kicker">Outreach</div><div className="rc-title">Cold outreach: what actually gets a reply</div></Link>
+              <Link to="/reports/cold-email-subject-lines-best-practices-2026" className="related-card"><div className="rc-kicker">Cold email</div><div className="rc-title">Cold email subject lines: what gets opened</div></Link>
+              <Link to="/reports/internship-vs-externship-coop-practicum-2026" className="related-card"><div className="rc-kicker">Formats</div><div className="rc-title">Internship, externship, co-op, practicum: which to take</div></Link>
             </div>
           </div>
 

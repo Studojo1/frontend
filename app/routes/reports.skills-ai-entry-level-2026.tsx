@@ -180,6 +180,11 @@ export default function AISkillsReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Breaking Into AI in 2026: The Skills, Roles and Hiring Reality for Entry-Level Candidates", "description": "The entry-level AI job market in 2026 is real but misunderstood. Python + SQL is the floor. Most roles are about deploying AI, not building it. Here is the exact skill stack, top roles, salaries, and portfolio signals that get callbacks.", "url": "https://studojo.com/reports/skills-ai-entry-level-2026", "datePublished": "2026-04-20T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/skills-ai-entry-level-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Breaking Into AI 2026", "item": "https://studojo.com/reports/skills-ai-entry-level-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -672,6 +677,29 @@ export default function AISkillsReport() {
           </div>
 
           {/* Final CTA */}
+          <div className="faq-section">
+            <div className="rpt-finding-header">
+              <span className="rpt-finding-num">FAQ</span>
+              <h2 className="rpt-h2">Frequently Asked Questions</h2>
+              <p className="rpt-lead">The questions students ask most about this, answered directly</p>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/data-ai-internships-entry-level-reality-2026" className="related-card"><div className="rc-kicker">Data and AI</div><div className="rc-title">Data and AI Internships 2026: Entry-Level Reality</div></Link>
+              <Link to="/reports/internships-ai-india-2026" className="related-card"><div className="rc-kicker">AI and interns</div><div className="rc-title">How Internships Are Changing Post-AI</div></Link>
+              <Link to="/reports/ai-interns-using-ai-wont-replace-interns-2026" className="related-card"><div className="rc-kicker">AI and interns</div><div className="rc-title">AI Won't Replace Interns. Interns Using AI Will</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find AI internships and entry-level roles globally. Build an ATS-ready resume in 5 minutes. Free.</p>
@@ -775,4 +803,33 @@ const rptCSS = `
     .rpt-inline-cta-inner{flex-direction:column;align-items:flex-start;}
     .rpt-hero-stats{gap:20px;} .rpt-final-cta{padding:32px 20px;}
   }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section { margin-top: 64px; margin-bottom: 20px; }
+  .related { margin-top: 0; }
+  .faq-section .rpt-finding-header { margin-bottom: 20px; }
 `;
+
+const FAQ = [
+  { q: "What skills do I need for an entry-level AI job?", a: "Python, SQL and Git are the non-negotiable floor. Python appears in 94% of entry-level AI postings, Git in 88% and SQL in 78%. On top of that, the Application track adds LLM APIs, LangChain or LlamaIndex, basic FastAPI or Flask and prompt engineering, while the Core ML track adds PyTorch, linear algebra and statistics." },
+  { q: "Do I need to build models to get an AI job?", a: "No. In the report's breakdown, 42% of entry-level roles are application or wrapper roles, 31% are AI analyst or BI roles, 17% are core ML and 10% are MLOps. The Application and Analyst tracks make up nearly three quarters of postings and are the shortest path from zero to hired." },
+  { q: "How much do entry-level AI jobs pay?", a: "In the US, entry-level ML Engineers earn $92,000 to $135,000 (Glassdoor median $108K), MLOps roles $85,000 to $130,000 and AI Data Analysts $68,000 to $98,000. The report lists India freshers at INR 5 to 12 LPA and the UK at £45,000 to £72,000 a year." },
+  { q: "Do certificates help me get an AI job?", a: "Much less than a project. Hiring managers scored a deployed project with a live URL 9.2 out of 10, an open source contribution 8.5, and a certificate 4.2. Use certificates as a learning scaffold, but pair every one with something you built that someone else can use." },
+  { q: "Can I get into AI without a computer science degree?", a: "Yes. Domain knowledge plus AI beats pure AI at most companies outside Big Tech. Add Python, SQL and working knowledge of 2 to 3 ML techniques on top of your background in finance, healthcare, law or climate, rather than trying to replicate a CS degree." },
+  { q: "How long does it take to become job-ready for entry-level AI roles?", a: "The report lays out a 90-day sprint for the Application track if you already have basic Python. Days 1 to 30 build Python, SQL, Git and LLM basics, days 31 to 60 build and deploy one real project, and days 61 to 90 are for polishing GitHub and applying to 5 to 10 roles per week. Starting from zero, add 30 days at the front for Python fundamentals." },
+];
+

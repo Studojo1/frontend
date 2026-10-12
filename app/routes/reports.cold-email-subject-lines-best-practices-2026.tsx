@@ -157,7 +157,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What makes a good cold email subject line?", a: "A good subject line passes a fast relevance test: it is about the reader, about work they might care about, and looks like one human writing to one human. Keep it to 4 to 7 words and make it specific to that person. A boring accurate subject outperforms a witty vague one almost every time." },
+  { q: "How long should a cold email subject line be?", a: "Aim for 4 to 7 words. Subjects over roughly ten words often truncate on mobile before the meaningful phrase appears, and subjects under two words like \"Hello\" or \"Internship\" fail the relevance test. Front-load the meaningful words." },
+  { q: "Does personalizing the subject line improve cold email open rates?", a: "Yes. Across 5.5 million B2B cold emails sent in 2024, personalized subject lines had a 46 percent open rate versus 35 percent for non-personalized ones, and reply rates rose from 3 percent to 7 percent (Belkins, August 2025). Personalization has to be real, because broken tokens like \"Hi {{FirstName}}\" are worse than no name." },
+  { q: "Which subject line patterns work best for internship outreach?", a: "Five patterns win most often: a specific observation plus topic (\"Your post on intern pipelines\"), a tight one-line question, a real warm intro signal, a plain label like \"PM intern question\", and an event follow-up like \"Met at Demo Day Thursday\". Each one could not be sent to a different person without rewriting." },
+  { q: "Which cold email subject lines should you avoid?", a: "Avoid compliment-only openers, hype, false urgency, empty curiosity like \"Quick question\", and generic phrases such as \"Partnership opportunity\", \"Following up\", \"Touching base\" and \"Pick your brain\". Also skip ALL CAPS, emoji stacks and a fake \"Re:\" when there was no prior thread." },
+  { q: "How do you test cold email subject lines when you only send a few emails?", a: "Keep a simple log of subject, recipient type, whether it was opened if trackable, and whether they replied. After about twenty sends patterns emerge, and you should change one variable at a time. If a subject earns opens but not replies, the problem is the body or the ask, not the subject." },
+];
 
 export default function Report_ColdEmailSubjectLinesBestPractices2026() {
   useEffect(() => {
@@ -178,6 +202,7 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
         "description": "The best cold email subject lines in 2026: patterns that earn opens, lines that trigger instant delete, length and personalization rules, and copy-paste templates by use case.",
         "url": `${BASE_URL}/reports/cold-email-subject-lines-best-practices-2026`,
         "datePublished": "2026-06-16T00:00:00Z",
+        "dateModified": "2026-06-16T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -192,6 +217,11 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Cold Email Subject Lines: What Actually Gets Opened", "item": `${BASE_URL}/reports/cold-email-subject-lines-best-practices-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -442,6 +472,31 @@ export default function Report_ColdEmailSubjectLinesBestPractices2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Log and iterate in batches"}.</strong> {"Track twenty sends with subject plus outcome. Change one variable at a time. Opens without replies mean fix the body next, not the subject."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/cold-outreach-what-gets-reply-2026" className="related-card"><div className="rc-kicker">Outreach</div><div className="rc-title">Cold outreach: what actually gets a reply</div></Link>
+              <Link to="/reports/how-to-get-a-high-school-internship-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">How to get a high school internship</div></Link>
+              <Link to="/reports/referrals-vs-applications-how-people-get-hired-2026" className="related-card"><div className="rc-kicker">Referrals</div><div className="rc-title">Referrals vs applications: how people get hired</div></Link>
             </div>
           </div>
 

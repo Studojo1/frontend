@@ -87,11 +87,25 @@ const BRACKET = {
   low:  { bg: "#fff1f2", border: "#fecdd3", text: "#9f1239", dot: "#f43f5e", label: "Below ₹10k" },
 };
 
+const FAQ = [
+  { q: "Which internships in India pay above ₹15,000 a month?", a: "AI and ML, software engineering at MNCs, quant finance, strategy consulting and product management lead. ML Engineering interns earn ₹50k to 100k, MNC SWE interns ₹60k to 100k, quant trading interns ₹80k to 150k, strategy consulting interns ₹50k to 100k and product management interns ₹30k to 80k. Backend and full-stack roles at startups land at ₹18k to 50k." },
+  { q: "Which internship domain pays the most in India?", a: "Quant trading pays the most, at ₹80k to 150k per month at firms such as Jane Street and Graviton. AI/ML, quant finance and MNC software engineering are the three domains that own the ₹40k+ bracket, with strategy consulting at MBB joining them. In every other domain, ₹15k to 25k is where strong applicants land." },
+  { q: "Do marketing internships in India pay above ₹15k?", a: "Only some do. Growth Marketing interns earn ₹15k to 25k, but only at funded startups, and Performance Marketing interns earn ₹15k to 20k. BPO and ops interns earn ₹5k to 12k and data entry interns ₹5k to 10k, categories the report flags as contracting or being automated." },
+  { q: "Does my college name or CGPA decide my internship stipend?", a: "Not reliably. The report finds that IIT versus NIT matters less than your portfolio at intern level, CGPA above 7 rarely moves stipend, and a Coursera certificate does not either. Projects do." },
+  { q: "Which skills help me get an internship that pays above ₹15k?", a: "Five skills show up repeatedly: Python and data fluency (+₹8k to 15k versus baseline), AI tool proficiency (+₹5k to 12k), financial modelling in Excel (+₹8k to 20k in finance roles), product thinking (+₹5k to 10k in product roles) and a real portfolio project. Students landing the higher brackets usually have at least two of these at project level." },
+  { q: "Do big-name companies pay interns more than startups in India?", a: "Not always. Large MNCs in non-core roles routinely pay ₹8k to 15k, while Series A and B funded startups in product, data and growth pay ₹20k to 40k to compete for the same candidates. Funding stage and role category are better signals than the company name." },
+];
+
 export default function Internships15kReport() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Internships Paying Above Rs 15,000 Per Month in India 2026", "description": "48 internship roles mapped across 8 domains. ML Engineering interns earn Rs 50k-100k/month. Quant Trading interns earn Rs 150k. Which roles, which skills, and which companies break the Rs 15k floor.", "url": "https://studojo.com/reports/internships-15k-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/internships-15k-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Internships Paying Above Rs 15k in India 2026", "item": "https://studojo.com/reports/internships-15k-india-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: css }} />
@@ -293,6 +307,31 @@ export default function Internships15kReport() {
 
         </div>
 
+        <div className="faq-section">
+          <div className="sec-header">
+            <div className="sec-num" style={{ background: "#171717" }}>?</div>
+            <div>
+              <div className="sec-title">Frequently Asked Questions</div>
+              <div className="sec-sub">The questions students ask most about this, answered directly</div>
+            </div>
+          </div>
+          {FAQ.map((f) => (
+            <div className="faq-item" key={f.q}>
+              <div className="faq-q">{f.q}</div>
+              <div className="faq-a">{f.a}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="related">
+          <h2>Related reports</h2>
+          <div className="related-grid">
+              <Link to="/reports/marketing-india-2026" className="related-card"><div className="rc-kicker">Marketing</div><div className="rc-title">Marketing internships in India: where the good roles are</div></Link>
+              <Link to="/reports/product-management-internships-india-2026" className="related-card"><div className="rc-kicker">Product</div><div className="rc-title">Product management internships in India</div></Link>
+              <Link to="/reports/data-ai-internships-entry-level-reality-2026" className="related-card"><div className="rc-kicker">Data and AI</div><div className="rc-title">Data and AI internships: entry-level reality</div></Link>
+          </div>
+        </div>
+
         {/* Final CTA */}
         <div className="r15-final-cta">
           <div className="r15-final-title">Work on things that matter.</div>
@@ -424,4 +463,24 @@ const css = `
     .r15-cell:nth-child(3), .r15-cell:nth-child(4) { display: none; }
     .r15-hero-stats { gap: 20px; }
   }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .faq-section .sec-num { width: 36px; height: 36px; border-radius: 10px; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 20px; font-weight: 700; color: #171717; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; }
 `;

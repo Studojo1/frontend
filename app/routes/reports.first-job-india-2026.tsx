@@ -157,7 +157,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "How much do freshers earn in India in 2026?", a: "Annual CTC for entry-level full-time roles runs from about ₹3 LPA to ₹18 LPA or more. TCS Ninja pays ₹3.36 LPA to undergraduate hires, TCS Digital pays about ₹7.1 LPA, and TCS Prime pays ₹9.1 to 11.8 LPA. Elite cadres such as HCLTech's at ₹18 to 22 LPA cover only 15 to 20% of its fresher intake." },
+  { q: "When does campus placement happen in India?", a: "The peak campus placement window at most Indian colleges is August to November. There is a secondary off-campus surge from January to March for graduates who missed or skipped formal cycles. Track pre-placement talk dates, aptitude test windows, and HR round schedules per employer." },
+  { q: "Which companies hire freshers in India?", a: "Hiring clusters around IT services, GCCs and scaled tech, funded startups, BFSI operations and analytics, and sales or business development teams. In the report's illustrative synthesis, about 48% of visible entry-level pipeline volume sits with IT services, GCCs, and scaled tech employers. Bangalore, Hyderabad, Pune, and Gurgaon anchor tech and GCC hiring, while Mumbai anchors BFSI." },
+  { q: "Can I get a first job without campus placement?", a: "Yes. Many strong first roles never touch a campus placement cell, and Naukri, LinkedIn, Unstop, and direct outreach remain legitimate primary channels for tier-two and tier-three graduates. Referrals and tight outreach to hiring managers help, especially with a shipped project or case write-up linked in your message." },
+  { q: "How do I compare two fresher job offers?", a: "Compare fixed versus variable pay, not only the headline CTC. Two offers with the same number are not equal if one is 70% fixed and the other is 50% variable with a clawback clause. Also ask about probation terms, bond clauses, relocation support, and what you will own in your first ninety days." },
+  { q: "What skills do first-round screens test for freshers?", a: "It depends on the sector. Tech screens weight DSA fundamentals and one demonstrable project, BFSI and analytics weight Excel and structured case answers, and sales weights CRM fluency and communication. AI literacy is becoming a hygiene factor across sectors, not a standalone role for most freshers." },
+];
 
 export default function Report_FirstJobIndia2026() {
   useEffect(() => {
@@ -178,6 +202,7 @@ export default function Report_FirstJobIndia2026() {
         "description": "A 2026 snapshot of India's first-job market for graduates and early-career candidates: who hires at 0 to 2 years, CTC bands in INR, campus vs off-campus calendars, and the channels that actually convert.",
         "url": `${BASE_URL}/reports/first-job-india-2026`,
         "datePublished": "2026-06-02T00:00:00Z",
+        "dateModified": "2026-06-02T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -192,6 +217,11 @@ export default function Report_FirstJobIndia2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "First Job Report India 2026: What Entry-Level Actually Looks Like", "item": `${BASE_URL}/reports/first-job-india-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -480,6 +510,31 @@ export default function Report_FirstJobIndia2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Run a dual-track search.</strong> Keep campus and portal alerts, and run referrals plus direct recruiter outreach weekly. Tag outcomes by channel so you know what actually works for your profile in India.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/degree-vs-skills-2026" className="related-card"><div className="rc-kicker">Skills</div><div className="rc-title">Degree vs Skills: What Hirers Look at in 2026</div></Link>
+              <Link to="/reports/hiring-calendar-india-2026" className="related-card"><div className="rc-kicker">Calendar</div><div className="rc-title">India Hiring Calendar 2026: Which Companies Hire in Which Month</div></Link>
+              <Link to="/reports/placement-cell-report-what-they-can-cannot-do-2026" className="related-card"><div className="rc-kicker">Placement</div><div className="rc-title">The Placement Cell Report: What They Can and Cannot Do</div></Link>
             </div>
           </div>
 

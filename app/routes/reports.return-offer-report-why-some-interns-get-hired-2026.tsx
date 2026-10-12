@@ -189,7 +189,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #6366f1; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What percentage of interns get a return offer?", a: "NACE's 2026 Internship & Co-op Survey of 284 employers found 61.9% of 2023-24 interns were offered a full-time job, the lowest of the past five years, and 71.8% of 2024-25 interns. So roughly 6 to 7 in 10 convert in a typical cohort, and the rate swings with employer budget and headcount." },
+  { q: "Why do some interns with great work still not get a return offer?", a: "Performance is necessary but rarely sufficient. Hiring freezes, reorgs, fixed conversion caps and manager political capital all affect the decision. One director in the report described loving two interns with only one full-time slot, which she called the normal tragedy no one warns students about." },
+  { q: "When do managers decide who gets a return offer?", a: "Often earlier than you expect. Many managers form a preliminary keep-or-pass view around weeks four and five, long before the final presentation. HR paperwork usually lags, so silence from HR does not always mean silence from your manager." },
+  { q: "What do managers actually evaluate in interns?", a: "Five factors: deliverable quality, reliability, visibility, team fit and org headcount. In NACE's Job Outlook 2025, employers ranked problem-solving (88.3%), teamwork (81.0%) and written communication (77.1%) at the top. Managers also buy low friction, meaning an intern they can staff again without chasing." },
+  { q: "How can I increase my chances of converting an internship?", a: "Ask in week one how return offers are decided on the team, then send a short Friday update (Done, Learned, Blocker, Next week ask). Request written mid-internship feedback, make your work visible to the skip-level through a demo or one-pager, and keep a brag doc with metrics. Build a parallel internship or job pipeline by week seven." },
+  { q: "What should I do if I do not get a return offer?", a: "Thank your manager, ask for a LinkedIn recommendation with specifics, and request intros to one or two adjacent teams. Activate off-cycle applications within two weeks because momentum decays fast. Avoid public bitterness, and turn the internship into a metric-backed case study for the next role." },
+];
 
 export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
   useEffect(() => {
@@ -210,6 +234,7 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
         "description": "Return offers depend on more than intern performance. Budget, headcount, manager advocacy, visibility, and timing decide who converts. What actually moves PPOs in 2026.",
         "url": `${BASE_URL}/reports/return-offer-report-why-some-interns-get-hired-2026`,
         "datePublished": "2026-06-06T00:00:00Z",
+        "dateModified": "2026-06-06T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -224,6 +249,11 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Return Offer Report: Why Some Interns Get Hired and Others Don't", "item": `${BASE_URL}/reports/return-offer-report-why-some-interns-get-hired-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -542,6 +572,31 @@ export default function Report_ReturnOfferReportWhySomeInternsGetHired2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Exit well either way"}.</strong> {"Negotiate PPO scope if you convert. Request referrals and ship a metric-backed case study if you do not."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/interview-report-why-candidates-fail-after-shortlist-2026" className="related-card"><div className="rc-kicker">Interviews</div><div className="rc-title">Why Candidates Fail After Getting Shortlisted</div></Link>
+              <Link to="/reports/ai-interns-using-ai-wont-replace-interns-2026" className="related-card"><div className="rc-kicker">AI Interns</div><div className="rc-title">Interns Using AI Will Replace Those Who Don't</div></Link>
+              <Link to="/reports/internships-15k-india-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">Roles Above ₹15k: The Internship Map India</div></Link>
             </div>
           </div>
 

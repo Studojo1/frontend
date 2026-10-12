@@ -160,6 +160,11 @@ export default function JobSearchReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Job Boards Are Dead: How Students Actually Get Hired in 2026", "description": "Job board callback rates sit at 2-7%. In a LinkedIn survey, 70% of people hired in 2016 joined a company where they already had a connection. Referrals are 5x more effective. Here is the data on what actually works in 2026.", "url": "https://studojo.com/reports/job-search-2026", "datePublished": "2026-04-22T00:00:00+05:30", "dateModified": "2026-04-22T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/job-search-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Job Search 2026", "item": "https://studojo.com/reports/job-search-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -618,6 +623,31 @@ export default function JobSearchReport() {
             <p className="rpt-source">Source: Jobvite Recruiter Nation 2025, LinkedIn Talent Solutions hiring benchmark data 2025, Indeed "How Job Seekers Find Jobs" 2025, CareerBuilder job search strategy report 2025</p>
           </div>
 
+          <div className="rpt-finding">
+            <div className="rpt-finding-header">
+              <span className="rpt-finding-num">FAQ</span>
+              <h2 className="rpt-h2">Frequently Asked Questions</h2>
+              <p className="rpt-lead">The questions students ask most about this, answered directly</p>
+            </div>
+          </div>
+          <div className="faq-section">
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/referrals-vs-applications-how-people-get-hired-2026" className="related-card"><div className="rc-kicker">Referrals</div><div className="rc-title">Referrals vs Applications: How People Get Hired</div></Link>
+              <Link to="/reports/cold-outreach-what-gets-reply-2026" className="related-card"><div className="rc-kicker">Outreach</div><div className="rc-title">Cold Outreach: What Actually Gets a Reply</div></Link>
+              <Link to="/reports/hidden-job-market-70-percent-never-posted-2026" className="related-card"><div className="rc-kicker">Hidden market</div><div className="rc-title">The Hidden Job Market: Why Roles Are Filled Through Referrals</div></Link>
+            </div>
+          </div>
+
           {/* Final CTA */}
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
@@ -705,4 +735,29 @@ const rptCSS = `
     .rpt-inline-cta-inner{flex-direction:column;align-items:flex-start;}
     .rpt-hero-stats{gap:20px;} .rpt-final-cta{padding:32px 20px;}
   }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What is the callback rate for job board applications?", a: "Cold applications through job boards have a 2-7% callback rate, per Jobvite and LinkedIn Talent data cited in this report. That means you need roughly 50 to 67 applications to expect one interview. LinkedIn Easy Apply is the weakest channel at about 3%." },
+  { q: "Do referrals really beat applying online?", a: "Yes. A referral makes you 5x more likely to get an interview (Jobvite 2025) and 7x more likely to be hired (Pinpoint analysis of 4.5M applications). Median time to hire is 29 days via referral against 55 days via job board (SHRM 2025)." },
+  { q: "How do I get a referral if I do not know anyone at the company?", a: "Find someone 2 to 4 years into a similar role, not HR, and ask for a 15-minute conversation instead of a job. Prepare specific questions, then follow up a week later with proof of work such as an analysis or project. Once you have 2+ touch-points, ask whether they would pass your CV to the hiring manager." },
+  { q: "Does cold emailing hiring managers actually work?", a: "It can. Targeted cold outreach with a relevant project attached has a 9% callback rate, against under 1% without a specific hook. Use a 3-line format: what you built, a link, and one clear question. Emails of 75 to 100 words consistently outperform longer ones." },
+  { q: "Is the hidden job market real?", a: "Partly. The 70% figure from a LinkedIn survey of 15,905 members measures people who joined a company where they already had a connection, not unposted jobs. Georgetown estimated that 60 to 70% of US openings were posted online in 2014, but connections still carry huge weight in who gets picked." },
+  { q: "How should I split my time in a weekly job search?", a: "This report recommends 18 hours a week: 6 building proof of work, 3 on referral networking, 3 on targeted direct applications, 2.5 on cold outreach, 2 on LinkedIn and 1.5 on scanning job boards. Use boards for market intelligence and apply only to postings under 48 hours old where you are a strong match." },
+];
+
