@@ -2756,9 +2756,16 @@ function EnrichButton({ cells, onEnrich, size = "sm" }: {
         <FiLoader size={10} className="animate-spin" /> Enriching
       </span>
     );
+  if (status === "found" && cells._weak_contact)
+    return (
+      <button onClick={(e) => { stop(e); onEnrich(); }} title={str(cells._contact_note) || "Weak contact: an engineer on the team. Click to re-run"}
+        className={`inline-flex items-center font-bold rounded-lg bg-amber-50 text-amber-700 border border-amber-300 hover:bg-amber-100 ${pad}`}>
+        <FiCheck size={10} /> Weak contact
+      </button>
+    );
   if (status === "found")
     return (
-      <button onClick={(e) => { stop(e); onEnrich(); }} title="Contact found. Click to re-run"
+      <button onClick={(e) => { stop(e); onEnrich(); }} title={str(cells._contact_note) || "Contact found. Click to re-run"}
         className={`inline-flex items-center font-bold rounded-lg bg-green-50 text-green-700 border border-green-300 hover:bg-green-100 ${pad}`}>
         <FiCheck size={10} /> Contact
       </button>
@@ -3259,7 +3266,7 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
                 <FiTrash2 size={11} className="inline" />
               </button>
             </div>
-            {["not_found", "no_phone", "error"].includes(contactStatus(row.cells)) && str(row.cells._contact_note) && (
+            {["not_found", "no_phone", "error", "found"].includes(contactStatus(row.cells)) && str(row.cells._contact_note) && (
               <p className="text-[11px] text-neutral-500 mt-1.5">{str(row.cells._contact_note)}</p>
             )}
           </div>
