@@ -162,6 +162,15 @@ function initCharts() {
   });
 }
 
+const FAQ = [
+  { q: "What is the average placement package for Flame University MBA?", a: "The Flame MBA average CTC for the 2025 batch is ₹9.63 LPA, with a median of ₹9.42 LPA, a highest offer of ₹15.25 LPA and a 96% placement rate. The average fell from ₹11 LPA in 2024, and the highest offer fell from ₹25 LPA to ₹15.25 LPA." },
+  { q: "Which sectors recruit most at Flame campus placements?", a: "BFSI is the largest sector at 37%, followed by IT and ITeS at 26%, consulting at 13% and retail at 11% (2023 data, the most detailed breakdown published). Recurring recruiters include HDFC Bank, ICICI Prudential, Bajaj Finserv, Kotak Mahindra Bank, EY, PwC and Deloitte. It is a BFSI and consulting list, not a brand or content list." },
+  { q: "Can Flame students get marketing jobs through campus placement?", a: "Unlikely. D2C brands, funded startups and agencies almost never recruit on campus at B-schools outside the top IIMs, so most Flame marketing careers are built off-campus. The MBA (Communications Management) programme, the most marketing-adjacent, shows a lower average CTC of ₹7.65 LPA and a median of ₹8 LPA for 2025." },
+  { q: "How much do marketing freshers earn in India?", a: "The general market pays about ₹1.8 to 3.3 LPA for social media and content executives, ₹2.5 to 4.5 LPA for digital marketing executives and ₹3 to 6 LPA for brand or marketing executives in metros. Product marketing at B2B SaaS companies pays ₹4.5 to 9 LPA, the highest of the pure marketing tracks. Treat these as directional ranges." },
+  { q: "Which skills do marketing job descriptions ask for in India?", a: "Social media, content writing and copywriting, Canva, MS Excel, SEO and Google Analytics (GA4) lead the report's ranking of skills in Internshala, LinkedIn and Naukri listings. The ranking is an editorial index, not a counted dataset. The Google Analytics certification on Google Skillshop is free and takes 4 to 6 hours." },
+  { q: "What internship stipend should a Flame marketing student target?", a: "Aim for the ₹18k to 30k bracket, which is where funded Series A and B startups taking marketing seriously pay. Stipends on Internshala range from ₹3,000 to ₹80,000 per month, and the average summer internship stipend for Flame MBA students in 2025 was ₹40k per month. Roles at ₹3k to 5k usually come from small agencies or early-stage startups." },
+];
+
 export default function FlameMarketingReport() {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -176,6 +185,11 @@ export default function FlameMarketingReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Flame University Marketing Placements 2026: What the Data Actually Shows", "description": "Flame's avg CTC is 9.63 LPA but campus placements skew BFSI, not marketing. 7 role tracks analysed. The 1.7x campus vs off-campus salary gap and what marketing-track students need to do differently.", "url": "https://studojo.com/reports/flame-marketing-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/flame-marketing-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Flame University Marketing Placements 2026", "item": "https://studojo.com/reports/flame-marketing-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -386,6 +400,31 @@ export default function FlameMarketingReport() {
             <p className="rpt-source">Source: Studojo editorial; flame.edu.in placement reports; LinkedIn India</p>
           </div>
 
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+                <Link to="/reports/marketing-india-2026" className="related-card"><div className="rc-kicker">Marketing</div><div className="rc-title">Marketing internships in India: where the good roles are</div></Link>
+                <Link to="/reports/growth-marketing-jobs-skills-pay-hiring-2026" className="related-card"><div className="rc-kicker">Growth marketing</div><div className="rc-title">Growth marketing jobs 2026: skills, pay and who is hiring</div></Link>
+                <Link to="/reports/placement-cell-report-what-they-can-cannot-do-2026" className="related-card"><div className="rc-kicker">Colleges</div><div className="rc-title">What placement cells can and cannot do</div></Link>
+            </div>
+          </div>
+
           {/* Closing CTA */}
           <div className="rpt-cta-block">
             <h2 className="rpt-cta-h">Find marketing internships worth applying to</h2>
@@ -490,4 +529,24 @@ const rptCSS = `
     .rpt-cta-block { padding:28px 20px; }
     .rpt-cta-strip-inner { flex-direction:column; align-items:flex-start; }
   }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .faq-section .sec-num { width: 36px; height: 36px; border-radius: 10px; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 20px; font-weight: 700; color: #171717; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; }
 `;

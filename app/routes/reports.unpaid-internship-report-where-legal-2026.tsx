@@ -189,7 +189,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #ef4444; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Are unpaid internships legal in the US?", a: "Only in narrow cases at for-profit employers. The US Department of Labor uses a seven-factor primary-beneficiary test under the FLSA, and if the employer is the primary beneficiary, the intern may be an employee owed minimum wage and overtime. State law can be stricter, and nonprofit and public sector roles follow different analyses." },
+  { q: "Are unpaid internships legal in the UK and EU?", a: "Often not. In the UK, many interns qualify as workers and must receive at least National Minimum Wage, especially with contracts, set hours, or personal work. In the EU, rules are national, so check the member state, and unpaid for-profit internships are generally restricted. Australia similarly treats many interns as employees unless a narrow vocational exception applies." },
+  { q: "Is there a minimum stipend for interns in India?", a: "There is no single intern minimum wage, and AICTE's Internship Policy sets no stipend floor. The PM Internship Scheme pays at least ₹9,000 a month after its March 2026 revision, and registered apprentices have a legal minimum of ₹6,800 to ₹12,300 a month depending on qualification. Maharashtra's Mukhyamantri Yuva Karya Prashikshan Yojana pays ₹6,000 to ₹10,000 a month." },
+  { q: "Does academic credit make an unpaid internship legal?", a: "Not automatically. In the US, academic credit is only one factor, and for-profit employers still must satisfy the full primary-beneficiary test. In India, many institutes expect stipends for summer internships and treat zero-pay roles as ineligible for credit, so check your placement policy first." },
+  { q: "What are the red flags of an exploitative unpaid internship?", a: "Walk away or escalate to your career office if you see unlimited hours with no pay, pressure to bring clients with no salary, no mentor or learning plan, or pressure to sign away IP for free. Other flags are pay promised after funding with no contract, and an intern title that replaced a paid posting. Save the job post, messages, and offer terms as evidence." },
+  { q: "What should I do instead of accepting an unpaid internship?", a: "Build a paid-first list of large employers with published stipends, government programmes, paid research assistantships, and contracted freelance projects. Ask for the monthly stipend or hourly rate and the first pay date in writing. If you must accept unpaid work, cap it, for example at 10 hours per week for 6 weeks, and require a written learning plan." },
+];
 
 export default function Report_UnpaidInternshipReportWhereLegal2026() {
   useEffect(() => {
@@ -210,6 +234,7 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
         "description": "Unpaid internships in 2026: US FLSA rules, UK and EU minimums, India stipend norms, red flags, and how students evaluate offers before signing.",
         "url": `${BASE_URL}/reports/unpaid-internship-report-where-legal-2026`,
         "datePublished": "2026-06-01T00:00:00Z",
+        "dateModified": "2026-06-01T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -224,6 +249,11 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Unpaid Internship Report: Where It's Legal and Where It Isn't", "item": `${BASE_URL}/reports/unpaid-internship-report-where-legal-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -532,6 +562,31 @@ export default function Report_UnpaidInternshipReportWhereLegal2026() {
             <strong>Related report:</strong> Legal is not the same as worth it. Weigh an unpaid offer before you say yes: 
             <Link to="/reports/unpaid-internship-trap-2026" style={{ color: "#6d28d9", fontWeight: 600, textDecoration: "underline" }}>The unpaid internship trap: is it ever worth it?</Link>
           </p>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/unpaid-internship-trap-2026" className="related-card"><div className="rc-kicker">Unpaid roles</div><div className="rc-title">The Unpaid Internship Trap: Is It Ever Worth It?</div></Link>
+              <Link to="/reports/internships-uk-2026" className="related-card"><div className="rc-kicker">UK pay</div><div className="rc-title">Do Interns in the UK Get Paid? NLW Rules and Sector Rates</div></Link>
+              <Link to="/reports/internships-germany-2026" className="related-card"><div className="rc-kicker">Germany pay</div><div className="rc-title">Do Interns in Germany Get Paid? Stipends and Laws</div></Link>
+            </div>
+          </div>
 
           <div className="rpt-cta">
             <div className="rpt-cta-left">

@@ -189,7 +189,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #0ea5e9; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "When do Apple summer 2027 internships open and when should you apply?", a: "Postings began in August 2026 and keep coming through roughly February 2027, with recruiter screens and interviews busiest from September to December. Apply within the first two weeks a relevant posting is live, because hiring is rolling and a team can fill its seat within weeks." },
+  { q: "How much do Apple interns get paid?", a: "Self-reported data puts Apple software engineering interns in the US at around $60 per hour, with hardware engineering around $64 and mechanical engineering around $47. Glassdoor estimates for software interns run closer to $67 per hour. Treat these as ranges, since pay varies by degree level, location and team, and many US interns also get relocation or housing support." },
+  { q: "How does the Apple internship application process work?", a: "In the US you apply to a broad pipeline posting for your discipline and degree level, such as Software Undergrad Engineering Internships, and individual teams then pick candidates from that pool. A typical path is a recruiter screen, one or two technical or domain interviews, and sometimes a hiring manager conversation. The team, not the company, is the hiring unit." },
+  { q: "What are Apple intern interviews like?", a: "They are domain-specific and vary by team, with deep follow-up questions on your own projects. Software roles still include coding, but questions lean toward the team's real work, such as memory and performance for systems roles or SwiftUI detail for iOS roles. Prepare two projects you can defend for 20 minutes each." },
+  { q: "Can students in India get an Apple internship?", a: "Yes, through India-based postings, mostly in Hyderabad and Bengaluru, though volume is in the dozens at any time, not the hundreds. Filter Apple Careers by location India and Students: Internships and check weekly. US roles generally need enrolment at a university in that country, and work authorisation such as CPT for F-1 students." },
+  { q: "Does Apple charge fees or guarantee internships?", a: "No. Apple does not charge candidates anything, and the only reliable source of openings is jobs.apple.com. If a site asks for a fee, a registration deposit or promises a guaranteed Apple internship, walk away." },
+];
 
 export default function Report_AppleInternshipReport202627() {
   useEffect(() => {
@@ -210,6 +234,7 @@ export default function Report_AppleInternshipReport202627() {
         "description": "Apple internships 2026-27: when roles post, what interns earn, how team-based interviews work, and what gets students hired in the US and India.",
         "url": `${BASE_URL}/reports/apple-internship-report-2026-27`,
         "datePublished": "2026-09-26T00:00:00Z",
+        "dateModified": "2026-09-26T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -224,6 +249,11 @@ export default function Report_AppleInternshipReport202627() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Apple Internship Report: 2026-27", "item": `${BASE_URL}/reports/apple-internship-report-2026-27` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -501,6 +531,31 @@ export default function Report_AppleInternshipReport202627() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Talk to the team"}.</strong> {"A short, specific message to an engineer on your target team, with a proof link, is worth more than a generic referral."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/google-internship-report-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">The Google Internship Report: passing interviews is not the offer</div></Link>
+              <Link to="/reports/return-offer-report-why-some-interns-get-hired-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">The Return Offer Report: why some interns get hired</div></Link>
+              <Link to="/reports/cs-india-2026" className="related-card"><div className="rc-kicker">Tech</div><div className="rc-title">CS in India: what freshers are getting into</div></Link>
             </div>
           </div>
 

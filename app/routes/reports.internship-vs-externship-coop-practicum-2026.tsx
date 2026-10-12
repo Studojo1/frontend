@@ -131,7 +131,31 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What is the difference between an internship, externship, co-op, practicum, fellowship and apprenticeship?", a: "They differ on three variables: who pays, how long it runs, and whether your degree is involved. An internship is typically 8 to 12 weeks, an externship is a few days to two weeks of shadowing, and a co-op is paid, full time and 4 to 6 months. A practicum is degree-required, a fellowship is research or leadership focused, and an apprenticeship is paid employment running one to six years." },
+  { q: "Is an externship paid?", a: "No, externships are essentially never paid, because you are observing rather than producing. They also generally carry no academic credit. That makes them a low cost, low commitment way to test whether a field is worth pursuing." },
+  { q: "Is a co-op worth delaying graduation?", a: "It depends on how sure you are about the field. A co-op replaces a semester of classes, so taking one or more extends your degree, but you get paid, full time work and 4 to 6 months of depth inside one organisation. Choose a co-op when you already know the field, and internships when you are still narrowing down." },
+  { q: "Which of these formats most often leads to a job offer?", a: "Apprenticeships, co-ops and internships convert best, because the employer has watched you work for many hours. An apprenticeship starts as employment, and many large employers treat their intern cohort as the main source of graduate hires. Externships rarely convert, since a few days of shadowing is not an audition." },
+  { q: "Which formats are paid and which are not?", a: "Co-ops and apprenticeships are paid as a matter of structure, and fellowships are frequently funded. Internships vary and may be paid or unpaid depending on the employer and sector. Externships are essentially never paid." },
+  { q: "Do these terms mean the same thing outside the US?", a: "Not always. In the UK an apprenticeship is a mainstream post-school route with its own funding system, and placement or industrial placement often means what Americans call a co-op. Read the actual terms of the offer instead of trusting the label." },
+];
 
 export default function Report_InternshipVsExternshipCoopPracticum2026() {
   useEffect(() => {
@@ -152,6 +176,7 @@ export default function Report_InternshipVsExternshipCoopPracticum2026() {
         "description": "Six words for six different trades. What each one costs you in time and pay, what it gives back, and which ones actually end in a job offer.",
         "url": `${BASE_URL}/reports/internship-vs-externship-coop-practicum-2026`,
         "datePublished": "2026-09-27T00:00:00Z",
+        "dateModified": "2026-09-27T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -166,6 +191,11 @@ export default function Report_InternshipVsExternshipCoopPracticum2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Internship, Externship, Co-op, Practicum, Fellowship, Apprenticeship", "item": `${BASE_URL}/reports/internship-vs-externship-coop-practicum-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -399,6 +429,31 @@ export default function Report_InternshipVsExternshipCoopPracticum2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Conversion follows hours observed.</strong> Apprenticeships start as employment. Co-ops and internships convert because the employer watched you work. Externships rarely do, by design.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/unpaid-internship-trap-2026" className="related-card"><div className="rc-kicker">Pay and law</div><div className="rc-title">The unpaid internship trap: is it ever worth it?</div></Link>
+              <Link to="/reports/return-offer-report-why-some-interns-get-hired-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">The Return Offer Report: why some interns get hired</div></Link>
+              <Link to="/reports/how-to-get-a-high-school-internship-2026" className="related-card"><div className="rc-kicker">Internships</div><div className="rc-title">How to get a high school internship</div></Link>
             </div>
           </div>
 

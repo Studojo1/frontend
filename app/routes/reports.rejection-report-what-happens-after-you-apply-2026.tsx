@@ -221,7 +221,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #ef4444; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Why do I never hear back after applying for jobs?", a: "Silence is the default outcome, not a thoughtful no. Employers invite about 2% of applicants to interview (CareerPlug), recruiters triage hundreds of applications per role, and ATS queues auto-archive low-match profiles. Silence usually means you were never prioritized, not that a manager debated your file." },
+  { q: "How long should I wait before assuming a job application is a rejection?", a: "Treat a cold apply with no reply in 21 days as closed. Careery's 2025 research found a median first response of about six to seven days when employers reply at all, and most responses arrive within about eight days. Many sources treat 45 days without contact as functionally ghosted." },
+  { q: "Does application received mean a recruiter reviewed my CV?", a: "No. It is a receipt, not a score, and it confirms storage rather than consideration. The ATS parses your PDF, applies knockout questions like work authorization or salary band, and ranks you against earlier applicants, with referrals often boosted." },
+  { q: "How common is ghosting after an interview?", a: "Common. Greenhouse's 2024 State of Job Hunting found about 61% of candidates reported being ghosted by an employer after an interview. If you hear nothing for 10 or more business days after a final round, send one polite check-in to your recruiter and keep other processes moving." },
+  { q: "Are ghost jobs real?", a: "Yes. Greenhouse's 2024 research highlighted candidate suspicion of listings with no active hire behind them, and independent analyses estimated high teens to low twenties percent of listings as stale or low-intent in some samples. Warning signs include a posting open 60 or more days with hundreds of applicants, identical reposts, and layoffs in the news while the req stays live." },
+  { q: "Should I follow up or reply to a rejection email?", a: "Follow up once with new information, such as a link, metric, or availability change, since three just-checking-in pings rarely restart a dead req. Do not argue a rejection. A one-sentence reply that says you would welcome staying in touch keeps the door open." },
+];
 
 export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
   useEffect(() => {
@@ -242,6 +266,7 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
         "description": "What really happens after you apply: ATS screening, silence vs rejection emails, ghost jobs, and response timelines. Data from CareerPlug, Greenhouse, and response-time research.",
         "url": `${BASE_URL}/reports/rejection-report-what-happens-after-you-apply-2026`,
         "datePublished": "2026-05-20T00:00:00Z",
+        "dateModified": "2026-05-20T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -256,6 +281,11 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Rejection Report: What Happens After You Apply", "item": `${BASE_URL}/reports/rejection-report-what-happens-after-you-apply-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -624,6 +654,31 @@ export default function Report_RejectionReportWhatHappensAfterYouApply2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Run parallel processes until offer signed.</strong> Post-interview ghosting is common in candidate surveys. Never pause other pipelines because one final round felt warm.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/ghost-jobs-2026" className="related-card"><div className="rc-kicker">Ghost jobs</div><div className="rc-title">Why Companies Post Jobs Without Planning to Hire</div></Link>
+              <Link to="/reports/application-response-rate-2026" className="related-card"><div className="rc-kicker">Response rates</div><div className="rc-title">Why 80% of Applications Get No Response</div></Link>
+              <Link to="/reports/referrals-vs-applications-how-people-get-hired-2026" className="related-card"><div className="rc-kicker">Referrals</div><div className="rc-title">Referrals vs Applications: How People Get Hired</div></Link>
             </div>
           </div>
 

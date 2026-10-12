@@ -191,6 +191,11 @@ export default function AustraliaInternshipsReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Australia Internship Pay 2026: Salaries, Fair Work Rules and Graduate Program Guide", "description": "Australia's minimum wage is AUD $24.95/hour. Canva pays AUD $80-110k/year. Rio Tinto pays AUD $30-35/hour. The Fair Work Act rules on unpaid internships, grad program timing, and the 48-hour student visa limit explained.", "url": "https://studojo.com/reports/internships-australia-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/internships-australia-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Australia Internships 2026", "item": "https://studojo.com/reports/internships-australia-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -625,6 +630,29 @@ export default function AustraliaInternshipsReport() {
           </div>
 
           {/* Final CTA */}
+          <div className="faq-section">
+            <div className="rpt-finding-header">
+              <span className="rpt-finding-num">FAQ</span>
+              <h2 className="rpt-h2">Frequently Asked Questions</h2>
+              <p className="rpt-lead">The questions students ask most about this, answered directly</p>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/internships-uk-2026" className="related-card"><div className="rc-kicker">Cities</div><div className="rc-title">Do Interns in the UK Get Paid?</div></Link>
+              <Link to="/reports/internships-germany-2026" className="related-card"><div className="rc-kicker">Cities</div><div className="rc-title">Do Interns in Germany Get Paid?</div></Link>
+              <Link to="/reports/unpaid-internship-report-where-legal-2026" className="related-card"><div className="rc-kicker">Pay and law</div><div className="rc-title">The Unpaid Internship Report: Where It's Legal</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Use the Studojo Internship Dojo to find paid internships in Australia, the UK, Germany, and beyond. Build an ATS-ready resume in 5 minutes. Free.</p>
@@ -728,4 +756,33 @@ const rptCSS = `
     .rpt-inline-cta-inner{flex-direction:column;align-items:flex-start;}
     .rpt-hero-stats{gap:20px;} .rpt-final-cta{padding:32px 20px;}
   }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section { margin-top: 64px; margin-bottom: 20px; }
+  .related { margin-top: 0; }
+  .faq-section .rpt-finding-header { margin-bottom: 20px; }
 `;
+
+const FAQ = [
+  { q: "Are unpaid internships legal in Australia?", a: "Only in one narrow case. An unpaid internship is legal only if it is a genuine vocational placement that is part of a formal course, involves no productive work for the employer, and mainly benefits you. Most startup or agency internships where you do real work must be paid. Employers face civil penalties of up to AUD $93,900 per contravention, and serious contraventions can reach AUD $469,500." },
+  { q: "What is the minimum wage for interns in Australia?", a: "The National Minimum Wage is AUD $24.95 an hour from 1 July 2025, about AUD $948 a week for a 38-hour week. Casual workers get AUD $31.19 an hour, which includes a 25% casual loading. Agreeing to work for free does not make unpaid work legal." },
+  { q: "How much do Canva, Rio Tinto and the Big 4 pay interns?", a: "Canva pays AUD $90,000 to $110,000 annualised for its 12-week summer program. Rio Tinto pays AUD $30 to $35 an hour, Deloitte, PwC, EY and KPMG about AUD $28 to $32 an hour, and the big banks AUD $26 to $30 an hour. Mining and tech set the ceiling in Australia, not finance." },
+  { q: "When should I apply for internships and graduate programs in Australia?", a: "Summer internships (November to February start) recruit in October and November. Graduate programs open in February and close in April for a start about 12 months later. Most programs also require you to be in your penultimate year, which is the most common reason for automatic rejection." },
+  { q: "How many hours can international students work on an internship in Australia?", a: "On a Student Visa Subclass 500 you can work 48 hours per fortnight during term and unlimited hours during official course breaks. PhD and master's by research students have no limit at any time. The Department of Home Affairs cross-checks employment records with tax data, so keep payslips and timesheets." },
+  { q: "Does Australian intern pay include superannuation?", a: "Not always, so check. Employers must pay superannuation of 11.5%, rising to 12% from July 2025, and it goes into your super fund until retirement. AUD $60,000 plus super means about AUD $6,900 paid into super on top of your salary, so be clear whether a quoted figure is a total package or excludes super." },
+];
+
