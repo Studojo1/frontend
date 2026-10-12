@@ -3,22 +3,21 @@ import { describeError } from "~/lib/error-detail";
 /**
  * Model calls for the /pb post pipeline.
  *
- * Two providers, plain fetch, no SDK: Azure OpenAI (AZURE_OPENAI_ENDPOINT +
- * AZURE_OPENAI_API_KEY, the same resource app/workers/prescreen.ts uses) and
- * OpenAI direct (OPENAI_API_KEY). Every call walks a chain of targets, so a
- * deployment that does not exist, or a provider whose credits ran out, moves
- * the call to the next target instead of failing the job. The default chain
- * is Azure first and OpenAI after it. PB_MODEL and PB_WRITER_MODEL override
- * it (comma separated, "azure:<deployment>" or "openai:<model>"); writing
- * stages (draft, revise, fix, comment) use the writer chain when it is set.
+ * One provider, plain fetch, no SDK: Azure OpenAI (AZURE_OPENAI_ENDPOINT +
+ * AZURE_OPENAI_API_KEY, the studoclaw resource the rest of the app uses). The
+ * direct OpenAI key was retired on 2026-10-12 and is never read. Every call
+ * walks a chain of deployments, so a deployment that does not exist, or one
+ * out of quota, moves the call to the next one instead of failing the job.
+ * The default chain is gpt-5-mini, then gpt-4o. PB_MODEL and PB_WRITER_MODEL
+ * put other deployments first (comma separated, "azure:<deployment>" or just
+ * "<deployment>"); writing stages (draft, revise, fix) use the writer chain
+ * when it is set.
  *
- * Verified against the live API (12 Oct 2026) for gpt-5.5: it takes
- * max_completion_tokens (max_tokens is rejected), rejects any temperature but
- * the default, and accepts reasoning_effort none, low, medium, high and xhigh
- * on chat completions ("minimal" is rejected). gpt-4.x takes max_tokens and a
- * temperature. A parameter the API refuses anyway is dropped and the call
- * retried once, and remembered for that model, so a PB_MODEL change cannot
- * wedge the pipeline on a parameter name.
+ * gpt-5 family deployments take max_completion_tokens (max_tokens is
+ * rejected), only the default temperature, and reasoning_effort; gpt-4o takes
+ * max_tokens and a temperature. A parameter the API refuses anyway is dropped
+ * and the call retried once, and remembered for that deployment, so a
+ * PB_MODEL change cannot wedge the pipeline on a parameter name.
  *
  * Every call has its own 90 second deadline, combined with the caller's abort
  * signal. 429, 5xx, timeouts and network errors are retried with backoff and
@@ -77,16 +76,13 @@ export type PbChatOptions = {
 
 export type PbChatResult = { text: string; json: unknown; model: string };
 
-const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 /** Azure API version that takes max_completion_tokens and reasoning_effort (gpt-5 family) and plain gpt-4o alike. */
 const AZURE_API_VERSION = "2025-04-01-preview";
-export const PB_DEFAULT_MODEL = "gpt-5.5";
-const OPENAI_FALLBACKS = ["gpt-4.1", "gpt-4o"];
 /** Deployments on the Azure resource, best first for this pipeline. */
 export const PB_AZURE_DEFAULTS = ["gpt-5-mini", "gpt-4o"];
 
-export type PbProvider = "azure" | "openai";
-/** One place a call can go: a provider and a model (for Azure, the deployment name). */
+export type PbProvider = "azure";
+/** One place a call can go: an Azure deployment. */
 export type PbTarget = { provider: PbProvider; model: string };
 
 function azureConfig(): { endpoint: string; key: string } | null {
@@ -95,38 +91,45 @@ function azureConfig(): { endpoint: string; key: string } | null {
   return endpoint && key && /^https:\/\//i.test(endpoint) ? { endpoint, key } : null;
 }
 
-/** "azure:gpt-4o, openai:gpt-5.5" into targets. A bare name means OpenAI, as PB_MODEL always did. */
+const warned = new Set<string>();
+function warnOnce(message: string): void {
+  if (warned.has(message)) return;
+  warned.add(message);
+  console.warn(message);
+}
+
+/**
+ * "azure:gpt-4o, gpt-5-mini" into targets. A bare name is an Azure deployment.
+ * Any other provider ("openai:gpt-5.5") is ignored: the direct key is retired.
+ */
 export function parseTargets(raw: string | undefined): PbTarget[] {
   const out: PbTarget[] = [];
   for (const part of (raw ?? "").split(",")) {
     const t = part.trim();
     if (!t) continue;
-    const m = t.match(/^(azure|openai):(.+)$/i);
-    const target: PbTarget = m
-      ? { provider: m[1].toLowerCase() === "azure" ? "azure" : "openai", model: m[2].trim() }
-      : { provider: "openai", model: t };
-    if (/^[A-Za-z0-9._-]{1,64}$/.test(target.model)) out.push(target);
+    const m = t.match(/^([a-z]+):(.+)$/i);
+    if (m && m[1].toLowerCase() !== "azure") {
+      warnOnce(`[pb-llm] ignoring model target "${t}": only Azure deployments are used`);
+      continue;
+    }
+    const model = (m ? m[2] : t).trim();
+    if (/^[A-Za-z0-9._-]{1,64}$/.test(model)) out.push({ provider: "azure", model });
   }
   return out;
 }
 
 /**
- * Where a call may go, in order: configured targets first, then the defaults
- * of every provider that has credentials, so an override can never leave a
- * job with nowhere to go. Targets whose provider has no credentials are
- * dropped.
+ * Where a call may go, in order: configured deployments first, then the
+ * defaults, so an override can never leave a job with nowhere to go. Empty
+ * when Azure is not configured.
  */
 export function pbTargetChain(role: "think" | "write" = "think"): PbTarget[] {
-  const azure = azureConfig() !== null;
-  const openai = Boolean((process.env.OPENAI_API_KEY ?? "").trim());
+  if (!azureConfig()) return [];
   const writer = role === "write" ? parseTargets(process.env.PB_WRITER_MODEL) : [];
   const main = parseTargets(process.env.PB_MODEL);
-  const defaults: PbTarget[] = [
-    ...(azure ? PB_AZURE_DEFAULTS.map((model) => ({ provider: "azure" as const, model })) : []),
-    ...(openai ? [PB_DEFAULT_MODEL, ...OPENAI_FALLBACKS].map((model) => ({ provider: "openai" as const, model })) : []),
-  ];
-  const all = [...writer, ...main, ...defaults].filter((t) => (t.provider === "azure" ? azure : openai));
-  return all.filter((t, i) => all.findIndex((x) => x.provider === t.provider && x.model === t.model) === i);
+  const defaults = PB_AZURE_DEFAULTS.map((model) => ({ provider: "azure" as const, model }));
+  const all = [...writer, ...main, ...defaults];
+  return all.filter((t, i) => all.findIndex((x) => x.model === t.model) === i);
 }
 const DEFAULT_TIMEOUT_MS = 90_000;
 const MAX_TRANSIENT_RETRIES = 2;
@@ -146,15 +149,15 @@ export function isReasoningModel(model: string): boolean {
 
 type Param = "temperature" | "reasoning_effort" | "max_tokens" | "max_completion_tokens" | "response_format";
 
-/** Per pod: targets the API said do not exist for this key, and when it said so. */
+/** Per pod: deployments the API said do not exist, and when it said so. */
 const unavailableModels = new Map<string, number>();
-/** Per pod: providers whose account ran out of credits or quota, and when. */
+/** Per pod: when the resource last said it is out of quota. */
 const exhaustedProviders = new Map<PbProvider, number>();
 /** Per pod: parameters the API refused for a target. */
 const refusedParams = new Map<string, Set<Param>>();
 
 class ModelUnavailable extends Error {}
-/** The provider's account cannot pay for calls right now: move to the other provider. */
+/** The resource cannot pay for calls right now: try the next deployment, then give up clearly. */
 class ProviderExhausted extends Error {}
 
 function targetKey(t: PbTarget): string {
@@ -168,12 +171,11 @@ export function buildRequestBody(
   model: string,
   messages: PbChatMessage[],
   opts: { json?: boolean; maxTokens: number; effort?: PbEffort; temperature?: number },
-  refused: ReadonlySet<Param> = new Set(),
-  provider: PbProvider = "openai"
+  refused: ReadonlySet<Param> = new Set()
 ): Record<string, unknown> {
   const reasoning = isReasoningModel(model);
   // Azure takes the deployment from the URL, not the body.
-  const body: Record<string, unknown> = provider === "azure" ? { messages } : { model, messages };
+  const body: Record<string, unknown> = { messages };
   const useCompletionTokens = reasoning ? !refused.has("max_completion_tokens") : refused.has("max_tokens");
   if (useCompletionTokens) body.max_completion_tokens = opts.maxTokens;
   else body.max_tokens = Math.min(opts.maxTokens, 4000);
@@ -305,7 +307,7 @@ function refusedParam(e: ApiError): Param | null {
 export async function pbChat(messages: PbChatMessage[], opts: PbChatOptions): Promise<PbChatResult> {
   const chain = pbTargetChain(opts.role ?? "think");
   if (chain.length === 0) {
-    throw new PbPipelineError("No model key is set on this environment, so posts cannot be written.", false);
+    throw new PbPipelineError("Azure OpenAI is not configured on this environment, so posts cannot be written.", false);
   }
   const now = Date.now();
   const fresh = (t: PbTarget) =>
@@ -329,7 +331,7 @@ export async function pbChat(messages: PbChatMessage[], opts: PbChatOptions): Pr
       }
       if (err instanceof ProviderExhausted) {
         exhaustedProviders.set(target.provider, Date.now());
-        console.warn(`[pb-llm] ${target.provider} is out of credits, trying the next provider`);
+        console.warn(`[pb-llm] ${targetKey(target)} is out of quota, trying the next deployment`);
         exhausted = true;
         last = err;
         continue;
@@ -346,19 +348,14 @@ export async function pbChat(messages: PbChatMessage[], opts: PbChatOptions): Pr
   );
 }
 
-/** URL and headers for one target. Keys never leave this function except in the request itself. */
+/** URL and headers for one deployment. The key never leaves this function except in the request itself. */
 function requestFor(target: PbTarget): { url: string; headers: Record<string, string> } {
-  if (target.provider === "azure") {
-    const az = azureConfig();
-    if (!az) throw new ModelUnavailable("Azure is not configured.");
-    return {
-      url: `${az.endpoint}/openai/deployments/${encodeURIComponent(target.model)}/chat/completions?api-version=${AZURE_API_VERSION}`,
-      headers: { "Content-Type": "application/json", "api-key": az.key },
-    };
-  }
-  const key = (process.env.OPENAI_API_KEY ?? "").trim();
-  if (!key) throw new ModelUnavailable("OpenAI is not configured.");
-  return { url: OPENAI_URL, headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` } };
+  const az = azureConfig();
+  if (!az) throw new ModelUnavailable("Azure OpenAI is not configured.");
+  return {
+    url: `${az.endpoint}/openai/deployments/${encodeURIComponent(target.model)}/chat/completions?api-version=${AZURE_API_VERSION}`,
+    headers: { "Content-Type": "application/json", "api-key": az.key },
+  };
 }
 
 async function callModel(target: PbTarget, messages: PbChatMessage[], opts: PbChatOptions): Promise<PbChatResult> {
@@ -384,7 +381,7 @@ async function callModel(target: PbTarget, messages: PbChatMessage[], opts: PbCh
   for (;;) {
     attempt++;
     if (opts.signal?.aborted) throw stopped(opts.signal);
-    const body = buildRequestBody(model, messages, { json: opts.json, maxTokens, effort, temperature: opts.temperature }, refused, target.provider);
+    const body = buildRequestBody(model, messages, { json: opts.json, maxTokens, effort, temperature: opts.temperature }, refused);
     const deadline = withDeadline(opts.signal, opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
     const t0 = Date.now();
     let status = 0;

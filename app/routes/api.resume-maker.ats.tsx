@@ -1,10 +1,9 @@
 // JRS ATS analysis: scores a resume against a job description.
-// Primary: OpenAI gpt-4o-mini. Fallback: local keyword-overlap so the
+// Primary: gpt-4o-mini on Azure OpenAI. Fallback: local keyword-overlap so the
 // feature still works if the API key is missing or the call fails.
 import type { Route } from "./+types/api.resume-maker.ats";
 import { stripDashesDeep } from "~/lib/strip-dashes";
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+import { azureChatCompletions, azureOpenAIConfigured } from "~/lib/azure-openai.server";
 
 interface AtsResult {
   score: number;
@@ -63,19 +62,13 @@ function localAnalysis(resumeText: string, jd: string): AtsResult {
 }
 
 async function aiAnalysis(resumeText: string, jd: string): Promise<AtsResult | null> {
-  if (!OPENAI_API_KEY) return null;
+  if (!azureOpenAIConfigured()) return null;
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 22000);
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
+    const res = await azureChatCompletions(
+      {
         model: "gpt-4o-mini",
         temperature: 0.2,
         max_tokens: 600,
@@ -95,8 +88,9 @@ async function aiAnalysis(resumeText: string, jd: string): Promise<AtsResult | n
             content: `JOB DESCRIPTION:\n${jd}\n\nRESUME:\n${resumeText}`,
           },
         ],
-      }),
-    });
+      },
+      { signal: controller.signal }
+    );
 
     clearTimeout(timeoutId);
     if (!res.ok) return null;
