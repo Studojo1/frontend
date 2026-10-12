@@ -37,10 +37,6 @@ function initCharts() {
   if (!Chart) return;
   Chart.defaults.font.family = "Satoshi, sans-serif";
   Chart.defaults.color = "#171717";
-  const VIOLET = "#8B5CF6";
-  const ORANGE = "#f59e0b";
-  const RED    = "#ef4444";
-  const GREEN  = "#10b981";
   const MUTED  = "#737373";
   const INK    = "#171717";
   const gridOpts = { color: "#f0f0ee", lineWidth: 1 };
@@ -134,7 +130,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What share of jobs in India are remote?", a: "Only about 9.1% of Indian job postings mentioned remote or work from home in October 2025, up from 7.6% a year earlier, according to Indeed Hiring Lab. That rise came while overall postings fell nearly 20% year on year. Remote roles are a growing share of a shrinking pool." },
+  { q: "Do big Indian IT companies hire remote freshers?", a: "Very unlikely in 2026. Infosys required at least 10 office days a month from March 2025, and TCS moved to a five-day office policy linked to variable pay. Companies believe freshers learn faster next to experienced colleagues." },
+  { q: "Which fresher jobs have the most remote work?", a: "IT infrastructure, operations and support led at 18.2% of postings, followed by community and social service at 15.1% and industrial engineering at 14.0%. Roles where output is measurable and work happens on a screen go remote first. Choosing the function matters more than choosing the company." },
+  { q: "Who actually hires remote freshers?", a: "Early-stage startups, global remote-first companies, AI data and evaluation work, agencies and content businesses, and customer support or IT operations teams. Many hire through founder networks and direct outreach rather than job boards. They hire on visible proof of output, so a portfolio or public repository counts for more than a degree." },
+  { q: "Can I work for a foreign company from India as a fresher?", a: "Yes, often as a contractor or through an Employer of Record platform. A contractor invoices the company and handles their own tax, with no PF, gratuity or employer insurance. Services exported to a foreign client are generally zero-rated under GST, but confirm your setup with a chartered accountant before your first invoice." },
+  { q: "How do I spot a fake work from home job?", a: "Red flags are offers on WhatsApp or Telegram without an interview, pay that is too high for the work, a personal email domain, and any request for a fee, equipment purchase or deposit. If you were defrauded, call 1930 or report at cybercrime.gov.in immediately. A legitimate remote employer never asks you to pay to start." },
+];
 
 export default function Report_RemoteJobsReportWhoHiresRemoteFreshers2026() {
   useEffect(() => {
@@ -155,6 +175,7 @@ export default function Report_RemoteJobsReportWhoHiresRemoteFreshers2026() {
         "description": "Only 9.1% of Indian job posts mention remote work, and big IT firms want freshers in office. Where remote fresher roles still exist, global options and scams.",
         "url": `${BASE_URL}/reports/remote-jobs-report-who-hires-remote-freshers-2026`,
         "datePublished": "2026-10-17T00:00:00Z",
+        "dateModified": "2026-10-17T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -169,6 +190,11 @@ export default function Report_RemoteJobsReportWhoHiresRemoteFreshers2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Remote Jobs Report: Who Is Still Hiring Remote Freshers, and for What", "item": `${BASE_URL}/reports/remote-jobs-report-who-hires-remote-freshers-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -393,6 +419,31 @@ export default function Report_RemoteJobsReportWhoHiresRemoteFreshers2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Never pay to work"}.</strong> {"Any remote offer that asks for a fee, deposit or equipment purchase is a scam."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/job-scam-report-fake-internships-task-scams-students-2026" className="related-card"><div className="rc-kicker">Safety</div><div className="rc-title">Fake Internships and Task Scams</div></Link>
+              <Link to="/reports/remote-internships-2026" className="related-card"><div className="rc-kicker">Remote</div><div className="rc-title">Which Remote Internships Are Real</div></Link>
+              <Link to="/reports/singapore-remote-from-india-2026" className="related-card"><div className="rc-kicker">Remote</div><div className="rc-title">Singapore Remote Jobs from India</div></Link>
             </div>
           </div>
 

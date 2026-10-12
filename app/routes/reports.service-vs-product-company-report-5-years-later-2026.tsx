@@ -37,10 +37,6 @@ function initCharts() {
   if (!Chart) return;
   Chart.defaults.font.family = "Satoshi, sans-serif";
   Chart.defaults.color = "#171717";
-  const VIOLET = "#8B5CF6";
-  const ORANGE = "#f59e0b";
-  const RED    = "#ef4444";
-  const GREEN  = "#10b981";
   const MUTED  = "#737373";
   const INK    = "#171717";
   const gridOpts = { color: "#f0f0ee", lineWidth: 1 };
@@ -134,7 +130,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Is it better to start in a service company or a product company?", a: "A product offer is usually the strongest start because the pay, learning and resume signal compound. The report's scenario model shows that starting company matters less than whether and when you make your first switch. If you only have a services offer, treat it as paid training with a deadline." },
+  { q: "How big is the pay gap between IT services and product companies?", a: "About 5x at entry. A TCS Ninja offer pays 3.36 LPA and an Infosys Systems Engineer 3.6 LPA, while a typical product company fresher offer is 15 to 18 LPA. The gap exists because services firms bill for time and pay by track, while product firms pay for proven problem solving." },
+  { q: "Where does a services engineer end up after five years?", a: "In the Studojo scenario model, staying in services at 3.6 LPA with 8% yearly hikes reaches about 5.3 LPA in year five. Switching to a product company in year three at around 15 LPA, then 10% yearly raises, reaches about 18 LPA. That is a 3.4x difference, driven by one decision, not the first offer." },
+  { q: "When is the best time to switch from services to product?", a: "The year-two to year-three window is the sweet spot. You have real experience to show and have not settled into a role that is hard to explain. Expect six to twelve months of preparation alongside your job, covering data structures and algorithms, system design and a serious project." },
+  { q: "Are IT services jobs still safe?", a: "Not as safe as they were. TCS said in July 2025 it would cut more than 12,000 roles, around 2% of its workforce, and large services firms delayed fresher onboarding in 2023 and 2024. Product companies and startups have also laid people off, so the real security is employability." },
+  { q: "Should I join a startup as a fresher?", a: "Only after checking runway, the engineering team and what you will own in the first 90 days. A strong startup is the fastest education in the industry, with very wide scope and fast learning, while a weak one teaches bad habits and carries the risk of shutting down. Document what you build as you go, since your portfolio is what transfers." },
+];
 
 export default function Report_ServiceVsProductCompanyReport5YearsLater2026() {
   useEffect(() => {
@@ -155,6 +175,7 @@ export default function Report_ServiceVsProductCompanyReport5YearsLater2026() {
         "description": "IT services starts at 3.36 to 3.6 LPA, product firms at 15 LPA+. Pay, skills and switching over five years, and the one move that closes the gap.",
         "url": `${BASE_URL}/reports/service-vs-product-company-report-5-years-later-2026`,
         "datePublished": "2026-10-14T00:00:00Z",
+        "dateModified": "2026-10-14T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -169,6 +190,11 @@ export default function Report_ServiceVsProductCompanyReport5YearsLater2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The Service vs Product Company Report: IT Services vs Startups vs Product Firms, 5 Years Later", "item": `${BASE_URL}/reports/service-vs-product-company-report-5-years-later-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -380,6 +406,31 @@ export default function Report_ServiceVsProductCompanyReport5YearsLater2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Do not buy security with stagnation"}.</strong> {"Layoffs and onboarding delays hit services too. Employability is the only reliable safety."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/startup-vs-mnc-2026" className="related-card"><div className="rc-kicker">Careers</div><div className="rc-title">Startup vs MNC for Early-Career Talent</div></Link>
+              <Link to="/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026" className="related-card"><div className="rc-kicker">Pay</div><div className="rc-title">What a 12 LPA Offer Actually Pays In Hand</div></Link>
+              <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First job</div><div className="rc-title">What Entry-Level Actually Looks Like</div></Link>
             </div>
           </div>
 
