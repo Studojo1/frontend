@@ -69,6 +69,11 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pickHint, setPickHint] = useState<PickHint>(null);
+  // Any file, however it arrived (a pick, a drop, the draft from /auth),
+  // answers the hint; a later "upload a different file" must not bring it back.
+  useEffect(() => {
+    if (file) setPickHint(null);
+  }, [file]);
   const lastPickerOpen = useRef(0);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<ResumePreview | null>(null);
@@ -325,7 +330,16 @@ export default function UploadPage() {
   const launchInstead =
     isPaidNotLaunched(nextStep) && nextStep.state !== "needs_profile" ? nextStep : null;
 
-  if (authLoading || !user) return <div className="min-h-screen bg-white" />;
+  // While the sign-in check runs or is retried after a failure (up to about
+  // 14 seconds on a bad connection), show that something is happening.
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-white flex justify-center py-32" role="status">
+        <div className="w-8 h-8 border-3 border-studojo-purple border-t-transparent rounded-full animate-spin" aria-hidden />
+        <span className="sr-only">Loading</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
