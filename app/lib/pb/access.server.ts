@@ -58,7 +58,7 @@ export function isPbHost(request: Request): boolean {
  * (studojo.com in production), so when it is set it has to be the staging
  * apex or localhost too. Unset (tests, bare local runs) the header decides.
  */
-function deploymentAllowsPb(): boolean {
+export function deploymentAllowsPb(): boolean {
   const raw = process.env.BETTER_AUTH_URL?.trim();
   if (!raw) return true;
   try {

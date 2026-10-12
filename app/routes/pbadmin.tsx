@@ -982,7 +982,6 @@ function GeneratePanel({
                 type="radio"
                 name="deliver"
                 value="now"
-                defaultChecked
                 className="mt-0.5 h-4 w-4 accent-studojo-purple"
               />
               <span>
@@ -993,11 +992,17 @@ function GeneratePanel({
               </span>
             </label>
             <label className="flex cursor-pointer items-start gap-2.5 font-satoshi text-sm text-neutral-900">
-              <input type="radio" name="deliver" value="hold" className="mt-0.5 h-4 w-4 accent-studojo-purple" />
+              <input
+                type="radio"
+                name="deliver"
+                value="hold"
+                defaultChecked
+                className="mt-0.5 h-4 w-4 accent-studojo-purple"
+              />
               <span>
                 <span className="font-bold">Hold for my review</span>
                 <span className="block text-xs text-neutral-500">
-                  Nothing reaches them until you deliver it below.
+                  Nothing reaches them until you deliver it below. Recommended: each post goes out under a real student's name.
                 </span>
               </span>
             </label>

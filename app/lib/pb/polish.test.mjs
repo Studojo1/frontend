@@ -10,6 +10,9 @@ import {
   hookOf,
   wordCount,
   ungroundedNumbers,
+  numbersIn,
+  inventedTimeline,
+  firstCommentFor,
   parseAvoidList,
   similarity,
   voiceStats,
@@ -118,6 +121,50 @@ const filler = (n) => Array.from({ length: n }, (_, i) => `word${i}`).join(" ");
 {
   const smile = String.fromCodePoint(0x1f600);
   assert.ok(codes(`Hook ${smile}\n\n${filler(80)}`, { emoji: "none" }).includes("emoji"), "emoji over the student's limit is flagged");
+}
+
+// --- review fixes: hashtags, links, numbers, Studojo figures, input cap ---------
+{
+  for (const tag of ["#100DaysOfCode", "learnt a lot.#Internship", '"#messbot"', "#30DaysOfCode #75Hard"]) {
+    assert.ok(codes(`Hook\n\n${filler(80)} ${tag}`).includes("hashtag"), `${tag} is a hashtag`);
+  }
+  for (const notTag of ["issue #42 is open", "I write C# at work", "ranked #1 in class"]) {
+    assert.ok(!codes(`Hook\n\n${filler(80)} ${notTag}`).includes("hashtag"), `${notTag} is not a hashtag`);
+  }
+  assert.ok(!polishPost("Hook\n\n#100DaysOfCode #75Hard").body.includes("#"), "digit-led hashtag lines are removed");
+  for (const link of ["linktr.ee/asha", "forms.gle/AbC123", "youtu.be/x", "lu.ma/event", "asha.tech"]) {
+    assert.ok(codes(`Hook\n\n${filler(80)} see ${link} now`).includes("link"), `${link} is caught as a link`);
+  }
+  assert.ok(numbersIn("my stipend was Rs.8000 a month").includes("8000"), "Rs.8000 counts as 8000");
+  assert.deepStrictEqual(ungroundedNumbers("paid Rs.45,000 a month", "my stipend was Rs.8000"), ["45000"], "an invented Rs. figure is caught");
+  assert.deepStrictEqual(ungroundedNumbers("8,000 rupees a month", "my stipend was Rs.8000"), [], "the real one is allowed");
+  assert.deepStrictEqual(numbersIn("B2B and D2C, v2.5"), [], "codes and versions are not figures");
+  const brief = "Studojo has helped 10,000+ students, 95% satisfaction rate.";
+  const student = "I applied to 34 internships before I got 1 reply.";
+  const statPost = `Hook\n\n${filler(80)} I'm a campus ambassador for Studojo, which has helped 10,000+ students.`;
+  assert.ok(lintPost(statPost, { ...lintBase, mention: "soft", relation: "ambassador", source: `${student}\n${brief}`, studentSource: student }).some((i) => i.code === "studojo_number"), "a Studojo figure from the brief is blocked in code");
+  const ownPost = `Hook\n\n${filler(80)} I used Studojo after 34 applications got me 1 reply.`;
+  assert.ok(!lintPost(ownPost, { ...lintBase, mention: "soft", relation: "user", source: student, studentSource: student }).some((i) => i.code === "studojo_number"), "the student's own number next to Studojo is fine");
+  assert.ok(lintPost(`Hook\n\n${filler(80)} Studojo has ten thousand users.`, { ...lintBase, mention: "soft", relation: "ambassador", source: student, studentSource: student }).some((i) => i.code === "studojo_number"), "a figure in words is blocked too");
+  assert.ok(codes(`Hook\n\n${filler(80)} these days I find roles on the Internship Dojo.`).includes("mention_none"), "a product name counts as a mention");
+  const long = "a.".repeat(30000);
+  const t0 = Date.now();
+  polishPost(long);
+  lintPost(long, lintBase);
+  assert.ok(Date.now() - t0 < 2500, "a broken, space-free reply cannot stall the server");
+}
+
+// --- time details and the code-written first comment ---------------------------
+{
+  const src = "I applied to 34 internships last summer. Next summer I want a growth role.";
+  assert.deepStrictEqual(inventedTimeline("we got 2,100 entries in a week, last month.", src), ["in a week", "last month"], "invented timing is caught");
+  assert.deepStrictEqual(inventedTimeline("I applied last summer and next summer I go again.", src), [], "timing they gave is fine");
+  assert.ok(codes(`Hook\n\n${filler(80)} That night I fixed it.`).includes("timeline"), "a scene's invented night is flagged");
+  const c1 = firstCommentFor("u1:1", "https://studojo.com/x", false);
+  assert.ok(/^(Here's the link I mentioned:|The link, if you want it:|Link from the post:)\nhttps:\/\/studojo\.com\/x$/.test(c1), "one plain line and the exact link");
+  assert.ok(/^[a-z]/.test(firstCommentFor("u1:1", "https://studojo.com/x", true)), "lowercase for students who write that way");
+  const lines = new Set(["a:1", "b:1", "c:1", "d:2", "e:3", "f:1"].map((k) => firstCommentFor(k, "L", false).split("\n")[0]));
+  assert.ok(lines.size >= 2, "comments vary across a cohort");
 }
 
 // --- small helpers ---------------------------------------------------------

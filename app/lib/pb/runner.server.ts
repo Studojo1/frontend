@@ -30,8 +30,10 @@ import {
   hasActiveJobs,
   heartbeatJob,
   pastPostsForStudent,
+  releaseJob,
   type ClaimedJob,
 } from "./store.server";
+import { deploymentAllowsPb } from "./access.server";
 import type { NewPbPost, PbStep } from "./model";
 
 const HEARTBEAT_MS = 30_000;
@@ -49,7 +51,8 @@ const IDLE_POLL_MS = 20_000;
 const MAX_IDLE_POLLS = 45;
 /** Matches the store: claims after which a job is failed instead of retried. */
 const MAX_ATTEMPTS = 3;
-const SAVE_RETRY_DELAYS_MS = [2_000, 5_000];
+/** About two minutes in all, well inside the 4 minute stale window: a database restart should not cost the posts. */
+const SAVE_RETRY_DELAYS_MS = [2_000, 5_000, 15_000, 30_000, 60_000];
 const DEFAULT_LINK = "https://studojo.com/dojos/internships";
 
 type RunnerState = {
@@ -57,6 +60,12 @@ type RunnerState = {
   corpus: { at: number; value: Promise<PbCorpus> } | null;
   /** Idle loops waiting to check the queue again; a kick wakes them. */
   wakers: Set<() => void>;
+  /** Set on SIGTERM: no new claims, and jobs in flight go back to the queue. */
+  stopping: boolean;
+  /** The abort controller of every job running on this pod. */
+  active: Set<AbortController>;
+  hooked: boolean;
+  booted: boolean;
 };
 
 // Kept on globalThis so a dev-server module reload cannot double the loops.
@@ -65,8 +74,30 @@ const state: RunnerState = (holder.__studojoPbRunner ??= {
   loops: 0,
   corpus: null,
   wakers: new Set(),
+  stopping: false,
+  active: new Set(),
+  hooked: false,
+  booted: false,
 });
 state.wakers ??= new Set();
+state.active ??= new Set();
+
+/**
+ * A deploy sends SIGTERM, then kills the pod 30 seconds later. Jobs take
+ * minutes, so a job still running then would sit leased for the whole stale
+ * window and burn an attempt. Instead: stop claiming, abort what is running,
+ * and hand it straight back to the queue for a pod that is staying.
+ * react-router-serve keeps its own SIGTERM handler (it closes the server);
+ * this one only adds to it.
+ */
+if (!state.hooked) {
+  state.hooked = true;
+  process.once("SIGTERM", () => {
+    state.stopping = true;
+    for (const c of Array.from(state.active)) c.abort(new Error("Shutting down."));
+    for (const wake of Array.from(state.wakers)) wake();
+  });
+}
 
 /** PB_CONCURRENCY loops per pod, default 1, at most 2: each pod has a 250m CPU limit. */
 function concurrency(): number {
@@ -241,20 +272,30 @@ async function runJob(job: ClaimedJob, workerId: string): Promise<void> {
   // Records the step and renews the lease. Returns false only when the lease
   // is gone; a database error is logged and treated as alive, because the
   // stale window rides out a missed beat or two.
+  // One heartbeat at a time per job: if the database is slow or a row is
+  // locked, beats share the one in flight instead of each taking another
+  // connection from a pool sign-in and other products also use.
+  let inFlight: Promise<boolean> | null = null;
   const beat = async (next?: PbStep): Promise<boolean> => {
     if (next) step = next;
     if (leaseLost) return false;
-    try {
-      const ok = await heartbeatJob(jobId, workerId, step);
-      if (!ok && !leaseLost) {
-        leaseLost = true;
-        controller.abort(new Error("Lease lost."));
+    if (inFlight) return inFlight;
+    inFlight = (async () => {
+      try {
+        const ok = await heartbeatJob(jobId, workerId, step);
+        if (!ok && !leaseLost) {
+          leaseLost = true;
+          controller.abort(new Error("Lease lost."));
+        }
+        return ok;
+      } catch (err) {
+        console.error(`[pb-runner] job ${jobId}: heartbeat failed: ${logText(err)}`);
+        return true;
       }
-      return ok;
-    } catch (err) {
-      console.error(`[pb-runner] job ${jobId}: heartbeat failed: ${logText(err)}`);
-      return true;
-    }
+    })().finally(() => {
+      inFlight = null;
+    });
+    return inFlight;
   };
 
   const ticker = setInterval(() => {
@@ -263,9 +304,23 @@ async function runJob(job: ClaimedJob, workerId: string): Promise<void> {
   ticker.unref?.();
   const timer = setTimeout(() => {
     timedOut = true;
+    // No more renewals past the deadline: if anything is still stuck, the
+    // lease lapses and another loop can take the job over.
+    clearInterval(ticker);
     controller.abort(new Error("Timed out."));
   }, JOB_TIMEOUT_MS);
   timer.unref?.();
+  state.active.add(controller);
+
+  /** On shutdown the job goes back to the queue as it was, for a pod that is staying. */
+  const handBack = async (): Promise<void> => {
+    try {
+      const ok = await releaseJob(jobId, workerId);
+      console.warn(`[pb-runner] job ${jobId}: ${ok ? "handed back to the queue" : "lease already gone"} at shutdown`);
+    } catch (err) {
+      console.error(`[pb-runner] job ${jobId}: could not hand back at shutdown: ${logText(err)}`);
+    }
+  };
 
   try {
     // 1. Everything the pipeline reads, loaded before any model call.
@@ -273,14 +328,16 @@ async function runJob(job: ClaimedJob, workerId: string): Promise<void> {
     let pastPosts: { hook: string; angle: string; format: string }[];
     let cohortPosts: { name: string; hook: string; angle: string }[];
     try {
-      corpus = await getCorpus();
-      pastPosts = await pastPostsForStudent(job.userId, 12);
-      const cohort = await cohortRecentPosts({ days: 30, excludeUserId: job.userId, limit: 40 });
+      // Bounded by the same deadline as the pipeline: a hung query must not hold the job forever.
+      corpus = await untilAborted(getCorpus(), controller.signal);
+      pastPosts = await untilAborted(pastPostsForStudent(job.userId, 12), controller.signal);
+      const cohort = await untilAborted(cohortRecentPosts({ days: 30, excludeUserId: job.userId, limit: 40 }), controller.signal);
       // First lines only. The angle is a staff note that summarises a
       // student's story; it has no business in another student's prompt.
       cohortPosts = cohort.map(({ name, hook }) => ({ name, hook, angle: "" }));
     } catch (err) {
       if (leaseLost) return;
+      if (state.stopping) return await handBack();
       console.error(`[pb-runner] job ${jobId}: could not load context: ${logText(err)}`);
       await settle(
         job,
@@ -316,6 +373,8 @@ async function runJob(job: ClaimedJob, workerId: string): Promise<void> {
             await beat(s);
           },
           signal: controller.signal,
+          // Two minutes before the hard stop, posts finish with their best version so far.
+          softDeadlineMs: JOB_TIMEOUT_MS - 2 * 60_000,
         }),
         controller.signal
       );
@@ -324,6 +383,7 @@ async function runJob(job: ClaimedJob, workerId: string): Promise<void> {
         console.warn(`[pb-runner] job ${jobId}: lease lost, work dropped`);
         return;
       }
+      if (state.stopping && !timedOut) return await handBack();
       if (timedOut) {
         console.error(`[pb-runner] job ${jobId}: stopped after ${TIMEOUT_MINUTES} minutes on step ${step}`);
         await settle(
@@ -406,6 +466,7 @@ async function runJob(job: ClaimedJob, workerId: string): Promise<void> {
   } finally {
     clearInterval(ticker);
     clearTimeout(timer);
+    state.active.delete(controller);
   }
 }
 
@@ -413,6 +474,8 @@ async function runJob(job: ClaimedJob, workerId: string): Promise<void> {
 async function runLoop(workerId: string): Promise<void> {
   let idle = 0;
   for (;;) {
+    // A pod that is shutting down takes no new job: it would only be killed mid-way.
+    if (state.stopping) return;
     let job: ClaimedJob | null;
     try {
       job = await claimNextJob(workerId);
@@ -445,6 +508,7 @@ async function runLoop(workerId: string): Promise<void> {
  * or retryJob.
  */
 export function kickPbRunner(): void {
+  if (state.stopping) return;
   try {
     // Loops already waiting for work look again now instead of at their
     // next poll, so a run queued from /pbadmin starts at once.
@@ -464,6 +528,19 @@ export function kickPbRunner(): void {
   } catch (err) {
     console.error(`[pb-runner] could not start: ${logText(err)}`);
   }
+}
+
+/**
+ * A rolling deploy replaces every pod, and with it every worker loop. A new
+ * pod therefore looks at the queue once on its own shortly after it starts,
+ * so a run keeps going without anyone opening a page. Only where these pages
+ * exist (the staging deployment and local development): production never
+ * touches the pb tables.
+ */
+if (!state.booted && (process.env.BETTER_AUTH_URL ?? "").trim() && deploymentAllowsPb()) {
+  state.booted = true;
+  const t = setTimeout(kickPbRunner, 15_000);
+  t.unref?.();
 }
 
 /** For /pbadmin diagnostics: how many loops this pod is running. */

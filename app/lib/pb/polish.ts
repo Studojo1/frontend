@@ -59,14 +59,19 @@ const NUMBERED_LINE = /^[ \t]*\d{1,2}[.)][ \t]+\S/gm;
 
 const URL = /\b(?:https?:\/\/|www\.)[^\s<>"]+[^\s<>".,;:!?)'\]]/gi;
 const TLDS =
-  "com|in|io|ai|co|org|net|pro|me|app|dev|uk|sg|ae|gg|ly|so|xyz|edu|gov|info|biz|us|ca|au|link|page|site";
+  "com|in|io|ai|co|org|net|pro|me|app|dev|uk|sg|ae|gg|ly|so|xyz|edu|gov|info|biz|us|ca|au|link|page|site|" +
+  "ee|gle|be|to|gy|fi|ma|tech|design|bio|tv|fm|cc|id|online|store|studio";
 const DOMAIN_WITH_PATH = new RegExp(
   `\\b[a-z0-9][a-z0-9-]*(?:\\.[a-z0-9-]+)*\\.(?:${TLDS})\\/[^\\s<>"]*[^\\s<>".,;:!?)'\\]]`,
   "gi"
 );
 const BARE_DOMAIN = new RegExp(`\\b[a-z0-9][a-z0-9-]*(?:\\.[a-z0-9-]+)*\\.(?:${TLDS})\\b(?![-.\\w])`, "gi");
-const HASHTAG = /(^|[\s(])#(\p{L}[\p{L}\p{N}_]*)/gu;
-const HASHTAG_LINE = /^[ \t]*(?:#\p{L}[\p{L}\p{N}_]*[ \t,]*)+$/gmu;
+/** A hashtag has at least one letter (#100DaysOfCode counts; #1, C# and "issue #42" do not). */
+const HASHTAG = /(^|[^\p{L}\p{N}_&#])#([\p{N}_]*\p{L}[\p{L}\p{N}_]*)/gu;
+const HASHTAG_LINE = /^[ \t]*(?:#[\p{N}_]*\p{L}[\p{L}\p{N}_]*[ \t,]*)+$/gmu;
+const HAS_HASHTAG = /(^|[^\p{L}\p{N}_&#])#[\p{N}_]*\p{L}/u;
+/** Longest text polish and lint look at. LinkedIn's own limit is 3,000; this only bounds a broken reply. */
+const MAX_INPUT = 12_000;
 
 /* ----------------------------------------------------------------- checks */
 
@@ -187,6 +192,66 @@ export function countStudojo(text: string): number {
   return (text.match(/studojo/gi) ?? []).length;
 }
 
+/**
+ * Time details: when something happened and how long it took. Models add
+ * them to make a scene vivid ("last month", "in a week", "that night"), and
+ * each one is a fact about a real student's life. They may only appear when
+ * the student's own words (or the brief) carry the same phrase.
+ */
+const TIME_PHRASES =
+  /\b(?:last|this|that|next|one|every)\s+(?:night|morning|evening|afternoon|week|weekend|month|summer|winter|semester|term|year|day)\b|\bin\s+(?:a|one|two|three|four|five|six|\d+)\s+(?:hours?|days?|weeks?|months?)\b|\b(?:yesterday|overnight|tonight)\b|\bfirst\s+(?:morning|night|evening|weekend)\b/gi;
+
+export function inventedTimeline(text: string, source: string): string[] {
+  const src = source.toLowerCase().replace(/\s+/g, " ");
+  const out: string[] = [];
+  for (const m of text.match(TIME_PHRASES) ?? []) {
+    const phrase = m.toLowerCase().replace(/\s+/g, " ");
+    if (!src.includes(phrase) && !out.includes(phrase)) out.push(phrase);
+  }
+  return out;
+}
+
+const COMMENT_LINES = ["Here's the link I mentioned:", "The link, if you want it:", "Link from the post:"];
+
+/**
+ * The first comment under a post that ends with an ask: one plain line and
+ * the tracked link. Written by code, not a model, because it is public and
+ * short, and the model kept describing the link as something it is not ("the
+ * email template I used"). Varied per post so a cohort's comments differ,
+ * lowercase for students whose own writing is.
+ */
+export function firstCommentFor(seed: string, link: string, lowercase: boolean): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const line = COMMENT_LINES[h % COMMENT_LINES.length];
+  return `${lowercase ? line.charAt(0).toLowerCase() + line.slice(1) : line}\n${link}`;
+}
+
+/** Studojo by name or by one of its products ("the Internship Dojo"). */
+const STUDOJO_REF = /studojo|\b(?:internship|careers|assignment|revision)\s+dojo\b/i;
+
+export function mentionsStudojo(text: string): boolean {
+  return STUDOJO_REF.test(text);
+}
+
+const QUANTITY_WORDS = /\b(?:hundreds?|thousands?|lakhs?|crores?|millions?|billions?|percent|dozens?)\b/gi;
+
+/**
+ * Sentences that put a figure on Studojo itself ("Studojo has helped 10,000
+ * students", "95% of users"). A number the student gave about their own life
+ * is fine; one that only exists in a brief, or any percentage, is not.
+ */
+export function studojoFigures(text: string, studentSource: string): string[] {
+  const out: string[] = [];
+  for (const s of sentencesOf(text)) {
+    if (!STUDOJO_REF.test(s)) continue;
+    const foreign = ungroundedNumbers(s, studentSource);
+    const words = (s.match(QUANTITY_WORDS) ?? []).filter((w) => !new RegExp(`\\b${w}\\b`, "i").test(studentSource));
+    if (foreign.length || /%/.test(s) || words.length) out.push(s);
+  }
+  return out;
+}
+
 export function hasDash(text: string): boolean {
   return ANY_DASH.test(text);
 }
@@ -268,7 +333,9 @@ function normaliseNumber(raw: string): string {
  */
 export function numbersIn(text: string): string[] {
   const out: string[] = [];
-  for (const m of text.matchAll(/(?<![\p{L}\d.,])\d+(?:[.,]\d+)*/gu)) out.push(normaliseNumber(m[0]));
+  // Not glued to a letter or digit on the left (B2B, v2.5), and not the tail
+  // of another number (the 5 in 2.5); a dot after letters is fine (Rs.8000).
+  for (const m of text.matchAll(/(?<![\p{L}\d])(?<!\d[.,])\d+(?:[.,]\d+)*/gu)) out.push(normaliseNumber(m[0]));
   return out;
 }
 
@@ -520,7 +587,7 @@ export type PolishResult = {
  */
 export function polishPost(raw: string, opts: { emoji?: string | null } = {}): PolishResult {
   const changes: string[] = [];
-  const start = String(raw ?? "");
+  const start = String(raw ?? "").slice(0, MAX_INPUT);
   let t = unwrapPost(start.replace(/\r\n?/g, "\n"));
   if (t !== start.replace(/\r\n?/g, "\n").trim()) changes.push("unwrapped");
 
@@ -570,6 +637,8 @@ export type LintOptions = {
   avoid: string[];
   /** Everything the post may take facts from: the student's input and the brief. */
   source: string;
+  /** The student's own input alone, without the brief. Figures about Studojo must come from here. */
+  studentSource?: string;
   /** From polishPost: lines that lost a link mid-sentence. */
   brokenLines?: string[];
 };
@@ -599,7 +668,8 @@ export function hasPartnerDisclosure(body: string): boolean {
  * the instruction that fixes it, because that is exactly what is sent back to
  * the writer when one remains.
  */
-export function lintPost(body: string, o: LintOptions): LintIssue[] {
+export function lintPost(fullBody: string, o: LintOptions): LintIssue[] {
+  const body = String(fullBody ?? "").slice(0, MAX_INPUT);
   const issues: LintIssue[] = [];
   const add = (code: string, check: ReviewCheckId, message: string) => issues.push({ code, check, message });
 
@@ -612,7 +682,7 @@ export function lintPost(body: string, o: LintOptions): LintIssue[] {
   for (const line of o.brokenLines ?? []) {
     add("link_cut", "format", `A link was cut out of the line ${quote(line)}. Rewrite that line so it reads naturally without it.`);
   }
-  if (/(^|[\s(])#\p{L}/u.test(body)) add("hashtag", "format", "Remove the hashtags.");
+  if (HAS_HASHTAG.test(body)) add("hashtag", "format", "Remove the hashtags.");
   const numbered = body.match(NUMBERED_LINE)?.length ?? 0;
   const bulleted = body.match(BULLET_LINE)?.length ?? 0;
   if (numbered >= 2 || bulleted >= 1) {
@@ -651,14 +721,24 @@ export function lintPost(body: string, o: LintOptions): LintIssue[] {
   }
 
   const mentions = countStudojo(body);
-  if (o.mention === "none" && mentions > 0) add("mention_none", "mention", "Remove every mention of Studojo: this post does not mention it.");
-  if ((o.mention === "soft" || o.mention === "cta") && mentions === 0) add("mention_missing", "mention", "Mention Studojo once, as planned for this post.");
+  const referred = mentionsStudojo(body);
+  if (o.mention === "none" && referred) add("mention_none", "mention", "Remove every mention of Studojo and its products: this post does not mention them.");
+  if ((o.mention === "soft" || o.mention === "cta") && !referred) add("mention_missing", "mention", "Mention Studojo once, as planned for this post.");
+  const figures = studojoFigures(body, o.studentSource ?? o.source);
+  if (figures.length) {
+    add("studojo_number", "studojo", `Remove the figure about Studojo in ${quote(figures[0], 60)}: Studojo has no approved numbers.`);
+  }
   if (mentions > 2) add("mention_many", "mention", `Studojo is named ${mentions} times. Once is enough (twice if the disclosure needs it).`);
   if (o.mention === "cta" && !/\bcomments?\b/i.test(body)) {
     add("cta_ask", "close", "End with one soft ask that points to the link in the first comment.");
   }
-  if (o.relation === "partner" && o.mention !== "none" && mentions > 0 && !hasPartnerDisclosure(body)) {
+  if (o.relation === "partner" && o.mention !== "none" && referred && !hasPartnerDisclosure(body)) {
     add("disclosure", "mention", "Say in the first two lines, in plain words, that this is a paid partnership with Studojo.");
+  }
+
+  const timeline = inventedTimeline(body, o.source);
+  if (timeline.length) {
+    add("timeline", "facts", `These time details are not in their input: ${timeline.map((t) => quote(t)).join(", ")}. Remove them or use only timing they gave.`);
   }
 
   const invented = ungroundedNumbers(body, o.source);

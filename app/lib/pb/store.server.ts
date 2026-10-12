@@ -118,12 +118,22 @@ function ensureTables(): Promise<void> {
 }
 
 async function createTables() {
+  // Already set up (the usual case on every pod start after the first): no
+  // DDL at all. CREATE INDEX IF NOT EXISTS takes a SHARE lock on the table
+  // before it checks, so running it on every boot would queue every job write
+  // behind any open transaction on these tables.
+  const ready = await db.execute(sql`SELECT to_regclass('public.idx_pb_posts_user_cover') IS NOT NULL AS ok`);
+  if ((ready.rows[0] as { ok?: unknown } | undefined)?.ok === true) return;
+
   // One transaction behind an advisory lock. The in-process memo above only
   // serialises callers inside one pod; with two replicas starting together,
   // two concurrent CREATE TABLE IF NOT EXISTS can still collide on pg_type
   // (error 23505). The lock makes the second pod wait, then find the tables
   // already there. The number is arbitrary and used for nothing else.
   await inTransaction(async (tx) => {
+    // Fail fast rather than wait behind a stuck transaction; the memo is
+    // cleared on failure, so the next call simply tries again.
+    await tx.execute(sql`SET LOCAL lock_timeout = '5s'`);
     await tx.execute(sql`SELECT pg_advisory_xact_lock(7426011903)`);
 
     // One row per signed-in student. Deleting the account deletes the row.
@@ -239,6 +249,11 @@ async function createTables() {
     `);
     await tx.execute(sql`
       CREATE INDEX IF NOT EXISTS idx_pb_posts_created ON pb_posts (created_at DESC)
+    `);
+    // Serves the per-student counts on /pbadmin as an index-only scan. Created
+    // last on purpose: its presence is what tells a later boot all is set up.
+    await tx.execute(sql`
+      CREATE INDEX IF NOT EXISTS idx_pb_posts_user_cover ON pb_posts (user_id) INCLUDE (status, posted_at, created_at)
     `);
   });
 }
@@ -685,7 +700,7 @@ export async function listStudents(): Promise<PbStudentRow[]> {
         SELECT COUNT(*) FROM jsonb_array_elements(p.stories) s
         WHERE length(btrim(COALESCE(s->>'text', ''))) > 0
       ) ELSE 0 END AS stories_count,
-      left(btrim(p.writing_sample), 200) AS sample_head,
+      btrim(left(p.writing_sample, 400)) AS sample_head,
       ${iso("p.updated_at")} AS updated_at,
       COALESCE(c.delivered, 0) AS posts_delivered,
       COALESCE(c.held, 0) AS posts_held,
@@ -791,7 +806,9 @@ export async function createRun(input: {
       SELECT ${runId}::int, v.user_id, 'queued'
       FROM (VALUES ${sql.join(values, sql`, `)}) AS v(user_id, ord)
       JOIN pb_profiles p ON p.user_id = v.user_id
-      ORDER BY v.ord
+      -- One fixed order for everyone: two runs picking the same students in
+      -- a different order would otherwise deadlock on the one-active index.
+      ORDER BY v.user_id
       ON CONFLICT DO NOTHING
       RETURNING user_id
     `);
@@ -950,16 +967,26 @@ export async function claimNextJob(workerId: string): Promise<ClaimedJob | null>
       continue;
     }
 
-    const runRes = await exec(sql`
-      SELECT brief, posts_per_student, mention, link, deliver
-      FROM pb_runs WHERE id = ${runId}::int
-    `);
+    // The claim is already committed. If loading what the job needs fails,
+    // the job goes straight back rather than sitting leased for the whole
+    // stale window and losing an attempt it never used.
+    let runRes: Awaited<ReturnType<typeof exec>>;
+    let profile: PbProfile | null;
+    try {
+      runRes = await exec(sql`
+        SELECT brief, posts_per_student, mention, link, deliver
+        FROM pb_runs WHERE id = ${runId}::int
+      `);
+      profile = await getProfile(userId);
+    } catch (err) {
+      await releaseJob(jobId, workerId).catch(() => false);
+      throw err;
+    }
     const run = runRes.rows[0];
     if (!run) {
       await failJob(jobId, workerId, "The run this job belonged to is gone.");
       continue;
     }
-    const profile = await getProfile(userId);
     if (!profile) {
       await failJob(jobId, workerId, "This student no longer has a profile.");
       continue;
@@ -1103,6 +1130,27 @@ export async function failJob(
         WHERE id = ${jobId}::int AND worker_id = ${workerId} AND status = 'running'
         RETURNING id
       `);
+  return res.rows.length > 0;
+}
+
+/**
+ * Hand a running job back to the queue untouched, for a pod that is shutting
+ * down or could not even load it. Lease guarded. The attempt is given back,
+ * because the job never got a fair run, and the job is claimable at once.
+ * False means the lease was already gone.
+ */
+export async function releaseJob(jobId: number, workerId: string): Promise<boolean> {
+  await ensureTables();
+  const res = await exec(sql`
+    UPDATE pb_jobs SET
+      status = 'queued',
+      step = 'queued',
+      worker_id = NULL,
+      heartbeat_at = NULL,
+      attempts = GREATEST(attempts - 1, 0)
+    WHERE id = ${jobId}::int AND worker_id = ${workerId} AND status = 'running'
+    RETURNING id
+  `);
   return res.rows.length > 0;
 }
 
