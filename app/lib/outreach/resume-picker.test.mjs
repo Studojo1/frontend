@@ -46,6 +46,8 @@ assert.doesNotMatch(page, /disabled=\{!file \|\| uploading\}/, "the main button 
 assert.ok(page.includes("pickerNote.write(now)"), "the picker open must be noted before it opens");
 assert.ok(page.includes('addEventListener("cancel"'), "a cancelled pick must be noticed");
 assert.ok(page.split("pickerNote.clear()").length >= 4, "the note must be cleared on a file, on a cancel and on load");
+// A file from any route (pick, drop, the /auth draft) clears the hint for good.
+assert.match(page, /if \(file\) setPickHint\(null\)/, "a file must clear the hint whichever way it arrived");
 assert.equal(PICKER_OPEN_KEY, "sj_resume_picker_open");
 
 console.log("resume-picker: ok");
