@@ -13,6 +13,7 @@ import {
   numbersIn,
   inventedTimeline,
   firstCommentFor,
+  hookLiftsSample,
   parseAvoidList,
   similarity,
   voiceStats,
@@ -165,6 +166,21 @@ const filler = (n) => Array.from({ length: n }, (_, i) => `word${i}`).join(" ");
   assert.ok(/^[a-z]/.test(firstCommentFor("u1:1", "https://studojo.com/x", true)), "lowercase for students who write that way");
   const lines = new Set(["a:1", "b:1", "c:1", "d:2", "e:3", "f:1"].map((k) => firstCommentFor(k, "L", false).split("\n")[0]));
   assert.ok(lines.size >= 2, "comments vary across a cohort");
+}
+
+// --- the ask points at Studojo, and the hook is not lifted from the sample -------
+{
+  const amb = { ...lintBase, mention: "cta", relation: "ambassador" };
+  const bait = `Hook\n\n${filler(80)} I started my own newsletter.\n\nLink is in the first comment if you want to read it.`;
+  assert.ok(lintPost(bait, amb).some((i) => i.code === "cta_ref"), "an ask that reads as their own project is flagged");
+  const honest = `Hook\n\n${filler(80)} I'm a campus ambassador for Studojo.\n\nThe link is in the comments.`;
+  assert.ok(!lintPost(honest, amb).some((i) => i.code === "cta_ref"), "an ask right after the Studojo line is fine");
+  const inline = `Hook\n\n${filler(80)}\n\nI'm a Studojo ambassador, link in the comments.`;
+  assert.ok(!lintPost(inline, amb).some((i) => i.code === "cta_ref"), "an ask that names Studojo is fine");
+  const sample = "There's a particular kind of tired that comes from pulling a 7am shift and then sitting a 9am seminar.";
+  assert.ok(hookLiftsSample("There's a particular kind of tired the week I moved", sample), "a lifted opener is caught");
+  assert.ok(!hookLiftsSample("A 7am shift taught me brand loyalty", sample), "a new line using the same facts is fine");
+  assert.ok(lintPost(`There's a particular kind of tired the week I moved\n\n${filler(80)}`, { ...lintBase, sample }).some((i) => i.code === "sample_open"));
 }
 
 // --- small helpers ---------------------------------------------------------

@@ -514,6 +514,7 @@ function lintFor(ctx: Ctx, plan: PbPostPlan, body: string, brokenLines: string[]
     avoid: ctx.avoid,
     source: ctx.source,
     studentSource: ctx.studentSource,
+    sample: p.writingSample ?? "",
     brokenLines,
   });
   // The one cohort rule code can hold: a first line that echoes a past post

@@ -738,7 +738,7 @@ export function mentionInstruction(level: PbMention, how: string, relation: stri
   if (level === "soft") {
     return `Mention Studojo once, in passing. No ask, no link, no praise words. ${first} ${where} ${rule}`;
   }
-  return `Mention Studojo once, and end the post with one soft ask that points to the link in the first comment (for example: the link is in the comments if you want it). That ask is the post's only close. Do not write the link. If you say what the link is, use a few plain words of your own that claim no more than the brief does (never copy the brief's sentence), or simply say the link is in the comments. Never promise what it gives beyond the brief, never call it a template, guide or list, and never say or hint that they used it unless their own words say so. ${first} ${where} ${rule}`;
+  return `Mention Studojo once, and end the post with one soft ask that points to the link in the first comment (for example: the link is in the comments if you want it). That ask is the post's only close. Do not write the link. The ask must make clear the link is to Studojo (name Studojo or its product in the ask or the line just before it), never to their own project, newsletter or template. If you say what it is, use a few plain words of your own that claim no more than the brief does (never copy the brief's sentence). Never promise what it gives beyond the brief, never call it a template, guide or list, and never say or hint that they used it unless their own words say so. ${first} ${where} ${rule}`;
 }
 
 export type PbPostPlan = {

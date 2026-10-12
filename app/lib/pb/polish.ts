@@ -641,7 +641,20 @@ export type LintOptions = {
   studentSource?: string;
   /** From polishPost: lines that lost a link mid-sentence. */
   brokenLines?: string[];
+  /** The student's own writing sample, to catch a post that opens by lifting it. */
+  sample?: string;
 };
+
+/** True when the first line copies five or more words in a row from their writing sample. */
+export function hookLiftsSample(hook: string, sample: string): boolean {
+  const words = (t: string) => (t.toLowerCase().match(/[\p{L}\p{N}']+/gu) ?? []);
+  const h = words(hook);
+  const s = ` ${words(sample).join(" ")} `;
+  for (let i = 0; i + 5 <= h.length; i++) {
+    if (s.includes(` ${h.slice(i, i + 5).join(" ")} `)) return true;
+  }
+  return false;
+}
 
 const quote = (s: string, max = 70) => `"${s.length > max ? `${s.slice(0, max).trimEnd()}...` : s}"`;
 
@@ -731,6 +744,18 @@ export function lintPost(fullBody: string, o: LintOptions): LintIssue[] {
   if (mentions > 2) add("mention_many", "mention", `Studojo is named ${mentions} times. Once is enough (twice if the disclosure needs it).`);
   if (o.mention === "cta" && !/\bcomments?\b/i.test(body)) {
     add("cta_ask", "close", "End with one soft ask that points to the link in the first comment.");
+  }
+  if (o.mention === "cta") {
+    // The link goes to Studojo. An ask that reads as "my newsletter" or "my
+    // template" right before a Studojo link is a bait-and-switch.
+    const ss = sentencesOf(body);
+    const ask = ss.map((x, i) => ({ x, i })).filter(({ x }) => /\bcomments?\b/i.test(x)).pop();
+    if (ask && !mentionsStudojo(ask.x) && !(ask.i > 0 && mentionsStudojo(ss[ask.i - 1]))) {
+      add("cta_ref", "mention", "Make the ask say the link is to Studojo (or its Internship Dojo), right where it points to the comments, so nobody thinks it is their own project.");
+    }
+  }
+  if (o.sample && hookLiftsSample(hookOf(body), o.sample)) {
+    add("sample_open", "voice", "The first line copies their writing sample word for word. Open with a new line in their voice instead.");
   }
   if (o.relation === "partner" && o.mention !== "none" && referred && !hasPartnerDisclosure(body)) {
     add("disclosure", "mention", "Say in the first two lines, in plain words, that this is a paid partnership with Studojo.");
