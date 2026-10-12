@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "remote-jobs-report-who-hires-remote-freshers-2026",
+    publishDate: "2026-10-17",
+    title: "The Remote Jobs Report: Who Is Still Hiring Remote Freshers, and for What",
+    subtitle: "The Remote Jobs Report · 2026",
+    excerpt: "Only about 9% of Indian job postings mention remote work, and the biggest fresher employers have pulled people back to the office. But the remote share is rising again, and it clusters in specific roles, company types and global contractor setups. We map where remote fresher work actually exists, how to get paid by a foreign company legally, and the scams that pose as remote jobs.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "government-vs-private-job-report-why-crores-apply-2026",
     publishDate: "2026-10-16",
     title: "The Government vs Private Job Report: Why 1.2 Crore People Applied for 8,900 Railway Jobs",
@@ -104,18 +116,6 @@ const REPORTS = [
     title: "The Job Scam Report: Fake Internships, Pay-to-Join Offers and Task Scams Targeting Students",
     subtitle: "The Job Scam Report · 2026",
     excerpt: "Indians lost over 22,845 crore to cyber fraud in 2024, about 62 crore a day, and fake job and internship offers are one of the main ways scammers reach students. We break down how task scams, pay-to-join internships and fake offer letters actually work, step by step, and give a seven-point check for any offer that lands in your inbox.",
-    category: "Career",
-    type: "Sector" as ReportType,
-    date: "October 2026",
-    findings: 6,
-    badge: "New",
-  },
-  {
-    slug: "remote-jobs-report-who-hires-remote-freshers-2026",
-    publishDate: "2026-10-17",
-    title: "The Remote Jobs Report: Who Is Still Hiring Remote Freshers, and for What",
-    subtitle: "The Remote Jobs Report · 2026",
-    excerpt: "Only about 9% of Indian job postings mention remote work, and the biggest fresher employers have pulled people back to the office. But the remote share is rising again, and it clusters in specific roles, company types and global contractor setups. We map where remote fresher work actually exists, how to get paid by a foreign company legally, and the scams that pose as remote jobs.",
     category: "Career",
     type: "Sector" as ReportType,
     date: "October 2026",
