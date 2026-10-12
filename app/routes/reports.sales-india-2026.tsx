@@ -225,6 +225,11 @@ export default function SalesIndiaReport() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "Article", "headline": "Entry-Level Sales Jobs India 2026: Salary Data and Skill Gaps", "description": "28,600+ open sales roles in India. A 5x salary gap within the same job title. The CRM skill gap ending 60% of interviews before they start. Full data for freshers entering sales in 2026.", "url": "https://studojo.com/reports/sales-india-2026", "datePublished": "2026-04-01T00:00:00+05:30", "dateModified": "2026-04-20T00:00:00+05:30", "author": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com"}, "publisher": {"@type": "Organization", "name": "Studojo", "url": "https://studojo.com", "logo": {"@type": "ImageObject", "url": "https://studojo.com/logo.png"}}, "mainEntityOfPage": {"@type": "WebPage", "@id": "https://studojo.com/reports/sales-india-2026"}, "image": "https://studojo.com/og-reports.png"}` }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://studojo.com"}, {"@type": "ListItem", "position": 2, "name": "Reports", "item": "https://studojo.com/reports"}, {"@type": "ListItem", "position": 3, "name": "Entry-Level Sales Jobs India 2026", "item": "https://studojo.com/reports/sales-india-2026"}]}` }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+      }) }} />
 
       <Header />
       <style dangerouslySetInnerHTML={{ __html: rptCSS }} />
@@ -619,6 +624,31 @@ export default function SalesIndiaReport() {
           </div>
 
           {/* Final CTA */}
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/marketing-india-2026" className="related-card"><div className="rc-kicker">Marketing</div><div className="rc-title">Marketing Internships in India: Where the Good Roles Are</div></Link>
+              <Link to="/reports/startup-vs-mnc-2026" className="related-card"><div className="rc-kicker">Startup vs MNC</div><div className="rc-title">Startup vs MNC: A Real Comparison for Early-Career Talent</div></Link>
+              <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First job</div><div className="rc-title">First Job Report India: What Entry-Level Looks Like</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-final-cta">
             <h2 className="rpt-final-cta-title">Work on things that matter.</h2>
             <p className="rpt-final-cta-sub">Use the Studojo Outreach tool to find SDR, BDA, FMCG sales, and inside sales roles across India. Build a resume that reflects real skills, not just a degree.</p>
@@ -732,4 +762,34 @@ const rptCSS = `
     .rpt-inline-cta-inner{flex-direction:column;align-items:flex-start;}
     .rpt-hero-stats{gap:20px;} .rpt-final-cta{padding:32px 20px;}
   }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
+  .faq-section .sec-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; }
+  .faq-section .sec-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: #fff; font-size: 13px; font-weight: 700; border-radius: 50%; border: 2px solid #171717; flex-shrink: 0; }
+  .faq-section .sec-title { font-size: 24px; font-weight: 700; color: #171717; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 4px; }
+  .faq-section .sec-sub { font-size: 13px; color: #737373; font-weight: 500; }
+  .rpt-content .faq-section { margin-top: 64px; }
+  .rpt-content .related { margin-top: 20px; }
 `;
+
+const FAQ = [
+  { q: "How many fresher sales jobs are open in India?", a: "The report counts 28,600+ active sales openings (Foundit.in, April 2026), and sales and business development hiring grew 23% year on year in 2025. Bengaluru alone has 3,544 sales vacancies. About 53% of planned hiring is in tier-1 cities and 32% in tier-2 cities, which is rising fast." },
+  { q: "How much does a fresher in sales earn in India?", a: "The range is about 5x within the same job title. A fresh MBA on the HUL management trainee program earns 12 LPA, while a fresher insurance agent earns 2.5 LPA base. PayScale puts the median SDR under 1 year of experience at 4.39 LPA and the general sales executive fresher at 2.04 LPA." },
+  { q: "Is SaaS SDR or FMCG a better start for a sales career?", a: "Neither is wrong, they trade speed for accessibility. The SaaS SDR path runs from 4.5 to 7.5 LPA in Year 1 to 20 to 30 LPA by Year 5, while the FMCG TSO path runs from 3.5 to 5.5 LPA to 14 to 18 LPA. FMCG recruits from tier-2 and tier-3 campuses, while SaaS companies post job descriptions and filter on demonstrated skills." },
+  { q: "Which skills do sales job descriptions ask for?", a: "Communication appears in 94% of fresher sales JDs, and CRM tools in 57%, with Salesforce named in 56.7%. Almost no fresher arrives knowing a CRM. Zoho CRM, HubSpot, and Salesforce all have free options, so set up a dummy company, log fake activities, build a pipeline, and screenshot it for your resume." },
+  { q: "Why do freshers fail sales interviews after being shortlisted?", a: "The leading reason, at 71%, is freezing in a cold call roleplay. Another 64% have no CRM or tool experience, 58% communicate weakly under pressure, and 52% have no demonstrable proof of work. Recording yourself doing a 2-minute cold call five times is the fastest fix the report recommends." },
+  { q: "What should I ask about variable pay before taking a sales offer?", a: "Ask what percentage of last year's freshers hit their variable target, when the variable clock starts, whether the variable is capped, and what happens to it if the company misses its overall target. A standard SaaS SDR split is 70% base and 30% variable at target. Be careful with edtech offers in 2026 and verify the company's financial position first." },
+];

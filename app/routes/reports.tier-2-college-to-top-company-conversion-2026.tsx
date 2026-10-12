@@ -152,7 +152,31 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "What is the real conversion rate from a Tier 2 college to a top company?", a: "There is no single number, because it depends on what you divide by. The report's illustrative full-cohort share who land a top-tier offer in the same cycle is roughly 0.5-3%. If you instead count only students who ran a serious prep track, built proof, and targeted a short list of employers, the number moves a lot." },
+  { q: "Can you get into a top company from a Tier 2 college?", a: "Yes, but usually not through the campus day. The report says most Tier 2 hires at elite employers cluster around internship return offers, referral-assisted pipelines, or proven skill tournaments. Direct off-campus applications also work when they are backed by strong public proof." },
+  { q: "How do Tier 2 students usually reach top-tier employers?", a: "In the report's illustrative mix, 38% come through an internship converted to a return offer, 27% through a referral or warm introduction, 22% through direct off-campus applications with strong proof, and 13% through a limited campus slot. These are illustrative splits, not audited figures." },
+  { q: "Does applying to more companies improve your odds?", a: "No. Volume without tailoring usually lowers conversion per hour spent. Among Huntr users, applications with a job-tailored resume recorded interviews at 5.71% against 3.09% without one, across 1.99 million tracked applications. That data is self-reported and not India-specific, so use it as direction, not a promise." },
+  { q: "Why do top companies visit fewer Tier 2 campuses?", a: "Mostly logistics and trust shortcuts. Employers save time by interviewing in batches at schools with predictable credential signals. A thinner campus calendar is not a verdict on your talent, it just means you must build eligibility through internships, contests, referrals, or specialist pipelines." },
+  { q: "What should a Tier 2 student do in the next 12 months?", a: "Plan for two cycles and treat the earlier year as signal building: a smaller-company internship, a research lab, open source work, or a contest. Ship one visible improvement per week for twelve weeks, such as a portfolio page, a bug fix, or a write-up. Then use that recognizable line item in your next recruiting season." },
+];
 
 export default function Report_Tier2CollegeToTopCompanyConversion2026() {
   useEffect(() => {
@@ -173,6 +197,7 @@ export default function Report_Tier2CollegeToTopCompanyConversion2026() {
         "description": "Tier 2 to top company hiring in 2026: realistic conversion math, campus vs off-campus funnels, and paths that actually move placement outcomes.",
         "url": `${BASE_URL}/reports/tier-2-college-to-top-company-conversion-2026`,
         "datePublished": "2026-05-07T00:00:00Z",
+        "dateModified": "2026-05-07T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -187,6 +212,11 @@ export default function Report_Tier2CollegeToTopCompanyConversion2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Tier 2 College to Top Company: The Real Conversion Rate", "item": `${BASE_URL}/reports/tier-2-college-to-top-company-conversion-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -416,6 +446,31 @@ export default function Report_Tier2CollegeToTopCompanyConversion2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>Run a two-cycle plan when possible.</strong> Use an earlier cycle to earn a recognizable line item, then reuse that credibility in the next recruiting season instead of starting from zero proof each time.</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/placement-cell-report-what-they-can-cannot-do-2026" className="related-card"><div className="rc-kicker">Placement cells</div><div className="rc-title">The Placement Cell Report: What They Can and Cannot Do</div></Link>
+              <Link to="/reports/return-offer-report-why-some-interns-get-hired-2026" className="related-card"><div className="rc-kicker">Return offers</div><div className="rc-title">The Return Offer Report: Why Some Interns Get Hired</div></Link>
+              <Link to="/reports/degree-vs-skills-2026" className="related-card"><div className="rc-kicker">Skills</div><div className="rc-title">Degree vs Skills: What Hirers Look at in 2026</div></Link>
             </div>
           </div>
 

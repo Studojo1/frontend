@@ -162,7 +162,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #0d9488; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Are jobs really leaving Bangalore and Mumbai for tier 2 cities?", a: "Lanes are splitting, not jobs fleeing. Scale roles such as GCC engineering pods, IT services delivery, analytics, shared services and inside sales are spreading, while core product, VC-backed startups, front-office finance and top consulting stay metro-heavy. The nasscom-Zinnov May 2026 report says about 5% of new GCC units in the past year went to emerging cities." },
+  { q: "Which Indian cities are hiring outside Bangalore and Mumbai?", a: "Pune, Hyderabad and Chennai are tier 1 hubs that absorb a lot of overflow. The emerging GCC hubs with the most units are Coimbatore (60+), Ahmedabad and Kolkata (45+ each), and Vadodara and Kochi (35+ each). Pune leans automotive tech and engineering overflow, Chennai industrial IT, and Ahmedabad fintech operations." },
+  { q: "Do tier 2 cities pay less than Bangalore?", a: "On paper, usually about 15 to 25% less for the same title at the same employer, with wide variation by sector. Large GCC fresher programmes may narrow the gap to single digits. After rent and commute, a ₹14 LPA offer in Pune can leave similar monthly savings to ₹18 LPA in Bangalore for many renters." },
+  { q: "Which jobs are moving to tier 2 cities fastest?", a: "GCC software, testing and SRE at scale, BPO and KPO upgrades, captive analytics and inside sales for the India market. Jobs that tend to stay in metros include VC-backed product management, MBB consulting, sell-side research and elite fintech trading." },
+  { q: "Should I move to a tier 2 city or stay in a metro?", a: "Target tier 2 if you want cash savings, slower burnout, GCC or services paths, or family proximity. Stay metro-focused for early-stage startup product ownership, investing, consulting or a dense niche network. Before relocating, ask whether your lane is growing there, whether pay survives rent, and whether you can switch back to a metro team later." },
+  { q: "How do I find jobs in tier 2 cities?", a: "Search employer name plus city on careers pages, since aggregators often tag Bangalore while the req sits in Pune. Use strings like GCC Pune or Ahmedabad fintech operations plus your skill. Run a 30 day plan: pick two cities and two sectors, list 40 employers, tailor your resume, then send ten outreach messages citing city and skill." },
+];
 
 export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026() {
   useEffect(() => {
@@ -183,6 +207,7 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
         "description": "India tier 2 hiring in 2026: which jobs are moving out of Bangalore and Mumbai, the emerging hubs (Coimbatore, Kochi, Vadodara), INR pay bands, and how to search.",
         "url": `${BASE_URL}/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026`,
         "datePublished": "2026-05-30T00:00:00Z",
+        "dateModified": "2026-05-30T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -197,6 +222,11 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Tier 2 Cities Are Hiring: The Jobs Leaving Bangalore and Mumbai", "item": `${BASE_URL}/reports/tier-2-cities-hiring-jobs-leaving-bangalore-mumbai-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -483,6 +513,31 @@ export default function Report_Tier2CitiesHiringJobsLeavingBangaloreMumbai2026()
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Hunt with city in the query"}.</strong> {"Use careers pages and outreach tagged to Pune, Hyderabad, or Chennai. Boards often mislabel location as Bangalore."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/tier-2-college-to-top-company-conversion-2026" className="related-card"><div className="rc-kicker">Tier 2 Colleges</div><div className="rc-title">Tier 2 College to Top Company: The Real Conversion Rate</div></Link>
+              <Link to="/reports/pune-jobs-2026" className="related-card"><div className="rc-kicker">Pune</div><div className="rc-title">Pune's Job Market in 2026</div></Link>
+              <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First Job</div><div className="rc-title">First Job Report India 2026: What Entry Level Looks Like</div></Link>
             </div>
           </div>
 

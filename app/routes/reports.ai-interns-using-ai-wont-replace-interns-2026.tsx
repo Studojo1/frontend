@@ -189,7 +189,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #6366f1; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Will AI replace interns?", a: "No, but it has raised the productivity floor. Companies still run intern cohorts because someone has to do research sprints, first drafts, data cleanup and slide builds. The real threat is another intern who ships faster with AI and the same judgment." },
+  { q: "Do employers want interns who use AI?", a: "Yes. Handshake's April 2026 report found more than 10% of active internships mention AI keywords as of March 2026, against 4.2% of full-time postings. Managers do not reward the phrase I used AI, though. They reward interns who can explain what they checked and what they changed because the output was wrong." },
+  { q: "How should interns use AI at work without losing trust?", a: "Use it for leverage tasks such as research, first drafts, formatting and iteration volume, then verify everything and edit for the audience. Share your process in standup or Slack, and never paste proprietary data into public models. One study cited in the report found that being exposed for covert AI use hurt trust more than disclosing it." },
+  { q: "Where does AI hurt interns?", a: "In lazy output and invisible errors: invented statistics, citations that do not exist, wrong company names in outreach, and slides you cannot defend in a five-minute Q&A. Managers report these as red flags. The fastest way to lose trust is submitting AI output you have not read." },
+  { q: "Does using AI help interns get return offers?", a: "Only if your manager can see what you multiplied. Return offers still hinge on reliability, communication and initiative. Show a before and after of something you improved with assisted research or drafting around week four or five, when managers decide whether you merit a full-time conversation." },
+  { q: "How can I build an AI-literate intern portfolio in 60 days?", a: "Build one verified research memo, one deck or repo with a README explaining your AI-assisted steps, and one short case write-up that shows judgment. Use AI for first drafts only, apply to tailored roles in the middle weeks, and finish by mocking a manager review where you explain every claim." },
+];
 
 export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
   useEffect(() => {
@@ -210,6 +234,7 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
         "description": "AI is not eliminating intern roles in 2026. It is widening the gap between interns who use AI well and those who do not. What managers expect, where AI helps, and a 60-day playbook.",
         "url": `${BASE_URL}/reports/ai-interns-using-ai-wont-replace-interns-2026`,
         "datePublished": "2026-06-06T00:00:00Z",
+        "dateModified": "2026-06-06T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -224,6 +249,11 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "AI Won't Replace Interns. Interns Using AI Will Replace Interns Who Don't", "item": `${BASE_URL}/reports/ai-interns-using-ai-wont-replace-interns-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -532,6 +562,31 @@ export default function Report_AiInternsUsingAiWontReplaceInterns2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Build two artifacts in 60 days"}.</strong> {"One verified deliverable and one short process write-up. That pair beats a resume line that says \"proficient in ChatGPT.\""}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/internships-ai-india-2026" className="related-card"><div className="rc-kicker">AI Internships</div><div className="rc-title">How Internships Are Changing Post-AI</div></Link>
+              <Link to="/reports/skills-ai-entry-level-2026" className="related-card"><div className="rc-kicker">AI Careers</div><div className="rc-title">Breaking Into AI: Entry-Level Skills and Roles</div></Link>
+              <Link to="/reports/return-offer-report-why-some-interns-get-hired-2026" className="related-card"><div className="rc-kicker">Return Offers</div><div className="rc-title">Why Some Interns Get Hired and Others Don't</div></Link>
             </div>
           </div>
 

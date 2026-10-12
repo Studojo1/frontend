@@ -220,7 +220,32 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "How long do recruiters spend looking at a LinkedIn profile?", a: "About 7 seconds on a first pass, according to the Ladders eye-tracking study cited in this report. In that window they check the photo, headline, location and current role. The About section is read by fewer than 4 in 10 recruiters on a first look." },
+  { q: "What should a LinkedIn headline say to get found by recruiters?", a: "Describe what you do, not just where you work or study. Use keywords and vertical bars, for example 'Growth Marketing | SEO + Paid Media | B2B SaaS | Open to opportunities'. Recruiter searches are ranked partly on headline match, so a headline that says only 'Student | DU' will not appear for roles like 'growth marketing intern Mumbai'." },
+  { q: "Does a profile photo really change how many people view your LinkedIn?", a: "Yes. LinkedIn's own data, cited in this report, shows profiles with a professional headshot get 21x more profile views and 9x more connection requests than profiles with no photo. A clear face, plain background and natural light is enough, and it costs nothing." },
+  { q: "Do recruiters read the About section on LinkedIn?", a: "Mostly no on a first pass, since around 60% of recruiters skip it. The first two to three lines show before the 'see more' click, so they must state what you are good at, what you want, and one concrete result. End with a line inviting people to contact you by email." },
+  { q: "Why do referrals matter more than a perfect LinkedIn profile?", a: "A referral converts at 4x the rate of a cold application according to the Jobvite 2024 report cited here, and it skips the ATS entirely. A strong profile makes you findable when someone is already searching. Direct outreach to hiring managers and employees gets you seen before a role is even posted." },
+  { q: "What is the fastest order to fix my LinkedIn profile?", a: "Start with the headline, which takes about 15 minutes, then add a professional headshot. Next, complete your profile to All-Star status with at least 5 skills, and work toward 500 connections. Finish with about 20 outreach messages to people at your target companies." },
+];
+
 
 export default function LinkedInProfileReport() {
   useEffect(() => {
@@ -241,6 +266,7 @@ export default function LinkedInProfileReport() {
         "description": "Hiring managers spend 7 seconds on your LinkedIn. A data-backed breakdown of what gets seen, what gets skipped, and the exact fixes that change your odds.",
         "url": `${BASE_URL}/reports/linkedin-profile-2026`,
         "datePublished": "2026-05-02T00:00:00Z",
+        "dateModified": "2026-05-02T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/linkedin-profile-2026` },
@@ -254,6 +280,11 @@ export default function LinkedInProfileReport() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "LinkedIn Profile Report 2026", "item": `${BASE_URL}/reports/linkedin-profile-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -645,6 +676,31 @@ export default function LinkedInProfileReport() {
           </div>
 
           {/* CTA */}
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/referrals-vs-applications-how-people-get-hired-2026" className="related-card"><div className="rc-kicker">Referrals</div><div className="rc-title">Referrals vs Applications: How People Actually Get Hired</div></Link>
+              <Link to="/reports/linkedin-easy-apply-killing-chances-2026" className="related-card"><div className="rc-kicker">LinkedIn</div><div className="rc-title">Why LinkedIn Easy Apply Is Killing Your Chances</div></Link>
+              <Link to="/reports/cold-outreach-what-gets-reply-2026" className="related-card"><div className="rc-kicker">Outreach</div><div className="rc-title">Cold Outreach: What Actually Gets a Reply</div></Link>
+            </div>
+          </div>
+
           <div className="rpt-cta">
             <div className="rpt-cta-left">
               <h3>Send the 20 outreach messages.</h3>

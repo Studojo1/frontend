@@ -221,7 +221,31 @@ const reportCSS = `
   .rpt-cta-mid-inner h4 { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px 0; letter-spacing: -0.2px; line-height: 1.25; }
   .rpt-cta-mid-inner p { font-size: 14px; color: rgba(255,255,255,0.78); font-weight: 500; margin: 0 0 14px 0; line-height: 1.55; }
   .rpt-cta-mid-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #10b981; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 10px; border: 2px solid #171717; box-shadow: 2px 2px 0 #171717; text-decoration: none; white-space: nowrap; }
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "How much CTC do you need for ₹1 lakh per month in hand?", a: "Roughly ₹12 lakh or more in annual CTC, assuming a metro location and a standard salary structure after income tax and provident fund. For a conservative monthly estimate, divide annual CTC by 14 rather than 12. Variable pay and ESOPs are upside, not rent money." },
+  { q: "What is the fastest way for a student to reach ₹1 lakh per month in India?", a: "A top product campus offer from companies like Google, Microsoft or Amazon is the fastest, and the only path where ₹1 lakh per month can arrive at graduation. It is also the narrowest, since fewer than 1 percent of engineering graduates receive FAANG-tier campus offers. Prep typically starts 12 to 24 months before final-year placements." },
+  { q: "Can a funded startup SDE job get you to ₹1 lakh per month?", a: "Often yes within 6 to 18 months. At ₹18 LPA and above, monthly in-hand typically lands in the ₹85,000 to ₹1.1 lakh range, and a performance cycle within 12 months pushes many startup SDEs over the line. Reported fresher bands include CRED and PhonePe at ₹15 to ₹25 LPA and Razorpay at ₹12 to ₹18 LPA." },
+  { q: "Can you reach ₹1 lakh per month starting in IT services like TCS or Infosys?", a: "Yes, but only through a switch to a product company, usually between 18 and 36 months in. Product companies pay 2 to 3 times IT services at the same experience level, and tenure alone does not close the gap. Treat the services job as runway, ship one external project and interview through referrals." },
+  { q: "Can freelancing or sales get a student to ₹1 lakh per month?", a: "Both can, with different timelines. Freelancing typically needs international rate cards or 3 to 5 domestic retainer clients at ₹20,000 to ₹30,000 each, and the bottleneck is client acquisition. Sales roles with uncapped commission can clear ₹1 to ₹2 lakh for top performers, but the ramp is 6 to 12 months and variance is high." },
+  { q: "Does finance or consulting get you to ₹1 lakh per month quickly?", a: "Rarely at true fresher level. Global bank analyst offers at ₹15 to ₹28 LPA can land at ₹80,000 to ₹1.2 lakh in hand, but for most people the honest timeline is 3 to 5 years. Bonuses arrive annually, so budget rent on base salary." },
+];
 
 export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
   useEffect(() => {
@@ -242,6 +266,7 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
         "description": "How students in India actually reach ₹1 lakh/month: product campus offers, startup SDE, freelancing, sales commissions, and finance tracks. Timelines, INR bands, and what to skip.",
         "url": `${BASE_URL}/reports/first-1-lakh-month-report-fastest-paths-students-2026`,
         "datePublished": "2026-06-12T00:00:00Z",
+        "dateModified": "2026-06-12T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL,
           "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
@@ -256,6 +281,11 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "The First ₹1 Lakh/Month Report: The Fastest Paths Students Actually Use", "item": `${BASE_URL}/reports/first-1-lakh-month-report-fastest-paths-students-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -589,6 +619,31 @@ export default function Report_First1LakhMonthReportFastestPathsStudents2026() {
                 <div className="blist-dot" style={{ background: "#6d28d9" }} />
                 <span style={{ color: "#3b0764" }}><strong>{"Freelance and sales reward client proof"}.</strong> {"Three retainer clients or three closed deals matter more than fifty certificates. Build a portfolio or pipeline before you optimise your rate card."}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First job</div><div className="rc-title">First job report India 2026: what entry-level looks like</div></Link>
+              <Link to="/reports/sales-india-2026" className="related-card"><div className="rc-kicker">Sales</div><div className="rc-title">Sales in India: what freshers actually face</div></Link>
+              <Link to="/reports/startup-vs-mnc-2026" className="related-card"><div className="rc-kicker">Startup vs MNC</div><div className="rc-title">Startup vs MNC: a real comparison for early-career talent</div></Link>
             </div>
           </div>
 

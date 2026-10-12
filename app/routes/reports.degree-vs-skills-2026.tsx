@@ -230,7 +230,33 @@ const reportCSS = `
   .rpt-cta-left h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
   .rpt-cta-left p { font-size: 14px; color: rgba(255,255,255,0.75); font-weight: 500; max-width: 420px; }
   .rpt-cta-btn { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #8B5CF6; font-size: 14px; font-weight: 700; padding: 12px 26px; border-radius: 12px; border: 2px solid #171717; box-shadow: 3px 3px 0 #171717; text-decoration: none; white-space: nowrap; }
+
+  .faq-section { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 40px 48px; }
+  .faq-item { border-bottom: 1px solid #f0f0f0; padding: 18px 0; }
+  .faq-item:first-of-type { padding-top: 0; }
+  .faq-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .faq-q { font-size: 16px; font-weight: 700; color: #171717; line-height: 1.4; margin-bottom: 8px; }
+  .faq-a { font-size: 14px; color: #404040; line-height: 1.7; }
+  .faq-a strong { color: #6d28d9; }
+  .related { background: #fff; border: 2px solid #171717; border-radius: 20px; box-shadow: 4px 4px 0 #171717; padding: 32px 40px; margin-top: 4px; }
+  .related h2 { font-size: 13px; font-weight: 700; color: #737373; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media (max-width: 640px) { .related-grid { grid-template-columns: 1fr; } .faq-section { padding: 28px 20px; } .related { padding: 24px 20px; } }
+  .related-card { display: block; border: 1.5px solid #e5e5e5; border-radius: 12px; padding: 16px 18px; text-decoration: none; transition: border-color .15s; }
+  .related-card:hover { border-color: #8B5CF6; }
+  .related-card .rc-kicker { font-size: 10px; font-weight: 700; color: #8B5CF6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .related-card .rc-title { font-size: 14px; font-weight: 600; color: #171717; line-height: 1.4; }
 `;
+
+const FAQ = [
+  { q: "Do employers still require a degree in 2026?", a: "Less often as a hard rule, but it persists as a soft filter. 55% of employers have removed formal degree requirements from entry-level postings, yet 65% of recruiters still use degree as an ATS filter. Only 26% of entry-level roles treat a degree as a genuine hard requirement, while 27% prefer it and 47% put skills, portfolio and experience first." },
+  { q: "What do hirers rank higher than a degree?", a: "A deployed portfolio project. In Studojo's survey of 140 hiring managers and founders, demonstrated work scored 9.2 out of 10, a referral 8.4 and a degree on its own 5.1. A 20-minute portfolio review outweighs a four-year degree in the hiring decision more often than not." },
+  { q: "Which industries still require a degree?", a: "Medicine and healthcare, law, chartered accountancy, investment banking analyst programmes, licensed civil engineering and architecture, government and civil service, and teaching. Degree requirements are weakening fast in software engineering, product management, marketing, design, data analytics, sales, content and SEO." },
+  { q: "Do online course certificates count as a skill signal?", a: "Weakly. A standalone certificate proves you completed a course, not that you can apply it. A deployed side project with measurable results, an internship with a quantified outcome, open-source work and freelance client work all rank as strong signals." },
+  { q: "How do I get past an ATS degree filter if I do not have a degree?", a: "Bypass it. Referrals go directly to the hiring manager and skip automated screening, and they convert to hires at about 4x the rate of cold applications. A LinkedIn message to the hiring manager that references a specific project you built works the same way, which matters when a posting draws 250+ applications." },
+  { q: "What should I do to stand out whether or not I have a degree?", a: "Follow three steps. Build one piece of demonstrated work with a quantified result, get one internship and put a number on what you delivered, and build a referral path into 10 companies you want to work at. Three months of genuine relationship-building produces referral chances that cold applications cannot match." },
+];
+
 
 export default function DegreeVsSkillsReport() {
   useEffect(() => {
@@ -251,6 +277,7 @@ export default function DegreeVsSkillsReport() {
         "description": "55% of employers have dropped degree requirements. But 65% of recruiters still filter by degree. A data-backed breakdown of what hirers actually rank, where degrees still gate, and how to position yourself either way.",
         "url": `${BASE_URL}/reports/degree-vs-skills-2026`,
         "datePublished": "2026-05-03T00:00:00Z",
+        "dateModified": "2026-05-03T00:00:00Z",
         "author": { "@type": "Organization", "name": "Studojo", "url": BASE_URL },
         "publisher": { "@type": "Organization", "name": "Studojo", "url": BASE_URL, "logo": { "@type": "ImageObject", "url": `${BASE_URL}/logo.png` } },
         "mainEntityOfPage": { "@type": "WebPage", "@id": `${BASE_URL}/reports/degree-vs-skills-2026` },
@@ -264,6 +291,11 @@ export default function DegreeVsSkillsReport() {
           { "@type": "ListItem", "position": 2, "name": "Reports", "item": `${BASE_URL}/reports` },
           { "@type": "ListItem", "position": 3, "name": "Degree vs Skills 2026", "item": `${BASE_URL}/reports/degree-vs-skills-2026` },
         ],
+      }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       }) }} />
 
       <Header />
@@ -523,6 +555,31 @@ export default function DegreeVsSkillsReport() {
                   <span style={{ color: "#3b0764" }}><strong>{title}.</strong> {detail}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="faq-section">
+            <div className="sec-header">
+              <div className="sec-num" style={{ background: "#171717" }}>?</div>
+              <div>
+                <div className="sec-title">Frequently Asked Questions</div>
+                <div className="sec-sub">The questions students ask most about this, answered directly</div>
+              </div>
+            </div>
+            {FAQ.map((f) => (
+              <div className="faq-item" key={f.q}>
+                <div className="faq-q">{f.q}</div>
+                <div className="faq-a">{f.a}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="related">
+            <h2>Related reports</h2>
+            <div className="related-grid">
+              <Link to="/reports/referrals-vs-applications-how-people-get-hired-2026" className="related-card"><div className="rc-kicker">Referrals</div><div className="rc-title">Referrals vs Applications: How People Get Hired</div></Link>
+              <Link to="/reports/application-response-rate-2026" className="related-card"><div className="rc-kicker">Applications</div><div className="rc-title">Why 80% of Applications Get No Response</div></Link>
+              <Link to="/reports/first-job-india-2026" className="related-card"><div className="rc-kicker">First job</div><div className="rc-title">First Job Report India 2026</div></Link>
             </div>
           </div>
 
