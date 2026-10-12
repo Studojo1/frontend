@@ -66,6 +66,7 @@ export async function loader() {
     { loc: "/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/service-vs-product-company-report-5-years-later-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/gap-year-report-how-recruiters-view-career-breaks-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other. Only URLs that return 200 and robots.txt allows
     // (no /auth, no /careers, which 301s to /).
     { loc: "/outreach", priority: "0.9", changefreq: "weekly" },
@@ -167,6 +168,7 @@ export async function loader() {
     "/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026": "2026-10-12",
     "/reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026": "2026-10-13",
     "/reports/service-vs-product-company-report-5-years-later-2026": "2026-10-14",
+    "/reports/gap-year-report-how-recruiters-view-career-breaks-2026": "2026-10-15",
   };
 
   const urls = [
