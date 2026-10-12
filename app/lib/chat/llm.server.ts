@@ -1,6 +1,5 @@
 import { KNOWLEDGE_CONTEXT } from "./knowledge-base";
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+import { azureChatCompletions, azureOpenAIConfigured } from "~/lib/azure-openai.server";
 
 const SYSTEM_PROMPT = `You are Studojo's support assistant on studojo.com. You only answer questions about Studojo's platform and tools.
 
@@ -63,7 +62,7 @@ function stripDashes(content: string): string {
 }
 
 /**
- * Call OpenAI gpt-4o-mini for the chat LLM fallback. Single backend. Ollama
+ * Call gpt-4o-mini on Azure OpenAI for the chat LLM fallback. Single backend. Ollama
  * removed: the in-cluster 1B model couldn't follow the system prompt's hard
  * rules (was hallucinating prices, age limits, competitor recommendations) and
  * was the source of the bad answers in the chat-logs admin panel.
@@ -71,35 +70,30 @@ function stripDashes(content: string): string {
 async function callOpenAI(
   messages: { role: string; content: string }[],
 ): Promise<string | null> {
-  if (!OPENAI_API_KEY) {
-    console.error("[chat-llm] OPENAI_API_KEY is not set");
+  if (!azureOpenAIConfigured()) {
+    console.error("[chat-llm] Azure OpenAI is not configured");
     return null;
   }
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
+    const res = await azureChatCompletions(
+      {
         model: "gpt-4o-mini",
         messages,
         temperature: 0.4,
         top_p: 0.9,
         max_tokens: 240,
-      }),
-    });
+      },
+      { signal: controller.signal }
+    );
 
     clearTimeout(timeoutId);
 
     if (!res.ok) {
       const errBody = await res.text().catch(() => "");
-      console.error(`[chat-llm] OpenAI error: ${res.status} ${errBody}`);
+      console.error(`[chat-llm] Azure OpenAI error: ${res.status} ${errBody}`);
       return null;
     }
 
@@ -108,9 +102,9 @@ async function callOpenAI(
     return content || null;
   } catch (error: any) {
     if (error.name === "AbortError") {
-      console.error("[chat-llm] OpenAI request timed out after 25s");
+      console.error("[chat-llm] Azure OpenAI request timed out after 25s");
     } else {
-      console.error("[chat-llm] OpenAI error:", error.message);
+      console.error("[chat-llm] Azure OpenAI error:", error.message);
     }
     return null;
   }
@@ -118,7 +112,7 @@ async function callOpenAI(
 
 /**
  * Generate an LLM response for the chatbot. Only called when NLP confidence
- * is below the threshold. OpenAI gpt-4o-mini only, no Ollama fallback.
+ * is below the threshold. gpt-4o-mini on Azure OpenAI only, no Ollama fallback.
  */
 export async function generateLLMResponse(
   userMessage: string,
@@ -137,7 +131,7 @@ export async function generateLLMResponse(
 
 /** Check the LLM backend is reachable. */
 export async function isLLMReady(): Promise<boolean> {
-  return !!OPENAI_API_KEY;
+  return azureOpenAIConfigured();
 }
 
 function getFallbackResponse(): string {

@@ -10,14 +10,15 @@ import {
   type DraftContext,
 } from "./prompts.server";
 import type { ContentAccount, KillCheck } from "./model";
+import { azureChatCompletions, azureOpenAIConfigured } from "~/lib/azure-openai.server";
 
 export type { DraftContext };
 
 /**
  * The model calls behind the idea generator, the writer and the kill check.
  *
- * Same provider and key as the rest of the repo (OPENAI_API_KEY, see
- * app/lib/chat/llm.server.ts). Model defaults to gpt-4o rather than the
+ * Same provider as the rest of the repo (Azure OpenAI, see
+ * app/lib/azure-openai.server.ts). Model defaults to gpt-4o rather than the
  * gpt-4o-mini used for support chat: those answers are three sentences of
  * routing, these are posts that go out under a real person's name.
  *
@@ -27,7 +28,6 @@ export type { DraftContext };
  * not a pull request.
  */
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const MODEL = process.env.CONTENT_MODEL?.trim() || "gpt-4o";
 
 export class ContentLlmError extends Error {}
@@ -38,25 +38,18 @@ async function chat(
   messages: ChatMessage[],
   opts: { json?: boolean; maxTokens?: number; temperature?: number } = {}
 ): Promise<string> {
-  if (!OPENAI_API_KEY) {
+  if (!azureOpenAIConfigured()) {
     throw new ContentLlmError(
-      "OPENAI_API_KEY is not set on this environment, so generation is off."
+      "Azure OpenAI is not configured on this environment, so generation is off."
     );
   }
 
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages,
-      temperature: opts.temperature ?? 0.9,
-      max_tokens: opts.maxTokens ?? 2000,
-      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
-    }),
+  const res = await azureChatCompletions({
+    model: MODEL,
+    messages,
+    temperature: opts.temperature ?? 0.9,
+    max_tokens: opts.maxTokens ?? 2000,
+    ...(opts.json ? { response_format: { type: "json_object" } } : {}),
   });
 
   if (!res.ok) {

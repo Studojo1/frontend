@@ -6,8 +6,7 @@ import type { ResumeData } from "~/lib/jrs/types";
 import { uid } from "~/lib/jrs/types";
 // @ts-ignore: pdf-parse has type defs via @types/pdf-parse
 import pdfParse from "pdf-parse";
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+import { azureChatCompletions, azureOpenAIConfigured } from "~/lib/azure-openai.server";
 
 const MAX_FILES = 6;
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB per file
@@ -107,7 +106,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
-  if (!OPENAI_API_KEY) {
+  if (!azureOpenAIConfigured()) {
     return Response.json(
       { error: "Import is unavailable right now. You can still fill the resume in by hand." },
       { status: 503 },
@@ -179,14 +178,8 @@ export async function action({ request }: Route.ActionArgs) {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 45000);
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
+    const res = await azureChatCompletions(
+      {
         model: "gpt-4o-mini",
         temperature: 0.1,
         max_tokens: 2400,
@@ -195,13 +188,14 @@ export async function action({ request }: Route.ActionArgs) {
           { role: "system", content: SYSTEM },
           { role: "user", content },
         ],
-      }),
-    });
+      },
+      { signal: controller.signal }
+    );
     clearTimeout(timeoutId);
 
     if (!res.ok) {
       const errBody = await res.text().catch(() => "");
-      console.error(`[jrs-import] OpenAI error ${res.status}: ${errBody}`);
+      console.error(`[jrs-import] Azure OpenAI error ${res.status}: ${errBody}`);
       return Response.json(
         { error: "Couldn't parse that resume. Try a clearer file or fill it in by hand." },
         { status: 502 },
