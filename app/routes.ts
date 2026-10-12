@@ -116,4 +116,8 @@ export default [
   route("reports/cybersecurity-internship-report-2026", "routes/reports.cybersecurity-internship-report-2026.tsx"),
   route("reports/google-internship-report-2026", "routes/reports.google-internship-report-2026.tsx"),
   route("reports/apple-internship-report-2026-27", "routes/reports.apple-internship-report-2026-27.tsx"),
+  route("reports/ats-resume-report-2026", "routes/reports.ats-resume-report-2026.tsx"),
+  route("reports/amazon-internship-report-2026-27", "routes/reports.amazon-internship-report-2026-27.tsx"),
+  route("reports/fake-job-internship-scams-2026", "routes/reports.fake-job-internship-scams-2026.tsx"),
+  route("reports/ai-job-search-tools-2026", "routes/reports.ai-job-search-tools-2026.tsx"),
 ] satisfies RouteConfig;
