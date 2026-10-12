@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "salary-negotiation-report-do-freshers-who-negotiate-get-more-2026",
+    publishDate: "2026-10-13",
+    title: "The Salary Negotiation Report: Do Freshers Who Negotiate Actually Get More?",
+    subtitle: "The Salary Negotiation Report · 2026",
+    excerpt: "Two freshers from the same batch join the same IT company. One earns 3.36 LPA, the other 7 LPA, and neither of them negotiated. This report maps where Indian fresher pay is really decided, which offers move when you ask, which never do, and what actually gets an offer withdrawn.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "ctc-illusion-report-what-12-lpa-pays-in-hand-2026",
     publishDate: "2026-10-12",
     title: "The CTC Illusion Report: What a 12 LPA Offer Actually Pays In Hand",

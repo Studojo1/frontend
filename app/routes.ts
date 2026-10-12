@@ -117,4 +117,5 @@ export default [
   route("reports/google-internship-report-2026", "routes/reports.google-internship-report-2026.tsx"),
   route("reports/apple-internship-report-2026-27", "routes/reports.apple-internship-report-2026-27.tsx"),
   route("reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026", "routes/reports.ctc-illusion-report-what-12-lpa-pays-in-hand-2026.tsx"),
+  route("reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026", "routes/reports.salary-negotiation-report-do-freshers-who-negotiate-get-more-2026.tsx"),
 ] satisfies RouteConfig;
