@@ -6,9 +6,15 @@
 // Run: npx tsx app/lib/pb/pipeline-flow.test.mjs
 import assert from "node:assert";
 import { generatePbPosts, PbPipelineError } from "./pipeline.server.ts";
+import { pbModelChain } from "./llm.server.ts";
 
-process.env.OPENAI_API_KEY = "test-key-not-real";
+const AZURE = "https://example-resource.cognitiveservices.azure.com/";
+process.env.AZURE_OPENAI_ENDPOINT = AZURE;
+process.env.AZURE_OPENAI_API_KEY = "azure-test-key-not-real";
+// The direct OpenAI key is retired. It is set here only to prove nothing reads it.
+process.env.OPENAI_API_KEY = "sk-retired-never-read";
 delete process.env.PB_MODEL;
+delete process.env.PB_WRITER_MODEL;
 
 const EM = String.fromCodePoint(0x2014);
 const LINK = "https://studojo.com/dojos/internships?utm_source=linkedin&utm_medium=ugc&utm_campaign=pb-run-1&utm_content=asha";
@@ -114,7 +120,8 @@ const failing = (id, note) => {
 /** Replaces fetch with a script. `script` decides every reply from the kind of call and the prompt. */
 function fakeModel(script) {
   const calls = [];
-  globalThis.fetch = async (_url, init) => {
+  globalThis.fetch = async (url, init) => {
+    if (!String(url).startsWith(`${AZURE}openai/deployments/`)) throw new Error(`a model call left Azure: ${url}`);
     const body = JSON.parse(init.body);
     const sys = body.messages[0].content;
     const user = body.messages[1].content;
@@ -129,7 +136,8 @@ function fakeModel(script) {
     const quoted = user.match(/## (?:The current post|The post|Their post)\n"""\n([\s\S]*?)\n"""/)?.[1];
     const about = kind === "draft" ? (user.split("## This post")[1]?.split("\n## ")[0] ?? "") : (quoted ?? "");
     const post = /giveaway/i.test(about) ? "giveaway" : "portals";
-    calls.push({ kind, post, model: body.model, json: Boolean(body.response_format), user });
+    const model = String(url).match(/\/deployments\/([^/]+)\//)?.[1] ?? "";
+    calls.push({ kind, post, model, json: Boolean(body.response_format), user });
     const out = await script({ kind, post, user, body, n: calls.filter((c) => c.kind === kind && c.post === post).length });
     if (out && out.status) {
       return { status: out.status, headers: { get: () => null }, text: async () => JSON.stringify(out.body ?? { error: { message: "bad" } }) };
@@ -188,7 +196,7 @@ const count = (calls, kind) => calls.filter((c) => c.kind === kind).length;
   assert.strictEqual(count(calls, "comment"), 0, "no model call for the first comment");
   assert.deepStrictEqual(steps.slice(0, 3), ["dossier", "plan", "draft"]);
   assert.ok(steps.includes("review") && steps.includes("polish"));
-  assert.ok(calls.every((c) => c.model === "gpt-5.5"), "without Azure, OpenAI gpt-5.5 answers");
+  assert.ok(calls.every((c) => c.model === "gpt-5-mini"), "by default every call goes to the gpt-5-mini deployment on Azure");
   const draft = calls.find((c) => c.kind === "draft");
   assert.ok(/hostel app crashed/.test(draft.user), "the writer sees what the cohort already posted");
   assert.ok(/where the good chai is/.test(draft.user), "and the student's own writing sample");
@@ -342,10 +350,8 @@ const count = (calls, kind) => calls.filter((c) => c.kind === kind).length;
   assert.ok(/34 applications/.test(giveawayDraft.user.split("## The other posts going out this week")[1].split("\n## ")[0]), "and so must not retell the portals story");
 }
 
-// --- H. Azure first, with fallbacks ------------------------------------------
+// --- H. Azure deployments, in order -------------------------------------------
 {
-  process.env.AZURE_OPENAI_ENDPOINT = "https://example-resource.cognitiveservices.azure.com/";
-  process.env.AZURE_OPENAI_API_KEY = "azure-test-key-not-real";
   process.env.PB_WRITER_MODEL = "azure:gpt-4o";
   const seen = [];
   const script = ({ kind, post }) => {
@@ -353,48 +359,60 @@ const count = (calls, kind) => calls.filter((c) => c.kind === kind).length;
     if (kind === "plan") return PLAN;
     if (kind === "draft") return post === "giveaway" ? GIVEAWAY : PORTALS();
     if (kind === "review") return allPass();
-    if (kind === "comment") return "the link I mentioned";
     throw new Error(`unexpected ${kind}`);
   };
   fakeModel(script);
   const inner = globalThis.fetch;
-  let azureDown = false;
+  let missing = "";
+  let quotaGone = false;
+  const reply = (status, error) => ({ status, headers: { get: () => null }, text: async () => JSON.stringify({ error }) });
   globalThis.fetch = async (url, init) => {
     seen.push({ url: String(url), headers: init.headers, body: JSON.parse(init.body) });
-    if (azureDown && String(url).includes("azure.com")) {
-      return { status: 429, headers: { get: () => null }, text: async () => JSON.stringify({ error: { code: "insufficient_quota", message: "quota exceeded" } }) };
+    if (missing && String(url).includes(`/deployments/${missing}/`)) {
+      return reply(404, { code: "DeploymentNotFound", message: "The API deployment for this resource does not exist." });
     }
+    if (quotaGone) return reply(429, { code: "insufficient_quota", message: "quota exceeded" });
     return inner(url, init);
   };
   const posts = await generatePbPosts({ ...base });
   assert.strictEqual(posts.length, 2);
-  const az = seen.filter((c) => c.url.includes("azure.com"));
-  assert.strictEqual(az.length, seen.length, "with Azure configured every call goes to Azure");
-  assert.ok(az.every((c) => c.headers["api-key"] === "azure-test-key-not-real" && !c.headers.Authorization), "Azure is called with its own key header");
-  assert.ok(az.every((c) => c.url.startsWith("https://example-resource.cognitiveservices.azure.com/openai/deployments/") && c.url.includes("api-version=")), "the endpoint's trailing slash is handled");
-  assert.ok(az.every((c) => !("model" in c.body)), "the deployment comes from the URL, not the body");
-  const dossierCall = az.find((c) => c.body.messages[0].content.startsWith("You read what a student told us"));
-  const draftCall = az.find((c) => c.body.messages[1].content.includes("## This post"));
+  assert.ok(seen.every((c) => c.url.startsWith(`${AZURE}openai/deployments/`) && c.url.includes("api-version=")), "every call goes to Azure, and the endpoint's trailing slash is handled");
+  assert.ok(seen.every((c) => c.headers["api-key"] === "azure-test-key-not-real" && !c.headers.Authorization), "Azure is called with its own key header");
+  assert.ok(seen.every((c) => !("model" in c.body)), "the deployment comes from the URL, not the body");
+  const dossierCall = seen.find((c) => c.body.messages[0].content.startsWith("You read what a student told us"));
+  const draftCall = seen.find((c) => c.body.messages[1].content.includes("## This post"));
   assert.ok(dossierCall.url.includes("/deployments/gpt-5-mini/"), "thinking stages use the main chain (gpt-5-mini first)");
   assert.ok(draftCall.url.includes("/deployments/gpt-4o/"), "writing stages use PB_WRITER_MODEL");
   assert.ok("max_completion_tokens" in dossierCall.body && !("temperature" in dossierCall.body), "gpt-5-mini gets reasoning-model parameters");
   assert.ok("max_tokens" in draftCall.body && "temperature" in draftCall.body, "gpt-4o gets classic parameters");
 
-  // Azure out of quota: the same job carries on through OpenAI direct.
+  // The writer's deployment is missing: writing moves to the next deployment and the job finishes.
   seen.length = 0;
-  azureDown = true;
+  missing = "gpt-4o";
   const after = await generatePbPosts({ ...base });
-  assert.strictEqual(after.length, 2, "a provider out of credits does not fail the job");
-  assert.ok(seen.some((c) => c.url.includes("api.openai.com")), "the job moved to the other provider");
+  assert.strictEqual(after.length, 2, "a missing deployment does not fail the job");
+  assert.ok(seen.some((c) => c.url.includes("/deployments/gpt-4o/")), "the missing deployment was tried");
+  assert.ok(seen.some((c) => c.url.includes("/deployments/gpt-5-mini/") && c.body.messages[1].content.includes("## This post")), "and drafting moved on to gpt-5-mini");
+  assert.ok(seen.every((c) => c.url.startsWith(AZURE)), "nothing falls back to OpenAI direct");
+  missing = "";
 
-  // No key anywhere: a clear, permanent error.
+  // An openai: override is ignored; Azure deployments stay.
+  process.env.PB_MODEL = "openai:gpt-5.5, azure:gpt-4o";
+  assert.deepStrictEqual(pbModelChain(), ["azure:gpt-4o", "azure:gpt-5-mini"]);
+  delete process.env.PB_MODEL;
+
+  // Out of quota on every deployment: a clear, permanent error, no other provider.
+  seen.length = 0;
+  quotaGone = true;
+  await assert.rejects(() => generatePbPosts({ ...base }), (err) => err instanceof PbPipelineError && err.transient === false && /out of quota/.test(err.message));
+  assert.ok(seen.length > 0 && seen.every((c) => c.url.startsWith(AZURE)), "only Azure was asked");
+  quotaGone = false;
+
+  // Azure not configured: a clear, permanent error. The retired key is still set and still unused.
   delete process.env.AZURE_OPENAI_ENDPOINT;
   delete process.env.AZURE_OPENAI_API_KEY;
   delete process.env.PB_WRITER_MODEL;
-  const savedKey = process.env.OPENAI_API_KEY;
-  delete process.env.OPENAI_API_KEY;
-  await assert.rejects(() => generatePbPosts({ ...base }), (err) => err instanceof PbPipelineError && err.transient === false && /No model key/.test(err.message));
-  process.env.OPENAI_API_KEY = savedKey;
+  await assert.rejects(() => generatePbPosts({ ...base }), (err) => err instanceof PbPipelineError && err.transient === false && /Azure OpenAI is not configured/.test(err.message));
 }
 
 console.log("pb pipeline flow: all assertions passed");
