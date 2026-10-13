@@ -48,7 +48,9 @@ function dashboardUrl(): string {
   const host = window.location.host.replace(/^app\./, "dashboard.");
   const base = `${window.location.protocol}//${host}`;
   const s = localStorage.getItem(SESSION_STORAGE);
-  return s ? `${base}/?s=${encodeURIComponent(s)}` : base;
+  // Opened on /oldui, land on /oldui over there too, so the original look carries across.
+  const path = homePath();
+  return s ? `${base}${path}?s=${encodeURIComponent(s)}` : path === "/" ? base : base + path;
 }
 
 class BobError extends Error {
@@ -188,8 +190,8 @@ function str(v: unknown): string {
 type Ui = "new" | "old";
 const UiContext = createContext<Ui>("old");
 
-// Links written into the address bar stay under the path the page was opened on,
-// so a refresh on /oldui keeps the original look.
+// Links written into the address bar, and the link to the team dashboard, stay under
+// the path the page was opened on, so a refresh on /oldui keeps the original look.
 function homePath(): string {
   try {
     // Lower-cased: the router matches paths without regard to case.
@@ -214,10 +216,22 @@ function SenseiMark() {
   );
 }
 
+// The chat options menu in the new look is fixed to the window, so the scrolling chat list
+// cannot clip it: under its row's button, or above it when there is no room below. (The
+// original look keeps the menu inside the list.) Six items at most, about 220px.
+const SX_MENU_W = 224, SX_MENU_H = 240;
+function sxMenuPlacement(r: DOMRect): { top?: number; bottom?: number; left: number } {
+  const left = Math.max(8, Math.min(r.right - SX_MENU_W, window.innerWidth - SX_MENU_W - 8));
+  return r.bottom + 4 + SX_MENU_H > window.innerHeight - 8
+    ? { bottom: window.innerHeight - r.top + 4, left }
+    : { top: r.bottom + 4, left };
+}
+
 /* sx:start */
 const SX_CSS = `
+/* sx:shared:start (this block is identical in bob.tsx and dashboard.tsx) */
 /* The new Sensei look (first shown at studojo.com/sensei-demo), laid over the
-   workspace's own markup. Everything is scoped to .sx, which only exists when a
+   page's own markup. Everything is scoped to .sx, which only exists when a
    route asks for ui="new", so the original look is untouched by this sheet.
    Tailwind's utilities live in a cascade layer; this sheet does not, so its rules
    win without !important. A hover or focus state therefore has to be restated
@@ -237,9 +251,9 @@ const SX_CSS = `
   --ink: #16161E; --t1: #2A2B36; --t2: #585B6C; --t3: #8A8D9E; --t4: #AAADBC;
   --line: rgba(22,22,40,.09); --line2: rgba(22,22,40,.15);
   --acc: #5B63E8; --acc-deep: #4148C6; --acc-soft: #EEEFFE; --acc-soft2: #E3E5FD; --acc-line: rgba(91,99,232,.28); --acc-lite: #9AA2FF;
-  --mint: #1E9E6E; --mint-soft: #E7F8F0; --mint-line: rgba(30,158,110,.3);
-  --amber: #B4801E; --amber-soft: #FBF0DA; --amber-line: rgba(180,128,30,.35);
-  --blue: #2F6FD6; --blue-soft: #EAF1FD; --blue-line: rgba(47,111,214,.28);
+  --mint: #1E9E6E; --mint-ink: #157A54; --mint-soft: #E7F8F0; --mint-line: rgba(30,158,110,.3);
+  --amber: #B4801E; --amber-ink: #8A5F0E; --amber-soft: #FBF0DA; --amber-line: rgba(180,128,30,.35);
+  --blue: #2F6FD6; --blue-ink: #2A62BF; --blue-soft: #EAF1FD; --blue-line: rgba(47,111,214,.28);
   --red: #C2412F; --red-soft: #FCEDEA; --red-line: rgba(194,65,47,.4);
   --btn: #16161E; --btn-ink: #FFFFFF; --btn-hover: #2A2B36; --thumb: #FFFFFF;
   --acc-fill: #5B63E8; --acc-fill-h: #4148C6; --red-fill: #C2412F;
@@ -256,9 +270,9 @@ const SX_CSS = `
   --ink: #ECEDF3; --t1: #D9DBE6; --t2: #B1B4C4; --t3: #8A8D9E; --t4: #6B6E80;
   --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.15);
   --acc: #7F87F6; --acc-deep: #A6ACFF; --acc-soft: rgba(127,135,246,.15); --acc-soft2: rgba(127,135,246,.24); --acc-line: rgba(127,135,246,.4); --acc-lite: #A6ACFF;
-  --mint: #4FCB9C; --mint-soft: rgba(79,203,156,.13); --mint-line: rgba(79,203,156,.35);
-  --amber: #E2B55F; --amber-soft: rgba(226,181,95,.14); --amber-line: rgba(226,181,95,.38);
-  --blue: #86AEF3; --blue-soft: rgba(134,174,243,.14); --blue-line: rgba(134,174,243,.36);
+  --mint: #4FCB9C; --mint-ink: #4FCB9C; --mint-soft: rgba(79,203,156,.13); --mint-line: rgba(79,203,156,.35);
+  --amber: #E2B55F; --amber-ink: #E2B55F; --amber-soft: rgba(226,181,95,.14); --amber-line: rgba(226,181,95,.38);
+  --blue: #86AEF3; --blue-ink: #86AEF3; --blue-soft: rgba(134,174,243,.14); --blue-line: rgba(134,174,243,.36);
   --red: #F18F80; --red-soft: rgba(241,143,128,.14); --red-line: rgba(241,143,128,.45);
   --btn: #ECEDF3; --btn-ink: #14151C; --btn-hover: #FFFFFF; --thumb: #2E3040;
   --acc-fill: #5B63E8; --acc-fill-h: #4F57DA; --red-fill: #C2412F;
@@ -275,8 +289,10 @@ const SX_CSS = `
 .sx .font-semibold { font-weight: 500; }
 .sx .font-bold { font-weight: 600; }
 .sx .font-black { font-weight: 700; }
-.sx h1.font-semibold, .sx h2.font-semibold, .sx h3.font-bold { font-weight: 600; }
+.sx h1.font-semibold, .sx h2.font-semibold, .sx h3.font-bold, .sx [class~="font-['Clash_Display']"].font-semibold { font-weight: 600; }
 .sx svg[stroke="currentColor"] { stroke-width: 1.8; }
+.sx code, .sx pre, .sx .font-mono { font-family: var(--mono); }
+.sx a[href^="tel:"], .sx a[href^="mailto:"] { font-family: var(--mono); font-weight: 400; }
 .sx ::selection { background: rgba(91,99,232,.2); }
 
 /* ── surfaces ── */
@@ -294,10 +310,10 @@ const SX_CSS = `
 .sx .bg-violet-500, .sx .bg-violet-600 { background-color: var(--acc-fill); }
 .sx .bg-violet-700 { background-color: var(--btn); color: var(--btn-ink); }
 .sx .bg-green-50, .sx .bg-green-100 { background-color: var(--mint-soft); }
-.sx .bg-green-300 { background-color: var(--mint-soft); color: var(--mint); }
+.sx .bg-green-300 { background-color: var(--mint-soft); color: var(--mint-ink); }
 .sx .bg-green-400, .sx .bg-green-500 { background-color: var(--mint); }
 .sx .bg-amber-50, .sx .bg-amber-100 { background-color: var(--amber-soft); }
-.sx .bg-amber-200 { background-color: var(--amber-soft); color: var(--amber); }
+.sx .bg-amber-200 { background-color: var(--amber-soft); color: var(--amber-ink); }
 .sx .bg-blue-50 { background-color: var(--blue-soft); }
 .sx .bg-red-50 { background-color: var(--red-soft); }
 .sx .bg-red-600 { background-color: var(--red-fill); }
@@ -308,12 +324,15 @@ const SX_CSS = `
 .sx .text-neutral-600, .sx .text-neutral-500 { color: var(--t2); }
 .sx .text-neutral-400 { color: var(--t3); }
 .sx .text-neutral-300 { color: var(--t4); }
+.sx .text-neutral-100 { color: #ECEDF3; }
 .sx .text-violet-400 { color: var(--acc-lite); }
-.sx .text-violet-500, .sx .text-violet-600 { color: var(--acc); }
-.sx .text-violet-700, .sx .text-violet-800 { color: var(--acc-deep); }
-.sx .text-green-600, .sx .text-green-700, .sx .text-green-800 { color: var(--mint); }
-.sx .text-amber-700, .sx .text-amber-800 { color: var(--amber); }
-.sx .text-blue-700 { color: var(--blue); }
+/* Words use the deeper shade so they stay readable on a tint of the same colour; icons keep the brighter one. */
+.sx .text-violet-500, .sx svg.text-violet-600 { color: var(--acc); }
+.sx .text-violet-600, .sx .text-violet-700, .sx .text-violet-800 { color: var(--acc-deep); }
+.sx .text-green-600, .sx .text-green-700, .sx .text-green-800 { color: var(--mint-ink); }
+.sx svg.text-green-600 { color: var(--mint); }
+.sx .text-amber-600, .sx .text-amber-700, .sx .text-amber-800 { color: var(--amber-ink); }
+.sx .text-blue-700 { color: var(--blue-ink); }
 .sx .text-red-400, .sx .text-red-600, .sx .text-red-700 { color: var(--red); }
 
 /* ── lines: one soft hairline instead of the 2px ink outline ── */
@@ -330,13 +349,13 @@ const SX_CSS = `
 .sx .border-violet-200, .sx .border-violet-300 { border-color: var(--acc-line); }
 .sx .border-violet-500 { border-color: var(--acc); }
 .sx .border-green-300 { border-color: var(--mint-line); }
-.sx .border-amber-300 { border-color: var(--amber-line); }
+.sx .border-amber-300, .sx .border-amber-500 { border-color: var(--amber-line); }
 .sx .border-blue-200, .sx .border-blue-300 { border-color: var(--blue-line); }
-.sx .border-red-500 { border-color: var(--red-line); }
+.sx .border-red-300, .sx .border-red-500 { border-color: var(--red-line); }
 .sx aside.border-neutral-900, .sx header.border-neutral-900, .sx .h-12.border-neutral-900, .sx th.border-neutral-900 { border-color: var(--line); }
 
 /* ── depth: soft shadows instead of the hard offset ones ── */
-.sx [class*=" shadow-[3px_3px"], .sx [class^="shadow-[3px_3px"] { box-shadow: var(--sh-sm); }
+.sx [class*=" shadow-[2px_2px"], .sx [class*=" shadow-[3px_3px"], .sx [class^="shadow-[3px_3px"] { box-shadow: var(--sh-sm); }
 .sx [class*=" shadow-[4px_4px"] { box-shadow: var(--sh-md); }
 .sx [class*=" shadow-[6px_6px"], .sx [class*=" shadow-[8px_8px"] { box-shadow: var(--sh-lg); }
 .sx [class*="hover:shadow-[2px_2px"]:hover { box-shadow: var(--sh-md); }
@@ -359,7 +378,10 @@ const SX_CSS = `
 .sx [class~="hover:bg-violet-600"]:hover, .sx [class~="hover:bg-violet-500"]:hover { background-color: var(--acc-fill-h); }
 .sx [class~="hover:bg-violet-700"]:hover, .sx [class~="hover:bg-violet-800"]:hover, .sx [class~="hover:bg-neutral-900"]:hover { background-color: var(--btn-hover); color: var(--btn-ink); }
 .sx [class~="hover:text-violet-600"]:hover, .sx [class~="hover:text-violet-700"]:hover, .sx [class~="hover:text-violet-800"]:hover { color: var(--acc-deep); }
+/* a link that is already the deep accent at rest has nothing darker to go to: it underlines instead */
+.sx .text-violet-600[class~="hover:text-violet-800"]:hover, .sx .text-violet-700[class~="hover:text-violet-800"]:hover { text-decoration: underline; text-underline-offset: 3px; }
 .sx [class~="hover:text-red-600"]:hover, .sx [class~="hover:text-red-700"]:hover { color: var(--red); }
+.sx .group:hover [class~="group-hover:text-violet-700"] { color: var(--acc-deep); }
 .sx [class~="hover:bg-red-50"]:hover { background-color: var(--red-soft); }
 .sx [class~="hover:bg-red-700"]:hover { background-color: var(--red-fill); filter: brightness(.92); }
 .sx [class~="hover:bg-green-100"]:hover { background-color: var(--mint-soft); filter: brightness(.97); }
@@ -369,13 +391,10 @@ const SX_CSS = `
 .sx input, .sx textarea, .sx select { color: var(--ink); }
 .sx input::placeholder, .sx textarea::placeholder { color: var(--t4); }
 .sx input.border-2, .sx textarea.border-2 { background-color: var(--surface); border-radius: 12px; }
+/* the native "Choose file" button, in the pill style of the other buttons */
+.sx input[type="file"]::file-selector-button { border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-family: var(--sans); font-weight: 500; font-size: 13px; padding: 7px 14px; margin-right: 12px; cursor: pointer; }
+.sx input[type="file"]::file-selector-button:hover { border-color: var(--t3); }
 .sx .bob-thinscroll::-webkit-scrollbar-thumb { background: var(--line2); }
-@keyframes sxFlash { 0% { background-color: var(--acc-soft2); } 100% { background-color: transparent; } }
-.sx .bob-new { animation-name: sxFlash; }
-
-/* ── the conversation surface: a quiet dot grid with two soft glows ── */
-.sx .bob-canvas { background-color: var(--bg); background-image: radial-gradient(var(--dot) 1px, transparent 1px); background-size: 24px 24px; background-position: 0 0; }
-.sx .bob-canvas::before { inset: 0 0 auto 0; height: 420px; background: radial-gradient(640px 380px at 20% -80px, var(--glow1), transparent 65%), radial-gradient(560px 360px at 95% -60px, var(--glow2), transparent 65%); }
 
 /* ── Sensei's mark sits on a white tile ── */
 .sx :has(> .sx-mark) { background: #fff; border-color: var(--line); box-shadow: var(--sh-sm); }
@@ -387,24 +406,43 @@ const SX_CSS = `
 .sx .min-h-screen button[class~="py-3"].bg-violet-500 { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; border-radius: 999px; box-shadow: none; font-weight: 500; }
 .sx .min-h-screen button[class~="py-3"].bg-violet-500:hover { background-color: var(--btn-hover); translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
 
+/* ── dialogs ── */
+.sx .fixed.inset-0 > .bg-white.border-2 { border-color: var(--line); }
+.sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300 { color: var(--t2); }
+.sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300:hover { color: var(--ink); border-color: var(--t3); }
+.sx .fixed.inset-0 button.rounded-xl.bg-violet-700 { border-color: transparent; font-weight: 500; }
+.sx .fixed.inset-0 button.rounded-xl.bg-red-600 { border-color: transparent; color: #fff; font-weight: 500; }
+.sx .fixed.inset-0 button.text-left.rounded-xl.border-2 { border-radius: 12px; }
+.sx .fixed.inset-0 button.text-left.rounded-xl.border-2.bg-violet-100 { border-color: var(--acc); background-color: var(--acc-soft); }
+
+@media (prefers-reduced-motion: reduce) { .sx * { transition: none !important; } }
+/* sx:shared:end */
+
+/* ── the conversation surface: a quiet dot grid with two soft glows ── */
+.sx .bob-canvas { background-color: var(--bg); background-image: radial-gradient(var(--dot) 1px, transparent 1px); background-size: 24px 24px; background-position: 0 0; }
+.sx .bob-canvas::before { inset: 0 0 auto 0; height: 420px; background: radial-gradient(640px 380px at 20% -80px, var(--glow1), transparent 65%), radial-gradient(560px 360px at 95% -60px, var(--glow2), transparent 65%); }
+
 /* ── sidebar ── */
 .sx aside { border-color: var(--line); }
 .sx aside .h-12, .sx header.h-12 { height: 56px; }
 .sx aside .h-12 { border-bottom-color: transparent; padding-left: 16px; }
+.sx aside .h-12.border-neutral-900 { border-bottom-color: transparent; }
 .sx aside .h-12 .text-base { font-size: 15px; font-weight: 600; }
 .sx aside .h-12 [class~="text-[9px]"] { font-size: 11px; margin-top: 3px; }
 .sx aside .p-2 > button.bg-neutral-900 { padding-top: 10px; padding-bottom: 10px; font-weight: 500; transition: translate .15s, box-shadow .15s, background-color .15s; }
 .sx aside .p-2 > button.bg-neutral-900:hover { translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
-.sx aside .uppercase.tracking-wider { font-size: 10.5px; letter-spacing: .07em; color: var(--t3); }
-.sx aside .uppercase.tracking-wider .normal-case { font-family: var(--mono); color: var(--t4); font-weight: 400; }
+.sx aside .uppercase.tracking-wider { font-size: 10.5px; letter-spacing: .07em; color: var(--t3); padding-right: 7px; }
+.sx aside .uppercase.tracking-wider > .normal-case { padding-right: 5px; }
+.sx aside .uppercase.tracking-wider .normal-case { font-family: var(--mono); color: var(--t3); font-weight: 400; }
 .sx aside .rounded-xl.border-2:not([role="menu"]) { border-color: transparent; border-radius: 10px; color: var(--t2); }
 .sx aside .rounded-xl.border-2.bg-violet-100 { background-color: var(--acc-soft); color: var(--ink); }
 .sx aside .rounded-xl.border-2 [class~="text-[10.5px]"] { color: var(--acc-deep); }
+.sx aside .rounded-xl.border-2 span.block.truncate, .sx aside button.rounded-xl.border-2 > span.flex-1 { font-size: 13px; font-weight: 500; }
 /* the footer actions become quiet rows */
 .sx aside .space-y-2 { border-color: var(--line); }
 .sx aside .space-y-2 > a.rounded-xl, .sx aside .space-y-2 > button.rounded-xl { justify-content: flex-start; border-color: transparent; border-radius: 10px; padding: 8px 10px; font-size: 13px; font-weight: 400; color: var(--t2); background: none; }
 .sx aside .space-y-2 > a.rounded-xl:hover, .sx aside .space-y-2 > button.rounded-xl:hover { background-color: var(--bg2); color: var(--ink); }
-.sx aside .space-y-2 > button.bg-violet-600 { background-color: var(--acc-soft); color: var(--acc-deep); font-weight: 500; }
+.sx aside .space-y-2 > button.bg-violet-600, .sx aside .space-y-2 > button.rounded-xl.bg-violet-600 { background-color: var(--acc-soft); color: var(--acc-deep); font-weight: 500; }
 .sx aside .space-y-2 > button.bg-violet-600:hover { background-color: var(--acc-soft2); color: var(--acc-deep); }
 
 /* ── top bar ── */
@@ -429,6 +467,7 @@ const SX_CSS = `
 .sx .sx-user { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; border-radius: 18px 18px 6px 18px; box-shadow: none; }
 .sx .bob-canvas .rounded-tl-md { border-color: var(--line); border-radius: 6px 18px 18px 18px; }
 .sx .bob-canvas .rounded-tl-md p { color: var(--t1); }
+.sx .bob-canvas .rounded-tl-md p.text-neutral-400 { color: var(--t3); }
 .sx .bob-canvas button.rounded-full[class~="hover:bg-violet-500"] { border-color: var(--line); color: var(--t2); font-weight: 400; padding: 8px 14px; }
 .sx .bob-canvas button.rounded-full[class~="hover:bg-violet-500"]:hover { background-color: var(--acc-soft); border-color: var(--acc-line); color: var(--ink); }
 .sx .bob-canvas > .border-t-2 { border-color: var(--line); background-color: color-mix(in srgb, var(--surface) 85%, transparent); backdrop-filter: blur(8px); }
@@ -448,10 +487,10 @@ const SX_CSS = `
 
 /* ── results ── */
 .sx section[class~="bg-[#f4f0e8]"] > .h-12 { height: 52px; border-color: var(--line); }
-.sx button[class~="max-w-[150px]"] { border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 500; border-color: var(--line); }
+.sx button[class~="max-w-[150px]"] { border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 500; border-color: var(--line); flex-shrink: 1; min-width: 64px; }
 .sx button[class~="max-w-[150px]"].bg-violet-500 { border-color: transparent; color: #fff; }
 .sx section[class~="bg-[#f4f0e8]"] > .h-12 button.rounded-xl { font-size: 12.5px; font-weight: 500; padding: 7px 13px; border-color: transparent; }
-.sx section[class~="bg-[#f4f0e8]"] > .h-12 button.bg-neutral-100 { background-color: var(--bg2); color: var(--t4); }
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 button.bg-neutral-100 { background-color: var(--bg2); color: var(--t3); }
 .sx section[class~="bg-[#f4f0e8]"] > .h-12 button.rounded-xl.bg-neutral-900:hover { background-color: var(--btn-hover); translate: 0 -1px; }
 /* the outcome card and its one-tap levers */
 .sx section > .relative.border-b-2.bg-violet-50 { background: linear-gradient(90deg, var(--acc-soft), var(--surface)); border-color: var(--acc-line); }
@@ -462,18 +501,17 @@ const SX_CSS = `
 .sx .rounded-2xl.cursor-pointer[class*="shadow-[3px_3px"] { border-color: var(--line); transition: border-color .15s, box-shadow .15s, translate .15s; }
 .sx .rounded-2xl.cursor-pointer[class*="shadow-[3px_3px"]:hover { border-color: var(--line2); box-shadow: var(--sh-md); translate: 0 -2px; }
 .sx [class~="min-w-9"].h-9 { border-radius: 11px; font-family: var(--mono); font-weight: 600; background-color: var(--bg2); color: var(--t2); border-color: var(--line2); }
-.sx [class~="min-w-9"].h-9.bg-green-300 { background-color: var(--mint-soft); color: var(--mint); border-color: var(--mint-line); }
-.sx [class~="min-w-9"].h-9.bg-amber-200 { background-color: var(--amber-soft); color: var(--amber); border-color: var(--amber-line); }
+.sx [class~="min-w-9"].h-9.bg-green-300 { background-color: var(--mint-soft); color: var(--mint-ink); border-color: var(--mint-line); }
+.sx [class~="min-w-9"].h-9.bg-amber-200 { background-color: var(--amber-soft); color: var(--amber-ink); border-color: var(--amber-line); }
 .sx [class~="border-l-[3px]"] { border-radius: 0 10px 10px 0; }
 .sx [class~="border-l-[3px]"] p { color: var(--t1); }
-.sx a[href^="tel:"], .sx a[href^="mailto:"] { font-family: var(--mono); font-weight: 400; }
 .sx select.rounded-lg { border-radius: 9px; font-weight: 600; }
 .sx .rounded-md.border-2.bg-violet-100 { border-color: var(--acc-line); }
 /* lookup buttons */
 .sx button[title^="Find phone + email for this company"] { background-color: var(--acc-soft); color: var(--acc-deep); border-color: var(--acc-line); border-radius: 9px; }
 .sx button[title^="Find phone + email for this company"]:hover { background-color: var(--acc-soft2); }
 /* the wide table */
-.sx thead th, .sx thead th[class~="bg-[#faf7f2]"] { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--t3); background-color: var(--bg2); border-color: var(--line); }
+.sx thead th, .sx thead th[class~="bg-[#faf7f2]"] { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--t2); background-color: var(--bg2); border-color: var(--line); }
 .sx thead tr, .sx thead tr[class~="bg-[#faf7f2]"] { background-color: var(--bg2); }
 .sx tbody tr.bg-neutral-50 { background-color: var(--surface); }
 .sx tbody tr:hover, .sx tbody tr.bg-neutral-50:hover { background-color: var(--bg); }
@@ -483,27 +521,56 @@ const SX_CSS = `
 .sx [class~="max-w-[440px]"] .border-b-2 { border-color: var(--line); }
 .sx [class~="max-w-[440px]"] .tracking-widest { color: var(--t3); font-weight: 600; letter-spacing: .06em; font-size: 11px; }
 
+/* ── smaller fixes found in review ── */
+/* phone and email in the table's Contact column stay in the text face, so the column does not push the rest out */
+.sx td a[href^="tel:"], .sx td a[href^="mailto:"] { font-family: var(--sans); }
+/* project page rows: titles at the same weight as everywhere else */
+.sx section.bob-canvas button.text-left .font-semibold { font-weight: 600; }
+/* detail drawer: field labels quieter than the section headings above them */
+.sx [class~="max-w-[440px]"] .uppercase.tracking-wide { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 400; color: var(--t3); }
+/* company logo tiles: corners in proportion to the fit badge beside them */
+.sx .rounded-md.bg-violet-100.shrink-0, .sx img.rounded-md.object-contain { border-radius: 28%; }
+/* status: a coloured pill, as in the demo, without the browser's heavy arrow */
+.sx select.rounded-lg { appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center; padding: 5px 9px; }
+/* link chips white like the phone and email chips */
+.sx a.bg-neutral-50.rounded-lg { background-color: var(--surface); }
+/* figures in one face: fit scores, tier badges, popover figures */
+.sx span.rounded-md.font-black, .sx span.rounded-md.tabular-nums { font-family: var(--mono); letter-spacing: 0; font-weight: 600; }
+.sx header .relative > .absolute .text-2xl.font-black { font-family: var(--mono); letter-spacing: 0; }
+/* neighbouring pills the same height: top bar chip and run status, Enrich all and Export */
+.sx header > button.rounded-full, .sx header > span.rounded-full { padding: 3px 10px; font-size: 11.5px; }
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 button.rounded-xl { border: 1px solid transparent; }
+/* small alignment slips */
+.sx [role="menu"] > button svg { flex: none; }
+.sx .bob-canvas .flex[class~="gap-2.5"] { gap: 12px; }
+/* narrow windows: the sidebar toggle keeps its size, the credit pills tighten so the title fits */
+.sx header > button.w-8 { flex: none; }
+@media (max-width: 1340px) {
+  .sx header { gap: 6px; }
+  .sx header > button.rounded-full { padding: 3px 8px; }
+  .sx header .relative > button.rounded-full { padding: 5px 9px; gap: 5px; font-size: 11px; }
+}
+
 /* ── the research panel ── */
 .sx .sx-bar { background: linear-gradient(90deg, var(--acc), #9A8CF6) !important; }
 .sx .grid-cols-3 > .text-center .uppercase { font-weight: 500; letter-spacing: .06em; font-size: 10.5px; color: var(--t3); }
 .sx .border-neutral-900.bg-green-50 { border-color: var(--mint-line); }
 .sx .rounded-lg.border-2.px-2.py-1 { border-radius: 9px; font-weight: 500; }
+/* its cards share the hairline of every other card; "min left" stays quiet beside the figure */
+.sx section[class~="bg-[#f4f0e8]"] .max-w-2xl > .rounded-2xl.border-2, .sx section[class~="bg-[#f4f0e8]"] .max-w-2xl .grid-cols-3 > .rounded-2xl.border-2 { border-color: var(--line); }
+.sx section[class~="bg-[#f4f0e8]"] .max-w-2xl .text-3xl + span { font-weight: 400; color: var(--t2); }
 .sx .uppercase.tracking-wide { letter-spacing: .06em; font-weight: 600; }
 
-/* ── menus, popovers, dialogs ── */
+/* ── menus and popovers ── */
+/* the Enrich dialog's Paste / Upload switch: pills, selected like the tier cards */
+.sx .fixed.inset-0 button.rounded-lg.border-2 { border-radius: 999px; padding: 6px 13px; }
+.sx .fixed.inset-0 button.rounded-lg.border-2.bg-violet-100 { border-color: var(--acc); background-color: var(--acc-soft); }
 .sx [role="menu"], .sx aside [role="menu"].rounded-xl { border-color: var(--line2); border-radius: 14px; box-shadow: var(--sh-lg); padding: 5px; color: var(--ink); }
 .sx [role="menu"] > button { border-radius: 9px; }
 .sx [role="menu"] > button svg { color: var(--t3); }
 .sx [role="menu"] > button.text-red-600 svg { color: var(--red); }
 .sx [role="menu"] > button.text-red-600:hover { background-color: var(--red-soft); }
 .sx .absolute.rounded-2xl[class*="shadow-[4px_4px"] { border-color: var(--line2); box-shadow: var(--sh-lg); border-radius: 16px; }
-.sx .fixed.inset-0 > .bg-white.border-2 { border-color: var(--line); }
-.sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300 { color: var(--t2); }
-.sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300:hover { color: var(--ink); border-color: var(--t3); }
-.sx .fixed.inset-0 button.rounded-xl.bg-violet-700 { border-color: transparent; font-weight: 500; }
-.sx .fixed.inset-0 button.rounded-xl.bg-red-600 { border-color: transparent; color: #fff; font-weight: 500; }
-.sx .fixed.inset-0 button.text-left.rounded-xl.border-2 { border-radius: 12px; }
-.sx .fixed.inset-0 button.text-left.rounded-xl.border-2.bg-violet-100 { border-color: var(--acc); background-color: var(--acc-soft); }
 
 /* ── project page ── */
 .sx section.bob-canvas .w-10.h-10.rounded-xl.bg-violet-100 { border-radius: 13px; border-color: var(--acc-line); background-color: var(--acc-soft); }
@@ -512,7 +579,9 @@ const SX_CSS = `
 .sx section.bob-canvas button.text-left.rounded-2xl { border-radius: 14px; border-color: var(--line); }
 .sx section.bob-canvas button.text-left.rounded-2xl:hover { border-color: var(--line2); }
 
-@media (prefers-reduced-motion: reduce) { .sx * { transition: none !important; } }
+/* ── new rows flash once in the accent tint ── */
+@keyframes sxFlash { 0% { background-color: var(--acc-soft2); } 100% { background-color: transparent; } }
+.sx .bob-new { animation-name: sxFlash; }
 `;
 /* sx:end */
 
@@ -1102,6 +1171,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [chatInfo, setChatInfo] = useState<ChatSummary | null>(null);       // the open chat, from GET /chats/:id
   const [menuFor, setMenuFor] = useState<number | null>(null);              // chat whose options menu is open
   const menuRef = useRef<HTMLDivElement>(null);
+  const [menuAt, setMenuAt] = useState<ReturnType<typeof sxMenuPlacement> | null>(null); // new look: where it opens
+  const menuBtn = useRef<HTMLElement | null>(null);                                       // new look: the button it belongs to
   const [nameDialog, setNameDialog] = useState<null | { kind: "new-project" | "rename-project" | "rename-chat"; id?: number; value: string }>(null);
   const [moveFor, setMoveFor] = useState<ChatSummary | null>(null);
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
@@ -1470,6 +1541,13 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
   }, [menuFor]);
+  // New look: the menu is fixed to the window, so it closes when the window is resized.
+  useEffect(() => {
+    if (ui !== "new" || menuFor == null) return;
+    const close = () => setMenuFor(null);
+    window.addEventListener("resize", close);
+    return () => window.removeEventListener("resize", close);
+  }, [ui, menuFor]);
 
   const stopRun = async () => {
     if (!run || stopping) return;
@@ -1693,13 +1771,18 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         </button>
         {hasMenu && (
           <button aria-label="Chat options" aria-haspopup="menu" aria-expanded={menuFor === c.id}
-            onClick={(e) => { e.stopPropagation(); setMenuFor(menuFor === c.id ? null : c.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (ui === "new") { menuBtn.current = e.currentTarget; setMenuAt(sxMenuPlacement(e.currentTarget.getBoundingClientRect())); }
+              setMenuFor(menuFor === c.id ? null : c.id);
+            }}
             className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100">
             <FiMoreHorizontal size={15} />
           </button>
         )}
         {menuFor === c.id && (
           <div ref={menuRef} role="menu"
+            style={ui === "new" && menuAt ? { position: "fixed", top: menuAt.top ?? "auto", bottom: menuAt.bottom ?? "auto", left: menuAt.left, right: "auto", marginTop: 0 } : undefined}
             className="absolute right-1 top-full z-30 mt-1 w-56 bg-white border-2 border-neutral-900 rounded-xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] p-1 text-[13px]">
             {canOrganize && (
               <button role="menuitem" onClick={() => togglePin(c)} disabled={!c.pinned && pinnedFull}
@@ -1924,7 +2007,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               <FiPlus size={15} /> New chat
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-2 pb-4">
+          <div className="flex-1 overflow-y-auto px-2 pb-4"
+            onScroll={ui === "new" && menuFor != null ? (e) => {
+              // New look: the menu follows its row while the list scrolls, and closes once the row is out of sight.
+              const b = menuBtn.current;
+              if (!b) return;
+              const r = b.getBoundingClientRect(), l = e.currentTarget.getBoundingClientRect();
+              if (r.bottom < l.top || r.top > l.bottom) setMenuFor(null);
+              else setMenuAt(sxMenuPlacement(r));
+            } : undefined}>
             {canOrganize && pinned.length > 0 && (
               <>
                 <div className={SECTION}>
