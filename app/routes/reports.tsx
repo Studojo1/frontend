@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "ctc-illusion-report-what-12-lpa-pays-in-hand-2026",
+    publishDate: "2026-10-12",
+    title: "The CTC Illusion Report: What a 12 LPA Offer Actually Pays In Hand",
+    subtitle: "The CTC Illusion Report · 2026",
+    excerpt: "A 12 LPA offer pays about 74,000 a month, not 1 lakh. An 18 LPA product offer and a 20 LPA startup offer pay almost the same monthly cash. We broke five common Indian offer structures into PF, gratuity, variable pay, joining bonuses, ESOPs and tax, including the 12 lakh rebate cliff that can take 44% of a bonus.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "ats-resume-report-2026",
     publishDate: "2026-10-12",
     title: "The ATS Resume Report 2026: How Applicant Tracking Systems Actually Read Your Resume",
