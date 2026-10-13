@@ -6,8 +6,9 @@ import {
   FiSidebar, FiMaximize2, FiMinimize2, FiX, FiLinkedin, FiCopy, FiCheck,
   FiMessageSquare, FiColumns, FiUsers,
   FiLayers, FiGlobe, FiPaperclip, FiFile, FiPhone, FiMail, FiUserPlus, FiSlash,
-  FiMoon, FiSun, FiPhoneOff,
+  FiMoon, FiSun, FiPhoneOff, FiMoreHorizontal, FiFolder, FiFolderPlus, FiFolderMinus, FiEdit2,
 } from "react-icons/fi";
+import { LuPin, LuPinOff } from "react-icons/lu";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bob: placement intelligence workspace.
@@ -75,7 +76,28 @@ async function bobFetch<T = any>(path: string, options: RequestInit = {}): Promi
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface ChatSummary { id: number; title: string; updated_at: string }
+// project_id / project_name / pinned are the caller's OWN organisation (personal, never shared);
+// can_manage says whether they may rename, share or delete it (its owner or a workspace admin).
+interface ChatSummary {
+  id: number; title: string; updated_at: string;
+  owner_email?: string | null; can_manage?: boolean;
+  project_id?: number | null; project_name?: string | null; pinned?: boolean;
+}
+interface Project { id: number; name: string; chat_count: number; last_activity: string }
+const MAX_PINS = 4;
+
+// bob-svc sends Postgres timestamps ("2026-10-12 10:23:45.123456+00:00"); Safari will not parse
+// the space or the microseconds, so normalise before handing it to Date.
+function shortWhen(ts: string | null | undefined): string {
+  if (!ts) return "";
+  const d = new Date(ts.replace(" ", "T").replace(/(\.\d{3})\d+/, "$1"));
+  if (Number.isNaN(d.getTime())) return "";
+  const today = new Date();
+  const days = Math.floor((new Date(today.toDateString()).getTime() - new Date(d.toDateString()).getTime()) / 86400000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
 // Coach (bob-svc BOB_COACH): a finished run attaches the diagnosis + soft levers to the last
 // assistant message, so the results panel can show an edge-case card with one-click re-run chips.
 type Lever = { key?: string; label: string; message: string; est_gain?: number | null; patch?: Record<string, unknown> };
@@ -492,6 +514,216 @@ function ChangePasswordModal({ onClose, onChanged }: { onClose: () => void; onCh
   );
 }
 
+// ── Projects, pins and rename: small dialogs in the Sensei modal style ──────────
+
+const DIALOG_BACKDROP = "fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6";
+const DIALOG_CARD = "w-full max-w-md bg-white border-2 border-neutral-900 rounded-[28px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-6";
+const BTN_PRIMARY = "bg-violet-700 text-white font-bold px-5 py-2 rounded-xl border-2 border-neutral-900 text-sm hover:bg-violet-800 disabled:opacity-60";
+const BTN_CANCEL = "px-4 py-2 rounded-xl border-2 border-neutral-300 text-sm font-semibold text-neutral-500 hover:border-neutral-900 hover:text-neutral-900";
+
+// One text field: new project, rename project, rename chat. The field is text-base so iOS
+// never zooms in on focus (app/lib/mobile-viewport.test.mjs).
+function NameDialog({ title, placeholder, initial, submitLabel, maxLength, onSubmit, onClose }: {
+  title: string; placeholder: string; initial: string; submitLabel: string; maxLength: number;
+  onSubmit: (value: string) => Promise<void>; onClose: () => void;
+}) {
+  const [value, setValue] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const submit = async () => {
+    const v = value.replace(/\s+/g, " ").trim();
+    if (!v || busy) { if (!v) setError("Give it a name"); return; }
+    setBusy(true); setError("");
+    try { await onSubmit(v); onClose(); }
+    catch (e: any) { setError(e?.message || "That did not work. Try again."); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div className={DIALOG_BACKDROP} onClick={onClose}>
+      <div className={DIALOG_CARD} onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-['Clash_Display'] text-xl font-semibold">{title}</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900" aria-label="Close"><FiX size={18} /></button>
+        </div>
+        <input autoFocus value={value} maxLength={maxLength} placeholder={placeholder}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") onClose(); }}
+          className="w-full border-2 border-neutral-900 rounded-xl px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-violet-500" />
+        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onClose} className={BTN_CANCEL}>Cancel</button>
+          <button onClick={submit} disabled={busy} className={BTN_PRIMARY}>{busy ? "Saving..." : submitLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Put a chat into one of your projects (or a new one), or take it out.
+function MoveDialog({ chatTitle, projects, currentId, onPick, onCreate, onClose }: {
+  chatTitle: string; projects: Project[]; currentId: number | null;
+  onPick: (projectId: number | null) => Promise<void>; onCreate: (name: string) => Promise<void>; onClose: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const run = async (fn: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true); setError("");
+    try { await fn(); onClose(); }
+    catch (e: any) { setError(e?.message || "That did not work. Try again."); }
+    finally { setBusy(false); }
+  };
+  const create = () => {
+    const v = name.replace(/\s+/g, " ").trim();
+    if (!v) { setError("Give the new project a name"); return; }
+    run(() => onCreate(v));
+  };
+  return (
+    <div className={DIALOG_BACKDROP} onClick={onClose}>
+      <div className={DIALOG_CARD} onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-['Clash_Display'] text-xl font-semibold">Add to project</h2>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900" aria-label="Close"><FiX size={18} /></button>
+        </div>
+        <p className="text-sm text-neutral-500 mb-4 truncate">{chatTitle}</p>
+        <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto bob-thinscroll">
+          {projects.map((p) => (
+            <button key={p.id} disabled={busy} onClick={() => run(() => onPick(p.id))}
+              className={`flex items-center gap-2 text-left px-3 py-2.5 rounded-xl border-2 text-sm transition-colors ${
+                p.id === currentId ? "border-neutral-900 bg-violet-100" : "border-neutral-200 hover:border-neutral-900"}`}>
+              <FiFolder size={14} className="shrink-0 text-violet-600" />
+              <span className="flex-1 truncate">{p.name}</span>
+              {p.id === currentId && <FiCheck size={14} className="shrink-0" />}
+            </button>
+          ))}
+          {projects.length === 0 && <p className="text-sm text-neutral-500">You have no projects yet. Create one below.</p>}
+        </div>
+        <div className="flex gap-2 mt-4">
+          <input value={name} maxLength={60} placeholder="New project name" onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") create(); if (e.key === "Escape") onClose(); }}
+            className="flex-1 min-w-0 border-2 border-neutral-900 rounded-xl px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-violet-500" />
+          <button onClick={create} disabled={busy} className={BTN_PRIMARY}>Create</button>
+        </div>
+        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+        <div className="flex justify-between items-center gap-2 mt-4">
+          {currentId != null
+            ? <button disabled={busy} onClick={() => run(() => onPick(null))} className="text-sm font-semibold text-neutral-500 hover:text-red-600">Remove from project</button>
+            : <span />}
+          <button onClick={onClose} className={BTN_CANCEL}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmDialog({ title, message, confirmLabel, onConfirm, onClose }: {
+  title: string; message: string; confirmLabel: string; onConfirm: () => Promise<void>; onClose: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const go = async () => {
+    if (busy) return;
+    setBusy(true); setError("");
+    try { await onConfirm(); onClose(); }
+    catch (e: any) { setError(e?.message || "That did not work. Try again."); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div className={DIALOG_BACKDROP} onClick={onClose}>
+      <div className={DIALOG_CARD} onClick={(e) => e.stopPropagation()}>
+        <h2 className="font-['Clash_Display'] text-xl font-semibold mb-2">{title}</h2>
+        <p className="text-sm text-neutral-500">{message}</p>
+        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+        <div className="flex justify-end gap-2 mt-5">
+          <button onClick={onClose} className={BTN_CANCEL}>Cancel</button>
+          <button onClick={go} disabled={busy}
+            className="bg-red-600 text-white font-bold px-5 py-2 rounded-xl border-2 border-neutral-900 text-sm hover:bg-red-700 disabled:opacity-60">
+            {busy ? "Deleting..." : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// A project opened from the sidebar: every chat in it, newest activity first, with search
+// and a "New chat" that files the new chat into this project.
+function ProjectPage({ project, chats, loading, meEmail, onOpenChat, onNewChat, onRename, onDelete }: {
+  project: Project | undefined; chats: ChatSummary[]; loading: boolean; meEmail: string | null;
+  onOpenChat: (id: number) => void; onNewChat: () => void; onRename: () => void; onDelete: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const shown = q ? chats.filter((c) => c.title.toLowerCase().includes(q)) : chats;
+  if (!project) {
+    return (
+      <section className="bob-canvas flex-1 min-w-0 flex items-center justify-center p-6">
+        <p className="text-sm text-neutral-500">{loading ? "Loading..." : "This project no longer exists."}</p>
+      </section>
+    );
+  }
+  return (
+    <section className="bob-canvas flex-1 min-w-0 overflow-y-auto bob-thinscroll">
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 shrink-0 rounded-xl border-2 border-neutral-900 bg-violet-100 flex items-center justify-center">
+            <FiFolder size={18} className="text-violet-700" />
+          </div>
+          <h1 className="font-['Clash_Display'] text-2xl font-semibold truncate">{project.name}</h1>
+          <div className="ml-auto flex items-center gap-1 shrink-0">
+            <button onClick={onRename} title="Rename project"
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">
+              <FiEdit2 size={15} />
+            </button>
+            <button onClick={onDelete} title="Delete project"
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-neutral-500 hover:bg-neutral-100 hover:text-red-600">
+              <FiTrash2 size={15} />
+            </button>
+          </div>
+        </div>
+        <p className="text-sm text-neutral-500 mt-2">
+          {chats.length} chat{chats.length === 1 ? "" : "s"}. Only you see this project; the chats stay in your Recent list too.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2 mt-5">
+          <div className="flex-1 flex items-center gap-2 bg-white border-2 border-neutral-900 rounded-xl px-3">
+            <FiSearch size={15} className="text-neutral-400 shrink-0" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search this project"
+              className="flex-1 min-w-0 bg-transparent py-2 text-base focus:outline-none" />
+          </div>
+          <button onClick={onNewChat}
+            className="flex items-center justify-center gap-2 text-sm font-semibold bg-neutral-900 text-white rounded-xl px-4 py-2.5 hover:bg-violet-700 transition-colors">
+            <FiPlus size={15} /> New chat in this project
+          </button>
+        </div>
+        <div className="flex flex-col gap-2 mt-5">
+          {shown.map((c) => (
+            <button key={c.id} onClick={() => onOpenChat(c.id)}
+              className="text-left bg-white border-2 border-neutral-900 rounded-2xl px-4 py-3 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+              <div className="flex items-center gap-2">
+                {c.pinned && <LuPin size={13} className="shrink-0 text-violet-600" />}
+                <span className="font-semibold text-sm truncate">{c.title}</span>
+              </div>
+              <div className="text-[12px] text-neutral-500 mt-0.5 truncate">
+                {shortWhen(c.updated_at)}
+                {c.owner_email && meEmail && c.owner_email !== meEmail ? ` · shared by ${c.owner_email}` : ""}
+              </div>
+            </button>
+          ))}
+          {!loading && chats.length === 0 && (
+            <p className="text-sm text-neutral-500 bg-white border-2 border-dashed border-neutral-300 rounded-2xl p-5">
+              No chats here yet. Start one with the button above, or open the menu on any chat in the sidebar and choose Add to project.
+            </p>
+          )}
+          {!loading && chats.length > 0 && shown.length === 0 && (
+            <p className="text-sm text-neutral-500 p-2">No chat in this project matches that search.</p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── Workspace ────────────────────────────────────────────────────────────────
 
 type PanelMode = "split" | "chat" | "table";
@@ -499,6 +731,19 @@ type ResultsView = "cards" | "table";
 
 function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
+  // Personal sidebar organisation (bob-svc migration 062): pins first, then projects, then Recent.
+  const [pinned, setPinned] = useState<ChatSummary[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [projectView, setProjectView] = useState<number | null>(null);   // the open project page
+  const [projectChats, setProjectChats] = useState<ChatSummary[]>([]);
+  const [projectLoading, setProjectLoading] = useState(false);
+  const [pendingProject, setPendingProject] = useState<number | null>(null); // "New chat" from a project page
+  const [chatInfo, setChatInfo] = useState<ChatSummary | null>(null);       // the open chat, from GET /chats/:id
+  const [menuFor, setMenuFor] = useState<number | null>(null);              // chat whose options menu is open
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [nameDialog, setNameDialog] = useState<null | { kind: "new-project" | "rename-project" | "rename-chat"; id?: number; value: string }>(null);
+  const [moveFor, setMoveFor] = useState<ChatSummary | null>(null);
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
   const [activeChat, setActiveChat] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [tables, setTables] = useState<BobTable[]>([]);
@@ -510,7 +755,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [credits, setCredits] = useState<{ enrichment: number; ai: number; enabled: boolean; tiers?: EnrichTier[] | null } | null>(null);
   const [notice, setNotice] = useState<string>("");
-  const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean } } | null>(null);
+  const [me, setMe] = useState<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean; projects?: boolean } } | null>(null);
   const [showTeam, setShowTeam] = useState(false);
   // Only rendered for a workspace whose product is finding people.
   const [showEnrich, setShowEnrich] = useState(false);
@@ -557,12 +802,28 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   const loadChats = useCallback(async () => {
     try {
-      const d = await bobFetch<{ chats: ChatSummary[] }>("/chats");
+      const d = await bobFetch<{ chats: ChatSummary[]; pinned?: ChatSummary[]; projects?: Project[] }>("/chats");
       setChats(d.chats);
+      setPinned(d.pinned || []);
+      setProjects(d.projects || []);
       return d.chats;
     } catch (e) {
       handleError(e);
       return [];
+    }
+  }, [handleError]);
+
+  const loadProject = useCallback(async (id: number) => {
+    setProjectLoading(true);
+    try {
+      const d = await bobFetch<{ chats: ChatSummary[] }>(`/chats?project_id=${id}`);
+      setProjectChats(d.chats);
+    } catch (e) {
+      setProjectChats([]);
+      if (e instanceof BobError && e.status === 404) setNotice("That project no longer exists.");
+      else handleError(e);
+    } finally {
+      setProjectLoading(false);
     }
   }, [handleError]);
 
@@ -577,7 +838,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   const loadMe = useCallback(async () => {
     try {
-      setMe(await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean } }>("/me"));
+      setMe(await bobFetch<{ email: string | null; role: string; org: { id: number; name: string } | null; capabilities?: { candidate_sourcing?: boolean; projects?: boolean } }>("/me"));
     } catch { /* identity is non-critical for legacy access-code sessions */ }
   }, []);
   useEffect(() => { loadMe(); }, [loadMe]);
@@ -591,6 +852,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   }, [onAuthLost]);
 
   const shareChat = useCallback(async (chatId: number) => {
+    setMenuFor(null);
     try {
       // Make it visible to the whole workspace so a teammate who opens the link also
       // finds it in their own sidebar (it is their workspace too), then copy a deep
@@ -623,8 +885,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   }, []);
 
   const openChat = useCallback(async (id: number) => {
-    if (id === emptyRef.current.id) return;   // already open
+    setMenuFor(null);
+    setProjectView(null);
+    setPendingProject(null);
+    if (id === emptyRef.current.id) {        // already open: just leave the project page
+      try { window.history.replaceState({}, "", `/?chat=${id}`); } catch { /* ignore */ }
+      return;
+    }
     await dropCurrentIfEmpty();
+    setChatInfo(null);
     setActiveChat(id);
     // Keep the URL pointing at the open chat so it is always shareable + refresh-safe
     // (this is the link the Share button copies: app.studojo.com/?chat=<id>).
@@ -635,23 +904,45 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       const d = await bobFetch<any>(`/chats/${id}`);
       setMessages(d.messages);
       setTables(d.tables || []);
+      setChatInfo({ id: d.id, title: d.title, updated_at: "", owner_email: d.owner_email, can_manage: d.can_manage,
+                    project_id: d.project_id, project_name: d.project_name, pinned: d.pinned });
       if (d.latest_run && d.latest_run.status === "running") setRun(d.latest_run);
     } catch (e) {
       handleError(e);
     }
   }, [handleError, dropCurrentIfEmpty]);
 
+  // Open a project page in the main area. Leaving an empty chat drops it, as opening another chat does.
+  const openProject = useCallback(async (id: number) => {
+    setMenuFor(null);
+    const { id: curId, empty } = emptyRef.current;
+    await dropCurrentIfEmpty();
+    if (curId != null && empty) {
+      setActiveChat(null); setMessages([]); setTables([]); setRun(null); setChatInfo(null);
+    }
+    setPendingProject(null);
+    setProjectView(id);
+    setProjectChats([]);
+    try { window.history.replaceState({}, "", `/?project=${id}`); } catch { /* ignore */ }
+    loadProject(id);
+  }, [dropCurrentIfEmpty, loadProject]);
+
   useEffect(() => {
     // Deep link: app.studojo.com/?chat=<id> opens that specific chat (a shared link).
     // The recipient is a member of the same workspace, so get_chat authorizes it; the
     // login gate is in-page, so this param survives an unauthenticated -> login -> here.
     let wanted: number | null = null;
+    let wantedProject: number | null = null;
     try {
-      const v = new URLSearchParams(window.location.search).get("chat");
+      const qs = new URLSearchParams(window.location.search);
+      const v = qs.get("chat");
       wanted = v && /^\d+$/.test(v) ? parseInt(v, 10) : null;
+      const p = qs.get("project");
+      wantedProject = p && /^\d+$/.test(p) ? parseInt(p, 10) : null;
     } catch { /* ignore */ }
     loadChats().then((list) => {
       if (wanted != null) openChat(wanted);
+      else if (wantedProject != null) openProject(wantedProject);
       else if (list.length > 0) openChat(list[0].id);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -703,28 +994,47 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     };
   }, []);
 
-  const newChat = async () => {
+  const newChat = async (inProject: number | null = null) => {
     // Don't create a server chat yet: an empty one is throwaway. Reset to the
-    // empty state; the first message (or file) creates the chat lazily.
+    // empty state; the first message (or file) creates the chat lazily, filed into
+    // the project it was started from (if any).
+    setMenuFor(null);
     await dropCurrentIfEmpty();
     setMessages([]);
     setTables([]);
     setRun(null);
     setPendingFiles([]);
     setActiveChat(null);
+    setChatInfo(null);
+    setProjectView(null);
+    setPendingProject(inProject);
     try { window.history.replaceState({}, "", "/"); } catch { /* ignore */ }
     setMode("split");
   };
 
+  // The server creates a chat lazily, on the first message or file.
+  const createServerChat = async (): Promise<number> => {
+    const d = await bobFetch<{ id: number }>("/chats", {
+      method: "POST",
+      body: pendingProject != null ? JSON.stringify({ project_id: pendingProject }) : undefined,
+    });
+    setPendingProject(null);
+    return d.id;
+  };
+
   const deleteChat = async (id: number) => {
+    setMenuFor(null);
     if (!confirm("Delete this chat and its tables?")) return;
     try {
       await bobFetch(`/chats/${id}`, { method: "DELETE" });
       const list = await loadChats();
+      if (projectView != null) loadProject(projectView);
       if (activeChat === id) {
-        if (list.length > 0) openChat(list[0].id);
+        if (projectView != null) {
+          setActiveChat(null); setMessages([]); setTables([]); setRun(null); setChatInfo(null);
+        } else if (list.length > 0) openChat(list[0].id);
         else {
-          setActiveChat(null); setMessages([]); setTables([]); setRun(null);
+          setActiveChat(null); setMessages([]); setTables([]); setRun(null); setChatInfo(null);
           try { window.history.replaceState({}, "", "/"); } catch { /* ignore */ }
         }
       }
@@ -732,6 +1042,73 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       handleError(e);
     }
   };
+
+  // After any organising action: the sidebar, and the open project page, re-read the server.
+  const refreshLists = async () => {
+    await loadChats();
+    if (projectView != null) loadProject(projectView);
+  };
+
+  const togglePin = async (c: ChatSummary) => {
+    setMenuFor(null);
+    try {
+      await bobFetch(`/chats/${c.id}/pin`, { method: c.pinned ? "DELETE" : "POST" });
+      if (chatInfo?.id === c.id) setChatInfo({ ...chatInfo, pinned: !c.pinned });
+      await refreshLists();
+    } catch (e) {
+      if (e instanceof BobError && e.status === 409) setNotice(e.message);
+      else handleError(e);
+    }
+  };
+
+  // Throws on failure so the dialog that called it can show the message.
+  const fileChat = async (chatId: number, projectId: number | null, projectName?: string) => {
+    await bobFetch(`/chats/${chatId}/project`, { method: "PUT", body: JSON.stringify({ project_id: projectId }) });
+    if (chatInfo?.id === chatId) {
+      setChatInfo({ ...chatInfo, project_id: projectId,
+                    project_name: projectId == null ? null : (projectName || projects.find((p) => p.id === projectId)?.name || null) });
+    }
+    await refreshLists();
+  };
+
+  const createProject = async (name: string): Promise<Project> => {
+    const d = await bobFetch<{ project: Project }>("/projects", { method: "POST", body: JSON.stringify({ name }) });
+    return d.project;
+  };
+
+  const renameProject = async (id: number, name: string) => {
+    await bobFetch(`/projects/${id}`, { method: "PATCH", body: JSON.stringify({ name }) });
+    if (chatInfo?.project_id === id) setChatInfo({ ...chatInfo, project_name: name });
+    await refreshLists();
+  };
+
+  const deleteProject = async (p: Project) => {
+    await bobFetch(`/projects/${p.id}`, { method: "DELETE" });
+    if (chatInfo?.project_id === p.id) setChatInfo({ ...chatInfo, project_id: null, project_name: null });
+    if (projectView === p.id) {
+      setProjectView(null);
+      try { window.history.replaceState({}, "", activeChat ? `/?chat=${activeChat}` : "/"); } catch { /* ignore */ }
+    }
+    await loadChats();
+  };
+
+  const renameChat = async (id: number, title: string) => {
+    const d = await bobFetch<{ title: string }>(`/chats/${id}`, { method: "PATCH", body: JSON.stringify({ title }) });
+    if (chatInfo?.id === id) setChatInfo({ ...chatInfo, title: d.title });
+    await refreshLists();
+  };
+
+  // Close the chat options menu on an outside click or Escape.
+  useEffect(() => {
+    if (menuFor == null) return;
+    const onDown = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuFor(null);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuFor(null); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [menuFor]);
 
   const stopRun = async () => {
     if (!run || stopping) return;
@@ -744,8 +1121,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     try {
       let chatId = activeChat;
       if (!chatId) {
-        const d = await bobFetch<{ id: number }>("/chats", { method: "POST" });
-        chatId = d.id;
+        chatId = await createServerChat();
         setActiveChat(chatId);
         loadChats();
       }
@@ -779,8 +1155,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     setSending(true);
     try {
       if (!chatId) {
-        const d = await bobFetch<{ id: number }>("/chats", { method: "POST" });
-        chatId = d.id;
+        chatId = await createServerChat();
         setActiveChat(chatId);
       }
       setMessages((m) => [...m, { id: Date.now(), role: "user", content, created_at: "" }]);
@@ -922,6 +1297,93 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   // together as one block instead of sitting at opposite ends of the pane.
   const atRest = messages.length === 0 && !running;
 
+  // Personal organisation shows only for a signed-in person on a backend that has it.
+  const canOrganize = !!me?.email && !!me?.capabilities?.projects;
+  const pinnedIds = new Set(pinned.map((c) => c.id));
+  const recent = canOrganize ? chats.filter((c) => !pinnedIds.has(c.id)) : chats;
+  const pinnedFull = pinned.length >= MAX_PINS;
+  const openProjectObj = projectView != null ? projects.find((p) => p.id === projectView) : undefined;
+  const pendingProjectName = pendingProject != null ? projects.find((p) => p.id === pendingProject)?.name : undefined;
+  const headerTitle = projectView != null
+    ? (openProjectObj?.name || "Project")
+    : (chatInfo && chatInfo.id === activeChat ? chatInfo.title : "")
+      || chats.find((c) => c.id === activeChat)?.title
+      || (pendingProjectName ? `New chat in ${pendingProjectName}` : "New conversation");
+  const projectChip = projectView == null && chatInfo && chatInfo.id === activeChat && chatInfo.project_id
+    ? { id: chatInfo.project_id, name: chatInfo.project_name || "Project" } : null;
+  const SECTION = "flex items-center justify-between px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400";
+  const MENU_ITEM = "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed";
+
+  const renderChatRow = (c: ChatSummary) => {
+    const active = projectView == null && activeChat === c.id;
+    const manage = c.can_manage !== false;
+    const hasMenu = canOrganize || manage;
+    return (
+      <div key={c.id}
+        className={`relative flex items-center gap-1 pl-3 pr-1 py-1 mb-1 rounded-xl text-sm border-2 transition-colors ${
+          active ? "bg-violet-100 border-neutral-900" : "border-transparent hover:bg-neutral-100"}`}>
+        <button onClick={() => openChat(c.id)} className="flex-1 min-w-0 text-left py-1">
+          <span className="block truncate">{c.title}</span>
+          {canOrganize && c.project_name && (
+            <span className="flex items-center gap-1 text-[10.5px] text-violet-600 truncate">
+              <FiFolder size={10} className="shrink-0" />{c.project_name}
+            </span>
+          )}
+        </button>
+        {hasMenu && (
+          <button aria-label="Chat options" aria-haspopup="menu" aria-expanded={menuFor === c.id}
+            onClick={(e) => { e.stopPropagation(); setMenuFor(menuFor === c.id ? null : c.id); }}
+            className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100">
+            <FiMoreHorizontal size={15} />
+          </button>
+        )}
+        {menuFor === c.id && (
+          <div ref={menuRef} role="menu"
+            className="absolute right-1 top-full z-30 mt-1 w-56 bg-white border-2 border-neutral-900 rounded-xl shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] p-1 text-[13px]">
+            {canOrganize && (
+              <button role="menuitem" onClick={() => togglePin(c)} disabled={!c.pinned && pinnedFull}
+                title={!c.pinned && pinnedFull ? `You can pin up to ${MAX_PINS} chats. Unpin one first.` : undefined}
+                className={MENU_ITEM}>
+                {c.pinned ? <LuPinOff size={14} /> : <LuPin size={14} />}
+                {c.pinned ? "Unpin" : pinnedFull ? `Pin to top (${MAX_PINS} of ${MAX_PINS} pinned)` : "Pin to top"}
+              </button>
+            )}
+            {canOrganize && (
+              <button role="menuitem" onClick={() => { setMenuFor(null); setMoveFor(c); }} className={MENU_ITEM}>
+                <FiFolderPlus size={14} /> {c.project_id ? "Move to another project" : "Add to project"}
+              </button>
+            )}
+            {canOrganize && c.project_id != null && (
+              <button role="menuitem" className={MENU_ITEM}
+                onClick={async () => {
+                  setMenuFor(null);
+                  try { await fileChat(c.id, null); } catch (e: any) { setNotice(e?.message || "Could not remove it from the project"); }
+                }}>
+                <FiFolderMinus size={14} /> <span className="truncate">Remove from {c.project_name}</span>
+              </button>
+            )}
+            {manage && !!me?.capabilities?.projects && (
+              <button role="menuitem" onClick={() => { setMenuFor(null); setNameDialog({ kind: "rename-chat", id: c.id, value: c.title }); }}
+                className={MENU_ITEM}>
+                <FiEdit2 size={14} /> Rename
+              </button>
+            )}
+            {manage && (
+              <button role="menuitem" onClick={() => shareChat(c.id)} className={MENU_ITEM}>
+                <FiUsers size={14} /> Share with your team
+              </button>
+            )}
+            {manage && (
+              <button role="menuitem" onClick={() => deleteChat(c.id)} className={`${MENU_ITEM} text-red-600`}>
+                <FiTrash2 size={14} /> Delete
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
       {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
@@ -966,6 +1428,32 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         </div>
       )}
       {showSupport && <SupportModal email={me?.email || ""} orgName={me?.org?.name || ""} onClose={() => setShowSupport(false)} />}
+      {nameDialog?.kind === "new-project" && (
+        <NameDialog title="New project" placeholder="e.g. Software development" initial="" submitLabel="Create project"
+          maxLength={60} onClose={() => setNameDialog(null)}
+          onSubmit={async (v) => { const p = await createProject(v); await loadChats(); openProject(p.id); }} />
+      )}
+      {nameDialog?.kind === "rename-project" && nameDialog.id != null && (
+        <NameDialog title="Rename project" placeholder="Project name" initial={nameDialog.value} submitLabel="Save"
+          maxLength={60} onClose={() => setNameDialog(null)}
+          onSubmit={(v) => renameProject(nameDialog.id as number, v)} />
+      )}
+      {nameDialog?.kind === "rename-chat" && nameDialog.id != null && (
+        <NameDialog title="Rename chat" placeholder="Chat name" initial={nameDialog.value} submitLabel="Save"
+          maxLength={120} onClose={() => setNameDialog(null)}
+          onSubmit={(v) => renameChat(nameDialog.id as number, v)} />
+      )}
+      {moveFor && (
+        <MoveDialog chatTitle={moveFor.title} projects={projects} currentId={moveFor.project_id ?? null}
+          onClose={() => setMoveFor(null)}
+          onPick={(pid) => fileChat(moveFor.id, pid)}
+          onCreate={async (name) => { const p = await createProject(name); await fileChat(moveFor.id, p.id, p.name); }} />
+      )}
+      {deletingProject && (
+        <ConfirmDialog title={`Delete \u201c${deletingProject.name}\u201d?`} confirmLabel="Delete project"
+          message={`Its ${deletingProject.chat_count} chat${deletingProject.chat_count === 1 ? "" : "s"} stay in your sidebar. They only leave the project.`}
+          onConfirm={() => deleteProject(deletingProject)} onClose={() => setDeletingProject(null)} />
+      )}
       {showChangePw && (
         <ChangePasswordModal
           onClose={() => setShowChangePw(false)}
@@ -1069,41 +1557,51 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </div>
           <div className="p-2 shrink-0">
             <button
-              onClick={newChat}
+              onClick={() => newChat()}
               className="w-full flex items-center justify-center gap-2 text-sm font-semibold bg-neutral-900 text-white rounded-xl px-3 py-2.5 hover:bg-violet-700 transition-colors"
             >
               <FiPlus size={15} /> New chat
             </button>
           </div>
           <div className="flex-1 overflow-y-auto px-2 pb-4">
-            {chats.map((c) => (
-              <div
-                key={c.id}
-                onClick={() => openChat(c.id)}
-                className={`group flex items-center justify-between gap-1 px-3 py-2.5 mb-1 rounded-xl cursor-pointer text-sm transition-colors ${
-                  activeChat === c.id ? "bg-violet-100 border-2 border-neutral-900" : "hover:bg-neutral-100 border-2 border-transparent"
-                }`}
-              >
-                <span className="truncate">{c.title}</span>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); shareChat(c.id); }}
-                    title="Share with your team"
-                    className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-violet-600"
-                  >
-                    <FiUsers size={13} />
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); deleteChat(c.id); }}
-                    title="Delete"
-                    className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-600"
-                  >
-                    <FiTrash2 size={14} />
+            {canOrganize && pinned.length > 0 && (
+              <>
+                <div className={SECTION}>
+                  <span>Pinned</span>
+                  <span className="font-semibold normal-case tracking-normal">{pinned.length} of {MAX_PINS}</span>
+                </div>
+                {pinned.map(renderChatRow)}
+              </>
+            )}
+            {canOrganize && (
+              <>
+                <div className={SECTION}>
+                  <span>Projects</span>
+                  <button onClick={() => setNameDialog({ kind: "new-project", value: "" })} title="New project" aria-label="New project"
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100">
+                    <FiPlus size={13} />
                   </button>
                 </div>
-              </div>
-            ))}
-            {chats.length === 0 && <p className="text-neutral-400 text-sm p-3">No chats yet.</p>}
+                {projects.map((p) => (
+                  <button key={p.id} onClick={() => openProject(p.id)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 mb-1 rounded-xl text-sm text-left border-2 transition-colors ${
+                      projectView === p.id ? "bg-violet-100 border-neutral-900" : "border-transparent hover:bg-neutral-100"}`}>
+                    <FiFolder size={14} className="shrink-0 text-violet-600" />
+                    <span className="flex-1 truncate">{p.name}</span>
+                    <span className="text-[11px] text-neutral-400 shrink-0">{p.chat_count}</span>
+                  </button>
+                ))}
+                {projects.length === 0 && (
+                  <button onClick={() => setNameDialog({ kind: "new-project", value: "" })}
+                    className="w-full flex items-center gap-2 px-3 py-2 mb-1 rounded-xl text-sm text-left text-neutral-400 border-2 border-transparent hover:bg-neutral-100 hover:text-neutral-900">
+                    <FiFolderPlus size={14} className="shrink-0" /> New project
+                  </button>
+                )}
+                <div className={SECTION}><span>Recent</span></div>
+              </>
+            )}
+            {recent.map(renderChatRow)}
+            {chats.length === 0 && pinned.length === 0 && <p className="text-neutral-400 text-sm p-3">No chats yet.</p>}
           </div>
           <div className="p-3 border-t-2 border-neutral-900 shrink-0 space-y-2">
             {me?.role === "admin" && (
@@ -1156,9 +1654,13 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           >
             <FiSidebar />
           </button>
-          <span className="text-sm font-bold truncate">
-            {chats.find((c) => c.id === activeChat)?.title || "New conversation"}
-          </span>
+          <span className="text-sm font-bold truncate">{headerTitle}</span>
+          {projectChip && (
+            <button onClick={() => openProject(projectChip.id)} title="Open this project"
+              className="hidden sm:flex shrink-0 items-center gap-1 max-w-[180px] text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5 hover:border-violet-500">
+              <FiFolder size={10} className="shrink-0" /><span className="truncate">{projectChip.name}</span>
+            </button>
+          )}
           {running && (
             <span className="flex items-center gap-1.5 text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2.5 py-1">
               {/* "researching" is only true once a table exists; a run about to come
@@ -1177,7 +1679,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                 <CreditPill kind="ai" value={credits.ai} />
               </div>
             )}
-            {hasTables && (
+            {hasTables && projectView == null && (
               <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden">
                 {([["chat", FiMessageSquare, "Chat only"], ["split", FiColumns, "Split view"], ["table", FiGrid, "Results only"]] as const).map(([m, Icon, label]) => (
                   <button
@@ -1205,6 +1707,18 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </div>
         )}
 
+        {projectView != null ? (
+          <ProjectPage key={projectView}
+            project={openProjectObj}
+            chats={projectChats}
+            loading={projectLoading}
+            meEmail={me?.email ?? null}
+            onOpenChat={openChat}
+            onNewChat={() => newChat(projectView)}
+            onRename={() => { if (openProjectObj) setNameDialog({ kind: "rename-project", id: openProjectObj.id, value: openProjectObj.name }); }}
+            onDelete={() => { if (openProjectObj) setDeletingProject(openProjectObj); }}
+          />
+        ) : (
         <div ref={layoutRef} className="flex-1 min-h-0 flex">
 
           {/* Chat */}
@@ -1400,6 +1914,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
             />
           )}
         </div>
+        )}
       </div>
     </div>
   );
