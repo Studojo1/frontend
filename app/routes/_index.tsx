@@ -23,9 +23,10 @@ import type { Route } from "./+types/_index";
 // app.* and dashboard.* hosts render. Load them on demand instead. SSR still
 // works: the streaming renderer waits for a lazy component inside Suspense,
 // and hydration keeps the server HTML until the chunk arrives.
-// SenseiApp, not the default export: it is the one that takes the look (see bob.tsx).
+// SenseiApp and DashboardApp, not the default exports: they are the ones that take the look
+// (see bob.tsx).
 const BobPage = lazy(() => import("./bob").then((m) => ({ default: m.SenseiApp })));
-const DashboardPage = lazy(() => import("./dashboard"));
+const DashboardPage = lazy(() => import("./dashboard").then((m) => ({ default: m.DashboardApp })));
 
 // Blank white page, the same as those apps' own first paint, so there is no
 // flash of marketing content on the Sensei hosts.
@@ -45,8 +46,8 @@ function senseiHostApp(request: Request): "bob" | "dashboard" | null {
 export async function loader({ request }: Route.LoaderArgs) {
   const senseiApp = senseiHostApp(request);
   if (senseiApp) {
-    // The workspace's look is decided per host (app/lib/sensei-ui.ts), on the
-    // server, so the first paint is already in the right one.
+    // The look of the workspace and of the dashboard is decided per host
+    // (app/lib/sensei-ui.ts), on the server, so the first paint is already in the right one.
     return { bobApp: senseiApp === "bob", dashboardApp: senseiApp === "dashboard", senseiUi: senseiUi(request.headers.get("host")) };
   }
   const session = await getSessionFromRequest(request);
@@ -232,7 +233,7 @@ function InternshipPopup() {
 export default function Home() {
   const { bobApp, dashboardApp, senseiUi: ui } = useLoaderData<typeof loader>();
   // dashboard.studojo.* -> manager portal; app.studojo.* -> Bob workspace at root
-  if (dashboardApp) return <Suspense fallback={senseiFallback}><DashboardPage /></Suspense>;
+  if (dashboardApp) return <Suspense fallback={senseiFallback}><DashboardPage ui={ui} /></Suspense>;
   if (bobApp) return <Suspense fallback={senseiFallback}><BobPage ui={ui} /></Suspense>;
   return (
     <>

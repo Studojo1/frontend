@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   FiUsers, FiPhone, FiZap, FiExternalLink, FiUserPlus, FiActivity,
   FiMessageSquare, FiAlertTriangle, FiHome, FiMail, FiCpu, FiCopy, FiTrash2,
@@ -51,7 +51,9 @@ function senseiUrl(): string {
   const host = window.location.host.replace(/^dashboard\./, "app.");
   const base = `${window.location.protocol}//${host}`;
   const s = typeof localStorage !== "undefined" ? localStorage.getItem(SESSION_STORAGE) : null;
-  return s ? `${base}/?s=${encodeURIComponent(s)}` : base;
+  // Opened on /oldui, land on /oldui over there too, so the original look carries across.
+  const path = homePath();
+  return s ? `${base}${path}?s=${encodeURIComponent(s)}` : path === "/" ? base : base + path;
 }
 
 function fmtDate(s: string | null): string {
@@ -78,7 +80,287 @@ interface ChatRow { id: number; cells: Record<string, any>; status?: string }
 interface ChatTable { id: number; name: string; rows: ChatRow[] }
 interface ChatDetail { messages: ChatMsg[]; tables: ChatTable[] }
 
+// ── Two looks, one dashboard ─────────────────────────────────────────────────
+// Same arrangement as the workspace (app/routes/bob.tsx): this file draws the
+// ORIGINAL look unless a route hands it ui="new". The new look is this markup
+// with the stylesheet SX_CSS laid over it. Which host gets which look is decided
+// in app/lib/sensei-ui.ts (a route passes the answer in); nothing here reads the
+// host for that, so the file stays safe to promote on its own and production keeps
+// the original. <host>/oldui (app/routes/oldui.tsx) always shows the original.
+// Class names starting "sx-" in the markup are hooks for that stylesheet; they
+// do nothing in the original look.
+type Ui = "new" | "old";
+const UiContext = createContext<Ui>("old");
+
+// "/" or "/oldui": the path this page was opened on (lower-cased: the router
+// matches paths without regard to case).
+function homePath(): string {
+  try {
+    return window.location.pathname.replace(/\/+$/, "").toLowerCase() === "/oldui" ? "/oldui" : "/";
+  } catch {
+    return "/";
+  }
+}
+
+// Sensei's face. The original look uses the Studojo doodle; the new look uses the
+// Sensei mark (the kasa: hat and brim over the signal dot), drawn inline.
+function SenseiMark() {
+  if (useContext(UiContext) !== "new") return <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />;
+  return (
+    <svg viewBox="0 0 120 120" fill="none" role="img" aria-label="Sensei" className="sx-mark w-full h-full">
+      <g transform="translate(11,12) scale(0.82)">
+        <path d="M60 10 C52 15 38 29 26 45 C21 52 15 60 11 66 C27 61 42 59 60 59 C78 59 93 61 109 66 C105 60 99 52 94 45 C82 29 68 15 60 10 Z" fill="#16161E" />
+        <path d="M4 68 C24 61 42 58 60 58 C78 58 96 61 116 68 C112 77 94 83 60 83 C26 83 8 77 4 68 Z" fill="#16161E" />
+        <circle cx="60" cy="99" r="8.5" fill="#5B63E8" />
+      </g>
+    </svg>
+  );
+}
+
+/* sx:start */
+const SX_CSS = `
+/* sx:shared:start (this block is identical in bob.tsx and dashboard.tsx) */
+/* The new Sensei look (first shown at studojo.com/sensei-demo), laid over the
+   page's own markup. Everything is scoped to .sx, which only exists when a
+   route asks for ui="new", so the original look is untouched by this sheet.
+   Tailwind's utilities live in a cascade layer; this sheet does not, so its rules
+   win without !important. A hover or focus state therefore has to be restated
+   here whenever its resting state is. Class names that hold brackets or colons
+   are matched as whole words: [class~="bg-[#faf7f2]"]. */
+
+@font-face { font-family: 'Geist'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/geist-400.woff2') format('woff2'); }
+@font-face { font-family: 'Geist'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/geist-500.woff2') format('woff2'); }
+@font-face { font-family: 'Geist'; font-weight: 600; font-style: normal; font-display: swap; src: url('/fonts/geist-600.woff2') format('woff2'); }
+@font-face { font-family: 'Geist'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/geist-700.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/jetbrains-mono-400.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/jetbrains-mono-500.woff2') format('woff2'); }
+
+/* ── tokens ── */
+.sx {
+  --bg: #FBFBFD; --bg2: #F4F4F9; --surface: #FFFFFF; --track: #E9EAF2;
+  --ink: #16161E; --t1: #2A2B36; --t2: #585B6C; --t3: #8A8D9E; --t4: #AAADBC;
+  --line: rgba(22,22,40,.09); --line2: rgba(22,22,40,.15);
+  --acc: #5B63E8; --acc-deep: #4148C6; --acc-soft: #EEEFFE; --acc-soft2: #E3E5FD; --acc-line: rgba(91,99,232,.28); --acc-lite: #9AA2FF;
+  --mint: #1E9E6E; --mint-ink: #157A54; --mint-soft: #E7F8F0; --mint-line: rgba(30,158,110,.3);
+  --amber: #B4801E; --amber-ink: #8A5F0E; --amber-soft: #FBF0DA; --amber-line: rgba(180,128,30,.35);
+  --blue: #2F6FD6; --blue-ink: #2A62BF; --blue-soft: #EAF1FD; --blue-line: rgba(47,111,214,.28);
+  --red: #C2412F; --red-soft: #FCEDEA; --red-line: rgba(194,65,47,.4);
+  --btn: #16161E; --btn-ink: #FFFFFF; --btn-hover: #2A2B36; --thumb: #FFFFFF;
+  --acc-fill: #5B63E8; --acc-fill-h: #4148C6; --red-fill: #C2412F;
+  --scrim: rgba(22,22,30,.28);
+  --sh-sm: 0 1px 2px rgba(18,20,45,.06), 0 1px 3px rgba(18,20,45,.05);
+  --sh-md: 0 8px 24px -8px rgba(18,20,45,.14);
+  --sh-lg: 0 32px 72px -28px rgba(18,20,45,.30);
+  --dot: rgba(22,22,42,.05); --glow1: rgba(110,123,242,.14); --glow2: rgba(178,138,250,.11);
+  --sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+.sx .sx-dark {
+  --bg: #0F1016; --bg2: #14151C; --surface: #191A23; --track: #2A2C39;
+  --ink: #ECEDF3; --t1: #D9DBE6; --t2: #B1B4C4; --t3: #8A8D9E; --t4: #6B6E80;
+  --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.15);
+  --acc: #7F87F6; --acc-deep: #A6ACFF; --acc-soft: rgba(127,135,246,.15); --acc-soft2: rgba(127,135,246,.24); --acc-line: rgba(127,135,246,.4); --acc-lite: #A6ACFF;
+  --mint: #4FCB9C; --mint-ink: #4FCB9C; --mint-soft: rgba(79,203,156,.13); --mint-line: rgba(79,203,156,.35);
+  --amber: #E2B55F; --amber-ink: #E2B55F; --amber-soft: rgba(226,181,95,.14); --amber-line: rgba(226,181,95,.38);
+  --blue: #86AEF3; --blue-ink: #86AEF3; --blue-soft: rgba(134,174,243,.14); --blue-line: rgba(134,174,243,.36);
+  --red: #F18F80; --red-soft: rgba(241,143,128,.14); --red-line: rgba(241,143,128,.45);
+  --btn: #ECEDF3; --btn-ink: #14151C; --btn-hover: #FFFFFF; --thumb: #2E3040;
+  --acc-fill: #5B63E8; --acc-fill-h: #4F57DA; --red-fill: #C2412F;
+  --scrim: rgba(0,0,0,.55);
+  --sh-sm: 0 1px 2px rgba(0,0,0,.4); --sh-md: 0 10px 28px -10px rgba(0,0,0,.6); --sh-lg: 0 32px 72px -24px rgba(0,0,0,.75);
+  --dot: rgba(255,255,255,.055); --glow1: rgba(127,135,246,.16); --glow2: rgba(178,138,250,.09);
+  color-scheme: dark;
+}
+
+/* ── type ── */
+.sx [class~="font-['Satoshi']"] { font-family: var(--sans); letter-spacing: -.011em; -webkit-font-smoothing: antialiased; }
+.sx [class~="font-['Clash_Display']"] { font-family: var(--sans); letter-spacing: -.022em; }
+.sx [class~="font-['Clash_Display']"].tabular-nums, .sx .tabular-nums.font-black { font-family: var(--mono); letter-spacing: 0; }
+.sx .font-semibold { font-weight: 500; }
+.sx .font-bold { font-weight: 600; }
+.sx .font-black { font-weight: 700; }
+.sx h1.font-semibold, .sx h2.font-semibold, .sx h3.font-bold { font-weight: 600; }
+.sx svg[stroke="currentColor"] { stroke-width: 1.8; }
+.sx code, .sx pre, .sx .font-mono { font-family: var(--mono); }
+.sx a[href^="tel:"], .sx a[href^="mailto:"] { font-family: var(--mono); font-weight: 400; }
+.sx ::selection { background: rgba(91,99,232,.2); }
+
+/* ── surfaces ── */
+.sx [class~="bg-[#faf7f2]"] { background-color: var(--bg); }
+.sx [class~="bg-[#f4f0e8]"] { background-color: var(--bg2); }
+.sx .bg-white { background-color: var(--surface); }
+.sx .bg-neutral-50, .sx [class~="bg-neutral-50/70"], .sx .bg-neutral-100 { background-color: var(--bg2); }
+.sx .bg-neutral-200, .sx .bg-neutral-300 { background-color: var(--track); }
+.sx .bg-neutral-900 { background-color: var(--btn); color: var(--btn-ink); }
+.sx [class~="bg-black/40"] { background-color: var(--scrim); }
+.sx [class~="bg-neutral-900/20"] { background-color: rgba(22,22,30,.18); }
+.sx .bg-violet-50, .sx [class~="bg-violet-50/60"] { background-color: var(--acc-soft); }
+.sx .bg-violet-100 { background-color: var(--acc-soft2); }
+.sx .bg-violet-400 { background-color: var(--acc-lite); }
+.sx .bg-violet-500, .sx .bg-violet-600 { background-color: var(--acc-fill); }
+.sx .bg-violet-700 { background-color: var(--btn); color: var(--btn-ink); }
+.sx .bg-green-50, .sx .bg-green-100 { background-color: var(--mint-soft); }
+.sx .bg-green-300 { background-color: var(--mint-soft); color: var(--mint-ink); }
+.sx .bg-green-400, .sx .bg-green-500 { background-color: var(--mint); }
+.sx .bg-amber-50, .sx .bg-amber-100 { background-color: var(--amber-soft); }
+.sx .bg-amber-200 { background-color: var(--amber-soft); color: var(--amber-ink); }
+.sx .bg-blue-50 { background-color: var(--blue-soft); }
+.sx .bg-red-50 { background-color: var(--red-soft); }
+.sx .bg-red-600 { background-color: var(--red-fill); }
+
+/* ── text ── */
+.sx .text-neutral-900 { color: var(--ink); }
+.sx .text-neutral-800, .sx .text-neutral-700 { color: var(--t1); }
+.sx .text-neutral-600, .sx .text-neutral-500 { color: var(--t2); }
+.sx .text-neutral-400 { color: var(--t3); }
+.sx .text-neutral-300 { color: var(--t4); }
+.sx .text-neutral-100 { color: #ECEDF3; }
+.sx .text-violet-400 { color: var(--acc-lite); }
+/* Words use the deeper shade so they stay readable on a tint of the same colour; icons keep the brighter one. */
+.sx .text-violet-500, .sx svg.text-violet-600 { color: var(--acc); }
+.sx .text-violet-600, .sx .text-violet-700, .sx .text-violet-800 { color: var(--acc-deep); }
+.sx .text-green-600, .sx .text-green-700, .sx .text-green-800 { color: var(--mint-ink); }
+.sx svg.text-green-600 { color: var(--mint); }
+.sx .text-amber-600, .sx .text-amber-700, .sx .text-amber-800 { color: var(--amber-ink); }
+.sx .text-blue-700 { color: var(--blue-ink); }
+.sx .text-red-400, .sx .text-red-600, .sx .text-red-700 { color: var(--red); }
+
+/* ── lines: one soft hairline instead of the 2px ink outline ── */
+.sx .border-2 { border-width: 1px; }
+.sx .border-b-2 { border-bottom-width: 1px; }
+.sx .border-t-2 { border-top-width: 1px; }
+.sx .border-r-2 { border-right-width: 1px; }
+.sx .border-l-2 { border-left-width: 1px; }
+.sx .border-r-0 { border-right-width: 0; }
+.sx .border-neutral-900 { border-color: var(--line2); }
+.sx .border-neutral-100, .sx .border-neutral-200 { border-color: var(--line); }
+.sx .border-neutral-300 { border-color: var(--line2); }
+.sx .border-transparent { border-color: transparent; }
+.sx .border-violet-200, .sx .border-violet-300 { border-color: var(--acc-line); }
+.sx .border-violet-500 { border-color: var(--acc); }
+.sx .border-green-300 { border-color: var(--mint-line); }
+.sx .border-amber-300, .sx .border-amber-500 { border-color: var(--amber-line); }
+.sx .border-blue-200, .sx .border-blue-300 { border-color: var(--blue-line); }
+.sx .border-red-300, .sx .border-red-500 { border-color: var(--red-line); }
+.sx aside.border-neutral-900, .sx header.border-neutral-900, .sx .h-12.border-neutral-900, .sx th.border-neutral-900 { border-color: var(--line); }
+
+/* ── depth: soft shadows instead of the hard offset ones ── */
+.sx [class*=" shadow-[2px_2px"], .sx [class*=" shadow-[3px_3px"], .sx [class^="shadow-[3px_3px"] { box-shadow: var(--sh-sm); }
+.sx [class*=" shadow-[4px_4px"] { box-shadow: var(--sh-md); }
+.sx [class*=" shadow-[6px_6px"], .sx [class*=" shadow-[8px_8px"] { box-shadow: var(--sh-lg); }
+.sx [class*="hover:shadow-[2px_2px"]:hover { box-shadow: var(--sh-md); }
+.sx [class*="hover:translate-x-"]:hover { translate: 0 -1px; }
+
+/* ── radii ── */
+.sx [class~="rounded-[24px]"], .sx [class~="rounded-[28px]"], .sx [class~="rounded-[32px]"] { border-radius: 20px; }
+.sx :where(button.rounded-xl:not(.text-left, .w-9, .w-8, .w-7), a.rounded-xl) { border-radius: 999px; }
+
+/* ── states restated: hover, focus, disabled ── */
+.sx [class~="hover:bg-neutral-100"]:hover, .sx [class~="hover:bg-neutral-50"]:hover { background-color: var(--bg2); }
+.sx [class~="hover:bg-black/5"]:hover { background-color: var(--line); }
+.sx [class~="hover:text-neutral-900"]:hover { color: var(--ink); }
+.sx [class~="hover:text-neutral-700"]:hover { color: var(--t1); }
+.sx [class~="hover:text-white"]:hover { color: #fff; }
+.sx [class~="hover:border-neutral-900"]:hover, .sx [class~="hover:border-neutral-400"]:hover { border-color: var(--t3); }
+.sx [class~="hover:border-violet-500"]:hover, .sx [class~="hover:border-violet-400"]:hover { border-color: var(--acc); }
+.sx [class~="hover:border-[#0a66c2]"]:hover { border-color: #0a66c2; }
+.sx [class~="hover:bg-violet-50"]:hover, .sx [class~="hover:bg-violet-100"]:hover { background-color: var(--acc-soft); }
+.sx [class~="hover:bg-violet-600"]:hover, .sx [class~="hover:bg-violet-500"]:hover { background-color: var(--acc-fill-h); }
+.sx [class~="hover:bg-violet-700"]:hover, .sx [class~="hover:bg-violet-800"]:hover, .sx [class~="hover:bg-neutral-900"]:hover { background-color: var(--btn-hover); color: var(--btn-ink); }
+.sx [class~="hover:text-violet-600"]:hover, .sx [class~="hover:text-violet-700"]:hover, .sx [class~="hover:text-violet-800"]:hover { color: var(--acc-deep); }
+/* a link that is already the deep accent at rest has nothing darker to go to: it underlines instead */
+.sx .text-violet-600[class~="hover:text-violet-800"]:hover, .sx .text-violet-700[class~="hover:text-violet-800"]:hover { text-decoration: underline; text-underline-offset: 3px; }
+.sx [class~="hover:text-red-600"]:hover, .sx [class~="hover:text-red-700"]:hover { color: var(--red); }
+.sx .group:hover [class~="group-hover:text-violet-700"] { color: var(--acc-deep); }
+.sx [class~="hover:bg-red-50"]:hover { background-color: var(--red-soft); }
+.sx [class~="hover:bg-red-700"]:hover { background-color: var(--red-fill); filter: brightness(.92); }
+.sx [class~="hover:bg-green-100"]:hover { background-color: var(--mint-soft); filter: brightness(.97); }
+.sx [class~="hover:bg-amber-100"]:hover { background-color: var(--amber-soft); filter: brightness(.97); }
+.sx [class~="focus:ring-2"]:focus { border-color: var(--acc); box-shadow: 0 0 0 4px var(--acc-soft); }
+.sx button:focus-visible, .sx a:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.sx input, .sx textarea, .sx select { color: var(--ink); }
+.sx input::placeholder, .sx textarea::placeholder { color: var(--t4); }
+.sx input.border-2, .sx textarea.border-2 { background-color: var(--surface); border-radius: 12px; }
+.sx .bob-thinscroll::-webkit-scrollbar-thumb { background: var(--line2); }
+
+/* ── Sensei's mark sits on a white tile ── */
+.sx :has(> .sx-mark) { background: #fff; border-color: var(--line); box-shadow: var(--sh-sm); }
+
+/* ── sign in and reset ── */
+.sx .min-h-screen[class~="bg-[#faf7f2]"] { background-color: var(--bg); background-image: radial-gradient(640px 420px at 50% -120px, var(--glow1), transparent 70%); }
+.sx .min-h-screen .max-w-md { border-color: var(--line); }
+.sx .min-h-screen input.rounded-2xl { border-radius: 12px; }
+.sx .min-h-screen button[class~="py-3"].bg-violet-500 { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; border-radius: 999px; box-shadow: none; font-weight: 500; }
+.sx .min-h-screen button[class~="py-3"].bg-violet-500:hover { background-color: var(--btn-hover); translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
+
+/* ── dialogs ── */
+.sx .fixed.inset-0 > .bg-white.border-2 { border-color: var(--line); }
+.sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300 { color: var(--t2); }
+.sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300:hover { color: var(--ink); border-color: var(--t3); }
+.sx .fixed.inset-0 button.rounded-xl.bg-violet-700 { border-color: transparent; font-weight: 500; }
+.sx .fixed.inset-0 button.rounded-xl.bg-red-600 { border-color: transparent; color: #fff; font-weight: 500; }
+.sx .fixed.inset-0 button.text-left.rounded-xl.border-2 { border-radius: 12px; }
+.sx .fixed.inset-0 button.text-left.rounded-xl.border-2.bg-violet-100 { border-color: var(--acc); background-color: var(--acc-soft); }
+
+@media (prefers-reduced-motion: reduce) { .sx * { transition: none !important; } }
+/* sx:shared:end */
+
+/* ── the dashboard's frame: sidebar and navigation ── */
+.sx aside { border-color: var(--line); }
+.sx aside .h-16 { border-bottom-color: transparent; }
+.sx aside .h-16 .text-base { font-size: 15px; font-weight: 600; }
+.sx aside nav > button { border-radius: 10px; font-weight: 500; color: var(--t2); }
+.sx aside nav > button svg { color: var(--t3); }
+.sx aside nav > button:hover { background-color: var(--bg2); color: var(--ink); }
+.sx aside nav > button.bg-neutral-900, .sx aside nav > button.bg-neutral-900:hover { background-color: var(--acc-soft); color: var(--ink); }
+.sx aside nav > button.bg-neutral-900 svg { color: var(--acc); }
+.sx aside .space-y-2 { border-color: var(--line); }
+/* the way into the workspace is the one solid action */
+.sx a.bg-violet-600 { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; box-shadow: none; font-weight: 500; transition: translate .15s, box-shadow .15s, background-color .15s; }
+.sx a.bg-violet-600:hover { background-color: var(--btn-hover); translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
+
+/* ── the page ── */
+.sx main h1 { font-size: 24px; font-weight: 600; letter-spacing: -.025em; }
+.sx main h2 { font-weight: 600; }
+.sx main .rounded-2xl[class*=" shadow-[2px_2px"] { border-color: var(--line); }
+/* figures: label above, number in the mono face */
+.sx .text-3xl.font-black { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.sx .text-xs.font-bold.uppercase { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; }
+.sx .sx-warn { border-color: var(--amber-line); }
+/* lists laid out as tables: a tinted header row over hairlines */
+.sx main .grid.uppercase { background-color: var(--bg2); border-color: var(--line); }
+/* the page's own actions are near-black pills, like every other primary action */
+.sx main button.bg-violet-600, .sx main button.bg-violet-500 { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; box-shadow: none; font-weight: 500; }
+.sx main button.bg-violet-600:not(:disabled):hover, .sx main button.bg-violet-500:not(:disabled):hover { background-color: var(--btn-hover); }
+.sx main select.border-2 { border-radius: 10px; background-color: var(--surface); }
+.sx main select.border-violet-500 { border-color: var(--acc-line); background-color: var(--acc-soft); color: var(--acc-deep); }
+.sx .rounded-full.border-2 { font-weight: 500; }
+/* phone numbers and addresses sit in narrow columns: the mono face a size down so they fit */
+.sx main a[href^="tel:"], .sx main a[href^="mailto:"] { font-size: 12px; }
+.sx .rounded-full.border-2.border-violet-500 { border-color: var(--acc-line); }
+
+/* ── AI agent keys ── */
+.sx .rounded-2xl.border-2.border-violet-500 { border-color: var(--acc-line); }
+.sx pre[class~="bg-[#15141b]"] { background-color: #16161E; border-color: transparent; color: #E6E7F0; }
+
+/* ── the read-only chat viewer ── */
+.sx .fixed.inset-0 .border-b-2 { border-color: var(--line); }
+.sx .fixed.inset-0 [class~="max-w-[85%]"].bg-violet-500 { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; border-radius: 18px 18px 6px 18px; }
+.sx .fixed.inset-0 [class~="max-w-[85%]"].bg-white { border-color: var(--line); border-radius: 6px 18px 18px 18px; box-shadow: var(--sh-sm); color: var(--t1); }
+.sx .fixed.inset-0 .rounded-2xl.border-2.overflow-hidden { border-color: var(--line); }
+.sx .fixed.inset-0 [class~="bg-[#faf7f2]"] { background-color: var(--bg2); }
+`;
+/* sx:end */
+
+// The route component, and what a plain import of this file gives: the original look.
+// (React Router wraps a route's default export and drops any props handed to it, so
+// the routes that choose a look import DashboardApp by name instead.)
 export default function DashboardPage() {
+  return <DashboardApp />;
+}
+
+export function DashboardApp({ ui }: { ui?: Ui }) {
+  const look: Ui = ui === "new" ? "new" : "old";
   const [mounted, setMounted] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
@@ -110,10 +392,21 @@ export default function DashboardPage() {
     if (localStorage.getItem(SESSION_STORAGE) || localStorage.getItem(KEY_STORAGE)) setAuthed(true);
   }, []);
 
-  if (!mounted) return <div className="min-h-screen bg-[#faf7f2]" />;
-  if (resetToken) return <ResetPasswordScreen token={resetToken} onDone={() => setResetToken(null)} />;
-  if (!authed) return <DashGate onSuccess={() => setAuthed(true)} />;
-  return <Dashboard onSignOut={() => setAuthed(false)} />;
+  const screen = !mounted ? <div className="min-h-screen bg-[#faf7f2]" />
+    : resetToken ? <ResetPasswordScreen token={resetToken} onDone={() => setResetToken(null)} />
+    : !authed ? <DashGate onSuccess={() => setAuthed(true)} />
+    : <Dashboard onSignOut={() => setAuthed(false)} />;
+  if (look !== "new") return screen;
+  // The new look: the same screens inside a scope the stylesheet hangs off.
+  // display:contents keeps the wrapper out of the layout.
+  return (
+    <UiContext.Provider value="new">
+      <div className="sx" style={{ display: "contents" }}>
+        <style>{SX_CSS}</style>
+        {screen}
+      </div>
+    </UiContext.Provider>
+  );
 }
 
 function DashGate({ onSuccess }: { onSuccess: () => void }) {
@@ -166,7 +459,7 @@ function DashGate({ onSuccess }: { onSuccess: () => void }) {
     <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
       <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
         <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
-          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+          <SenseiMark />
         </div>
         <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">
           Team dashboard <span className="text-neutral-400 text-xl font-normal">Sensei</span>
@@ -225,6 +518,7 @@ function DashGate({ onSuccess }: { onSuccess: () => void }) {
 }
 
 function Dashboard({ onSignOut }: { onSignOut: () => void }) {
+  const ui = useContext(UiContext);
   const [me, setMe] = useState<Me | null>(null);
   const [data, setData] = useState<DashData | null>(null);
   const [err, setErr] = useState("");
@@ -289,7 +583,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
       <div className="min-h-screen bg-[#faf7f2] font-['Satoshi'] flex items-center justify-center p-6 text-neutral-900">
         <div className={`${card} p-8 max-w-md text-center`}>
           <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mx-auto mb-4">
-            <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+            <SenseiMark />
           </div>
           <h1 className="font-['Clash_Display'] text-2xl font-bold mb-2">This is the manager dashboard</h1>
           <p className="text-neutral-500 mb-6">Your workspace's manager sees team activity here. You can jump straight into Sensei to start working.</p>
@@ -317,7 +611,9 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   ] as const;
 
   const StatCard = ({ icon, label, value, sub, warn }: { icon: any; label: string; value: any; sub?: string; warn?: boolean }) => (
-    <div className={`${card} p-5 ${warn ? "!border-amber-500" : ""}`}>
+    // "!border-amber-500" is !important inside Tailwind's cascade layer, which nothing outside the
+    // layers can override, so the new look marks the card with its own class instead.
+    <div className={`${card} p-5 ${warn ? (ui === "new" ? "sx-warn" : "!border-amber-500") : ""}`}>
       <div className="flex items-center gap-1.5 text-neutral-400 text-xs font-bold uppercase mb-1">{icon} {label}</div>
       <div className={`text-3xl font-black ${warn ? "text-amber-600" : ""}`}>{value}</div>
       {sub && <div className="text-xs text-neutral-400 mt-1">{sub}</div>}
@@ -338,7 +634,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
       <aside className="w-60 shrink-0 border-r-2 border-neutral-900 bg-white flex flex-col fixed inset-y-0 left-0 z-20">
         <div className="h-16 px-4 flex items-center gap-2.5 border-b-2 border-neutral-900">
           <div className="w-9 h-9 border-2 border-neutral-900 rounded-xl overflow-hidden shrink-0">
-            <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+            <SenseiMark />
           </div>
           <div className="min-w-0">
             <div className="font-['Clash_Display'] text-base font-semibold leading-none">Team dashboard</div>
@@ -806,7 +1102,7 @@ function ResetPasswordScreen({ token, onDone }: { token: string; onDone: () => v
     <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
       <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
         <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
-          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+          <SenseiMark />
         </div>
         {done ? (
           <>
