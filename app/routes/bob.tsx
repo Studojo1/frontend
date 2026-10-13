@@ -192,7 +192,8 @@ const UiContext = createContext<Ui>("old");
 // so a refresh on /oldui keeps the original look.
 function homePath(): string {
   try {
-    return window.location.pathname.replace(/\/+$/, "") === "/oldui" ? "/oldui" : "/";
+    // Lower-cased: the router matches paths without regard to case.
+    return window.location.pathname.replace(/\/+$/, "").toLowerCase() === "/oldui" ? "/oldui" : "/";
   } catch {
     return "/";
   }
@@ -241,6 +242,7 @@ const SX_CSS = `
   --blue: #2F6FD6; --blue-soft: #EAF1FD; --blue-line: rgba(47,111,214,.28);
   --red: #C2412F; --red-soft: #FCEDEA; --red-line: rgba(194,65,47,.4);
   --btn: #16161E; --btn-ink: #FFFFFF; --btn-hover: #2A2B36; --thumb: #FFFFFF;
+  --acc-fill: #5B63E8; --acc-fill-h: #4148C6; --red-fill: #C2412F;
   --scrim: rgba(22,22,30,.28);
   --sh-sm: 0 1px 2px rgba(18,20,45,.06), 0 1px 3px rgba(18,20,45,.05);
   --sh-md: 0 8px 24px -8px rgba(18,20,45,.14);
@@ -259,6 +261,7 @@ const SX_CSS = `
   --blue: #86AEF3; --blue-soft: rgba(134,174,243,.14); --blue-line: rgba(134,174,243,.36);
   --red: #F18F80; --red-soft: rgba(241,143,128,.14); --red-line: rgba(241,143,128,.45);
   --btn: #ECEDF3; --btn-ink: #14151C; --btn-hover: #FFFFFF; --thumb: #2E3040;
+  --acc-fill: #5B63E8; --acc-fill-h: #4F57DA; --red-fill: #C2412F;
   --scrim: rgba(0,0,0,.55);
   --sh-sm: 0 1px 2px rgba(0,0,0,.4); --sh-md: 0 10px 28px -10px rgba(0,0,0,.6); --sh-lg: 0 32px 72px -24px rgba(0,0,0,.75);
   --dot: rgba(255,255,255,.055); --glow1: rgba(127,135,246,.16); --glow2: rgba(178,138,250,.09);
@@ -288,7 +291,7 @@ const SX_CSS = `
 .sx .bg-violet-50, .sx [class~="bg-violet-50/60"] { background-color: var(--acc-soft); }
 .sx .bg-violet-100 { background-color: var(--acc-soft2); }
 .sx .bg-violet-400 { background-color: var(--acc-lite); }
-.sx .bg-violet-500, .sx .bg-violet-600 { background-color: var(--acc); }
+.sx .bg-violet-500, .sx .bg-violet-600 { background-color: var(--acc-fill); }
 .sx .bg-violet-700 { background-color: var(--btn); color: var(--btn-ink); }
 .sx .bg-green-50, .sx .bg-green-100 { background-color: var(--mint-soft); }
 .sx .bg-green-300 { background-color: var(--mint-soft); color: var(--mint); }
@@ -297,7 +300,7 @@ const SX_CSS = `
 .sx .bg-amber-200 { background-color: var(--amber-soft); color: var(--amber); }
 .sx .bg-blue-50 { background-color: var(--blue-soft); }
 .sx .bg-red-50 { background-color: var(--red-soft); }
-.sx .bg-red-600 { background-color: var(--red); }
+.sx .bg-red-600 { background-color: var(--red-fill); }
 
 /* ── text ── */
 .sx .text-neutral-900 { color: var(--ink); }
@@ -341,7 +344,7 @@ const SX_CSS = `
 
 /* ── radii ── */
 .sx [class~="rounded-[24px]"], .sx [class~="rounded-[28px]"], .sx [class~="rounded-[32px]"] { border-radius: 20px; }
-.sx button.rounded-xl:not(.text-left):not(.w-9):not(.w-8):not(.w-7), .sx a.rounded-xl { border-radius: 999px; }
+.sx :where(button.rounded-xl:not(.text-left, .w-9, .w-8, .w-7), a.rounded-xl) { border-radius: 999px; }
 
 /* ── states restated: hover, focus, disabled ── */
 .sx [class~="hover:bg-neutral-100"]:hover, .sx [class~="hover:bg-neutral-50"]:hover { background-color: var(--bg2); }
@@ -351,13 +354,14 @@ const SX_CSS = `
 .sx [class~="hover:text-white"]:hover { color: #fff; }
 .sx [class~="hover:border-neutral-900"]:hover, .sx [class~="hover:border-neutral-400"]:hover { border-color: var(--t3); }
 .sx [class~="hover:border-violet-500"]:hover, .sx [class~="hover:border-violet-400"]:hover { border-color: var(--acc); }
+.sx [class~="hover:border-[#0a66c2]"]:hover { border-color: #0a66c2; }
 .sx [class~="hover:bg-violet-50"]:hover, .sx [class~="hover:bg-violet-100"]:hover { background-color: var(--acc-soft); }
-.sx [class~="hover:bg-violet-600"]:hover, .sx [class~="hover:bg-violet-500"]:hover { background-color: var(--acc-deep); }
+.sx [class~="hover:bg-violet-600"]:hover, .sx [class~="hover:bg-violet-500"]:hover { background-color: var(--acc-fill-h); }
 .sx [class~="hover:bg-violet-700"]:hover, .sx [class~="hover:bg-violet-800"]:hover, .sx [class~="hover:bg-neutral-900"]:hover { background-color: var(--btn-hover); color: var(--btn-ink); }
 .sx [class~="hover:text-violet-600"]:hover, .sx [class~="hover:text-violet-700"]:hover, .sx [class~="hover:text-violet-800"]:hover { color: var(--acc-deep); }
 .sx [class~="hover:text-red-600"]:hover, .sx [class~="hover:text-red-700"]:hover { color: var(--red); }
 .sx [class~="hover:bg-red-50"]:hover { background-color: var(--red-soft); }
-.sx [class~="hover:bg-red-700"]:hover { background-color: var(--red); filter: brightness(.92); }
+.sx [class~="hover:bg-red-700"]:hover { background-color: var(--red-fill); filter: brightness(.92); }
 .sx [class~="hover:bg-green-100"]:hover { background-color: var(--mint-soft); filter: brightness(.97); }
 .sx [class~="hover:bg-amber-100"]:hover { background-color: var(--amber-soft); filter: brightness(.97); }
 .sx [class~="focus:ring-2"]:focus { border-color: var(--acc); box-shadow: 0 0 0 4px var(--acc-soft); }
@@ -393,7 +397,7 @@ const SX_CSS = `
 .sx aside .p-2 > button.bg-neutral-900:hover { translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
 .sx aside .uppercase.tracking-wider { font-size: 10.5px; letter-spacing: .07em; color: var(--t3); }
 .sx aside .uppercase.tracking-wider .normal-case { font-family: var(--mono); color: var(--t4); font-weight: 400; }
-.sx aside .rounded-xl.border-2 { border-color: transparent; border-radius: 10px; color: var(--t2); }
+.sx aside .rounded-xl.border-2:not([role="menu"]) { border-color: transparent; border-radius: 10px; color: var(--t2); }
 .sx aside .rounded-xl.border-2.bg-violet-100 { background-color: var(--acc-soft); color: var(--ink); }
 .sx aside .rounded-xl.border-2 [class~="text-[10.5px]"] { color: var(--acc-deep); }
 /* the footer actions become quiet rows */
@@ -436,8 +440,9 @@ const SX_CSS = `
 .sx .sx-composer button.w-9.bg-white:hover { background-color: var(--bg2); color: var(--ink); }
 .sx .sx-composer button.w-9.bg-violet-700:not(:disabled):hover { translate: 0 -1px; }
 /* the divider between chat and results: a hairline you can still grab */
-.sx .cursor-col-resize { background-color: var(--line); width: 1px; box-shadow: none; }
-.sx .cursor-col-resize::after { content: ""; position: absolute; top: 0; bottom: 0; left: -4px; right: -4px; }
+/* z-index: above the results table's pinned cells (z-30), below dialogs (z-50) */
+.sx .cursor-col-resize { background-color: var(--line); width: 1px; box-shadow: none; z-index: 35; }
+.sx .cursor-col-resize::after { content: ""; position: absolute; top: 0; bottom: 0; left: -5px; right: -5px; }
 .sx .cursor-col-resize:hover { background-color: var(--acc); }
 .sx .cursor-col-resize > div { display: none; }
 
@@ -468,8 +473,8 @@ const SX_CSS = `
 .sx button[title^="Find phone + email for this company"] { background-color: var(--acc-soft); color: var(--acc-deep); border-color: var(--acc-line); border-radius: 9px; }
 .sx button[title^="Find phone + email for this company"]:hover { background-color: var(--acc-soft2); }
 /* the wide table */
-.sx thead th { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--t3); background-color: var(--bg2); border-color: var(--line); }
-.sx thead tr { background-color: var(--bg2); }
+.sx thead th, .sx thead th[class~="bg-[#faf7f2]"] { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--t3); background-color: var(--bg2); border-color: var(--line); }
+.sx thead tr, .sx thead tr[class~="bg-[#faf7f2]"] { background-color: var(--bg2); }
 .sx tbody tr.bg-neutral-50 { background-color: var(--surface); }
 .sx tbody tr:hover, .sx tbody tr.bg-neutral-50:hover { background-color: var(--bg); }
 .sx tbody td.sticky { border-color: var(--line); }
@@ -486,7 +491,7 @@ const SX_CSS = `
 .sx .uppercase.tracking-wide { letter-spacing: .06em; font-weight: 600; }
 
 /* ── menus, popovers, dialogs ── */
-.sx [role="menu"] { border-color: var(--line2); border-radius: 14px; box-shadow: var(--sh-lg); padding: 5px; }
+.sx [role="menu"], .sx aside [role="menu"].rounded-xl { border-color: var(--line2); border-radius: 14px; box-shadow: var(--sh-lg); padding: 5px; color: var(--ink); }
 .sx [role="menu"] > button { border-radius: 9px; }
 .sx [role="menu"] > button svg { color: var(--t3); }
 .sx [role="menu"] > button.text-red-600 svg { color: var(--red); }
@@ -494,6 +499,7 @@ const SX_CSS = `
 .sx .absolute.rounded-2xl[class*="shadow-[4px_4px"] { border-color: var(--line2); box-shadow: var(--sh-lg); border-radius: 16px; }
 .sx .fixed.inset-0 > .bg-white.border-2 { border-color: var(--line); }
 .sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300 { color: var(--t2); }
+.sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300:hover { color: var(--ink); border-color: var(--t3); }
 .sx .fixed.inset-0 button.rounded-xl.bg-violet-700 { border-color: transparent; font-weight: 500; }
 .sx .fixed.inset-0 button.rounded-xl.bg-red-600 { border-color: transparent; color: #fff; font-weight: 500; }
 .sx .fixed.inset-0 button.text-left.rounded-xl.border-2 { border-radius: 12px; }
