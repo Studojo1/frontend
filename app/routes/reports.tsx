@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "job-scam-report-fake-internships-task-scams-students-2026",
+    publishDate: "2026-10-18",
+    title: "The Job Scam Report: Fake Internships, Pay-to-Join Offers and Task Scams Targeting Students",
+    subtitle: "The Job Scam Report · 2026",
+    excerpt: "Indians lost over 22,845 crore to cyber fraud in 2024, about 62 crore a day, and fake job and internship offers are one of the main ways scammers reach students. We break down how task scams, pay-to-join internships and fake offer letters actually work, step by step, and give a seven-point check for any offer that lands in your inbox.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "ats-resume-report-2026",
     publishDate: "2026-10-12",
     title: "The ATS Resume Report 2026: How Applicant Tracking Systems Actually Read Your Resume",
