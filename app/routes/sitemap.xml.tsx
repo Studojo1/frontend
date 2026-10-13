@@ -68,6 +68,7 @@ export async function loader() {
     { loc: "/reports/google-internship-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/apple-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other. Only URLs that return 200 and robots.txt allows
     // (no /auth, no /careers, which 301s to /).
     { loc: "/outreach", priority: "0.9", changefreq: "weekly" },
@@ -95,7 +96,6 @@ export async function loader() {
     { loc: "/reports/proof-of-work-report-projects-github-portfolio-2026", publishDate: "2026-10-17" },
     { loc: "/reports/aptitude-coding-test-report-2026", publishDate: "2026-10-18" },
     { loc: "/reports/us-internships-international-students-2026", publishDate: "2026-10-19" },
-    { loc: "/reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026", priority: "0.9", changefreq: "monthly" },
   ];
   for (const r of scheduledReports) {
     if (r.publishDate <= istToday) staticPages.push({ loc: r.loc, priority: "0.9", changefreq: "monthly" });
