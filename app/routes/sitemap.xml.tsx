@@ -67,6 +67,7 @@ export async function loader() {
     { loc: "/reports/cybersecurity-internship-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/google-internship-report-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/apple-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
+    { loc: "/reports/government-vs-private-job-report-why-crores-apply-2026", priority: "0.9", changefreq: "monthly" },
     // Product + other. Only URLs that return 200 and robots.txt allows
     // (no /auth, no /careers, which 301s to /).
     { loc: "/outreach", priority: "0.9", changefreq: "weekly" },
@@ -165,6 +166,7 @@ export async function loader() {
     "/reports/cybersecurity-internship-report-2026": "2026-09-27",
     "/reports/google-internship-report-2026": "2026-09-27",
     "/reports/apple-internship-report-2026-27": "2026-09-26",
+    "/reports/government-vs-private-job-report-why-crores-apply-2026": "2026-10-16",
   };
 
   const urls = [
