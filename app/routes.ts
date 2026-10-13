@@ -128,10 +128,4 @@ export default [
   route("reports/aptitude-coding-test-report-2026", "routes/reports.aptitude-coding-test-report-2026.tsx"),
   route("reports/us-internships-international-students-2026", "routes/reports.us-internships-international-students-2026.tsx"),
   route("reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026", "routes/reports.ctc-illusion-report-what-12-lpa-pays-in-hand-2026.tsx"),
-  route("reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026", "routes/reports.salary-negotiation-report-do-freshers-who-negotiate-get-more-2026.tsx"),
-  route("reports/service-vs-product-company-report-5-years-later-2026", "routes/reports.service-vs-product-company-report-5-years-later-2026.tsx"),
-  route("reports/gap-year-report-how-recruiters-view-career-breaks-2026", "routes/reports.gap-year-report-how-recruiters-view-career-breaks-2026.tsx"),
-  route("reports/government-vs-private-job-report-why-crores-apply-2026", "routes/reports.government-vs-private-job-report-why-crores-apply-2026.tsx"),
-  route("reports/remote-jobs-report-who-hires-remote-freshers-2026", "routes/reports.remote-jobs-report-who-hires-remote-freshers-2026.tsx"),
-  route("reports/job-scam-report-fake-internships-task-scams-students-2026", "routes/reports.job-scam-report-fake-internships-task-scams-students-2026.tsx"),
 ] satisfies RouteConfig;
