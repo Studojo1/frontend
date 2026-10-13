@@ -95,6 +95,7 @@ export async function loader() {
     { loc: "/reports/proof-of-work-report-projects-github-portfolio-2026", publishDate: "2026-10-17" },
     { loc: "/reports/aptitude-coding-test-report-2026", publishDate: "2026-10-18" },
     { loc: "/reports/us-internships-international-students-2026", publishDate: "2026-10-19" },
+    { loc: "/reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026", priority: "0.9", changefreq: "monthly" },
   ];
   for (const r of scheduledReports) {
     if (r.publishDate <= istToday) staticPages.push({ loc: r.loc, priority: "0.9", changefreq: "monthly" });
@@ -183,6 +184,7 @@ export async function loader() {
     "/reports/google-internship-report-2026": "2026-09-27",
     "/reports/apple-internship-report-2026-27": "2026-09-26",
     "/reports/ctc-illusion-report-what-12-lpa-pays-in-hand-2026": "2026-10-12",
+    "/reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026": "2026-10-13",
   };
 
   const urls = [
