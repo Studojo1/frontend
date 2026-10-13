@@ -179,7 +179,7 @@ const SX_CSS = `
 .sx .font-semibold { font-weight: 500; }
 .sx .font-bold { font-weight: 600; }
 .sx .font-black { font-weight: 700; }
-.sx h1.font-semibold, .sx h2.font-semibold, .sx h3.font-bold { font-weight: 600; }
+.sx h1.font-semibold, .sx h2.font-semibold, .sx h3.font-bold, .sx [class~="font-['Clash_Display']"].font-semibold { font-weight: 600; }
 .sx svg[stroke="currentColor"] { stroke-width: 1.8; }
 .sx code, .sx pre, .sx .font-mono { font-family: var(--mono); }
 .sx a[href^="tel:"], .sx a[href^="mailto:"] { font-family: var(--mono); font-weight: 400; }
@@ -281,6 +281,9 @@ const SX_CSS = `
 .sx input, .sx textarea, .sx select { color: var(--ink); }
 .sx input::placeholder, .sx textarea::placeholder { color: var(--t4); }
 .sx input.border-2, .sx textarea.border-2 { background-color: var(--surface); border-radius: 12px; }
+/* the native "Choose file" button, in the pill style of the other buttons */
+.sx input[type="file"]::file-selector-button { border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-family: var(--sans); font-weight: 500; font-size: 13px; padding: 7px 14px; margin-right: 12px; cursor: pointer; }
+.sx input[type="file"]::file-selector-button:hover { border-color: var(--t3); }
 .sx .bob-thinscroll::-webkit-scrollbar-thumb { background: var(--line2); }
 
 /* ── Sensei's mark sits on a white tile ── */
@@ -328,7 +331,7 @@ const SX_CSS = `
 .sx .text-xs.font-bold.uppercase { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; }
 .sx .sx-warn { border-color: var(--amber-line); }
 /* lists laid out as tables: a tinted header row over hairlines */
-.sx main .grid.uppercase { background-color: var(--bg2); border-color: var(--line); }
+.sx main .grid.uppercase { background-color: var(--bg2); border-color: var(--line); color: var(--t2); }
 /* the page's own actions are near-black pills, like every other primary action */
 .sx main button.bg-violet-600, .sx main button.bg-violet-500 { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; box-shadow: none; font-weight: 500; }
 .sx main button.bg-violet-600:not(:disabled):hover, .sx main button.bg-violet-500:not(:disabled):hover { background-color: var(--btn-hover); }
