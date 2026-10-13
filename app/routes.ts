@@ -120,4 +120,11 @@ export default [
   route("reports/amazon-internship-report-2026-27", "routes/reports.amazon-internship-report-2026-27.tsx"),
   route("reports/fake-job-internship-scams-2026", "routes/reports.fake-job-internship-scams-2026.tsx"),
   route("reports/ai-job-search-tools-2026", "routes/reports.ai-job-search-tools-2026.tsx"),
+  route("reports/cover-letter-report-2026", "routes/reports.cover-letter-report-2026.tsx"),
+  route("reports/off-campus-placement-report-india-2026", "routes/reports.off-campus-placement-report-india-2026.tsx"),
+  route("reports/microsoft-internship-report-2026-27", "routes/reports.microsoft-internship-report-2026-27.tsx"),
+  route("reports/it-services-hiring-report-tcs-infosys-wipro-2026", "routes/reports.it-services-hiring-report-tcs-infosys-wipro-2026.tsx"),
+  route("reports/proof-of-work-report-projects-github-portfolio-2026", "routes/reports.proof-of-work-report-projects-github-portfolio-2026.tsx"),
+  route("reports/aptitude-coding-test-report-2026", "routes/reports.aptitude-coding-test-report-2026.tsx"),
+  route("reports/us-internships-international-students-2026", "routes/reports.us-internships-international-students-2026.tsx"),
 ] satisfies RouteConfig;
