@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   FiPlus, FiTrash2, FiSend, FiDownload, FiZap, FiSearch,
@@ -175,9 +175,358 @@ function str(v: unknown): string {
   return typeof v === "object" ? JSON.stringify(v) : String(v);
 }
 
+// ── Two looks, one workspace ─────────────────────────────────────────────────
+// This file draws the ORIGINAL look (hard outlines, offset shadows) unless a route
+// hands it ui="new". The new look is the same markup with the stylesheet SX_CSS
+// laid over it: no second copy of the workspace, so the two can never drift apart
+// and going back is a one-line change. Which host gets which look is decided in
+// app/lib/sensei-ui.ts (a route passes the answer in); nothing here reads the host,
+// so this file stays safe to promote on its own and production keeps the original.
+// <host>/oldui (app/routes/oldui.tsx) always shows the original.
+// Class names starting "sx-" in the markup are hooks for that stylesheet; they
+// do nothing in the original look.
+type Ui = "new" | "old";
+const UiContext = createContext<Ui>("old");
+
+// Links written into the address bar stay under the path the page was opened on,
+// so a refresh on /oldui keeps the original look.
+function homePath(): string {
+  try {
+    // Lower-cased: the router matches paths without regard to case.
+    return window.location.pathname.replace(/\/+$/, "").toLowerCase() === "/oldui" ? "/oldui" : "/";
+  } catch {
+    return "/";
+  }
+}
+
+// Sensei's face. The original look uses the Studojo doodle; the new look uses the
+// Sensei mark (the kasa: hat and brim over the signal dot), drawn inline.
+function SenseiMark() {
+  if (useContext(UiContext) !== "new") return <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />;
+  return (
+    <svg viewBox="0 0 120 120" fill="none" role="img" aria-label="Sensei" className="sx-mark w-full h-full">
+      <g transform="translate(11,12) scale(0.82)">
+        <path d="M60 10 C52 15 38 29 26 45 C21 52 15 60 11 66 C27 61 42 59 60 59 C78 59 93 61 109 66 C105 60 99 52 94 45 C82 29 68 15 60 10 Z" fill="#16161E" />
+        <path d="M4 68 C24 61 42 58 60 58 C78 58 96 61 116 68 C112 77 94 83 60 83 C26 83 8 77 4 68 Z" fill="#16161E" />
+        <circle cx="60" cy="99" r="8.5" fill="#5B63E8" />
+      </g>
+    </svg>
+  );
+}
+
+/* sx:start */
+const SX_CSS = `
+/* The new Sensei look (first shown at studojo.com/sensei-demo), laid over the
+   workspace's own markup. Everything is scoped to .sx, which only exists when a
+   route asks for ui="new", so the original look is untouched by this sheet.
+   Tailwind's utilities live in a cascade layer; this sheet does not, so its rules
+   win without !important. A hover or focus state therefore has to be restated
+   here whenever its resting state is. Class names that hold brackets or colons
+   are matched as whole words: [class~="bg-[#faf7f2]"]. */
+
+@font-face { font-family: 'Geist'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/geist-400.woff2') format('woff2'); }
+@font-face { font-family: 'Geist'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/geist-500.woff2') format('woff2'); }
+@font-face { font-family: 'Geist'; font-weight: 600; font-style: normal; font-display: swap; src: url('/fonts/geist-600.woff2') format('woff2'); }
+@font-face { font-family: 'Geist'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/geist-700.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/jetbrains-mono-400.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/jetbrains-mono-500.woff2') format('woff2'); }
+
+/* ── tokens ── */
+.sx {
+  --bg: #FBFBFD; --bg2: #F4F4F9; --surface: #FFFFFF; --track: #E9EAF2;
+  --ink: #16161E; --t1: #2A2B36; --t2: #585B6C; --t3: #8A8D9E; --t4: #AAADBC;
+  --line: rgba(22,22,40,.09); --line2: rgba(22,22,40,.15);
+  --acc: #5B63E8; --acc-deep: #4148C6; --acc-soft: #EEEFFE; --acc-soft2: #E3E5FD; --acc-line: rgba(91,99,232,.28); --acc-lite: #9AA2FF;
+  --mint: #1E9E6E; --mint-soft: #E7F8F0; --mint-line: rgba(30,158,110,.3);
+  --amber: #B4801E; --amber-soft: #FBF0DA; --amber-line: rgba(180,128,30,.35);
+  --blue: #2F6FD6; --blue-soft: #EAF1FD; --blue-line: rgba(47,111,214,.28);
+  --red: #C2412F; --red-soft: #FCEDEA; --red-line: rgba(194,65,47,.4);
+  --btn: #16161E; --btn-ink: #FFFFFF; --btn-hover: #2A2B36; --thumb: #FFFFFF;
+  --acc-fill: #5B63E8; --acc-fill-h: #4148C6; --red-fill: #C2412F;
+  --scrim: rgba(22,22,30,.28);
+  --sh-sm: 0 1px 2px rgba(18,20,45,.06), 0 1px 3px rgba(18,20,45,.05);
+  --sh-md: 0 8px 24px -8px rgba(18,20,45,.14);
+  --sh-lg: 0 32px 72px -28px rgba(18,20,45,.30);
+  --dot: rgba(22,22,42,.05); --glow1: rgba(110,123,242,.14); --glow2: rgba(178,138,250,.11);
+  --sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+.sx .sx-dark {
+  --bg: #0F1016; --bg2: #14151C; --surface: #191A23; --track: #2A2C39;
+  --ink: #ECEDF3; --t1: #D9DBE6; --t2: #B1B4C4; --t3: #8A8D9E; --t4: #6B6E80;
+  --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.15);
+  --acc: #7F87F6; --acc-deep: #A6ACFF; --acc-soft: rgba(127,135,246,.15); --acc-soft2: rgba(127,135,246,.24); --acc-line: rgba(127,135,246,.4); --acc-lite: #A6ACFF;
+  --mint: #4FCB9C; --mint-soft: rgba(79,203,156,.13); --mint-line: rgba(79,203,156,.35);
+  --amber: #E2B55F; --amber-soft: rgba(226,181,95,.14); --amber-line: rgba(226,181,95,.38);
+  --blue: #86AEF3; --blue-soft: rgba(134,174,243,.14); --blue-line: rgba(134,174,243,.36);
+  --red: #F18F80; --red-soft: rgba(241,143,128,.14); --red-line: rgba(241,143,128,.45);
+  --btn: #ECEDF3; --btn-ink: #14151C; --btn-hover: #FFFFFF; --thumb: #2E3040;
+  --acc-fill: #5B63E8; --acc-fill-h: #4F57DA; --red-fill: #C2412F;
+  --scrim: rgba(0,0,0,.55);
+  --sh-sm: 0 1px 2px rgba(0,0,0,.4); --sh-md: 0 10px 28px -10px rgba(0,0,0,.6); --sh-lg: 0 32px 72px -24px rgba(0,0,0,.75);
+  --dot: rgba(255,255,255,.055); --glow1: rgba(127,135,246,.16); --glow2: rgba(178,138,250,.09);
+  color-scheme: dark;
+}
+
+/* ── type ── */
+.sx [class~="font-['Satoshi']"] { font-family: var(--sans); letter-spacing: -.011em; -webkit-font-smoothing: antialiased; }
+.sx [class~="font-['Clash_Display']"] { font-family: var(--sans); letter-spacing: -.022em; }
+.sx [class~="font-['Clash_Display']"].tabular-nums, .sx .tabular-nums.font-black { font-family: var(--mono); letter-spacing: 0; }
+.sx .font-semibold { font-weight: 500; }
+.sx .font-bold { font-weight: 600; }
+.sx .font-black { font-weight: 700; }
+.sx h1.font-semibold, .sx h2.font-semibold, .sx h3.font-bold { font-weight: 600; }
+.sx svg[stroke="currentColor"] { stroke-width: 1.8; }
+.sx ::selection { background: rgba(91,99,232,.2); }
+
+/* ── surfaces ── */
+.sx [class~="bg-[#faf7f2]"] { background-color: var(--bg); }
+.sx [class~="bg-[#f4f0e8]"] { background-color: var(--bg2); }
+.sx .bg-white { background-color: var(--surface); }
+.sx .bg-neutral-50, .sx [class~="bg-neutral-50/70"], .sx .bg-neutral-100 { background-color: var(--bg2); }
+.sx .bg-neutral-200, .sx .bg-neutral-300 { background-color: var(--track); }
+.sx .bg-neutral-900 { background-color: var(--btn); color: var(--btn-ink); }
+.sx [class~="bg-black/40"] { background-color: var(--scrim); }
+.sx [class~="bg-neutral-900/20"] { background-color: rgba(22,22,30,.18); }
+.sx .bg-violet-50, .sx [class~="bg-violet-50/60"] { background-color: var(--acc-soft); }
+.sx .bg-violet-100 { background-color: var(--acc-soft2); }
+.sx .bg-violet-400 { background-color: var(--acc-lite); }
+.sx .bg-violet-500, .sx .bg-violet-600 { background-color: var(--acc-fill); }
+.sx .bg-violet-700 { background-color: var(--btn); color: var(--btn-ink); }
+.sx .bg-green-50, .sx .bg-green-100 { background-color: var(--mint-soft); }
+.sx .bg-green-300 { background-color: var(--mint-soft); color: var(--mint); }
+.sx .bg-green-400, .sx .bg-green-500 { background-color: var(--mint); }
+.sx .bg-amber-50, .sx .bg-amber-100 { background-color: var(--amber-soft); }
+.sx .bg-amber-200 { background-color: var(--amber-soft); color: var(--amber); }
+.sx .bg-blue-50 { background-color: var(--blue-soft); }
+.sx .bg-red-50 { background-color: var(--red-soft); }
+.sx .bg-red-600 { background-color: var(--red-fill); }
+
+/* ── text ── */
+.sx .text-neutral-900 { color: var(--ink); }
+.sx .text-neutral-800, .sx .text-neutral-700 { color: var(--t1); }
+.sx .text-neutral-600, .sx .text-neutral-500 { color: var(--t2); }
+.sx .text-neutral-400 { color: var(--t3); }
+.sx .text-neutral-300 { color: var(--t4); }
+.sx .text-violet-400 { color: var(--acc-lite); }
+.sx .text-violet-500, .sx .text-violet-600 { color: var(--acc); }
+.sx .text-violet-700, .sx .text-violet-800 { color: var(--acc-deep); }
+.sx .text-green-600, .sx .text-green-700, .sx .text-green-800 { color: var(--mint); }
+.sx .text-amber-700, .sx .text-amber-800 { color: var(--amber); }
+.sx .text-blue-700 { color: var(--blue); }
+.sx .text-red-400, .sx .text-red-600, .sx .text-red-700 { color: var(--red); }
+
+/* ── lines: one soft hairline instead of the 2px ink outline ── */
+.sx .border-2 { border-width: 1px; }
+.sx .border-b-2 { border-bottom-width: 1px; }
+.sx .border-t-2 { border-top-width: 1px; }
+.sx .border-r-2 { border-right-width: 1px; }
+.sx .border-l-2 { border-left-width: 1px; }
+.sx .border-r-0 { border-right-width: 0; }
+.sx .border-neutral-900 { border-color: var(--line2); }
+.sx .border-neutral-100, .sx .border-neutral-200 { border-color: var(--line); }
+.sx .border-neutral-300 { border-color: var(--line2); }
+.sx .border-transparent { border-color: transparent; }
+.sx .border-violet-200, .sx .border-violet-300 { border-color: var(--acc-line); }
+.sx .border-violet-500 { border-color: var(--acc); }
+.sx .border-green-300 { border-color: var(--mint-line); }
+.sx .border-amber-300 { border-color: var(--amber-line); }
+.sx .border-blue-200, .sx .border-blue-300 { border-color: var(--blue-line); }
+.sx .border-red-500 { border-color: var(--red-line); }
+.sx aside.border-neutral-900, .sx header.border-neutral-900, .sx .h-12.border-neutral-900, .sx th.border-neutral-900 { border-color: var(--line); }
+
+/* ── depth: soft shadows instead of the hard offset ones ── */
+.sx [class*=" shadow-[3px_3px"], .sx [class^="shadow-[3px_3px"] { box-shadow: var(--sh-sm); }
+.sx [class*=" shadow-[4px_4px"] { box-shadow: var(--sh-md); }
+.sx [class*=" shadow-[6px_6px"], .sx [class*=" shadow-[8px_8px"] { box-shadow: var(--sh-lg); }
+.sx [class*="hover:shadow-[2px_2px"]:hover { box-shadow: var(--sh-md); }
+.sx [class*="hover:translate-x-"]:hover { translate: 0 -1px; }
+
+/* ── radii ── */
+.sx [class~="rounded-[24px]"], .sx [class~="rounded-[28px]"], .sx [class~="rounded-[32px]"] { border-radius: 20px; }
+.sx :where(button.rounded-xl:not(.text-left, .w-9, .w-8, .w-7), a.rounded-xl) { border-radius: 999px; }
+
+/* ── states restated: hover, focus, disabled ── */
+.sx [class~="hover:bg-neutral-100"]:hover, .sx [class~="hover:bg-neutral-50"]:hover { background-color: var(--bg2); }
+.sx [class~="hover:bg-black/5"]:hover { background-color: var(--line); }
+.sx [class~="hover:text-neutral-900"]:hover { color: var(--ink); }
+.sx [class~="hover:text-neutral-700"]:hover { color: var(--t1); }
+.sx [class~="hover:text-white"]:hover { color: #fff; }
+.sx [class~="hover:border-neutral-900"]:hover, .sx [class~="hover:border-neutral-400"]:hover { border-color: var(--t3); }
+.sx [class~="hover:border-violet-500"]:hover, .sx [class~="hover:border-violet-400"]:hover { border-color: var(--acc); }
+.sx [class~="hover:border-[#0a66c2]"]:hover { border-color: #0a66c2; }
+.sx [class~="hover:bg-violet-50"]:hover, .sx [class~="hover:bg-violet-100"]:hover { background-color: var(--acc-soft); }
+.sx [class~="hover:bg-violet-600"]:hover, .sx [class~="hover:bg-violet-500"]:hover { background-color: var(--acc-fill-h); }
+.sx [class~="hover:bg-violet-700"]:hover, .sx [class~="hover:bg-violet-800"]:hover, .sx [class~="hover:bg-neutral-900"]:hover { background-color: var(--btn-hover); color: var(--btn-ink); }
+.sx [class~="hover:text-violet-600"]:hover, .sx [class~="hover:text-violet-700"]:hover, .sx [class~="hover:text-violet-800"]:hover { color: var(--acc-deep); }
+.sx [class~="hover:text-red-600"]:hover, .sx [class~="hover:text-red-700"]:hover { color: var(--red); }
+.sx [class~="hover:bg-red-50"]:hover { background-color: var(--red-soft); }
+.sx [class~="hover:bg-red-700"]:hover { background-color: var(--red-fill); filter: brightness(.92); }
+.sx [class~="hover:bg-green-100"]:hover { background-color: var(--mint-soft); filter: brightness(.97); }
+.sx [class~="hover:bg-amber-100"]:hover { background-color: var(--amber-soft); filter: brightness(.97); }
+.sx [class~="focus:ring-2"]:focus { border-color: var(--acc); box-shadow: 0 0 0 4px var(--acc-soft); }
+.sx button:focus-visible, .sx a:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.sx input, .sx textarea, .sx select { color: var(--ink); }
+.sx input::placeholder, .sx textarea::placeholder { color: var(--t4); }
+.sx input.border-2, .sx textarea.border-2 { background-color: var(--surface); border-radius: 12px; }
+.sx .bob-thinscroll::-webkit-scrollbar-thumb { background: var(--line2); }
+@keyframes sxFlash { 0% { background-color: var(--acc-soft2); } 100% { background-color: transparent; } }
+.sx .bob-new { animation-name: sxFlash; }
+
+/* ── the conversation surface: a quiet dot grid with two soft glows ── */
+.sx .bob-canvas { background-color: var(--bg); background-image: radial-gradient(var(--dot) 1px, transparent 1px); background-size: 24px 24px; background-position: 0 0; }
+.sx .bob-canvas::before { inset: 0 0 auto 0; height: 420px; background: radial-gradient(640px 380px at 20% -80px, var(--glow1), transparent 65%), radial-gradient(560px 360px at 95% -60px, var(--glow2), transparent 65%); }
+
+/* ── Sensei's mark sits on a white tile ── */
+.sx :has(> .sx-mark) { background: #fff; border-color: var(--line); box-shadow: var(--sh-sm); }
+
+/* ── sign in and reset ── */
+.sx .min-h-screen[class~="bg-[#faf7f2]"] { background-color: var(--bg); background-image: radial-gradient(640px 420px at 50% -120px, var(--glow1), transparent 70%); }
+.sx .min-h-screen .max-w-md { border-color: var(--line); }
+.sx .min-h-screen input.rounded-2xl { border-radius: 12px; }
+.sx .min-h-screen button[class~="py-3"].bg-violet-500 { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; border-radius: 999px; box-shadow: none; font-weight: 500; }
+.sx .min-h-screen button[class~="py-3"].bg-violet-500:hover { background-color: var(--btn-hover); translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
+
+/* ── sidebar ── */
+.sx aside { border-color: var(--line); }
+.sx aside .h-12, .sx header.h-12 { height: 56px; }
+.sx aside .h-12 { border-bottom-color: transparent; padding-left: 16px; }
+.sx aside .h-12 .text-base { font-size: 15px; font-weight: 600; }
+.sx aside .h-12 [class~="text-[9px]"] { font-size: 11px; margin-top: 3px; }
+.sx aside .p-2 > button.bg-neutral-900 { padding-top: 10px; padding-bottom: 10px; font-weight: 500; transition: translate .15s, box-shadow .15s, background-color .15s; }
+.sx aside .p-2 > button.bg-neutral-900:hover { translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
+.sx aside .uppercase.tracking-wider { font-size: 10.5px; letter-spacing: .07em; color: var(--t3); }
+.sx aside .uppercase.tracking-wider .normal-case { font-family: var(--mono); color: var(--t4); font-weight: 400; }
+.sx aside .rounded-xl.border-2:not([role="menu"]) { border-color: transparent; border-radius: 10px; color: var(--t2); }
+.sx aside .rounded-xl.border-2.bg-violet-100 { background-color: var(--acc-soft); color: var(--ink); }
+.sx aside .rounded-xl.border-2 [class~="text-[10.5px]"] { color: var(--acc-deep); }
+/* the footer actions become quiet rows */
+.sx aside .space-y-2 { border-color: var(--line); }
+.sx aside .space-y-2 > a.rounded-xl, .sx aside .space-y-2 > button.rounded-xl { justify-content: flex-start; border-color: transparent; border-radius: 10px; padding: 8px 10px; font-size: 13px; font-weight: 400; color: var(--t2); background: none; }
+.sx aside .space-y-2 > a.rounded-xl:hover, .sx aside .space-y-2 > button.rounded-xl:hover { background-color: var(--bg2); color: var(--ink); }
+.sx aside .space-y-2 > button.bg-violet-600 { background-color: var(--acc-soft); color: var(--acc-deep); font-weight: 500; }
+.sx aside .space-y-2 > button.bg-violet-600:hover { background-color: var(--acc-soft2); color: var(--acc-deep); }
+
+/* ── top bar ── */
+.sx header { border-color: var(--line); padding-left: 16px; padding-right: 16px; gap: 10px; }
+.sx header > .text-sm.font-bold { font-size: 14.5px; font-weight: 500; }
+.sx header .rounded-full { font-weight: 500; }
+/* credit counters */
+.sx header .relative > button.rounded-full { font-family: var(--mono); font-size: 11.5px; font-weight: 600; padding: 6px 12px; gap: 7px; border-color: var(--line); background-color: var(--surface); color: var(--ink); }
+.sx header .relative > button.rounded-full:hover { background-color: var(--bg2); }
+.sx header .relative > button.rounded-full svg { color: var(--t3); }
+.sx header .relative > button.rounded-full .font-medium { font-weight: 400; color: var(--t2); }
+.sx header .relative > button.rounded-full.bg-red-50 { background-color: var(--red-soft); border-color: var(--red-line); color: var(--red); }
+/* segmented switches (Chat / Split / Results, Cards / Table) */
+.sx .sx-seg { background-color: var(--bg2); border-color: var(--line); border-radius: 999px; padding: 3px; gap: 2px; overflow: visible; }
+.sx .sx-seg > button { width: 34px; height: 28px; border-radius: 999px; background-color: transparent; color: var(--t3); }
+.sx .sx-seg > button:hover { background-color: transparent; color: var(--ink); }
+.sx .sx-seg > button.bg-neutral-900, .sx .sx-seg > button.bg-neutral-900:hover { background-color: var(--thumb); color: var(--ink); box-shadow: var(--sh-sm); }
+/* the notice strip */
+.sx .bg-red-50.border-red-500 { border-color: var(--red-line); font-weight: 500; }
+
+/* ── chat ── */
+.sx .sx-user { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; border-radius: 18px 18px 6px 18px; box-shadow: none; }
+.sx .bob-canvas .rounded-tl-md { border-color: var(--line); border-radius: 6px 18px 18px 18px; }
+.sx .bob-canvas .rounded-tl-md p { color: var(--t1); }
+.sx .bob-canvas button.rounded-full[class~="hover:bg-violet-500"] { border-color: var(--line); color: var(--t2); font-weight: 400; padding: 8px 14px; }
+.sx .bob-canvas button.rounded-full[class~="hover:bg-violet-500"]:hover { background-color: var(--acc-soft); border-color: var(--acc-line); color: var(--ink); }
+.sx .bob-canvas > .border-t-2 { border-color: var(--line); background-color: color-mix(in srgb, var(--surface) 85%, transparent); backdrop-filter: blur(8px); }
+.sx .sx-composer { border-color: var(--line2); border-radius: 18px; box-shadow: var(--sh-md); background-color: var(--surface); }
+.sx .sx-composer:focus-within { border-color: var(--acc); box-shadow: 0 0 0 4px var(--acc-soft), var(--sh-md); }
+.sx .sx-composer textarea { font-size: 15px; }
+.sx .sx-composer button.w-9 { border-color: transparent; border-radius: 12px; }
+.sx .sx-composer button.w-9.bg-white { background-color: transparent; color: var(--t3); }
+.sx .sx-composer button.w-9.bg-white:hover { background-color: var(--bg2); color: var(--ink); }
+.sx .sx-composer button.w-9.bg-violet-700:not(:disabled):hover { translate: 0 -1px; }
+/* the divider between chat and results: a hairline you can still grab */
+/* z-index: above the results table's pinned cells (z-30), below dialogs (z-50) */
+.sx .cursor-col-resize { background-color: var(--line); width: 1px; box-shadow: none; z-index: 35; }
+.sx .cursor-col-resize::after { content: ""; position: absolute; top: 0; bottom: 0; left: -5px; right: -5px; }
+.sx .cursor-col-resize:hover { background-color: var(--acc); }
+.sx .cursor-col-resize > div { display: none; }
+
+/* ── results ── */
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 { height: 52px; border-color: var(--line); }
+.sx button[class~="max-w-[150px]"] { border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 500; border-color: var(--line); }
+.sx button[class~="max-w-[150px]"].bg-violet-500 { border-color: transparent; color: #fff; }
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 button.rounded-xl { font-size: 12.5px; font-weight: 500; padding: 7px 13px; border-color: transparent; }
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 button.bg-neutral-100 { background-color: var(--bg2); color: var(--t4); }
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 button.rounded-xl.bg-neutral-900:hover { background-color: var(--btn-hover); translate: 0 -1px; }
+/* the outcome card and its one-tap levers */
+.sx section > .relative.border-b-2.bg-violet-50 { background: linear-gradient(90deg, var(--acc-soft), var(--surface)); border-color: var(--acc-line); }
+.sx section > .relative.border-b-2.bg-amber-50 { background: linear-gradient(90deg, var(--amber-soft), var(--surface)); border-color: var(--amber-line); }
+.sx section > .relative.border-b-2 .rounded-lg.border-2 { border-radius: 999px; padding: 6px 11px; font-weight: 500; border-color: var(--line2); box-shadow: none; }
+.sx section > .relative.border-b-2 .rounded-lg.border-2:hover { border-color: var(--acc); box-shadow: none; }
+/* company cards */
+.sx .rounded-2xl.cursor-pointer[class*="shadow-[3px_3px"] { border-color: var(--line); transition: border-color .15s, box-shadow .15s, translate .15s; }
+.sx .rounded-2xl.cursor-pointer[class*="shadow-[3px_3px"]:hover { border-color: var(--line2); box-shadow: var(--sh-md); translate: 0 -2px; }
+.sx [class~="min-w-9"].h-9 { border-radius: 11px; font-family: var(--mono); font-weight: 600; background-color: var(--bg2); color: var(--t2); border-color: var(--line2); }
+.sx [class~="min-w-9"].h-9.bg-green-300 { background-color: var(--mint-soft); color: var(--mint); border-color: var(--mint-line); }
+.sx [class~="min-w-9"].h-9.bg-amber-200 { background-color: var(--amber-soft); color: var(--amber); border-color: var(--amber-line); }
+.sx [class~="border-l-[3px]"] { border-radius: 0 10px 10px 0; }
+.sx [class~="border-l-[3px]"] p { color: var(--t1); }
+.sx a[href^="tel:"], .sx a[href^="mailto:"] { font-family: var(--mono); font-weight: 400; }
+.sx select.rounded-lg { border-radius: 9px; font-weight: 600; }
+.sx .rounded-md.border-2.bg-violet-100 { border-color: var(--acc-line); }
+/* lookup buttons */
+.sx button[title^="Find phone + email for this company"] { background-color: var(--acc-soft); color: var(--acc-deep); border-color: var(--acc-line); border-radius: 9px; }
+.sx button[title^="Find phone + email for this company"]:hover { background-color: var(--acc-soft2); }
+/* the wide table */
+.sx thead th, .sx thead th[class~="bg-[#faf7f2]"] { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--t3); background-color: var(--bg2); border-color: var(--line); }
+.sx thead tr, .sx thead tr[class~="bg-[#faf7f2]"] { background-color: var(--bg2); }
+.sx tbody tr.bg-neutral-50 { background-color: var(--surface); }
+.sx tbody tr:hover, .sx tbody tr.bg-neutral-50:hover { background-color: var(--bg); }
+.sx tbody td.sticky { border-color: var(--line); }
+/* the detail drawer */
+.sx [class~="max-w-[440px]"].absolute { border-color: var(--line); box-shadow: var(--sh-lg); }
+.sx [class~="max-w-[440px]"] .border-b-2 { border-color: var(--line); }
+.sx [class~="max-w-[440px]"] .tracking-widest { color: var(--t3); font-weight: 600; letter-spacing: .06em; font-size: 11px; }
+
+/* ── the research panel ── */
+.sx .sx-bar { background: linear-gradient(90deg, var(--acc), #9A8CF6) !important; }
+.sx .grid-cols-3 > .text-center .uppercase { font-weight: 500; letter-spacing: .06em; font-size: 10.5px; color: var(--t3); }
+.sx .border-neutral-900.bg-green-50 { border-color: var(--mint-line); }
+.sx .rounded-lg.border-2.px-2.py-1 { border-radius: 9px; font-weight: 500; }
+.sx .uppercase.tracking-wide { letter-spacing: .06em; font-weight: 600; }
+
+/* ── menus, popovers, dialogs ── */
+.sx [role="menu"], .sx aside [role="menu"].rounded-xl { border-color: var(--line2); border-radius: 14px; box-shadow: var(--sh-lg); padding: 5px; color: var(--ink); }
+.sx [role="menu"] > button { border-radius: 9px; }
+.sx [role="menu"] > button svg { color: var(--t3); }
+.sx [role="menu"] > button.text-red-600 svg { color: var(--red); }
+.sx [role="menu"] > button.text-red-600:hover { background-color: var(--red-soft); }
+.sx .absolute.rounded-2xl[class*="shadow-[4px_4px"] { border-color: var(--line2); box-shadow: var(--sh-lg); border-radius: 16px; }
+.sx .fixed.inset-0 > .bg-white.border-2 { border-color: var(--line); }
+.sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300 { color: var(--t2); }
+.sx .fixed.inset-0 button.rounded-xl.border-2.border-neutral-300:hover { color: var(--ink); border-color: var(--t3); }
+.sx .fixed.inset-0 button.rounded-xl.bg-violet-700 { border-color: transparent; font-weight: 500; }
+.sx .fixed.inset-0 button.rounded-xl.bg-red-600 { border-color: transparent; color: #fff; font-weight: 500; }
+.sx .fixed.inset-0 button.text-left.rounded-xl.border-2 { border-radius: 12px; }
+.sx .fixed.inset-0 button.text-left.rounded-xl.border-2.bg-violet-100 { border-color: var(--acc); background-color: var(--acc-soft); }
+
+/* ── project page ── */
+.sx section.bob-canvas .w-10.h-10.rounded-xl.bg-violet-100 { border-radius: 13px; border-color: var(--acc-line); background-color: var(--acc-soft); }
+.sx section.bob-canvas .rounded-xl.border-2.px-3:has(> input) { border-radius: 999px; border-color: var(--line2); box-shadow: var(--sh-sm); padding-left: 15px; padding-right: 15px; }
+.sx section.bob-canvas .rounded-xl.border-2.px-3:has(> input):focus-within { border-color: var(--acc); box-shadow: 0 0 0 4px var(--acc-soft); }
+.sx section.bob-canvas button.text-left.rounded-2xl { border-radius: 14px; border-color: var(--line); }
+.sx section.bob-canvas button.text-left.rounded-2xl:hover { border-color: var(--line2); }
+
+@media (prefers-reduced-motion: reduce) { .sx * { transition: none !important; } }
+`;
+/* sx:end */
+
 // ── Root ─────────────────────────────────────────────────────────────────────
 
+// The route component, and what a plain import of this file gives: the original look.
+// (React Router wraps a route's default export and drops any props handed to it, so
+// the routes that choose a look import SenseiApp by name instead.)
 export default function BobPage() {
+  return <SenseiApp />;
+}
+
+export function SenseiApp({ ui }: { ui?: Ui }) {
+  const look: Ui = ui === "new" ? "new" : "old";
   const [mounted, setMounted] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [resetToken, setResetToken] = useState<string | null>(null);
@@ -210,10 +559,21 @@ export default function BobPage() {
     if (localStorage.getItem(SESSION_STORAGE) || localStorage.getItem(KEY_STORAGE)) setAuthed(true);
   }, []);
 
-  if (!mounted) return <div className="min-h-screen bg-[#faf7f2]" />;
-  if (resetToken) return <ResetPasswordScreen token={resetToken} onDone={() => setResetToken(null)} />;
-  if (!authed) return <Gate onSuccess={() => setAuthed(true)} />;
-  return <Workspace onAuthLost={() => setAuthed(false)} />;
+  const screen = !mounted ? <div className="min-h-screen bg-[#faf7f2]" />
+    : resetToken ? <ResetPasswordScreen token={resetToken} onDone={() => setResetToken(null)} />
+    : !authed ? <Gate onSuccess={() => setAuthed(true)} />
+    : <Workspace onAuthLost={() => setAuthed(false)} />;
+  if (look !== "new") return screen;
+  // The new look: the same screens inside a scope the stylesheet hangs off.
+  // display:contents keeps the wrapper out of the layout.
+  return (
+    <UiContext.Provider value="new">
+      <div className="sx" style={{ display: "contents" }}>
+        <style>{SX_CSS}</style>
+        {screen}
+      </div>
+    </UiContext.Provider>
+  );
 }
 
 // ── Access gate ──────────────────────────────────────────────────────────────
@@ -298,7 +658,7 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
     <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
       <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
         <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
-          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+          <SenseiMark />
         </div>
         <h1 className="font-['Clash_Display'] text-3xl font-semibold text-neutral-900">
           Sensei <span className="text-neutral-400 text-xl font-normal">by Studojo</span>
@@ -432,7 +792,7 @@ function ResetPasswordScreen({ token, onDone }: { token: string; onDone: () => v
     <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
       <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
         <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
-          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+          <SenseiMark />
         </div>
         {done ? (
           <>
@@ -730,6 +1090,7 @@ type PanelMode = "split" | "chat" | "table";
 type ResultsView = "cards" | "table";
 
 function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
+  const ui = useContext(UiContext);
   const [chats, setChats] = useState<ChatSummary[]>([]);
   // Personal sidebar organisation (bob-svc migration 062): pins first, then projects, then Recent.
   const [pinned, setPinned] = useState<ChatSummary[]>([]);
@@ -889,7 +1250,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     setProjectView(null);
     setPendingProject(null);
     if (id === emptyRef.current.id) {        // already open: just leave the project page
-      try { window.history.replaceState({}, "", `/?chat=${id}`); } catch { /* ignore */ }
+      try { window.history.replaceState({}, "", `${homePath()}?chat=${id}`); } catch { /* ignore */ }
       return;
     }
     await dropCurrentIfEmpty();
@@ -897,7 +1258,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     setActiveChat(id);
     // Keep the URL pointing at the open chat so it is always shareable + refresh-safe
     // (this is the link the Share button copies: app.studojo.com/?chat=<id>).
-    try { window.history.replaceState({}, "", `/?chat=${id}`); } catch { /* ignore */ }
+    try { window.history.replaceState({}, "", `${homePath()}?chat=${id}`); } catch { /* ignore */ }
     setRun(null);
     setPendingFiles([]);
     try {
@@ -923,7 +1284,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     setPendingProject(null);
     setProjectView(id);
     setProjectChats([]);
-    try { window.history.replaceState({}, "", `/?project=${id}`); } catch { /* ignore */ }
+    try { window.history.replaceState({}, "", `${homePath()}?project=${id}`); } catch { /* ignore */ }
     loadProject(id);
   }, [dropCurrentIfEmpty, loadProject]);
 
@@ -1008,7 +1369,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     setChatInfo(null);
     setProjectView(null);
     setPendingProject(inProject);
-    try { window.history.replaceState({}, "", "/"); } catch { /* ignore */ }
+    try { window.history.replaceState({}, "", homePath()); } catch { /* ignore */ }
     setMode("split");
   };
 
@@ -1035,7 +1396,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         } else if (list.length > 0) openChat(list[0].id);
         else {
           setActiveChat(null); setMessages([]); setTables([]); setRun(null); setChatInfo(null);
-          try { window.history.replaceState({}, "", "/"); } catch { /* ignore */ }
+          try { window.history.replaceState({}, "", homePath()); } catch { /* ignore */ }
         }
       }
     } catch (e) {
@@ -1087,7 +1448,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     if (chatInfo?.project_id === p.id) setChatInfo({ ...chatInfo, project_id: null, project_name: null });
     if (projectView === p.id) {
       setProjectView(null);
-      try { window.history.replaceState({}, "", activeChat ? `/?chat=${activeChat}` : "/"); } catch { /* ignore */ }
+      try { window.history.replaceState({}, "", activeChat ? `${homePath()}?chat=${activeChat}` : homePath()); } catch { /* ignore */ }
     }
     await loadChats();
   };
@@ -1385,7 +1746,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   };
 
   return (
-    <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? "bob-dark" : ""}`}>
+    <div className={`h-screen bg-[#faf7f2] flex overflow-hidden font-['Satoshi'] text-neutral-900 ${dark ? (ui === "new" ? "sx-dark" : "bob-dark") : ""}`}>
       {showTeam && <TeamModal orgName={me?.org?.name || "your workspace"} onClose={() => setShowTeam(false)} />}
       {showEnrich && <EnrichModal onClose={() => { setShowEnrich(false); loadCredits(); }} />}
       {pendingEnrich && credits?.tiers?.length && (
@@ -1540,7 +1901,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           <div className="h-12 shrink-0 px-3 border-b-2 border-neutral-900 flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-7 h-7 border-2 border-neutral-900 rounded-lg overflow-hidden shrink-0">
-                <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+                <SenseiMark />
               </div>
               <div className="min-w-0 leading-tight">
                 <div className="font-['Clash_Display'] text-base font-semibold leading-none">Sensei</div>
@@ -1680,7 +2041,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               </div>
             )}
             {hasTables && projectView == null && (
-              <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden">
+              <div className="sx-seg flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden">
                 {([["chat", FiMessageSquare, "Chat only"], ["split", FiColumns, "Split view"], ["table", FiGrid, "Results only"]] as const).map(([m, Icon, label]) => (
                   <button
                     key={m}
@@ -1736,7 +2097,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   {groupMessages(messages).map((g, gi) => (
                     g.role === "user" ? (
                       <div key={g.items[0].id} className="flex justify-end">
-                        <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md ${BRUT} bg-violet-500 text-white ${SHADOW} whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed`}>
+                        <div className={`sx-user max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md ${BRUT} bg-violet-500 text-white ${SHADOW} whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed`}>
                           {g.items.map((m) => m.content).join("\n\n")}
                         </div>
                       </div>
@@ -1745,7 +2106,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                          paragraphs instead of separate boxes. */
                       <div key={g.items[0].id} className="flex gap-3">
                         <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
-                          <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+                          <SenseiMark />
                         </div>
                         <div className="min-w-0 max-w-[92%] space-y-2.5">
                           {g.items.map((m) => (
@@ -1763,7 +2124,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   {running && !hasTables && (
                     <div className="flex gap-2.5">
                       <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
-                        <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+                        <SenseiMark />
                       </div>
                       <div className={`${CARD} rounded-tl-md px-4 py-3 flex items-center gap-1.5`}>
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
@@ -1815,7 +2176,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       if (f) uploadFile(f);
                     }}
                   />
-                  <div className="border-2 border-neutral-900 rounded-2xl bg-white transition-all focus-within:shadow-[5px_5px_0px_0px_rgba(124,92,255,1)]">
+                  <div className="sx-composer border-2 border-neutral-900 rounded-2xl bg-white transition-all focus-within:shadow-[5px_5px_0px_0px_rgba(124,92,255,1)]">
                     <textarea
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
@@ -2458,7 +2819,7 @@ function EmptyChat() {
   return (
     <div className="max-w-2xl mx-auto text-center pb-7 bob-pop">
       <div className="w-12 h-12 mx-auto mb-5 rounded-2xl overflow-hidden border-2 border-neutral-900 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
-        <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+        <SenseiMark />
       </div>
       <h2 className="font-['Clash_Display'] text-[30px] sm:text-[34px] leading-[1.15] font-semibold tracking-tight">
         Who are we getting hired today?
@@ -2717,7 +3078,7 @@ function RunProgress({ run }: { run: Run }) {
   return (
     <div className="flex gap-2.5">
       <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
-        <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+        <SenseiMark />
       </div>
       <div className={`flex-1 ${CARD} rounded-tl-md px-3.5 py-2.5`}>
         <div className="flex items-center gap-2 flex-wrap">
@@ -2800,7 +3161,7 @@ function MissionControl({ run }: { run: Run }) {
         <div className={`${CARD} p-5`}>
           <div className="flex items-start gap-3">
             <div className={`w-10 h-10 shrink-0 ${BRUT} rounded-xl overflow-hidden ${SHADOW}`}>
-              <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+              <SenseiMark />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -2827,7 +3188,7 @@ function MissionControl({ run }: { run: Run }) {
           </div>
 
           <div className="mt-4 h-2.5 w-full rounded-full bg-neutral-100 border border-neutral-200 overflow-hidden relative">
-            <div className={`h-full rounded-full relative overflow-hidden ${reduce ? "" : "sd-shimmer"}`}
+            <div className={`sx-bar h-full rounded-full relative overflow-hidden ${reduce ? "" : "sd-shimmer"}`}
               style={{ width: `${pct}%`, background: "linear-gradient(90deg,#8b5cf6,#ec4899)", transition: "width .7s ease-out" }} />
           </div>
           <div className="flex justify-between text-[10.5px] text-neutral-400 mt-1.5">
@@ -2922,7 +3283,7 @@ function RunGraph({ run }: { run: Run }) {
       <div className="w-full max-w-[360px] bg-white border-2 border-neutral-900 rounded-2xl shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] p-6">
         <div className="text-center mb-4">
           <div className="w-12 h-12 mx-auto border-2 border-neutral-900 rounded-2xl overflow-hidden shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] mb-3">
-            <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
+            <SenseiMark />
           </div>
           <h3 className="font-['Clash_Display'] text-xl font-semibold">Sensei is thinking</h3>
           <p className="text-sm text-neutral-500 mt-1">{RUN_STAGES[idx].label}…</p>
@@ -3135,7 +3496,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
         ))}
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <div className="flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden mr-1">
+          <div className="sx-seg flex items-center rounded-xl border-2 border-neutral-900 overflow-hidden mr-1">
             {([["cards", FiLayers, "Card view"], ["table", FiGrid, "Table view"]] as const).map(([v, Icon, label]) => (
               <button
                 key={v}
