@@ -145,7 +145,7 @@ const SX_CSS = `
   --amber: #B4801E; --amber-ink: #8A5F0E; --amber-soft: #FBF0DA; --amber-line: rgba(180,128,30,.35);
   --blue: #2F6FD6; --blue-ink: #2A62BF; --blue-soft: #EAF1FD; --blue-line: rgba(47,111,214,.28);
   --red: #C2412F; --red-soft: #FCEDEA; --red-line: rgba(194,65,47,.4);
-  --btn: #16161E; --btn-ink: #FFFFFF; --btn-hover: #2A2B36; --thumb: #FFFFFF;
+  --btn: #16161E; --btn-ink: #FFFFFF; --btn-hover: #2A2B36; --thumb: #FFFFFF; --hov: #F4F4F9;
   --acc-fill: #5B63E8; --acc-fill-h: #4148C6; --red-fill: #C2412F;
   --scrim: rgba(22,22,30,.28);
   --sh-sm: 0 1px 2px rgba(18,20,45,.06), 0 1px 3px rgba(18,20,45,.05);
@@ -157,14 +157,14 @@ const SX_CSS = `
 }
 .sx .sx-dark {
   --bg: #0F1016; --bg2: #14151C; --surface: #191A23; --track: #2A2C39;
-  --ink: #ECEDF3; --t1: #D9DBE6; --t2: #B1B4C4; --t3: #8A8D9E; --t4: #6B6E80;
+  --ink: #ECEDF3; --t1: #D9DBE6; --t2: #B1B4C4; --t3: #8A8D9E; --t4: #7E8195;
   --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.15);
   --acc: #7F87F6; --acc-deep: #A6ACFF; --acc-soft: rgba(127,135,246,.15); --acc-soft2: rgba(127,135,246,.24); --acc-line: rgba(127,135,246,.4); --acc-lite: #A6ACFF;
   --mint: #4FCB9C; --mint-ink: #4FCB9C; --mint-soft: rgba(79,203,156,.13); --mint-line: rgba(79,203,156,.35);
   --amber: #E2B55F; --amber-ink: #E2B55F; --amber-soft: rgba(226,181,95,.14); --amber-line: rgba(226,181,95,.38);
   --blue: #86AEF3; --blue-ink: #86AEF3; --blue-soft: rgba(134,174,243,.14); --blue-line: rgba(134,174,243,.36);
   --red: #F18F80; --red-soft: rgba(241,143,128,.14); --red-line: rgba(241,143,128,.45);
-  --btn: #ECEDF3; --btn-ink: #14151C; --btn-hover: #FFFFFF; --thumb: #2E3040;
+  --btn: #ECEDF3; --btn-ink: #14151C; --btn-hover: #FFFFFF; --thumb: #2E3040; --hov: #262733;
   --acc-fill: #5B63E8; --acc-fill-h: #4F57DA; --red-fill: #C2412F;
   --scrim: rgba(0,0,0,.55);
   --sh-sm: 0 1px 2px rgba(0,0,0,.4); --sh-md: 0 10px 28px -10px rgba(0,0,0,.6); --sh-lg: 0 32px 72px -24px rgba(0,0,0,.75);
@@ -256,7 +256,7 @@ const SX_CSS = `
 .sx :where(button.rounded-xl:not(.text-left, .w-9, .w-8, .w-7), a.rounded-xl) { border-radius: 999px; }
 
 /* ── states restated: hover, focus, disabled ── */
-.sx [class~="hover:bg-neutral-100"]:hover, .sx [class~="hover:bg-neutral-50"]:hover { background-color: var(--bg2); }
+.sx [class~="hover:bg-neutral-100"]:hover, .sx [class~="hover:bg-neutral-50"]:hover { background-color: var(--hov); }
 .sx [class~="hover:bg-black/5"]:hover { background-color: var(--line); }
 .sx [class~="hover:text-neutral-900"]:hover { color: var(--ink); }
 .sx [class~="hover:text-neutral-700"]:hover { color: var(--t1); }
@@ -279,7 +279,8 @@ const SX_CSS = `
 .sx [class~="focus:ring-2"]:focus { border-color: var(--acc); box-shadow: 0 0 0 4px var(--acc-soft); }
 .sx button:focus-visible, .sx a:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .sx input, .sx textarea, .sx select { color: var(--ink); }
-.sx input::placeholder, .sx textarea::placeholder { color: var(--t4); }
+.sx input::placeholder, .sx textarea::placeholder { color: var(--t3); }
+.sx .sx-dark input::placeholder, .sx .sx-dark textarea::placeholder { color: var(--t4); }
 .sx input.border-2, .sx textarea.border-2 { background-color: var(--surface); border-radius: 12px; }
 /* the native "Choose file" button, in the pill style of the other buttons */
 .sx input[type="file"]::file-selector-button { border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-family: var(--sans); font-weight: 500; font-size: 13px; padding: 7px 14px; margin-right: 12px; cursor: pointer; }
@@ -294,7 +295,10 @@ const SX_CSS = `
 .sx .min-h-screen .max-w-md { border-color: var(--line); }
 .sx .min-h-screen input.rounded-2xl { border-radius: 12px; }
 .sx .min-h-screen button[class~="py-3"].bg-violet-500 { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; border-radius: 999px; box-shadow: none; font-weight: 500; }
-.sx .min-h-screen button[class~="py-3"].bg-violet-500:hover { background-color: var(--btn-hover); translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
+.sx .min-h-screen button[class~="py-3"].bg-violet-500:not(:disabled):hover { background-color: var(--btn-hover); translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
+
+/* disabled primary buttons fade, as in the demo, instead of turning into a grey button */
+.sx .min-h-screen button[class~="py-3"].bg-violet-500:disabled, .sx .fixed.inset-0 button.rounded-xl.bg-violet-700:disabled { opacity: .35; }
 
 /* ── dialogs ── */
 .sx .fixed.inset-0 > .bg-white.border-2 { border-color: var(--line); }
@@ -306,6 +310,10 @@ const SX_CSS = `
 .sx .fixed.inset-0 button.text-left.rounded-xl.border-2.bg-violet-100 { border-color: var(--acc); background-color: var(--acc-soft); }
 
 @media (prefers-reduced-motion: reduce) { .sx * { transition: none !important; } }
+
+/* The "Skip to main content" link (app/root.tsx) sits outside the .sx wrapper, so the tokens are not
+   visible to it: literal values. :has(> .sx) keeps it to the pages in the new look. */
+body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, sans-serif; font-weight: 500; color: #16161E; background: #fff; border: 1px solid rgba(22,22,40,.15); border-radius: 999px; box-shadow: 0 8px 24px -8px rgba(18,20,45,.14); outline: 2px solid #5B63E8; outline-offset: 2px; }
 /* sx:shared:end */
 
 /* ── the dashboard's frame: sidebar and navigation ── */
@@ -329,7 +337,7 @@ const SX_CSS = `
 /* figures: label above, number in the mono face */
 .sx .text-3xl.font-black { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 .sx .text-xs.font-bold.uppercase { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; }
-.sx .sx-warn { border-color: var(--amber-line); }
+.sx main .rounded-2xl.sx-warn[class*=" shadow-[2px_2px"] { border-color: var(--amber-line); box-shadow: 0 0 0 1px var(--amber-line), var(--sh-sm); }
 /* lists laid out as tables: a tinted header row over hairlines */
 .sx main .grid.uppercase { background-color: var(--bg2); border-color: var(--line); color: var(--t2); }
 /* the page's own actions are near-black pills, like every other primary action */
@@ -352,6 +360,14 @@ const SX_CSS = `
 .sx .fixed.inset-0 [class~="max-w-[85%]"].bg-white { border-color: var(--line); border-radius: 6px 18px 18px 18px; box-shadow: var(--sh-sm); color: var(--t1); }
 .sx .fixed.inset-0 .rounded-2xl.border-2.overflow-hidden { border-color: var(--line); }
 .sx .fixed.inset-0 [class~="bg-[#faf7f2]"] { background-color: var(--bg2); }
+
+/* ── fixes from the second review ── */
+/* phone and email in the enrichment log: the focus ring goes on the cell, which does not clip it */
+.sx main .truncate:has(> a[href^="tel:"]:focus-visible), .sx main .truncate:has(> a[href^="mailto:"]:focus-visible) { outline: 2px solid var(--acc); outline-offset: 2px; border-radius: 4px; }
+/* disabled primary buttons fade, as in the demo */
+.sx main button.bg-violet-600:disabled, .sx main button.bg-violet-500:disabled { opacity: .35; }
+/* the last row's divider would double the card's bottom edge */
+.sx .border-b.border-neutral-100:last-child { border-bottom-color: transparent; }
 `;
 /* sx:end */
 

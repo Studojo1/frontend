@@ -69,7 +69,9 @@ function strayRules(css) {
     .map((rule) => rule.split("{")[0].trim())
     .filter(Boolean)
     .flatMap((selectors) => selectors.split(/,(?![^(]*\))/).map((x) => x.trim()))
-    .filter((selector) => !selector.startsWith(".sx"));
+    // The one allowed exception: the skip link in app/root.tsx sits outside the wrapper, and
+    // body:has(> .sx) still limits the rule to pages in the new look.
+    .filter((selector) => !selector.startsWith(".sx") && !selector.startsWith("body:has(> .sx) > "));
 }
 
 const shared = {};
