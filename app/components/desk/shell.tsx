@@ -18,7 +18,7 @@ import { useAgent } from "~/lib/desk/agent-store";
 import { useDeskBoot, useDeskStatus, useFeedPolling, useInboxBadge, useIsDesktop } from "~/lib/desk/hooks";
 import { serializeDeskParams, useDeskParams, DESK_BASE, type DeskParams } from "~/lib/desk/nav";
 import { AgentSheet, AskButton, PhoneDock } from "./shell/dock";
-import { DeskError, DeskLoading, DeskUnavailable, NeedsMatches, TabBoundary } from "./shell/states";
+import { DeskError, DeskLoading, DeskUnavailable, TabBoundary } from "./shell/states";
 import { DesktopTopBar, PhoneTopBar, PlainTopBar } from "./shell/top-bar";
 
 const BACKDROP: CSSProperties = {
@@ -30,7 +30,6 @@ const BACKDROP: CSSProperties = {
 export function DeskShell() {
   const boot = useDeskBoot();
   if (boot.phase === "ready") return <ReadyDesk />;
-  if (boot.phase === "needs_matches") return <NeedsMatches />;
   return (
     <div className="flex min-h-dvh flex-col font-satoshi text-studojo-ink" style={BACKDROP}>
       <PlainTopBar />

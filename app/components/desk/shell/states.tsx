@@ -1,12 +1,10 @@
 // The desk's whole-page states: loading, sent to upload, not available for
 // this account yet, and a load error. Plus the boundary that keeps one
 // broken tab from taking the shell (and the assistant) down with it.
-import { Component, useEffect, type ErrorInfo, type ReactNode } from "react";
-import { useNavigate } from "react-router";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 import { FiAlertTriangle, FiClock, FiLock, FiRefreshCw } from "react-icons/fi";
 import { cx, FOCUS_RING, PRESS } from "~/components/desk/agent/bits";
 import type { UnavailableReason } from "~/lib/desk/hooks";
-import { UPLOAD_PATH } from "~/lib/desk/hooks";
 import { landingCtas, type NextStep } from "~/lib/outreach/next-step";
 
 const PRIMARY =
@@ -101,24 +99,6 @@ export function DeskError({ message, retry }: { message: string; retry: () => vo
       }
     >
       <p role="alert">{message}</p>
-    </Panel>
-  );
-}
-
-/** No resume or no matches yet: the search starts at upload. */
-export function NeedsMatches() {
-  const navigate = useNavigate();
-  useEffect(() => {
-    navigate(UPLOAD_PATH, { replace: true });
-  }, [navigate]);
-  return (
-    <Panel icon={<FiClock />} title="Let's find your people first">
-      <p role="status">Taking you to upload your resume.</p>
-      <p>
-        <a href={UPLOAD_PATH} className={cx("font-bold text-studojo-purple-strong underline", FOCUS_RING)}>
-          Go now
-        </a>
-      </p>
     </Panel>
   );
 }
