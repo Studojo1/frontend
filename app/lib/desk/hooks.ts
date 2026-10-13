@@ -42,7 +42,6 @@ export type UnavailableReason = "not_live" | "not_enabled" | "switched_off";
 export type DeskBoot =
   | { phase: "loading" }
   | { phase: "ready"; boot: Bootstrap }
-  | { phase: "needs_matches" }
   | { phase: "unavailable"; reason: UnavailableReason; step: NextStep | null }
   | { phase: "error"; message: string; retry: () => void };
 
@@ -53,11 +52,6 @@ function reasonFor(err: unknown, disabled?: "agent_disabled" | "agent_not_enable
   if (code === "agent_disabled" || errorStatus(err) === 503) return "switched_off";
   if (code === "agent_not_enabled" || errorStatus(err) === 403) return "not_enabled";
   return "not_live";
-}
-
-/** True when a student has nothing to work on yet: no resume, or no matches. */
-export function needsMatches(status: Status): boolean {
-  return status.state === "needs_resume" || !status.candidate_id || status.matches.total === 0;
 }
 
 /**
@@ -97,11 +91,11 @@ export function useDeskBoot(): DeskBoot {
     };
   }, [unavailable, step]);
 
-  if (data && data.enabled) return needsMatches(data.status) ? { phase: "needs_matches" } : { phase: "ready", boot: data };
+  // Enabled always opens the desk, even with no resume or no matches yet: Home
+  // and the assistant explain what to do next. Never bounce the student away.
+  if (data && data.enabled) return { phase: "ready", boot: data };
   if (unavailable) {
     if (step === undefined) return { phase: "loading" };
-    // Unpaid with no leads anywhere: the search starts at upload.
-    if (step && step.state === "not_paid" && !step.path && !step.lead_count) return { phase: "needs_matches" };
     return { phase: "unavailable", reason: reasonFor(res.error, data?.enabled === false ? data.reason : undefined), step };
   }
   if (res.error != null && !data) {

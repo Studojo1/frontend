@@ -68,6 +68,12 @@ function TopMatches({ status }: { status: Status | null }) {
         <ErrorBox error={top.error} onRetry={top.reload} />
       ) : !top.data ? (
         <Loading label="Loading your top matches" rows={2} />
+      ) : items.length === 0 && total === 0 ? (
+        <Empty
+          title="No matches yet"
+          body="Once your search finishes, the hiring managers who fit you land here. You can also ask me what is happening."
+          action={<a href={UPLOAD_PATH} className={LINK}>Start or check my search</a>}
+        />
       ) : items.length === 0 ? (
         <Empty
           title="No new matches waiting"
