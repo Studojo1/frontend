@@ -577,9 +577,9 @@ export default function USInternshipsInternationalReport() {
                 <div className="rc-kicker">Cross-border</div>
                 <div className="rc-title">Singapore Remote Jobs from India 2026: The Real Map</div>
               </Link>
-              <Link to="/reports/remote-jobs-report-who-hires-remote-freshers-2026" className="related-card">
+              <Link to="/reports/remote-internships-2026" className="related-card">
                 <div className="rc-kicker">Remote</div>
-                <div className="rc-title">The Remote Jobs Report: Who Is Still Hiring Remote Freshers</div>
+                <div className="rc-title">Remote Internships 2026: Which Ones Are Real</div>
               </Link>
             </div>
           </div>

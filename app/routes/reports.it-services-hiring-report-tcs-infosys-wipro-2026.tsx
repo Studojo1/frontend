@@ -521,7 +521,7 @@ export default function ITServicesHiringReport() {
                 <div className="sec-sub">Where this path sits</div>
               </div>
             </div>
-            <p>Services firms are the widest door: high volume, structured training, lower starting pay and slower early growth. Product firms hire fewer freshers, screen harder and usually pay more. Many people start in services, build skills, then move. For the full comparison, read <Link to="/reports/service-vs-product-company-report-5-years-later-2026">the service vs product report</Link>.</p>
+            <p>Services firms are the widest door: high volume, structured training, lower starting pay and slower early growth. Product firms hire fewer freshers, screen harder and usually pay more. Many people start in services, build skills, then move. For the full comparison, read <Link to="/reports/startup-vs-mnc-2026">the startup vs MNC report</Link>.</p>
           </div>
 
           {/* FAQ */}
@@ -570,9 +570,9 @@ export default function ITServicesHiringReport() {
           <div className="related">
             <h2>Related reports</h2>
             <div className="related-grid">
-              <Link to="/reports/service-vs-product-company-report-5-years-later-2026" className="related-card">
+              <Link to="/reports/startup-vs-mnc-2026" className="related-card">
                 <div className="rc-kicker">Compare</div>
-                <div className="rc-title">IT Services vs Startups vs Product Firms, 5 Years Later</div>
+                <div className="rc-title">Startup vs MNC: A Real Comparison for Early-Career Talent</div>
               </Link>
               <Link to="/reports/first-job-india-2026" className="related-card">
                 <div className="rc-kicker">First job</div>
