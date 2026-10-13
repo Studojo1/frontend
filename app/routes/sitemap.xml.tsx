@@ -13,13 +13,6 @@ export async function loader() {
     { loc: "/reports/amazon-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/fake-job-internship-scams-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/ai-job-search-tools-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/cover-letter-report-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/off-campus-placement-report-india-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/microsoft-internship-report-2026-27", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/it-services-hiring-report-tcs-infosys-wipro-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/proof-of-work-report-projects-github-portfolio-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/aptitude-coding-test-report-2026", priority: "0.9", changefreq: "monthly" },
-    { loc: "/reports/us-internships-international-students-2026", priority: "0.9", changefreq: "monthly" },
     // Reports: all 17
     { loc: "/reports/ops-india-2026", priority: "0.9", changefreq: "monthly" },
     { loc: "/reports/internships-ai-india-2026", priority: "0.9", changefreq: "monthly" },
@@ -96,6 +89,22 @@ export async function loader() {
     { loc: "/terms", priority: "0.3", changefreq: "yearly" },
     { loc: "/refund-policy", priority: "0.3", changefreq: "yearly" },
   ];
+
+  // Scheduled reports enter the sitemap on their publishDate (compared in IST,
+  // so each appears from its local day). Future-dated reports stay out until then.
+  const istToday = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const scheduledReports = [
+    { loc: "/reports/cover-letter-report-2026", publishDate: "2026-10-13" },
+    { loc: "/reports/off-campus-placement-report-india-2026", publishDate: "2026-10-14" },
+    { loc: "/reports/microsoft-internship-report-2026-27", publishDate: "2026-10-15" },
+    { loc: "/reports/it-services-hiring-report-tcs-infosys-wipro-2026", publishDate: "2026-10-16" },
+    { loc: "/reports/proof-of-work-report-projects-github-portfolio-2026", publishDate: "2026-10-17" },
+    { loc: "/reports/aptitude-coding-test-report-2026", publishDate: "2026-10-18" },
+    { loc: "/reports/us-internships-international-students-2026", publishDate: "2026-10-19" },
+  ];
+  for (const r of scheduledReports) {
+    if (r.publishDate <= istToday) staticPages.push({ loc: r.loc, priority: "0.9", changefreq: "monthly" });
+  }
 
   // Dynamic blog posts
   let blogPosts: Array<{ slug: string; updated_at: string | null; published_at: string | null }> = [];
