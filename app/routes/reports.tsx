@@ -956,7 +956,7 @@ function RequestForm() {
 
 const BASE_URL_COMPONENT = "https://studojo.com";
 
-const collectionJsonLd = {
+const collectionJsonLdBase = {
   "@context": "https://schema.org",
   "@type": "CollectionPage",
   "name": "Career Market Reports | Studojo",
@@ -968,13 +968,6 @@ const collectionJsonLd = {
     "url": BASE_URL_COMPONENT,
     "logo": { "@type": "ImageObject", "url": `${BASE_URL_COMPONENT}/favicon.png` },
   },
-  "hasPart": REPORTS.map((r) => ({
-    "@type": "Article",
-    "headline": r.title,
-    "url": `${BASE_URL_COMPONENT}/reports/${r.slug}`,
-    "datePublished": r.publishDate,
-    "author": { "@type": "Organization", "name": "Studojo" },
-  })),
 };
 
 export default function Reports() {
@@ -986,6 +979,19 @@ export default function Reports() {
   const published = REPORTS.filter((r) => r.publishDate <= istToday);
   const sorted = [...published].sort((a, b) => b.publishDate.localeCompare(a.publishDate));
   const visibleReports = activeFilter === "All" ? sorted : sorted.filter((r) => r.type === activeFilter);
+
+  // Only list published reports in the CollectionPage structured data, so the
+  // schedule holds for crawlers too (future reports are not advertised early).
+  const collectionJsonLd = {
+    ...collectionJsonLdBase,
+    "hasPart": published.map((r) => ({
+      "@type": "Article",
+      "headline": r.title,
+      "url": `${BASE_URL_COMPONENT}/reports/${r.slug}`,
+      "datePublished": r.publishDate,
+      "author": { "@type": "Organization", "name": "Studojo" },
+    })),
+  };
 
   return (
     <>
