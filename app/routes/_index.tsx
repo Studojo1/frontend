@@ -15,6 +15,7 @@ import {
 } from "~/components";
 import { useLoaderData } from "react-router";
 import { getSessionFromRequest, requireOnboardingComplete } from "~/lib/onboarding.server";
+import { senseiUi } from "~/lib/sensei-ui";
 import type { Route } from "./+types/_index";
 
 // HP-N10: static imports made every studojo.com homepage modulepreload the
@@ -22,7 +23,8 @@ import type { Route } from "./+types/_index";
 // app.* and dashboard.* hosts render. Load them on demand instead. SSR still
 // works: the streaming renderer waits for a lazy component inside Suspense,
 // and hydration keeps the server HTML until the chunk arrives.
-const BobPage = lazy(() => import("./bob"));
+// SenseiApp, not the default export: it is the one that takes the look (see bob.tsx).
+const BobPage = lazy(() => import("./bob").then((m) => ({ default: m.SenseiApp })));
 const DashboardPage = lazy(() => import("./dashboard"));
 
 // Blank white page, the same as those apps' own first paint, so there is no
@@ -42,7 +44,11 @@ function senseiHostApp(request: Request): "bob" | "dashboard" | null {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const senseiApp = senseiHostApp(request);
-  if (senseiApp) return { bobApp: senseiApp === "bob", dashboardApp: senseiApp === "dashboard" };
+  if (senseiApp) {
+    // The workspace's look is decided per host (app/lib/sensei-ui.ts), on the
+    // server, so the first paint is already in the right one.
+    return { bobApp: senseiApp === "bob", dashboardApp: senseiApp === "dashboard", senseiUi: senseiUi(request.headers.get("host")) };
+  }
   const session = await getSessionFromRequest(request);
   if (session) {
     const onboardingStatus = await requireOnboardingComplete(session.user.id);
@@ -50,7 +56,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       throw redirect("/onboarding");
     }
   }
-  return { bobApp: false, dashboardApp: false };
+  return { bobApp: false, dashboardApp: false, senseiUi: "old" as const };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -224,10 +230,10 @@ function InternshipPopup() {
 }
 
 export default function Home() {
-  const { bobApp, dashboardApp } = useLoaderData<typeof loader>();
+  const { bobApp, dashboardApp, senseiUi: ui } = useLoaderData<typeof loader>();
   // dashboard.studojo.* -> manager portal; app.studojo.* -> Bob workspace at root
   if (dashboardApp) return <Suspense fallback={senseiFallback}><DashboardPage /></Suspense>;
-  if (bobApp) return <Suspense fallback={senseiFallback}><BobPage /></Suspense>;
+  if (bobApp) return <Suspense fallback={senseiFallback}><BobPage ui={ui} /></Suspense>;
   return (
     <>
       <AnnouncementBar />
