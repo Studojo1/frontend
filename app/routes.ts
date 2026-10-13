@@ -120,4 +120,5 @@ export default [
   route("reports/amazon-internship-report-2026-27", "routes/reports.amazon-internship-report-2026-27.tsx"),
   route("reports/fake-job-internship-scams-2026", "routes/reports.fake-job-internship-scams-2026.tsx"),
   route("reports/ai-job-search-tools-2026", "routes/reports.ai-job-search-tools-2026.tsx"),
+  route("reports/salary-negotiation-report-do-freshers-who-negotiate-get-more-2026", "routes/reports.salary-negotiation-report-do-freshers-who-negotiate-get-more-2026.tsx"),
 ] satisfies RouteConfig;
