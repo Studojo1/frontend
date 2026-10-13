@@ -255,7 +255,7 @@ const SX_CSS = `
   --amber: #B4801E; --amber-ink: #8A5F0E; --amber-soft: #FBF0DA; --amber-line: rgba(180,128,30,.35);
   --blue: #2F6FD6; --blue-ink: #2A62BF; --blue-soft: #EAF1FD; --blue-line: rgba(47,111,214,.28);
   --red: #C2412F; --red-soft: #FCEDEA; --red-line: rgba(194,65,47,.4);
-  --btn: #16161E; --btn-ink: #FFFFFF; --btn-hover: #2A2B36; --thumb: #FFFFFF;
+  --btn: #16161E; --btn-ink: #FFFFFF; --btn-hover: #2A2B36; --thumb: #FFFFFF; --hov: #F4F4F9;
   --acc-fill: #5B63E8; --acc-fill-h: #4148C6; --red-fill: #C2412F;
   --scrim: rgba(22,22,30,.28);
   --sh-sm: 0 1px 2px rgba(18,20,45,.06), 0 1px 3px rgba(18,20,45,.05);
@@ -267,14 +267,14 @@ const SX_CSS = `
 }
 .sx .sx-dark {
   --bg: #0F1016; --bg2: #14151C; --surface: #191A23; --track: #2A2C39;
-  --ink: #ECEDF3; --t1: #D9DBE6; --t2: #B1B4C4; --t3: #8A8D9E; --t4: #6B6E80;
+  --ink: #ECEDF3; --t1: #D9DBE6; --t2: #B1B4C4; --t3: #8A8D9E; --t4: #7E8195;
   --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.15);
   --acc: #7F87F6; --acc-deep: #A6ACFF; --acc-soft: rgba(127,135,246,.15); --acc-soft2: rgba(127,135,246,.24); --acc-line: rgba(127,135,246,.4); --acc-lite: #A6ACFF;
   --mint: #4FCB9C; --mint-ink: #4FCB9C; --mint-soft: rgba(79,203,156,.13); --mint-line: rgba(79,203,156,.35);
   --amber: #E2B55F; --amber-ink: #E2B55F; --amber-soft: rgba(226,181,95,.14); --amber-line: rgba(226,181,95,.38);
   --blue: #86AEF3; --blue-ink: #86AEF3; --blue-soft: rgba(134,174,243,.14); --blue-line: rgba(134,174,243,.36);
   --red: #F18F80; --red-soft: rgba(241,143,128,.14); --red-line: rgba(241,143,128,.45);
-  --btn: #ECEDF3; --btn-ink: #14151C; --btn-hover: #FFFFFF; --thumb: #2E3040;
+  --btn: #ECEDF3; --btn-ink: #14151C; --btn-hover: #FFFFFF; --thumb: #2E3040; --hov: #262733;
   --acc-fill: #5B63E8; --acc-fill-h: #4F57DA; --red-fill: #C2412F;
   --scrim: rgba(0,0,0,.55);
   --sh-sm: 0 1px 2px rgba(0,0,0,.4); --sh-md: 0 10px 28px -10px rgba(0,0,0,.6); --sh-lg: 0 32px 72px -24px rgba(0,0,0,.75);
@@ -366,7 +366,7 @@ const SX_CSS = `
 .sx :where(button.rounded-xl:not(.text-left, .w-9, .w-8, .w-7), a.rounded-xl) { border-radius: 999px; }
 
 /* ── states restated: hover, focus, disabled ── */
-.sx [class~="hover:bg-neutral-100"]:hover, .sx [class~="hover:bg-neutral-50"]:hover { background-color: var(--bg2); }
+.sx [class~="hover:bg-neutral-100"]:hover, .sx [class~="hover:bg-neutral-50"]:hover { background-color: var(--hov); }
 .sx [class~="hover:bg-black/5"]:hover { background-color: var(--line); }
 .sx [class~="hover:text-neutral-900"]:hover { color: var(--ink); }
 .sx [class~="hover:text-neutral-700"]:hover { color: var(--t1); }
@@ -389,7 +389,8 @@ const SX_CSS = `
 .sx [class~="focus:ring-2"]:focus { border-color: var(--acc); box-shadow: 0 0 0 4px var(--acc-soft); }
 .sx button:focus-visible, .sx a:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .sx input, .sx textarea, .sx select { color: var(--ink); }
-.sx input::placeholder, .sx textarea::placeholder { color: var(--t4); }
+.sx input::placeholder, .sx textarea::placeholder { color: var(--t3); }
+.sx .sx-dark input::placeholder, .sx .sx-dark textarea::placeholder { color: var(--t4); }
 .sx input.border-2, .sx textarea.border-2 { background-color: var(--surface); border-radius: 12px; }
 /* the native "Choose file" button, in the pill style of the other buttons */
 .sx input[type="file"]::file-selector-button { border: 1px solid var(--line2); border-radius: 999px; background: var(--surface); color: var(--ink); font-family: var(--sans); font-weight: 500; font-size: 13px; padding: 7px 14px; margin-right: 12px; cursor: pointer; }
@@ -404,7 +405,10 @@ const SX_CSS = `
 .sx .min-h-screen .max-w-md { border-color: var(--line); }
 .sx .min-h-screen input.rounded-2xl { border-radius: 12px; }
 .sx .min-h-screen button[class~="py-3"].bg-violet-500 { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; border-radius: 999px; box-shadow: none; font-weight: 500; }
-.sx .min-h-screen button[class~="py-3"].bg-violet-500:hover { background-color: var(--btn-hover); translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
+.sx .min-h-screen button[class~="py-3"].bg-violet-500:not(:disabled):hover { background-color: var(--btn-hover); translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
+
+/* disabled primary buttons fade, as in the demo, instead of turning into a grey button */
+.sx .min-h-screen button[class~="py-3"].bg-violet-500:disabled, .sx .fixed.inset-0 button.rounded-xl.bg-violet-700:disabled { opacity: .35; }
 
 /* ── dialogs ── */
 .sx .fixed.inset-0 > .bg-white.border-2 { border-color: var(--line); }
@@ -416,6 +420,10 @@ const SX_CSS = `
 .sx .fixed.inset-0 button.text-left.rounded-xl.border-2.bg-violet-100 { border-color: var(--acc); background-color: var(--acc-soft); }
 
 @media (prefers-reduced-motion: reduce) { .sx * { transition: none !important; } }
+
+/* The "Skip to main content" link (app/root.tsx) sits outside the .sx wrapper, so the tokens are not
+   visible to it: literal values. :has(> .sx) keeps it to the pages in the new look. */
+body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, sans-serif; font-weight: 500; color: #16161E; background: #fff; border: 1px solid rgba(22,22,40,.15); border-radius: 999px; box-shadow: 0 8px 24px -8px rgba(18,20,45,.14); outline: 2px solid #5B63E8; outline-offset: 2px; }
 /* sx:shared:end */
 
 /* ── the conversation surface: a quiet dot grid with two soft glows ── */
@@ -441,7 +449,7 @@ const SX_CSS = `
 /* the footer actions become quiet rows */
 .sx aside .space-y-2 { border-color: var(--line); }
 .sx aside .space-y-2 > a.rounded-xl, .sx aside .space-y-2 > button.rounded-xl { justify-content: flex-start; border-color: transparent; border-radius: 10px; padding: 8px 10px; font-size: 13px; font-weight: 400; color: var(--t2); background: none; }
-.sx aside .space-y-2 > a.rounded-xl:hover, .sx aside .space-y-2 > button.rounded-xl:hover { background-color: var(--bg2); color: var(--ink); }
+.sx aside .space-y-2 > a.rounded-xl:hover, .sx aside .space-y-2 > button.rounded-xl:hover { background-color: var(--hov); color: var(--ink); }
 .sx aside .space-y-2 > button.bg-violet-600, .sx aside .space-y-2 > button.rounded-xl.bg-violet-600 { background-color: var(--acc-soft); color: var(--acc-deep); font-weight: 500; }
 .sx aside .space-y-2 > button.bg-violet-600:hover { background-color: var(--acc-soft2); color: var(--acc-deep); }
 
@@ -451,7 +459,7 @@ const SX_CSS = `
 .sx header .rounded-full { font-weight: 500; }
 /* credit counters */
 .sx header .relative > button.rounded-full { font-family: var(--mono); font-size: 11.5px; font-weight: 600; padding: 6px 12px; gap: 7px; border-color: var(--line); background-color: var(--surface); color: var(--ink); }
-.sx header .relative > button.rounded-full:hover { background-color: var(--bg2); }
+.sx header .relative > button.rounded-full:hover { background-color: var(--hov); }
 .sx header .relative > button.rounded-full svg { color: var(--t3); }
 .sx header .relative > button.rounded-full .font-medium { font-weight: 400; color: var(--t2); }
 .sx header .relative > button.rounded-full.bg-red-50 { background-color: var(--red-soft); border-color: var(--red-line); color: var(--red); }
@@ -476,7 +484,7 @@ const SX_CSS = `
 .sx .sx-composer textarea { font-size: 15px; }
 .sx .sx-composer button.w-9 { border-color: transparent; border-radius: 12px; }
 .sx .sx-composer button.w-9.bg-white { background-color: transparent; color: var(--t3); }
-.sx .sx-composer button.w-9.bg-white:hover { background-color: var(--bg2); color: var(--ink); }
+.sx .sx-composer button.w-9.bg-white:hover { background-color: var(--hov); color: var(--ink); }
 .sx .sx-composer button.w-9.bg-violet-700:not(:disabled):hover { translate: 0 -1px; }
 /* the divider between chat and results: a hairline you can still grab */
 /* z-index: above the results table's pinned cells (z-30), below dialogs (z-50) */
@@ -550,6 +558,20 @@ const SX_CSS = `
   .sx header > button.rounded-full { padding: 3px 8px; }
   .sx header .relative > button.rounded-full { padding: 5px 9px; gap: 5px; font-size: 11px; }
 }
+
+/* ── fixes from the second review ── */
+/* dark mode: hover fills lighter than the surface, table rows and the amber and green chips too */
+.sx .sx-dark tbody tr:hover, .sx .sx-dark tbody tr.bg-neutral-50:hover { background-color: var(--hov); }
+.sx .sx-dark [class~="hover:bg-amber-100"]:hover { background-color: rgba(226,181,95,.24); filter: none; }
+.sx .sx-dark [class~="hover:bg-green-100"]:hover { background-color: rgba(79,203,156,.22); filter: none; }
+/* dark mode, a dialog open: focus rings left behind the backdrop stay visible through it */
+.sx .sx-dark:has(> .fixed.inset-0) > :not(.fixed) :is(button, a):focus-visible { outline-color: var(--ink); }
+/* room for the focus ring inside the two lists that clip it: the results tabs and Add to project */
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 > .overflow-x-auto { padding: 4px; margin: -4px 0 -4px -4px; }
+.sx .fixed.inset-0 .flex-col.max-h-64.overflow-y-auto { padding: 4px; margin: -4px; }
+/* the notice strip's dismiss button: quiet at rest, full on hover */
+.sx .bg-red-50.border-red-500 > button { opacity: .65; }
+.sx .bg-red-50.border-red-500 > button:hover { opacity: 1; }
 
 /* ── the research panel ── */
 .sx .sx-bar { background: linear-gradient(90deg, var(--acc), #9A8CF6) !important; }
