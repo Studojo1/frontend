@@ -39,6 +39,18 @@ const TYPE_COLORS: Record<ReportType, string> = {
 
 const REPORTS = [
   {
+    slug: "remote-jobs-report-who-hires-remote-freshers-2026",
+    publishDate: "2026-10-17",
+    title: "The Remote Jobs Report: Who Is Still Hiring Remote Freshers, and for What",
+    subtitle: "The Remote Jobs Report · 2026",
+    excerpt: "Only about 9% of Indian job postings mention remote work, and the biggest fresher employers have pulled people back to the office. But the remote share is rising again, and it clusters in specific roles, company types and global contractor setups. We map where remote fresher work actually exists, how to get paid by a foreign company legally, and the scams that pose as remote jobs.",
+    category: "Career",
+    type: "Sector" as ReportType,
+    date: "October 2026",
+    findings: 6,
+    badge: "New",
+  },
+  {
     slug: "ats-resume-report-2026",
     publishDate: "2026-10-12",
     title: "The ATS Resume Report 2026: How Applicant Tracking Systems Actually Read Your Resume",
