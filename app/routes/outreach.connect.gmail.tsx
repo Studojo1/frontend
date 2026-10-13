@@ -145,6 +145,13 @@ export default function GmailConnectPage() {
       const back = sessionStorage.getItem("sj_gmail_return");
       if (back && back.startsWith("/")) {
         sessionStorage.removeItem("sj_gmail_return");
+        // /flow is a separate app on this host (the onboarding flow). A
+        // client-side navigate stays inside this app, which has no /flow
+        // route, so it showed a 404. Load it as a page instead.
+        if (back === "/flow" || back.startsWith("/flow/") || back.startsWith("/flow?")) {
+          window.location.assign(back);
+          return;
+        }
         navigate(back);
         return;
       }
