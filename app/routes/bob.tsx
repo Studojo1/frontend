@@ -130,11 +130,11 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 const COLUMN_PRIORITY = [
-  "company", "contact_name", "contact_title", "tier", "fit_score", "city",
+  "company", "student", "contact_name", "contact_title", "tier", "fit_score", "best_fit_students", "city",
   "hiring_evidence", "why_now", "what_they_do", "size_band", "funding",
   "website", "evidence_url", "linkedin_url", "contact_linkedin_url",
 ];
-const WIDE_KEYS = new Set(["hiring_evidence", "why_now", "what_they_do", "funding", "outreach_angle", "suggested_opening", "connection_point", "signal_rationale"]);
+const WIDE_KEYS = new Set(["hiring_evidence", "why_now", "what_they_do", "funding", "outreach_angle", "suggested_opening", "connection_point", "signal_rationale", "best_fit_students"]);
 
 function orderColumns(cols: BobColumn[]): BobColumn[] {
   return [...cols].sort((a, b) => {
