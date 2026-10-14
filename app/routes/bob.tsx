@@ -1577,7 +1577,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
     try { await bobFetch(`/runs/${run.id}/stop`, { method: "POST" }); } catch { /* best-effort */ }
   };
 
-  const uploadFile = async (f: globalThis.File) => {
+  // Several resumes or screenshots picked, pasted or dropped together land in ONE chat: the chat is
+  // created once for the batch, because each upload reading activeChat on its own would see the stale
+  // null and open a chat per file. One unreadable file is reported by name and never drops the others.
+  const uploadFiles = async (list: globalThis.File[]) => {
+    const files = list.filter(Boolean);
+    if (!files.length) return;
     setUploading(true);
     try {
       let chatId = activeChat;
@@ -1586,22 +1591,46 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         setActiveChat(chatId);
         loadChats();
       }
-      const fd = new FormData();
-      fd.append("file", f);
-      const res = await fetch(`${API}/chats/${chatId}/files`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: fd,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new BobError(data?.detail || "Upload failed", res.status);
-      setPendingFiles((p) => [...p, { id: data.file_id, name: f.name }]);
+      for (const f of files) {
+        try {
+          const fd = new FormData();
+          fd.append("file", f);
+          const res = await fetch(`${API}/chats/${chatId}/files`, {
+            method: "POST",
+            headers: authHeaders(),
+            body: fd,
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new BobError(data?.detail || "Upload failed", res.status);
+          setPendingFiles((p) => [...p, { id: data.file_id, name: f.name }]);
+        } catch (e: any) {
+          alert(`${f.name}: ${e?.message || "Could not read that file"}`);
+          if (e instanceof BobError) handleError(e);
+        }
+      }
     } catch (e: any) {
-      alert(e?.message || "Could not read that file");
+      alert(e?.message || "Could not start a chat for the upload");
       if (e instanceof BobError) handleError(e);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // A screenshot pasted into the message box is uploaded like an attached image; pasted text is untouched.
+  const onComposerPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const images = Array.from(e.clipboardData?.items || [])
+      .filter((it) => it.kind === "file" && it.type.startsWith("image/"))
+      .map((it, i) => {
+        const blob = it.getAsFile();
+        if (!blob) return null;
+        const ext = (blob.type.split("/")[1] || "png").replace("jpeg", "jpg");
+        return new File([blob], `screenshot-${Date.now()}-${i + 1}.${ext}`, { type: blob.type });
+      })
+      .filter(Boolean) as globalThis.File[];
+    if (images.length) {
+      e.preventDefault();
+      uploadFiles(images);
     }
   };
 
@@ -2282,22 +2311,30 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".pdf,.docx,.xlsx,.xlsm,.csv,.txt"
+                    multiple
+                    accept=".pdf,.docx,.xlsx,.xlsm,.csv,.txt,.png,.jpg,.jpeg,.webp"
                     className="hidden"
                     onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) uploadFile(f);
+                      uploadFiles(Array.from(e.target.files || []));
                     }}
                   />
-                  <div className="sx-composer border-2 border-neutral-900 rounded-2xl bg-white transition-all focus-within:shadow-[5px_5px_0px_0px_rgba(124,92,255,1)]">
+                  <div
+                    className="sx-composer border-2 border-neutral-900 rounded-2xl bg-white transition-all focus-within:shadow-[5px_5px_0px_0px_rgba(124,92,255,1)]"
+                    onDragOver={(e) => { if (e.dataTransfer?.types?.includes("Files")) e.preventDefault(); }}
+                    onDrop={(e) => {
+                      const dropped = Array.from(e.dataTransfer?.files || []);
+                      if (dropped.length && !running && !uploading) { e.preventDefault(); uploadFiles(dropped); }
+                    }}
+                  >
                     <textarea
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
+                      onPaste={onComposerPaste}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
                       }}
                       rows={2}
-                      placeholder={running ? "Sensei is working on it. Ask your next question when it finishes." : "Describe a candidate, cohort, or the companies you need..."}
+                      placeholder={running ? "Sensei is working on it. Ask your next question when it finishes." : "Ask for companies, or paste job links, a job description, a LinkedIn profile or a screenshot..."}
                       disabled={running}
                       className="w-full bg-transparent px-4 pt-3.5 pb-1 text-[14.5px] leading-relaxed resize-none focus:outline-none disabled:opacity-60 rounded-2xl"
                     />
@@ -2305,7 +2342,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={running || uploading}
-                        title="Attach a resume or cohort sheet (PDF, Word, Excel, CSV)"
+                        title="Attach resumes, a cohort sheet or screenshots (PDF, Word, Excel, CSV, images)"
                         className="w-9 h-9 rounded-xl border-2 border-neutral-900 bg-white text-neutral-600 flex items-center justify-center hover:bg-violet-50 hover:text-violet-700 transition-colors disabled:opacity-40"
                       >
                         {uploading ? <FiLoader className="animate-spin" size={15} /> : <FiPaperclip size={15} />}
