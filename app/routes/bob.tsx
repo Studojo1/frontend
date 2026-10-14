@@ -2968,6 +2968,9 @@ const FRIENDLY_SOURCE: Record<string, string> = {
 // User-friendly copy for every internal pipeline step, so the chat/panel NEVER leak raw names like
 // "jd_fetch: started", "stream_front4", "company_ctx". Checked in order; first match wins.
 const STEP_FRIENDLY: [RegExp, string][] = [
+  // Streaming delivery (bob-svc BOB_STREAM_DELIVERY_ENABLED) works in waves over what the search has found so far.
+  [/^wave \d+: started/, "Checking the latest finds"],
+  [/^wave \d+: .*added/, "Adding companies to your table"],
   [/plan|understood/, "Planning the search"],
   [/harvest|stream_front|scanning/, "Searching boards & LinkedIn"],
   [/created table|create_table|setting up/, "Setting up your results"],
@@ -3184,6 +3187,9 @@ function LiveCompanies({ run }: { run: Run }) {
 function RunProgress({ run }: { run: Run }) {
   const { stageIdx, etaText, pct, last } = useRunEstimate(run);
   const reduce = useReducedMotion();
+  // Streaming delivery: rows land as they pass and the run ends when the sources do, so a countdown would be a guess.
+  const streaming = isStreamingRun(run);
+  const kept = Number(run.counters?.kept ?? 0);
   // Show the REAL current step (friendly), not a stale "Searching LinkedIn" when we've moved on.
   const events = run.events || [];
   const lastEv = events[events.length - 1];
@@ -3201,14 +3207,46 @@ function RunProgress({ run }: { run: Run }) {
           </span>
           <span className="font-bold text-[13.5px] min-w-0 truncate">{activity}…</span>
           <span className="ml-auto shrink-0">
-            <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold border ${last ? "bg-green-50 text-green-700 border-green-300" : "bg-violet-50 text-violet-700 border-violet-300"}`}>{etaText}</span>
+            {streaming ? (
+              <span className="rounded-full px-2 py-0.5 text-[11px] font-bold border bg-green-50 text-green-700 border-green-300 tabular-nums">{kept} added</span>
+            ) : (
+              <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold border ${last ? "bg-green-50 text-green-700 border-green-300" : "bg-violet-50 text-violet-700 border-violet-300"}`}>{etaText}</span>
+            )}
           </span>
         </div>
-        <div className="mt-2 h-1.5 w-full rounded-full bg-neutral-100 overflow-hidden">
-          <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
-        </div>
-        <p className="text-[11px] text-neutral-400 mt-1.5">Full live progress is in the panel on the right.</p>
+        {!streaming && (
+          <div className="mt-2 h-1.5 w-full rounded-full bg-neutral-100 overflow-hidden">
+            <div className="h-full bg-violet-500 rounded-full transition-[width] duration-700 ease-out" style={{ width: `${pct}%` }} />
+          </div>
+        )}
+        <p className="text-[11px] text-neutral-400 mt-1.5">{streaming
+          ? "Companies appear in the table as soon as they pass your checks. The search keeps going until the sources run out."
+          : "Full live progress is in the panel on the right."}</p>
       </div>
+    </div>
+  );
+}
+
+// Streaming delivery (bob-svc BOB_STREAM_DELIVERY_ENABLED sets counters.stream_mode): rows are written the moment they
+// pass every check and the run keeps searching until the sources run out.
+function isStreamingRun(run: Run | null | undefined): boolean {
+  return !!run && Number(run.counters?.stream_mode ?? 0) === 1;
+}
+
+// Slim status line above a streaming run's table while the search goes on.
+function LiveStrip({ run, rows }: { run: Run; rows: number }) {
+  const reduce = useReducedMotion();
+  const events = run.events || [];
+  const lastEv = events[events.length - 1];
+  return (
+    <div className="shrink-0 border-b-2 border-neutral-900 bg-white px-3 py-2 flex items-center gap-2.5">
+      <span className="relative flex h-2.5 w-2.5 shrink-0">
+        {!reduce && <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-60 animate-ping" />}
+        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+      </span>
+      <span className="text-[12.5px] font-bold text-neutral-900 shrink-0">Still searching</span>
+      <span className="text-[12px] text-neutral-500 truncate min-w-0 flex-1">{lastEv ? humanizeEvent(lastEv) : "Reading job boards and career pages"}</span>
+      <span className="text-[11px] font-bold text-green-700 bg-green-50 border border-green-300 rounded-full px-2 py-0.5 tabular-nums shrink-0">{rows} added</span>
     </div>
   );
 }
@@ -3523,9 +3561,12 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
   // Negative synthetic ids never collide with bob_rows.id and are stable across polls, so
   // flash-in + row identity keep working. Ordered by opp id (harvest order) so fit changes
   // during scoring never reshuffle rows.
+  // A streaming run writes rows the moment they pass, so the table shows only those: no provisional rows that may drop.
+  const streaming = isStreamingRun(run);
+  const liveTable = streaming && !!active && active.rows.length > 0;
   const provisional = useMemo<BobRow[]>(() => {
     const opp = run?.opportunities;
-    if (!run || run.status !== "running" || !active || !opp || opp.table_id !== active.id) return [];
+    if (!run || run.status !== "running" || streaming || !active || !opp || opp.table_id !== active.id) return [];
     const shipped = new Set(
       active.rows.map((r) => String((r.cells as Record<string, unknown>)._company_norm || "")).filter(Boolean),
     );
@@ -3533,7 +3574,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
       .filter((o) => o.status !== "rejected" && o.status !== "written" && !(o.company_norm && shipped.has(o.company_norm)))
       .sort((a, b) => a.id - b.id)
       .map((o) => ({ id: -o.id, status: "new", cells: { ...o.cells, _provisional: true, _opp_status: o.status } }));
-  }, [run, active]);
+  }, [run, active, streaming]);
 
   const displayRows = useMemo(() => [...(active?.rows ?? []), ...provisional], [active, provisional]);
   const activeDisplay: BobTable | null = active ? { ...active, rows: displayRows } : null;
@@ -3672,9 +3713,12 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
       {/* While a run is ACTIVE, MissionControl owns the pane the whole time: companies stream into
           its own live list, not a half-baked "In review…" provisional table. The real table only
           takes over once the run is DONE (run is null here). */}
-      {run && (MISSION_CONTROL ? <MissionControl run={run} /> : <RunGraph run={run} />)}
+      {/* A streaming run hands the pane to the real table as soon as its first row lands; MissionControl covers
+          the minutes before that. */}
+      {run && !liveTable && (MISSION_CONTROL ? <MissionControl run={run} /> : <RunGraph run={run} />)}
+      {run && liveTable && <LiveStrip run={run} rows={active?.rows.length ?? 0} />}
 
-      {!run && activeDisplay && view === "cards" && (
+      {(!run || liveTable) && activeDisplay && view === "cards" && (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
             {activeDisplay.rows.map((r, idx) => (
@@ -3696,7 +3740,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
         </div>
       )}
 
-      {!run && activeDisplay && view === "table" && (
+      {(!run || liveTable) && activeDisplay && view === "table" && (
         <DenseTable
           table={activeDisplay}
           newIds={newIds}
