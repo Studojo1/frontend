@@ -10,15 +10,16 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { NEW_UI_HOSTS, isSenseiAppHost, senseiHostKind, senseiUi } from "./sensei-ui.ts";
 
-// The two test hosts get the new look, with or without a port, in any case.
+// Owner 2026-10-15: the test hosts are back on the original look for demos, like production. The new look is still in
+// the code (checked below) and comes back by listing a host in NEW_UI_HOSTS.
 for (const host of ["app.studojo.pro", "APP.Studojo.pro", "app.studojo.pro:443", "dashboard.studojo.pro", "Dashboard.Studojo.pro:3000"]) {
-  assert.equal(senseiUi(host), "new", `host ${host}`);
+  assert.equal(senseiUi(host), "old", `host ${host}`);
 }
 
 // Production keeps the original look.
 assert.equal(senseiUi("app.studojo.com"), "old");
 assert.equal(senseiUi("dashboard.studojo.com"), "old");
-assert.deepEqual([...NEW_UI_HOSTS], ["app.studojo.pro", "dashboard.studojo.pro"], "listing production is a decision for the owner: update this test with it");
+assert.deepEqual([...NEW_UI_HOSTS], [], "which hosts get the new look is a decision for the owner: update this test with it");
 
 // Everything else too: the marketing sites, the admin panel, a look-alike host, nothing at all.
 for (const host of ["studojo.com", "studojo.pro", "admin.studojo.pro", "app.studojo.pro.evil.example", "xapp.studojo.pro", "dashboard.studojo.pro.evil.example", "", null, undefined]) {
