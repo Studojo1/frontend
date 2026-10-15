@@ -1284,7 +1284,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   // neural-net panel and "about 10 min left" for a few seconds, including runs
   // that were only going to come back with one clarifying question. create_table
   // is the first thing a real search does, so it is the honest signal.
-  const searching = running && hasTables;
+  // A chat that ALREADY has a table needs more than that: a follow-up there ("which site did you get this number
+  // from", a quick lookup, "which opening fits which student") is not a search, yet it showed "Sensei is researching,
+  // 14 min left, 202 sourced" for a 12-second answer (owner, 2026-10-15). The backend writes what the turn is to the
+  // run's counters a second or two in; until it has, and for every turn that is not a search, the quiet thinking
+  // line shows instead.
+  const rc = (run?.counters || {}) as Record<string, unknown>;
+  const turnKnown = typeof rc._chat_only === "boolean";
+  const notASearch = rc._chat_only === true || rc._lookup_turn === true || rc._match_turn === true;
+  const searching = running && hasTables && turnKnown && !notASearch;
   const showTable = (hasTables || searching) && mode !== "chat";
   const lastMsg = messages[messages.length - 1];
   const suggestions: string[] =
@@ -1757,10 +1765,10 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       </div>
                     )
                   ))}
-                  {/* Before a table exists we do not yet know whether this run
-                      is a search or a one-line question, so show a quiet thinking
-                      line rather than a progress bar promising "10 min left". */}
-                  {running && !hasTables && (
+                  {/* Until we know this run is a search, and for every run that
+                      is not one, show a quiet thinking line rather than a progress
+                      bar promising "10 min left". */}
+                  {running && !searching && (
                     <div className="flex gap-2.5">
                       <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
                         <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
@@ -1882,7 +1890,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               widthPct={tablePct}
               fullWidth={true}
               tables={tables}
-              run={running ? run : null}
+              run={searching ? run : null}
               expanded={true}
               onExpand={() => setMode("split")}
               viewPref={viewPref}
@@ -1900,7 +1908,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               widthPct={tablePct}
               fullWidth={false}
               tables={tables}
-              run={running ? run : null}
+              run={searching ? run : null}
               expanded={false}
               onExpand={() => setMode("table")}
               viewPref={viewPref}
