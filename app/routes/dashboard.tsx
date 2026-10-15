@@ -340,7 +340,7 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 .sx main h2 { font-weight: 600; }
 .sx main .rounded-2xl[class*=" shadow-[2px_2px"] { border-color: var(--line); }
 /* figures: label above, number in the mono face */
-.sx .text-3xl.font-black { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.sx .text-3xl.font-black { font-family: var(--sans); font-size: 30px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .sx .text-xs.font-bold.uppercase { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; }
 .sx main .rounded-2xl.sx-warn[class*=" shadow-[2px_2px"] { border-color: var(--amber-line); box-shadow: 0 0 0 1px var(--amber-line), var(--sh-sm); }
 /* lists laid out as tables: a tinted header row over hairlines */
@@ -373,12 +373,72 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 .sx main button.bg-violet-600:disabled, .sx main button.bg-violet-500:disabled { opacity: .35; }
 /* the last row's divider would double the card's bottom edge */
 .sx .border-b.border-neutral-100:last-child { border-bottom-color: transparent; }
+
+/* ── second pass (owner's UI sprint, 2026-10-16) ── */
+/* headings keep their own capitals ("Credit usage", not "Credit Usage") */
+.sx h1.capitalize { text-transform: none; }
+/* contact details in the text face with even digits; the mono face read as debug output */
+.sx a[href^="tel:"], .sx a[href^="mailto:"] { font-family: var(--sans); font-variant-numeric: tabular-nums; }
+/* a phone: the left nav becomes a strip of tabs over the page instead of a 240px column beside it */
+@media (max-width: 767px) {
+  .sx .min-h-screen.flex:has(> aside.fixed) { flex-direction: column; }
+  .sx aside.fixed.w-60 { position: static; width: 100%; border-right-width: 0; border-bottom: 1px solid var(--line); }
+  .sx aside.fixed.w-60 > nav { display: flex; gap: 4px; overflow-x: auto; padding: 6px 8px; }
+  .sx aside.fixed.w-60 > nav > button { width: auto; flex: none; white-space: nowrap; padding: 8px 12px; }
+  .sx aside.fixed.w-60 > .p-3 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .sx aside.fixed.w-60 > .p-3 > a { width: auto; flex: 1 1 auto; }
+  .sx aside.fixed.w-60 > .p-3 > div[title] { display: none; }
+  .sx main[class~="ml-60"] { margin-left: 0; }
+  .sx main[class~="ml-60"] > div { padding-left: 16px; padding-right: 16px; }
+}
 `;
 /* sx:end */
 
 // The route component, and what a plain import of this file gives: the original look.
 // (React Router wraps a route's default export and drops any props handed to it, so
 // the routes that choose a look import DashboardApp by name instead.)
+// What a chat is called (new look), the same as in bob.tsx: a chat is named after the first 70 characters of
+// its first message, so it was often a raw link or "[Attached: file.xlsx] ..." text.
+const ACRONYMS = /\b(qa|hr|ui|ux|ai|ml|sde|sdet|it|bi|cto|ceo|fde|qe|ios|api|sql)\b/gi;
+function chatLabel(raw: string): string {
+  let t = String(raw || "").replace(/\s+/g, " ").trim();
+  const cut = String(raw || "").length >= 70;
+  const att = t.match(/^\[Attached:\s*([^\]]*)(?:\]\s*|$)/i);
+  if (att) {
+    const rest = t.slice(att[0].length).trim();
+    t = rest && !/^Analy[sz]e the attached file/i.test(rest)
+      ? rest : att[1].split(/,\s*/)[0].replace(/\.[a-z0-9]{2,5}$/i, "");
+  }
+  const link = t.match(/^(?:https?:\/\/)?(?:www\.)?((?:[a-z0-9-]+\.)+[a-z]{2,})(\/[^\s]*)?/i);
+  if (link && (/^(https?:\/\/|www\.)/i.test(t) || link[2])) {
+    const host = link[1].toLowerCase();
+    const path = link[2] || "";
+    const rest = t.slice(link[0].length).trim();
+    const words = (slug: string) => {
+      let w = slug;
+      try { w = decodeURIComponent(slug); } catch { /* keep it as it is */ }
+      return w.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim()
+        .replace(/\b\w/g, (c) => c.toUpperCase()).replace(ACRONYMS, (a) => a.toUpperCase());
+    };
+    const person = host.endsWith("linkedin.com") ? path.match(/^\/in\/([^/?#]+)/) : null;
+    const listing = host.endsWith("naukri.com") ? path.match(/job-listings-([^/?#]+)/) : null;
+    if (person) return `${words(person[1].replace(/-?\d+$/, ""))} on LinkedIn`;
+    if (listing) t = `Naukri: ${words(listing[1].replace(/-\d{6,}$/, "").replace(/-\d+-to-\d+-years?$/, ""))}`;
+    else t = rest ? `${rest} (${host})` : host;
+  }
+  if (!t) return String(raw || "");
+  return t[0].toUpperCase() + t.slice(1) + (cut && !/[.!?…)]$/.test(t) ? "…" : "");
+}
+
+// A phone number as people read it (new look), the same as in bob.tsx.
+function formatPhone(p: string): string {
+  const raw = String(p || "").trim();
+  const d = raw.replace(/[^\d+]/g, "");
+  if (/^\+91\d{10}$/.test(d)) return `+91 ${d.slice(3, 8)} ${d.slice(8)}`;
+  if (/^\+1\d{10}$/.test(d)) return `+1 ${d.slice(2, 5)}-${d.slice(5, 8)}-${d.slice(8)}`;
+  return raw;
+}
+
 export default function DashboardPage() {
   return <DashboardApp />;
 }
@@ -701,7 +761,10 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
                 <StatCard icon={<FiUsers size={12} />} label="Team"
                   value={data?.org?.max_members ? `${members.length} / ${data.org.max_members}` : members.length}
                   sub={data?.org?.max_members ? "seats used" : "members"} />
-                <StatCard icon={<FiMessageSquare size={12} />} label="Chats" value={data?.chats.length ?? "-"} sub="in this workspace" />
+                <StatCard icon={<FiMessageSquare size={12} />} label="Chats"
+                  // the chat list the server sends is the 50 most recent, so its length was never the total
+                  value={data ? Math.max(data.chats.length, members.reduce((n, m) => n + (m.chats || 0), 0)).toLocaleString() : "-"}
+                  sub="in this workspace" />
               </div>
               {c?.low && (
                 <div className="mb-6 flex items-center gap-2 bg-amber-50 border-2 border-amber-500 rounded-xl px-4 py-3 text-sm text-amber-800">
@@ -737,7 +800,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
                   <input type="email" value={invite} onChange={(e) => setInvite(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && doInvite()} placeholder="teammate@company.com"
                     className="flex-1 border-2 border-neutral-900 rounded-xl px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-violet-500" />
-                  <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as any)}
+                  <select aria-label="Role" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as any)}
                     className="border-2 border-neutral-900 rounded-xl px-2 py-2 text-sm">
                     <option value="member">Member</option><option value="admin">Manager</option>
                   </select>
@@ -819,7 +882,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
                         <div className="font-medium truncate">{str(r.contact_name) || "-"}</div>
                         {r.contact_title && <div className="text-[11px] text-neutral-400 truncate">{str(r.contact_title)}</div>}
                       </div>
-                      <div className="truncate text-neutral-700">{str(r.contact_phone) ? <a href={`tel:${str(r.contact_phone)}`} className="hover:text-violet-700 flex items-center gap-1"><FiPhone size={11} />{str(r.contact_phone)}</a> : <span className="text-neutral-300">-</span>}</div>
+                      <div className="truncate text-neutral-700">{str(r.contact_phone) ? <a href={`tel:${str(r.contact_phone)}`} className="hover:text-violet-700 flex items-center gap-1"><FiPhone size={11} />{ui === "new" ? formatPhone(str(r.contact_phone)) : str(r.contact_phone)}</a> : <span className="text-neutral-300">-</span>}</div>
                       <div className="truncate text-neutral-700">{str(r.contact_email) ? <a href={`mailto:${str(r.contact_email)}`} className="hover:text-violet-700 flex items-center gap-1 truncate"><FiMail size={11} className="shrink-0" /><span className="truncate">{str(r.contact_email)}</span></a> : <span className="text-neutral-300">-</span>}</div>
                     </div>
                   ))}
@@ -838,12 +901,12 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
                   {(data?.chats || []).map((ch) => (
                     <div key={ch.id} className="grid grid-cols-[1.8fr_1fr_1.3fr_0.7fr] gap-3 items-center px-5 py-3 border-b border-neutral-100 text-sm">
                       <button onClick={() => setViewChat({ id: ch.id, title: ch.title })} className="min-w-0 flex items-center gap-2 text-left group" title="Open this chat">
-                        <span className="font-semibold truncate group-hover:text-violet-700 group-hover:underline">{ch.title}</span>
+                        <span className="font-semibold truncate group-hover:text-violet-700 group-hover:underline" title={ui === "new" ? ch.title : undefined}>{ui === "new" ? chatLabel(ch.title) : ch.title}</span>
                         {ch.shared_org && <span className="shrink-0 text-[10px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">shared</span>}
                       </button>
                       <div className="text-neutral-400 text-xs truncate" title={ch.owner_email || ""}>{ch.owner_email || "-"}</div>
                       <div>
-                        <select value={ch.assigned_to || ""} onChange={(e) => assignChat(ch.id, e.target.value)}
+                        <select aria-label="Assign to" value={ch.assigned_to || ""} onChange={(e) => assignChat(ch.id, e.target.value)}
                           className={`w-full border-2 rounded-lg px-2 py-1.5 text-xs ${ch.assigned_to ? "border-violet-500 text-violet-700 bg-violet-50" : "border-neutral-300 text-neutral-500"}`}>
                           <option value="">Unassigned</option>
                           {members.map((m) => (<option key={m.email} value={m.email}>{m.email}</option>))}

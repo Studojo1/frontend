@@ -210,13 +210,18 @@ function shortUrl(u: string): string {
   }
 }
 
+// A person's name opening a line of a mapping ("Ishita Rao, Steps, AI Engineer; Prodigal, ...").
+const LEAD_NAME = /^([A-Z][\p{L}'.-]*(?: [A-Z][\p{L}'.-]*){0,3})(,)\s/u;
+const MAPPING_LINE = /^[A-Z][\p{L}'.-]*(?: [A-Z][\p{L}'.-]*){0,3}, [^;\n]+;/u;
+
 // **bold** and bare links inside one line of an answer.
-function inlineRich(s: string, lead = false): React.ReactNode[] {
+function inlineRich(s: string, lead: false | "list" | "name" = false): React.ReactNode[] {
   const out: React.ReactNode[] = [];
   let text = s;
-  // A list of "Name, details" or "Name: details" items: the name leads in bold, so the list can be scanned.
+  // A list of "Name, details" or "Name: details" items, or the paragraphs of a student-by-student mapping:
+  // the name leads in bold, so the answer can be scanned.
   if (lead) {
-    const m = text.match(/^([^,:;()*]{2,48})([,:])\s/);
+    const m = text.match(lead === "list" ? /^([^,:;()*]{2,48})([,:])\s/ : LEAD_NAME);
     if (m) { out.push(<strong key="lead">{m[1]}</strong>, m[2] + " "); text = text.slice(m[0].length); }
   }
   const re = /\*\*([^*\n]+)\*\*|(https?:\/\/[^\s<>()]+[^\s<>().,;:!?'")\]])/g;
@@ -233,21 +238,21 @@ function inlineRich(s: string, lead = false): React.ReactNode[] {
 }
 
 // One answer as a person reads it (new look): paragraphs, "- " and "1." lines as real lists, bold, links.
-function RichText({ text }: { text: string }) {
+function RichText({ text, leadNames = false }: { text: string; leadNames?: boolean }) {
   type List = { ordered: boolean; items: string[] };
   const blocks: React.ReactNode[] = [];
   let para: string[] = [];
   let list: List | null = null;
   const flushPara = () => {
     const body = para.join("\n").trim();
-    if (body) blocks.push(<p key={blocks.length} className="whitespace-pre-wrap">{inlineRich(body)}</p>);
+    if (body) blocks.push(<p key={blocks.length} className="whitespace-pre-wrap">{inlineRich(body, leadNames ? "name" : false)}</p>);
     para = [];
   };
   const flushList = () => {
     const l = list as List | null;
     if (l) {
       const lead = l.items.length >= 2;
-      const items = l.items.map((it, i) => <li key={i}>{inlineRich(it, lead)}</li>);
+      const items = l.items.map((it, i) => <li key={i}>{inlineRich(it, lead ? "list" : false)}</li>);
       blocks.push(l.ordered ? <ol key={blocks.length}>{items}</ol> : <ul key={blocks.length}>{items}</ul>);
     }
     list = null;
@@ -904,6 +909,21 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 .sx .sx-starter > svg { flex: none; margin-top: 2px; color: var(--acc); }
 .sx .sx-starter-title { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
 .sx .sx-starter-text { display: block; font-size: 13px; color: var(--t2); margin-top: 2px; line-height: 1.4; }
+
+/* ── third pass: controls you can hit, and only when you need them ── */
+/* the results view switch says what it switches to */
+.sx section[class~="bg-[#f4f0e8]"] .sx-seg > button { width: auto; padding: 0 11px; gap: 6px; }
+.sx .sx-seg-label { font-size: 12.5px; font-weight: 500; }
+/* row Enrich: a target you can hit (it was 55x21) */
+.sx button[title^="Find phone + email for this company"] { min-height: 26px; padding: 3px 10px; gap: 5px; font-size: 12px; }
+/* "Remove row" shows on the row you are on, so a bare x does not sit beside every Enrich */
+@media (hover: hover) {
+  .sx tbody tr [title="Remove row"], .sx .cursor-pointer[class*="shadow-[3px_3px"] [title="Remove row"] { opacity: 0; transition: opacity .12s; }
+  .sx tbody tr:hover [title="Remove row"], .sx .cursor-pointer[class*="shadow-[3px_3px"]:hover [title="Remove row"], .sx [title="Remove row"]:focus-visible { opacity: 1; }
+}
+/* the account links at the foot of the sidebar: 12px with room to hit them */
+.sx aside .space-y-2 > div.flex > button { padding: 5px 0; font-size: 12.5px; color: var(--t2); }
+.sx aside .space-y-2 > div[title] { font-size: 12.5px; color: var(--t3); }
 `;
 /* sx:end */
 
@@ -2517,8 +2537,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
         <div className="sx-scrim fixed inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
       )}
 
-      {/* ── Main ── */}
-      <div className="flex-1 min-w-0 flex flex-col">
+      {/* ── Main ── (the landmark the "Skip to main content" link in app/root.tsx jumps to) */}
+      <main id="main" className="flex-1 min-w-0 flex flex-col">
 
         <header className="h-12 shrink-0 border-b-2 border-neutral-900 bg-white flex items-center gap-2 px-3">
           <button
@@ -2528,7 +2548,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           >
             <FiSidebar />
           </button>
-          <span className="text-sm font-bold truncate">{ui === "new" ? chatLabel(headerTitle) : headerTitle}</span>
+          <h1 className="text-sm font-bold truncate">{ui === "new" ? chatLabel(headerTitle) : headerTitle}</h1>
           {projectChip && (
             <button onClick={() => openProject(projectChip.id)} title="Open this project"
               className="hidden sm:flex shrink-0 items-center gap-1 max-w-[180px] text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5 hover:border-violet-500">
@@ -2635,7 +2655,12 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                           <SenseiMark />
                         </div>
                         <div className={`sx-answer min-w-0 max-w-[92%] ${CARD} rounded-tl-md px-4 py-3 space-y-3`}>
-                          {g.items.map((m) => <RichText key={m.id} text={plainAnswer(m.content)} />)}
+                          {(() => {
+                            // a student-by-student mapping sent as one line per student: each line leads with the name in bold
+                            const texts = g.items.map((m) => plainAnswer(m.content));
+                            const mapping = texts.filter((t) => MAPPING_LINE.test(t)).length >= 2;
+                            return g.items.map((m, i) => <RichText key={m.id} text={texts[i]} leadNames={mapping} />);
+                          })()}
                         </div>
                       </div>
                     ) : (
@@ -2836,7 +2861,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           )}
         </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
@@ -4146,6 +4171,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
                 }`}
               >
                 <Icon size={14} />
+                {ui === "new" && <span className="sx-seg-label">{v === "cards" ? "Cards" : "Table"}</span>}
               </button>
             ))}
           </div>
@@ -4690,7 +4716,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
     </span>
   );
   return (
-    <div className="flex-1 overflow-auto bg-white">
+    <div className="flex-1 overflow-auto bg-white" tabIndex={0} aria-label={`${table.name}: results table`}>
       <table className="text-[12.5px] border-collapse w-full">
         <thead className="sticky top-0 z-20">
           <tr className="bg-[#faf7f2]">
@@ -4704,7 +4730,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
               </th>
             ))}
             <th className="px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Status</th>
-            <th className="px-2 py-2.5 border-b-2 border-neutral-900" />
+            <th className="px-2 py-2.5 border-b-2 border-neutral-900"><span className="sr-only">Remove</span></th>
           </tr>
         </thead>
         <tbody>
@@ -4755,11 +4781,16 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
                   <EnrichButton cells={r.cells} onEnrich={() => onEnrich(r.id)} size="xs" />
                 )}
               </td>
-              {cols.filter((c) => !hide.has(c.key)).map((c) => (
-                <td key={c.key} data-col={c.key} className={`px-3 py-2.5 ${WIDE_KEYS.has(c.key) ? "min-w-[240px] max-w-[340px]" : "max-w-[200px]"}`}>
-                  <Cell colKey={c.key} value={r.cells[c.key]} />
-                </td>
-              ))}
+              {cols.filter((c) => !hide.has(c.key)).map((c) => {
+                // a match table's "why it fits" opened with the student's name, already the first column
+                const who = studentFirst ? str(r.cells.student) : "";
+                const v = who && str(r.cells[c.key]).startsWith(`${who}: `) ? str(r.cells[c.key]).slice(who.length + 2) : r.cells[c.key];
+                return (
+                  <td key={c.key} data-col={c.key} className={`px-3 py-2.5 ${WIDE_KEYS.has(c.key) ? "min-w-[240px] max-w-[340px]" : "max-w-[200px]"}`}>
+                    <Cell colKey={c.key} value={v} />
+                  </td>
+                );
+              })}
               <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
                 {prov ? (
                   <ProvChip status={str(r.cells._opp_status)} />
