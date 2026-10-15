@@ -211,8 +211,8 @@ function shortUrl(u: string): string {
 }
 
 // A person's name opening a line of a mapping ("Ishita Rao, Steps, AI Engineer; Prodigal, ...").
-const LEAD_NAME = /^([A-Z][\p{L}'.-]*(?: [A-Z][\p{L}'.-]*){0,3})(,)\s/u;
-const MAPPING_LINE = /^[A-Z][\p{L}'.-]*(?: [A-Z][\p{L}'.-]*){0,3}, [^;\n]+;/u;
+const LEAD_NAME = /^([A-Z][\p{L}'.-]*(?: (?:[A-Z][\p{L}'.-]*|\d{1,3})){0,3})(,)\s/u;
+const MAPPING_LINE = /^[A-Z][\p{L}'.-]*(?: (?:[A-Z][\p{L}'.-]*|\d{1,3})){0,3}, [^;\n]+;/u;
 
 // **bold** and bare links inside one line of an answer.
 function inlineRich(s: string, lead: false | "list" | "name" = false): React.ReactNode[] {
@@ -859,6 +859,8 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 .sx tbody td [class~="text-[10.5px]"] { font-size: 12px; color: var(--t2); }
 .sx tbody td a[href^="tel:"], .sx tbody td a[href^="mailto:"] { min-height: 24px; }
 .sx td[data-col], .sx th[data-col] { min-width: 120px; }
+/* the long-text columns (evidence, why now, what they do) keep the 240px the markup gives them */
+.sx td[data-col][class~="min-w-[240px]"], .sx th[data-col][class~="min-w-[240px]"] { min-width: 240px; }
 .sx td[data-col="student"], .sx td[data-col="role"], .sx td[data-col="city"] { min-width: 150px; }
 .sx td[data-col="student"] > span { font-weight: 600; color: var(--ink); }
 .sx td[data-col="fit_score"], .sx th[data-col="fit_score"] { min-width: 64px; }
