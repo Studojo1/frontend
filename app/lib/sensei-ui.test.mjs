@@ -64,7 +64,7 @@ function strayRules(css) {
   return css
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/@(font-face|keyframes)[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/g, "")
-    .replace(/@media[^{]*\{/g, "")
+    .replace(/@(media|container)[^{]*\{/g, "")
     .split("}")
     .map((rule) => rule.split("{")[0].trim())
     .filter(Boolean)

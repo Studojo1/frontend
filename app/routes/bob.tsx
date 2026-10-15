@@ -148,6 +148,158 @@ function prettify(s: string): string {
   return s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// The new look keeps a label's own capitals: "Matches by student", "Why it fits", not "Matches By Student".
+function sentence(s: string): string {
+  const t = s.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  return t ? t[0].toUpperCase() + t.slice(1) : t;
+}
+
+function columnLabel(c: BobColumn, ui: Ui): string {
+  if (ui !== "new") return prettify(c.label || c.key);
+  // the badge in the cell already says what scale it is on
+  if (c.key === "fit_score") return "Fit";
+  return sentence(c.label || c.key);
+}
+
+const ACRONYMS = /\b(qa|hr|ui|ux|ai|ml|sde|sdet|it|bi|cto|ceo|fde|qe|ios|api|sql)\b/gi;
+
+// A chat is named after its first message, so its name was often a raw link or "[Attached: file.xlsx] ..."
+// text. The new look names it the way a person would: the request without the attachment marker, a
+// LinkedIn profile as the person, a Naukri listing as its role. The stored title is unchanged (Rename
+// still starts from it).
+function chatLabel(raw: string): string {
+  let t = String(raw || "").replace(/\s+/g, " ").trim();
+  // the server names a chat after the first 70 characters of its first message, mid-word if need be
+  const cut = String(raw || "").length >= 70;
+  const att = t.match(/^\[Attached:\s*([^\]]*)(?:\]\s*|$)/i);
+  if (att) {
+    const rest = t.slice(att[0].length).trim();
+    t = rest && !/^Analy[sz]e the attached file/i.test(rest)
+      ? rest : att[1].split(/,\s*/)[0].replace(/\.[a-z0-9]{2,5}$/i, "");
+  }
+  const link = t.match(/^(?:https?:\/\/)?(?:www\.)?((?:[a-z0-9-]+\.)+[a-z]{2,})(\/[^\s]*)?/i);
+  if (link && (/^(https?:\/\/|www\.)/i.test(t) || link[2])) {
+    const host = link[1].toLowerCase();
+    const path = link[2] || "";
+    const rest = t.slice(link[0].length).trim();
+    const words = (slug: string) => {
+      let w = slug;
+      try { w = decodeURIComponent(slug); } catch { /* keep it as it is */ }
+      return w.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim()
+        .replace(/\b\w/g, (c) => c.toUpperCase()).replace(ACRONYMS, (a) => a.toUpperCase());
+    };
+    const person = host.endsWith("linkedin.com") ? path.match(/^\/in\/([^/?#]+)/) : null;
+    const listing = host.endsWith("naukri.com") ? path.match(/job-listings-([^/?#]+)/) : null;
+    if (person) return `${words(person[1].replace(/-?\d+$/, ""))} on LinkedIn`;
+    if (listing) t = `Naukri: ${words(listing[1].replace(/-\d{6,}$/, "").replace(/-\d+-to-\d+-years?$/, ""))}`;
+    else t = rest ? `${rest} (${host})` : host;
+  }
+  if (!t) return String(raw || "");
+  return t[0].toUpperCase() + t.slice(1) + (cut && !/[.!?…)]$/.test(t) ? "…" : "");
+}
+
+// A link as a person reads it: the site and the start of the path, not 200 characters of query string.
+function shortUrl(u: string): string {
+  try {
+    const x = new URL(u);
+    const path = x.pathname.replace(/\/+$/, "");
+    const tail = path.length > 28 ? `${path.slice(0, 27)}…` : path;
+    return x.hostname.replace(/^www\./, "") + tail;
+  } catch {
+    return u;
+  }
+}
+
+// **bold** and bare links inside one line of an answer.
+function inlineRich(s: string, lead = false): React.ReactNode[] {
+  const out: React.ReactNode[] = [];
+  let text = s;
+  // A list of "Name, details" or "Name: details" items: the name leads in bold, so the list can be scanned.
+  if (lead) {
+    const m = text.match(/^([^,:;()*]{2,48})([,:])\s/);
+    if (m) { out.push(<strong key="lead">{m[1]}</strong>, m[2] + " "); text = text.slice(m[0].length); }
+  }
+  const re = /\*\*([^*\n]+)\*\*|(https?:\/\/[^\s<>()]+[^\s<>().,;:!?'")\]])/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    if (m[1]) out.push(<strong key={`b${m.index}`}>{m[1]}</strong>);
+    else out.push(<a key={`a${m.index}`} href={m[2]} target="_blank" rel="noreferrer" title={m[2]}>{shortUrl(m[2])}</a>);
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
+// One answer as a person reads it (new look): paragraphs, "- " and "1." lines as real lists, bold, links.
+function RichText({ text }: { text: string }) {
+  type List = { ordered: boolean; items: string[] };
+  const blocks: React.ReactNode[] = [];
+  let para: string[] = [];
+  let list: List | null = null;
+  const flushPara = () => {
+    const body = para.join("\n").trim();
+    if (body) blocks.push(<p key={blocks.length} className="whitespace-pre-wrap">{inlineRich(body)}</p>);
+    para = [];
+  };
+  const flushList = () => {
+    const l = list as List | null;
+    if (l) {
+      const lead = l.items.length >= 2;
+      const items = l.items.map((it, i) => <li key={i}>{inlineRich(it, lead)}</li>);
+      blocks.push(l.ordered ? <ol key={blocks.length}>{items}</ol> : <ul key={blocks.length}>{items}</ul>);
+    }
+    list = null;
+  };
+  for (const ln of text.split("\n")) {
+    const item = ln.match(/^\s*(?:([-•*])|(\d{1,2})[.)])\s+(.*)$/);
+    if (item) {
+      flushPara();
+      const ordered = !item[1];
+      if (!list || list.ordered !== ordered) { flushList(); list = { ordered, items: [] }; }
+      list.items.push(item[3]);
+      continue;
+    }
+    if (!ln.trim()) { flushPara(); flushList(); continue; }
+    if (list && /^\s{2,}\S/.test(ln)) { list.items[list.items.length - 1] += ` ${ln.trim()}`; continue; }
+    flushList();
+    para.push(ln);
+  }
+  flushPara();
+  flushList();
+  return <div className="sx-rich space-y-2.5 break-words [overflow-wrap:anywhere]">{blocks}</div>;
+}
+
+// What the person sent (new look): attached files as chips, not "[Attached: a.pdf, b.png]" text (the composer
+// writes that marker into the message), and a long brief folded to its first lines so it does not push the
+// answer off the screen.
+function UserBubble({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const att = text.match(/^\s*\[Attached:\s*([^\]]*)\]\s*/i);
+  const files = att ? att[1].split(/,\s*/).map((f) => f.trim()).filter(Boolean) : [];
+  let body = (att ? text.slice(att[0].length) : text).trim();
+  if (files.length && /^Analy[sz]e the attached file\(s\) and proceed\.?$/i.test(body)) body = "";
+  const long = body.length > 560 || body.split("\n").length > 9;
+  return (
+    <div className="sx-user max-w-[85%] px-4 py-3 rounded-2xl border leading-relaxed">
+      {files.length > 0 && (
+        <div className={`flex flex-wrap gap-1.5 ${body ? "mb-2" : ""}`}>
+          {files.map((f, i) => (
+            <span key={i} className="sx-file" title={f}><FiFile size={13} /><span className="truncate">{f}</span></span>
+          ))}
+        </div>
+      )}
+      {body && (
+        <div className={`whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${long && !open ? "line-clamp-6" : ""}`}>{body}</div>
+      )}
+      {long && (
+        <button onClick={() => setOpen((o) => !o)} className="sx-more mt-1.5">{open ? "Show less" : "Show the full message"}</button>
+      )}
+    </div>
+  );
+}
+
 // Domains that are never a company's own website (LinkedIn, job boards).
 const NON_SITE_DOMAINS = /linkedin\.com|naukri\.com|indeed\.com|wellfound\.com|greenhouse\.io|lever\.co|ashbyhq\.com|glassdoor\./i;
 
@@ -248,7 +400,7 @@ const SX_CSS = `
 /* ── tokens ── */
 .sx {
   --bg: #FBFBFD; --bg2: #F4F4F9; --surface: #FFFFFF; --track: #E9EAF2;
-  --ink: #16161E; --t1: #2A2B36; --t2: #585B6C; --t3: #8A8D9E; --t4: #AAADBC;
+  --ink: #16161E; --t1: #2A2B36; --t2: #585B6C; --t3: #686B7D; --t4: #8E91A3;
   --line: rgba(22,22,40,.09); --line2: rgba(22,22,40,.15);
   --acc: #5B63E8; --acc-deep: #4148C6; --acc-soft: #EEEFFE; --acc-soft2: #E3E5FD; --acc-line: rgba(91,99,232,.28); --acc-lite: #9AA2FF;
   --mint: #1E9E6E; --mint-ink: #157A54; --mint-soft: #E7F8F0; --mint-line: rgba(30,158,110,.3);
@@ -294,6 +446,11 @@ const SX_CSS = `
 .sx code, .sx pre, .sx .font-mono { font-family: var(--mono); }
 .sx a[href^="tel:"], .sx a[href^="mailto:"] { font-family: var(--mono); font-weight: 400; }
 .sx ::selection { background: rgba(91,99,232,.2); }
+/* Type floor. The markup was sized for a heavier face at 9-11px; in Geist those sizes are hard to read, so
+   nothing a person has to read goes under 11px, and the 11px line becomes 12. */
+.sx [class~="text-[9px]"], .sx [class~="text-[10px]"] { font-size: 11px; }
+.sx [class~="text-[10.5px]"] { font-size: 11.5px; }
+.sx [class~="text-[11px]"], .sx [class~="text-[11.5px]"] { font-size: 12px; }
 
 /* ── surfaces ── */
 .sx [class~="bg-[#faf7f2]"] { background-color: var(--bg); }
@@ -439,7 +596,7 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 .sx aside .h-12 [class~="text-[9px]"] { font-size: 11px; margin-top: 3px; }
 .sx aside .p-2 > button.bg-neutral-900 { padding-top: 10px; padding-bottom: 10px; font-weight: 500; transition: translate .15s, box-shadow .15s, background-color .15s; }
 .sx aside .p-2 > button.bg-neutral-900:hover { translate: 0 -1px; box-shadow: 0 10px 24px -12px rgba(18,20,45,.55); }
-.sx aside .uppercase.tracking-wider { font-size: 10.5px; letter-spacing: .07em; color: var(--t3); padding-right: 7px; }
+.sx aside .uppercase.tracking-wider { font-size: 11px; letter-spacing: .07em; color: var(--t3); padding-right: 7px; }
 .sx aside .uppercase.tracking-wider > .normal-case { padding-right: 5px; }
 .sx aside .uppercase.tracking-wider .normal-case { font-family: var(--mono); color: var(--t3); font-weight: 400; }
 .sx aside .rounded-xl.border-2:not([role="menu"]) { border-color: transparent; border-radius: 10px; color: var(--t2); }
@@ -472,7 +629,8 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 .sx .bg-red-50.border-red-500 { border-color: var(--red-line); font-weight: 500; }
 
 /* ── chat ── */
-.sx .sx-user { background-color: var(--btn); color: var(--btn-ink); border-color: transparent; border-radius: 18px 18px 6px 18px; box-shadow: none; }
+/* the person's own words sit on a soft tint of the accent: a black slab outweighed every answer on the page */
+.sx .sx-user { background-color: var(--you); color: var(--ink); border-color: var(--you-line); border-width: 1px; border-radius: 18px 18px 6px 18px; box-shadow: none; font-size: 15px; }
 .sx .bob-canvas .rounded-tl-md { border-color: var(--line); border-radius: 6px 18px 18px 18px; }
 .sx .bob-canvas .rounded-tl-md p { color: var(--t1); }
 .sx .bob-canvas .rounded-tl-md p.text-neutral-400 { color: var(--t3); }
@@ -495,8 +653,13 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 
 /* ── results ── */
 .sx section[class~="bg-[#f4f0e8]"] > .h-12 { height: 52px; border-color: var(--line); }
-.sx button[class~="max-w-[150px]"] { border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 500; border-color: var(--line); flex-shrink: 1; min-width: 64px; }
-.sx button[class~="max-w-[150px]"].bg-violet-500 { border-color: transparent; color: #fff; }
+/* the result tabs: a tab bar with full names (up to 280px) and an underline, not shrinking pills; "Matches by
+   student" was cut to "M..." in the split view. The strip scrolls sideways when there are many. */
+.sx button[class~="max-w-[150px]"] { max-width: 280px; flex-shrink: 0; align-self: stretch; border: 0; border-radius: 0; background-color: transparent; color: var(--t2); padding: 0 2px; gap: 7px; font-size: 13px; font-weight: 500; box-shadow: inset 0 -2px 0 transparent; }
+.sx button[class~="max-w-[150px]"]:hover { color: var(--ink); background-color: transparent; }
+.sx button[class~="max-w-[150px]"].bg-violet-500, .sx button[class~="max-w-[150px]"].bg-violet-500:hover { background-color: transparent; color: var(--ink); box-shadow: inset 0 -2px 0 var(--acc); }
+.sx button[class~="max-w-[150px]"] > .sx-count { font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--t2); background-color: var(--bg2); border-radius: 999px; padding: 1px 7px; }
+.sx button[class~="max-w-[150px]"].bg-violet-500 > .sx-count { color: var(--acc-deep); background-color: var(--acc-soft); }
 .sx section[class~="bg-[#f4f0e8]"] > .h-12 button.rounded-xl { font-size: 12.5px; font-weight: 500; padding: 7px 13px; border-color: transparent; }
 .sx section[class~="bg-[#f4f0e8]"] > .h-12 button.bg-neutral-100 { background-color: var(--bg2); color: var(--t3); }
 .sx section[class~="bg-[#f4f0e8]"] > .h-12 button.rounded-xl.bg-neutral-900:hover { background-color: var(--btn-hover); translate: 0 -1px; }
@@ -538,8 +701,11 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 .sx [class~="max-w-[440px]"] .uppercase.tracking-wide { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 400; color: var(--t3); }
 /* company logo tiles: corners in proportion to the fit badge beside them */
 .sx .rounded-md.bg-violet-100.shrink-0, .sx img.rounded-md.object-contain { border-radius: 28%; }
-/* status: a coloured pill, as in the demo, without the browser's heavy arrow */
-.sx select.rounded-lg { appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center; padding: 5px 9px; }
+/* status: a coloured pill without the browser's heavy arrow, but with a small chevron of its own, so it still
+   reads as something you can change (without one, "new" looked like a disabled button) */
+.sx select.rounded-lg { appearance: none; -webkit-appearance: none; text-align: left; text-align-last: left; padding: 5px 24px 5px 10px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23686B7D' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; background-size: 9px 6px; }
+.sx .sx-dark select.rounded-lg { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23B1B4C4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.sx select.rounded-lg.bg-neutral-100:not(.line-through) { background-color: var(--surface); border-color: var(--line2); color: var(--t1); }
 /* link chips white like the phone and email chips */
 .sx a.bg-neutral-50.rounded-lg { background-color: var(--surface); }
 /* figures in one face: fit scores, tier badges, popover figures */
@@ -567,7 +733,8 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 /* dark mode, a dialog open: focus rings left behind the backdrop stay visible through it */
 .sx .sx-dark:has(> .fixed.inset-0) > :not(.fixed) :is(button, a):focus-visible { outline-color: var(--ink); }
 /* room for the focus ring inside the two lists that clip it: the results tabs and Add to project */
-.sx section[class~="bg-[#f4f0e8]"] > .h-12 > .overflow-x-auto { padding: 4px; margin: -4px 0 -4px -4px; }
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 > .overflow-x-auto { align-self: stretch; gap: 20px; padding: 0 4px; margin: 0 0 0 -4px; }
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 > .overflow-x-auto > button:focus-visible { outline-offset: -2px; }
 .sx .fixed.inset-0 .flex-col.max-h-64.overflow-y-auto { padding: 4px; margin: -4px; }
 /* the notice strip's dismiss button: quiet at rest, full on hover */
 .sx .bg-red-50.border-red-500 > button { opacity: .65; }
@@ -604,6 +771,70 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 /* ── new rows flash once in the accent tint ── */
 @keyframes sxFlash { 0% { background-color: var(--acc-soft2); } 100% { background-color: transparent; } }
 .sx .bob-new { animation-name: sxFlash; }
+
+/* ── second pass: readability (owner's UI sprint, 2026-10-16) ── */
+.sx { --you: #EEEFFE; --you-line: rgba(91,99,232,.18); }
+.sx .sx-dark { --you: rgba(127,135,246,.16); --you-line: rgba(127,135,246,.30); }
+
+/* one answer, one card; its text at reading size, lists as lists */
+.sx .sx-answer { padding: 14px 18px; }
+.sx .sx-rich { font-size: 15px; line-height: 1.65; color: var(--t1); }
+.sx .sx-rich strong { font-weight: 600; color: var(--ink); }
+.sx .sx-rich a { color: var(--acc-deep); text-decoration: underline; text-decoration-color: var(--acc-line); text-underline-offset: 3px; }
+.sx .sx-rich a:hover { text-decoration-color: currentColor; }
+.sx .sx-rich ul, .sx .sx-rich ol { display: grid; gap: 6px; padding-left: 1.2em; }
+.sx .sx-rich ul { list-style: disc; }
+.sx .sx-rich ol { list-style: decimal; }
+.sx .sx-rich li { padding-left: 2px; }
+.sx .sx-rich li::marker { color: var(--t3); }
+/* the person's files, as chips */
+.sx .sx-file { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 4px 10px; border-radius: 9px; background-color: var(--surface); border: 1px solid var(--line); font-size: 13px; font-weight: 500; color: var(--t1); }
+.sx .sx-file svg { flex: none; color: var(--acc); }
+.sx .sx-more { font-size: 13px; font-weight: 500; color: var(--acc-deep); }
+.sx .sx-more:hover { text-decoration: underline; text-underline-offset: 3px; }
+/* suggestions wrap instead of being cut mid-quote */
+.sx .bob-canvas button.rounded-full[class~="hover:bg-violet-500"] { text-align: left; line-height: 1.4; border-radius: 14px; font-size: 13px; }
+
+/* results toolbar: "Enrich all" is the one primary action; Export is a quiet secondary */
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 > .shrink-0 > button.bg-neutral-900 { background-color: var(--surface); color: var(--ink); border: 1px solid var(--line2); }
+.sx section[class~="bg-[#f4f0e8]"] > .h-12 > .shrink-0 > button.bg-neutral-900:hover { background-color: var(--hov); color: var(--ink); translate: none; }
+/* a narrow results pane (the split view, a tablet, a phone) gives the tabs their own row; side by side the
+   buttons squeezed them to "M..." and at 1024px out of sight altogether */
+.sx section[class~="bg-[#f4f0e8]"] { container-type: inline-size; }
+@container (max-width: 760px) {
+  .sx section[class~="bg-[#f4f0e8]"] > .h-12 { flex-wrap: wrap; height: auto; row-gap: 0; padding-bottom: 8px; }
+  .sx section[class~="bg-[#f4f0e8]"] > .h-12 > .overflow-x-auto { flex: 1 0 100%; height: 46px; margin: 0 -12px 8px; padding: 0 16px; border-bottom: 1px solid var(--line); }
+  .sx section[class~="bg-[#f4f0e8]"] > .h-12 > .shrink-0 { flex: 1 0 100%; }
+  .sx section[class~="bg-[#f4f0e8]"] > .h-12 > .shrink-0 > .sx-seg { margin-right: auto; }
+}
+
+/* the table: 13px cells, readable contact lines and row numbers, no column squeezed to one word a line */
+.sx table[class~="text-[12.5px]"] { font-size: 13px; }
+.sx tbody td.sticky { white-space: normal; min-width: 200px; max-width: 260px; }
+.sx tbody td.sticky > span { align-items: flex-start; }
+.sx tbody td.sticky .w-4.text-right { color: var(--t3); font-size: 11px; font-variant-numeric: tabular-nums; min-width: 18px; padding-top: 2px; }
+.sx tbody td [class~="text-[10.5px]"] { font-size: 12px; color: var(--t2); }
+.sx tbody td a[href^="tel:"], .sx tbody td a[href^="mailto:"] { min-height: 24px; }
+.sx td[data-col], .sx th[data-col] { min-width: 120px; }
+.sx td[data-col="student"], .sx td[data-col="role"], .sx td[data-col="city"] { min-width: 150px; }
+.sx td[data-col="student"] > span { font-weight: 600; color: var(--ink); }
+.sx td[data-col="fit_score"], .sx th[data-col="fit_score"] { min-width: 64px; }
+/* the scrollbar shows, so the columns past the edge of the pane are not a secret */
+.sx .flex-1.overflow-auto.bg-white::-webkit-scrollbar { height: 10px; width: 10px; }
+.sx .flex-1.overflow-auto.bg-white::-webkit-scrollbar-thumb { background-color: var(--line2); border-radius: 999px; border: 2px solid var(--surface); }
+.sx .flex-1.overflow-auto.bg-white::-webkit-scrollbar-track { background-color: transparent; }
+
+/* a phone: the chat list is a drawer over the page; the chat and the results take turns on the screen */
+@media (max-width: 767px) {
+  .sx aside.sx-drawer { position: fixed; top: 0; bottom: 0; left: 0; z-index: 46; box-shadow: var(--sh-lg); }
+  .sx .sx-scrim { z-index: 45; }
+  .sx .sx-seg > button[title="Split view"] { display: none; }
+  .sx header { padding-left: 8px; padding-right: 10px; gap: 6px; }
+  .sx header .relative > button.rounded-full .font-medium { display: none; }
+  .sx .bob-canvas > div[class~="px-5"] { padding-left: 12px; padding-right: 12px; }
+  .sx .bob-canvas [class~="pl-10"] { padding-left: 0; }
+  .sx .sx-answer { max-width: 100%; }
+}
 `;
 /* sx:end */
 
@@ -1224,6 +1455,25 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<PanelMode>("split");
+  // A phone (new look): the chat list is a drawer over the page, closed until asked for, and the chat and
+  // the results take turns on the screen instead of splitting 390px between them.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    if (ui !== "new") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => {
+      setNarrow(mq.matches);
+      if (mq.matches) setSidebarOpen(false);
+      else {
+        try { setSidebarOpen(JSON.parse(localStorage.getItem(LAYOUT_STORAGE) || "{}").sidebarOpen !== false); }
+        catch { setSidebarOpen(true); }
+      }
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [ui]);
+  const viewMode: PanelMode = narrow && mode === "split" ? "chat" : mode;
   // The chat whose quick-lookup contacts the user asked to see as a table ("Open as table"); none by default.
   const [quickPanelFor, setQuickPanelFor] = useState<number | null>(null);
   // A tab left open keeps running the version it loaded, so a fix already live looked broken there (owner,
@@ -1256,14 +1506,17 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(LAYOUT_STORAGE) || "{}");
-      if (typeof saved.sidebarOpen === "boolean") setSidebarOpen(saved.sidebarOpen);
+      const phone = ui === "new" && window.matchMedia("(max-width: 767px)").matches;
+      if (typeof saved.sidebarOpen === "boolean" && !phone) setSidebarOpen(saved.sidebarOpen);
       if (typeof saved.tablePct === "number") setTablePct(saved.tablePct);
       if (saved.viewPref === "cards" || saved.viewPref === "table") setViewPref(saved.viewPref);
     } catch {}
   }, []);
   useEffect(() => {
+    // the phone drawer opening and closing is not the desktop sidebar's setting
+    if (narrow) return;
     localStorage.setItem(LAYOUT_STORAGE, JSON.stringify({ sidebarOpen, tablePct, viewPref }));
-  }, [sidebarOpen, tablePct, viewPref]);
+  }, [sidebarOpen, tablePct, viewPref, narrow]);
 
   const handleError = useCallback((e: unknown) => {
     if (e instanceof BobError && (e.status === 401 || e.status === 503)) {
@@ -1809,9 +2062,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   const turnKnown = typeof rc._chat_only === "boolean";
   const notASearch = rc._chat_only === true || rc._lookup_turn === true || rc._match_turn === true;
   const searching = running && hasTables && turnKnown && !notASearch;
-  const showTable = (hasTables || searching) && mode !== "chat";
+  const showTable = (hasTables || searching) && viewMode !== "chat";
   // a chat with nothing for the side panel always shows the chat, whatever view was picked before
-  const showChat = mode !== "table" || !showTable;
+  const showChat = viewMode !== "table" || !showTable;
   // What a short (non-search) turn is doing right now, from its own events ("Looking up 2 contacts").
   let liveStep = "";
   if (running && !searching) {
@@ -1857,8 +2110,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       <div key={c.id}
         className={`relative flex items-center gap-1 pl-3 pr-1 py-1 mb-1 rounded-xl text-sm border-2 transition-colors ${
           active ? "bg-violet-100 border-neutral-900" : "border-transparent hover:bg-neutral-100"}`}>
-        <button onClick={() => openChat(c.id)} className="flex-1 min-w-0 text-left py-1">
-          <span className="block truncate">{c.title}</span>
+        <button onClick={() => { openChat(c.id); if (narrow) setSidebarOpen(false); }} className="flex-1 min-w-0 text-left py-1">
+          <span className="block truncate" title={ui === "new" ? c.title : undefined}>{ui === "new" ? chatLabel(c.title) : c.title}</span>
           {canOrganize && c.project_name && (
             <span className="flex items-center gap-1 text-[10.5px] text-violet-600 truncate">
               <FiFolder size={10} className="shrink-0" />{c.project_name}
@@ -2074,7 +2327,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
       <aside
         className={`shrink-0 border-r-2 border-neutral-900 bg-white flex flex-col overflow-hidden transition-[width] duration-200 ${
           sidebarOpen ? "w-64" : "w-0 border-r-0"
-        }`}
+        } ${narrow ? "sx-drawer" : ""}`}
       >
         <div className="w-64 flex flex-col h-full">
           <div className="h-12 shrink-0 px-3 border-b-2 border-neutral-900 flex items-center justify-between">
@@ -2097,7 +2350,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </div>
           <div className="p-2 shrink-0">
             <button
-              onClick={() => newChat()}
+              onClick={() => { newChat(); if (narrow) setSidebarOpen(false); }}
               className="w-full flex items-center justify-center gap-2 text-sm font-semibold bg-neutral-900 text-white rounded-xl px-3 py-2.5 hover:bg-violet-700 transition-colors"
             >
               <FiPlus size={15} /> New chat
@@ -2131,7 +2384,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   </button>
                 </div>
                 {projects.map((p) => (
-                  <button key={p.id} onClick={() => openProject(p.id)}
+                  <button key={p.id} onClick={() => { openProject(p.id); if (narrow) setSidebarOpen(false); }}
                     className={`w-full flex items-center gap-2 px-3 py-2 mb-1 rounded-xl text-sm text-left border-2 transition-colors ${
                       projectView === p.id ? "bg-violet-100 border-neutral-900" : "border-transparent hover:bg-neutral-100"}`}>
                     <FiFolder size={14} className="shrink-0 text-violet-600" />
@@ -2190,6 +2443,9 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </div>
         </div>
       </aside>
+      {narrow && sidebarOpen && (
+        <div className="sx-scrim fixed inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
+      )}
 
       {/* ── Main ── */}
       <div className="flex-1 min-w-0 flex flex-col">
@@ -2202,7 +2458,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           >
             <FiSidebar />
           </button>
-          <span className="text-sm font-bold truncate">{headerTitle}</span>
+          <span className="text-sm font-bold truncate">{ui === "new" ? chatLabel(headerTitle) : headerTitle}</span>
           {projectChip && (
             <button onClick={() => openProject(projectChip.id)} title="Open this project"
               className="hidden sm:flex shrink-0 items-center gap-1 max-w-[180px] text-[11px] font-bold text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5 hover:border-violet-500">
@@ -2235,7 +2491,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     onClick={() => setMode(m as PanelMode)}
                     title={label}
                     className={`w-9 h-8 flex items-center justify-center text-sm transition-colors ${
-                      mode === m ? "bg-neutral-900 text-white" : "bg-white text-neutral-500 hover:bg-neutral-100"
+                      viewMode === m ? "bg-neutral-900 text-white" : "bg-white text-neutral-500 hover:bg-neutral-100"
                     }`}
                   >
                     <Icon size={14} />
@@ -2294,8 +2550,22 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   {groupMessages(messages).map((g, gi) => (
                     g.role === "user" ? (
                       <div key={g.items[0].id} className="flex justify-end">
-                        <div className={`sx-user max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md ${BRUT} bg-violet-500 text-white ${SHADOW} whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed`}>
-                          {g.items.map((m) => m.content).join("\n\n")}
+                        {ui === "new" ? (
+                          <UserBubble text={g.items.map((m) => m.content).join("\n\n")} />
+                        ) : (
+                          <div className={`sx-user max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md ${BRUT} bg-violet-500 text-white ${SHADOW} whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[14.5px] leading-relaxed`}>
+                            {g.items.map((m) => m.content).join("\n\n")}
+                          </div>
+                        )}
+                      </div>
+                    ) : ui === "new" ? (
+                      /* New look: one answer is one card, its lines the card's paragraphs. */
+                      <div key={g.items[0].id} className="flex gap-3">
+                        <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
+                          <SenseiMark />
+                        </div>
+                        <div className={`sx-answer min-w-0 max-w-[92%] ${CARD} rounded-tl-md px-4 py-3 space-y-3`}>
+                          {g.items.map((m) => <RichText key={m.id} text={plainAnswer(m.content)} />)}
                         </div>
                       </div>
                     ) : (
@@ -2318,7 +2588,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                   {/* A lookup's results live here, in the chat, not in the side panel. */}
                   {!(quickPanel && showTable) && quickTables.some((t) => t.rows.length > 0) && (
                     <QuickResults tables={quickTables} onEnrichRow={enrichRow}
-                      onOpenTable={() => { setQuickPanelFor(activeChat); setMode("split"); }} />
+                      onOpenTable={() => { setQuickPanelFor(activeChat); setMode(narrow ? "table" : "split"); }} />
                   )}
                   {/* Until we know this run is a search, and for every run that
                       is not one, show a quiet thinking line rather than a progress
@@ -2403,6 +2673,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={running || uploading}
+                        aria-label="Attach files"
                         title="Attach resumes, a cohort sheet or screenshots (PDF, Word, Excel, CSV, images)"
                         className="w-9 h-9 rounded-xl border-2 border-neutral-900 bg-white text-neutral-600 flex items-center justify-center hover:bg-violet-50 hover:text-violet-700 transition-colors disabled:opacity-40"
                       >
@@ -2412,6 +2683,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                         <button
                           onClick={stopRun}
                           disabled={stopping}
+                          aria-label="Stop this run"
                           title="Stop this run (keeps what's already found)"
                           className="bg-red-600 text-white w-9 h-9 rounded-xl flex items-center justify-center hover:bg-red-700 transition-colors disabled:opacity-60 border-2 border-neutral-900"
                         >
@@ -2421,6 +2693,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                         <button
                           onClick={() => send()}
                           disabled={sending || !input.trim()}
+                          aria-label="Send"
                           className="bg-violet-700 text-white w-9 h-9 rounded-xl border-2 border-neutral-900 flex items-center justify-center hover:bg-violet-800 transition-colors disabled:opacity-30"
                         >
                           {sending ? <FiLoader className="animate-spin" size={15} /> : <FiSend size={15} />}
@@ -2449,7 +2722,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               they do, ...), with its detail drawer, cards toggle and reduce-to-split. The
               old bespoke WorkGrid only showed company/contact/phone/email, so the Work
               table read as blank vs prod. */}
-          {showTable && mode === "table" && (
+          {showTable && viewMode === "table" && (
             <ResultsPanel
               widthPct={tablePct}
               fullWidth={true}
@@ -2467,7 +2740,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               onLever={send}
             />
           )}
-          {showTable && mode !== "table" && (
+          {showTable && viewMode !== "table" && (
             <ResultsPanel
               widthPct={tablePct}
               fullWidth={false}
@@ -3648,6 +3921,7 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
   coach: Coach | null;
   onLever: (message: string) => void;
 }) {
+  const ui = useContext(UiContext);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [detailRow, setDetailRow] = useState<BobRow | null>(null);
   const seenRows = useRef<Set<number>>(new Set());
@@ -3689,14 +3963,21 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
   const deleteRowG = (id: number) => { if (id >= 0) onDeleteRow(id); };
 
   // Track which rows are new (for the flash-in animation), then mark seen.
+  // New look: a table that opens with its rows already in it does not flash all of them on every visit;
+  // only rows that arrive while it is open do.
+  const seenTables = useRef<Set<number>>(new Set());
   const newIds = useMemo(() => {
     const ids = new Set<number>();
-    for (const t of tables) for (const r of t.rows) if (!seenRows.current.has(r.id)) ids.add(r.id);
+    for (const t of tables) {
+      if (ui === "new" && !seenTables.current.has(t.id)) continue;
+      for (const r of t.rows) if (!seenRows.current.has(r.id)) ids.add(r.id);
+    }
     for (const r of provisional) if (!seenRows.current.has(r.id)) ids.add(r.id);
     return ids;
-  }, [tables, provisional]);
+  }, [tables, provisional, ui]);
   useEffect(() => {
     const timer = setTimeout(() => {
+      for (const t of tables) seenTables.current.add(t.id);
       for (const t of tables) for (const r of t.rows) seenRows.current.add(r.id);
       for (const r of provisional) seenRows.current.add(r.id);
     }, 100);
@@ -3740,10 +4021,12 @@ function ResultsPanel({ tables, run, widthPct, fullWidth, expanded, onExpand, vi
                 ? "bg-violet-500 text-white border-neutral-900"
                 : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-900"
             }`}
-            title={prettify(t.name)}
+            title={ui === "new" ? sentence(t.name) : prettify(t.name)}
           >
-            <span className="truncate">{prettify(t.name)}</span>
-            <span className="opacity-70 shrink-0">· {t.id === active?.id ? displayRows.length : t.rows.length}</span>
+            <span className="truncate">{ui === "new" ? sentence(t.name) : prettify(t.name)}</span>
+            {ui === "new"
+              ? <span className="sx-count shrink-0">{t.id === active?.id ? displayRows.length : t.rows.length}</span>
+              : <span className="opacity-70 shrink-0">· {t.id === active?.id ? displayRows.length : t.rows.length}</span>}
           </button>
         ))}
         </div>
@@ -4215,6 +4498,7 @@ function CompanyCard({ row, index, isNew, onOpen, onStatus, onEnrich, onDelete }
             <EnrichButton cells={c} onEnrich={onEnrich} />
           )}
           <select
+            aria-label="Status"
             value={row.status}
             onChange={(e) => onStatus(e.target.value)}
             onClick={(e) => e.stopPropagation()}
@@ -4269,6 +4553,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
   const HIDE = new Set(["company", "contact_name", "contact_title", "contact_phone",
     "contact_email", "contact_linkedin_url", "tier"]);
   const cols = orderColumns(table.columns);
+  const ui = useContext(UiContext);
   return (
     <div className="flex-1 overflow-auto bg-white">
       <table className="text-[12.5px] border-collapse w-full">
@@ -4277,8 +4562,8 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
             <th className="sticky left-0 z-30 bg-[#faf7f2] px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Company</th>
             <th className="px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Contact</th>
             {cols.filter((c) => !HIDE.has(c.key)).map((c) => (
-              <th key={c.key} className={`px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap ${WIDE_KEYS.has(c.key) ? "min-w-[240px]" : ""}`}>
-                {prettify(c.label || c.key)}
+              <th key={c.key} data-col={c.key} className={`px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap ${WIDE_KEYS.has(c.key) ? "min-w-[240px]" : ""}`}>
+                {columnLabel(c, ui)}
               </th>
             ))}
             <th className="px-3 py-2.5 text-left font-bold text-neutral-500 border-b-2 border-neutral-900 whitespace-nowrap">Status</th>
@@ -4325,7 +4610,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
                 )}
               </td>
               {cols.filter((c) => !HIDE.has(c.key)).map((c) => (
-                <td key={c.key} className={`px-3 py-2.5 ${WIDE_KEYS.has(c.key) ? "min-w-[240px] max-w-[340px]" : "max-w-[200px]"}`}>
+                <td key={c.key} data-col={c.key} className={`px-3 py-2.5 ${WIDE_KEYS.has(c.key) ? "min-w-[240px] max-w-[340px]" : "max-w-[200px]"}`}>
                   <Cell colKey={c.key} value={r.cells[c.key]} />
                 </td>
               ))}
@@ -4334,6 +4619,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
                   <ProvChip status={str(r.cells._opp_status)} />
                 ) : (
                   <select
+                    aria-label="Status"
                     value={r.status}
                     onChange={(e) => onRowStatus(r.id, e.target.value)}
                     className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[r.status] || STATUS_STYLE.new}`}
@@ -4461,6 +4747,7 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
   onEnrich: () => void;
   onDelete: () => void;
 }) {
+  const ui = useContext(UiContext);
   const [copied, setCopied] = useState<string | null>(null);
   const company = str(row.cells.name) || str(row.cells.company) || "Details";
 
@@ -4486,6 +4773,7 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
             <h3 className="font-['Clash_Display'] text-xl font-semibold truncate">{company}</h3>
             <div className="flex items-center gap-2 mt-1.5">
               <select
+                aria-label="Status"
                 value={row.status}
                 onChange={(e) => onStatus(e.target.value)}
                 className={`text-[11px] font-bold rounded-lg px-1.5 py-1 border cursor-pointer ${STATUS_STYLE[row.status] || STATUS_STYLE.new}`}
@@ -4523,7 +4811,7 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
                     return (
                       <div key={c.key} className="group">
                         <div className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 mb-0.5 flex items-center gap-2">
-                          {prettify(c.label || c.key)}
+                          {columnLabel(c, ui)}
                           {urls.length === 0 && (
                             <button
                               onClick={() => copy(c.key, s)}

@@ -138,7 +138,7 @@ const SX_CSS = `
 /* ── tokens ── */
 .sx {
   --bg: #FBFBFD; --bg2: #F4F4F9; --surface: #FFFFFF; --track: #E9EAF2;
-  --ink: #16161E; --t1: #2A2B36; --t2: #585B6C; --t3: #8A8D9E; --t4: #AAADBC;
+  --ink: #16161E; --t1: #2A2B36; --t2: #585B6C; --t3: #686B7D; --t4: #8E91A3;
   --line: rgba(22,22,40,.09); --line2: rgba(22,22,40,.15);
   --acc: #5B63E8; --acc-deep: #4148C6; --acc-soft: #EEEFFE; --acc-soft2: #E3E5FD; --acc-line: rgba(91,99,232,.28); --acc-lite: #9AA2FF;
   --mint: #1E9E6E; --mint-ink: #157A54; --mint-soft: #E7F8F0; --mint-line: rgba(30,158,110,.3);
@@ -184,6 +184,11 @@ const SX_CSS = `
 .sx code, .sx pre, .sx .font-mono { font-family: var(--mono); }
 .sx a[href^="tel:"], .sx a[href^="mailto:"] { font-family: var(--mono); font-weight: 400; }
 .sx ::selection { background: rgba(91,99,232,.2); }
+/* Type floor. The markup was sized for a heavier face at 9-11px; in Geist those sizes are hard to read, so
+   nothing a person has to read goes under 11px, and the 11px line becomes 12. */
+.sx [class~="text-[9px]"], .sx [class~="text-[10px]"] { font-size: 11px; }
+.sx [class~="text-[10.5px]"] { font-size: 11.5px; }
+.sx [class~="text-[11px]"], .sx [class~="text-[11.5px]"] { font-size: 12px; }
 
 /* ── surfaces ── */
 .sx [class~="bg-[#faf7f2]"] { background-color: var(--bg); }
