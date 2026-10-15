@@ -929,11 +929,16 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
               {(data?.activity || []).map((a, i) => (
                 <div key={i} className="flex items-center justify-between gap-3 px-5 py-2.5 border-b border-neutral-100 text-sm">
                   <div className="min-w-0 flex items-center gap-2">
-                    <span className={`shrink-0 text-[10px] font-bold rounded px-1.5 py-0.5 ${a.kind === "enrichment" ? "bg-violet-100 text-violet-700" : "bg-neutral-100 text-neutral-500"}`}>{a.kind === "enrichment" ? "reveal" : "AI"}</span>
-                    <span className="truncate text-neutral-600">{a.email || "team"}</span>
+                    <span className={`shrink-0 text-[10px] font-bold rounded px-1.5 py-0.5 ${a.kind === "enrichment" ? "bg-violet-100 text-violet-700" : "bg-neutral-100 text-neutral-500"}`}>{a.kind === "enrichment" ? (ui === "new" ? "Reveal" : "reveal") : (ui === "new" ? "AI search" : "AI")}</span>
+                    <span className="truncate text-neutral-600">{a.email || (ui === "new" ? "Workspace" : "team")}</span>
                   </div>
                   <div className="shrink-0 flex items-center gap-3 text-xs">
-                    <span className="font-bold text-neutral-700">{a.delta}</span>
+                    <span className="font-bold text-neutral-700">
+                      {ui === "new"
+                        // a figure with its unit: "-608" alone did not say whether it was reveals or AI credits
+                        ? `${Number(a.delta).toLocaleString()} ${a.kind === "enrichment" ? "reveal" : "AI credit"}${Math.abs(Number(a.delta)) === 1 ? "" : "s"}`
+                        : a.delta}
+                    </span>
                     <span className="text-neutral-400">{fmtTime(a.created_at)}</span>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   FiPlus, FiTrash2, FiSend, FiDownload, FiZap, FiSearch,
@@ -303,6 +303,21 @@ function UserBubble({ text }: { text: string }) {
       )}
     </div>
   );
+}
+
+// The sidebar's recent chats by the day they were last used (new look).
+function byDay(chats: ChatSummary[]): [string, ChatSummary[]][] {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const today = start.getTime(), day = 86_400_000;
+  const groups: [string, ChatSummary[]][] = [["Today", []], ["Yesterday", []], ["Earlier this week", []], ["Older", []]];
+  for (const c of chats) {
+    // the same normalising as shortWhen: Safari will not parse Postgres's space or microseconds
+    const t = Date.parse((c.updated_at || "").replace(" ", "T").replace(/(\.\d{3})\d+/, "$1"));
+    const k = !Number.isFinite(t) ? 3 : t >= today ? 0 : t >= today - day ? 1 : t >= today - 6 * day ? 2 : 3;
+    groups[k][1].push(c);
+  }
+  return groups.filter(([, list]) => list.length > 0);
 }
 
 // A phone number as people read it (new look): +91 98508 53999, +1 214-354-9833. Other countries stay as
@@ -2505,10 +2520,18 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                     <FiFolderPlus size={14} className="shrink-0" /> New project
                   </button>
                 )}
-                <div className={SECTION}><span>Recent</span></div>
+                {ui !== "new" && <div className={SECTION}><span>Recent</span></div>}
               </>
             )}
-            {recent.map(renderChatRow)}
+            {ui === "new"
+              // new look: the recent chats under the day they were last used, so a long list has landmarks
+              ? byDay(recent).map(([label, list]) => (
+                  <Fragment key={label}>
+                    <div className={SECTION}><span>{label}</span></div>
+                    {list.map(renderChatRow)}
+                  </Fragment>
+                ))
+              : recent.map(renderChatRow)}
             {chats.length === 0 && pinned.length === 0 && <p className="text-neutral-400 text-sm p-3">No chats yet.</p>}
           </div>
           <div className="p-3 border-t-2 border-neutral-900 shrink-0 space-y-2">
