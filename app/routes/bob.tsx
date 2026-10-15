@@ -936,6 +936,10 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 /* the account links at the foot of the sidebar: 12px with room to hit them */
 .sx aside .space-y-2 > div.flex > button { padding: 5px 0; font-size: 12.5px; color: var(--t2); }
 .sx aside .space-y-2 > div[title] { font-size: 12.5px; color: var(--t3); }
+/* the last small targets: lookup card contacts, "Open as table", the drawer's copy buttons, sign-in links */
+.sx .bob-canvas a[href^="tel:"], .sx .bob-canvas a[href^="mailto:"], .sx .bob-canvas button[title^="Show these as a table"] { min-height: 24px; }
+.sx [class~="max-w-[440px]"] button[title="Copy"] { width: 24px; height: 24px; margin: -6px 0; display: inline-flex; align-items: center; justify-content: center; }
+.sx main.min-h-screen button { min-height: 24px; }
 `;
 /* sx:end */
 
@@ -1078,7 +1082,7 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
     "mt-4 w-full bg-violet-500 text-white font-bold py-3 rounded-2xl border-2 border-neutral-900 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all disabled:opacity-60";
 
   return (
-    <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
+    <main id="main" className="min-h-screen bg-[#faf7f2] flex items-center justify-center p-6 font-['Satoshi']">
       <div className="w-full max-w-md bg-white border-2 border-neutral-900 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] p-8">
         <div className="w-12 h-12 border-2 border-neutral-900 rounded-2xl overflow-hidden mb-5">
           <SenseiMark />
@@ -1180,7 +1184,7 @@ function Gate({ onSuccess }: { onSuccess: () => void }) {
           </>
         )}
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -2644,7 +2648,8 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               {/* At rest the transcript area does not stretch, so this and the
                   composer below centre together as one block. Mid-conversation it
                   reverts to a normal scrolling transcript with a docked composer. */}
-              <div ref={scrollRef} className={atRest ? "px-5 shrink-0" : "flex-1 overflow-y-auto px-5 py-6 flex flex-col"}>
+              <div ref={scrollRef} className={atRest ? "px-5 shrink-0" : "flex-1 overflow-y-auto px-5 py-6 flex flex-col"}
+                tabIndex={atRest ? undefined : 0} aria-label={atRest ? undefined : "Conversation"}>
                 {atRest && <EmptyChat />}
                 {/* mt-auto anchors a short transcript to the BOTTOM, so the first
                     exchange sits just above the composer instead of stranded at
@@ -4982,7 +4987,7 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
       <div className="absolute top-0 right-0 bottom-0 w-full max-w-[440px] bg-white border-l-2 border-neutral-900 z-40 flex flex-col bob-pop">
         <div className="p-4 border-b-2 border-neutral-900 flex items-start gap-3">
           <div className="min-w-0">
-            <h3 className="font-['Clash_Display'] text-xl font-semibold truncate">{headline}</h3>
+            <h2 className="font-['Clash_Display'] text-xl font-semibold truncate">{headline}</h2>
             {subline && <p className="sx-drawer-sub">{subline}</p>}
             <div className="flex items-center gap-2 mt-1.5">
               <select
@@ -5006,7 +5011,7 @@ function RowDrawer({ row, columns, onClose, onStatus, onEnrich, onDelete }: {
               <p className="text-[11px] text-neutral-500 mt-1.5">{str(row.cells._contact_note)}</p>
             )}
           </div>
-          <button onClick={onClose} className="ml-auto w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900">
+          <button onClick={onClose} aria-label="Close" className="ml-auto w-8 h-8 shrink-0 rounded-lg flex items-center justify-center text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900">
             <FiX />
           </button>
         </div>

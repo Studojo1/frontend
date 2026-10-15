@@ -391,6 +391,8 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
   .sx main[class~="ml-60"] { margin-left: 0; }
   .sx main[class~="ml-60"] > div { padding-left: 16px; padding-right: 16px; }
 }
+/* the account links at the foot of the nav: room to hit them */
+.sx aside .p-3 > div.flex > button { padding: 4px 0; }
 `;
 /* sx:end */
 
@@ -747,7 +749,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
       </aside>
 
       {/* ── Main ── */}
-      <main className="flex-1 ml-60 overflow-y-auto">
+      <main id="main" className="flex-1 ml-60 overflow-y-auto">
         <div className="max-w-5xl mx-auto px-6 py-8">
           {err && <div className="mb-4 bg-red-50 border-2 border-red-500 text-red-700 rounded-xl px-4 py-2 text-sm">{err}</div>}
           <h1 className="font-['Clash_Display'] text-2xl font-bold mb-6 capitalize">{NAV.find((n) => n.id === tab)?.label}</h1>
