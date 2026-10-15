@@ -862,6 +862,9 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 .sx td[data-col="student"], .sx td[data-col="role"], .sx td[data-col="city"] { min-width: 150px; }
 .sx td[data-col="student"] > span { font-weight: 600; color: var(--ink); }
 .sx td[data-col="fit_score"], .sx th[data-col="fit_score"] { min-width: 64px; }
+/* a match table: the student column needs a name's width, the company column (with the role under it) the room */
+.sx table.sx-student-first tbody td.sticky { min-width: 150px; max-width: 190px; }
+.sx table.sx-student-first td[data-col="company"] { min-width: 230px; max-width: 300px; }
 /* the scrollbar shows, so the columns past the edge of the pane are not a secret */
 .sx .flex-1.overflow-auto.bg-white::-webkit-scrollbar { height: 10px; width: 10px; }
 .sx .flex-1.overflow-auto.bg-white::-webkit-scrollbar-thumb { background-color: var(--line2); border-radius: 999px; border: 2px solid var(--surface); }
@@ -895,6 +898,13 @@ body:has(> .sx) > a[href="#main"]:focus { font-family: 'Geist', -apple-system, s
 /* dark: "New chat" in the accent, not a white slab that outshines the page */
 .sx .sx-dark aside .p-2 > button.bg-neutral-900 { background-color: var(--acc-fill); color: #fff; }
 .sx .sx-dark aside .p-2 > button.bg-neutral-900:hover { background-color: var(--acc-fill-h); color: #fff; }
+/* the live search's counters and countdown in the text face too */
+.sx [class~="font-['Clash_Display']"].tabular-nums { font-family: var(--sans); letter-spacing: -.02em; }
+/* a phone: the header keeps room for the chat's name; "researching" shrinks to its spinner and the AI pill goes */
+@media (max-width: 767px) {
+  .sx header > span.rounded-full { font-size: 0; gap: 0; padding: 6px; }
+  .sx header [class~="gap-1.5"] > .relative:last-child:not(:first-child) { display: none; }
+}
 /* dark: logos sit on a white tile, as they do in light; black marks vanished on the dark surface */
 .sx .sx-dark img.rounded-md.object-contain { background-color: #fff; }
 /* the "..." on each chat appears on hover, focus or the open chat, not as a column of 13 identical icons */
@@ -1265,7 +1275,7 @@ function ChangePasswordModal({ onClose, onChanged }: { onClose: () => void; onCh
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
           <h2 className="font-['Clash_Display'] text-xl font-semibold">Change password</h2>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900" aria-label="Close"><FiX size={18} /></button>
         </div>
         <p className="text-sm text-neutral-500 mb-4">You'll be signed out everywhere and can sign back in with the new password.</p>
         <input type="password" autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} placeholder="Current password" className={inputCls} />
@@ -1424,6 +1434,7 @@ function ProjectPage({ project, chats, loading, meEmail, onOpenChat, onNewChat, 
   project: Project | undefined; chats: ChatSummary[]; loading: boolean; meEmail: string | null;
   onOpenChat: (id: number) => void; onNewChat: () => void; onRename: () => void; onDelete: () => void;
 }) {
+  const ui = useContext(UiContext);
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const shown = q ? chats.filter((c) => c.title.toLowerCase().includes(q)) : chats;
@@ -1473,7 +1484,7 @@ function ProjectPage({ project, chats, loading, meEmail, onOpenChat, onNewChat, 
               className="text-left bg-white border-2 border-neutral-900 rounded-2xl px-4 py-3 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
               <div className="flex items-center gap-2">
                 {c.pinned && <LuPin size={13} className="shrink-0 text-violet-600" />}
-                <span className="font-semibold text-sm truncate">{c.title}</span>
+                <span className="font-semibold text-sm truncate" title={ui === "new" ? c.title : undefined}>{ui === "new" ? chatLabel(c.title) : c.title}</span>
               </div>
               <div className="text-[12px] text-neutral-500 mt-0.5 truncate">
                 {shortWhen(c.updated_at)}
@@ -2701,7 +2712,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       </div>
                     </div>
                   )}
-                  {searching && run && <RunProgress run={run} />}
+                  {searching && run && <RunProgress run={run} narrow={narrow} />}
                   {suggestions.length > 0 && (
                     <div className="flex flex-wrap gap-2 pl-10">
                       {suggestions.map((q) => (
@@ -3073,7 +3084,7 @@ function TeamModal({ orgName, onClose }: { orgName: string; onClose: () => void 
       >
         <div className="flex items-center justify-between mb-1">
           <h2 className="font-['Clash_Display'] text-xl font-semibold">Team · {orgName}</h2>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900" aria-label="Close"><FiX size={18} /></button>
         </div>
         <p className="text-sm text-neutral-500 mb-4">
           Invite teammates by their work email. They sign in with that email, no password.
@@ -3191,7 +3202,7 @@ function EnrichModal({ onClose }: { onClose: () => void }) {
            onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-1">
           <h2 className="font-['Clash_Display'] text-xl font-semibold">Enrich contacts</h2>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900" aria-label="Close"><FiX size={18} /></button>
         </div>
         <p className="text-[13px] text-neutral-500 mb-4">
           Paste LinkedIn profile links, or upload a sheet. You are charged only for contacts we actually find.
@@ -3338,7 +3349,7 @@ function SupportModal({ email, orgName, onClose }: { email: string; orgName: str
       >
         <div className="flex items-center justify-between mb-1">
           <h2 className="font-['Clash_Display'] text-xl font-semibold">Get support</h2>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900"><FiX size={18} /></button>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-900" aria-label="Close"><FiX size={18} /></button>
         </div>
         {doneId ? (
           <div className="py-6 text-center">
@@ -3684,7 +3695,7 @@ function LiveCompanies({ run }: { run: Run }) {
 // Compact in-CHAT status line while a run works. The rich, live detail (counters, sources,
 // company stream) lives in the MissionControl on the RIGHT, so this stays a slim one-liner and
 // the two panels never duplicate the same big card.
-function RunProgress({ run }: { run: Run }) {
+function RunProgress({ run, narrow = false }: { run: Run; narrow?: boolean }) {
   const { stageIdx, etaText, pct, last } = useRunEstimate(run);
   const reduce = useReducedMotion();
   // Streaming delivery: rows land as they pass and the run ends when the sources do, so a countdown would be a guess.
@@ -3721,7 +3732,7 @@ function RunProgress({ run }: { run: Run }) {
         )}
         <p className="text-[11px] text-neutral-400 mt-1.5">{streaming
           ? "Companies appear in the table as soon as they pass your checks. The search keeps going until the sources run out."
-          : "Full live progress is in the panel on the right."}</p>
+          : narrow ? "Full live progress is under Results, at the top right." : "Full live progress is in the panel on the right."}</p>
       </div>
     </div>
   );
@@ -4717,7 +4728,7 @@ function DenseTable({ table, newIds, onRowClick, onRowStatus, onEnrich, onDelete
   );
   return (
     <div className="flex-1 overflow-auto bg-white" tabIndex={0} aria-label={`${table.name}: results table`}>
-      <table className="text-[12.5px] border-collapse w-full">
+      <table className={`text-[12.5px] border-collapse w-full ${studentFirst ? "sx-student-first" : ""}`}>
         <thead className="sticky top-0 z-20">
           <tr className="bg-[#faf7f2]">
             <th className={`sticky left-0 z-30 bg-[#faf7f2] ${TH}`}>{studentFirst ? "Student" : "Company"}</th>
