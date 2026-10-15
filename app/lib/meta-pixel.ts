@@ -9,9 +9,11 @@ import { consentForServer, trackingAllowed } from "./consent";
 const PIXEL_ID = import.meta.env?.VITE_PUBLIC_META_PIXEL_ID as string | undefined;
 
 /** Pages Meta must never see: the high-school reports are read by minors, who
- * must not be profiled for ads (audit HP-N13). Pure, for tests. */
+ * must not be profiled for ads (audit HP-N13), and a student's public page
+ * (/profile/:slug) carries their name in its URL, which every pixel event
+ * sends. /profile itself (the account page) is not excluded. Pure, for tests. */
 export function metaExcludedPath(pathname: string): boolean {
-  return pathname.startsWith("/reports/") && pathname.includes("high-school");
+  return (pathname.startsWith("/reports/") && pathname.includes("high-school")) || /^\/profile\/[^/]/.test(pathname);
 }
 
 /** URLs Meta must never see: the Gmail connect return carries a one-time
