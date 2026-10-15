@@ -770,6 +770,27 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState<PanelMode>("split");
+  // The chat whose quick-lookup contacts the user asked to see as a table ("Open as table"); none by default.
+  const [quickPanelFor, setQuickPanelFor] = useState<number | null>(null);
+  // A tab left open keeps running the version it loaded, so a fix already live looked broken there (owner,
+  // 2026-10-15). Every 5 minutes and on focus the page checks whether a newer build is live, and says so.
+  const [newVersion, setNewVersion] = useState(false);
+  useEffect(() => {
+    const mine = document.querySelector('link[href*="/assets/manifest-"]')?.getAttribute("href") || "";
+    if (!mine) return;
+    let stop = false;
+    const check = async () => {
+      try {
+        const html = await (await fetch("/", { cache: "no-store", credentials: "same-origin" })).text();
+        const live = (html.match(/\/assets\/manifest-[A-Za-z0-9_-]+\.js/) || [""])[0];
+        if (!stop && live && live !== mine) setNewVersion(true);
+      } catch { /* offline: the next check tries again */ }
+    };
+    const timer = setInterval(check, 5 * 60 * 1000);
+    const onFocus = () => { void check(); };
+    window.addEventListener("focus", onFocus);
+    return () => { stop = true; clearInterval(timer); window.removeEventListener("focus", onFocus); };
+  }, []);
   const [tablePct, setTablePct] = useState(48);
   const [viewPref, setViewPref] = useState<ResultsView | null>(null);
   const dragging = useRef(false);
@@ -1275,8 +1296,13 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
 
   const running = run?.status === "running";
   useEffect(() => { if (!running) setStopping(false); }, [running]);
-  const hasTables = tables.length > 0;
-  const showChat = mode !== "table";
+  // Quick-lookup tables (a profile link, a name at a company, a job link or a screenshot -> that contact's number) show
+  // as contact cards in the chat, never in the side panel: the panel is for searches (owner, 2026-10-15). "Open as
+  // table" on the cards shows them there on request, for that chat only.
+  const quickTables = tables.filter((t) => QUICK_TABLES.has(t.name));
+  const panelTables = tables.filter((t) => !QUICK_TABLES.has(t.name));
+  const quickPanel = quickPanelFor != null && quickPanelFor === activeChat;
+  const hasTables = panelTables.length > 0 || (quickPanel && quickTables.length > 0);
   // Mount the results panel as soon as a run STARTS (not only once a table object
   // exists), so the live-progress banner + provisional rows can show immediately.
   // A run is only SEARCHING once it has actually opened a table. Keying the
@@ -1284,8 +1310,27 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
   // neural-net panel and "about 10 min left" for a few seconds, including runs
   // that were only going to come back with one clarifying question. create_table
   // is the first thing a real search does, so it is the honest signal.
-  const searching = running && hasTables;
+  // A chat that ALREADY has a table needs more than that: a follow-up there ("which site did you get this number
+  // from", a quick lookup, "which opening fits which student") is not a search, yet it showed "Sensei is researching,
+  // 14 min left, 202 sourced" for a 12-second answer (owner, 2026-10-15). The backend writes what the turn is to the
+  // run's counters a second or two in; until it has, and for every turn that is not a search, the quiet thinking
+  // line shows instead.
+  const rc = (run?.counters || {}) as Record<string, unknown>;
+  const turnKnown = typeof rc._chat_only === "boolean";
+  const notASearch = rc._chat_only === true || rc._lookup_turn === true || rc._match_turn === true;
+  const searching = running && hasTables && turnKnown && !notASearch;
   const showTable = (hasTables || searching) && mode !== "chat";
+  // a chat with nothing for the side panel always shows the chat, whatever view was picked before
+  const showChat = mode !== "table" || !showTable;
+  // What a short (non-search) turn is doing right now, from its own events ("Looking up 2 contacts").
+  let liveStep = "";
+  if (running && !searching) {
+    const evs = run?.events || [];
+    for (let i = evs.length - 1; i >= 0 && !liveStep; i--) {
+      const l = String(evs[i]?.label || "");
+      if (/^(looking up|reading the job|finding the hiring contact|matching each student)/i.test(l)) liveStep = l;
+    }
+  }
   const lastMsg = messages[messages.length - 1];
   const suggestions: string[] =
     !running && lastMsg?.role === "assistant" ? lastMsg.meta?.suggestions || [] : [];
@@ -1698,6 +1743,16 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
           </div>
         </header>
 
+        {newVersion && (
+          <div className="shrink-0 bg-violet-50 border-b-2 border-violet-500 text-violet-800 text-xs font-bold px-4 py-2 flex items-center justify-between gap-3">
+            <span>A new version of Sensei is ready.</span>
+            <button onClick={() => window.location.reload()}
+              className="shrink-0 bg-violet-500 text-white border-2 border-neutral-900 rounded-lg px-2.5 py-1 hover:bg-violet-600">
+              Reload
+            </button>
+          </div>
+        )}
+
         {notice && (
           <div className="shrink-0 bg-red-50 border-b-2 border-red-500 text-red-700 text-xs font-bold px-4 py-2 flex items-center justify-between gap-3">
             <span>{notice}</span>
@@ -1757,10 +1812,15 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                       </div>
                     )
                   ))}
-                  {/* Before a table exists we do not yet know whether this run
-                      is a search or a one-line question, so show a quiet thinking
-                      line rather than a progress bar promising "10 min left". */}
-                  {running && !hasTables && (
+                  {/* A lookup's results live here, in the chat, not in the side panel. */}
+                  {!(quickPanel && showTable) && quickTables.some((t) => t.rows.length > 0) && (
+                    <QuickResults tables={quickTables} onEnrichRow={enrichRow}
+                      onOpenTable={() => { setQuickPanelFor(activeChat); setMode("split"); }} />
+                  )}
+                  {/* Until we know this run is a search, and for every run that
+                      is not one, show a quiet thinking line rather than a progress
+                      bar promising "10 min left". */}
+                  {running && !searching && (
                     <div className="flex gap-2.5">
                       <div className="w-7 h-7 mt-0.5 shrink-0 rounded-lg overflow-hidden border-2 border-neutral-900">
                         <img src="/favicon.png" alt="Sensei" className="w-full h-full object-cover" />
@@ -1769,6 +1829,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:150ms]" />
                         <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse [animation-delay:300ms]" />
+                        {liveStep && <span className="ml-1.5 text-[13px] font-semibold text-neutral-600">{liveStep}…</span>}
                       </div>
                     </div>
                   )}
@@ -1882,7 +1943,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               widthPct={tablePct}
               fullWidth={true}
               tables={tables}
-              run={running ? run : null}
+              run={searching ? run : null}
               expanded={true}
               onExpand={() => setMode("split")}
               viewPref={viewPref}
@@ -1900,7 +1961,7 @@ function Workspace({ onAuthLost }: { onAuthLost: () => void }) {
               widthPct={tablePct}
               fullWidth={false}
               tables={tables}
-              run={running ? run : null}
+              run={searching ? run : null}
               expanded={false}
               onExpand={() => setMode("table")}
               viewPref={viewPref}
@@ -3255,6 +3316,110 @@ function contactStatus(cells: Record<string, unknown>): string {
   const s = str(cells._contact_status);
   if (s) return s;
   return str(cells.contact_phone) || str(cells.contact_email) ? "found" : "pending";
+}
+
+// ── Quick-lookup results: contact cards in the chat ─────────────────────────────
+// A lookup ("get me this person's number", the HR for a job link or a screenshot) answers in the chat itself: one card
+// per person or job, filling in live as the number comes back (owner, 2026-10-15: the side panel and its research view
+// are for searches only). The backend names these two tables (services/bob/quick.py).
+const QUICK_TABLES = new Set(["Contacts", "Jobs and hiring contacts"]);
+
+function QuickResults({ tables, onEnrichRow, onOpenTable }: {
+  tables: BobTable[];
+  onEnrichRow: (rowId: number) => void;
+  onOpenTable: () => void;
+}) {
+  const items = tables.flatMap((t) => t.rows.map((r) => ({ job: t.name !== "Contacts", row: r })));
+  if (items.length === 0) return null;
+  return (
+    <div className="pl-10 space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[10.5px] font-bold uppercase tracking-wide text-neutral-500">
+          {items.length === 1 ? "1 contact in this chat" : `${items.length} contacts in this chat`}
+        </span>
+        <button onClick={onOpenTable} title="Show these as a table (to export)"
+          className="inline-flex items-center gap-1 text-[11.5px] font-bold text-violet-600 hover:text-violet-800">
+          <FiGrid size={11} /> Open as table
+        </button>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {items.map(({ job, row }) => (
+          <QuickCard key={row.id} job={job} cells={row.cells} onEnrich={() => onEnrichRow(row.id)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function QuickCard({ job, cells: c, onEnrich }: { job: boolean; cells: Record<string, unknown>; onEnrich: () => void }) {
+  const status = contactStatus(c);
+  const who = job ? str(c.contact_name) : str(c.name);
+  const title = job ? str(c.contact_title) : str(c.title);
+  const company = str(c.company);
+  const phone = str(c.contact_phone);
+  const email = str(c.contact_email);
+  const profile = extractUrls(str(job ? c.contact_linkedin_url : c.linkedin_url))
+    .find((u) => /linkedin\.com\/in\//i.test(u));
+  const post = job ? extractUrls(str(c.evidence_url))[0] : "";
+  const note = str(c._contact_note);
+  const subtitle = [title, job ? "" : company].filter(Boolean).join(" · ");
+  return (
+    <div className={`${CARD} px-3.5 py-3 flex flex-col gap-1.5 min-w-0`}>
+      <div className="flex items-start justify-between gap-2 min-w-0">
+        <div className="min-w-0">
+          {job && (
+            <div className="text-[11px] font-bold text-neutral-500 truncate">
+              {[str(c.role) || "Role", company, str(c.city)].filter(Boolean).join(" · ")}
+            </div>
+          )}
+          <div className="text-[14px] font-bold truncate">
+            {who || (job ? "Hiring contact" : "Person")}
+          </div>
+          {subtitle && <div className="text-[12px] text-neutral-500 truncate">{subtitle}</div>}
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {profile && (
+            <a href={profile} target="_blank" rel="noreferrer" title="LinkedIn profile"
+              className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-[#0a66c2] hover:border-[#0a66c2]">
+              <FiLinkedin size={13} />
+            </a>
+          )}
+          {post && (
+            <a href={post} target="_blank" rel="noreferrer" title="Job post"
+              className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-500 hover:border-neutral-900">
+              <FiExternalLink size={13} />
+            </a>
+          )}
+        </div>
+      </div>
+      {status === "enriching" ? (
+        <div className="flex items-center gap-1.5 text-[12px] font-semibold text-violet-600">
+          <FiLoader size={12} className="animate-spin" /> Finding their number…
+        </div>
+      ) : phone || email ? (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] min-w-0">
+          {phone && (
+            <a href={`tel:${phone}`} className="inline-flex items-center gap-1 font-bold hover:text-violet-700">
+              <FiPhone size={12} className="text-green-600" /> {phone}
+            </a>
+          )}
+          {email && (
+            <a href={`mailto:${email}`} className="inline-flex items-center gap-1 text-neutral-700 hover:text-violet-700 truncate max-w-full">
+              <FiMail size={12} className="text-violet-600" /> {email}
+            </a>
+          )}
+          {!phone && <span className="text-[11.5px] text-neutral-500">No phone number found</span>}
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <span className="text-[12px] text-neutral-500 truncate" title={note}>
+            {note || (status === "pending" ? "Not looked up yet" : "No number found")}
+          </span>
+          <EnrichButton cells={c} onEnrich={onEnrich} size="xs" />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function EnrichButton({ cells, onEnrich, size = "sm" }: {
