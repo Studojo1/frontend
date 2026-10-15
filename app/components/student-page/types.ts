@@ -42,7 +42,7 @@ export type Profile = {
   classOf: string;
   /** Only when the student allows contact; otherwise every Email button is hidden. */
   email: string | null;
-  /** Without the protocol: "studojo.pro/flow/p/riya-menon-c1m". */
+  /** Without the protocol: "studojo.com/profile/riya-menon". */
   url: string;
   slug: string;
   /** The org tile shown on the profile card, if any. */
@@ -93,6 +93,13 @@ const IATA: Record<string, string> = {
 
 /** Three-letter code for a place: the airport when we know it, else its first letters. */
 export const cityCode = (city: string) => IATA[city] ?? city.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase();
+
+/** Three letters and digits for the pass ("SJ K4T"), from the page address: the same every time. */
+export function slugCode(slug: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < slug.length; i++) h = Math.imul(h ^ slug.charCodeAt(i), 16777619);
+  return (h >>> 0).toString(36).toUpperCase().padStart(3, "0").slice(-3);
+}
 
 /** The proof list's section labels (outreach-flow app/components/jernew/data.ts). */
 export const CLAIM_SECTION_LABEL = {

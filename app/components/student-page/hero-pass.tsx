@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { FiArrowLeft, FiCheck, FiLink, FiMail, FiRotateCw } from "react-icons/fi";
 import { Badge, Button, Card, cx, FOCUS_RING, PRESS } from "./ui";
-import { cityCode, linesFor, SECTION_LABEL, type HeroProps, type Profile } from "./types";
+import { cityCode, linesFor, SECTION_LABEL, slugCode, type HeroProps, type Profile } from "./types";
 import { Barcode, Jet, Mark, Num, Portrait, useMedia } from "./hero-pass-parts";
 
 const R = 14; // notch radius
@@ -48,7 +48,7 @@ export default function PassHero({ p, reduced }: HeroProps) {
   const fromCap = p.city || p.college;
   const to = t.role ? roleCode(t.role) : t.cities[0]?.code ?? "JOB";
   const toCap = t.role ? t.role.replace(/^Software engineering\b/i, wide ? "Software engineering" : "Software eng.") : t.cities[0]?.label ?? "Next role";
-  const flight = `SJ ${p.slug.split("-").pop()?.toUpperCase() ?? ""}`;
+  const flight = `SJ ${slugCode(p.slug)}`;
   const places = t.cities.length > 0 || t.remote;
   const toWords = [t.role, t.type.toLowerCase(), t.stage && `at ${t.stage.toLowerCase()}`].filter(Boolean).join(", ");
   const passenger = given ? `${last.toUpperCase()} / ${given.split(" ")[0].toUpperCase()}` : last.toUpperCase();
