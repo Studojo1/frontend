@@ -79,6 +79,11 @@ assert.ok(!JSON.stringify(sent).includes("gmail_code"));
 // 3. The high-school reports stay invisible to Meta.
 sent.length = 0;
 assert.equal(metaExcludedPath("/reports/how-to-get-a-high-school-internship-2026"), true);
+// A student's public page carries their name in the URL; the account page does not.
+assert.equal(metaExcludedPath("/profile/riya-sharma"), true);
+assert.equal(metaExcludedPath("/profile/riya-sharma/photo"), true);
+assert.equal(metaExcludedPath("/profile"), false);
+assert.equal(metaExcludedPath("/profile/"), false);
 go("/reports/how-to-get-a-high-school-internship-2026");
 assert.equal(trackMeta("ViewContent"), null);
 await settle();

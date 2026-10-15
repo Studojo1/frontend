@@ -395,8 +395,10 @@ export default function App() {
     location.pathname.startsWith("/auth") ||
     location.pathname.startsWith("/forgot-password") ||
     location.pathname.startsWith("/reset-password");
+  // A student's public page (/profile/:slug) is for the people they share it with, not a place to ask Studojo for help.
+  const onStudentPage = /^\/profile\/[^/]/.test(location.pathname);
   const hideGlobalChat =
-    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || onSensei || onAuth;
+    location.pathname.startsWith("/jrs") || location.pathname.startsWith("/cc") || onSensei || onAuth || onStudentPage;
 
   return (
     <>
